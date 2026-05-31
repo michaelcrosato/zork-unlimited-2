@@ -1,4 +1,4 @@
-import { GameState } from "./state.js";
+import { GameState, findRoom, getRoomExits } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { GameEvent } from "./events.js";
 import { evaluateConditions } from "./conditions.js";
@@ -134,7 +134,7 @@ export function step(
 
   // --- PARSER ENGINE REDUCER ---
   const parserPack = pack as ParserPack;
-  const currentRoom = parserPack.rooms.find((r) => r.id === state.current);
+  const currentRoom = findRoom(state, parserPack, state.current);
   if (!currentRoom) {
     return {
       state,
@@ -422,7 +422,8 @@ export function step(
     }
 
     case "MOVE": {
-      const exit = currentRoom.exits.find((e) => e.direction === action.direction);
+      const roomExits = getRoomExits(state, currentRoom);
+      const exit = roomExits.find((e) => e.direction === action.direction);
       if (!exit) {
         return {
           state,
@@ -453,7 +454,7 @@ export function step(
       });
 
       // Apply enter effects of the new room if found
-      const newRoom = parserPack.rooms.find((r) => r.id === exit.to);
+      const newRoom = findRoom(newState, parserPack, exit.to);
       if (newRoom) {
         events.push({
           type: "narration",

@@ -1,0 +1,60 @@
+meta:
+  id: unlimited_forest_pack
+  title: "The Procedural Forest"
+  start_room: clearing
+  vars_init:
+    score: 0
+  flags_init: [ shovel_undug ]
+
+rooms:
+  - id: clearing
+    name: "Sunlit Clearing"
+    description: "A beautiful sunlit clearing in the heart of the forest. The trees press in close, but a path leads west."
+    objects: [ shovel, mound ]
+    npcs: []
+    exits:
+      - { direction: west, to: deep_forest }
+
+  - id: deep_forest
+    name: "Deep Forest"
+    description: "The canopy blocks out most of the sun. It feels gloomy and silent."
+    objects: []
+    npcs: []
+    exits:
+      - { direction: east, to: clearing }
+
+objects:
+  - id: shovel
+    name: "rusty shovel"
+    aliases: [ shovel, rusty shovel, spade ]
+    description: "A rusty iron shovel with a sturdy wooden handle."
+    takeable: true
+
+  - id: mound
+    name: "earthen mound"
+    aliases: [ mound, earth, dirt ]
+    description: "A small mound of soft, freshly turned earth."
+    takeable: false
+    interactions:
+      - verb: USE
+        item: shovel
+        target: mound
+        conditions: [ { has_flag: shovel_undug } ]
+        effects:
+          - clear_flag: shovel_undug
+          - generate_procedural_room:
+              direction: east
+              to_id: hidden_glade
+              name: "Hidden Glade"
+              description: "A beautiful hidden glade has been revealed here. Wildflowers of all colors grow in abundance."
+          - narrate: "You dig vigorously into the earthen mound with the shovel. After a few scoops, you uncover a hidden passage leading east!"
+
+win_conditions:
+  - id: reach_glade
+    conditions: [ { visited: hidden_glade } ]
+    ending: ending_victory
+
+endings:
+  - id: ending_victory
+    title: "Hidden Glade Discovered!"
+    text: "You successfully uncovered the hidden passage and entered the beautiful glade. Your adventure is complete."

@@ -1,10 +1,15 @@
 import { spawn } from "child_process";
 import { resolve } from "path";
 
-async function runMcpPlaytest() {
-  console.log("=========================================");
-  console.log("🤖 STARTING AUTONOMOUS AFK MCP PLAYTEST");
-  console.log("=========================================\n");
+interface Turn {
+  cmd: string;
+  type: string;
+}
+
+async function runPlaytestSession(adventureId: string, turns: Turn[], verifySensory: boolean = false) {
+  console.log(`\n-----------------------------------------`);
+  console.log(`🎮 STARTING PLAYTEST SESSION: ${adventureId}`);
+  console.log(`-----------------------------------------`);
 
   const serverScript = resolve("src/bin/mcp-server.ts");
   const server = spawn("npx", ["tsx", serverScript], {
@@ -81,31 +86,13 @@ async function runMcpPlaytest() {
   console.log("🟢 MCP Server handshake successful!");
 
   // 2. Start game
-  console.log("Starting 'chapel_pack_v1' via MCP tool call...");
+  console.log(`Starting adventure '${adventureId}'...`);
   const startRes = await sendRequest("tools/call", {
     name: "start_new_game",
-    arguments: { adventureId: "chapel_pack_v1", sessionId: "afk-session" }
+    arguments: { adventureId, sessionId: "afk-session" }
   });
   const startText = startRes.result?.content?.[0]?.text || "";
   console.log("\n🎮 Initial Observation:\n" + startText);
-
-  // 3. Play turns (mixing standard & chaotic edge cases)
-  const turns = [
-    { cmd: "look", type: "standard" },
-    { cmd: "eat the locked door", type: "chaotic" }, // Edge case parser check
-    { cmd: "go north", type: "standard" },
-    { cmd: "drop inventory while jumping", type: "chaotic" }, // Edge case check
-    { cmd: "go west", type: "standard" },
-    { cmd: "take coil of rope", type: "standard" },
-    { cmd: "rub the brass key on the wall", type: "chaotic" }, // Unpossessed item check
-    { cmd: "go east", type: "standard" },
-    { cmd: "open old well with rope", type: "chaotic" }, // Invalid interaction verb mapping check
-    { cmd: "use coil of rope on old well", type: "standard" },
-    { cmd: "go down", type: "standard" },
-    { cmd: "take brass key", type: "standard" },
-    { cmd: "go up", type: "standard" },
-    { cmd: "go north", type: "standard" }
-  ];
 
   let turnIndex = 1;
   let errorsEncountered = 0;
@@ -123,25 +110,28 @@ async function runMcpPlaytest() {
         console.log(`❌ Turn rejected cleanly by engine: ${outputText}`);
       } else {
         console.log(`🟢 Outcome:\n${outputText}`);
-        // Verify sensory flavor text inclusion
-        const hasSensoryText = 
-          outputText.includes("pine needles") || 
-          outputText.includes("owl echoes") || 
-          outputText.includes("loam") || 
-          outputText.includes("watchfulness") ||
-          outputText.includes("incense") || 
-          outputText.includes("clouds of ancient") || 
-          outputText.includes("Dust motes") || 
-          outputText.includes("deep earth") ||
-          outputText.includes(" ancient chill") || 
-          outputText.includes("long-forgotten") || 
-          outputText.includes("metallic scent") || 
-          outputText.includes("shadows dance");
         
-        if (hasSensoryText) {
-          console.log("✨ Sensory narrative check: PASS (Flavor injected successfully!)");
-        } else {
-          console.log("⚠️ Sensory narrative check: WARNING (No match in narration, but description updated)");
+        if (verifySensory) {
+          // Verify sensory flavor text inclusion for chapel pack
+          const hasSensoryText = 
+            outputText.includes("pine needles") || 
+            outputText.includes("owl echoes") || 
+            outputText.includes("loam") || 
+            outputText.includes("watchfulness") ||
+            outputText.includes("incense") || 
+            outputText.includes("clouds of ancient") || 
+            outputText.includes("Dust motes") || 
+            outputText.includes("deep earth") ||
+            outputText.includes(" ancient chill") || 
+            outputText.includes("long-forgotten") || 
+            outputText.includes("metallic scent") || 
+            outputText.includes("shadows dance");
+          
+          if (hasSensoryText) {
+            console.log("✨ Sensory narrative check: PASS (Flavor injected successfully!)");
+          } else {
+            console.log("⚠️ Sensory narrative check: WARNING (No match in narration, but description updated)");
+          }
         }
       }
     } catch (err: any) {
@@ -156,15 +146,67 @@ async function runMcpPlaytest() {
   console.log("🟢 Subprocess killed. Port released.");
   
   if (errorsEncountered === 0) {
-    console.log("\n🎉 PLAYTEST COMPLETED SUCCESSFULLY! No runtime errors or crash events.");
+    console.log(`\n🎉 PLAYTEST FOR '${adventureId}' COMPLETED SUCCESSFULLY!`);
+    return true;
+  } else {
+    console.log(`\n🔴 PLAYTEST FOR '${adventureId}' FAILED: ${errorsEncountered} RPC errors occurred.`);
+    return false;
+  }
+}
+
+async function runMcpPlaytests() {
+  console.log("=================================================");
+  console.log("🤖 STARTING AUTONOMOUS AFK MCP PLAYTEST SUITE");
+  console.log("=================================================\n");
+
+  // Session 1: Baseline Chapel Quest
+  const chapelTurns: Turn[] = [
+    { cmd: "look", type: "standard" },
+    { cmd: "eat the locked door", type: "chaotic" }, // Edge case parser check
+    { cmd: "go north", type: "standard" },
+    { cmd: "drop inventory while jumping", type: "chaotic" }, // Edge case check
+    { cmd: "go west", type: "standard" },
+    { cmd: "take coil of rope", type: "standard" },
+    { cmd: "rub the brass key on the wall", type: "chaotic" }, // Unpossessed item check
+    { cmd: "go east", type: "standard" },
+    { cmd: "open old well with rope", type: "chaotic" }, // Invalid interaction verb mapping check
+    { cmd: "use coil of rope on old well", type: "standard" },
+    { cmd: "go down", type: "standard" },
+    { cmd: "take brass key", type: "standard" },
+    { cmd: "go up", type: "standard" },
+    { cmd: "go north", type: "standard" }
+  ];
+
+  const chapelSuccess = await runPlaytestSession("chapel_pack_v1", chapelTurns, true);
+
+  // Session 2: Procedural Forest Quest
+  const forestTurns: Turn[] = [
+    { cmd: "look", type: "standard" },
+    { cmd: "take rusty shovel", type: "standard" },
+    { cmd: "go west", type: "standard" }, // Moves to Deep Forest
+    { cmd: "go east", type: "standard" }, // Moves back to Sunlit Clearing
+    { cmd: "use rusty shovel on earthen mound", type: "standard" }, // Digs and generates procedural room to the east!
+    { cmd: "go east", type: "standard" }, // Navigates to the procedurally generated 'Hidden Glade'
+    { cmd: "look", type: "standard" },
+    { cmd: "go west", type: "standard" } // Navigates back to 'Sunlit Clearing'
+  ];
+
+  const forestSuccess = await runPlaytestSession("unlimited_forest_pack", forestTurns, false);
+
+  if (chapelSuccess && forestSuccess) {
+    console.log("\n=================================================");
+    console.log("🎉 ALL PLAYTEST RUNS COMPLETED SUCCESSFULLY!");
+    console.log("=================================================\n");
     process.exit(0);
   } else {
-    console.log(`\n🔴 PLAYTEST FAILED: ${errorsEncountered} RPC errors occurred.`);
+    console.log("\n=================================================");
+    console.log("🔴 PLAYTEST RUNS DETECTED FAILURES!");
+    console.log("=================================================\n");
     process.exit(1);
   }
 }
 
-runMcpPlaytest().catch((err) => {
-  console.error("Playtest script crashed:", err);
+runMcpPlaytests().catch((err) => {
+  console.error("Playtest suite crashed:", err);
   process.exit(1);
 });

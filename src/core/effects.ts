@@ -67,6 +67,14 @@ export const EffectSchema = z.union([
       msg: z.string().optional(),
     }),
   }),
+  z.object({
+    generate_procedural_room: z.object({
+      direction: z.string(),
+      to_id: z.string(),
+      name: z.string(),
+      description: z.string(),
+    }),
+  }),
 ]);
 
 export type Effect = z.infer<typeof EffectSchema>;
@@ -298,6 +306,44 @@ export function applyEffect(state: GameState, effect: Effect): { state: GameStat
     return {
       state: newState,
       event: { type: "narration", text },
+    };
+  }
+
+  if ("generate_procedural_room" in effect) {
+    const { direction, to_id, name, description } = effect.generate_procedural_room;
+    if (!newState.proceduralRooms) {
+      newState.proceduralRooms = [];
+    }
+
+    const oppositeDirections: Record<string, string> = {
+      north: "south",
+      south: "north",
+      east: "west",
+      west: "east",
+      up: "down",
+      down: "up",
+    };
+
+    const oppDir = oppositeDirections[direction] || "south";
+
+    const exists = newState.proceduralRooms.some((r: any) => r.id === to_id);
+    if (!exists) {
+      newState.proceduralRooms.push({
+        id: to_id,
+        name,
+        description,
+        objects: [],
+        npcs: [],
+        exits: [{ direction: oppDir, to: state.current }]
+      });
+    }
+
+    newState.flags[`procedural_exit_${state.current}_${direction}_to_${to_id}`] = true;
+
+    const msg = `An opening appears to the ${direction}...`;
+    return {
+      state: newState,
+      event: { type: "narration", text: msg },
     };
   }
 
