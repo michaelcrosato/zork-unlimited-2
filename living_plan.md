@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #13 (Ready for Cycle #14)
-* **Build/Test Status**: 🟢 PASS (All 80 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #14 (Ready for Cycle #15)
+* **Build/Test Status**: 🟢 PASS (All 84 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -63,16 +63,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement state reconciliation using commutative delta-state merges and deterministic transaction replay (`AF-13`).
 - [x] Write comprehensive unit and integration tests simulating network partitions and convergence upon recovery (`AF-13`).
 
+### Phase 9: Decentralized Cooperative Dungeons (Completed)
+- [x] Build a decentralized procedural room synchronizer propagating rooms via GossipNode transactions (`AF-14`).
+- [x] Implement lock-free chest loot claiming using LWW CRDT transaction merges (`AF-14`).
+- [x] Write comprehensive unit and integration tests simulating explorations, partitions, and races (`AF-14`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-14`
-* **Objective**: Build a Decentralized Cooperative Dungeon Expedition framework that utilizes the GossipNode P2P protocol to synchronize procedurally generated rooms and item loot drops dynamically across decoupled peers exploring a shared procedural dungeon world.
-* **Why this matters**: Demonstrates that the P2P gossip layer can seamlessly scale to handle dynamic procedural content generation and shared world state (like dynamic room spawns and loot chests) without centralized authority.
+**Task ID**: `AF-15`
+* **Objective**: Build a persistent local network discovery and automatic peer routing layer that allows nodes to dynamically discover peers, establish mesh connections, and exchange delta states automatically under high-latency network conditions.
+* **Why this matters**: Allows seamless real-world P2P synchronization without hardcoded connections, facilitating fully dynamic multiplayer text adventures.
 * **Planned Actions**:
-  1. Build a decentralized procedural room synchronizer that propagates dynamically generated rooms via GossipNode transactions.
-  2. Implement P2P lock-free chest loot claiming (LWW or single-owner assignment using CRDT transaction merges).
-  3. Write comprehensive unit and integration tests simulating peer explorations and resource races in P2P dungeons.
+  1. Design a decentralized `NetworkDiscovery` registry that simulates dynamic P2P node joining/leaving.
+  2. Support automatic route calculation and multi-hop gossip forwarding through intermediary peers.
+  3. Add rigorous test cases for mesh discovery, packet routing, and message forwarding convergence.
 
 ---
 

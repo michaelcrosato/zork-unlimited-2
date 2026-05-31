@@ -17,7 +17,9 @@ export function canonicalStringify(val: unknown): string {
   }
   if (typeof val === "object") {
     const obj = val as Record<string, unknown>;
-    const sortedKeys = Object.keys(obj).sort();
+    const sortedKeys = Object.keys(obj)
+      .filter((key) => obj[key] !== undefined)
+      .sort();
     const parts = sortedKeys.map(
       (key) => `${JSON.stringify(key)}:${canonicalStringify(obj[key])}`
     );

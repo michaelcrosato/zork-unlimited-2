@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 
@@ -109,10 +109,30 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   addJournal(stateA.journal || []);
   addJournal(stateB.journal || []);
 
+  // Merge loot claims using LWW (Last-Write-Wins)
+  const lootClaims = { ...stateA.lootClaims };
+  if (stateB.lootClaims) {
+    for (const [key, claimB] of Object.entries(stateB.lootClaims)) {
+      const claimA = lootClaims[key];
+      if (!claimA) {
+        lootClaims[key] = claimB;
+      } else {
+        if (claimB.timestamp > claimA.timestamp) {
+          lootClaims[key] = claimB;
+        } else if (claimB.timestamp === claimA.timestamp) {
+          if (claimB.claimedBy.localeCompare(claimA.claimedBy) < 0) {
+            lootClaims[key] = claimB;
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
     journal,
+    lootClaims,
   };
 }
 
@@ -164,10 +184,12 @@ export class GossipNode {
   public vectorClock: VectorClock;
   public pack: any;
   public peers: Map<string, GossipNode> = new Map();
+  public seed: number;
 
   constructor(nodeId: string, pack: any, seed = 42) {
     this.nodeId = nodeId;
     this.pack = pack;
+    this.seed = seed;
     this.localState = createInitialState({
       seed,
       start: pack.meta?.start || pack.start || "clearing",
@@ -266,7 +288,11 @@ export class GossipNode {
       return !ourIds.includes(id);
     });
 
-    if (!isBehind && !hasNewTransactions) {
+    const knownAgents = Object.keys(this.localState.agents || {});
+    const messageAgents = Object.keys(message.vectorClock);
+    const hasNewAgents = messageAgents.some(agentId => !knownAgents.includes(agentId));
+
+    if (!isBehind && !hasNewTransactions && !hasNewAgents) {
       return false; // No new information, abort gossip to avoid infinite storm
     }
 
@@ -287,13 +313,16 @@ export class GossipNode {
     ]));
 
     // 5. Reconstruct converged GameState from transactions and the full list of agents
-    let convergedState = reconstructState(this.localState.seed, this.pack, mergedTxs, allAgentIds);
+    let convergedState = reconstructState(this.seed, this.pack, mergedTxs, allAgentIds);
 
     // Overwrite the transaction journal with the original canonical merged transactions to preserve timestamps/hashes
     convergedState.transactionJournal = mergedTxs;
 
     // 6. Merge independent monotonic fields (visited, journal) using CRDT rules
     convergedState = mergeMonotonicStateFields(convergedState, this.localState);
+
+    // Reconcile loot claims to ensure chest contents and inventories align perfectly with merged claims
+    convergedState = reconcileLootClaims(convergedState, this.pack);
 
     // 7. Recalculate transaction counts to update vector clocks self-healingly
     const agentCounts: Record<string, number> = {};

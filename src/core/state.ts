@@ -38,6 +38,13 @@ export const TransactionSchema = z.object({
 
 export type Transaction = z.infer<typeof TransactionSchema>;
 
+export const LootClaimSchema = z.object({
+  claimedBy: z.string(),
+  timestamp: z.number().int(),
+});
+
+export type LootClaim = z.infer<typeof LootClaimSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -70,6 +77,7 @@ export const GameStateSchema = z.object({
   transactionJournal: z.array(TransactionSchema).optional(),
   stateHistory: z.array(z.any()).optional(),
   vectorClock: z.record(z.string(), z.number()).optional(),
+  lootClaims: z.record(z.string(), LootClaimSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -122,8 +130,73 @@ export const createInitialState = (options: {
     transactionJournal: [],
     stateHistory: [],
     vectorClock: options.agentsInit ? Object.fromEntries(options.agentsInit.map((id) => [id, 0])) : {},
+    lootClaims: {},
   };
 };
+
+export function reconcileLootClaims(state: GameState, pack: any): GameState {
+  if (!state.lootClaims) return state;
+
+  const newState = {
+    ...state,
+    inventory: [...state.inventory],
+    objectState: JSON.parse(JSON.stringify(state.objectState || {})),
+    agents: state.agents ? JSON.parse(JSON.stringify(state.agents)) : undefined,
+  };
+
+  for (const [key, claim] of Object.entries(newState.lootClaims || {})) {
+    const [chestId, itemId] = key.split(":");
+    const winnerId = claim.claimedBy;
+
+    // 1. Initialize chest in objectState from pack if not yet present
+    if (!newState.objectState[chestId] && pack && pack.objects) {
+      const packObj = pack.objects.find((o: any) => o.id === chestId);
+      if (packObj) {
+        newState.objectState[chestId] = {
+          open: packObj.open,
+          locked: packObj.locked,
+          contents: packObj.contents ? [...packObj.contents] : [],
+        };
+      }
+    }
+
+    // 2. Remove from chest contents if chest exists
+    const chestRuntime = newState.objectState[chestId];
+    if (chestRuntime && chestRuntime.contents) {
+      chestRuntime.contents = chestRuntime.contents.filter((item: string) => item !== itemId);
+    }
+
+    // 3. Update agents' inventories
+    if (newState.agents) {
+      for (const agentId of Object.keys(newState.agents)) {
+        const agent = newState.agents[agentId];
+        if (agentId === winnerId) {
+          if (!agent.inventory.includes(itemId)) {
+            agent.inventory.push(itemId);
+          }
+        } else {
+          agent.inventory = agent.inventory.filter((item: string) => item !== itemId);
+        }
+      }
+    }
+
+    // Also update the global player inventory if the winner is the current player
+    if (winnerId === newState.current) {
+      if (!newState.inventory.includes(itemId)) {
+        newState.inventory.push(itemId);
+      }
+    } else {
+      newState.inventory = newState.inventory.filter((item: string) => item !== itemId);
+    }
+
+    // Mark the item's runtime takenBy status
+    const itemRuntime = newState.objectState[itemId] ?? {};
+    itemRuntime.takenBy = "player";
+    newState.objectState[itemId] = itemRuntime;
+  }
+
+  return newState;
+}
 
 export function findRoom(state: GameState, pack: any, roomId: string): any | undefined {
   if (state.proceduralRooms) {

@@ -9,6 +9,7 @@ export type { MultiAgentAction } from "./core/sync.js";
 // Gossip & P2P Sync
 export { GossipNode, isClockBehind, mergeVectorClocks, getTransactionId, mergeAndSortTransactions, mergeMonotonicStateFields, reconstructState } from "./core/gossip.js";
 export type { VectorClock, GossipMessage } from "./core/gossip.js";
+export { DecentralizedDungeonExpedition } from "./core/expedition.js";
 
 // Hashing & Seeded PRNG
 export { PureRand } from "./core/rng.js";

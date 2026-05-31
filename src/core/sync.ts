@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -220,6 +220,75 @@ export function multiAgentStep(
       state,
       events: [{ type: "rejected", reason: rejectionReason }],
       ok: false,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CLAIM_LOOT action
+  if ((action as any).type === "CLAIM_LOOT") {
+    const { chestId, itemId, timestamp } = action as any;
+    const claimKey = `${chestId}:${itemId}`;
+
+    const existingClaim = state.lootClaims?.[claimKey];
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    if (
+      !existingClaim ||
+      timestamp > existingClaim.timestamp ||
+      (timestamp === existingClaim.timestamp && agentId.localeCompare(existingClaim.claimedBy) < 0)
+    ) {
+      ok = true;
+    } else {
+      rejectionReason = `Item already claimed by ${existingClaim.claimedBy} with a newer/equal timestamp.`;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const lootClaims = {
+        ...(state.lootClaims || {}),
+        [claimKey]: {
+          claimedBy: agentId,
+          timestamp,
+        },
+      };
+      newState.lootClaims = lootClaims;
+      newState = reconcileLootClaims(newState, pack);
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    return {
+      state: newState,
+      events: ok ? [{ type: "take", item: itemId }] : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
       rejectionReason,
     };
   }
