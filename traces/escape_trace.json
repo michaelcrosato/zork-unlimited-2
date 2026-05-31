@@ -1,0 +1,14 @@
+{
+  "trace_id": "tr_escape_001",
+  "pack_id": "forest_pack_v1",
+  "content_hash": "a4d3b8f2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0",
+  "seed": 42,
+  "initial_state_ref": "start",
+  "actions": [
+    { "type": "CHOOSE", "choiceId": "inspect_ground" },
+    { "type": "CHOOSE", "choiceId": "go_east" },
+    { "type": "CHOOSE", "choiceId": "enter_tower" },
+    { "type": "CHOOSE", "choiceId": "hide" }
+  ],
+  "expected_final_hash": "57d3c85425050d9e089b3be0732520f795c4bbb046a1d741be0403cd612fccca"
+}

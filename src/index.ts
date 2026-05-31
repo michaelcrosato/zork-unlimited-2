@@ -1,0 +1,42 @@
+// Core State & Logic
+export { GameStateSchema, ObjectRuntimeSchema, createInitialState } from "./core/state.js";
+export type { GameState, ObjectRuntime } from "./core/state.js";
+
+export { step } from "./core/engine.js";
+
+// Hashing & Seeded PRNG
+export { PureRand } from "./core/rng.js";
+export { canonicalStringify, computeSha256, computeStateHash, computeStateHashShort } from "./core/hash.js";
+
+// DSL Evaluators & Schemas
+export { ConditionSchema, evaluateCondition, evaluateConditions } from "./core/conditions.js";
+export type { Condition } from "./core/conditions.js";
+
+export { EffectSchema, applyEffect, applyEffects } from "./core/effects.js";
+export type { Effect } from "./core/effects.js";
+
+export { StateChangeEvent, NarrationEvent, UnlockExitEvent, OpenObjectEvent, MoveEvent, TakeEvent, DropEvent, DialogueEvent, EndingEvent, RejectedEvent, GameEvent, StepLogEntry } from "./core/events.js";
+
+// Save & Load Serialization
+export { saveGame, loadGame } from "./persist/save_load.js";
+export type { SaveData } from "./persist/save_load.js";
+
+// Trace & Replay
+export { recordTrace } from "./trace/record.js";
+export type { Trace } from "./trace/record.js";
+
+export { replayTrace } from "./trace/replay.js";
+export type { ReplayResult } from "./trace/replay.js";
+
+// CYOA Content Schema
+export { CYOAChoiceSchema, CYOASceneSchema, CYOAEndingSchema, CYOAPackSchema } from "./cyoa/schema.js";
+export type { CYOAChoice, CYOAScene, CYOAEnding, CYOAPack } from "./cyoa/schema.js";
+
+// AI API Observability & Commands
+export { buildObservation } from "./api/observation.js";
+export type { Action, StepResult, AvailableAction, CYOAObservation, ParserObservation, Observation } from "./api/types.js";
+
+// Content Validators
+export { validateCYOAPack } from "./validate/cyoa_validator.js";
+export { formatValidationReport } from "./validate/report.js";
+export type { ValidationFinding, ValidationReport } from "./validate/report.js";

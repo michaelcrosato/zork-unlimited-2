@@ -1,0 +1,97 @@
+meta:
+  id: forest_pack_v1
+  title: "The Watchtower Road"
+  start: forest_crossroads
+  vars_init:
+    suspicion: 0
+  flags_init: []
+
+scenes:
+  - id: forest_crossroads
+    title: "The Forest Crossroads"
+    text: "The road splits beneath the black pines. To the east, smoke rises from a ruined watchtower. To the west, a brook cuts through the moss."
+    on_enter: []
+    is_ending: false
+    choices:
+      - id: go_east
+        text: "Go toward the ruined watchtower."
+        conditions: []
+        effects:
+          - set_flag: saw_watchtower
+        next: ruined_watchtower
+      - id: go_west
+        text: "Follow the brook."
+        conditions: []
+        effects: []
+        next: mossy_brook
+      - id: inspect_ground
+        text: "Inspect the muddy ground."
+        conditions:
+          - not_flag: found_bootprints
+        effects:
+          - set_flag: found_bootprints
+          - add_journal: "Someone dragged a heavy object toward the watchtower."
+        next: forest_crossroads
+
+  - id: ruined_watchtower
+    title: "The Ruined Watchtower"
+    text: "The charred watchtower looms over the path. The wooden door is splintered open. Footprints lead inside."
+    on_enter: []
+    is_ending: false
+    choices:
+      - id: enter_tower
+        text: "Enter the watchtower."
+        conditions: []
+        effects:
+          - set_flag: entered_tower
+          - inc_var:
+              name: suspicion
+              by: 1
+        next: watchtower_inside
+      - id: go_back
+        text: "Return to the crossroads."
+        conditions: []
+        effects: []
+        next: forest_crossroads
+
+  - id: mossy_brook
+    title: "The Mossy Brook"
+    text: "Clear, cold water bubbles over round gray stones. It looks peaceful here, but there is no way forward."
+    on_enter: []
+    is_ending: false
+    choices:
+      - id: go_back
+        text: "Return to the crossroads."
+        conditions: []
+        effects: []
+        next: forest_crossroads
+
+  - id: watchtower_inside
+    title: "Inside the Watchtower"
+    text: "The interior is dark and smells of ashes. You find a locked chest, but hear footsteps approaching!"
+    on_enter: []
+    is_ending: false
+    choices:
+      - id: hide
+        text: "Hide behind the collapsed timbers."
+        conditions: []
+        effects:
+          - end_game: ending_escape
+        next: ending_escape
+      - id: confront
+        text: "Confront the newcomer."
+        conditions: []
+        effects:
+          - inc_var:
+              name: suspicion
+              by: 3
+          - end_game: ending_captured
+        next: ending_captured
+
+endings:
+  - id: ending_escape
+    title: "You slipped away into the dark."
+    text: "You hid silently in the shadows. The footsteps passed, and you slipped away unnoticed."
+  - id: ending_captured
+    title: "You were captured."
+    text: "You stood your ground, but you were outnumbered and captured by the watchtower guards."

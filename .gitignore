@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Production Build
+dist/
+
+# Test / Coverage
+coverage/
+*.log
+
+# IDEs & System files
+.DS_Store
+.vscode/
+.idea/
+.antigravitycli/
+.gemini/
