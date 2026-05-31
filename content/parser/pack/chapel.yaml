@@ -4,7 +4,7 @@ meta:
   start_room: forest_path
   vars_init:
     score: 0
-  flags_init: [ crypt_door_locked ]
+  flags_init: [ crypt_door_locked, sarcophagus_trapped ]
 
 rooms:
   - id: forest_path
@@ -86,8 +86,8 @@ rooms:
 
   - id: sealed_crypt
     name: "The Sealed Crypt"
-    description: "You stand in the cold crypt. Stone sarcophagi line the walls. A stone archway leads down to the catacombs, but it is blocked by a portcullis."
-    objects: [ portcullis ]
+    description: "You stand in the cold crypt. A stone archway leads down to the catacombs, but it is blocked by a portcullis. A large granite sarcophagus sits in the center."
+    objects: [ portcullis, sarcophagus ]
     npcs: []
     exits:
       - { direction: up, to: altar_room }
@@ -131,6 +131,7 @@ objects:
         effects:
           - set_flag: rope_attached_to_well
           - unlock_exit: { from: ruined_chapel, to: well_bottom }
+          - inc_var: { name: "score", by: 15 }
           - narrate: "You tie the rope securely to the iron ring and drop it down the well."
 
   - id: oak_chest
@@ -164,6 +165,7 @@ objects:
         effects:
           - clear_flag: crypt_door_locked
           - unlock_exit: { from: altar_room, to: sealed_crypt }
+          - inc_var: { name: "score", by: 25 }
           - narrate: "You insert the heavy iron key into the door. With a loud click, the lock turns."
 
   - id: portcullis
@@ -178,7 +180,36 @@ objects:
         effects:
           - set_flag: portcullis_raised
           - unlock_exit: { from: sealed_crypt, to: catacombs }
+          - inc_var: { name: "score", by: 20 }
           - narrate: "You pull the rusty lever with all your strength. The portcullis screeches upward."
+
+  - id: sarcophagus
+    name: "granite sarcophagus"
+    aliases: [ sarcophagus, granite sarcophagus, tomb, coffin ]
+    description: "A dark granite sarcophagus. The heavy stone lid has a small keyhole on its side."
+    takeable: false
+    interactions:
+      - verb: OPEN
+        target: sarcophagus
+        conditions: [ { has_flag: sarcophagus_trapped } ]
+        effects:
+          - narrate: "As you slide the heavy lid, a mechanical trap triggers! A poison dart strikes your arm."
+          - end_game: ending_poisoned
+      - verb: OPEN
+        target: sarcophagus
+        conditions: [ { not_flag: sarcophagus_trapped } ]
+        effects:
+          - open_object: sarcophagus
+          - inc_var: { name: "score", by: 30 }
+          - narrate: "You slide the stone lid aside safely. Inside, you find beautiful gold leaf and ancient murals."
+      - verb: USE
+        item: brass_key
+        target: sarcophagus
+        conditions: [ { has_flag: sarcophagus_trapped } ]
+        effects:
+          - clear_flag: sarcophagus_trapped
+          - inc_var: { name: "score", by: 10 }
+          - narrate: "You insert the brass key into the small keyhole and turn it. A satisfying metal clack indicates the trap is now disarmed."
 
 npcs:
   - id: innkeeper
@@ -191,11 +222,19 @@ npcs:
           npc_text: "Be careful in these ruins, traveler. The crypt holds secrets."
           topics:
             - { id: ask_well, prompt: "Ask about the well", goto: well_clue }
+            - { id: ask_crypt, prompt: "Ask about the crypt trap", goto: crypt_clue }
             - { id: leave, prompt: "Say goodbye", end: true }
         - id: well_clue
-          npc_text: "They say a coil of rope was left at the bottom of the well. If only someone could climb down."
+          npc_text: "They say a coil of rope was left in the garden. If only someone could use it on the well."
           effects: [ { set_flag: heard_well_clue } ]
           topics:
+            - { id: ask_crypt, prompt: "Ask about the crypt trap", goto: crypt_clue }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: crypt_clue
+          npc_text: "Beware the granite sarcophagus in the crypt! It is rigged with a lethal poison dart. You must disarm it using a small brass key before trying to open it!"
+          effects: [ { set_flag: heard_crypt_clue } ]
+          topics:
+            - { id: ask_well, prompt: "Ask about the well", goto: well_clue }
             - { id: leave, prompt: "Say goodbye", end: true }
 
 win_conditions:
@@ -207,3 +246,6 @@ endings:
   - id: ending_victory
     title: "Adventure Completed!"
     text: "You have successfully navigated the ruins, unlocked the crypt, and entered the ancient catacombs. Your quest is complete."
+  - id: ending_poisoned
+    title: "You died from poison!"
+    text: "The poison dart was lethal. Within seconds, your vision fades and you collapse to the floor of the crypt. Your adventure ends here."

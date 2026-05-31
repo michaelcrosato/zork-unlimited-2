@@ -355,7 +355,41 @@ export function step(
 
     case "OPEN": {
       const obj = findObjectInPack(action.target);
-      if (!obj || !isObjectVisible(action.target) || !obj.openable) {
+      if (!obj || !isObjectVisible(action.target)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You don't see any '${action.target}' here.` }],
+          ok: false,
+          rejectionReason: `You don't see that here.`,
+        };
+      }
+
+      // Check if custom OPEN interaction exists whose conditions pass
+      const matchingInter = obj.interactions.find(
+        (i) => i.verb === "OPEN" && evaluateConditions(newState, i.conditions)
+      );
+
+      if (matchingInter) {
+        // Apply effects
+        const effectResult = applyEffects(newState, matchingInter.effects);
+        newState = effectResult.state;
+        events.push(...effectResult.events);
+        break;
+      }
+
+      // If there are OPEN interactions but none passed their conditions
+      const hasAnyOpenInter = obj.interactions.some((i) => i.verb === "OPEN");
+      if (hasAnyOpenInter) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `Conditions for opening '${action.target}' are not met.` }],
+          ok: false,
+          rejectionReason: `Nothing happens.`,
+        };
+      }
+
+      // Fall back to default openable container logic
+      if (!obj.openable) {
         return {
           state,
           events: [{ type: "rejected", reason: `You cannot open '${action.target}'.` }],

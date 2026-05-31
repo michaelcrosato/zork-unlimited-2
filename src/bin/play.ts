@@ -6,12 +6,15 @@ import { parse as parseYaml } from "yaml";
 import { step } from "../core/engine.js";
 import { createInitialState } from "../core/state.js";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
+import { validateParserPack } from "../validate/parser_validator.js";
 import { formatValidationReport } from "../validate/report.js";
 import { buildObservation } from "../api/observation.js";
-import { Action } from "../api/types.js";
+import { Action, CYOAObservation, ParserObservation, AvailableAction } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
+import { ParserPack } from "../parser/schema.js";
 import { saveGame, loadGame } from "../persist/save_load.js";
 import { computeStateHash } from "../core/hash.js";
+import { mapCommand } from "../parser/command_map.js";
 
 // ANSI Terminal Styling
 const BOLD = "\x1b[1m";
@@ -26,16 +29,16 @@ function main() {
   const packPath = resolve(args[0] ?? "content/cyoa/pack/watchtower.yaml");
 
   console.log(`${BOLD}${CYAN}=============================================`);
-  console.log(`         ADVENTUREFORGE CYOA RUNNER          `);
+  console.log(`         ADVENTUREFORGE ENGINE PLAY          `);
   console.log(`=============================================${RESET}\n`);
-  console.log(`Loading content pack from: ${packPath}...`);
+  console.log(`Loading content pack: ${packPath}...`);
 
   // 1. Load and parse pack
   let packContent: string;
   try {
     packContent = readFileSync(packPath, "utf-8");
   } catch (err: any) {
-    console.error(`${RED}Error reading content pack file: ${err.message}${RESET}`);
+    console.error(`${RED}Error reading file: ${err.message}${RESET}`);
     process.exit(1);
   }
 
@@ -47,26 +50,44 @@ function main() {
       packData = JSON.parse(packContent);
     }
   } catch (err: any) {
-    console.error(`${RED}Error parsing content pack file: ${err.message}${RESET}`);
+    console.error(`${RED}Error parsing file: ${err.message}${RESET}`);
     process.exit(1);
   }
 
-  // 2. Validate pack
-  const validationReport = validateCYOAPack(packData);
+  // 2. Validate and identify pack type
+  let isCyoa = false;
+  let validationReport;
+
+  if ("scenes" in packData) {
+    console.log("Detecting CYOA pack format.");
+    validationReport = validateCYOAPack(packData);
+    isCyoa = true;
+  } else if ("rooms" in packData) {
+    console.log("Detecting Parser pack format.");
+    validationReport = validateParserPack(packData);
+  } else {
+    console.error(`${RED}Error: Unknown content pack format (missing 'scenes' or 'rooms').${RESET}`);
+    process.exit(1);
+  }
+
   if (!validationReport.ok) {
     console.error(`${RED}${formatValidationReport(validationReport)}${RESET}`);
-    console.error(`${RED}Content pack validation failed. Aborting game start.${RESET}`);
+    console.error(`${RED}Content pack validation failed. Aborting game.${RESET}`);
     process.exit(1);
   }
 
-  const pack = packData as CYOAPack;
-  console.log(`${GREEN}✔ Pack '${pack.meta.id}' successfully validated!${RESET}\n`);
+  const pack = packData as CYOAPack | ParserPack;
+  console.log(`${GREEN}✔ Pack successfully validated!${RESET}\n`);
+
+  const startRoom = isCyoa
+    ? (pack as CYOAPack).meta.start
+    : (pack as ParserPack).meta.start_room;
 
   // 3. Initialize GameState
   const seed = 42;
   let state = createInitialState({
     seed,
-    start: pack.meta.start,
+    start: startRoom,
     varsInit: pack.meta.vars_init,
     flagsInit: pack.meta.flags_init,
   });
@@ -77,45 +98,107 @@ function main() {
   });
 
   const printScene = () => {
-    const currentScene = pack.scenes.find((s) => s.id === state.current);
-    if (!currentScene) {
-      console.error(`${RED}Error: Current scene '${state.current}' not found.${RESET}`);
-      rl.close();
-      return;
-    }
+    const scoreVal = state.vars["score"] !== undefined ? ` | Score: ${state.vars["score"]}` : "";
+    const stepVal = `Step: ${state.step}`;
 
-    console.log(`\n${BOLD}${CYAN}--- ${currentScene.title} ---${RESET}`);
-    console.log(currentScene.text);
-
-    // Print ending if applicable
+    // Handle Game Over / Death loop
     if (state.ended) {
-      console.log(`\n${BOLD}${GREEN}=============================================`);
-      console.log(`🎉 GAME OVER: ${state.endingId}`);
+      console.log(`\n${BOLD}${RED}=============================================`);
+      console.log(`☠️  GAME OVER: ${state.endingId}`);
       console.log(`=============================================${RESET}\n`);
-      rl.close();
+
+      // Find ending text
+      let endingText = "You have met your end.";
+      if (isCyoa) {
+        const endingMeta = (pack as CYOAPack).endings?.find((e) => e.id === state.endingId);
+        if (endingMeta) endingText = endingMeta.text;
+      } else {
+        const endingMeta = (pack as ParserPack).endings.find((e) => e.id === state.endingId);
+        if (endingMeta) endingText = endingMeta.text;
+      }
+      console.log(endingText);
+
+      console.log(`\n${BOLD}Options:${RESET}`);
+      console.log(`  ${BOLD}1.${RESET} Restore from a save file (Undo Death)`);
+      console.log(`  ${BOLD}2.${RESET} Restart from the beginning`);
+      console.log(`  ${BOLD}3.${RESET} Exit`);
+
+      rl.question(`\n${BOLD}Select option (1-3): ${RESET}`, (choice) => {
+        const option = choice.trim();
+        if (option === "1") {
+          rl.question(`\n${BOLD}Enter save file path to restore: ${RESET}`, (filepath) => {
+            try {
+              const contentHash = "dummy_content_hash";
+              const saveStr = readFileSync(filepath.trim(), "utf-8");
+              state = loadGame(saveStr, pack.meta.id, contentHash);
+              console.log(`${GREEN}✔ Game successfully restored from ${filepath}!${RESET}`);
+            } catch (err: any) {
+              console.error(`${RED}Failed to restore game: ${err.message}${RESET}`);
+            }
+            printScene();
+          });
+        } else if (option === "2") {
+          state = createInitialState({
+            seed,
+            start: startRoom,
+            varsInit: pack.meta.vars_init,
+            flagsInit: pack.meta.flags_init,
+          });
+          console.log(`${GREEN}✔ Game restarted!${RESET}`);
+          printScene();
+        } else {
+          console.log("Exiting game. Goodbye!");
+          rl.close();
+        }
+      });
       return;
     }
 
-    // Build observation to retrieve available choices
+    // Regular Game Loop Screen Compilation
     const obs = buildObservation(state, pack);
 
-    console.log(`\n${BOLD}Available choices:${RESET}`);
-    obs.available_actions.forEach((choice, index) => {
-      console.log(`  ${BOLD}${index + 1}.${RESET} ${choice.text}`);
-    });
+    if (isCyoa) {
+      const cyoaObs = obs as CYOAObservation;
+      console.log(`\n${BOLD}${CYAN}--- ${cyoaObs.scene_id}${scoreVal} | ${stepVal} ---${RESET}`);
+      console.log(cyoaObs.text);
 
-    console.log(`\n${YELLOW}(Special commands: save <file>, load <file>, history, exit)${RESET}`);
-    rl.question(`\n${BOLD}What will you do? (1-${obs.available_actions.length}): ${RESET}`, handleInput);
+      console.log(`\n${BOLD}Available choices:${RESET}`);
+      cyoaObs.available_actions.forEach((choice, index) => {
+        console.log(`  ${BOLD}${index + 1}.${RESET} ${choice.text}`);
+      });
+
+      console.log(`\n${YELLOW}(Special commands: save <file>, load <file>, history, exit)${RESET}`);
+      rl.question(`\n${BOLD}What will you do? (1-${cyoaObs.available_actions.length}): ${RESET}`, handleInput);
+    } else {
+      const parserObs = obs as ParserObservation;
+      const roomObj = (pack as ParserPack).rooms.find((r) => r.id === parserObs.room);
+
+      console.log(`\n${BOLD}${CYAN}--- ${roomObj?.name ?? parserObs.room}${scoreVal} | ${stepVal} ---${RESET}`);
+      console.log(parserObs.description);
+
+      // Print visible objects
+      if (parserObs.visible_objects.length > 0) {
+        const objNames = parserObs.visible_objects.map((o) => o.name).join(", ");
+        console.log(`You see here: ${objNames}.`);
+      }
+
+      // Print exits
+      const exitsStr = parserObs.exits.map((e) => e.direction).join(", ");
+      console.log(`Obvious exits: ${exitsStr || "none"}.`);
+
+      console.log(`\n${YELLOW}(Special commands: save <file>, load <file>, history, inventory, exit)${RESET}`);
+      rl.question(`\n${BOLD}> ${RESET}`, handleInput);
+    }
   };
 
   const handleInput = (input: string) => {
     const cleanInput = input.trim().toLowerCase();
 
-    // Handle special commands
+    // Handle generic CLI utilities
     if (cleanInput.startsWith("save ")) {
       const filepath = input.trim().slice(5);
       try {
-        const contentHash = "dummy_content_hash"; // Simplified for manual save/load
+        const contentHash = "dummy_content_hash";
         const saveStr = saveGame(state, pack.meta.id, contentHash);
         writeFileSync(filepath, saveStr, "utf-8");
         console.log(`${GREEN}✔ Game successfully saved to ${filepath}!${RESET}`);
@@ -159,28 +242,42 @@ function main() {
       return;
     }
 
-    // Handle choices
-    const choiceIdx = parseInt(cleanInput, 10) - 1;
+    // Resolve action based on mode
+    let action: Action;
     const obs = buildObservation(state, pack);
 
-    if (isNaN(choiceIdx) || choiceIdx < 0 || choiceIdx >= obs.available_actions.length) {
-      console.log(`${RED}Invalid input! Please enter a number between 1 and ${obs.available_actions.length}.${RESET}`);
-      printScene();
-      return;
+    if (isCyoa) {
+      const cyoaObs = obs as CYOAObservation;
+      const choiceIdx = parseInt(cleanInput, 10) - 1;
+
+      if (isNaN(choiceIdx) || choiceIdx < 0 || choiceIdx >= cyoaObs.available_actions.length) {
+        console.log(`${RED}Invalid input! Please enter a choice index (1-${cyoaObs.available_actions.length}).${RESET}`);
+        printScene();
+        return;
+      }
+      const selectedChoice = cyoaObs.available_actions[choiceIdx];
+      action = { type: "CHOOSE", choiceId: selectedChoice.id };
+    } else {
+      const parserObs = obs as ParserObservation;
+      const match = mapCommand(input, parserObs.available_actions);
+
+      if (!match.action) {
+        console.log(`${RED}${match.error}${RESET}`);
+        printScene();
+        return;
+      }
+      action = match.action;
     }
 
-    const selectedChoice = obs.available_actions[choiceIdx];
-    const action: Action = { type: "CHOOSE", choiceId: selectedChoice.id };
-
-    // Advance engine state
+    // Step the pure reducer
     const result = step(state, action, pack);
     if (!result.ok) {
-      console.error(`${RED}Action rejected: ${result.rejectionReason}${RESET}`);
+      console.log(`${RED}${result.rejectionReason ?? "Command rejected."}${RESET}`);
       printScene();
       return;
     }
 
-    // Print narration events if any
+    // Print all narration flavor text
     result.events.forEach((evt) => {
       if (evt.type === "narration") {
         console.log(`\n${YELLOW}📖 ${evt.text}${RESET}`);
@@ -191,7 +288,7 @@ function main() {
     printScene();
   };
 
-  // Start game loop
+  // Start game loops
   printScene();
 }
 

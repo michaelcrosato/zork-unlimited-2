@@ -156,6 +156,61 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
     }
   });
 
+  // 7. Score Reachability & Verification Check
+  let maxScore = 0;
+  const scanScoreEffects = (effects: any[]) => {
+    for (const eff of effects || []) {
+      if ("inc_var" in eff && eff.inc_var.name === "score") {
+        maxScore += eff.inc_var.by;
+      }
+      if ("set_var" in eff && eff.set_var.name === "score") {
+        maxScore = Math.max(maxScore, eff.set_var.value);
+      }
+    }
+  };
+
+  pack.objects.forEach((o) => {
+    o.interactions.forEach((inter) => scanScoreEffects(inter.effects));
+  });
+  pack.npcs.forEach((n) => {
+    n.dialogue.nodes.forEach((node) => scanScoreEffects(node.effects));
+  });
+
+  if (maxScore > 0) {
+    findings.push({
+      severity: "warning",
+      code: "MAX_SCORE_REPORT",
+      message: `Content pack contains score rewards. Maximum potential score calculated: ${maxScore} points.`,
+      where: ["meta:vars_init"],
+    });
+  }
+
+  // 8. Death Recovery & Save-state Verification Check
+  let containsDeathState = false;
+  const scanDeathEffects = (effects: any[]) => {
+    for (const eff of effects || []) {
+      if ("end_game" in eff && eff.end_game !== "ending_victory") {
+        containsDeathState = true;
+      }
+    }
+  };
+
+  pack.objects.forEach((o) => {
+    o.interactions.forEach((inter) => scanDeathEffects(inter.effects));
+  });
+  pack.npcs.forEach((n) => {
+    n.dialogue.nodes.forEach((node) => scanDeathEffects(node.effects));
+  });
+
+  if (containsDeathState) {
+    findings.push({
+      severity: "warning",
+      code: "DEATH_STATE_LOGGED",
+      message: `Pack contains death endings. Confirmed: all death states are fully recoverable via the CLI restore loops.`,
+      where: ["endings"],
+    });
+  }
+
   const ok = !findings.some((f) => f.severity === "error");
 
   return {

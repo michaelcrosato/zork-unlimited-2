@@ -123,7 +123,8 @@ export function generateLegalActions(state: GameState, pack: ParserPack): Availa
     }
 
     // OPEN / CLOSE
-    if (obj.openable) {
+    const hasCustomOpen = (obj.interactions || []).some((inter) => inter.verb === "OPEN");
+    if (obj.openable || hasCustomOpen) {
       const isOpen = runtime ? !!runtime.open : false;
       if (!isOpen) {
         actions.push({
@@ -132,11 +133,13 @@ export function generateLegalActions(state: GameState, pack: ParserPack): Availa
           action: { type: "OPEN", target: obj.id },
         });
       } else {
-        actions.push({
-          id: `close_${obj.id}`,
-          command: `close ${obj.name}`,
-          action: { type: "CLOSE", target: obj.id },
-        });
+        if (obj.openable) {
+          actions.push({
+            id: `close_${obj.id}`,
+            command: `close ${obj.name}`,
+            action: { type: "CLOSE", target: obj.id },
+          });
+        }
       }
     }
 
