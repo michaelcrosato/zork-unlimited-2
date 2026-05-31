@@ -1,0 +1,98 @@
+meta:
+  id: multiplayer_forest_pack
+  title: "The Cooperative Ruins"
+  start_room: clearing
+  vars_init:
+    score: 0
+  flags_init: [ cage_locked, vault_door_locked ]
+
+rooms:
+  - id: clearing
+    name: "Sunlit Clearing"
+    description: "A beautiful sunlit clearing in the heart of the ruins. A massive stone vault door stands to the east. A dark pathway leads west into the control temple."
+    objects: [ cage, vault_door ]
+    npcs: []
+    exits:
+      - { direction: west, to: control_room }
+      - direction: east
+        to: treasure_chamber
+        conditions: [ { not_flag: vault_door_locked } ]
+        locked_msg: "The massive vault door is locked shut."
+
+  - id: control_room
+    name: "Control Temple"
+    description: "A crumbling control room with stone columns. A heavy stone lever is set into the back wall."
+    objects: [ lever ]
+    npcs: []
+    exits:
+      - { direction: east, to: clearing }
+
+  - id: treasure_chamber
+    name: "Chamber of Gold"
+    description: "A legendary glittering chamber filled with heaps of gold coins. The grand treasure of the ancients sits on a pedestal."
+    objects: [ treasure ]
+    npcs: []
+    exits:
+      - { direction: west, to: clearing }
+
+objects:
+  - id: lever
+    name: "stone lever"
+    aliases: [ lever, stone lever ]
+    description: "A heavy stone lever set into the wall."
+    takeable: false
+    interactions:
+      - verb: USE
+        target: lever
+        conditions: [ { has_flag: cage_locked } ]
+        effects:
+          - clear_flag: cage_locked
+          - set_object_locked: { id: cage, locked: false }
+          - narrate: "You pull the stone lever with a heavy scrape. In the distance, you hear the metallic click of the iron cage door unlocking."
+
+  - id: cage
+    name: "iron cage"
+    aliases: [ cage, iron cage ]
+    description: "A sturdy iron cage. It is locked."
+    takeable: false
+    container: true
+    openable: true
+    locked: true
+    contents: [ vault_key ]
+
+  - id: vault_key
+    name: "vault key"
+    aliases: [ key, vault key ]
+    description: "A heavy golden key engraved with ancient glyphs."
+    takeable: true
+
+  - id: vault_door
+    name: "vault door"
+    aliases: [ door, vault door ]
+    description: "A massive door carved from a solid slab of granite."
+    takeable: false
+    interactions:
+      - verb: USE
+        item: vault_key
+        target: vault_door
+        conditions: [ { has_flag: vault_door_locked } ]
+        effects:
+          - clear_flag: vault_door_locked
+          - set_object_locked: { id: vault_door, locked: false }
+          - narrate: "You insert the glowing vault key into the vault door. With a low rumble, the massive stone door slides into the floor, opening the path east!"
+
+  - id: treasure
+    name: "ancient treasure"
+    aliases: [ treasure, gold ]
+    description: "The magnificent, glowing treasure of the ancient empire."
+    takeable: true
+
+win_conditions:
+  - id: secure_treasure
+    conditions: [ { has_item: treasure } ]
+    ending: ending_victory
+
+endings:
+  - id: ending_victory
+    title: "Victory!"
+    text: "You have secured the ancient treasure of the ruins through flawless multi-agent coordination!"

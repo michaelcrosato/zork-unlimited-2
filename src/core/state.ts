@@ -17,6 +17,27 @@ export const EnvironmentalStateSchema = z.object({
 
 export type EnvironmentalState = z.infer<typeof EnvironmentalStateSchema>;
 
+export const AgentStateSchema = z.object({
+  id: z.string(),
+  current: z.string(),
+  inventory: z.array(z.string()),
+});
+
+export type AgentState = z.infer<typeof AgentStateSchema>;
+
+export const TransactionSchema = z.object({
+  agentId: z.string(),
+  sequenceNumber: z.number().int().nonnegative(),
+  action: z.any(),
+  stateHashBefore: z.string(),
+  stateHashAfter: z.string(),
+  timestamp: z.number().int(),
+  ok: z.boolean(),
+  rejectionReason: z.string().optional(),
+});
+
+export type Transaction = z.infer<typeof TransactionSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -43,6 +64,10 @@ export const GameStateSchema = z.object({
 
   // environmental state fields
   environment: EnvironmentalStateSchema.optional(),
+
+  // multi-agent synchronization and telemetry
+  agents: z.record(z.string(), AgentStateSchema).optional(),
+  transactionJournal: z.array(TransactionSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -52,11 +77,23 @@ export const createInitialState = (options: {
   start: string;
   varsInit?: Record<string, number>;
   flagsInit?: string[];
+  agentsInit?: string[];
 }): GameState => {
   const flags: Record<string, boolean> = {};
   if (options.flagsInit) {
     for (const flag of options.flagsInit) {
       flags[flag] = true;
+    }
+  }
+
+  const agents: Record<string, AgentState> = {};
+  if (options.agentsInit) {
+    for (const agentId of options.agentsInit) {
+      agents[agentId] = {
+        id: agentId,
+        current: options.start,
+        inventory: [],
+      };
     }
   }
 
@@ -79,6 +116,8 @@ export const createInitialState = (options: {
       temperature: "mild",
       lastUpdatedStep: 0,
     },
+    agents: options.agentsInit ? agents : undefined,
+    transactionJournal: [],
   };
 };
 

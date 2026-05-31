@@ -3,6 +3,8 @@ export { GameStateSchema, ObjectRuntimeSchema, createInitialState } from "./core
 export type { GameState, ObjectRuntime } from "./core/state.js";
 
 export { step } from "./core/engine.js";
+export { multiAgentStep, buildObservationForAgent } from "./core/sync.js";
+export type { MultiAgentAction } from "./core/sync.js";
 
 // Hashing & Seeded PRNG
 export { PureRand } from "./core/rng.js";
