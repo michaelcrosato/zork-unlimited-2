@@ -179,16 +179,20 @@ async function runMcpPlaytests() {
 
   const chapelSuccess = await runPlaytestSession("chapel_pack_v1", chapelTurns, true);
 
-  // Session 2: Procedural Forest Quest
+  // Session 2: Procedural Forest Quest with Goblin Merchant Trade
   const forestTurns: Turn[] = [
     { cmd: "look", type: "standard" },
     { cmd: "take rusty shovel", type: "standard" },
     { cmd: "go west", type: "standard" }, // Moves to Deep Forest
+    { cmd: "look", type: "standard" }, // See the merchant
+    { cmd: "talk to goblin merchant", type: "standard" }, // Talk to the goblin merchant
+    { cmd: "ask about buy gold ring (30 gold)", type: "standard" }, // Trade 30 gold for ring, transitions to bought_ring node
+    { cmd: "ask about let's talk more", type: "standard" }, // Return to root dialogue options
+    { cmd: "ask about sell gold ring (15 gold)", type: "standard" }, // Sell the ring for 15 gold, transitions to sold_ring node
+    { cmd: "ask about say goodbye", type: "standard" }, // Leave dialogue
     { cmd: "go east", type: "standard" }, // Moves back to Sunlit Clearing
     { cmd: "use rusty shovel on earthen mound", type: "standard" }, // Digs and generates procedural room to the east!
-    { cmd: "go east", type: "standard" }, // Navigates to the procedurally generated 'Hidden Glade'
-    { cmd: "look", type: "standard" },
-    { cmd: "go west", type: "standard" } // Navigates back to 'Sunlit Clearing'
+    { cmd: "go east", type: "standard" } // Navigates to the procedurally generated 'Hidden Glade' and wins
   ];
 
   const forestSuccess = await runPlaytestSession("unlimited_forest_pack", forestTurns, false);

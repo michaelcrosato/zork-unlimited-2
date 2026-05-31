@@ -75,6 +75,16 @@ export const EffectSchema = z.union([
       description: z.string(),
     }),
   }),
+  z.object({
+    trade_item: z.object({
+      give_item: z.string().optional(),
+      give_gold: z.number().optional(),
+      receive_item: z.string().optional(),
+      receive_gold: z.number().optional(),
+      fail_msg: z.string().optional(),
+      success_msg: z.string().optional(),
+    }),
+  }),
 ]);
 
 export type Effect = z.infer<typeof EffectSchema>;
@@ -344,6 +354,50 @@ export function applyEffect(state: GameState, effect: Effect): { state: GameStat
     return {
       state: newState,
       event: { type: "narration", text: msg },
+    };
+  }
+
+  if ("trade_item" in effect) {
+    const { give_item, give_gold, receive_item, receive_gold, fail_msg, success_msg } = effect.trade_item;
+
+    // 1. Check item requirement
+    if (give_item && !newState.inventory.includes(give_item)) {
+      const text = fail_msg ?? `You don't have a ${give_item} to trade.`;
+      return {
+        state,
+        event: { type: "narration", text }
+      };
+    }
+
+    // 2. Check gold requirement
+    const currentGold = newState.vars["gold"] ?? 0;
+    if (give_gold && currentGold < give_gold) {
+      const text = fail_msg ?? `You don't have enough gold (requires ${give_gold} gold, you have ${currentGold}).`;
+      return {
+        state,
+        event: { type: "narration", text }
+      };
+    }
+
+    // 3. Apply the trade
+    if (give_item) {
+      newState.inventory = newState.inventory.filter((item) => item !== give_item);
+    }
+    if (give_gold) {
+      newState.vars["gold"] = currentGold - give_gold;
+    }
+    if (receive_item) {
+      newState.inventory.push(receive_item);
+    }
+    if (receive_gold) {
+      const finalGold = (newState.vars["gold"] ?? 0) + receive_gold;
+      newState.vars["gold"] = finalGold;
+    }
+
+    const text = success_msg ?? `Trade completed successfully!`;
+    return {
+      state: newState,
+      event: { type: "narration", text }
     };
   }
 
