@@ -103,9 +103,9 @@ Output format for each cycle:
 
 Continue this loop indefinitely until explicitly told to stop via CTRL-C."
 
-# Verify that gemini CLI is globally available
-if ! command -v gemini &> /dev/null; then
-  echo "🔴 Error: The 'gemini' CLI tool could not be found globally."
+# Verify that agy CLI is available
+if ! command -v agy &> /dev/null; then
+  echo "🔴 Error: The 'agy' (Antigravity) CLI tool could not be found."
   echo "Please make sure it is installed and present in your system PATH."
   exit 1
 fi
@@ -123,8 +123,8 @@ while true; do
   echo "🌀 RUNNING AUTONOMOUS CYCLE #$CYCLE"
   echo "================================================================================"
   
-  # Run the agent in headless YOLO mode (automatically approves commands/tool runs)
-  gemini --yolo --prompt "$PROMPT"
+  # Run the agent in headless Antigravity YOLO mode (automatically approves command/tool requests)
+  agy --dangerously-skip-permissions --print "$PROMPT"
   
   # Autonomous Git staging and commit
   if [[ -n $(git status --porcelain) ]]; then
