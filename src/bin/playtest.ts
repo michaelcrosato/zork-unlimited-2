@@ -3,8 +3,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { parse as parseYaml } from "yaml";
 import { runAiPlaytest } from "../agents/playtester.js";
-import { MockLlmClient } from "../agents/llm/mock_client.js";
-import { ApiLlmClient } from "../agents/llm/api_client.js";
+import { FallbackLlmClient } from "../agents/llm/api_client.js";
 import { LlmClient } from "../agents/llm/client.js";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
 import { validateParserPack } from "../validate/parser_validator.js";
@@ -80,10 +79,7 @@ function main() {
   const pack = packData as CYOAPack | ParserPack;
 
   // 2. Initialize Mock LLM Client
-  const client: LlmClient =
-    process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY
-      ? new ApiLlmClient()
-      : new MockLlmClient();
+  const client = new FallbackLlmClient();
 
   // 3. Execute AI playtester
   console.log("\nStarting AI playtest session...");

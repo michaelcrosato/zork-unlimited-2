@@ -1,4 +1,5 @@
 import { LlmClient } from "./client.js";
+import { MockLlmClient } from "./mock_client.js";
 
 /**
  * A highly robust, zero-dependency API client that implements the LlmClient interface.
@@ -140,3 +141,47 @@ export class ApiLlmClient implements LlmClient {
     return JSON.parse(text) as T;
   }
 }
+
+/**
+ * A wrapper LLM client that automatically detects available environment variables for
+ * Gemini or OpenAI API keys, initializing ApiLlmClient, and gracefully falls back to
+ * MockLlmClient if no API keys are configured.
+ */
+export class FallbackLlmClient implements LlmClient {
+  private activeClient: LlmClient;
+  private isFallback: boolean = false;
+
+  constructor(customMockAdapterResponse?: any) {
+    if (process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY) {
+      this.activeClient = new ApiLlmClient();
+    } else {
+      this.activeClient = new MockLlmClient(customMockAdapterResponse);
+      this.isFallback = true;
+    }
+  }
+
+  /**
+   * Returns true if the client has fallen back to the MockLlmClient.
+   */
+  getIsFallback(): boolean {
+    return this.isFallback;
+  }
+
+  /**
+   * Returns the underlying LlmClient instance (either ApiLlmClient or MockLlmClient).
+   */
+  getActiveClient(): LlmClient {
+    return this.activeClient;
+  }
+
+  async completeJson<T>(request: {
+    role: "writer" | "adapter" | "playtester" | "debugger" | "fixer";
+    system: string;
+    input: unknown;
+    schema: unknown;
+    seed?: number;
+  }): Promise<T> {
+    return this.activeClient.completeJson<T>(request);
+  }
+}
+

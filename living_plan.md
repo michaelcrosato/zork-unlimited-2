@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #4 (Ready for Cycle #5)
-* **Build/Test Status**: 🟢 PASS (All 43 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #5 (Ready for Cycle #6)
+* **Build/Test Status**: 🟢 PASS (All 49 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -31,19 +31,19 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ### Phase 3: Headless Playtest Automation (Active)
 - [x] Implement the `ai-autopilot.ts` run harness using deterministic mock LLMs.
-- [ ] Support real LLM execution using environment variables (Gemini / OpenAI).
+- [x] Support real LLM execution using environment variables (Gemini / OpenAI).
 - [ ] Connect the output of playtests directly to automatic code fixes.
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-05`
-* **Objective**: Support real LLM execution using environment variables (Gemini / OpenAI).
-* **Why this matters**: Enabling real LLM integration allows for intelligent, semantic player choices during headless playtests, moving beyond mock clients to more complex, human-like playthrough verification.
+**Task ID**: `AF-06`
+* **Objective**: Connect the output of playtests directly to automatic code fixes.
+* **Why this matters**: Automated self-healing flow allows the playtester agent to detect soft-locks, validation failures, or bugs, diagnose the problem using the AI Debugger agent, and invoke the AI Fixer agent to generate content patches or engine fixes autonomously.
 * **Planned Actions**:
-  1. Implement the API connector for Gemini and OpenAI in `src/agents/llm/api_client.ts`.
-  2. Verify environment variable resolution for API keys.
-  3. Create unit/integration tests confirming the API client wrapper behavior and graceful fallback to mock client if API keys are missing.
+  1. Update `ai-autopilot.ts` and `playtest.ts` to capture playtest exceptions, soft-locks, or failures.
+  2. Integrate the playtester outcome with `diagnosePlaytest` and `fixIdentifiedBug` to create a self-healing patch pipeline.
+  3. Validate any generated content fixes by auto-compiling and re-running playtests to confirm the fix is correct.
 
 ---
 
