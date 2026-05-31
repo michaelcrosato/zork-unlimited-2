@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Initializing (Ready for Cycle #1)
-* **Build/Test Status**: 🟢 PASS (All 18 Vitest tests passing)
+* **Autonomous Cycle**: Completed Cycle #1 (Ready for Cycle #2)
+* **Build/Test Status**: 🟢 PASS (All 18 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -18,7 +18,7 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement SHA-256 state hashing for perfect replayability.
 - [x] Create Choose-Your-Own-Adventure (CYOA) schemas and validators.
 - [x] Create Zork-style Parser schemas and validators.
-- [ ] Audit and resolve warnings in existing content packs:
+- [x] Audit and resolve warnings in existing content packs:
   - `content/parser/pack/heros_quest.yaml` (Parser)
   - `content/parser/pack/chapel.yaml` (Parser)
   - `content/cyoa/pack/watchtower.yaml` (CYOA)
@@ -37,13 +37,13 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-01`
-* **Objective**: Run and audit the baseline `pnpm autopilot` test to review all existing content pack validations and playtests, and fix any warning/error reported by the graph validators.
-* **Why this matters**: Valid content packs are the absolute prerequisite for stable playtesting and gameplay. Ensuring zero warnings across all packs guarantees there are no dead-ends or malformed schemas.
+**Task ID**: `AF-02`
+* **Objective**: Implement comprehensive, rigorous unit tests for deep edge cases in the effect/condition DSL (Domain Specific Language) interpreter.
+* **Why this matters**: As the DSL is used to run complex game-state logic (e.g. state changes, flag setting, and condition matching), ensuring absolute correctness of all operators prevents hidden bugs in user-created content packs and playtests.
 * **Planned Actions**:
-  1. Execute `pnpm autopilot` to check output.
-  2. Inspect specific validator findings for `chapel.yaml`, `heros_quest.yaml`, and `watchtower.yaml`.
-  3. Edit content pack YAMLs to resolve outstanding issues.
+  1. Inspect existing DSL parsing and execution files in `src/core/conditions.ts` and `src/core/effects.ts`.
+  2. Identify edge cases (nested conditions, invalid operators, multiple conditions).
+  3. Author unit tests under `tests/dsl.test.ts` to fully exercise all edge conditions.
 
 ---
 

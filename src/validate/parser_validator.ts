@@ -178,7 +178,7 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
 
   if (maxScore > 0) {
     findings.push({
-      severity: "warning",
+      severity: "info",
       code: "MAX_SCORE_REPORT",
       message: `Content pack contains score rewards. Maximum potential score calculated: ${maxScore} points.`,
       where: ["meta:vars_init"],
@@ -204,7 +204,7 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
 
   if (containsDeathState) {
     findings.push({
-      severity: "warning",
+      severity: "info",
       code: "DEATH_STATE_LOGGED",
       message: `Pack contains death endings. Confirmed: all death states are fully recoverable via the CLI restore loops.`,
       where: ["endings"],
