@@ -1,0 +1,34 @@
+{
+  "trace_id": "tr_playtest_forest_pack_v1_42",
+  "pack_id": "forest_pack_v1",
+  "content_hash": "clockwork_pack_hash_v1",
+  "seed": 42,
+  "initial_state_ref": "start",
+  "actions": [
+    {
+      "type": "CHOOSE",
+      "choiceId": "go_west"
+    },
+    {
+      "type": "CHOOSE",
+      "choiceId": "go_back"
+    },
+    {
+      "type": "CHOOSE",
+      "choiceId": "inspect_ground"
+    },
+    {
+      "type": "CHOOSE",
+      "choiceId": "go_east"
+    },
+    {
+      "type": "CHOOSE",
+      "choiceId": "enter_tower"
+    },
+    {
+      "type": "CHOOSE",
+      "choiceId": "confront"
+    }
+  ],
+  "expected_final_hash": "eb60c85aabe4c66ff207a2325800827cbe80e5b09a50101845e4b0d56eceae3c"
+}

@@ -1,0 +1,118 @@
+{
+  "trace_id": "tr_playtest_chapel_pack_v1_42",
+  "pack_id": "chapel_pack_v1",
+  "content_hash": "clockwork_pack_hash_v1",
+  "seed": 42,
+  "initial_state_ref": "start",
+  "actions": [
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "south"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "MOVE",
+      "direction": "south"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "TALK",
+      "npc": "innkeeper"
+    },
+    {
+      "type": "ASK",
+      "npc": "innkeeper",
+      "topic": "ask_well"
+    },
+    {
+      "type": "ASK",
+      "npc": "innkeeper",
+      "topic": "leave"
+    },
+    {
+      "type": "TALK",
+      "npc": "innkeeper"
+    },
+    {
+      "type": "ASK",
+      "npc": "innkeeper",
+      "topic": "leave"
+    }
+  ],
+  "expected_final_hash": "3ce009cedee80d38cb158007bb4765bcef30ecc983d27a0315f03a8f774f4171"
+}

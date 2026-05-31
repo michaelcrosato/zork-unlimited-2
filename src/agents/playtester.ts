@@ -2,8 +2,9 @@ import { GameState, createInitialState } from "../core/state.js";
 import { step } from "../core/engine.js";
 import { buildObservation } from "../api/observation.js";
 import { LlmClient } from "./llm/client.js";
-import { Action } from "../api/types.js";
+import { Action, AvailableAction } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
+import { ParserPack } from "../parser/schema.js";
 import { computeStateHash } from "../core/hash.js";
 import { Trace } from "../trace/record.js";
 
@@ -31,7 +32,7 @@ export type PlaytestResult = {
  * powered by the LlmClient.
  */
 export async function runAiPlaytest(options: {
-  pack: CYOAPack;
+  pack: CYOAPack | ParserPack;
   client: LlmClient;
   seed: number;
   traceId: string;
@@ -39,9 +40,13 @@ export async function runAiPlaytest(options: {
 }): Promise<PlaytestResult> {
   const { pack, client, seed, traceId, maxSteps = 100 } = options;
 
+  const startRoom = "scenes" in pack
+    ? (pack as CYOAPack).meta.start
+    : (pack as ParserPack).meta.start_room;
+
   let state = createInitialState({
     seed,
-    start: pack.meta.start,
+    start: startRoom,
     varsInit: pack.meta.vars_init,
     flagsInit: pack.meta.flags_init,
   });
@@ -103,7 +108,9 @@ export async function runAiPlaytest(options: {
       };
     }
 
-    const action: Action = { type: "CHOOSE", choiceId: chosenActionId };
+    const action: Action = obs.mode === "cyoa"
+      ? { type: "CHOOSE", choiceId: chosenActionId }
+      : (obs.available_actions as AvailableAction[]).find((a) => a.id === chosenActionId)!.action;
     actionsRecorded.push(action);
 
     // 3. Step the engine
