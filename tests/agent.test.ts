@@ -67,6 +67,16 @@ describe("AI Agent Roster & Acceptance Loop (Stage 1 MVP)", () => {
     expect(fixResult.fixed).toBe(true);
     expect(fixResult.fix_layer).toBe("content");
 
+    // 5b. Validate proposed fix by re-running playtest (Self-healing validation)
+    const retest = await runAiPlaytest({
+      pack,
+      client,
+      seed: 8888,
+      traceId: "tr_playtest_fixed",
+      maxSteps: 20,
+    });
+    expect(retest.success).toBe(true);
+
     // 6. Verify absolute determinism: Replaying playtest trace reproduces identical state hashes
     const replay = replayTrace({
       trace: playtest.trace,

@@ -165,10 +165,12 @@ export async function runAiPlaytest(options: {
     expected_final_hash: finalHash,
   };
 
+  const success = state.ended;
   return {
-    success: true,
+    success,
     trace,
     logs,
     finalState: state,
+    error: success ? undefined : "Playtest ended without reaching a terminal game ending.",
   };
 }

@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #5 (Ready for Cycle #6)
+* **Autonomous Cycle**: Completed Cycle #6 (Ready for Cycle #7)
 * **Build/Test Status**: 🟢 PASS (All 49 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
@@ -29,21 +29,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Add advanced NPC dialogue trees and multi-option dynamic choice routing.
 - [x] Implement a full graph-based pathfinder validator to check for hard soft-locks (detect unreachable win states).
 
-### Phase 3: Headless Playtest Automation (Active)
+### Phase 3: Headless Playtest Automation (Completed)
 - [x] Implement the `ai-autopilot.ts` run harness using deterministic mock LLMs.
 - [x] Support real LLM execution using environment variables (Gemini / OpenAI).
-- [ ] Connect the output of playtests directly to automatic code fixes.
+- [x] Connect the output of playtests directly to automatic code fixes.
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-06`
-* **Objective**: Connect the output of playtests directly to automatic code fixes.
-* **Why this matters**: Automated self-healing flow allows the playtester agent to detect soft-locks, validation failures, or bugs, diagnose the problem using the AI Debugger agent, and invoke the AI Fixer agent to generate content patches or engine fixes autonomously.
+**Task ID**: `AF-07`
+* **Objective**: Design and implement advanced playtest personas and real LLM testing guidelines to discover complex multi-step game design bugs.
+* **Why this matters**: Enhances testing coverage to discover more complex soft-locks or puzzle design issues that basic speedrunning pathing cannot reach.
 * **Planned Actions**:
-  1. Update `ai-autopilot.ts` and `playtest.ts` to capture playtest exceptions, soft-locks, or failures.
-  2. Integrate the playtester outcome with `diagnosePlaytest` and `fixIdentifiedBug` to create a self-healing patch pipeline.
-  3. Validate any generated content fixes by auto-compiling and re-running playtests to confirm the fix is correct.
+  1. Add new playtest persona profiles to `MockLlmClient` and update `ApiLlmClient` prompts to support those personas.
+  2. Implement hoarder, explorer, and dropper testing routes in the parser games.
+  3. Validate persona-based runs and ensure they all compile and run in autopilot correctly.
 
 ---
 

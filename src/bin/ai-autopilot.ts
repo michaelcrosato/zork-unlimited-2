@@ -6,6 +6,8 @@ import { execSync } from "child_process";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
 import { validateParserPack } from "../validate/parser_validator.js";
 import { runAiPlaytest } from "../agents/playtester.js";
+import { diagnosePlaytest } from "../agents/debugger.js";
+import { fixIdentifiedBug } from "../agents/fixer.js";
 import { FallbackLlmClient } from "../agents/llm/api_client.js";
 import { LlmClient } from "../agents/llm/client.js";
 
@@ -18,6 +20,9 @@ interface PackResult {
   playtestSteps?: number;
   playtestEnding?: string;
   playtestSuccess?: boolean;
+  selfHealed?: boolean;
+  diagnosisText?: string;
+  fixText?: string;
 }
 
 function runCommand(cmd: string): { success: boolean; output: string } {
@@ -90,7 +95,7 @@ async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
       warnings: warningsCount,
     };
 
-    // Playtesting
+    // Playtesting & Self-Healing
     if (valid) {
       try {
         const res = await runAiPlaytest({
@@ -105,6 +110,50 @@ async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
         packResult.playtestSuccess = res.success;
         packResult.playtestSteps = res.logs.length;
         packResult.playtestEnding = res.finalState.endingId || res.finalState.current;
+
+        if (!res.success) {
+          console.log(`⚠️ Playtest failed or soft-locked for ${packResult.name}. Initiating Self-Healing...`);
+          const diagnosis = await diagnosePlaytest({
+            client,
+            logs: res.logs,
+            seed: 42,
+          });
+          packResult.diagnosisText = diagnosis.diagnosis;
+          console.log(`🔍 Diagnosis: ${diagnosis.diagnosis} | Severity: ${diagnosis.severity}`);
+
+          const fixResult = await fixIdentifiedBug({
+            client,
+            diagnosis,
+            seed: 42,
+          });
+          packResult.fixText = fixResult.applied_patch;
+          console.log(`🩹 Proposed patch: ${fixResult.applied_patch}`);
+
+          if (fixResult.fixed) {
+            console.log(`🚀 Validating proposed fix by re-running playtest...`);
+            const retestRes = await runAiPlaytest({
+              pack: data,
+              client,
+              seed: 42,
+              traceId: `autopilot_healed_${data.meta.id}`,
+              persona: "speedrunner",
+              maxSteps: 35,
+            });
+
+            if (retestRes.success) {
+              console.log(`🟢 Self-healing SUCCESSFUL! The patch resolved the playtest failure.`);
+              packResult.playtestSuccess = true;
+              packResult.playtestSteps = retestRes.logs.length;
+              packResult.playtestEnding = retestRes.finalState.endingId || retestRes.finalState.current;
+              packResult.selfHealed = true;
+            } else {
+              console.log(`🔴 Self-healing FAILED! The patch did not resolve the failure.`);
+              packResult.selfHealed = false;
+            }
+          } else {
+            console.log(`🔴 AI Fixer failed to generate a fix.`);
+          }
+        }
       } catch (err: any) {
         packResult.playtestSuccess = false;
         packResult.playtestEnding = `Error: ${err.message}`;
@@ -143,7 +192,13 @@ ${packResults
       } | \`${p.playtestEnding ?? "N/A"}\` | ${p.playtestSuccess ? "🟢 SUCCESS" : p.playtestSuccess === false ? "🔴 FAILED" : "➖"}`
   )
   .join("\n")}
+${packResults.some(p => p.selfHealed !== undefined) ? `
+## 🩹 Self-Healing Outcomes
 
+| Content Pack | Diagnosis | Proposed Fix | Healing Outcome |
+| :--- | :--- | :--- | :--- |
+${packResults.filter(p => p.selfHealed !== undefined).map(p => `| **${p.name}** | ${p.diagnosisText || "N/A"} | ${p.fixText || "N/A"} | ${p.selfHealed ? "🟢 SUCCESS" : "🔴 FAILED"}`).join("\n")}
+` : ""}
 ## 📊 Detailed Metrics & System Logs
 
 ### TypeScript Build Log

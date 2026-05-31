@@ -3,6 +3,8 @@ import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { parse as parseYaml } from "yaml";
 import { runAiPlaytest } from "../agents/playtester.js";
+import { diagnosePlaytest } from "../agents/debugger.js";
+import { fixIdentifiedBug } from "../agents/fixer.js";
 import { FallbackLlmClient } from "../agents/llm/api_client.js";
 import { LlmClient } from "../agents/llm/client.js";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
@@ -118,7 +120,59 @@ function main() {
       console.error("❌ AI PLAYTEST FAILED!");
       console.error(`Error: ${res.error}`);
       console.error("=================================");
-      process.exit(1);
+
+      console.log("\n🩹 INITIATING SELF-HEALING WORKFLOW...");
+      diagnosePlaytest({
+        client,
+        logs: res.logs,
+        seed,
+      }).then((diagnosis) => {
+        console.log(`\n🔍 AI Debugger Diagnosis (Severity: ${diagnosis.severity}):`);
+        console.log(diagnosis.diagnosis);
+        console.log(`Recommendation: ${diagnosis.recommendation}`);
+
+        return fixIdentifiedBug({
+          client,
+          diagnosis,
+          seed,
+        });
+      }).then((fixResult) => {
+        console.log(`\n🩹 AI Fixer Proposed Patch (Layer: ${fixResult.fix_layer}):`);
+        console.log(fixResult.applied_patch);
+        console.log(`Regression Test Name: ${fixResult.regression_test_name}`);
+
+        if (fixResult.fixed) {
+          console.log("\n🚀 Validating proposed fix by re-running playtest...");
+          return runAiPlaytest({
+            pack,
+            client,
+            seed,
+            traceId: `tr_playtest_healed_${pack.meta.id}_${persona}_${seed}`,
+            persona,
+            maxSteps: 35,
+          });
+        } else {
+          throw new Error("AI Fixer could not propose a fix.");
+        }
+      }).then((healedRes) => {
+        if (healedRes.success) {
+          console.log("\n=================================");
+          console.log("🟢 SELF-HEALING SUCCESSFUL!");
+          console.log(`The patch has resolved the playtest failure.`);
+          console.log(`Final location: ${healedRes.finalState.current}`);
+          console.log("=================================");
+          process.exit(0);
+        } else {
+          console.error("\n=================================");
+          console.error("🔴 SELF-HEALING FAILED!");
+          console.error("The proposed patch did not resolve the playtest failure.");
+          console.error("=================================");
+          process.exit(1);
+        }
+      }).catch((err) => {
+        console.error(`\nSelf-healing failed: ${err.message}`);
+        process.exit(1);
+      });
     }
   }).catch((err) => {
     console.error(`Fatal playtest error: ${err.message}`);
