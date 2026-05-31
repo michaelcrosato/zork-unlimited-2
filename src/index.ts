@@ -40,3 +40,24 @@ export type { Action, StepResult, AvailableAction, CYOAObservation, ParserObserv
 export { validateCYOAPack } from "./validate/cyoa_validator.js";
 export { formatValidationReport } from "./validate/report.js";
 export type { ValidationFinding, ValidationReport } from "./validate/report.js";
+
+// AI Agents & LLM Clients
+export type { LlmClient } from "./agents/llm/client.js";
+export { MockLlmClient } from "./agents/llm/mock_client.js";
+export { runAiPlaytest } from "./agents/playtester.js";
+export type { PlaytestLogEntry, PlaytestResult } from "./agents/playtester.js";
+export { draftStory } from "./agents/writer.js";
+export type { RawStoryBeat, RawStoryDraft } from "./agents/writer.js";
+export { adaptStoryToPack } from "./agents/adapter.js";
+export type { AdaptationResult } from "./agents/adapter.js";
+export { diagnosePlaytest } from "./agents/debugger.js";
+export type { BugDiagnosis } from "./agents/debugger.js";
+export { fixIdentifiedBug } from "./agents/fixer.js";
+export type { ContentFixResult } from "./agents/fixer.js";
+
+// Parser (Stage 2) Modules
+export { ParserExitSchema, ObjectInteractionSchema, ParserObjectSchema, DialogueTopicSchema, DialogueNodeSchema, ParserNPCSchema, ParserRoomSchema, ParserWinConditionSchema, ParserEndingSchema, ParserPackSchema } from "./parser/schema.js";
+export type { ParserExit, ObjectInteraction, ParserObject, DialogueTopic, DialogueNode, ParserNPC, ParserRoom, ParserWinCondition, ParserEnding, ParserPack } from "./parser/schema.js";
+export { generateLegalActions } from "./parser/legal_actions.js";
+export { normalizeCommandString, mapCommand } from "./parser/command_map.js";
+export { validateParserPack } from "./validate/parser_validator.js";

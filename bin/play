@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Wrapper to execute the TSX-based CLI CYOA game player
+exec npx tsx "$(dirname "$0")/../src/bin/play.ts" "$@"

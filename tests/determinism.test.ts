@@ -8,7 +8,7 @@ import { step } from "../src/core/engine.js";
 import { buildObservation } from "../src/api/observation.js";
 import { computeStateHash } from "../src/core/hash.js";
 import { PureRand } from "../src/core/rng.js";
-import { Action } from "../src/api/types.js";
+import { Action, CYOAObservation } from "../src/api/types.js";
 import { CYOAPack } from "../src/cyoa/schema.js";
 
 describe("Engine Determinism & Purity Contract", () => {
@@ -34,7 +34,7 @@ describe("Engine Determinism & Purity Contract", () => {
       const hashHistory1: string[] = [computeStateHash(state1)];
 
       while (!state1.ended && state1.step < 100) {
-        const obs = buildObservation(state1, packData);
+        const obs = buildObservation(state1, packData) as CYOAObservation;
         if (obs.available_actions.length === 0) break;
 
         // Choose randomly

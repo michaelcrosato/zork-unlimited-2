@@ -1,0 +1,209 @@
+meta:
+  id: chapel_pack_v1
+  title: "The Sealed Crypt"
+  start_room: forest_path
+  vars_init:
+    score: 0
+  flags_init: [ crypt_door_locked ]
+
+rooms:
+  - id: forest_path
+    name: "Forest Path"
+    description: "A narrow dirt path winds through the dark woods. To the north, the mossy stone facade of a ruined chapel is visible."
+    objects: []
+    npcs: []
+    exits:
+      - { direction: north, to: chapel_entrance }
+
+  - id: chapel_entrance
+    name: "Chapel Entrance"
+    description: "You stand before the splintered oak doors of the ruined chapel. Paths lead west to a graveyard and south to the forest path."
+    objects: []
+    npcs: []
+    exits:
+      - { direction: south, to: forest_path }
+      - { direction: north, to: ruined_chapel }
+      - { direction: west, to: chapel_yard }
+
+  - id: chapel_yard
+    name: "Chapel Graveyard"
+    description: "Weathered gray tombstones lean at odd angles in the tall grass. A mysterious figure stands near a weeping willow."
+    objects: []
+    npcs: [ innkeeper ]
+    exits:
+      - { direction: east, to: chapel_entrance }
+
+  - id: ruined_chapel
+    name: "Ruined Chapel"
+    description: "Sunshine streams through the collapsed roof, illuminating dust motes. An old stone well stands in the center. An archway leads north, and a side door leads west."
+    objects: [ old_well ]
+    npcs: []
+    exits:
+      - { direction: south, to: chapel_entrance }
+      - { direction: north, to: altar_room }
+      - { direction: west, to: chapel_garden }
+      - direction: down
+        to: well_bottom
+        conditions: [ { has_flag: rope_attached_to_well } ]
+        locked_msg: "The well is too deep and dark to climb down without a rope."
+
+  - id: chapel_garden
+    name: "Overgrown Garden"
+    description: "Thorns and wild roses choke the garden paths. Something glints in the damp moss beneath a gargoyle."
+    objects: [ rope ]
+    npcs: []
+    exits:
+      - { direction: east, to: ruined_chapel }
+
+  - id: well_bottom
+    name: "Bottom of the Well"
+    description: "It is damp and cold down here. The stone walls are slick. A brass key glints in the mud."
+    objects: [ brass_key ]
+    npcs: []
+    exits:
+      - { direction: up, to: ruined_chapel }
+
+  - id: altar_room
+    name: "Altar Room"
+    description: "A cracked stone altar dominates the room. Behind it, a heavy iron crypt door leads down into the darkness."
+    objects: [ crypt_door ]
+    npcs: []
+    exits:
+      - { direction: south, to: ruined_chapel }
+      - { direction: west, to: sacristy }
+      - direction: down
+        to: sealed_crypt
+        conditions: [ { not_flag: crypt_door_locked } ]
+        locked_msg: "The heavy iron crypt door is locked tight."
+
+  - id: sacristy
+    name: "The Sacristy"
+    description: "A small vestry room covered in layers of dust. A heavy iron-banded oak chest sits in the corner."
+    objects: [ oak_chest ]
+    npcs: []
+    exits:
+      - { direction: east, to: altar_room }
+
+  - id: sealed_crypt
+    name: "The Sealed Crypt"
+    description: "You stand in the cold crypt. Stone sarcophagi line the walls. A stone archway leads down to the catacombs, but it is blocked by a portcullis."
+    objects: [ portcullis ]
+    npcs: []
+    exits:
+      - { direction: up, to: altar_room }
+      - direction: down
+        to: catacombs
+        conditions: [ { has_flag: portcullis_raised } ]
+        locked_msg: "The heavy iron portcullis blocks the archway leading down."
+
+  - id: catacombs
+    name: "The Ancient Catacombs"
+    description: "You have entered the catacombs! The air is still and silent. You have found the final resting place."
+    objects: []
+    npcs: []
+    exits:
+      - { direction: up, to: sealed_crypt }
+
+objects:
+  - id: brass_key
+    name: "brass key"
+    aliases: [ key, brass ]
+    description: "A small brass key, green with age."
+    takeable: true
+
+  - id: rope
+    name: "coil of rope"
+    aliases: [ rope, coil ]
+    description: "A sturdy coil of hemp rope."
+    takeable: true
+    quest_critical: true
+
+  - id: old_well
+    name: "old well"
+    aliases: [ well ]
+    description: "An ancient stone well. An iron ring is bolted to its rim."
+    takeable: false
+    interactions:
+      - verb: USE
+        item: rope
+        target: old_well
+        conditions: [ { not_flag: rope_attached_to_well } ]
+        effects:
+          - set_flag: rope_attached_to_well
+          - unlock_exit: { from: ruined_chapel, to: well_bottom }
+          - narrate: "You tie the rope securely to the iron ring and drop it down the well."
+
+  - id: oak_chest
+    name: "banded oak chest"
+    aliases: [ chest, oak chest ]
+    description: "A heavy iron-banded oak chest. It is locked."
+    takeable: false
+    container: true
+    openable: true
+    locked: true
+    key_id: brass_key
+    contents: [ iron_key ]
+
+  - id: iron_key
+    name: "iron key"
+    aliases: [ key, iron ]
+    description: "A large, heavy iron key."
+    takeable: true
+    quest_critical: true
+
+  - id: crypt_door
+    name: "iron crypt door"
+    aliases: [ door, crypt door ]
+    description: "A heavy iron door carved with skeletal figures. It is locked."
+    takeable: false
+    interactions:
+      - verb: USE
+        item: iron_key
+        target: crypt_door
+        conditions: [ { has_flag: crypt_door_locked } ]
+        effects:
+          - clear_flag: crypt_door_locked
+          - unlock_exit: { from: altar_room, to: sealed_crypt }
+          - narrate: "You insert the heavy iron key into the door. With a loud click, the lock turns."
+
+  - id: portcullis
+    name: "iron portcullis"
+    aliases: [ gate, portcullis ]
+    description: "A massive portcullis. A rusty lever is set in the wall next to it."
+    takeable: false
+    interactions:
+      - verb: USE
+        target: portcullis
+        conditions: [ { not_flag: portcullis_raised } ]
+        effects:
+          - set_flag: portcullis_raised
+          - unlock_exit: { from: sealed_crypt, to: catacombs }
+          - narrate: "You pull the rusty lever with all your strength. The portcullis screeches upward."
+
+npcs:
+  - id: innkeeper
+    name: "innkeeper"
+    description: "A cloaked traveler holding a lantern."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Be careful in these ruins, traveler. The crypt holds secrets."
+          topics:
+            - { id: ask_well, prompt: "Ask about the well", goto: well_clue }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: well_clue
+          npc_text: "They say a coil of rope was left at the bottom of the well. If only someone could climb down."
+          effects: [ { set_flag: heard_well_clue } ]
+          topics:
+            - { id: leave, prompt: "Say goodbye", end: true }
+
+win_conditions:
+  - id: reach_catacombs
+    conditions: [ { visited: catacombs } ]
+    ending: ending_victory
+
+endings:
+  - id: ending_victory
+    title: "Adventure Completed!"
+    text: "You have successfully navigated the ruins, unlocked the crypt, and entered the ancient catacombs. Your quest is complete."
