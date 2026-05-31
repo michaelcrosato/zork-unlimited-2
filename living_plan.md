@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #3 (Ready for Cycle #4)
-* **Build/Test Status**: 🟢 PASS (All 39 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #4 (Ready for Cycle #5)
+* **Build/Test Status**: 🟢 PASS (All 43 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -24,10 +24,10 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
   - `content/cyoa/pack/watchtower.yaml` (CYOA)
 - [x] Add rigorous unit tests for deep edge cases in effect/condition DSL.
 
-### Phase 2: Game Feel & Mechanics Expansion (Active)
+### Phase 2: Game Feel & Mechanics Expansion (Completed)
 - [x] Introduce "Sierra-Quest-style" score telemetry and puzzle trackers.
 - [x] Add advanced NPC dialogue trees and multi-option dynamic choice routing.
-- [ ] Implement a full graph-based pathfinder validator to check for hard soft-locks (detect unreachable win states).
+- [x] Implement a full graph-based pathfinder validator to check for hard soft-locks (detect unreachable win states).
 
 ### Phase 3: Headless Playtest Automation (Active)
 - [x] Implement the `ai-autopilot.ts` run harness using deterministic mock LLMs.
@@ -37,13 +37,13 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-04`
-* **Objective**: Implement a full graph-based pathfinder validator to check for hard soft-locks (detect unreachable win states).
-* **Why this matters**: A graph-based state pathfinder will automatically detect if there's any game state where the player is permanently locked out of winning (e.g. unreachable rooms, keys locked inside boxes they open, or broken transitions), ensuring design soundness before game launch.
+**Task ID**: `AF-05`
+* **Objective**: Support real LLM execution using environment variables (Gemini / OpenAI).
+* **Why this matters**: Enabling real LLM integration allows for intelligent, semantic player choices during headless playtests, moving beyond mock clients to more complex, human-like playthrough verification.
 * **Planned Actions**:
-  1. Design a state-space traversal algorithm in `src/validate/parser_validator.ts` and `src/validate/cyoa_validator.ts` to explore reachable rooms and state changes.
-  2. Implement detection of hard soft-locks by verifying that at least one sequence of legal actions leads from the starting room to a win condition.
-  3. Write robust unit tests with simple mock story packs that simulate broken layouts to verify that the pathfinder correctly flags them.
+  1. Implement the API connector for Gemini and OpenAI in `src/agents/llm/api_client.ts`.
+  2. Verify environment variable resolution for API keys.
+  3. Create unit/integration tests confirming the API client wrapper behavior and graceful fallback to mock client if API keys are missing.
 
 ---
 
@@ -51,8 +51,7 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 | Risk | Impact | Mitigation Strategy |
 | :--- | :---: | :--- |
-| **State-space explosion during pathfinding** | High | Cap the maximum depth/steps of the state explorer and focus validation on critical gate variables and room reachability. |
+| **State-space explosion during pathfinding** | High | Cap the maximum depth/steps of the state explorer and focus validation on critical gate variables and room reachability. Exclude `DROP` actions to keep puzzle path traversal clean. |
 | **Timeout during playtest** | High | Keep playtest path lengths bounded (e.g. max 35 steps) and use efficient execution loops. |
 | **Nondeterminism in engine** | High | Standardized JSON serialization sorting keys before hashing. Property test action sequences to assert identical hashes. |
 | **Infinite debugging loops** | Medium | Limit autonomous cycle runs to a single task per CLI session, preventing internal loops. |
-

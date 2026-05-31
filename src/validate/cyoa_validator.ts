@@ -2,6 +2,174 @@ import { CYOAPack, CYOAPackSchema } from "../cyoa/schema.js";
 import { ValidationReport, ValidationFinding } from "./report.js";
 import { Condition } from "../core/conditions.js";
 import { Effect } from "../core/effects.js";
+import { createInitialState, GameState } from "../core/state.js";
+import { step } from "../core/engine.js";
+import { Action } from "../api/types.js";
+import { canonicalStringify } from "../core/hash.js";
+
+/**
+ * Explores the entire state space of a CYOA pack using BFS to identify
+ * unsolvable games and soft-locks where no endings are reachable.
+ */
+export function checkCYOASoftlocks(pack: CYOAPack): ValidationFinding[] {
+  const hasEndings = (pack.endings && pack.endings.length > 0) || pack.scenes.some(s => s.is_ending);
+  if (!hasEndings) {
+    return [];
+  }
+
+  const findings: ValidationFinding[] = [];
+  const startRoom = pack.meta.start;
+
+  const initialState = createInitialState({
+    seed: 42,
+    start: startRoom,
+    varsInit: pack.meta.vars_init,
+    flagsInit: pack.meta.flags_init,
+  });
+
+  // State-space search (BFS)
+  const queue: GameState[] = [initialState];
+  const visited = new Map<string, GameState>();
+  const parentMap = new Map<string, string[]>();
+  const transitionGraph = new Map<string, Set<string>>();
+
+  const getStateKey = (state: GameState): string => {
+    const clean = {
+      current: state.current,
+      flags: state.flags,
+      vars: state.vars,
+      inventory: state.inventory,
+      objectState: state.objectState,
+      questStage: state.questStage,
+      ended: state.ended,
+      endingId: state.endingId,
+    };
+    return canonicalStringify(clean);
+  };
+
+  const initialKey = getStateKey(initialState);
+  visited.set(initialKey, initialState);
+  transitionGraph.set(initialKey, new Set<string>());
+
+  const maxStates = 2000;
+  let statesExplored = 0;
+  let limitReached = false;
+
+  while (queue.length > 0) {
+    const currState = queue.shift()!;
+    const currKey = getStateKey(currState);
+    statesExplored++;
+
+    if (statesExplored > maxStates) {
+      limitReached = true;
+      break;
+    }
+
+    if (currState.ended) {
+      continue;
+    }
+
+    const currentScene = pack.scenes.find((s) => s.id === currState.current);
+    if (!currentScene) {
+      continue;
+    }
+
+    for (const choice of currentScene.choices) {
+      const action: Action = {
+        type: "CHOOSE",
+        choiceId: choice.id,
+      };
+
+      const result = step(currState, action, pack);
+      if (result.ok) {
+        const nextKey = getStateKey(result.state);
+        
+        if (!transitionGraph.has(currKey)) {
+          transitionGraph.set(currKey, new Set());
+        }
+        transitionGraph.get(currKey)!.add(nextKey);
+
+        if (!visited.has(nextKey)) {
+          visited.set(nextKey, result.state);
+          queue.push(result.state);
+        }
+
+        if (!parentMap.has(nextKey)) {
+          parentMap.set(nextKey, []);
+        }
+        if (!parentMap.get(nextKey)!.includes(currKey)) {
+          parentMap.get(nextKey)!.push(currKey);
+        }
+      }
+    }
+  }
+
+  if (limitReached) {
+    findings.push({
+      severity: "info",
+      code: "PATHFINDER_LIMIT_REACHED",
+      message: `State-space pathfinder capped at ${maxStates} states explored to avoid timeout.`,
+      where: ["pathfinder"],
+    });
+  }
+
+  const endingKeys = new Set<string>();
+  for (const [key, state] of visited.entries()) {
+    if (state.ended) {
+      endingKeys.add(key);
+    }
+  }
+
+  const canReachEnding = new Set<string>(endingKeys);
+  const backQueue = Array.from(endingKeys);
+
+  while (backQueue.length > 0) {
+    const currKey = backQueue.shift()!;
+    const parents = parentMap.get(currKey) ?? [];
+    for (const p of parents) {
+      if (!canReachEnding.has(p)) {
+        canReachEnding.add(p);
+        backQueue.push(p);
+      }
+    }
+  }
+
+  let softLockCount = 0;
+  for (const [key, state] of visited.entries()) {
+    if (!state.ended && !canReachEnding.has(key)) {
+      softLockCount++;
+      if (softLockCount <= 5) {
+        findings.push({
+          severity: "warning",
+          code: "SOFTLOCK_DETECTED",
+          message: `Reachable state at scene '${state.current}' has no sequence of choices leading to any ending.`,
+          where: [`scene:${state.current}`],
+        });
+      }
+    }
+  }
+
+  if (softLockCount > 5) {
+    findings.push({
+      severity: "warning",
+      code: "SOFTLOCK_DETECTED",
+      message: `And ${softLockCount - 5} other reachable states are soft-locked.`,
+      where: ["pathfinder"],
+    });
+  }
+
+  const startKey = getStateKey(initialState);
+  if (!canReachEnding.has(startKey)) {
+    findings.push({
+      severity: "error",
+      code: "UNSOLVABLE_GAME",
+      message: `The game is unsolvable: there is no sequence of choices from the starting scene '${startRoom}' that leads to any ending.`,
+      where: [`scene:${startRoom}`],
+    });
+  }
+
+  return findings;
+}
 
 /**
  * Validates a CYOAPack against all architectural and graph consistency checks.
@@ -210,6 +378,10 @@ export function validateCYOAPack(rawPack: unknown): ValidationReport {
       }
     }
   }
+
+  // 7. Graph-based state-space pathfinder
+  const pathfinderFindings = checkCYOASoftlocks(pack);
+  findings.push(...pathfinderFindings);
 
   // Complete validation status
   const ok = !findings.some((f) => f.severity === "error");
