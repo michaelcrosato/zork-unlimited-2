@@ -9,17 +9,22 @@ import { generateLegalActions } from "../parser/legal_actions.js";
  * Compiles a structured, schema-valid Observation for the AI playtester based
  * on the current GameState and either a CYOAPack or a ParserPack.
  */
-export function buildObservation(state: GameState, pack: CYOAPack | ParserPack): Observation {
+export function buildObservation(
+  state: GameState,
+  pack: CYOAPack | ParserPack,
+): Observation {
   // Check if pack is CYOA
   if ("scenes" in pack) {
     const cyoaPack = pack as CYOAPack;
     const currentScene = cyoaPack.scenes.find((s) => s.id === state.current);
     if (!currentScene) {
-      throw new Error(`Current scene '${state.current}' not found in CYOA pack.`);
+      throw new Error(
+        `Current scene '${state.current}' not found in CYOA pack.`,
+      );
     }
 
     const availableChoices = currentScene.choices.filter((choice) =>
-      evaluateConditions(state, choice.conditions)
+      evaluateConditions(state, choice.conditions),
     );
 
     return {
@@ -43,7 +48,9 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
   const parserPack = pack as ParserPack;
   const room = parserPack.rooms.find((r) => r.id === state.current);
   if (!room) {
-    throw new Error(`Current room '${state.current}' not found in parser pack.`);
+    throw new Error(
+      `Current room '${state.current}' not found in parser pack.`,
+    );
   }
 
   // Compile visible objects (including contents of OPEN containers in the room)
@@ -51,14 +58,28 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
   room.objects.forEach((objId) => {
     const obj = parserPack.objects.find((o) => o.id === objId);
     if (obj) {
+      const runtime = state.objectState[obj.id];
+      if (
+        runtime &&
+        (runtime.takenBy === "player" || runtime.takenBy === "destroyed")
+      ) {
+        return;
+      }
       visibleObjects.push({ id: obj.id, name: obj.name });
 
-      const runtime = state.objectState[obj.id];
       const isOpen = runtime ? runtime.open : !obj.locked && !obj.openable;
       if (isOpen && obj.contents) {
         obj.contents.forEach((nestedId) => {
           const nestedObj = parserPack.objects.find((o) => o.id === nestedId);
           if (nestedObj) {
+            const nestedRuntime = state.objectState[nestedId];
+            if (
+              nestedRuntime &&
+              (nestedRuntime.takenBy === "player" ||
+                nestedRuntime.takenBy === "destroyed")
+            ) {
+              return;
+            }
             visibleObjects.push({ id: nestedObj.id, name: nestedObj.name });
           }
         });

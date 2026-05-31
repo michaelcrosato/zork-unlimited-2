@@ -1,0 +1,136 @@
+{
+  "trace_id": "tr_playtest_heros_quest_v1_mainline_42",
+  "pack_id": "heros_quest_v1",
+  "content_hash": "clockwork_pack_hash_v1",
+  "seed": 42,
+  "initial_state_ref": "start",
+  "actions": [
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "INSPECT",
+      "target": "gate_lever"
+    },
+    {
+      "type": "INSPECT",
+      "target": "gate_lever"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "INSPECT",
+      "target": "gate_lever"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "MOVE",
+      "direction": "up"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "up"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "INSPECT",
+      "target": "stone_wall"
+    },
+    {
+      "type": "MOVE",
+      "direction": "up"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "LOOK",
+      "target": "gate_lever"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "INSPECT",
+      "target": "gate_lever"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "INSPECT",
+      "target": "gate_lever"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "INSPECT",
+      "target": "stone_wall"
+    },
+    {
+      "type": "INSPECT",
+      "target": "stone_wall"
+    },
+    {
+      "type": "INSPECT",
+      "target": "stone_wall"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "INSPECT",
+      "target": "stone_wall"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "up"
+    }
+  ],
+  "expected_final_hash": "ef6e966bf6996edc035615ed42a4eb5826f1dd72261fe6f5950cb55e3732609b"
+}

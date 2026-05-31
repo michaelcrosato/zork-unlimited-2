@@ -18,7 +18,11 @@ export type Action =
   | { type: "GIVE"; item: string; npc: string }
   | { type: "READ"; target: string }
   | { type: "INSPECT"; target: string }
-  | { type: "INVENTORY" };
+  | { type: "INVENTORY" }
+  // Hero's Quest RPG (Stage 4)
+  | { type: "FIGHT"; npc: string }
+  | { type: "CAST"; spell: string; target: string }
+  | { type: "FLEE" };
 
 export type StepResult = {
   state: GameState;

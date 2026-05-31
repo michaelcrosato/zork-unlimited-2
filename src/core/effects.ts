@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { GameState } from "./state.js";
 import { GameEvent } from "./events.js";
+import { PureRand } from "./rng.js";
 
 export const EffectSchema = z.union([
   z.object({ set_flag: z.string() }),
@@ -42,6 +43,30 @@ export const EffectSchema = z.union([
   }),
   z.object({ narrate: z.string() }),
   z.object({ end_game: z.string() }),
+  z.object({
+    roll_skill_check: z.object({
+      skill: z.string(),
+      difficulty: z.number(),
+      success_flag: z.string(),
+    }),
+  }),
+  z.object({
+    start_combat: z.object({
+      npc_id: z.string(),
+    }),
+  }),
+  z.object({
+    damage_player: z.object({
+      by: z.number(),
+      msg: z.string().optional(),
+    }),
+  }),
+  z.object({
+    heal_player: z.object({
+      by: z.number(),
+      msg: z.string().optional(),
+    }),
+  }),
 ]);
 
 export type Effect = z.infer<typeof EffectSchema>;
@@ -102,7 +127,7 @@ export function applyEffect(state: GameState, effect: Effect): { state: GameStat
     const currentObj = newState.objectState[item] ?? {};
     newState.objectState[item] = {
       ...currentObj,
-      takenBy: "world",
+      takenBy: "destroyed",
     };
     return {
       state: newState,
@@ -211,6 +236,68 @@ export function applyEffect(state: GameState, effect: Effect): { state: GameStat
     return {
       state: newState,
       event: { type: "ending", endingId, title: "Game Over", text: "" },
+    };
+  }
+
+  if ("roll_skill_check" in effect) {
+    const { skill, difficulty, success_flag } = effect.roll_skill_check;
+    const skillVal = newState.vars[skill] ?? 0;
+    const { value: roll, nextSeed } = PureRand.nextInt(newState.seed, 1, 20);
+    newState.seed = nextSeed;
+    const total = roll + skillVal;
+    const success = total >= difficulty;
+    newState.flags[success_flag] = success;
+
+    const msg = `[Skill Check] Rolling ${skill.toUpperCase()} (Difficulty: ${difficulty}): Rolled ${roll} + Skill ${skillVal} = ${total}. ` +
+                (success ? "🟢 SUCCESS!" : "🔴 FAILURE!");
+    newState.journal.push(msg);
+
+    return {
+      state: newState,
+      event: { type: "narration", text: msg },
+    };
+  }
+
+  if ("start_combat" in effect) {
+    const { npc_id } = effect.start_combat;
+    newState.flags[`in_combat_with_${npc_id}`] = true;
+    newState.flags[`in_dialogue_with_${npc_id}`] = false;
+    return {
+      state: newState,
+      event: { type: "state_change", effect: "start_combat", flag: npc_id },
+    };
+  }
+
+  if ("damage_player" in effect) {
+    const { by, msg } = effect.damage_player;
+    const currentHp = newState.vars["hp"] ?? 20;
+    const newHp = Math.max(0, currentHp - by);
+    newState.vars["hp"] = newHp;
+
+    const text = msg ?? `You take ${by} damage! (HP: ${newHp}/${newState.vars["max_hp"] ?? 20})`;
+    if (newHp <= 0) {
+      newState.ended = true;
+      newState.endingId = "ending_died_in_combat";
+    }
+
+    return {
+      state: newState,
+      event: { type: "narration", text },
+    };
+  }
+
+  if ("heal_player" in effect) {
+    const { by, msg } = effect.heal_player;
+    const currentHp = newState.vars["hp"] ?? 20;
+    const maxHp = newState.vars["max_hp"] ?? 20;
+    const newHp = Math.min(maxHp, currentHp + by);
+    newState.vars["hp"] = newHp;
+
+    const text = msg ?? `You are healed for ${by} points. (HP: ${newHp}/${maxHp})`;
+
+    return {
+      state: newState,
+      event: { type: "narration", text },
     };
   }
 

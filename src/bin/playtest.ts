@@ -13,15 +13,27 @@ import { ParserPack } from "../parser/schema.js";
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.error("Usage: playtest <content-pack.yaml|json> [seed]");
+    console.error("Usage: playtest <content-pack.yaml|json> [seed] [--persona <name>]");
     process.exit(1);
   }
 
   const packPath = resolve(args[0]);
-  const seed = parseInt(args[1] ?? "42", 10);
+  
+  // Parse optional seed and persona arguments
+  let seed = 42;
+  let persona = "mainline";
+  
+  for (let i = 1; i < args.length; i++) {
+    if (args[i] === "--persona" && i + 1 < args.length) {
+      persona = args[i + 1];
+      i++;
+    } else if (!isNaN(parseInt(args[i], 10))) {
+      seed = parseInt(args[i], 10);
+    }
+  }
 
   console.log(`Loading content pack for AI playtest: ${packPath}`);
-  console.log(`Using seed: ${seed}`);
+  console.log(`Using seed: ${seed} | Persona: ${persona}`);
 
   let packContent: string;
   try {
@@ -74,8 +86,9 @@ function main() {
     pack,
     client,
     seed,
-    traceId: `tr_playtest_${pack.meta.id}_${seed}`,
-    maxSteps: 30,
+    traceId: `tr_playtest_${pack.meta.id}_${persona}_${seed}`,
+    persona,
+    maxSteps: 35,
   }).then((res) => {
     if (res.success) {
       console.log("\n=================================");
@@ -95,7 +108,7 @@ function main() {
       });
 
       // Save playtest trace
-      const tracePath = resolve(`traces/ai_playtest_${pack.meta.id}.json`);
+      const tracePath = resolve(`traces/ai_playtest_${pack.meta.id}_${persona}.json`);
       writeFileSync(tracePath, JSON.stringify(res.trace, null, 2), "utf-8");
       console.log(`\n✔ Saved replayable trace to: ${tracePath}`);
       process.exit(0);

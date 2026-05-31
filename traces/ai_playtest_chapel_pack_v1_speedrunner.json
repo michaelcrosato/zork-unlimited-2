@@ -1,0 +1,99 @@
+{
+  "trace_id": "tr_playtest_chapel_pack_v1_speedrunner_42",
+  "pack_id": "chapel_pack_v1",
+  "content_hash": "clockwork_pack_hash_v1",
+  "seed": 42,
+  "initial_state_ref": "start",
+  "actions": [
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "TAKE",
+      "item": "rope"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "USE",
+      "item": "rope",
+      "target": "old_well"
+    },
+    {
+      "type": "MOVE",
+      "direction": "down"
+    },
+    {
+      "type": "TAKE",
+      "item": "brass_key"
+    },
+    {
+      "type": "MOVE",
+      "direction": "up"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "UNLOCK",
+      "target": "oak_chest",
+      "with": "brass_key"
+    },
+    {
+      "type": "OPEN",
+      "target": "oak_chest"
+    },
+    {
+      "type": "TAKE",
+      "item": "iron_key"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "USE",
+      "item": "iron_key",
+      "target": "crypt_door"
+    },
+    {
+      "type": "MOVE",
+      "direction": "down"
+    },
+    {
+      "type": "USE",
+      "item": "brass_key",
+      "target": "sarcophagus"
+    },
+    {
+      "type": "OPEN",
+      "target": "sarcophagus"
+    },
+    {
+      "type": "USE",
+      "item": "portcullis",
+      "target": "portcullis"
+    },
+    {
+      "type": "MOVE",
+      "direction": "down"
+    }
+  ],
+  "expected_final_hash": "54467cc98701843a4e354697713c6672a572c37ac5b08f8224b7d250a52f4b1c"
+}

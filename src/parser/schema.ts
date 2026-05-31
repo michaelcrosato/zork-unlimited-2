@@ -64,6 +64,13 @@ export const ParserNPCSchema = z.object({
     root: z.string(),
     nodes: z.array(DialogueNodeSchema),
   }),
+  // RPG stats (Stage 4)
+  hp: z.number().optional(),
+  max_hp: z.number().optional(),
+  attack: z.number().optional(),
+  defense: z.number().optional(),
+  gold: z.number().optional(),
+  xp: z.number().optional(),
 });
 
 export type ParserNPC = z.infer<typeof ParserNPCSchema>;

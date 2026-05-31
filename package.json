@@ -7,13 +7,15 @@
     "test": "vitest run --exclude **/dist/**",
     "test:watch": "vitest --exclude **/dist/**",
     "build": "tsc",
-    "replay": "tsx src/bin/replay.ts"
+    "replay": "tsx src/bin/replay.ts",
+    "mcp": "tsx src/bin/mcp-server.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },

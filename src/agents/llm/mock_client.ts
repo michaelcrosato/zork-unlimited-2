@@ -30,8 +30,14 @@ export class MockLlmClient implements LlmClient {
         title: "Mock Adventure: The Clockwork Crypt",
         premise: "An ancient crypt powered by gears has begun ticking again.",
         beats: [
-          { scene: "entrance", detail: "Player enters the crypt and sees a giant brass gear." },
-          { scene: "gear_room", detail: "Player must grease the gears or pull the master lever." },
+          {
+            scene: "entrance",
+            detail: "Player enters the crypt and sees a giant brass gear.",
+          },
+          {
+            scene: "gear_room",
+            detail: "Player must grease the gears or pull the master lever.",
+          },
           { scene: "ending_victory", detail: "Crypt is turned off safely." },
           { scene: "ending_crushed", detail: "Gears collapse on the player." },
         ],
@@ -75,7 +81,10 @@ export class MockLlmClient implements LlmClient {
                 effects: [
                   { set_flag: "found_key" },
                   { inc_var: { name: "key_count", by: 1 } },
-                  { add_journal: "You found a brass key tucked in the gear tooth." },
+                  {
+                    add_journal:
+                      "You found a brass key tucked in the gear tooth.",
+                  },
                 ],
                 next: "entrance",
               },
@@ -122,7 +131,11 @@ export class MockLlmClient implements LlmClient {
           },
         ],
         endings: [
-          { id: "ending_victory", title: "Victory!", text: "You solved the crypt puzzle." },
+          {
+            id: "ending_victory",
+            title: "Victory!",
+            text: "You solved the crypt puzzle.",
+          },
           { id: "ending_crushed", title: "Death!", text: "You were crushed." },
         ],
       };
@@ -130,19 +143,185 @@ export class MockLlmClient implements LlmClient {
     }
 
     if (request.role === "playtester") {
-      // Simulate playtester choosing a choice ID from the available ones
-      const input = request.input as { available_actions: { id: string }[] };
+      const input = request.input as {
+        persona?: string;
+        mode: "cyoa" | "parser";
+        room?: string;
+        inventory?: string[];
+        available_actions: { id: string; command: string }[];
+      };
       const choices = input.available_actions;
+      const persona = input.persona ?? "mainline";
 
       if (!choices || choices.length === 0) {
         throw new Error("Mock playtester called with 0 choices available.");
       }
 
-      // Choose deterministically based on seed
-      const { value: selectedChoice } = PureRand.choose(seed, choices);
+      let chosenId = choices[0].id;
+      let reason = `Chosen by playtester under the '${persona}' persona.`;
+
+      if (persona === "speedrunner") {
+        const hasAction = (f: string) =>
+          input.available_actions.some((c) => c.id === f);
+        const currentRoom = input.room ?? "";
+        const inv = input.inventory ?? [];
+        const flags = (input as any).flags ?? {};
+
+        // State-driven routing logic
+        if (currentRoom === "castle_gates") {
+          if (flags["gates_locked"]) chosenId = "go_west";
+          else chosenId = "go_north";
+        } else if (currentRoom === "castle_wall") {
+          if (flags["wall_climb_success"]) chosenId = "go_up";
+          else chosenId = "use_self_on_stone_wall";
+        } else if (currentRoom === "battlements") {
+          chosenId = "go_down";
+        } else if (currentRoom === "castle_courtyard") {
+          if (hasAction("talk_goblin_guard")) chosenId = "talk_goblin_guard";
+          else if (hasAction("fight_goblin_guard"))
+            chosenId = "fight_goblin_guard";
+          else if (((input as any).vars?.intelligence ?? 12) <= 12)
+            chosenId = "go_west"; // Go to library
+          else if (!inv.includes("broadsword"))
+            chosenId = "go_east"; // Go to armory
+          else chosenId = "go_north"; // Dungeons
+        } else if (currentRoom === "library") {
+          if (hasAction("take_spell_scroll")) chosenId = "take_spell_scroll";
+          else if (
+            ((input as any).vars?.intelligence ?? 12) <= 12 &&
+            hasAction("read_spell_scroll")
+          )
+            chosenId = "read_spell_scroll";
+          else chosenId = "go_east";
+        } else if (currentRoom === "armory") {
+          if (hasAction("take_broadsword")) chosenId = "take_broadsword";
+          else chosenId = "go_west";
+        } else if (currentRoom === "dungeons") {
+          if (hasAction("talk_shadow_knight")) chosenId = "talk_shadow_knight";
+          else if (hasAction("cast_fireball")) chosenId = "cast_fireball";
+          else if (hasAction("fight_shadow_knight"))
+            chosenId = "fight_shadow_knight";
+          else chosenId = "go_north";
+        } else if (currentRoom === "treasury") {
+          if (flags["chest_unlocked"]) {
+            if (flags["chest_opened"]) chosenId = "go_east";
+            else chosenId = "open_treasury_chest";
+          } else {
+            chosenId = "use_self_on_treasury_chest";
+          }
+        } else if (currentRoom === "throne_room") {
+          if (hasAction("talk_king_aldous")) chosenId = "talk_king_aldous";
+          else if (hasAction("dialogue_king_aldous_crown"))
+            chosenId = "dialogue_king_aldous_crown";
+          else if (hasAction("dialogue_king_aldous_victory"))
+            chosenId = "dialogue_king_aldous_victory";
+        }
+        // "The Sealed Crypt" (chapel.yaml) Speedrun Path
+        else if (currentRoom === "forest_path") {
+          chosenId = "go_north";
+        } else if (currentRoom === "chapel_entrance") {
+          chosenId = "go_north";
+        } else if (currentRoom === "ruined_chapel") {
+          if (!inv.includes("rope") && !flags["rope_attached_to_well"]) {
+            chosenId = "go_west";
+          } else if (inv.includes("rope") && !flags["rope_attached_to_well"]) {
+            chosenId = "use_rope_on_old_well";
+          } else if (
+            flags["rope_attached_to_well"] &&
+            !inv.includes("brass_key") &&
+            !inv.includes("iron_key")
+          ) {
+            chosenId = "go_down"; // down into well
+          } else {
+            chosenId = "go_north";
+          }
+        } else if (currentRoom === "chapel_garden") {
+          if (hasAction("take_rope")) chosenId = "take_rope";
+          else chosenId = "go_east";
+        } else if (currentRoom === "well_bottom") {
+          if (hasAction("take_brass_key")) chosenId = "take_brass_key";
+          else chosenId = "go_up";
+        } else if (currentRoom === "altar_room") {
+          if (
+            flags["crypt_door_locked"] &&
+            inv.includes("iron_key") &&
+            hasAction("use_iron_key_on_crypt_door")
+          ) {
+            chosenId = "use_iron_key_on_crypt_door";
+          } else if (!flags["crypt_door_locked"]) {
+            chosenId = "go_down";
+          } else {
+            chosenId = "go_west";
+          }
+        } else if (currentRoom === "sacristy") {
+          if (hasAction("unlock_oak_chest_with_brass_key"))
+            chosenId = "unlock_oak_chest_with_brass_key";
+          else if (hasAction("open_oak_chest")) chosenId = "open_oak_chest";
+          else if (hasAction("take_iron_key")) chosenId = "take_iron_key";
+          else chosenId = "go_east";
+        } else if (currentRoom === "sealed_crypt") {
+          if (
+            flags["sarcophagus_trapped"] &&
+            hasAction("use_brass_key_on_sarcophagus")
+          ) {
+            chosenId = "use_brass_key_on_sarcophagus";
+          } else if (
+            !flags["sarcophagus_trapped"] &&
+            hasAction("open_sarcophagus")
+          ) {
+            chosenId = "open_sarcophagus";
+          } else if (
+            !flags["portcullis_raised"] &&
+            hasAction("use_self_on_portcullis")
+          ) {
+            chosenId = "use_self_on_portcullis";
+          } else {
+            chosenId = "go_down";
+          }
+        }
+        // "The Watchtower Road" (watchtower.yaml) CYOA Speedrun Path
+        else if ((input as any).scene_id === "forest_crossroads") {
+          chosenId = "go_east";
+        } else if ((input as any).scene_id === "ruined_watchtower") {
+          chosenId = "enter_tower";
+        } else if ((input as any).scene_id === "watchtower_inside") {
+          chosenId = "hide";
+        } else {
+          const { value: selectedChoice } = PureRand.choose(seed, choices);
+          chosenId = selectedChoice.id;
+        }
+      } else if (persona === "hoarder") {
+        const takeAction = choices.find((c) => c.id.startsWith("take_"));
+        if (takeAction) {
+          chosenId = takeAction.id;
+          reason = `Hoarder prioritizes collecting item: ${takeAction.command}`;
+        } else {
+          const { value: selectedChoice } = PureRand.choose(seed, choices);
+          chosenId = selectedChoice.id;
+        }
+      } else if (persona === "dropper") {
+        const dropAction = choices.find((c) => c.id.startsWith("drop_"));
+        const takeAction = choices.find((c) => c.id.startsWith("take_"));
+        const { value: roll } = PureRand.nextInt(seed, 1, 100);
+
+        if (dropAction && roll <= 25) {
+          chosenId = dropAction.id;
+          reason = `Dropper decides to discard item: ${dropAction.command}`;
+        } else if (takeAction) {
+          chosenId = takeAction.id;
+          reason = `Dropper takes item: ${takeAction.command}`;
+        } else {
+          const { value: selectedChoice } = PureRand.choose(seed, choices);
+          chosenId = selectedChoice.id;
+        }
+      } else {
+        const { value: selectedChoice } = PureRand.choose(seed, choices);
+        chosenId = selectedChoice.id;
+      }
+
       return {
-        chosen_action_id: selectedChoice.id,
-        reason: "Chosen deterministically by Mock LLM playtester",
+        chosen_action_id: chosenId,
+        reason,
         expected_result: "Progress through the game",
       } as unknown as T;
     }
@@ -151,7 +330,8 @@ export class MockLlmClient implements LlmClient {
       // Simulate debugging a failed run
       return {
         issue_identified: true,
-        diagnosis: "The player can jam gears and die too easily, which is an expected path but we want to log it.",
+        diagnosis:
+          "The player can jam gears and die too easily, which is an expected path but we want to log it.",
         severity: "low",
         recommendation: "Provide a warning sign in the Gear Room description.",
       } as unknown as T;

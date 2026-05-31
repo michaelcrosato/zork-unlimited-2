@@ -1,0 +1,22 @@
+{
+  "trace_id": "tr_playtest_forest_pack_v1_speedrunner_42",
+  "pack_id": "forest_pack_v1",
+  "content_hash": "clockwork_pack_hash_v1",
+  "seed": 42,
+  "initial_state_ref": "start",
+  "actions": [
+    {
+      "type": "CHOOSE",
+      "choiceId": "go_east"
+    },
+    {
+      "type": "CHOOSE",
+      "choiceId": "enter_tower"
+    },
+    {
+      "type": "CHOOSE",
+      "choiceId": "hide"
+    }
+  ],
+  "expected_final_hash": "07723a05a9e373f4981a9794085fa9a5cc056f7102bb0a9523df7b57c83ca794"
+}

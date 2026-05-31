@@ -6,6 +6,7 @@ import { applyEffects } from "./effects.js";
 import { computeStateHashShort } from "./hash.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack, ParserRoom, ParserObject, ParserNPC } from "../parser/schema.js";
+import { PureRand } from "./rng.js";
 
 /**
  * Pure engine step transition function.
@@ -149,6 +150,18 @@ export function step(
   // Helper to verify if an object is currently visible in the current room or inventory
   const isObjectVisible = (id: string): boolean => {
     if (state.inventory.includes(id)) return true;
+
+    // If it has been taken by the player, it's only visible if it's currently in their inventory
+    const runtimeObj = newState.objectState[id];
+    if (runtimeObj) {
+      if (runtimeObj.takenBy === "player") {
+        return state.inventory.includes(id);
+      }
+      if (runtimeObj.takenBy === "destroyed") {
+        return false;
+      }
+    }
+
     if (currentRoom.objects.includes(id)) return true;
 
     // Check inside open containers in the room
@@ -158,6 +171,10 @@ export function step(
         const runtime = newState.objectState[roomObjId];
         const isOpen = runtime ? runtime.open : !roomObj.locked && !roomObj.openable;
         if (isOpen && roomObj.contents && roomObj.contents.includes(id)) {
+          const nestedRuntime = newState.objectState[id];
+          if (nestedRuntime && nestedRuntime.takenBy === "player") {
+            return state.inventory.includes(id);
+          }
           return true;
         }
       }
@@ -177,6 +194,175 @@ export function step(
       ok: false,
       rejectionReason: `You are in a conversation with the NPC.`,
     };
+  }
+
+  // Check if player is currently in combat
+  const activeCombatNpcId = Object.keys(newState.flags).find(
+    (f) => f.startsWith("in_combat_with_") && newState.flags[f]
+  )?.substring(15);
+
+  if (activeCombatNpcId) {
+    const allowedInCombat = ["FIGHT", "CAST", "FLEE", "LOOK", "INSPECT", "INVENTORY"];
+    if (!allowedInCombat.includes(action.type)) {
+      return {
+        state,
+        events: [{ type: "rejected", reason: `You are in combat! You can only fight, cast, or flee.` }],
+        ok: false,
+        rejectionReason: `You are in combat!`,
+      };
+    }
+
+    if (action.type !== "LOOK" && action.type !== "INSPECT" && action.type !== "INVENTORY") {
+      const enemy = parserPack.npcs.find((n) => n.id === activeCombatNpcId);
+      if (!enemy) {
+        newState.flags[`in_combat_with_${activeCombatNpcId}`] = false;
+      } else {
+        const enemyVarHp = `npc_hp_${enemy.id}`;
+        if (newState.vars[enemyVarHp] === undefined) {
+          newState.vars[enemyVarHp] = enemy.hp ?? 10;
+        }
+
+        let enemyHp = newState.vars[enemyVarHp];
+        const enemyMaxHp = enemy.max_hp ?? enemy.hp ?? 10;
+        const enemyAttack = enemy.attack ?? 2;
+        const enemyDefense = enemy.defense ?? 10;
+        const enemyGold = enemy.gold ?? 5;
+        const enemyXp = enemy.xp ?? 10;
+
+        let playerHp = newState.vars["hp"] ?? 20;
+        const playerMaxHp = newState.vars["max_hp"] ?? 20;
+        const playerDex = newState.vars["dexterity"] ?? 10;
+        const playerStr = newState.vars["strength"] ?? 10;
+        const playerInt = newState.vars["intelligence"] ?? 10;
+        let playerMana = newState.vars["mana"] ?? 10;
+
+        let combatLog = "";
+
+        // 1. Resolve Player Action
+        if (action.type === "FIGHT") {
+          const { value: hitRoll, nextSeed: s1 } = PureRand.nextInt(newState.seed, 1, 20);
+          const hitTotal = hitRoll + Math.floor(playerDex / 3);
+          newState.seed = s1;
+
+          if (hitRoll === 20 || hitTotal >= enemyDefense) {
+            const { value: dmgRoll, nextSeed: s2 } = PureRand.nextInt(newState.seed, 1, 6);
+            const dmgTotal = Math.max(1, dmgRoll + Math.floor(playerStr / 3));
+            newState.seed = s2;
+            enemyHp = Math.max(0, enemyHp - dmgTotal);
+            combatLog += `⚔️ You strike the ${enemy.name} for ${dmgTotal} damage! (Enemy HP: ${enemyHp}/${enemyMaxHp})\n`;
+          } else {
+            combatLog += `🛡️ You swing at the ${enemy.name} but miss! (Rolled ${hitRoll} vs Defense ${enemyDefense})\n`;
+          }
+        } else if (action.type === "CAST") {
+          const spell = (action as any).spell.toLowerCase();
+          if (spell === "fireball") {
+            if (playerMana < 3) {
+              return {
+                state,
+                events: [{ type: "rejected", reason: "Not enough mana! Fireball costs 3 mana." }],
+                ok: false,
+                rejectionReason: "Not enough mana.",
+              };
+            }
+            playerMana -= 3;
+            const { value: dmgRoll, nextSeed: s1 } = PureRand.nextInt(newState.seed, 4, 10);
+            const dmgTotal = dmgRoll + Math.floor(playerInt / 3);
+            newState.seed = s1;
+            enemyHp = Math.max(0, enemyHp - dmgTotal);
+            combatLog += `🔥 You cast Fireball! Searing flames consume the ${enemy.name} for ${dmgTotal} fire damage! (Enemy HP: ${enemyHp}/${enemyMaxHp})\n`;
+          } else if (spell === "heal") {
+            if (playerMana < 2) {
+              return {
+                state,
+                events: [{ type: "rejected", reason: "Not enough mana! Heal costs 2 mana." }],
+                ok: false,
+                rejectionReason: "Not enough mana.",
+              };
+            }
+            playerMana -= 2;
+            const { value: healRoll, nextSeed: s1 } = PureRand.nextInt(newState.seed, 6, 12);
+            newState.seed = s1;
+            playerHp = Math.min(playerMaxHp, playerHp + healRoll);
+            combatLog += `✨ You cast Heal! Divine light restores ${healRoll} HP. (HP: ${playerHp}/${playerMaxHp})\n`;
+          } else {
+            return {
+              state,
+              events: [{ type: "rejected", reason: `Unknown spell: '${(action as any).spell}'.` }],
+              ok: false,
+              rejectionReason: "Unknown spell.",
+            };
+          }
+        } else if (action.type === "FLEE") {
+          const { value: fleeRoll, nextSeed: s1 } = PureRand.nextInt(newState.seed, 1, 20);
+          const fleeTotal = fleeRoll + Math.floor(playerDex / 3);
+          newState.seed = s1;
+
+          if (fleeTotal >= 12) {
+            newState.flags[`in_combat_with_${enemy.id}`] = false;
+            events.push({
+              type: "narration",
+              text: `🏃 With a quick maneuver, you successfully flee from the ${enemy.name}!`,
+            });
+            newState.vars["hp"] = playerHp;
+            newState.vars["mana"] = playerMana;
+            newState.step += 1;
+            return { state: newState, events, ok: true };
+          } else {
+            combatLog += `🏃 You try to flee, but the ${enemy.name} blocks your escape!\n`;
+          }
+        }
+
+        // 2. Resolve Enemy Turn (if enemy survived)
+        if (enemyHp > 0) {
+          const { value: enemyHitRoll, nextSeed: s3 } = PureRand.nextInt(newState.seed, 1, 20);
+          const enemyHitTotal = enemyHitRoll + enemyAttack;
+          const playerDefense = 10 + Math.floor(playerDex / 3);
+          newState.seed = s3;
+
+          if (enemyHitRoll === 20 || enemyHitTotal >= playerDefense) {
+            const { value: enemyDmgRoll, nextSeed: s4 } = PureRand.nextInt(newState.seed, 1, 6);
+            newState.seed = s4;
+            playerHp = Math.max(0, playerHp - enemyDmgRoll);
+            combatLog += `💥 The ${enemy.name} strikes you for ${enemyDmgRoll} damage! (HP: ${playerHp}/${playerMaxHp})\n`;
+          } else {
+            combatLog += `💨 The ${enemy.name} swings at you but misses!\n`;
+          }
+        }
+
+        // 3. Resolve combat outcomes
+        if (enemyHp <= 0) {
+          newState.flags[`in_combat_with_${enemy.id}`] = false;
+          newState.flags[`npc_defeated_${enemy.id}`] = true;
+          newState.flags[`npc_dead_${enemy.id}`] = true;
+
+          const goldEarned = enemyGold;
+          const xpEarned = enemyXp;
+          newState.vars["gold"] = (newState.vars["gold"] ?? 0) + goldEarned;
+          newState.vars["xp"] = (newState.vars["xp"] ?? 0) + xpEarned;
+
+          combatLog += `🏆 VICTORY! You have defeated the ${enemy.name}! You earn ${goldEarned} gold and ${xpEarned} XP.`;
+        }
+
+        if (playerHp <= 0) {
+          newState.ended = true;
+          newState.endingId = "ending_died_in_combat";
+          combatLog += `💀 You have fallen in battle. Game Over.`;
+        }
+
+        // Save states back
+        newState.vars["hp"] = playerHp;
+        newState.vars["mana"] = playerMana;
+        newState.vars[enemyVarHp] = enemyHp;
+
+        events.push({
+          type: "narration",
+          text: combatLog.trim(),
+        });
+
+        newState.step += 1;
+        return { state: newState, events, ok: true };
+      }
+    }
   }
 
   // Action Switch Resolvers
@@ -317,10 +503,21 @@ export function step(
         type: "take",
         item: action.item,
       });
-      events.push({
-        type: "narration",
-        text: `Taken.`,
-      });
+
+      const matchingInter = (obj.interactions || []).find(
+        (i) => i.verb === "TAKE" && evaluateConditions(newState, i.conditions)
+      );
+
+      if (matchingInter) {
+        const effectResult = applyEffects(newState, matchingInter.effects);
+        newState = effectResult.state;
+        events.push(...effectResult.events);
+      } else {
+        events.push({
+          type: "narration",
+          text: `Taken.`,
+        });
+      }
       break;
     }
 
@@ -365,7 +562,7 @@ export function step(
       }
 
       // Check if custom OPEN interaction exists whose conditions pass
-      const matchingInter = obj.interactions.find(
+      const matchingInter = (obj.interactions || []).find(
         (i) => i.verb === "OPEN" && evaluateConditions(newState, i.conditions)
       );
 
@@ -378,7 +575,7 @@ export function step(
       }
 
       // If there are OPEN interactions but none passed their conditions
-      const hasAnyOpenInter = obj.interactions.some((i) => i.verb === "OPEN");
+      const hasAnyOpenInter = (obj.interactions || []).some((i) => i.verb === "OPEN");
       if (hasAnyOpenInter) {
         return {
           state,
@@ -484,7 +681,7 @@ export function step(
       }
 
       // Check if custom USE interaction exists
-      const inter = obj.interactions.find(
+      const inter = (obj.interactions || []).find(
         (i) => i.verb === "USE" && (i.item === undefined || i.item === action.item)
       );
 
@@ -532,6 +729,13 @@ export function step(
       newState.questStage[rootNodeVar] = npc.dialogue.root;
 
       const welcomeNode = npc.dialogue.nodes.find((n) => n.id === npc.dialogue.root);
+
+      // Apply welcome node effects
+      if (welcomeNode && welcomeNode.effects) {
+        const effectResult = applyEffects(newState, welcomeNode.effects);
+        newState = effectResult.state;
+        events.push(...effectResult.events);
+      }
 
       events.push({
         type: "dialogue",
@@ -598,6 +802,77 @@ export function step(
             text: nextNode.npc_text,
           });
         }
+      }
+      break;
+    }
+
+    case "GIVE": {
+      const npc = parserPack.npcs.find((n) => n.id === action.npc);
+      if (!npc || !currentRoom.npcs?.includes(action.npc)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `NPC '${action.npc}' is not here.` }],
+          ok: false,
+          rejectionReason: `You don't see them here.`,
+        };
+      }
+
+      if (!state.inventory.includes(action.item)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You don't have '${action.item}' in your inventory.` }],
+          ok: false,
+          rejectionReason: `You don't have that.`,
+        };
+      }
+
+      const itemObj = findObjectInPack(action.item);
+      events.push({
+        type: "narration",
+        text: `You offer the ${itemObj?.name ?? action.item} to ${npc.name}, but they decline.`,
+      });
+      break;
+    }
+
+    case "READ": {
+      if (!isObjectVisible(action.target)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You don't see any '${action.target}' here.` }],
+          ok: false,
+          rejectionReason: `You don't see that here.`,
+        };
+      }
+
+      const obj = findObjectInPack(action.target);
+      if (!obj) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You cannot read '${action.target}'.` }],
+          ok: false,
+          rejectionReason: `You can't read that.`,
+        };
+      }
+
+      const inter = (obj.interactions || []).find((i) => i.verb === "READ");
+      if (inter) {
+        const passed = evaluateConditions(newState, inter.conditions);
+        if (!passed) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `You cannot read the '${obj.name}' right now.` }],
+            ok: false,
+            rejectionReason: `Nothing happens.`,
+          };
+        }
+        const effectResult = applyEffects(newState, inter.effects);
+        newState = effectResult.state;
+        events.push(...effectResult.events);
+      } else {
+        events.push({
+          type: "narration",
+          text: obj.description,
+        });
       }
       break;
     }

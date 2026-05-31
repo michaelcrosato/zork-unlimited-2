@@ -1,0 +1,289 @@
+meta:
+  id: heros_quest_v1
+  title: "Hero's Quest: The Castle of Shadows"
+  start_room: castle_gates
+  vars_init:
+    hp: 20
+    max_hp: 20
+    mana: 10
+    max_mana: 10
+    dexterity: 12
+    strength: 12
+    intelligence: 12
+    climbing: 5
+    lockpicking: 4
+    gold: 0
+    xp: 0
+    score: 0
+  flags_init: [ gates_locked, chest_locked, boss_sentry_active, wall_climb_attempted ]
+
+rooms:
+  - id: castle_gates
+    name: "Castle Gates"
+    description: "You stand before the towering iron gates of the Castle of Shadows. The gates are shut tight. To the west lies a steep Castle Wall that looks climbable."
+    objects: [ gate_lever ]
+    npcs: []
+    exits:
+      - direction: west
+        to: castle_wall
+      - direction: north
+        to: castle_courtyard
+        conditions: [ { not_flag: gates_locked } ]
+        locked_msg: "The massive iron gates are locked tight and cannot be opened from this side."
+
+  - id: castle_wall
+    name: "Castle Wall"
+    description: "A sheer stone wall rises up into the darkness. Handholds are sparse, but a skilled climber could scale it to reach the battlements above."
+    objects: [ stone_wall ]
+    npcs: []
+    exits:
+      - direction: east
+        to: castle_gates
+      - direction: up
+        to: battlements
+        conditions: [ { has_flag: wall_climb_success } ]
+        locked_msg: "The wall is too steep! You must successfully climb it first."
+
+  - id: battlements
+    name: "Castle Battlements"
+    description: "Wind howls across the castle battlements. From here, a stone stairway leads down into the Castle Courtyard."
+    objects: []
+    npcs: []
+    exits:
+      - direction: down
+        to: castle_courtyard
+
+  - id: castle_courtyard
+    name: "Castle Courtyard"
+    description: "A wide cobblestone courtyard. A menacing Goblin Guard stands in the center, blocking access to the inner rooms: the Library to the west, the Armory to the east, and the Dungeon to the north."
+    objects: []
+    npcs: [ goblin_guard ]
+    exits:
+      - direction: south
+        to: castle_gates
+      - direction: west
+        to: library
+        conditions: [ { has_flag: npc_dead_goblin_guard } ]
+        locked_msg: "The Goblin Guard blocks your path to the west!"
+      - direction: east
+        to: armory
+        conditions: [ { has_flag: npc_dead_goblin_guard } ]
+        locked_msg: "The Goblin Guard blocks your path to the east!"
+      - direction: north
+        to: dungeons
+        conditions: [ { has_flag: npc_dead_goblin_guard } ]
+        locked_msg: "The Goblin Guard blocks your path to the north!"
+
+  - id: armory
+    name: "The Castle Armory"
+    description: "Racks of rusty weapons line the walls. A pristine steel broadsword rests on a velvet cushion."
+    objects: [ broadsword ]
+    npcs: []
+    exits:
+      - direction: west
+        to: castle_courtyard
+
+  - id: library
+    name: "The Grand Library"
+    description: "Shelves packed with ancient books rise to the ceiling. A mysterious leather-bound spell scroll rests on a wooden pedestal."
+    objects: [ spell_scroll ]
+    npcs: []
+    exits:
+      - direction: east
+        to: castle_courtyard
+
+  - id: dungeons
+    name: "The Castle Dungeons"
+    description: "Damp cells line this dark hallway. In the center stands the terrifying Shadow Knight, glowing with dark magic. To the north lies the Treasury."
+    objects: []
+    npcs: [ shadow_knight ]
+    exits:
+      - direction: south
+        to: castle_courtyard
+      - direction: north
+        to: treasury
+        conditions: [ { has_flag: npc_dead_shadow_knight } ]
+        locked_msg: "The Shadow Knight blocks access to the Treasury!"
+
+  - id: treasury
+    name: "The Royal Treasury"
+    description: "Piles of copper and silver lie scattered about. In the center sits a small, locked, iron-bound chest. An exit leads east to the King's Throne Room."
+    objects: [ treasury_chest ]
+    npcs: []
+    exits:
+      - direction: south
+        to: dungeons
+      - direction: east
+        to: throne_room
+
+  - id: throne_room
+    name: "The Throne Room"
+    description: "The magnificent Throne Room of the King. King Aldous sits upon his throne, looking weary. Speak to him."
+    objects: []
+    npcs: [ king_aldous ]
+    exits:
+      - direction: west
+        to: treasury
+
+objects:
+  - id: gate_lever
+    name: "gate lever"
+    aliases: [ lever ]
+    description: "A rusty metal lever connected to the gate mechanism. It is stuck."
+    takeable: false
+
+  - id: stone_wall
+    name: "stone wall"
+    aliases: [ wall ]
+    description: "A sheer wall of mossy stone bricks."
+    takeable: false
+    interactions:
+      - verb: USE
+        conditions: [ { not_flag: wall_climb_success } ]
+        effects:
+          - roll_skill_check: { skill: "climbing", difficulty: 10, success_flag: "wall_climb_success" }
+          - narrate: "You attempt to scale the castle wall..."
+
+  - id: broadsword
+    name: "steel broadsword"
+    aliases: [ sword, broadsword, steel ]
+    description: "A finely crafted steel sword that hums with energy. Equipping this increases your strength by 6."
+    takeable: true
+    interactions:
+      - verb: TAKE
+        effects:
+          - inc_var: { name: "strength", by: 6 }
+          - inc_var: { name: "score", by: 20 }
+          - narrate: "You wield the steel broadsword! Your physical power increases!"
+
+  - id: spell_scroll
+    name: "spell scroll"
+    aliases: [ scroll, spell ]
+    description: "An ancient scroll inscribed with powerful magical runes."
+    takeable: true
+    interactions:
+      - verb: READ
+        effects:
+          - inc_var: { name: "intelligence", by: 6 }
+          - inc_var: { name: "mana", by: 5 }
+          - inc_var: { name: "score", by: 20 }
+          - remove_item: spell_scroll
+          - narrate: "You read the magical scroll! Glowing runes expand your mind, increasing your intelligence and restoring mana! The scroll crumbles into sparkling dust."
+
+  - id: treasury_chest
+    name: "iron-bound chest"
+    aliases: [ chest, box ]
+    description: "A small locked iron chest. It has no keyhole; the lock mechanism must be picked."
+    takeable: false
+    interactions:
+      - verb: USE
+        conditions: [ { not_flag: chest_unlocked } ]
+        effects:
+          - roll_skill_check: { skill: "lockpicking", difficulty: 12, success_flag: "chest_unlocked" }
+          - narrate: "You carefully pull out your lockpicks and work on the chest lock..."
+      - verb: OPEN
+        conditions: [ { has_flag: chest_unlocked }, { not_flag: chest_opened } ]
+        effects:
+          - set_flag: chest_opened
+          - add_item: royal_crown
+          - inc_var: { name: "gold", by: 100 }
+          - inc_var: { name: "score", by: 30 }
+          - narrate: "You pop open the chest! Inside is the legendary Royal Crown and 100 gold coins!"
+
+  - id: royal_crown
+    name: "Royal Crown"
+    aliases: [ crown, royal ]
+    description: "The glistening golden crown of the kingdom, recovered from the treasury."
+    takeable: true
+
+npcs:
+  - id: goblin_guard
+    name: "Goblin Guard"
+    description: "A small, green-skinned goblin clutching a wooden club. He growls menacingly."
+    hp: 12
+    max_hp: 12
+    attack: 2
+    defense: 8
+    gold: 25
+    xp: 50
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "You dare enter the castle? Prepare to fight, human!"
+          effects:
+            - start_combat: { npc_id: goblin_guard }
+          topics:
+            - id: bye
+              prompt: "Fight!"
+              end: true
+
+  - id: shadow_knight
+    name: "Shadow Knight"
+    description: "A hulking warrior encased in obsidian armor, radiating purple negative energy."
+    hp: 24
+    max_hp: 24
+    attack: 4
+    defense: 12
+    gold: 50
+    xp: 100
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Foolish mortal! You shall bleed in the shadows!"
+          effects:
+            - start_combat: { npc_id: shadow_knight }
+          topics:
+            - id: bye
+              prompt: "To arms!"
+              end: true
+
+  - id: king_aldous
+    name: "King Aldous"
+    description: "The weary monarch of the realm, sitting patiently in his throne room."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?"
+          topics:
+            - id: crown
+              prompt: "I have recovered your Royal Crown!"
+              goto: restore_kingdom
+              conditions: [ { has_item: royal_crown } ]
+            - id: help
+              prompt: "I will help you, Sire."
+              goto: help_accepted
+            - id: bye
+              prompt: "Goodbye, Sire."
+              end: true
+        - id: help_accepted
+          npc_text: "Thank you, brave hero! Find my crown and return it to me."
+          topics:
+            - id: bye
+              prompt: "I go."
+              end: true
+        - id: restore_kingdom
+          npc_text: "My crown! You have restored the kingdom! The shadow is lifted, and peace shall reign once more!"
+          effects:
+            - remove_item: royal_crown
+            - set_flag: kingdom_restored
+            - inc_var: { name: "score", by: 30 }
+          topics:
+            - id: victory
+              prompt: "Hail the King!"
+              end: true
+
+win_conditions:
+  - id: save_kingdom
+    conditions: [ { has_flag: kingdom_restored } ]
+    ending: ending_victory
+
+endings:
+  - id: ending_victory
+    title: "Saviour of the Realm"
+    text: "You have returned the Royal Crown to King Aldous, defeated the Shadow Knight, and lifted the shadows from the castle. You are hailed as a legendary hero!"
+  - id: ending_died_in_combat
+    title: "Fallen Hero"
+    text: "Your HP reached 0 in the heat of battle. The castle shadows have claimed another soul."

@@ -1,0 +1,111 @@
+{
+  "trace_id": "tr_playtest_heros_quest_v1_speedrunner_42",
+  "pack_id": "heros_quest_v1",
+  "content_hash": "clockwork_pack_hash_v1",
+  "seed": 42,
+  "initial_state_ref": "start",
+  "actions": [
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "USE",
+      "item": "stone_wall",
+      "target": "stone_wall"
+    },
+    {
+      "type": "MOVE",
+      "direction": "up"
+    },
+    {
+      "type": "MOVE",
+      "direction": "down"
+    },
+    {
+      "type": "TALK",
+      "npc": "goblin_guard"
+    },
+    {
+      "type": "FIGHT",
+      "npc": "goblin_guard"
+    },
+    {
+      "type": "FIGHT",
+      "npc": "goblin_guard"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "TAKE",
+      "item": "spell_scroll"
+    },
+    {
+      "type": "READ",
+      "target": "spell_scroll"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "TAKE",
+      "item": "broadsword"
+    },
+    {
+      "type": "MOVE",
+      "direction": "west"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "TALK",
+      "npc": "shadow_knight"
+    },
+    {
+      "type": "CAST",
+      "spell": "fireball",
+      "target": "shadow_knight"
+    },
+    {
+      "type": "CAST",
+      "spell": "fireball",
+      "target": "shadow_knight"
+    },
+    {
+      "type": "MOVE",
+      "direction": "north"
+    },
+    {
+      "type": "USE",
+      "item": "treasury_chest",
+      "target": "treasury_chest"
+    },
+    {
+      "type": "OPEN",
+      "target": "treasury_chest"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "TALK",
+      "npc": "king_aldous"
+    },
+    {
+      "type": "ASK",
+      "npc": "king_aldous",
+      "topic": "crown"
+    }
+  ],
+  "expected_final_hash": "ce7a9b54a1fc9a7b7c54a4349becd5bf6ac183f0d4f99a9fc7a23c63bdbe6ac8"
+}

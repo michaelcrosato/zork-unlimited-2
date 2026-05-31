@@ -1,0 +1,4435 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AdventureForge — Headless Text-Adventure & RPG Engine</title>
+
+    <!-- Typography & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ---------------------------------------------------- */
+      /* 1. DESIGN SYSTEM & VARIABLE TOKENS                   */
+      /* ---------------------------------------------------- */
+      :root {
+        --bg-base: #0b0d12;
+        --bg-surface: #141722;
+        --bg-panel: #1a1e2e;
+        --bg-terminal: #07090e;
+
+        --color-primary: #10b981; /* Glowing Emerald */
+        --color-primary-dim: #065f46;
+        --color-primary-glow: rgba(16, 185, 129, 0.2);
+
+        --color-accent: #3b82f6; /* Sapphire Blue */
+        --color-accent-glow: rgba(59, 130, 246, 0.2);
+
+        --color-danger: #ef4444; /* Crimson Red */
+        --color-danger-glow: rgba(239, 68, 68, 0.2);
+
+        --color-warning: #f59e0b; /* Amber */
+
+        --text-main: #e2e8f0;
+        --text-muted: #94a3b8;
+        --text-glow: #10b981;
+
+        --border-thin: 1px solid rgba(148, 163, 184, 0.12);
+        --border-primary: 1px solid rgba(16, 185, 129, 0.4);
+        --border-danger: 1px solid rgba(239, 68, 68, 0.4);
+
+        --radius-sm: 6px;
+        --radius-md: 12px;
+        --radius-lg: 18px;
+
+        --font-sans:
+          "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        --font-mono: "Fira Code", monospace;
+
+        --shadow-premium: 0 12px 40px -10px rgba(0, 0, 0, 0.6);
+        --transition-standard: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* ---------------------------------------------------- */
+      /* 2. GLOBAL RESET & BASE STYLING                       */
+      /* ---------------------------------------------------- */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-base);
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow-x: hidden;
+      }
+
+      /* Scrollbars */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-base);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--bg-panel);
+        border-radius: var(--radius-sm);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-primary-dim);
+      }
+
+      /* ---------------------------------------------------- */
+      /* 3. PREMIUM LAYOUT                                    */
+      /* ---------------------------------------------------- */
+      header {
+        background-color: var(--bg-surface);
+        border-bottom: var(--border-thin);
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .brand-icon {
+        background: linear-gradient(
+          135deg,
+          var(--color-primary),
+          var(--color-accent)
+        );
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        box-shadow: 0 0 15px var(--color-primary-glow);
+      }
+
+      .brand-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: linear-gradient(to right, #fff, var(--text-muted));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .meta-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      select,
+      input[type="number"],
+      input[type="text"],
+      button {
+        background-color: var(--bg-panel);
+        border: var(--border-thin);
+        border-radius: var(--radius-sm);
+        color: var(--text-main);
+        padding: 0.5rem 1rem;
+        font-family: var(--font-sans);
+        outline: none;
+        transition: var(--transition-standard);
+      }
+
+      select:focus,
+      input:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 10px var(--color-primary-glow);
+      }
+
+      button.primary {
+        background: linear-gradient(
+          135deg,
+          var(--color-primary),
+          var(--color-primary-dim)
+        );
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 15px var(--color-primary-glow);
+      }
+
+      button.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      }
+
+      /* Main Container Grid */
+      main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 280px 1fr 340px;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      @media (max-width: 1024px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Cards & Panels */
+      .panel {
+        background-color: var(--bg-surface);
+        border: var(--border-thin);
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+        box-shadow: var(--shadow-premium);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      /* ---------------------------------------------------- */
+      /* 4. LEFT SIDEBAR PANEL (PACK & SAVE STATE)            */
+      /* ---------------------------------------------------- */
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .saves-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-height: 250px;
+        overflow-y: auto;
+      }
+
+      .save-slot {
+        background-color: var(--bg-panel);
+        border: var(--border-thin);
+        border-radius: var(--radius-sm);
+        padding: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: var(--transition-standard);
+      }
+
+      .save-slot:hover {
+        border-color: var(--color-accent);
+        background-color: rgba(59, 130, 246, 0.05);
+      }
+
+      .save-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .save-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+      }
+
+      .save-date {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+      }
+
+      .save-actions {
+        display: flex;
+        gap: 0.25rem;
+      }
+
+      .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        padding: 0.25rem;
+        border-radius: 4px;
+      }
+
+      .btn-icon:hover {
+        color: var(--text-main);
+        background-color: var(--bg-panel);
+      }
+
+      /* ---------------------------------------------------- */
+      /* 5. CENTER COLUMN (THE GAME SCREEN)                  */
+      /* ---------------------------------------------------- */
+      .game-viewport {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      /* Scene Illustration Frame */
+      .visual-frame {
+        height: 220px;
+        background: radial-gradient(
+          circle at center,
+          #1e293b 0%,
+          var(--bg-terminal) 100%
+        );
+        border: var(--border-thin);
+        border-radius: var(--radius-md);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .visual-art {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition-standard);
+      }
+
+      /* Interactive graphic representations */
+      .visual-svg {
+        width: 150px;
+        height: 150px;
+        fill: none;
+        stroke: var(--color-primary);
+        stroke-width: 1.5;
+        filter: drop-shadow(0 0 8px var(--color-primary-glow));
+        animation: float 4s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0px) rotate(0deg);
+        }
+        50% {
+          transform: translateY(-10px) rotate(1deg);
+        }
+      }
+
+      /* The Terminal Output Log */
+      .terminal-container {
+        flex: 1;
+        min-height: 380px;
+        background-color: var(--bg-terminal);
+        border: var(--border-thin);
+        border-radius: var(--radius-md);
+        box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.8);
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
+      .terminal-entry {
+        animation: fadeIn 0.3s ease-out forwards;
+      }
+
+      .entry-command {
+        color: var(--color-accent);
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+
+      .entry-command::before {
+        content: "> ";
+        color: var(--text-muted);
+      }
+
+      .entry-narration {
+        color: var(--text-main);
+        white-space: pre-wrap;
+      }
+
+      .entry-narration.narrative-note {
+        color: var(--color-primary);
+        border-left: 2px solid var(--color-primary);
+        padding-left: 0.75rem;
+      }
+
+      .entry-narration.error-note {
+        color: var(--color-danger);
+        border-left: 2px solid var(--color-danger);
+        padding-left: 0.75rem;
+      }
+
+      .entry-narration.victory-note {
+        color: var(--color-warning);
+        border: var(--border-primary);
+        border-color: var(--color-warning);
+        background-color: rgba(245, 158, 11, 0.05);
+        border-radius: var(--radius-sm);
+        padding: 1rem;
+        text-align: center;
+        font-weight: 600;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Suggestion pills grid */
+      .suggestions-hud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+      }
+
+      .pill-btn {
+        background-color: var(--bg-surface);
+        border: var(--border-thin);
+        border-radius: 20px;
+        color: var(--text-muted);
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: var(--transition-standard);
+      }
+
+      .pill-btn:hover {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        box-shadow: 0 0 10px var(--color-primary-glow);
+      }
+
+      /* Main Console Input */
+      .input-frame {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        position: relative;
+      }
+
+      .prompt-prefix {
+        color: var(--color-primary);
+        font-family: var(--font-mono);
+        font-weight: 700;
+        position: absolute;
+        left: 1rem;
+      }
+
+      .console-input {
+        width: 100%;
+        background-color: var(--bg-terminal);
+        border: var(--border-thin);
+        border-radius: var(--radius-md);
+        color: var(--text-main);
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        padding: 1rem 1rem 1rem 2.5rem;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      .console-input:focus {
+        border-color: var(--color-primary);
+        box-shadow:
+          0 0 15px var(--color-primary-glow),
+          inset 0 2px 8px rgba(0, 0, 0, 0.4);
+      }
+
+      /* ---------------------------------------------------- */
+      /* 6. RIGHT PANEL (STATS, INVENTORY, COMBAT HUD)        */
+      /* ---------------------------------------------------- */
+      .status-dashboard {
+        gap: 1.5rem;
+      }
+
+      .dashboard-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .section-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-bottom: var(--border-thin);
+        padding-bottom: 0.25rem;
+      }
+
+      /* Health & Mana Gauges */
+      .gauge-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .gauge-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .gauge-track {
+        background-color: var(--bg-panel);
+        height: 10px;
+        border-radius: 5px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .gauge-fill {
+        height: 100%;
+        transition: width 0.4s ease;
+      }
+
+      .gauge-fill.hp {
+        background: linear-gradient(to right, var(--color-danger), #f87171);
+      }
+
+      .gauge-fill.mana {
+        background: linear-gradient(to right, var(--color-accent), #60a5fa);
+      }
+
+      .gauge-fill.xp {
+        background: linear-gradient(to right, var(--color-warning), #fbbf24);
+      }
+
+      /* Grid of character attributes */
+      .attributes-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+
+      .attribute-card {
+        background-color: var(--bg-panel);
+        border: var(--border-thin);
+        border-radius: var(--radius-sm);
+        padding: 0.6rem;
+        text-align: center;
+      }
+
+      .attribute-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+      }
+
+      .attribute-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-top: 0.15rem;
+      }
+
+      /* Inventory Grid Layout */
+      .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.5rem;
+      }
+
+      .inventory-slot {
+        background-color: var(--bg-panel);
+        border: var(--border-thin);
+        aspect-ratio: 1;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+        transition: var(--transition-standard);
+      }
+
+      .inventory-slot:hover {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary-glow);
+      }
+
+      .inventory-icon {
+        font-size: 1.5rem;
+      }
+
+      /* Exits Compass UI */
+      .compass-hud {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0.5rem 0;
+      }
+
+      .compass-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        width: 150px;
+      }
+
+      .compass-btn {
+        background-color: var(--bg-panel);
+        border: var(--border-thin);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        transition: var(--transition-standard);
+      }
+
+      .compass-btn:hover:not(:disabled) {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+        box-shadow: 0 0 10px var(--color-accent-glow);
+      }
+
+      .compass-btn:disabled {
+        opacity: 0.15;
+        cursor: not-allowed;
+      }
+
+      /* Active Combat HUD Overlay */
+      .combat-banner {
+        background-color: rgba(239, 68, 68, 0.08);
+        border: var(--border-danger);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        animation: alertPulse 2s infinite alternate;
+      }
+
+      @keyframes alertPulse {
+        from {
+          box-shadow: 0 0 5px rgba(239, 68, 68, 0.1);
+        }
+        to {
+          box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+      }
+
+      .combat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--color-danger);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+      }
+
+      .combat-actions-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+      }
+
+      .combat-btn {
+        background-color: rgba(239, 68, 68, 0.15);
+        border: var(--border-danger);
+        color: #fff;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+
+      .combat-btn:hover {
+        background-color: var(--color-danger);
+        box-shadow: 0 0 10px var(--color-danger-glow);
+      }
+
+      .combat-btn.cast {
+        background-color: rgba(59, 130, 246, 0.15);
+        border-color: var(--color-accent);
+      }
+
+      .combat-btn.cast:hover {
+        background-color: var(--color-accent);
+        box-shadow: 0 0 10px var(--color-accent-glow);
+      }
+
+      .combat-btn.flee {
+        background-color: var(--bg-panel);
+        border-color: var(--text-muted);
+      }
+
+      .combat-btn.flee:hover {
+        background-color: var(--text-muted);
+        color: var(--bg-base);
+      }
+
+      /* Immersive Visual Effects (Damage, Healing, Rewards, Magic) */
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+          transform: translateX(-4px);
+        }
+        20%,
+        40%,
+        60%,
+        80% {
+          transform: translateX(4px);
+        }
+      }
+      .shake-anim {
+        animation: shake 0.4s ease-in-out;
+      }
+
+      @keyframes damageFlash {
+        0% {
+          box-shadow: inset 0 0 0px var(--color-danger);
+        }
+        50% {
+          box-shadow: inset 0 0 50px var(--color-danger);
+        }
+        100% {
+          box-shadow: inset 0 0 0px var(--color-danger);
+        }
+      }
+      .damage-flash-anim {
+        animation: damageFlash 0.5s ease-in-out;
+      }
+
+      @keyframes healPulse {
+        0% {
+          box-shadow: inset 0 0 0px var(--color-primary);
+        }
+        50% {
+          box-shadow: inset 0 0 40px var(--color-primary);
+        }
+        100% {
+          box-shadow: inset 0 0 0px var(--color-primary);
+        }
+      }
+      .heal-pulse-anim {
+        animation: healPulse 0.5s ease-in-out;
+      }
+
+      @keyframes magicFlash {
+        0% {
+          box-shadow: inset 0 0 0px var(--color-accent);
+        }
+        50% {
+          box-shadow: inset 0 0 40px var(--color-accent);
+        }
+        100% {
+          box-shadow: inset 0 0 0px var(--color-accent);
+        }
+      }
+      .magic-flash-anim {
+        animation: magicFlash 0.5s ease-in-out;
+      }
+
+      @keyframes goldReward {
+        0% {
+          box-shadow: inset 0 0 0px var(--color-warning);
+        }
+        50% {
+          box-shadow: inset 0 0 40px var(--color-warning);
+        }
+        100% {
+          box-shadow: inset 0 0 0px var(--color-warning);
+        }
+      }
+      .gold-reward-anim {
+        animation: goldReward 0.5s ease-in-out;
+      }
+
+      /* Premium Floating Onboarding Modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(11, 13, 18, 0.85);
+        backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      .modal-card {
+        width: 90%;
+        max-width: 550px;
+        background: var(--bg-surface);
+        border: var(--border-primary);
+        border-radius: var(--radius-md);
+        box-shadow:
+          0 20px 50px rgba(0, 0, 0, 0.8),
+          0 0 20px var(--color-primary-glow);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        animation: scaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: var(--border-thin);
+        padding-bottom: 0.5rem;
+      }
+
+      @keyframes scaleUp {
+        from {
+          transform: scale(0.95);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* Quest / Objectives Tracker Log */
+      .quest-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 0.25rem;
+      }
+
+      .quest-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.6rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: var(--border-thin);
+        border-radius: var(--radius-sm);
+        transition: var(--transition-standard);
+        font-size: 0.85rem;
+      }
+
+      .quest-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: var(--color-primary-dim);
+      }
+
+      .quest-item.completed {
+        opacity: 0.6;
+        border-color: rgba(16, 185, 129, 0.2);
+        background: rgba(16, 185, 129, 0.02);
+      }
+
+      .quest-checkbox {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        border: 1px solid var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition-standard);
+        flex-shrink: 0;
+      }
+
+      .quest-checkbox.checked {
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 5px var(--color-primary-glow);
+      }
+
+      .quest-checkbox.checked::after {
+        content: "✓";
+        color: var(--bg-base);
+        font-size: 9px;
+        font-weight: 900;
+      }
+
+      .quest-text {
+        color: var(--text-main);
+        transition: var(--transition-standard);
+      }
+
+      .quest-item.completed .quest-text {
+        text-decoration: line-through;
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon"></div>
+        <div class="brand-title">AdventureForge</div>
+      </div>
+
+      <div class="meta-actions">
+        <div
+          class="form-group"
+          style="flex-direction: row; align-items: center; gap: 0.5rem"
+        >
+          <label class="form-label" style="margin: 0">Game Pack:</label>
+          <select id="game-pack-select" onchange="switchGamePack()">
+            <option value="heros_quest">🏰 Castle of Shadows (RPG)</option>
+            <option value="chapel">⛪ The Sealed Crypt (Zork-style)</option>
+            <option value="watchtower">🗼 The Watchtower (CYOA)</option>
+          </select>
+        </div>
+
+        <div
+          class="form-group"
+          style="flex-direction: row; align-items: center; gap: 0.5rem"
+        >
+          <label class="form-label" style="margin: 0">Seed:</label>
+          <input
+            type="number"
+            id="game-seed-input"
+            value="42"
+            style="width: 70px; padding: 0.35rem 0.5rem"
+          />
+        </div>
+
+        <!-- Retro Speaker Audio Toggle button -->
+        <button
+          id="audio-toggle-btn"
+          onclick="toggleAudio()"
+          style="
+            font-size: 1.1rem;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            cursor: pointer;
+            border-color: var(--text-muted);
+            color: var(--text-muted);
+            background: var(--bg-panel);
+          "
+          title="Toggle Synth Sound Effects"
+        >
+          🔇
+        </button>
+
+        <button class="primary" onclick="startNewGame()">Restart Game</button>
+      </div>
+    </header>
+
+    <!-- MAIN PLAYSPACE GRID -->
+    <main>
+      <!-- LEFT PANEL: MANAGEMENT -->
+      <section class="panel">
+        <div class="dashboard-section">
+          <h3 class="section-title">Adventure Info</h3>
+          <p
+            id="game-title-display"
+            style="
+              font-weight: 700;
+              font-size: 1.1rem;
+              color: var(--color-primary);
+            "
+          >
+            Castle of Shadows
+          </p>
+          <p
+            id="game-desc-display"
+            style="
+              font-size: 0.85rem;
+              color: var(--text-muted);
+              line-height: 1.4;
+            "
+          >
+            Headless RPG/Adventure hybrid environment with seeded skill checks
+            and turn-based combat.
+          </p>
+        </div>
+
+        <div class="dashboard-section" id="quest-log-section">
+          <h3 class="section-title">Quest Objectives</h3>
+          <div class="quest-list" id="quest-objectives-list">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </div>
+
+        <div class="dashboard-section">
+          <h3 class="section-title">Onboarding & Help</h3>
+          <p
+            style="
+              font-size: 0.85rem;
+              color: var(--text-muted);
+              line-height: 1.4;
+              margin-bottom: 0.25rem;
+            "
+          >
+            Type text commands or click Suggested Action Pills. Track HP, Mana,
+            and Quests directly on your HUD panels.
+          </p>
+          <button
+            onclick="openTutorialModal()"
+            style="
+              font-size: 0.8rem;
+              font-weight: 600;
+              border-color: var(--color-accent);
+              color: var(--color-accent);
+              cursor: pointer;
+            "
+          >
+            Show Commands Reference
+          </button>
+        </div>
+
+        <div class="dashboard-section">
+          <h3 class="section-title">Save / Load Slots</h3>
+          <div class="saves-list" id="save-slots-list">
+            <!-- Populated by JS -->
+            <div
+              class="save-slot"
+              style="justify-content: center; opacity: 0.5"
+            >
+              <p class="save-date">No save states found</p>
+            </div>
+          </div>
+          <button
+            onclick="triggerQuickSave()"
+            style="
+              font-size: 0.8rem;
+              font-weight: 600;
+              border-color: var(--color-accent);
+              color: var(--color-accent);
+              cursor: pointer;
+            "
+          >
+            Save Current Progress
+          </button>
+        </div>
+      </section>
+
+      <!-- CENTER PANEL: GAME GRAPHICS & CONSOLE -->
+      <section class="game-viewport" id="game-viewport-main">
+        <!-- Visual Illustration Frame -->
+        <div class="visual-frame">
+          <div class="visual-art" id="room-visual-art">
+            <!-- Animated SVG -->
+            <svg
+              class="visual-svg"
+              viewBox="0 0 100 100"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <polygon points="50,15 90,85 10,85" stroke-linecap="round" />
+              <circle cx="50" cy="55" r="15" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Adventure Text Log -->
+        <div class="terminal-container" id="adventure-log">
+          <!-- Log Entries go here -->
+        </div>
+
+        <!-- Legal Actions suggestions -->
+        <div class="suggestions-hud" id="suggestions-container">
+          <!-- Suggested buttons populated by JS -->
+        </div>
+
+        <!-- Dynamic input prompt -->
+        <div class="input-frame">
+          <span class="prompt-prefix">></span>
+          <input
+            type="text"
+            class="console-input"
+            id="console-prompt-input"
+            autocomplete="off"
+            placeholder="Enter a choice or a command (e.g. 'go west', 'look at chest')..."
+          />
+        </div>
+      </section>
+
+      <!-- RIGHT PANEL: CHARACTER SHEETS & HUD -->
+      <section class="panel status-dashboard">
+        <!-- Character Stats Section -->
+        <div class="dashboard-section">
+          <h3 class="section-title">Hero Statistics</h3>
+
+          <!-- HP -->
+          <div class="gauge-wrapper">
+            <div class="gauge-label">
+              <span>❤️ Health Points</span>
+              <span id="hp-value-label">20 / 20</span>
+            </div>
+            <div class="gauge-track">
+              <div
+                class="gauge-fill hp"
+                id="hp-bar-fill"
+                style="width: 100%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Mana -->
+          <div class="gauge-wrapper">
+            <div class="gauge-label">
+              <span>✨ Mana Points</span>
+              <span id="mana-value-label">10 / 10</span>
+            </div>
+            <div class="gauge-track">
+              <div
+                class="gauge-fill mana"
+                id="mana-bar-fill"
+                style="width: 100%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- XP -->
+          <div class="gauge-wrapper">
+            <div class="gauge-label">
+              <span>⭐ Experience (XP)</span>
+              <span id="xp-value-label">0</span>
+            </div>
+            <div class="gauge-track">
+              <div
+                class="gauge-fill xp"
+                id="xp-bar-fill"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Attributes -->
+          <div class="attributes-grid">
+            <div class="attribute-card">
+              <p class="attribute-label">⚔️ Strength</p>
+              <p class="attribute-value" id="stat-str">12</p>
+            </div>
+            <div class="attribute-card">
+              <p class="attribute-label">💨 Dexterity</p>
+              <p class="attribute-value" id="stat-dex">12</p>
+            </div>
+            <div class="attribute-card">
+              <p class="attribute-label">🧠 Intelligence</p>
+              <p class="attribute-value" id="stat-int">12</p>
+            </div>
+            <div class="attribute-card">
+              <p class="attribute-label">💰 Gold Coins</p>
+              <p
+                class="attribute-value"
+                id="stat-gold"
+                style="color: var(--color-warning)"
+              >
+                0
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Combat Card (Visible only in combat) -->
+        <div
+          class="dashboard-section"
+          id="combat-hud-container"
+          style="display: none"
+        >
+          <div class="combat-banner">
+            <div class="combat-header">
+              <span>⚠️ COMBAT IN PROGRESS</span>
+              <span id="combat-enemy-hp-label">Goblin: 12 / 12</span>
+            </div>
+
+            <div
+              class="gauge-track"
+              style="height: 6px; background-color: rgba(255, 255, 255, 0.1)"
+            >
+              <div
+                class="gauge-fill hp"
+                id="combat-enemy-hp-fill"
+                style="width: 100%"
+              ></div>
+            </div>
+
+            <div class="combat-actions-grid">
+              <button class="combat-btn" onclick="executeCombatAction('fight')">
+                ⚔️ Strike
+              </button>
+              <button
+                class="combat-btn cast"
+                onclick="executeCombatAction('cast fireball')"
+              >
+                🔥 Fireball
+              </button>
+              <button
+                class="combat-btn cast"
+                onclick="executeCombatAction('cast heal')"
+              >
+                ✨ Heal Spell
+              </button>
+              <button
+                class="combat-btn flee"
+                onclick="executeCombatAction('flee')"
+              >
+                🏃 Flee
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exits Compass -->
+        <div class="dashboard-section" id="compass-section">
+          <h3 class="section-title">Movement & Exits</h3>
+          <div class="compass-hud">
+            <div class="compass-grid">
+              <button class="compass-btn" disabled></button>
+              <button
+                class="compass-btn"
+                id="compass-n"
+                onclick="executeCompass('north')"
+              >
+                N
+              </button>
+              <button
+                class="compass-btn"
+                id="compass-u"
+                onclick="executeCompass('up')"
+              >
+                ▲
+              </button>
+
+              <button
+                class="compass-btn"
+                id="compass-w"
+                onclick="executeCompass('west')"
+              >
+                W
+              </button>
+              <button
+                class="compass-btn"
+                style="opacity: 0.3; cursor: default"
+                disabled
+              >
+                ●
+              </button>
+              <button
+                class="compass-btn"
+                id="compass-e"
+                onclick="executeCompass('east')"
+              >
+                E
+              </button>
+
+              <button class="compass-btn" disabled></button>
+              <button
+                class="compass-btn"
+                id="compass-s"
+                onclick="executeCompass('south')"
+              >
+                S
+              </button>
+              <button
+                class="compass-btn"
+                id="compass-d"
+                onclick="executeCompass('down')"
+              >
+                ▼
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inventory System -->
+        <div class="dashboard-section">
+          <h3 class="section-title">Satchel Inventory</h3>
+          <div class="inventory-grid" id="inventory-slots-container">
+            <!-- Loaded by JS -->
+            <div class="inventory-slot" title="Empty Slot"></div>
+            <div class="inventory-slot" title="Empty Slot"></div>
+            <div class="inventory-slot" title="Empty Slot"></div>
+            <div class="inventory-slot" title="Empty Slot"></div>
+          </div>
+        </div>
+
+        <!-- Adventure Journal & Lore Panel -->
+        <div class="dashboard-section" id="journal-section">
+          <h3 class="section-title">Adventure Journal</h3>
+          <div
+            class="journal-container"
+            id="journal-entries-list"
+            style="
+              max-height: 180px;
+              overflow-y: auto;
+              display: flex;
+              flex-direction: column;
+              gap: 0.4rem;
+              padding: 0.5rem;
+              background: rgba(0, 0, 0, 0.2);
+              border: var(--border-thin);
+              border-radius: var(--radius-sm);
+              font-size: 0.85rem;
+              font-family: var(--font-mono);
+              color: var(--text-muted);
+              line-height: 1.4;
+            "
+          >
+            <!-- Loaded dynamically by JS -->
+            <div
+              style="
+                opacity: 0.5;
+                font-style: italic;
+                text-align: center;
+                padding: 0.5rem;
+              "
+            >
+              No journal entries yet...
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ---------------------------------------------------- -->
+    <!-- 7. GAME ENGINE & SCRIPT IMPLEMENTATION               -->
+    <!-- ---------------------------------------------------- -->
+    <script>
+      /* ==================================================== */
+      /* GAME PACK RAW DATABASES (Embedded Pre-Parsed JSON)   */
+      /* ==================================================== */
+
+      const CYOA_WATCHTOWER_PACK = {
+        meta: {
+          id: "forest_pack_v1",
+          title: "The Watchtower Road",
+          start: "forest_crossroads",
+          vars_init: { suspicion: 0 },
+        },
+        scenes: [
+          {
+            id: "forest_crossroads",
+            title: "The Forest Crossroads",
+            text: "The road splits beneath the black pines. To the east, smoke rises from a ruined watchtower. To the west, a brook cuts through the moss.",
+            choices: [
+              {
+                id: "go_east",
+                text: "Go toward the ruined watchtower.",
+                effects: [{ set_flag: "saw_watchtower" }],
+                next: "ruined_watchtower",
+              },
+              { id: "go_west", text: "Follow the brook.", next: "mossy_brook" },
+              {
+                id: "inspect_ground",
+                text: "Inspect the muddy ground.",
+                conditions: [{ not_flag: "found_bootprints" }],
+                effects: [
+                  { set_flag: "found_bootprints" },
+                  {
+                    add_journal:
+                      "Someone dragged a heavy object toward the watchtower.",
+                  },
+                ],
+                next: "forest_crossroads",
+              },
+            ],
+          },
+          {
+            id: "ruined_watchtower",
+            title: "The Ruined Watchtower",
+            text: "The charred watchtower looms over the path. The wooden door is splintered open. Footprints lead inside.",
+            choices: [
+              {
+                id: "enter_tower",
+                text: "Enter the watchtower.",
+                effects: [
+                  { set_flag: "entered_tower" },
+                  { inc_var: { name: "suspicion", by: 1 } },
+                ],
+                next: "watchtower_inside",
+              },
+              {
+                id: "go_back",
+                text: "Return to the crossroads.",
+                next: "forest_crossroads",
+              },
+            ],
+          },
+          {
+            id: "mossy_brook",
+            title: "The Mossy Brook",
+            text: "Clear, cold water bubbles over round gray stones. It looks peaceful here, but there is no way forward.",
+            choices: [
+              {
+                id: "go_back",
+                text: "Return to the crossroads.",
+                next: "forest_crossroads",
+              },
+            ],
+          },
+          {
+            id: "watchtower_inside",
+            title: "Inside the Watchtower",
+            text: "The interior is dark and smells of ashes. You find a locked chest, but hear footsteps approaching!",
+            choices: [
+              {
+                id: "hide",
+                text: "Hide behind the collapsed timbers.",
+                effects: [{ end_game: "ending_escape" }],
+                next: "ending_escape",
+              },
+              {
+                id: "confront",
+                text: "Confront the newcomer.",
+                effects: [
+                  { inc_var: { name: "suspicion", by: 3 } },
+                  { end_game: "ending_captured" },
+                ],
+                next: "ending_captured",
+              },
+            ],
+          },
+        ],
+        endings: [
+          {
+            id: "ending_escape",
+            title: "You slipped away into the dark.",
+            text: "You hid silently in the shadows. The footsteps passed, and you slipped away unnoticed.",
+          },
+          {
+            id: "ending_captured",
+            title: "You were captured.",
+            text: "You stood your ground, but you were outnumbered and captured by the watchtower guards.",
+          },
+        ],
+      };
+
+      const PARSER_CHAPEL_PACK = {
+        meta: {
+          id: "chapel_pack_v1",
+          title: "The Sealed Crypt",
+          start_room: "forest_path",
+          vars_init: { score: 0 },
+          flags_init: ["crypt_door_locked", "sarcophagus_trapped"],
+        },
+        rooms: [
+          {
+            id: "forest_path",
+            name: "Forest Path",
+            description:
+              "A narrow dirt path winds through the dark woods. To the north, the mossy stone facade of a ruined chapel is visible.",
+            objects: [],
+            npcs: [],
+            exits: [{ direction: "north", to: "chapel_entrance" }],
+          },
+          {
+            id: "chapel_entrance",
+            name: "Chapel Entrance",
+            description:
+              "You stand before the splintered oak doors of the ruined chapel. Paths lead west to a graveyard and south to the forest path.",
+            objects: [],
+            npcs: [],
+            exits: [
+              { direction: "south", to: "forest_path" },
+              { direction: "north", to: "ruined_chapel" },
+              { direction: "west", to: "chapel_yard" },
+            ],
+          },
+          {
+            id: "chapel_yard",
+            name: "Chapel Graveyard",
+            description:
+              "Weathered gray tombstones lean at odd angles in the tall grass. A mysterious figure stands near a weeping willow.",
+            objects: [],
+            npcs: ["innkeeper"],
+            exits: [{ direction: "east", to: "chapel_entrance" }],
+          },
+          {
+            id: "ruined_chapel",
+            name: "Ruined Chapel",
+            description:
+              "Sunshine streams through the collapsed roof, illuminating dust motes. An old stone well stands in the center. An archway leads north, and a side door leads west.",
+            objects: ["old_well"],
+            npcs: [],
+            exits: [
+              { direction: "south", to: "chapel_entrance" },
+              { direction: "north", to: "altar_room" },
+              { direction: "west", to: "chapel_garden" },
+              {
+                direction: "down",
+                to: "well_bottom",
+                conditions: [{ has_flag: "rope_attached_to_well" }],
+                locked_msg:
+                  "The well is too deep and dark to climb down without a rope.",
+              },
+            ],
+          },
+          {
+            id: "chapel_garden",
+            name: "Overgrown Garden",
+            description:
+              "Thorns and wild roses choke the garden paths. Something glints in the damp moss beneath a gargoyle.",
+            objects: ["rope"],
+            npcs: [],
+            exits: [{ direction: "east", to: "ruined_chapel" }],
+          },
+          {
+            id: "well_bottom",
+            name: "Bottom of the Well",
+            description:
+              "It is damp and cold down here. The stone walls are slick. A brass key glints in the mud.",
+            objects: ["brass_key"],
+            npcs: [],
+            exits: [{ direction: "up", to: "ruined_chapel" }],
+          },
+          {
+            id: "altar_room",
+            name: "Altar Room",
+            description:
+              "A cracked stone altar dominates the room. Behind it, a heavy iron crypt door leads down into the darkness.",
+            objects: ["crypt_door"],
+            npcs: [],
+            exits: [
+              { direction: "south", to: "ruined_chapel" },
+              { direction: "west", to: "sacristy" },
+              {
+                direction: "down",
+                to: "sealed_crypt",
+                conditions: [{ not_flag: "crypt_door_locked" }],
+                locked_msg: "The heavy iron crypt door is locked tight.",
+              },
+            ],
+          },
+          {
+            id: "sacristy",
+            name: "The Sacristy",
+            description:
+              "A small vestry room covered in layers of dust. A heavy iron-banded oak chest sits in the corner.",
+            objects: ["oak_chest"],
+            npcs: [],
+            exits: [{ direction: "east", to: "altar_room" }],
+          },
+          {
+            id: "sealed_crypt",
+            name: "The Sealed Crypt",
+            description:
+              "You stand in the cold crypt. A stone archway leads down to the catacombs, but it is blocked by a portcullis. A large granite sarcophagus sits in the center.",
+            objects: ["portcullis", "sarcophagus"],
+            npcs: [],
+            exits: [
+              { direction: "up", to: "altar_room" },
+              {
+                direction: "down",
+                to: "catacombs",
+                conditions: [{ has_flag: "portcullis_raised" }],
+                locked_msg:
+                  "The heavy iron portcullis blocks the archway leading down.",
+              },
+            ],
+          },
+          {
+            id: "catacombs",
+            name: "The Ancient Catacombs",
+            description:
+              "You have entered the catacombs! The air is still and silent. You have found the final resting place.",
+            objects: [],
+            npcs: [],
+            exits: [{ direction: "up", to: "sealed_crypt" }],
+          },
+        ],
+        objects: [
+          {
+            id: "brass_key",
+            name: "brass key",
+            description: "A small brass key, green with age.",
+            takeable: true,
+          },
+          {
+            id: "rope",
+            name: "coil of rope",
+            description: "A sturdy coil of hemp rope.",
+            takeable: true,
+            quest_critical: true,
+          },
+          {
+            id: "old_well",
+            name: "old well",
+            description:
+              "An ancient stone well. An iron ring is bolted to its rim.",
+            takeable: false,
+            interactions: [
+              {
+                verb: "USE",
+                item: "rope",
+                conditions: [{ not_flag: "rope_attached_to_well" }],
+                effects: [
+                  { set_flag: "rope_attached_to_well" },
+                  { unlock_exit: { from: "ruined_chapel", to: "well_bottom" } },
+                  { inc_var: { name: "score", by: 15 } },
+                  {
+                    narrate:
+                      "You tie the rope securely to the iron ring and drop it down the well.",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: "oak_chest",
+            name: "banded oak chest",
+            description: "A heavy iron-banded oak chest. It is locked.",
+            takeable: false,
+            container: true,
+            openable: true,
+            locked: true,
+            key_id: "brass_key",
+            contents: ["iron_key"],
+          },
+          {
+            id: "iron_key",
+            name: "iron key",
+            description: "A heavy black iron key with weird teeth.",
+            takeable: true,
+            quest_critical: true,
+          },
+          {
+            id: "crypt_door",
+            name: "iron crypt door",
+            description:
+              "A heavy reinforced iron door leading down into the chapel crypt. It is locked.",
+            takeable: false,
+            interactions: [
+              {
+                verb: "USE",
+                item: "iron_key",
+                conditions: [{ has_flag: "crypt_door_locked" }],
+                effects: [
+                  { clear_flag: "crypt_door_locked" },
+                  { unlock_exit: { from: "altar_room", to: "sealed_crypt" } },
+                  { inc_var: { name: "score", by: 25 } },
+                  {
+                    narrate:
+                      "You insert the heavy iron key into the door. With a loud click, the lock turns.",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: "sarcophagus",
+            name: "granite sarcophagus",
+            description: "A large stone tomb covered in creepy moss.",
+            takeable: false,
+            interactions: [
+              {
+                verb: "OPEN",
+                conditions: [{ has_flag: "sarcophagus_trapped" }],
+                effects: [
+                  { end_game: "ending_poisoned" },
+                  {
+                    narrate:
+                      "As you slide the stone lid open, a hidden nozzle sprays purple noxious gas directly into your face!",
+                  },
+                ],
+              },
+              {
+                verb: "USE",
+                item: "brass_key",
+                conditions: [{ has_flag: "sarcophagus_trapped" }],
+                effects: [
+                  { clear_flag: "sarcophagus_trapped" },
+                  { inc_var: { name: "score", by: 10 } },
+                  {
+                    narrate:
+                      "You find a tiny dial lock near the base. Inserting the brass key, you turn it. A metallic click indicates the trap is disarmed!",
+                  },
+                ],
+              },
+              {
+                verb: "OPEN",
+                conditions: [
+                  { not_flag: "sarcophagus_trapped" },
+                  { not_flag: "sarcophagus_opened" },
+                ],
+                effects: [
+                  { set_flag: "sarcophagus_opened" },
+                  { inc_var: { name: "score", by: 30 } },
+                  {
+                    narrate:
+                      "You safely push the heavy lid aside. Within lies the ancient skeletal remains of a high priest, wearing a tarnished silver medallion.",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: "portcullis",
+            name: "iron portcullis",
+            description:
+              "A heavy iron gate blocking the archway. A rusty lever is on the wall.",
+            takeable: false,
+            interactions: [
+              {
+                verb: "USE",
+                conditions: [{ not_flag: "portcullis_raised" }],
+                effects: [
+                  { set_flag: "portcullis_raised" },
+                  { unlock_exit: { from: "sealed_crypt", to: "catacombs" } },
+                  { inc_var: { name: "score", by: 20 } },
+                  {
+                    narrate:
+                      "You pull the rusty lever with all your strength. The portcullis screeches upward.",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        npcs: [
+          {
+            id: "innkeeper",
+            name: "Innkeeper",
+            description:
+              "A worried middle-aged man who keeps glancing at the ruined chapel.",
+            dialogue: {
+              root: "welcome",
+              nodes: [
+                {
+                  id: "welcome",
+                  npc_text:
+                    "Help me, traveler! My daughter went into the chapel crypt yesterday, and the iron door locked behind her! I have no key.",
+                  topics: [
+                    {
+                      id: "key",
+                      prompt: "Do you know where the keys are?",
+                      goto: "key_info",
+                    },
+                    { id: "bye", prompt: "I must go.", end: true },
+                  ],
+                },
+                {
+                  id: "key_info",
+                  npc_text:
+                    "I saw the cultists drop a brass key down the chapel well, and they kept the iron key locked in the sacristy oak chest!",
+                  topics: [
+                    { id: "ok", prompt: "I will find them.", goto: "welcome" },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        win_conditions: [
+          {
+            id: "find_resting_place",
+            conditions: [{ visited: "catacombs" }],
+            ending: "ending_victory",
+          },
+        ],
+        endings: [
+          {
+            id: "ending_victory",
+            title: "Victory!",
+            text: "You have successfully navigated the ruins, unlocked the crypt, and entered the ancient catacombs. Your quest is complete.",
+          },
+          {
+            id: "ending_poisoned",
+            title: "Death by Poison Gas!",
+            text: "You triggered the poison needle trap on the sarcophagus and died a painful death. Game over.",
+          },
+        ],
+      };
+
+      const PARSER_HERO_PACK = {
+        meta: {
+          id: "heros_quest_v1",
+          title: "Hero's Quest: The Castle of Shadows",
+          start_room: "castle_gates",
+          vars_init: {
+            hp: 20,
+            max_hp: 20,
+            mana: 10,
+            max_mana: 10,
+            dexterity: 12,
+            strength: 12,
+            intelligence: 12,
+            climbing: 5,
+            lockpicking: 4,
+            gold: 0,
+            xp: 0,
+            score: 0,
+          },
+          flags_init: ["gates_locked", "chest_locked", "boss_sentry_active"],
+        },
+        rooms: [
+          {
+            id: "castle_gates",
+            name: "Castle Gates",
+            description:
+              "You stand before the towering iron gates of the Castle of Shadows. The gates are shut tight. To the west lies a steep Castle Wall that looks climbable.",
+            objects: ["gate_lever"],
+            npcs: [],
+            exits: [
+              { direction: "west", to: "castle_wall" },
+              {
+                direction: "north",
+                to: "castle_courtyard",
+                conditions: [{ not_flag: "gates_locked" }],
+                locked_msg:
+                  "The massive iron gates are locked tight and cannot be opened from this side.",
+              },
+            ],
+          },
+          {
+            id: "castle_wall",
+            name: "Castle Wall",
+            description:
+              "A sheer stone wall rises up into the darkness. Handholds are sparse, but a skilled climber could scale it to reach the battlements above.",
+            objects: ["stone_wall"],
+            npcs: [],
+            exits: [
+              { direction: "east", to: "castle_gates" },
+              {
+                direction: "up",
+                to: "battlements",
+                conditions: [{ has_flag: "wall_climb_success" }],
+                locked_msg:
+                  "The wall is too steep! You must successfully climb it first.",
+              },
+            ],
+          },
+          {
+            id: "battlements",
+            name: "Castle Battlements",
+            description:
+              "Wind howls across the castle battlements. From here, a stone stairway leads down into the Castle Courtyard.",
+            objects: [],
+            npcs: [],
+            exits: [{ direction: "down", to: "castle_courtyard" }],
+          },
+          {
+            id: "castle_courtyard",
+            name: "Castle Courtyard",
+            description:
+              "A wide cobblestone courtyard. A menacing Goblin Guard stands in the center, blocking access to the inner rooms: the Library to the west, the Armory to the east, and the Dungeon to the north.",
+            objects: [],
+            npcs: ["goblin_guard"],
+            exits: [
+              { direction: "south", to: "castle_gates" },
+              {
+                direction: "west",
+                to: "library",
+                conditions: [{ has_flag: "npc_dead_goblin_guard" }],
+                locked_msg: "The Goblin Guard blocks your path to the west!",
+              },
+              {
+                direction: "east",
+                to: "armory",
+                conditions: [{ has_flag: "npc_dead_goblin_guard" }],
+                locked_msg: "The Goblin Guard blocks your path to the east!",
+              },
+              {
+                direction: "north",
+                to: "dungeons",
+                conditions: [{ has_flag: "npc_dead_goblin_guard" }],
+                locked_msg: "The Goblin Guard blocks your path to the north!",
+              },
+            ],
+          },
+          {
+            id: "armory",
+            name: "The Castle Armory",
+            description:
+              "Racks of rusty weapons line the walls. A pristine steel broadsword rests on a velvet cushion.",
+            objects: ["broadsword"],
+            npcs: [],
+            exits: [{ direction: "west", to: "castle_courtyard" }],
+          },
+          {
+            id: "library",
+            name: "The Grand Library",
+            description:
+              "Shelves packed with ancient books rise to the ceiling. A mysterious leather-bound spell scroll rests on a wooden pedestal.",
+            objects: ["spell_scroll"],
+            npcs: [],
+            exits: [{ direction: "east", to: "castle_courtyard" }],
+          },
+          {
+            id: "dungeons",
+            name: "The Castle Dungeons",
+            description:
+              "Damp cells line this dark hallway. In the center stands the terrifying Shadow Knight, glowing with dark magic. To the north lies the Treasury.",
+            objects: [],
+            npcs: ["shadow_knight"],
+            exits: [
+              { direction: "south", to: "castle_courtyard" },
+              {
+                direction: "north",
+                to: "treasury",
+                conditions: [{ has_flag: "npc_dead_shadow_knight" }],
+                locked_msg: "The Shadow Knight blocks access to the Treasury!",
+              },
+            ],
+          },
+          {
+            id: "treasury",
+            name: "The Royal Treasury",
+            description:
+              "Piles of copper and silver lie scattered about. In the center sits a small, locked, iron-bound chest. An exit leads east to the King's Throne Room.",
+            objects: ["treasury_chest"],
+            npcs: [],
+            exits: [
+              { direction: "south", to: "dungeons" },
+              { direction: "east", to: "throne_room" },
+            ],
+          },
+          {
+            id: "throne_room",
+            name: "The Throne Room",
+            description:
+              "The magnificent Throne Room of the King. King Aldous sits upon his throne, looking weary. Speak to him.",
+            objects: [],
+            npcs: ["king_aldous"],
+            exits: [{ direction: "west", to: "treasury" }],
+          },
+        ],
+        objects: [
+          {
+            id: "gate_lever",
+            name: "gate lever",
+            description:
+              "A rusty metal lever connected to the gate mechanism. It is stuck.",
+            takeable: false,
+          },
+          {
+            id: "stone_wall",
+            name: "stone wall",
+            description: "A sheer wall of mossy stone bricks.",
+            takeable: false,
+            interactions: [
+              {
+                verb: "USE",
+                conditions: [{ not_flag: "wall_climb_success" }],
+                effects: [
+                  {
+                    roll_skill_check: {
+                      skill: "climbing",
+                      difficulty: 10,
+                      success_flag: "wall_climb_success",
+                    },
+                  },
+                  { narrate: "You attempt to scale the castle wall..." },
+                ],
+              },
+            ],
+          },
+          {
+            id: "broadsword",
+            name: "steel broadsword",
+            description:
+              "A finely crafted steel sword that hums with energy. Equipping this increases your strength by 6.",
+            takeable: true,
+            interactions: [
+              {
+                verb: "TAKE",
+                effects: [
+                  { inc_var: { name: "strength", by: 6 } },
+                  { inc_var: { name: "score", by: 20 } },
+                  {
+                    narrate:
+                      "You wield the steel broadsword! Your physical power increases!",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: "spell_scroll",
+            name: "spell scroll",
+            description: "An ancient scroll inscribed with magical runes.",
+            takeable: true,
+            interactions: [
+              {
+                verb: "READ",
+                effects: [
+                  { inc_var: { name: "intelligence", by: 6 } },
+                  { inc_var: { name: "mana", by: 5 } },
+                  { inc_var: { name: "score", by: 20 } },
+                  {
+                    narrate:
+                      "You read the magical scroll! Glowing runes expand your mind, restoring mana!",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: "treasury_chest",
+            name: "iron-bound chest",
+            description:
+              "A small locked iron chest. The lock mechanism must be picked.",
+            takeable: false,
+            interactions: [
+              {
+                verb: "USE",
+                conditions: [{ not_flag: "chest_unlocked" }],
+                effects: [
+                  {
+                    roll_skill_check: {
+                      skill: "lockpicking",
+                      difficulty: 12,
+                      success_flag: "chest_unlocked",
+                    },
+                  },
+                  {
+                    narrate:
+                      "You carefully pull out your lockpicks and work on the chest lock...",
+                  },
+                ],
+              },
+              {
+                verb: "OPEN",
+                conditions: [
+                  { has_flag: "chest_unlocked" },
+                  { not_flag: "chest_opened" },
+                ],
+                effects: [
+                  { set_flag: "chest_opened" },
+                  { add_item: "royal_crown" },
+                  { inc_var: { name: "gold", by: 100 } },
+                  { inc_var: { name: "score", by: 30 } },
+                  {
+                    narrate:
+                      "You pop open the chest! Inside is the legendary Royal Crown and 100 gold coins!",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: "royal_crown",
+            name: "Royal Crown",
+            description: "The glistening golden crown of the kingdom.",
+            takeable: true,
+          },
+        ],
+        npcs: [
+          {
+            id: "goblin_guard",
+            name: "Goblin Guard",
+            description: "A small green-skinned goblin clutching a club.",
+            hp: 12,
+            max_hp: 12,
+            attack: 2,
+            defense: 8,
+            gold: 25,
+            xp: 50,
+            dialogue: {
+              root: "greet",
+              nodes: [
+                {
+                  id: "greet",
+                  npc_text:
+                    "You dare enter the castle? Prepare to fight, human!",
+                  effects: [{ start_combat: { npc_id: "goblin_guard" } }],
+                  topics: [{ id: "bye", prompt: "Fight!", end: true }],
+                },
+              ],
+            },
+          },
+          {
+            id: "shadow_knight",
+            name: "Shadow Knight",
+            description:
+              "A hulking warrior in obsidian armor radiating dark magic.",
+            hp: 24,
+            max_hp: 24,
+            attack: 4,
+            defense: 12,
+            gold: 50,
+            xp: 100,
+            dialogue: {
+              root: "greet",
+              nodes: [
+                {
+                  id: "greet",
+                  npc_text: "Foolish mortal! You shall bleed in the shadows!",
+                  effects: [{ start_combat: { npc_id: "shadow_knight" } }],
+                  topics: [{ id: "bye", prompt: "To arms!", end: true }],
+                },
+              ],
+            },
+          },
+          {
+            id: "king_aldous",
+            name: "King Aldous",
+            description: "The weary monarch of the realm.",
+            dialogue: {
+              root: "greet",
+              nodes: [
+                {
+                  id: "greet",
+                  npc_text:
+                    "Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?",
+                  topics: [
+                    {
+                      id: "crown",
+                      prompt: "I have recovered your Royal Crown!",
+                      goto: "restore_kingdom",
+                      conditions: [{ has_item: "royal_crown" }],
+                    },
+                    {
+                      id: "help",
+                      prompt: "I will help you, Sire.",
+                      goto: "help_accepted",
+                    },
+                    { id: "bye", prompt: "Goodbye, Sire.", end: true },
+                  ],
+                },
+                {
+                  id: "help_accepted",
+                  npc_text:
+                    "Thank you, brave hero! Find my crown and return it to me.",
+                  topics: [{ id: "bye", prompt: "I go.", end: true }],
+                },
+                {
+                  id: "restore_kingdom",
+                  npc_text:
+                    "My crown! You have restored the kingdom! The shadow is lifted, and peace shall reign once more!",
+                  effects: [
+                    { remove_item: "royal_crown" },
+                    { set_flag: "kingdom_restored" },
+                    { inc_var: { name: "score", by: 30 } },
+                  ],
+                  topics: [
+                    { id: "victory", prompt: "Hail the King!", end: true },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        win_conditions: [
+          {
+            id: "save_kingdom",
+            conditions: [{ has_flag: "kingdom_restored" }],
+            ending: "ending_victory",
+          },
+        ],
+        endings: [
+          {
+            id: "ending_victory",
+            title: "Saviour of the Realm",
+            text: "You have returned the Royal Crown to King Aldous, defeated the Shadow Knight, and lifted the shadows from the castle. You are a legendary hero!",
+          },
+          {
+            id: "ending_died_in_combat",
+            title: "Fallen Hero",
+            text: "Your HP reached 0 in combat. The shadows have claimed another soul.",
+          },
+        ],
+      };
+
+      /* ==================================================== */
+      /* SEEDED MULBERRY32 PRNG (Pure Engine Replica)         */
+      /* ==================================================== */
+      class PureRand {
+        static next(seed) {
+          const nextSeed = (seed + 0x6d2b79f5) | 0;
+          let t = Math.imul(nextSeed ^ (nextSeed >>> 15), nextSeed | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          const value = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          return { value, nextSeed };
+        }
+
+        static nextInt(seed, min, max) {
+          const { value, nextSeed } = PureRand.next(seed);
+          const range = max - min + 1;
+          const intVal = Math.floor(value * range) + min;
+          return { value: intVal, nextSeed };
+        }
+      }
+
+      /* ==================================================== */
+      /* PROCEDURAL RETRO AUDIO SYNTHESIS SYSTEM              */
+      /* ==================================================== */
+      const SynthAudio = {
+        ctx: null,
+        enabled: false,
+
+        init() {
+          if (this.ctx) return;
+          try {
+            const AudioContextClass =
+              window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioContextClass();
+          } catch (e) {
+            console.warn("Web Audio API is not supported in this browser.");
+          }
+        },
+
+        playBleep() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(
+            100,
+            this.ctx.currentTime + 0.1,
+          );
+
+          gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            this.ctx.currentTime + 0.1,
+          );
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.1);
+        },
+
+        playClick() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = "square";
+          osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+          osc.frequency.setValueAtTime(300, this.ctx.currentTime + 0.03);
+
+          gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            this.ctx.currentTime + 0.06,
+          );
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.06);
+        },
+
+        playSwordStrike() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+
+          const bufferSize = this.ctx.sampleRate * 0.15;
+          const buffer = this.ctx.createBuffer(
+            1,
+            bufferSize,
+            this.ctx.sampleRate,
+          );
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+
+          const noiseFilter = this.ctx.createBiquadFilter();
+          noiseFilter.type = "bandpass";
+          noiseFilter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+          noiseFilter.frequency.exponentialRampToValueAtTime(
+            100,
+            this.ctx.currentTime + 0.15,
+          );
+
+          const noiseGain = this.ctx.createGain();
+          noiseGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          noiseGain.gain.exponentialRampToValueAtTime(
+            0.001,
+            this.ctx.currentTime + 0.15,
+          );
+
+          noise.connect(noiseFilter);
+          noiseFilter.connect(noiseGain);
+          noiseGain.connect(this.ctx.destination);
+
+          noise.start();
+
+          const osc = this.ctx.createOscillator();
+          const oscGain = this.ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(
+            220,
+            this.ctx.currentTime + 0.15,
+          );
+
+          oscGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+          oscGain.gain.exponentialRampToValueAtTime(
+            0.001,
+            this.ctx.currentTime + 0.15,
+          );
+
+          osc.connect(oscGain);
+          oscGain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.15);
+        },
+
+        playExplosion() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+
+          const bufferSize = this.ctx.sampleRate * 0.45;
+          const buffer = this.ctx.createBuffer(
+            1,
+            bufferSize,
+            this.ctx.sampleRate,
+          );
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+          }
+
+          const noise = this.ctx.createBufferSource();
+          noise.buffer = buffer;
+
+          const noiseFilter = this.ctx.createBiquadFilter();
+          noiseFilter.type = "lowpass";
+          noiseFilter.frequency.setValueAtTime(800, this.ctx.currentTime);
+          noiseFilter.frequency.exponentialRampToValueAtTime(
+            20,
+            this.ctx.currentTime + 0.4,
+          );
+
+          const noiseGain = this.ctx.createGain();
+          noiseGain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+          noiseGain.gain.exponentialRampToValueAtTime(
+            0.001,
+            this.ctx.currentTime + 0.45,
+          );
+
+          noise.connect(noiseFilter);
+          noiseFilter.connect(noiseGain);
+          noiseGain.connect(this.ctx.destination);
+
+          noise.start();
+
+          const osc = this.ctx.createOscillator();
+          const oscGain = this.ctx.createGain();
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(100, this.ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(
+            30,
+            this.ctx.currentTime + 0.35,
+          );
+
+          oscGain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          oscGain.gain.exponentialRampToValueAtTime(
+            0.001,
+            this.ctx.currentTime + 0.4,
+          );
+
+          osc.connect(oscGain);
+          oscGain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.4);
+        },
+
+        playHealSpell() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+
+          const now = this.ctx.currentTime;
+          const notes = [261.63, 329.63, 392.0, 523.25, 659.25, 783.99, 1046.5];
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+
+            gain.gain.setValueAtTime(0, now + idx * 0.05);
+            gain.gain.linearRampToValueAtTime(0.06, now + idx * 0.05 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(
+              0.001,
+              now + idx * 0.05 + 0.2,
+            );
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now + idx * 0.05);
+            osc.stop(now + idx * 0.05 + 0.25);
+          });
+        },
+
+        playLockpick() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+
+          const now = this.ctx.currentTime;
+          for (let i = 0; i < 4; i++) {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(2500 - i * 300, now + i * 0.08);
+
+            gain.gain.setValueAtTime(0.04, now + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(
+              0.001,
+              now + i * 0.08 + 0.04,
+            );
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now + i * 0.08);
+            osc.stop(now + i * 0.08 + 0.05);
+          }
+        },
+
+        playDamage() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc.type = "sawtooth";
+          osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(
+            50,
+            this.ctx.currentTime + 0.25,
+          );
+
+          gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            this.ctx.currentTime + 0.25,
+          );
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc.start();
+          osc.stop(this.ctx.currentTime + 0.25);
+        },
+
+        playVictoryChime() {
+          if (!this.enabled) return;
+          this.init();
+          if (!this.ctx) return;
+
+          const now = this.ctx.currentTime;
+          const arpeggio = [
+            261.63, 329.63, 392.0, 523.25, 392.0, 523.25, 659.25, 1046.5,
+          ];
+          arpeggio.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = "square";
+            osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+
+            gain.gain.setValueAtTime(0.05, now + idx * 0.12);
+            gain.gain.exponentialRampToValueAtTime(
+              0.001,
+              now + idx * 0.12 + 0.3,
+            );
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now + idx * 0.12);
+            osc.stop(now + idx * 0.12 + 0.35);
+          });
+        },
+      };
+
+      function toggleAudio() {
+        SynthAudio.enabled = !SynthAudio.enabled;
+        const btn = document.getElementById("audio-toggle-btn");
+        if (btn) {
+          btn.innerText = SynthAudio.enabled ? "🔊" : "🔇";
+          btn.style.borderColor = SynthAudio.enabled
+            ? "var(--color-primary)"
+            : "var(--text-muted)";
+          btn.style.color = SynthAudio.enabled
+            ? "var(--color-primary)"
+            : "var(--text-muted)";
+        }
+        if (SynthAudio.enabled) {
+          SynthAudio.init();
+          SynthAudio.playBleep();
+        }
+      }
+
+      /* ==================================================== */
+      /* PURE ENGINE REPLICATOR (State transitions & DSL)    */
+      /* ==================================================== */
+
+      function evaluateCondition(state, cond) {
+        if ("has_flag" in cond) return !!state.flags[cond.has_flag];
+        if ("not_flag" in cond) return !state.flags[cond.not_flag];
+        if ("has_item" in cond) return state.inventory.includes(cond.has_item);
+        if ("not_item" in cond) return !state.inventory.includes(cond.not_item);
+        if ("visited" in cond) return !!state.visited[cond.visited];
+        if ("not_visited" in cond) return !state.visited[cond.not_visited];
+
+        if ("var_gte" in cond) {
+          const { name, value } = cond.var_gte;
+          return (state.vars[name] ?? 0) >= value;
+        }
+        if ("var_lte" in cond) {
+          const { name, value } = cond.var_lte;
+          return (state.vars[name] ?? 0) <= value;
+        }
+        if ("var_eq" in cond) {
+          const { name, value } = cond.var_eq;
+          return (state.vars[name] ?? 0) === value;
+        }
+        if ("all_of" in cond)
+          return cond.all_of.every((c) => evaluateCondition(state, c));
+        if ("any_of" in cond)
+          return cond.any_of.some((c) => evaluateCondition(state, c));
+        if ("none_of" in cond)
+          return cond.none_of.every((c) => !evaluateCondition(state, c));
+
+        return true;
+      }
+
+      function evaluateConditions(state, conditions) {
+        if (!conditions || conditions.length === 0) return true;
+        return conditions.every((c) => evaluateCondition(state, c));
+      }
+
+      function applyEffect(state, effect) {
+        const newState = {
+          ...state,
+          flags: { ...state.flags },
+          vars: { ...state.vars },
+          inventory: [...state.inventory],
+          objectState: { ...state.objectState },
+          journal: [...state.journal],
+          visited: { ...state.visited },
+          questStage: { ...state.questStage },
+        };
+
+        let event = { type: "generic" };
+
+        if ("set_flag" in effect) {
+          const flag = effect.set_flag;
+          newState.flags[flag] = true;
+          event = { type: "narration", text: `[Flag Set: ${flag}]` };
+        } else if ("clear_flag" in effect) {
+          const flag = effect.clear_flag;
+          newState.flags[flag] = false;
+          event = { type: "narration", text: `[Flag Cleared: ${flag}]` };
+        } else if ("add_item" in effect) {
+          const item = effect.add_item;
+          if (!newState.inventory.includes(item)) newState.inventory.push(item);
+          newState.objectState[item] = {
+            ...newState.objectState[item],
+            takenBy: "player",
+          };
+          event = { type: "narration", text: `[Added to bag: ${item}]` };
+        } else if ("remove_item" in effect) {
+          const item = effect.remove_item;
+          newState.inventory = newState.inventory.filter((i) => i !== item);
+          newState.objectState[item] = {
+            ...newState.objectState[item],
+            takenBy: "world",
+          };
+          event = { type: "narration", text: `[Removed from bag: ${item}]` };
+        } else if ("set_var" in effect) {
+          const { name, value } = effect.set_var;
+          newState.vars[name] = value;
+        } else if ("inc_var" in effect) {
+          const { name, by } = effect.inc_var;
+          newState.vars[name] = (newState.vars[name] ?? 0) + by;
+        } else if ("dec_var" in effect) {
+          const { name, by } = effect.dec_var;
+          newState.vars[name] = (newState.vars[name] ?? 0) - by;
+        } else if ("add_journal" in effect) {
+          newState.journal.push(effect.add_journal);
+          event = { type: "narration", text: effect.add_journal };
+        } else if ("goto" in effect) {
+          newState.current = effect.goto;
+          newState.visited[effect.goto] = true;
+        } else if ("unlock_exit" in effect) {
+          const { from, to } = effect.unlock_exit;
+          newState.flags[`exit_unlocked_${from}_to_${to}`] = true;
+        } else if ("open_object" in effect) {
+          newState.objectState[effect.open_object] = {
+            ...newState.objectState[effect.open_object],
+            open: true,
+          };
+        } else if ("set_object_locked" in effect) {
+          const { id, locked } = effect.set_object_locked;
+          newState.objectState[id] = { ...newState.objectState[id], locked };
+        } else if ("narrate" in effect) {
+          event = { type: "narration", text: effect.narrate };
+        } else if ("end_game" in effect) {
+          newState.ended = true;
+          newState.endingId = effect.end_game;
+        } else if ("roll_skill_check" in effect) {
+          const { skill, difficulty, success_flag } = effect.roll_skill_check;
+          const skillVal = newState.vars[skill] ?? 0;
+          const { value: roll, nextSeed } = PureRand.nextInt(
+            newState.seed,
+            1,
+            20,
+          );
+          newState.seed = nextSeed;
+          const total = roll + skillVal;
+          const success = total >= difficulty;
+          newState.flags[success_flag] = success;
+
+          const msg =
+            `🎲 [Skill Check] Rolling ${skill.toUpperCase()} (Difficulty: ${difficulty}): Rolled ${roll} + Skill ${skillVal} = ${total}. ` +
+            (success ? "🟢 SUCCESS!" : "🔴 FAILURE!");
+          newState.journal.push(msg);
+          event = { type: "narration", text: msg };
+        } else if ("start_combat" in effect) {
+          const { npc_id } = effect.start_combat;
+          newState.flags[`in_combat_with_${npc_id}`] = true;
+          newState.flags[`in_dialogue_with_${npc_id}`] = false;
+        } else if ("damage_player" in effect) {
+          const { by, msg } = effect.damage_player;
+          const currentHp = newState.vars["hp"] ?? 20;
+          const newHp = Math.max(0, currentHp - by);
+          newState.vars["hp"] = newHp;
+
+          let text =
+            msg ??
+            `💥 You take ${by} damage! (HP: ${newHp}/${newState.vars["max_hp"] ?? 20})`;
+          if (newHp <= 0) {
+            newState.ended = true;
+            newState.endingId = "ending_died_in_combat";
+          }
+          event = { type: "narration", text };
+        } else if ("heal_player" in effect) {
+          const { by, msg } = effect.heal_player;
+          const currentHp = newState.vars["hp"] ?? 20;
+          const maxHp = newState.vars["max_hp"] ?? 20;
+          const newHp = Math.min(maxHp, currentHp + by);
+          newState.vars["hp"] = newHp;
+          event = {
+            type: "narration",
+            text: msg ?? `✨ Restored ${by} HP. (HP: ${newHp}/${maxHp})`,
+          };
+        }
+
+        return { state: newState, event };
+      }
+
+      function applyEffects(state, effects) {
+        if (!effects || effects.length === 0) return { state, events: [] };
+        let currState = state;
+        const events = [];
+        for (const eff of effects) {
+          const res = applyEffect(currState, eff);
+          currState = res.state;
+          if (res.event) events.push(res.event);
+        }
+        return { state: currState, events };
+      }
+
+      /* ==================================================== */
+      /* PLAY ENGINE STEP REDUCER REPLICA                     */
+      /* ==================================================== */
+      function step(state, action, pack) {
+        if (state.ended) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: "Game has already ended." }],
+            ok: false,
+          };
+        }
+
+        let newState = {
+          ...state,
+          flags: { ...state.flags },
+          vars: { ...state.vars },
+          inventory: [...state.inventory],
+          objectState: { ...state.objectState },
+          journal: [...state.journal],
+          visited: { ...state.visited },
+          questStage: { ...state.questStage },
+        };
+
+        const events = [];
+
+        // A. Choose-Your-Own-Adventure Reducer
+        if ("scenes" in pack) {
+          if (action.type !== "CHOOSE") return { state, ok: false };
+          const currentScene = pack.scenes.find((s) => s.id === state.current);
+          const choice = currentScene.choices.find(
+            (c) => c.id === action.choiceId,
+          );
+          if (!choice) return { state, ok: false };
+
+          const effectResult = applyEffects(newState, choice.effects);
+          newState = effectResult.state;
+          events.push(...effectResult.events);
+
+          const nextSceneId = choice.next || state.current;
+          if (nextSceneId !== state.current) {
+            newState.current = nextSceneId;
+            newState.visited[nextSceneId] = true;
+            const nextScene = pack.scenes.find((s) => s.id === nextSceneId);
+            if (nextScene) {
+              const enterResult = applyEffects(newState, nextScene.on_enter);
+              newState = enterResult.state;
+              events.push(...enterResult.events);
+
+              if (nextScene.is_ending) {
+                newState.ended = true;
+                newState.endingId = nextSceneId;
+                const endingMeta = pack.endings?.find(
+                  (e) => e.id === nextSceneId,
+                );
+                events.push({
+                  type: "ending",
+                  endingId: nextSceneId,
+                  text: endingMeta?.text ?? nextScene.text,
+                });
+              }
+            }
+          }
+          newState.step += 1;
+          return { state: newState, events, ok: true };
+        }
+
+        // B. Zork/RPG Parser Reducer
+        const currentRoom = pack.rooms.find((r) => r.id === state.current);
+        const findObjectInPack = (id) => pack.objects.find((o) => o.id === id);
+        const isObjectVisible = (id) => {
+          if (newState.inventory.includes(id)) return true;
+
+          const runtimeObj = newState.objectState[id];
+          if (runtimeObj) {
+            if (runtimeObj.takenBy === "player") {
+              return newState.inventory.includes(id);
+            }
+            if (runtimeObj.takenBy === "destroyed") {
+              return false;
+            }
+          }
+
+          if (currentRoom.objects.includes(id)) return true;
+
+          for (const roomObjId of currentRoom.objects) {
+            const roomObj = findObjectInPack(roomObjId);
+            if (roomObj && roomObj.container) {
+              const runtime = newState.objectState[roomObjId];
+              const isOpen = runtime
+                ? runtime.open
+                : !roomObj.locked && !roomObj.openable;
+              if (isOpen && roomObj.contents?.includes(id)) {
+                const nestedRuntime = newState.objectState[id];
+                if (nestedRuntime && nestedRuntime.takenBy === "player") {
+                  return newState.inventory.includes(id);
+                }
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+
+        // Dialogue Tree Lock check
+        const activeDialogueNpcId = Object.keys(newState.flags)
+          .find((f) => f.startsWith("in_dialogue_with_") && newState.flags[f])
+          ?.substring(17);
+
+        if (activeDialogueNpcId && action.type !== "ASK") {
+          return {
+            state,
+            ok: false,
+            rejectionReason: "You are in a conversation.",
+          };
+        }
+
+        // Active Combat check
+        const activeCombatNpcId = Object.keys(newState.flags)
+          .find((f) => f.startsWith("in_combat_with_") && newState.flags[f])
+          ?.substring(15);
+
+        if (activeCombatNpcId) {
+          const allowedInCombat = [
+            "FIGHT",
+            "CAST",
+            "FLEE",
+            "LOOK",
+            "INSPECT",
+            "INVENTORY",
+          ];
+          if (!allowedInCombat.includes(action.type)) {
+            return { state, ok: false, rejectionReason: "You are in combat!" };
+          }
+
+          if (
+            action.type !== "LOOK" &&
+            action.type !== "INSPECT" &&
+            action.type !== "INVENTORY"
+          ) {
+            const enemy = pack.npcs.find((n) => n.id === activeCombatNpcId);
+            if (!enemy) {
+              newState.flags[`in_combat_with_${activeCombatNpcId}`] = false;
+            } else {
+              const enemyVarHp = `npc_hp_${enemy.id}`;
+              if (newState.vars[enemyVarHp] === undefined) {
+                newState.vars[enemyVarHp] = enemy.hp ?? 10;
+              }
+
+              let enemyHp = newState.vars[enemyVarHp];
+              const enemyMaxHp = enemy.max_hp ?? enemy.hp ?? 10;
+              const enemyAttack = enemy.attack ?? 2;
+              const enemyDefense = enemy.defense ?? 10;
+              const enemyGold = enemy.gold ?? 5;
+              const enemyXp = enemy.xp ?? 10;
+
+              let playerHp = newState.vars["hp"] ?? 20;
+              const playerMaxHp = newState.vars["max_hp"] ?? 20;
+              const playerDex = newState.vars["dexterity"] ?? 10;
+              const playerStr = newState.vars["strength"] ?? 10;
+              const playerInt = newState.vars["intelligence"] ?? 10;
+              let playerMana = newState.vars["mana"] ?? 10;
+
+              let combatLog = "";
+
+              if (action.type === "FIGHT") {
+                const { value: hitRoll, nextSeed: s1 } = PureRand.nextInt(
+                  newState.seed,
+                  1,
+                  20,
+                );
+                const hitTotal = hitRoll + Math.floor(playerDex / 3);
+                newState.seed = s1;
+
+                if (hitRoll === 20 || hitTotal >= enemyDefense) {
+                  const { value: dmgRoll, nextSeed: s2 } = PureRand.nextInt(
+                    newState.seed,
+                    1,
+                    6,
+                  );
+                  const dmgTotal = Math.max(
+                    1,
+                    dmgRoll + Math.floor(playerStr / 3),
+                  );
+                  newState.seed = s2;
+                  enemyHp = Math.max(0, enemyHp - dmgTotal);
+                  combatLog += `⚔️ You strike the ${enemy.name} for ${dmgTotal} damage! (Enemy HP: ${enemyHp}/${enemyMaxHp})\n`;
+                } else {
+                  combatLog += `🛡️ You swing at the ${enemy.name} but miss! (Rolled ${hitRoll} vs Defense ${enemyDefense})\n`;
+                }
+              } else if (action.type === "CAST") {
+                const spell = action.spell.toLowerCase();
+                if (spell === "fireball") {
+                  if (playerMana < 3)
+                    return {
+                      state,
+                      ok: false,
+                      rejectionReason: "Not enough mana.",
+                    };
+                  playerMana -= 3;
+                  const { value: dmgRoll, nextSeed: s1 } = PureRand.nextInt(
+                    newState.seed,
+                    4,
+                    10,
+                  );
+                  const dmgTotal = dmgRoll + Math.floor(playerInt / 3);
+                  newState.seed = s1;
+                  enemyHp = Math.max(0, enemyHp - dmgTotal);
+                  combatLog += `🔥 You cast Fireball! Searing flames consume the ${enemy.name} for ${dmgTotal} fire damage! (Enemy HP: ${enemyHp}/${enemyMaxHp})\n`;
+                } else if (spell === "heal") {
+                  if (playerMana < 2)
+                    return {
+                      state,
+                      ok: false,
+                      rejectionReason: "Not enough mana.",
+                    };
+                  playerMana -= 2;
+                  const { value: healRoll, nextSeed: s1 } = PureRand.nextInt(
+                    newState.seed,
+                    6,
+                    12,
+                  );
+                  newState.seed = s1;
+                  playerHp = Math.min(playerMaxHp, playerHp + healRoll);
+                  combatLog += `✨ You cast Heal! Divine light restores ${healRoll} HP. (HP: ${playerHp}/${playerMaxHp})\n`;
+                }
+              } else if (action.type === "FLEE") {
+                const { value: fleeRoll, nextSeed: s1 } = PureRand.nextInt(
+                  newState.seed,
+                  1,
+                  20,
+                );
+                const fleeTotal = fleeRoll + Math.floor(playerDex / 3);
+                newState.seed = s1;
+
+                if (fleeTotal >= 12) {
+                  newState.flags[`in_combat_with_${enemy.id}`] = false;
+                  events.push({
+                    type: "narration",
+                    text: `🏃 Successfully fled from ${enemy.name}!`,
+                  });
+                  newState.vars["hp"] = playerHp;
+                  newState.vars["mana"] = playerMana;
+                  newState.step += 1;
+                  return { state: newState, events, ok: true };
+                } else {
+                  combatLog += `🏃 You try to flee, but the ${enemy.name} blocks your escape!\n`;
+                }
+              }
+
+              // Enemy Turn
+              if (enemyHp > 0) {
+                const { value: enemyHitRoll, nextSeed: s3 } = PureRand.nextInt(
+                  newState.seed,
+                  1,
+                  20,
+                );
+                const enemyHitTotal = enemyHitRoll + enemyAttack;
+                const playerDefense = 10 + Math.floor(playerDex / 3);
+                newState.seed = s3;
+
+                if (enemyHitRoll === 20 || enemyHitTotal >= playerDefense) {
+                  const { value: enemyDmgRoll, nextSeed: s4 } =
+                    PureRand.nextInt(newState.seed, 1, 6);
+                  newState.seed = s4;
+                  playerHp = Math.max(0, playerHp - enemyDmgRoll);
+                  combatLog += `💥 The ${enemy.name} strikes you for ${enemyDmgRoll} damage! (HP: ${playerHp}/${playerMaxHp})\n`;
+                } else {
+                  combatLog += `💨 The ${enemy.name} swings at you but misses!\n`;
+                }
+              }
+
+              if (enemyHp <= 0) {
+                newState.flags[`in_combat_with_${enemy.id}`] = false;
+                newState.flags[`npc_defeated_${enemy.id}`] = true;
+                newState.flags[`npc_dead_${enemy.id}`] = true;
+                newState.vars["gold"] =
+                  (newState.vars["gold"] ?? 0) + enemyGold;
+                newState.vars["xp"] = (newState.vars["xp"] ?? 0) + enemyXp;
+                combatLog += `🏆 VICTORY! You defeated the ${enemy.name}! Gained ${enemyGold} gold and ${enemyXp} XP.`;
+              }
+
+              if (playerHp <= 0) {
+                newState.ended = true;
+                newState.endingId = "ending_died_in_combat";
+                combatLog += `💀 You have fallen in battle. Game Over.`;
+              }
+
+              newState.vars["hp"] = playerHp;
+              newState.vars["mana"] = playerMana;
+              newState.vars[enemyVarHp] = enemyHp;
+
+              events.push({ type: "narration", text: combatLog.trim() });
+              newState.step += 1;
+              return { state: newState, events, ok: true };
+            }
+          }
+        }
+
+        // Actions Router
+        switch (action.type) {
+          case "LOOK":
+            if (!action.target) {
+              events.push({ type: "narration", text: currentRoom.description });
+            } else {
+              const obj = findObjectInPack(action.target);
+              events.push({
+                type: "narration",
+                text: obj ? obj.description : `It's a ${action.target}`,
+              });
+            }
+            break;
+
+          case "INSPECT":
+            const objToInspect = findObjectInPack(action.target);
+            events.push({
+              type: "narration",
+              text: objToInspect
+                ? objToInspect.description
+                : `You see nothing special.`,
+            });
+            break;
+
+          case "INVENTORY":
+            const invList = newState.inventory
+              .map((id) => findObjectInPack(id)?.name ?? id)
+              .join(", ");
+            events.push({
+              type: "narration",
+              text:
+                newState.inventory.length > 0
+                  ? `Satchel contains: ${invList}.`
+                  : "Your satchel is empty.",
+            });
+            break;
+
+          case "MOVE":
+            const exit = currentRoom.exits.find(
+              (e) => e.direction === action.direction,
+            );
+            if (!exit)
+              return { state, ok: false, rejectionReason: "No exit that way." };
+            if (!evaluateConditions(newState, exit.conditions)) {
+              return {
+                state,
+                ok: false,
+                rejectionReason: exit.locked_msg ?? "Locked path.",
+              };
+            }
+            newState.current = exit.to;
+            newState.visited[exit.to] = true;
+            const newRoom = pack.rooms.find((r) => r.id === exit.to);
+            events.push({ type: "narration", text: newRoom.description });
+            break;
+
+          case "TAKE":
+            const takeObj = findObjectInPack(action.item);
+            if (!takeObj || !isObjectVisible(action.item) || !takeObj.takeable)
+              return { state, ok: false };
+            if (newState.inventory.includes(action.item))
+              return { state, ok: false };
+
+            // Container content removal
+            for (const roomObjId of currentRoom.objects) {
+              const rObj = findObjectInPack(roomObjId);
+              if (
+                rObj &&
+                rObj.container &&
+                rObj.contents?.includes(action.item)
+              ) {
+                newState.objectState[roomObjId] = {
+                  ...newState.objectState[roomObjId],
+                  contents: (
+                    newState.objectState[roomObjId].contents ?? rObj.contents
+                  ).filter((c) => c !== action.item),
+                };
+              }
+            }
+
+            newState.inventory.push(action.item);
+            newState.objectState[action.item] = {
+              ...newState.objectState[action.item],
+              takenBy: "player",
+            };
+
+            events.push({ type: "take", item: action.item });
+
+            // Check custom take interactions
+            const matchingTakeInter = (takeObj.interactions || []).find(
+              (i) =>
+                i.verb === "TAKE" && evaluateConditions(newState, i.conditions),
+            );
+            if (matchingTakeInter) {
+              const res = applyEffects(newState, matchingTakeInter.effects);
+              newState = res.state;
+              events.push(...res.events);
+            } else {
+              events.push({ type: "narration", text: "Taken." });
+            }
+            break;
+
+          case "DROP":
+            if (!newState.inventory.includes(action.item))
+              return { state, ok: false };
+            newState.inventory = newState.inventory.filter(
+              (i) => i !== action.item,
+            );
+            newState.objectState[action.item] = {
+              ...newState.objectState[action.item],
+              takenBy: "world",
+            };
+            events.push({ type: "narration", text: "Dropped." });
+            break;
+
+          case "OPEN":
+            const openObj = findObjectInPack(action.target);
+            if (!openObj || !isObjectVisible(action.target))
+              return { state, ok: false };
+
+            const matchingOpenInter = (openObj.interactions || []).find(
+              (i) =>
+                i.verb === "OPEN" && evaluateConditions(newState, i.conditions),
+            );
+            if (matchingOpenInter) {
+              const res = applyEffects(newState, matchingOpenInter.effects);
+              newState = res.state;
+              events.push(...res.events);
+              break;
+            }
+
+            if (!openObj.openable)
+              return { state, ok: false, rejectionReason: "Can't open that." };
+            const openRuntime = newState.objectState[action.target] ?? {};
+            const isL =
+              openRuntime.locked !== undefined
+                ? openRuntime.locked
+                : openObj.locked;
+            if (isL)
+              return { state, ok: false, rejectionReason: "It is locked." };
+
+            newState.objectState[action.target] = {
+              ...openRuntime,
+              open: true,
+            };
+            events.push({
+              type: "narration",
+              text: `You open the ${openObj.name}.`,
+            });
+            break;
+
+          case "CLOSE":
+            const closeObj = findObjectInPack(action.target);
+            if (
+              !closeObj ||
+              !isObjectVisible(action.target) ||
+              !closeObj.openable
+            )
+              return { state, ok: false };
+            newState.objectState[action.target] = {
+              ...newState.objectState[action.target],
+              open: false,
+            };
+            events.push({
+              type: "narration",
+              text: `You close the ${closeObj.name}.`,
+            });
+            break;
+
+          case "UNLOCK":
+            const unlockObj = findObjectInPack(action.target);
+            if (
+              !unlockObj ||
+              !isObjectVisible(action.target) ||
+              !unlockObj.locked
+            )
+              return { state, ok: false };
+            if (
+              action.with !== unlockObj.key_id ||
+              !newState.inventory.includes(action.with)
+            ) {
+              return {
+                state,
+                ok: false,
+                rejectionReason: "That key doesn't fit.",
+              };
+            }
+            newState.objectState[action.target] = {
+              ...newState.objectState[action.target],
+              locked: false,
+            };
+            events.push({
+              type: "narration",
+              text: `You unlock the ${unlockObj.name} with the ${findObjectInPack(action.with)?.name}.`,
+            });
+            break;
+
+          case "USE":
+            const useObj = findObjectInPack(action.target);
+            if (!useObj || !isObjectVisible(action.target))
+              return { state, ok: false };
+            const useInter = (useObj.interactions || []).find(
+              (i) =>
+                i.verb === "USE" &&
+                (i.item === undefined || i.item === action.item),
+            );
+            if (!useInter)
+              return { state, ok: false, rejectionReason: "Nothing happens." };
+            if (!evaluateConditions(newState, useInter.conditions))
+              return { state, ok: false, rejectionReason: "Nothing happens." };
+
+            const useRes = applyEffects(newState, useInter.effects);
+            newState = useRes.state;
+            events.push(...useRes.events);
+            break;
+
+          case "TALK":
+            const talkNpc = pack.npcs.find((n) => n.id === action.npc);
+            if (!talkNpc || !currentRoom.npcs?.includes(action.npc))
+              return { state, ok: false };
+
+            newState.flags[`in_dialogue_with_${talkNpc.id}`] = true;
+            newState.questStage[`dialogue_node_${talkNpc.id}`] =
+              talkNpc.dialogue.root;
+            const rootNode = talkNpc.dialogue.nodes.find(
+              (n) => n.id === talkNpc.dialogue.root,
+            );
+
+            if (rootNode?.effects) {
+              const res = applyEffects(newState, rootNode.effects);
+              newState = res.state;
+              events.push(...res.events);
+            }
+            events.push({
+              type: "narration",
+              text: rootNode?.npc_text ?? `You speak to ${talkNpc.name}.`,
+            });
+            break;
+
+          case "ASK":
+            const askNpc = pack.npcs.find((n) => n.id === action.npc);
+            if (!askNpc) return { state, ok: false };
+            const askVarName = `dialogue_node_${askNpc.id}`;
+            const currentNId =
+              newState.questStage[askVarName] ?? askNpc.dialogue.root;
+            const currentN = askNpc.dialogue.nodes.find(
+              (n) => n.id === currentNId,
+            );
+            const topic = currentN?.topics.find((t) => t.id === action.topic);
+            if (!topic) return { state, ok: false };
+
+            if (topic.end) {
+              newState.flags[`in_dialogue_with_${askNpc.id}`] = false;
+              events.push({
+                type: "narration",
+                text: `You say goodbye to ${askNpc.name}.`,
+              });
+            } else if (topic.goto) {
+              newState.questStage[askVarName] = topic.goto;
+              const nextNode = askNpc.dialogue.nodes.find(
+                (n) => n.id === topic.goto,
+              );
+              if (nextNode) {
+                const res = applyEffects(newState, nextNode.effects);
+                newState = res.state;
+                events.push(...res.events);
+                events.push({ type: "narration", text: nextNode.npc_text });
+              }
+            }
+            break;
+
+          case "GIVE":
+            const giveNpc = pack.npcs.find((n) => n.id === action.npc);
+            if (!giveNpc || !currentRoom.npcs?.includes(action.npc))
+              return { state, ok: false };
+            if (!newState.inventory.includes(action.item))
+              return { state, ok: false };
+            const giveObj = findObjectInPack(action.item);
+            events.push({
+              type: "narration",
+              text: `You offer the ${giveObj?.name ?? action.item} to ${giveNpc.name}, but they decline.`,
+            });
+            break;
+
+          case "READ":
+            if (!isObjectVisible(action.target)) return { state, ok: false };
+            const readObj = findObjectInPack(action.target);
+            if (!readObj) return { state, ok: false };
+
+            const readInter = (readObj.interactions || []).find(
+              (i) => i.verb === "READ",
+            );
+            if (readInter) {
+              if (!evaluateConditions(newState, readInter.conditions))
+                return { state, ok: false };
+              const res = applyEffects(newState, readInter.effects);
+              newState = res.state;
+              events.push(...res.events);
+            } else {
+              events.push({ type: "narration", text: readObj.description });
+            }
+            break;
+        }
+
+        // Check Win Conditions
+        for (const winCond of pack.win_conditions || []) {
+          if (evaluateConditions(newState, winCond.conditions)) {
+            newState.ended = true;
+            newState.endingId = winCond.ending;
+            const ending = pack.endings?.find((e) => e.id === winCond.ending);
+            events.push({
+              type: "ending",
+              endingId: winCond.ending,
+              text: ending?.text ?? "Victory!",
+            });
+            break;
+          }
+        }
+
+        newState.step += 1;
+        return { state: newState, events, ok: true };
+      }
+
+      function generateLegalActions(state, pack) {
+        const actions = [];
+        const activeDialogueNpcId = Object.keys(state.flags)
+          .find((f) => f.startsWith("in_dialogue_with_") && state.flags[f])
+          ?.substring(17);
+
+        if (activeDialogueNpcId) {
+          const npc = pack.npcs.find((n) => n.id === activeDialogueNpcId);
+          if (npc) {
+            const askVarName = `dialogue_node_${npc.id}`;
+            const currentNId =
+              state.questStage[askVarName] ?? npc.dialogue.root;
+            const currentN = npc.dialogue.nodes.find(
+              (n) => n.id === currentNId,
+            );
+            if (currentN) {
+              currentN.topics.forEach((t) => {
+                // check if topic conditions pass!
+                if (evaluateConditions(state, t.conditions)) {
+                  actions.push({
+                    id: `dialogue_${npc.id}_${t.id}`,
+                    command: `ask about ${t.prompt.toLowerCase()}`,
+                    action: { type: "ASK", npc: npc.id, topic: t.id },
+                    text: t.prompt,
+                  });
+                }
+              });
+              return actions;
+            }
+          }
+        }
+
+        const activeCombatNpcId = Object.keys(state.flags)
+          .find((f) => f.startsWith("in_combat_with_") && state.flags[f])
+          ?.substring(15);
+
+        if (activeCombatNpcId) {
+          const npc = pack.npcs.find((n) => n.id === activeCombatNpcId);
+          if (npc) {
+            actions.push({
+              id: "look_combat",
+              command: "look",
+              action: { type: "LOOK" },
+            });
+            actions.push({
+              id: "inventory_combat",
+              command: "inventory",
+              action: { type: "INVENTORY" },
+            });
+            actions.push({
+              id: `fight_${npc.id}`,
+              command: `fight ${npc.name.toLowerCase()}`,
+              action: { type: "FIGHT", npc: npc.id },
+            });
+            const playerMana = state.vars["mana"] ?? 10;
+            if (playerMana >= 3) {
+              actions.push({
+                id: "cast_fireball",
+                command: "cast fireball",
+                action: { type: "CAST", spell: "fireball", target: npc.id },
+              });
+            }
+            if (playerMana >= 2) {
+              actions.push({
+                id: "cast_heal",
+                command: "cast heal",
+                action: { type: "CAST", spell: "heal", target: "player" },
+              });
+            }
+            actions.push({
+              id: "flee_combat",
+              command: "flee",
+              action: { type: "FLEE" },
+            });
+            return actions;
+          }
+        }
+
+        if ("scenes" in pack) {
+          const scene = pack.scenes.find((s) => s.id === state.current);
+          if (scene && !scene.is_ending) {
+            scene.choices.forEach((c) => {
+              if (evaluateConditions(state, c.conditions)) {
+                actions.push({
+                  id: c.id,
+                  command: c.text,
+                  action: { type: "CHOOSE", choiceId: c.id },
+                });
+              }
+            });
+          }
+          return actions;
+        }
+
+        const room = pack.rooms.find((r) => r.id === state.current);
+        if (!room) return actions;
+
+        actions.push({
+          id: "look_room",
+          command: "look",
+          action: { type: "LOOK" },
+        });
+        actions.push({
+          id: "inventory",
+          command: "inventory",
+          action: { type: "INVENTORY" },
+        });
+
+        room.exits.forEach((e) => {
+          actions.push({
+            id: `go_${e.direction}`,
+            command: `go ${e.direction}`,
+            action: { type: "MOVE", direction: e.direction },
+          });
+        });
+
+        const visibleObjs = [];
+        room.objects.forEach((objId) => {
+          const obj = pack.objects.find((o) => o.id === objId);
+          if (obj) {
+            const rObjState = state.objectState[obj.id];
+            if (
+              rObjState &&
+              (rObjState.takenBy === "player" ||
+                rObjState.takenBy === "destroyed")
+            ) {
+              return;
+            }
+            visibleObjs.push(obj);
+            const isOp = rObjState
+              ? rObjState.open
+              : !obj.locked && !obj.openable;
+            if (isOp && obj.contents) {
+              obj.contents.forEach((childId) => {
+                const childObj = pack.objects.find((o) => o.id === childId);
+                if (childObj) {
+                  const rChildState = state.objectState[childObj.id];
+                  if (
+                    rChildState &&
+                    (rChildState.takenBy === "player" ||
+                      rChildState.takenBy === "destroyed")
+                  ) {
+                    return;
+                  }
+                  visibleObjs.push(childObj);
+                }
+              });
+            }
+          }
+        });
+
+        visibleObjs.forEach((obj) => {
+          actions.push({
+            id: `look_${obj.id}`,
+            command: `look at ${obj.name}`,
+            action: { type: "LOOK", target: obj.id },
+          });
+          actions.push({
+            id: `inspect_${obj.id}`,
+            command: `inspect ${obj.name}`,
+            action: { type: "INSPECT", target: obj.id },
+          });
+
+          const rState = state.objectState[obj.id];
+          const isTaken = rState ? rState.takenBy === "player" : false;
+          if (obj.takeable && !isTaken && !state.inventory.includes(obj.id)) {
+            actions.push({
+              id: `take_${obj.id}`,
+              command: `take ${obj.name}`,
+              action: { type: "TAKE", item: obj.id },
+            });
+          }
+
+          const hasCustomOpen = (obj.interactions || []).some(
+            (i) => i.verb === "OPEN",
+          );
+          if (obj.openable || hasCustomOpen) {
+            const isOpen = rState ? !!rState.open : false;
+            if (!isOpen) {
+              actions.push({
+                id: `open_${obj.id}`,
+                command: `open ${obj.name}`,
+                action: { type: "OPEN", target: obj.id },
+              });
+            } else if (obj.openable) {
+              actions.push({
+                id: `close_${obj.id}`,
+                command: `close ${obj.name}`,
+                action: { type: "CLOSE", target: obj.id },
+              });
+            }
+          }
+
+          if (obj.locked && obj.key_id) {
+            const isLocked = rState ? rState.locked !== false : true;
+            if (isLocked && state.inventory.includes(obj.key_id)) {
+              const key = pack.objects.find((k) => k.id === obj.key_id);
+              actions.push({
+                id: `unlock_${obj.id}_with_${obj.key_id}`,
+                command: `unlock ${obj.name} with ${key?.name ?? "key"}`,
+                action: { type: "UNLOCK", target: obj.id, with: obj.key_id },
+              });
+            }
+          }
+
+          (obj.interactions || []).forEach((inter) => {
+            if (inter.verb === "USE") {
+              if (!inter.item || state.inventory.includes(inter.item)) {
+                actions.push({
+                  id: `use_${inter.item ?? "self"}_on_${obj.id}`,
+                  command: inter.item
+                    ? `use ${pack.objects.find((o) => o.id === inter.item)?.name ?? inter.item} on ${obj.name}`
+                    : `use ${obj.name}`,
+                  action: {
+                    type: "USE",
+                    item: inter.item ?? obj.id,
+                    target: obj.id,
+                  },
+                });
+              }
+            }
+          });
+
+          if ((obj.interactions || []).some((i) => i.verb === "READ")) {
+            actions.push({
+              id: `read_${obj.id}`,
+              command: `read ${obj.name}`,
+              action: { type: "READ", target: obj.id },
+            });
+          }
+        });
+
+        state.inventory.forEach((itemId) => {
+          const obj = pack.objects.find((o) => o.id === itemId);
+          if (obj) {
+            actions.push({
+              id: `look_${obj.id}`,
+              command: `look at ${obj.name}`,
+              action: { type: "LOOK", target: obj.id },
+            });
+            actions.push({
+              id: `inspect_${obj.id}`,
+              command: `inspect ${obj.name}`,
+              action: { type: "INSPECT", target: obj.id },
+            });
+            actions.push({
+              id: `drop_${obj.id}`,
+              command: `drop ${obj.name}`,
+              action: { type: "DROP", item: obj.id },
+            });
+            if ((obj.interactions || []).some((i) => i.verb === "READ")) {
+              actions.push({
+                id: `read_${obj.id}`,
+                command: `read ${obj.name}`,
+                action: { type: "READ", target: obj.id },
+              });
+            }
+            visibleObjs.forEach((target) => {
+              actions.push({
+                id: `use_${obj.id}_on_${target.id}`,
+                command: `use ${obj.name} on ${target.name}`,
+                action: { type: "USE", item: obj.id, target: target.id },
+              });
+            });
+          }
+        });
+
+        room.npcs.forEach((npcId) => {
+          if (state.flags[`npc_dead_${npcId}`]) return;
+          const npc = pack.npcs.find((n) => n.id === npcId);
+          if (npc) {
+            actions.push({
+              id: `talk_${npc.id}`,
+              command: `talk to ${npc.name}`,
+              action: { type: "TALK", npc: npc.id },
+            });
+            state.inventory.forEach((itemId) => {
+              const item = pack.objects.find((o) => o.id === itemId);
+              actions.push({
+                id: `give_${itemId}_to_${npc.id}`,
+                command: `give ${item?.name ?? itemId} to ${npc.name}`,
+                action: { type: "GIVE", item: itemId, npc: npc.id },
+              });
+            });
+          }
+        });
+
+        return actions;
+      }
+
+      function mapCommand(inputStr, availableActions) {
+        const normalized = inputStr.trim().toLowerCase();
+        // exact match on standard command string
+        const matched = availableActions.find(
+          (a) => a.command.toLowerCase() === normalized,
+        );
+        if (matched) return { action: matched.action };
+
+        // friendly help feedback
+        const uniqueVerbs = new Set();
+        availableActions.forEach((a) =>
+          uniqueVerbs.add(a.command.split(" ")[0]),
+        );
+        return {
+          error: `I don't understand that command. Try using one of: ${Array.from(uniqueVerbs).join(", ")}`,
+        };
+      }
+
+      /* ==================================================== */
+      /* WEB UI CONTROLLER & CLIENT STATE                     */
+      /* ==================================================== */
+
+      let activePack = PARSER_HERO_PACK;
+      let gameState = null;
+      let savedSlots = [];
+
+      function startNewGame() {
+        const select = document.getElementById("game-pack-select");
+        const seedInput = document.getElementById("game-seed-input");
+        const seed = parseInt(seedInput.value, 10) || 42;
+
+        const packType = select.value;
+        if (packType === "heros_quest") activePack = PARSER_HERO_PACK;
+        else if (packType === "chapel") activePack = PARSER_CHAPEL_PACK;
+        else activePack = CYOA_WATCHTOWER_PACK;
+
+        document.getElementById("game-title-display").innerText =
+          activePack.meta.title;
+        document.getElementById("game-desc-display").innerText =
+          "scenes" in activePack
+            ? "Interactive Choose-Your-Own-Adventure branching storyline."
+            : activePack.meta.id === "heros_quest_v1"
+              ? "Castle exploring RPG featuring spells, lockpicking, strength enhancements, and epic turn-based battles."
+              : "Infocom-style puzzle exploration inside a mysterious collapsing chapel ruin.";
+
+        const startNode =
+          "scenes" in activePack
+            ? activePack.meta.start
+            : activePack.meta.start_room;
+
+        gameState = {
+          seed,
+          step: 0,
+          current: startNode,
+          visited: { [startNode]: true },
+          flags: {},
+          vars: { ...(activePack.meta.vars_init ?? {}) },
+          inventory: [],
+          objectState: {},
+          journal: [],
+          questStage: {},
+          ended: false,
+          endingId: null,
+        };
+
+        if (activePack.meta.flags_init) {
+          activePack.meta.flags_init.forEach(
+            (f) => (gameState.flags[f] = true),
+          );
+        }
+
+        // Clear adventure text log
+        const log = document.getElementById("adventure-log");
+        log.innerHTML = "";
+
+        // Push initial room desc
+        const initialText =
+          "scenes" in activePack
+            ? activePack.scenes.find((s) => s.id === startNode).text
+            : activePack.rooms.find((r) => r.id === startNode).description;
+
+        pushLogEntry("", initialText);
+        updateUI();
+      }
+
+      function switchGamePack() {
+        SynthAudio.playBleep();
+        startNewGame();
+      }
+
+      function executeCommand(commandStr) {
+        if (!commandStr.trim()) return;
+
+        const legal = generateLegalActions(gameState, activePack);
+        const match = mapCommand(commandStr, legal);
+
+        if (!match.action) {
+          pushErrorEntry(
+            commandStr,
+            match.error ?? "I don't understand that command.",
+          );
+          return;
+        }
+
+        const res = step(gameState, match.action, activePack);
+        if (!res.ok) {
+          pushErrorEntry(
+            commandStr,
+            res.rejectionReason ?? "Cannot perform that action.",
+          );
+          return;
+        }
+
+        // Capture stats before state transition for immersive effects
+        const prevHp = gameState.vars["hp"];
+        const prevMana = gameState.vars["mana"];
+        const prevGold = gameState.vars["gold"] ?? 0;
+        const prevXp = gameState.vars["xp"] ?? 0;
+
+        gameState = res.state;
+
+        // Immersive visual feedback triggers
+        const nextHp = gameState.vars["hp"];
+        const nextMana = gameState.vars["mana"];
+        const nextGold = gameState.vars["gold"] ?? 0;
+        const nextXp = gameState.vars["xp"] ?? 0;
+
+        const viewport = document.getElementById("game-viewport-main");
+        if (viewport) {
+          // Clear any previous animations to restart them cleanly
+          viewport.classList.remove(
+            "shake-anim",
+            "damage-flash-anim",
+            "heal-pulse-anim",
+            "magic-flash-anim",
+            "gold-reward-anim",
+          );
+          void viewport.offsetWidth; // Trigger reflow to restart animation
+
+          if (nextHp !== undefined && prevHp !== undefined && nextHp < prevHp) {
+            viewport.classList.add("shake-anim", "damage-flash-anim");
+            SynthAudio.playDamage();
+          } else if (
+            nextHp !== undefined &&
+            prevHp !== undefined &&
+            nextHp > prevHp
+          ) {
+            viewport.classList.add("heal-pulse-anim");
+            SynthAudio.playHealSpell();
+          } else if (
+            nextMana !== undefined &&
+            prevMana !== undefined &&
+            nextMana < prevMana
+          ) {
+            viewport.classList.add("magic-flash-anim");
+            if (commandStr.toLowerCase().includes("fireball")) {
+              SynthAudio.playExplosion();
+            } else {
+              SynthAudio.playHealSpell();
+            }
+          } else if (nextGold > prevGold || nextXp > prevXp) {
+            viewport.classList.add("gold-reward-anim");
+            SynthAudio.playHealSpell();
+          } else {
+            const lowerCmd = commandStr.toLowerCase();
+            if (lowerCmd.startsWith("fight") || lowerCmd.includes("strike")) {
+              SynthAudio.playSwordStrike();
+            } else if (
+              lowerCmd.includes("chest") ||
+              lowerCmd.includes("lock") ||
+              lowerCmd.includes("lever")
+            ) {
+              SynthAudio.playLockpick();
+            } else {
+              SynthAudio.playClick();
+            }
+          }
+        }
+
+        // Extract narrations
+        const narrations = res.events
+          .filter((e) => e.type === "narration")
+          .map((e) => e.text);
+
+        const endingEvent = res.events.find((e) => e.type === "ending");
+
+        const printText =
+          narrations.length > 0 ? narrations.join("\n") : "Done.";
+        pushLogEntry(commandStr, printText);
+
+        if (endingEvent) {
+          pushVictoryEntry(endingEvent.text);
+          if (
+            endingEvent.text.toLowerCase().includes("victory") ||
+            endingEvent.text.toLowerCase().includes("won") ||
+            endingEvent.text.toLowerCase().includes("hero")
+          ) {
+            SynthAudio.playVictoryChime();
+          }
+        }
+
+        updateUI();
+      }
+
+      function executeCompass(direction) {
+        executeCommand(`go ${direction}`);
+      }
+
+      function executeCombatAction(actionName) {
+        executeCommand(actionName);
+      }
+
+      function triggerQuickSave() {
+        if (!gameState) return;
+        SynthAudio.playLockpick();
+        const saveStr = JSON.stringify({
+          packId: activePack.meta.id,
+          state: gameState,
+          date: new Date().toLocaleString(),
+        });
+        const slots = getSaveSlots();
+        slots.unshift(saveStr);
+        localStorage.setItem(
+          "adventureforge_saves",
+          JSON.stringify(slots.slice(0, 5)),
+        );
+        loadSavesList();
+        pushLogEntry("", "💾 Game state saved successfully!");
+      }
+
+      function triggerRestoreSave(index) {
+        const slots = getSaveSlots();
+        if (index < 0 || index >= slots.length) return;
+        SynthAudio.playHealSpell();
+        const saveObj = JSON.parse(slots[index]);
+
+        const select = document.getElementById("game-pack-select");
+        if (saveObj.packId === "heros_quest_v1") {
+          activePack = PARSER_HERO_PACK;
+          select.value = "heros_quest";
+        } else if (saveObj.packId === "chapel_pack_v1") {
+          activePack = PARSER_CHAPEL_PACK;
+          select.value = "chapel";
+        } else {
+          activePack = CYOA_WATCHTOWER_PACK;
+          select.value = "watchtower";
+        }
+
+        gameState = saveObj.state;
+        document.getElementById("game-title-display").innerText =
+          activePack.meta.title;
+
+        pushLogEntry("", `🔄 Game state restored from slot ${index + 1}!`);
+        updateUI();
+      }
+
+      function triggerDeleteSave(index) {
+        SynthAudio.playDamage();
+        const slots = getSaveSlots();
+        slots.splice(index, 1);
+        localStorage.setItem("adventureforge_saves", JSON.stringify(slots));
+        loadSavesList();
+      }
+
+      function getSaveSlots() {
+        const raw = localStorage.getItem("adventureforge_saves");
+        return raw ? JSON.parse(raw) : [];
+      }
+
+      function loadSavesList() {
+        const listEl = document.getElementById("save-slots-list");
+        const slots = getSaveSlots();
+        if (slots.length === 0) {
+          listEl.innerHTML = `
+          <div class="save-slot" style="justify-content: center; opacity: 0.5;">
+            <p class="save-date">No save states found</p>
+          </div>`;
+          return;
+        }
+
+        listEl.innerHTML = "";
+        slots.forEach((s, i) => {
+          const saveObj = JSON.parse(s);
+          const slotEl = document.createElement("div");
+          slotEl.className = "save-slot";
+          slotEl.innerHTML = `
+          <div class="save-info" onclick="triggerRestoreSave(${i})" style="cursor: pointer; flex: 1;">
+            <p class="save-title">${saveObj.packId} (Step ${saveObj.state.step})</p>
+            <p class="save-date">${saveObj.date}</p>
+          </div>
+          <div class="save-actions">
+            <button class="btn-icon" onclick="triggerDeleteSave(${i})" title="Delete save">🗑️</button>
+          </div>`;
+          listEl.appendChild(slotEl);
+        });
+      }
+
+      /* ==================================================== */
+      /* UI UPDATES & ILLUSTRATION GENERATORS                 */
+      /* ==================================================== */
+
+      function updateUI() {
+        if (!gameState) return;
+
+        const isCyoa = "scenes" in activePack;
+
+        // 1. Stats Gauges
+        const hp = gameState.vars["hp"] ?? (isCyoa ? 0 : 20);
+        const maxHp = gameState.vars["max_hp"] ?? (isCyoa ? 0 : 20);
+        const mana = gameState.vars["mana"] ?? (isCyoa ? 0 : 10);
+        const maxMana = gameState.vars["max_mana"] ?? (isCyoa ? 0 : 10);
+        const gold = gameState.vars["gold"] ?? 0;
+        const xp = gameState.vars["xp"] ?? 0;
+
+        document.getElementById("hp-value-label").innerText = isCyoa
+          ? "N/A"
+          : `${hp} / ${maxHp}`;
+        document.getElementById("hp-bar-fill").style.width = isCyoa
+          ? "0%"
+          : `${(hp / maxHp) * 100}%`;
+
+        document.getElementById("mana-value-label").innerText = isCyoa
+          ? "N/A"
+          : `${mana} / ${maxMana}`;
+        document.getElementById("mana-bar-fill").style.width = isCyoa
+          ? "0%"
+          : `${(mana / maxMana) * 100}%`;
+
+        document.getElementById("xp-value-label").innerText = isCyoa
+          ? "N/A"
+          : `${xp}`;
+        document.getElementById("xp-bar-fill").style.width = isCyoa
+          ? "0%"
+          : `${Math.min(100, (xp / 200) * 100)}%`;
+
+        // Attributes Display
+        document.getElementById("stat-str").innerText = isCyoa
+          ? "-"
+          : (gameState.vars["strength"] ?? 10);
+        document.getElementById("stat-dex").innerText = isCyoa
+          ? "-"
+          : (gameState.vars["dexterity"] ?? 10);
+        document.getElementById("stat-int").innerText = isCyoa
+          ? "-"
+          : (gameState.vars["intelligence"] ?? 10);
+        document.getElementById("stat-gold").innerText = isCyoa ? "-" : gold;
+
+        // 2. Compass exits toggle
+        const room = isCyoa
+          ? null
+          : activePack.rooms.find((r) => r.id === gameState.current);
+        const compassDirs = ["north", "south", "east", "west", "up", "down"];
+        compassDirs.forEach((dir) => {
+          const btn = document.getElementById(`compass-${dir.charAt(0)}`);
+          if (btn) {
+            const hasExit = room
+              ? room.exits.some((e) => e.direction === dir)
+              : false;
+            btn.disabled = !hasExit;
+          }
+        });
+
+        // 3. Inventory Satchel HUD
+        const slotsContainer = document.getElementById(
+          "inventory-slots-container",
+        );
+        slotsContainer.innerHTML = "";
+
+        const satchelMax = 4;
+        for (let i = 0; i < satchelMax; i++) {
+          const slotEl = document.createElement("div");
+          slotEl.className = "inventory-slot";
+
+          if (i < gameState.inventory.length) {
+            const itemId = gameState.inventory[i];
+            const item = activePack.objects?.find((o) => o.id === itemId);
+            const icon = itemId.includes("key")
+              ? "🔑"
+              : itemId.includes("rope")
+                ? "🧶"
+                : itemId.includes("sword")
+                  ? "⚔️"
+                  : itemId.includes("scroll")
+                    ? "📜"
+                    : "👑";
+
+            slotEl.innerHTML = `<span class="inventory-icon" title="${item?.name ?? itemId}: ${item?.description ?? ""}">${icon}</span>`;
+            slotEl.onclick = () => executeCommand(`use ${itemId}`);
+          } else {
+            slotEl.title = "Empty Slot";
+          }
+          slotsContainer.appendChild(slotEl);
+        }
+
+        // 4. Combat HUD Alert Overlay
+        const activeCombatNpcId = Object.keys(gameState.flags)
+          .find((f) => f.startsWith("in_combat_with_") && gameState.flags[f])
+          ?.substring(15);
+
+        const combatContainer = document.getElementById("combat-hud-container");
+        if (activeCombatNpcId) {
+          combatContainer.style.display = "block";
+          const enemy = activePack.npcs.find((n) => n.id === activeCombatNpcId);
+          const enemyHp =
+            gameState.vars[`npc_hp_${activeCombatNpcId}`] ?? enemy.hp ?? 10;
+          const enemyMaxHp = enemy.max_hp ?? enemy.hp ?? 10;
+
+          document.getElementById("combat-enemy-hp-label").innerText =
+            `${enemy.name}: ${enemyHp} / ${enemyMaxHp}`;
+          document.getElementById("combat-enemy-hp-fill").style.width =
+            `${(enemyHp / enemyMaxHp) * 100}%`;
+        } else {
+          combatContainer.style.display = "none";
+        }
+
+        // 5. Suggestion Buttons Pills
+        const suggestionsContainer = document.getElementById(
+          "suggestions-container",
+        );
+        suggestionsContainer.innerHTML = "";
+        const legal = generateLegalActions(gameState, activePack);
+        legal.slice(0, 10).forEach((a) => {
+          const btn = document.createElement("button");
+          btn.className = "pill-btn";
+          btn.innerText = a.command;
+          btn.onclick = () => executeCommand(a.command);
+          suggestionsContainer.appendChild(btn);
+        });
+
+        // 6. Dynamic Visual Illustration Generator
+        updateVisuals();
+
+        // 7. Quest Objectives Tracker
+        updateQuestLog();
+
+        // 8. Narrative Journal Updater
+        updateJournalLog();
+      }
+
+      function updateVisuals() {
+        const artContainer = document.getElementById("room-visual-art");
+        let icon = "👁️";
+        let strokeColor = "var(--color-primary)";
+
+        const curr = gameState.current;
+        if (curr.includes("crossroads")) icon = "🛣️";
+        else if (curr.includes("tower")) icon = "🗼";
+        else if (curr.includes("brook")) icon = "🌊";
+        else if (curr.includes("forest")) icon = "🌲";
+        else if (curr.includes("entrance") || curr.includes("gate"))
+          icon = "🏰";
+        else if (curr.includes("yard") || curr.includes("grave")) icon = "🪦";
+        else if (curr.includes("chapel") || curr.includes("altar")) icon = "⛪";
+        else if (curr.includes("garden")) icon = "🌹";
+        else if (curr.includes("well")) icon = "🪣";
+        else if (curr.includes("sacristy") || curr.includes("armory"))
+          icon = "🛡️";
+        else if (curr.includes("library")) icon = "📚";
+        else if (curr.includes("crypt") || curr.includes("dungeon")) {
+          icon = "💀";
+          strokeColor = "var(--color-danger)";
+        } else if (curr.includes("treasury")) icon = "💎";
+        else if (curr.includes("throne")) icon = "👑";
+
+        artContainer.innerHTML = `
+        <div style="font-size: 5.5rem; filter: drop-shadow(0 0 15px ${strokeColor}rgba(16,185,129,0.3)); color: ${strokeColor}; animation: float 5s ease-in-out infinite;">
+          ${icon}
+        </div>
+      `;
+      }
+
+      function updateQuestLog() {
+        const questListContainer = document.getElementById(
+          "quest-objectives-list",
+        );
+        if (!questListContainer || !gameState) return;
+
+        questListContainer.innerHTML = "";
+        const packId = activePack.meta.id;
+        let objectives = [];
+
+        if (packId === "heros_quest_v1") {
+          objectives = [
+            {
+              text: "Scale the Castle Wall",
+              done: !!gameState.flags["wall_climb_success"],
+            },
+            {
+              text: "Defeat the Goblin Guard",
+              done: !!gameState.flags["npc_dead_goblin_guard"],
+            },
+            {
+              text: "Defeat the Shadow Knight",
+              done: !!gameState.flags["npc_dead_shadow_knight"],
+            },
+            {
+              text: "Unlock the Treasury Chest",
+              done: !!gameState.flags["chest_unlocked"],
+            },
+            {
+              text: "Restore the Kingdom",
+              done: !!gameState.flags["kingdom_restored"],
+            },
+          ];
+        } else if (packId === "chapel_pack_v1") {
+          objectives = [
+            {
+              text: "Attach Rope to the Well",
+              done: !!gameState.flags["rope_attached_to_well"],
+            },
+            {
+              text: "Unlock the Crypt Door",
+              done: !gameState.flags["crypt_door_locked"],
+            },
+            {
+              text: "Raise the Portcullis",
+              done: !!gameState.flags["portcullis_raised"],
+            },
+            {
+              text: "Enter the Ancient Catacombs",
+              done: !!gameState.visited["catacombs"],
+            },
+          ];
+        } else if (packId === "forest_pack_v1") {
+          objectives = [
+            {
+              text: "Inspect Muddy Ground",
+              done: !!gameState.flags["found_bootprints"],
+            },
+            {
+              text: "Locate the Ruined Watchtower",
+              done: !!gameState.flags["saw_watchtower"],
+            },
+            {
+              text: "Enter the Watchtower",
+              done: !!gameState.flags["entered_tower"],
+            },
+            {
+              text: "Escape Unnoticed",
+              done: gameState.ended && gameState.endingId === "ending_escape",
+            },
+          ];
+        } else {
+          objectives = [
+            {
+              text: "Explore the environment",
+              done: Object.keys(gameState.visited).length > 1,
+            },
+            { text: "Find a way to complete the quest", done: gameState.ended },
+          ];
+        }
+
+        objectives.forEach((obj) => {
+          const itemEl = document.createElement("div");
+          itemEl.className = `quest-item ${obj.done ? "completed" : ""}`;
+
+          const checkboxEl = document.createElement("div");
+          checkboxEl.className = `quest-checkbox ${obj.done ? "checked" : ""}`;
+
+          const textEl = document.createElement("span");
+          textEl.className = "quest-text";
+          textEl.innerText = obj.text;
+
+          itemEl.appendChild(checkboxEl);
+          itemEl.appendChild(textEl);
+          questListContainer.appendChild(itemEl);
+        });
+      }
+
+      function updateJournalLog() {
+        const journalContainer = document.getElementById(
+          "journal-entries-list",
+        );
+        if (!journalContainer || !gameState) return;
+
+        if (!gameState.journal || gameState.journal.length === 0) {
+          journalContainer.innerHTML = `<div style="opacity: 0.5; font-style: italic; text-align: center; padding: 0.5rem;">No journal entries yet...</div>`;
+          return;
+        }
+
+        journalContainer.innerHTML = "";
+        gameState.journal.forEach((entry) => {
+          const itemEl = document.createElement("div");
+          itemEl.style.padding = "0.3rem 0.5rem";
+          itemEl.style.borderLeft = "2px solid var(--color-accent)";
+          itemEl.style.background = "rgba(59, 130, 246, 0.03)";
+          itemEl.style.borderRadius = "0 3px 3px 0";
+          itemEl.style.marginBottom = "0.25rem";
+          itemEl.style.color = "var(--text-main)";
+          itemEl.innerText = `📖 ${entry}`;
+          journalContainer.appendChild(itemEl);
+        });
+        // Scroll to bottom
+        journalContainer.scrollTop = journalContainer.scrollHeight;
+      }
+
+      function pushLogEntry(command, narrationText) {
+        const log = document.getElementById("adventure-log");
+
+        const entry = document.createElement("div");
+        entry.className = "terminal-entry";
+
+        if (command) {
+          const cmdEl = document.createElement("div");
+          cmdEl.className = "entry-command";
+          cmdEl.innerText = command;
+          entry.appendChild(cmdEl);
+        }
+
+        const textEl = document.createElement("div");
+        textEl.className = "entry-narration";
+
+        if (narrationText.includes("[Skill Check]")) {
+          textEl.className += " narrative-note";
+        }
+
+        textEl.innerText = narrationText;
+        entry.appendChild(textEl);
+
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      function pushErrorEntry(command, errorText) {
+        const log = document.getElementById("adventure-log");
+        const entry = document.createElement("div");
+        entry.className = "terminal-entry";
+
+        const cmdEl = document.createElement("div");
+        cmdEl.className = "entry-command";
+        cmdEl.innerText = command;
+        entry.appendChild(cmdEl);
+
+        const textEl = document.createElement("div");
+        textEl.className = "entry-narration error-note";
+        textEl.innerText = `⚠️ ${errorText}`;
+        entry.appendChild(textEl);
+
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      function pushVictoryEntry(endingText) {
+        const log = document.getElementById("adventure-log");
+        const entry = document.createElement("div");
+        entry.className = "terminal-entry";
+
+        const textEl = document.createElement("div");
+        textEl.className = "entry-narration victory-note";
+        textEl.innerText = `👑 GAME OVER 👑\n\n${endingText}`;
+        entry.appendChild(textEl);
+
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      // Attach event listener to input prompt
+      document
+        .getElementById("console-prompt-input")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            const input = document.getElementById("console-prompt-input");
+            executeCommand(input.value);
+            input.value = "";
+          }
+        });
+
+      /* Onboarding Tutorial Modal Controls */
+      function openTutorialModal() {
+        const modal = document.getElementById("help-modal");
+        if (modal) {
+          modal.style.display = "flex";
+          SynthAudio.playBleep();
+        }
+      }
+
+      function closeTutorialModal() {
+        const modal = document.getElementById("help-modal");
+        if (modal) {
+          modal.style.display = "none";
+          SynthAudio.playClick();
+        }
+      }
+
+      /* ==================================================== */
+      /* INITS                                                */
+      /* ==================================================== */
+      startNewGame();
+      loadSavesList();
+    </script>
+
+    <!-- Premium Help & Onboarding Modal -->
+    <div id="help-modal" class="modal-overlay" style="display: none">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2
+            style="
+              color: var(--color-primary);
+              font-size: 1.25rem;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+            "
+          >
+            📖 Commands & Onboarding Guide
+          </h2>
+          <button
+            onclick="closeTutorialModal()"
+            style="
+              background: none;
+              border: none;
+              color: var(--text-muted);
+              font-size: 1.2rem;
+              cursor: pointer;
+              padding: 0;
+            "
+          >
+            ✕
+          </button>
+        </div>
+        <div
+          class="modal-body"
+          style="display: flex; flex-direction: column; gap: 1.25rem"
+        >
+          <div>
+            <h3
+              style="
+                color: var(--color-accent);
+                font-size: 0.95rem;
+                font-weight: 700;
+                margin-bottom: 0.4rem;
+                text-transform: uppercase;
+              "
+            >
+              🎮 Core Gameplay Concept
+            </h3>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                line-height: 1.4;
+                margin: 0;
+              "
+            >
+              AdventureForge is a deterministic text RPG engine. You progress by
+              entering text commands in the prompt at the bottom or clicking
+              suggestion pills. Every room is dynamically illustrated with
+              unique icons and responsive states.
+            </p>
+          </div>
+
+          <div>
+            <h3
+              style="
+                color: var(--color-accent);
+                font-size: 0.95rem;
+                font-weight: 700;
+                margin-bottom: 0.4rem;
+                text-transform: uppercase;
+              "
+            >
+              🏰 Castle of Shadows (RPG) Commands
+            </h3>
+            <ul
+              style="
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                line-height: 1.5;
+                padding-left: 1.1rem;
+                list-style-type: square;
+                margin: 0;
+              "
+            >
+              <li>
+                <strong>Combat Verbs</strong>: Type
+                <code>fight goblin guard</code> to attack physically,
+                <code>cast fireball</code> for heavy auto-damage, or
+                <code>cast heal</code> to restore health points in turn-based
+                combat.
+              </li>
+              <li>
+                <strong>Exploration</strong>: Type
+                <code>use stone wall</code> to roll climbing skill checks, or
+                <code>use treasury chest</code> to roll lockpicking lock checks.
+              </li>
+              <li>
+                <strong>RPG Stats</strong>: Type <code>look</code> to scan
+                rooms, <code>inventory</code> to check your satchel items, or
+                track your HP, Mana, and XP levels on the right-side gauges.
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3
+              style="
+                color: var(--color-accent);
+                font-size: 0.95rem;
+                font-weight: 700;
+                margin-bottom: 0.4rem;
+                text-transform: uppercase;
+              "
+            >
+              ⛪ The Sealed Crypt (Zork-style) Commands
+            </h3>
+            <ul
+              style="
+                font-size: 0.85rem;
+                color: var(--text-muted);
+                line-height: 1.5;
+                padding-left: 1.1rem;
+                list-style-type: square;
+                margin: 0;
+              "
+            >
+              <li>
+                <strong>Basic Interactions</strong>: Use
+                <code>take &lt;item&gt;</code> to collect,
+                <code>go &lt;direction&gt;</code> (e.g. north, up) to move, and
+                <code>look at &lt;object&gt;</code> to read details.
+              </li>
+              <li>
+                <strong>Puzzle Solvers</strong>: Use
+                <code>use rope on old well</code> to attach items, or
+                <code>use brass key on banded oak chest</code> to unlock
+                containers.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

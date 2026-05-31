@@ -1,5 +1,5 @@
 {
-  "trace_id": "tr_playtest_chapel_pack_v1_42",
+  "trace_id": "tr_playtest_chapel_pack_v1_mainline_42",
   "pack_id": "chapel_pack_v1",
   "content_hash": "clockwork_pack_hash_v1",
   "seed": 42,
@@ -112,7 +112,24 @@
       "type": "ASK",
       "npc": "innkeeper",
       "topic": "leave"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "MOVE",
+      "direction": "east"
+    },
+    {
+      "type": "LOOK"
+    },
+    {
+      "type": "INVENTORY"
+    },
+    {
+      "type": "MOVE",
+      "direction": "south"
     }
   ],
-  "expected_final_hash": "d49227cf21a63fd654381bed0a657a75c1b4c2642137db92c0ed559b5202c02e"
+  "expected_final_hash": "5b9e8392001f0aa02d9aa8b0af8ab3064d57bf44fae0ac5c6e4103293885ccfa"
 }

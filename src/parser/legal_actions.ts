@@ -8,13 +8,67 @@ import { AvailableAction } from "../api/types.js";
  *
  * Implements the core "legal-action space restriction" thesis (§9.2).
  */
-export function generateLegalActions(state: GameState, pack: ParserPack): AvailableAction[] {
+export function generateLegalActions(
+  state: GameState,
+  pack: ParserPack,
+): AvailableAction[] {
   const actions: AvailableAction[] = [];
 
+  // Check if player is currently in combat
+  const activeCombatNpcId = Object.keys(state.flags)
+    .find((f) => f.startsWith("in_combat_with_") && state.flags[f])
+    ?.substring(15);
+
+  if (activeCombatNpcId) {
+    const npc = pack.npcs.find((n) => n.id === activeCombatNpcId);
+    if (npc) {
+      actions.push({
+        id: "look_combat",
+        command: "look",
+        action: { type: "LOOK" },
+      });
+
+      actions.push({
+        id: "inventory_combat",
+        command: "inventory",
+        action: { type: "INVENTORY" },
+      });
+
+      actions.push({
+        id: `fight_${npc.id}`,
+        command: `fight ${npc.name.toLowerCase()}`,
+        action: { type: "FIGHT", npc: npc.id },
+      });
+
+      const playerMana = state.vars["mana"] ?? 10;
+      if (playerMana >= 3) {
+        actions.push({
+          id: "cast_fireball",
+          command: "cast fireball",
+          action: { type: "CAST", spell: "fireball", target: npc.id },
+        });
+      }
+      if (playerMana >= 2) {
+        actions.push({
+          id: "cast_heal",
+          command: "cast heal",
+          action: { type: "CAST", spell: "heal", target: "player" },
+        });
+      }
+
+      actions.push({
+        id: "flee_combat",
+        command: "flee",
+        action: { type: "FLEE" },
+      });
+      return actions;
+    }
+  }
+
   // Check if player is currently locked in a dialogue tree
-  const activeDialogueNpcId = Object.keys(state.flags).find(
-    (f) => f.startsWith("in_dialogue_with_") && state.flags[f]
-  )?.substring(17);
+  const activeDialogueNpcId = Object.keys(state.flags)
+    .find((f) => f.startsWith("in_dialogue_with_") && state.flags[f])
+    ?.substring(17);
 
   if (activeDialogueNpcId) {
     const npc = pack.npcs.find((n) => n.id === activeDialogueNpcId);
@@ -72,15 +126,29 @@ export function generateLegalActions(state: GameState, pack: ParserPack): Availa
     currRoom.objects.forEach((objId) => {
       const obj = pack.objects.find((o) => o.id === objId);
       if (obj) {
+        const runtime = state.objectState[objId];
+        if (
+          runtime &&
+          (runtime.takenBy === "player" || runtime.takenBy === "destroyed")
+        ) {
+          return;
+        }
         objs.push(obj);
 
         // If it's a container and is open at runtime, its contents are also visible
-        const runtime = state.objectState[objId];
         const isOpen = runtime ? runtime.open : !obj.locked && !obj.openable; // Default open if not openable
         if (isOpen && obj.contents) {
           obj.contents.forEach((nestedId) => {
             const nestedObj = pack.objects.find((o) => o.id === nestedId);
             if (nestedObj) {
+              const nestedRuntime = state.objectState[nestedId];
+              if (
+                nestedRuntime &&
+                (nestedRuntime.takenBy === "player" ||
+                  nestedRuntime.takenBy === "destroyed")
+              ) {
+                return;
+              }
               objs.push(nestedObj);
             }
           });
@@ -123,7 +191,9 @@ export function generateLegalActions(state: GameState, pack: ParserPack): Availa
     }
 
     // OPEN / CLOSE
-    const hasCustomOpen = (obj.interactions || []).some((inter) => inter.verb === "OPEN");
+    const hasCustomOpen = (obj.interactions || []).some(
+      (inter) => inter.verb === "OPEN",
+    );
     if (obj.openable || hasCustomOpen) {
       const isOpen = runtime ? !!runtime.open : false;
       if (!isOpen) {
@@ -164,13 +234,24 @@ export function generateLegalActions(state: GameState, pack: ParserPack): Availa
           actions.push({
             id: `use_${reqItem ?? "self"}_on_${obj.id}`,
             command: reqItem
-              ? `use ${(pack.objects.find((o) => o.id === reqItem)?.name ?? reqItem)} on ${obj.name}`
+              ? `use ${pack.objects.find((o) => o.id === reqItem)?.name ?? reqItem} on ${obj.name}`
               : `use ${obj.name}`,
             action: { type: "USE", item: reqItem ?? obj.id, target: obj.id },
           });
         }
       }
     });
+
+    const hasCustomRead = (obj.interactions || []).some(
+      (inter) => inter.verb === "READ",
+    );
+    if (hasCustomRead) {
+      actions.push({
+        id: `read_${obj.id}`,
+        command: `read ${obj.name}`,
+        action: { type: "READ", target: obj.id },
+      });
+    }
   });
 
   // 5. Object Interactions (Inventory Objects)
@@ -204,10 +285,22 @@ export function generateLegalActions(state: GameState, pack: ParserPack): Availa
         action: { type: "USE", item: obj.id, target: target.id },
       });
     });
+
+    const hasCustomRead = (obj.interactions || []).some(
+      (inter) => inter.verb === "READ",
+    );
+    if (hasCustomRead) {
+      actions.push({
+        id: `read_${obj.id}`,
+        command: `read ${obj.name}`,
+        action: { type: "READ", target: obj.id },
+      });
+    }
   });
 
   // 6. NPCs in Room
   room.npcs.forEach((npcId) => {
+    if (state.flags[`npc_dead_${npcId}`]) return;
     const npc = pack.npcs.find((n) => n.id === npcId);
     if (npc) {
       actions.push({

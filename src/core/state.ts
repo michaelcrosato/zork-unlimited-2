@@ -4,7 +4,7 @@ export const ObjectRuntimeSchema = z.object({
   open: z.boolean().optional(),
   locked: z.boolean().optional(),
   contents: z.array(z.string()).optional(),
-  takenBy: z.enum(["player", "world"]).optional(),
+  takenBy: z.enum(["player", "world", "destroyed"]).optional(),
 });
 
 export type ObjectRuntime = z.infer<typeof ObjectRuntimeSchema>;

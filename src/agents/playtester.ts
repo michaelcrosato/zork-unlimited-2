@@ -37,8 +37,9 @@ export async function runAiPlaytest(options: {
   seed: number;
   traceId: string;
   maxSteps?: number;
+  persona?: string;
 }): Promise<PlaytestResult> {
-  const { pack, client, seed, traceId, maxSteps = 100 } = options;
+  const { pack, client, seed, traceId, maxSteps = 100, persona = "mainline" } = options;
 
   const startRoom = "scenes" in pack
     ? (pack as CYOAPack).meta.start
@@ -71,8 +72,8 @@ export async function runAiPlaytest(options: {
         expected_result: string;
       }>({
         role: "playtester",
-        system: "You are an AI playtester. You receive the current game scene and available choices. Choose one choice to play.",
-        input: obs,
+        system: `You are an AI playtester playing under the '${persona}' persona. You receive the current game scene and available choices. Choose one choice to play.`,
+        input: { ...obs, persona, flags: state.flags, vars: state.vars },
         schema: {
           type: "object",
           properties: {
@@ -116,13 +117,18 @@ export async function runAiPlaytest(options: {
     // 3. Step the engine
     const stepResult = step(state, action, pack);
     if (!stepResult.ok) {
-      return {
-        success: false,
-        trace: {} as Trace,
-        logs,
-        finalState: state,
-        error: `Engine rejected choice '${chosenActionId}': ${stepResult.rejectionReason}`,
-      };
+      logs.push({
+        step: currentStep + 1,
+        location: state.current,
+        available_actions: obs.available_actions.map((a) => a.id),
+        chosen_action_id: chosenActionId,
+        reason: choiceResponse.reason,
+        expected: choiceResponse.expected_result,
+        actual_effects: [`[REJECTED] ${stepResult.rejectionReason}`],
+        result: "dead_end",
+      });
+      currentStep++;
+      continue;
     }
 
     // 4. Log playtest entry
