@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #16 (Ready for Cycle #17)
-* **Build/Test Status**: 🟢 PASS (All 89 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #17 (Ready for Cycle #18)
+* **Build/Test Status**: 🟢 PASS (All 92 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -79,16 +79,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Add persistent `cooperativeSyncLog` field to GameState (`AF-16`).
 - [x] Write rigorous Vitest tests for arrival, departure, and synchronization narration events (`AF-16`).
 
+### Phase 12: Mesh Heartbeat & Active Route Repair (Completed)
+- [x] Design and build a multi-hop mesh heartbeat mechanism that periodically validates route persistence (`AF-17`).
+- [x] Implement an automated top-level network repair routine on route failure to calculate fallback paths dynamically (`AF-17`).
+- [x] Broadcast updated topology presence on repair to resolve routing loops and propagate changes rapidly (`AF-17`).
+- [x] Expand unit and integration tests to assert message delivery via fallback paths after physical partition of primary routes (`AF-17`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-17`
-* **Objective**: Design and build a multi-hop mesh heartbeat mechanism that periodically validates route persistence and dynamically repairs broken links to optimize peer message forwarding path latency.
-* **Why this matters**: As peer nodes join and leave dynamically in highly unstable mesh conditions, an active route repair mechanism keeps network communication paths alive and optimally low-latency.
+**Task ID**: `AF-18`
+* **Objective**: Design and implement a dynamic priority queue for network packet routing that prioritizes gossip state updates over heartbeats, optimizing overall state convergence speed.
+* **Why this matters**: In highly congested mesh network scenarios, state updates are crucial for consistency and should take precedence over diagnostic heartbeats to prevent state lag.
 * **Planned Actions**:
-  1. Add support for routing periodic Link-State Heartbeats through direct and multi-hop neighbors.
-  2. Implement an automated top-level network repair routine on route failure to calculate fallback paths dynamically.
-  3. Expand tests to assert message delivery via fallback paths after physical partition of primary routes.
+  1. Add routing priority fields to `RoutedPacket` and implement priority-based packet queue sorting in `MeshNetwork`.
+  2. Benchmark and assert state convergence speed under high packet queue depth.
+  3. Add robust unit tests to verify priority routing behaviors.
 
 ---
 

@@ -21,7 +21,7 @@ export interface RoutedPacket {
   sourceId: string;
   destinationId: string;
   ttl: number;
-  type: "presence" | "gossip";
+  type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack";
   payload: any;
   route: string[];
 }
@@ -144,6 +144,19 @@ export class MeshNode extends GossipNode {
   public packetsSentCount = 0;
   public packetsReceivedCount = 0;
   public packetsForwardedCount = 0;
+
+  // Heartbeat tracking properties
+  public heartbeatsSent: Map<string, number> = new Map();
+  public heartbeatsReceived: Map<string, number> = new Map();
+  public heartbeatAcksReceived: Map<string, number> = new Map();
+  public lastHeartbeatLatency: Map<string, number> = new Map();
+  public pendingHeartbeats: Map<string, { sentAt: number; nextHop: string; destinationId: string }> = new Map();
+  public heartbeatTimeoutsCount = 0;
+  
+  // Route repair tracking properties
+  public routeRepairsTriggered = 0;
+  public routeRepairsSucceeded = 0;
+  public packetsDroppedCount = 0;
 
   public pendingEvents: GameEvent[] = [];
 
@@ -334,15 +347,54 @@ export class MeshNode extends GossipNode {
             });
           }
         }
+      } else if (packet.type === "heartbeat") {
+        this.heartbeatsReceived.set(packet.sourceId, (this.heartbeatsReceived.get(packet.sourceId) ?? 0) + 1);
+        
+        // Respond with a heartbeat acknowledgement
+        if (this.network) {
+          this.network.sendRoutedPacket({
+            sourceId: this.nodeId,
+            destinationId: packet.sourceId,
+            type: "heartbeat_ack",
+            payload: {
+              originalPacketId: packet.packetId,
+              timestamp: packet.payload.timestamp,
+            },
+          });
+        }
+      } else if (packet.type === "heartbeat_ack") {
+        this.heartbeatAcksReceived.set(packet.sourceId, (this.heartbeatAcksReceived.get(packet.sourceId) ?? 0) + 1);
+        
+        const origId = packet.payload.originalPacketId;
+        if (origId) {
+          this.pendingHeartbeats.delete(origId);
+        }
+
+        const sendTime = packet.payload.timestamp;
+        const currentSimTime = this.network ? this.network.currentTimeMs : Date.now();
+        const latency = currentSimTime - sendTime;
+        this.lastHeartbeatLatency.set(packet.sourceId, latency);
       }
     } else {
       // Forwarding to destination
       this.packetsForwardedCount++;
       if (packet.ttl <= 1) {
+        this.packetsDroppedCount++;
         return; // TTL expired to prevent infinite routing loops
       }
 
-      const nextHop = this.discovery.getNextHop(packet.destinationId);
+      let nextHop = this.discovery.getNextHop(packet.destinationId);
+      if (!nextHop || !this.directNeighbors.has(nextHop)) {
+        // Route failure detected during forwarding! Attempt repair
+        const repaired = this.repairRoute(packet.destinationId, nextHop);
+        if (repaired) {
+          nextHop = this.discovery.getNextHop(packet.destinationId);
+        } else {
+          this.packetsDroppedCount++;
+          return; // Drop packet if repair failed
+        }
+      }
+
       if (nextHop && this.network) {
         const nextPacket: RoutedPacket = {
           ...packet,
@@ -350,6 +402,116 @@ export class MeshNode extends GossipNode {
           route: [...packet.route],
         };
         this.network.forwardPacket(nextHop, nextPacket);
+      } else {
+        this.packetsDroppedCount++;
+      }
+    }
+  }
+
+  public repairRoute(destinationId: string, failedNextHop: string | null): boolean {
+    this.routeRepairsTriggered++;
+
+    if (failedNextHop) {
+      // Remove failed next hop from our own topology neighbors
+      const ownTopology = this.discovery.topology.get(this.nodeId);
+      if (ownTopology) {
+        ownTopology.neighbors = ownTopology.neighbors.filter((n) => n !== failedNextHop);
+      }
+
+      // Also prune this link in the other direction from the failed node's topology entry locally
+      const failedTopology = this.discovery.topology.get(failedNextHop);
+      if (failedTopology) {
+        failedTopology.neighbors = failedTopology.neighbors.filter((n) => n !== this.nodeId);
+      }
+    }
+
+    // Recalculate local routing table
+    this.discovery.recalculateRoutingTable();
+
+    // Broadcast our updated topology presence so peers know the link is broken
+    this.announcePresence();
+
+    // Check if we can reach the destination via a new next hop that is a direct neighbor
+    const newNextHop = this.discovery.getNextHop(destinationId);
+    if (newNextHop && this.directNeighbors.has(newNextHop)) {
+      this.routeRepairsSucceeded++;
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Sends a heartbeat packet to a specific known destination node.
+   */
+  public sendHeartbeat(destinationId: string): void {
+    if (!this.network) return;
+
+    let nextHop = this.discovery.getNextHop(destinationId);
+    if (!nextHop || !this.directNeighbors.has(nextHop)) {
+      // Trigger immediate repair
+      const repaired = this.repairRoute(destinationId, nextHop);
+      if (repaired) {
+        nextHop = this.discovery.getNextHop(destinationId);
+      } else {
+        this.packetsDroppedCount++;
+        return;
+      }
+    }
+
+    if (!nextHop) return;
+
+    const packetId = `${this.nodeId}-heartbeat-${destinationId}-${this.network.currentTimeMs}-${Math.random()}`;
+    const packet: RoutedPacket = {
+      packetId,
+      sourceId: this.nodeId,
+      destinationId,
+      ttl: 15,
+      type: "heartbeat",
+      payload: {
+        timestamp: this.network.currentTimeMs,
+      },
+      route: [this.nodeId],
+    };
+
+    this.pendingHeartbeats.set(packetId, {
+      sentAt: this.network.currentTimeMs,
+      nextHop,
+      destinationId,
+    });
+
+    this.heartbeatsSent.set(destinationId, (this.heartbeatsSent.get(destinationId) ?? 0) + 1);
+    this.packetsSentCount++;
+    this.network.forwardPacket(nextHop, packet);
+  }
+
+  /**
+   * Scans all known topology nodes and routes periodic Link-State Heartbeats to them.
+   */
+  public performHeartbeatCheck(): void {
+    if (!this.network) return;
+
+    const knownNodes = this.discovery.getKnownNodes();
+    for (const targetId of knownNodes) {
+      if (targetId === this.nodeId) continue;
+      this.sendHeartbeat(targetId);
+    }
+  }
+
+  /**
+   * Identifies pending heartbeats that have timed out and triggers route repair.
+   */
+  public checkHeartbeatTimeouts(timeoutMs = 300): void {
+    if (!this.network) return;
+
+    const currentTime = this.network.currentTimeMs;
+    for (const [packetId, info] of this.pendingHeartbeats.entries()) {
+      if (currentTime - info.sentAt > timeoutMs) {
+        this.pendingHeartbeats.delete(packetId);
+        this.heartbeatTimeoutsCount++;
+        
+        // Trigger route repair for the timed out route
+        this.repairRoute(info.destinationId, info.nextHop);
       }
     }
   }
@@ -360,10 +522,17 @@ export class MeshNode extends GossipNode {
   public syncWithPeer(targetNodeId: string): boolean {
     if (!this.network) return false;
 
-    const nextHop = this.discovery.getNextHop(targetNodeId);
-    if (!nextHop) {
-      return false; // Target node is currently unreachable
+    let nextHop = this.discovery.getNextHop(targetNodeId);
+    if (!nextHop || !this.directNeighbors.has(nextHop)) {
+      const repaired = this.repairRoute(targetNodeId, nextHop);
+      if (repaired) {
+        nextHop = this.discovery.getNextHop(targetNodeId);
+      } else {
+        return false; // Target node is currently unreachable
+      }
     }
+
+    if (!nextHop) return false;
 
     const gossipMsg = this.generateGossipMessageFor(targetNodeId);
     this.network.sendRoutedPacket({
@@ -468,20 +637,34 @@ export class MeshNetwork {
   /**
    * Routes a packet from its source to its destination node multi-hop.
    */
+  // Periodic heartbeat interval (0 means disabled by default)
+  public heartbeatIntervalMs = 0;
+  private lastHeartbeatTick = 0;
+
   public sendRoutedPacket(params: {
     sourceId: string;
     destinationId: string;
-    type: "presence" | "gossip";
+    type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack";
     payload: any;
   }): void {
     const sourceNode = this.nodes.get(params.sourceId);
     if (!sourceNode) return;
 
-    const nextHop = sourceNode.discovery.getNextHop(params.destinationId);
-    if (!nextHop) return; // Unreachable destination
+    let nextHop = sourceNode.discovery.getNextHop(params.destinationId);
+    if (!nextHop || !sourceNode.directNeighbors.has(nextHop)) {
+      const repaired = sourceNode.repairRoute(params.destinationId, nextHop);
+      if (repaired) {
+        nextHop = sourceNode.discovery.getNextHop(params.destinationId);
+      } else {
+        sourceNode.packetsDroppedCount++;
+        return; // Unreachable destination
+      }
+    }
+
+    if (!nextHop) return;
 
     const packet: RoutedPacket = {
-      packetId: `${params.sourceId}-${params.type}-${Date.now()}-${Math.random()}`,
+      packetId: `${params.sourceId}-${params.type}-${this.currentTimeMs}-${Math.random()}`,
       sourceId: params.sourceId,
       destinationId: params.destinationId,
       ttl: 20,
@@ -522,6 +705,20 @@ export class MeshNetwork {
    */
   public tick(advanceTimeMs: number): number {
     this.currentTimeMs += advanceTimeMs;
+
+    // Check heartbeat timeouts on all registered nodes
+    for (const node of this.nodes.values()) {
+      node.checkHeartbeatTimeouts();
+    }
+
+    // Trigger periodic heartbeats if enabled
+    if (this.heartbeatIntervalMs > 0 && this.currentTimeMs - this.lastHeartbeatTick >= this.heartbeatIntervalMs) {
+      this.lastHeartbeatTick = this.currentTimeMs;
+      for (const node of this.nodes.values()) {
+        node.performHeartbeatCheck();
+      }
+    }
+
     let deliveredCount = 0;
 
     this.packetQueue.sort((a, b) => a.deliverAt - b.deliverAt);

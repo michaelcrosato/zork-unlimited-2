@@ -287,4 +287,184 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     });
     expect(nodeA.localState.cooperativeSyncLog).toContain("B vanishes into thin air.");
   });
+
+  it("should periodically route Link-State Heartbeats and track latency/acks", () => {
+    // Topology: A - B - C
+    const net = new MeshNetwork();
+    net.heartbeatIntervalMs = 100;
+
+    const nodeA = new MeshNode("A", pack, 42);
+    const nodeB = new MeshNode("B", pack, 42);
+    const nodeC = new MeshNode("C", pack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+
+    net.connectNodes("A", "B");
+    net.connectNodes("B", "C");
+
+    // Propagate presence first
+    for (let i = 0; i < 10; i++) {
+      net.tick(80);
+    }
+
+    // Explicitly check that heartbeat intervals are set
+    expect(net.heartbeatIntervalMs).toBe(100);
+
+    // Let's trigger a tick that triggers heartbeats
+    // We tick 100ms. Since heartbeatIntervalMs is 100, they will fire.
+    // The heartbeat from A to C will route A -> B -> C (2 hops).
+    // The ack from C to A will route C -> B -> A (2 hops).
+    // With latency ~40ms per hop, total 160ms. Ticking a total of 300ms guarantees delivery.
+    net.tick(100); // Fires heartbeats
+    net.tick(200); // Delivers heartbeats and ACKs
+
+    // Assert heartbeats were sent and received
+    expect(nodeA.heartbeatsSent.get("C")).toBeGreaterThan(0);
+    expect(nodeC.heartbeatsReceived.get("A")).toBeGreaterThan(0);
+    expect(nodeA.heartbeatAcksReceived.get("C")).toBeGreaterThan(0);
+
+    // Assert latency was measured
+    const latencyAC = nodeA.lastHeartbeatLatency.get("C");
+    expect(latencyAC).toBeDefined();
+    expect(latencyAC).toBeGreaterThan(0);
+  });
+
+  it("should dynamically repair routes when a physical link fails silently and deliver gossip via a fallback path", () => {
+    // Topology: Redundant diamond loop: A - B - C, A - D - C
+    const net = new MeshNetwork();
+    
+    const nodeA = new MeshNode("A", pack, 42);
+    const nodeB = new MeshNode("B", pack, 42);
+    const nodeC = new MeshNode("C", pack, 42);
+    const nodeD = new MeshNode("D", pack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+    net.registerNode(nodeD);
+
+    net.connectNodes("A", "B");
+    net.connectNodes("B", "C");
+    net.connectNodes("A", "D");
+    net.connectNodes("D", "C");
+
+    // Propagate presence
+    for (let i = 0; i < 15; i++) {
+      net.tick(50);
+    }
+
+    // Force route from A to C to go through B initially
+    // Since B is preferred or computed by BFS first
+    // Let's verify next hop is either B or D
+    const initialNextHop = nodeA.discovery.getNextHop("C");
+    expect(initialNextHop === "B" || initialNextHop === "D").toBe(true);
+
+    // Now, break the physical link between A and its chosen next hop silently!
+    // E.g., we disconnect A and initialNextHop, but do NOT let them broadcast yet
+    // Or we simply disconnect them in their directNeighbors lists to simulate silent physical failure
+    const chosenHop = initialNextHop!;
+    const fallbackHop = chosenHop === "B" ? "D" : "B";
+
+    // Silently remove from directNeighbors
+    nodeA.directNeighbors.delete(chosenHop);
+    nodeA.peers.delete(chosenHop);
+    const chosenNode = net.nodes.get(chosenHop)!;
+    chosenNode.directNeighbors.delete("A");
+    chosenNode.peers.delete("A");
+
+    // A's local topology entry still has chosenHop as a neighbor, so getNextHop("C") still returns chosenHop.
+    expect(nodeA.discovery.getNextHop("C")).toBe(chosenHop);
+
+    // Now, we execute an action on A and attempt to sync with C.
+    // The sync should hit a route failure to chosenHop (as A is no longer physically connected to it),
+    // trigger our automated repair routine, find the fallbackHop, recalculate routes,
+    // and successfully route the Gossip packet through the fallbackHop!
+    const resA = nodeA.executeLocalAction({ type: "MOVE", direction: "west" });
+    expect(resA.ok).toBe(true);
+
+    const syncStarted = nodeA.syncWithPeer("C");
+    // Assert that sync succeeded because the route was repaired dynamically!
+    expect(syncStarted).toBe(true);
+    expect(nodeA.routeRepairsTriggered).toBeGreaterThan(0);
+    expect(nodeA.routeRepairsSucceeded).toBeGreaterThan(0);
+    expect(nodeA.discovery.getNextHop("C")).toBe(fallbackHop);
+
+    // Tick the network to deliver the Gossip multi-hop packet: A -> D -> C and reciprocal C -> D -> A.
+    for (let i = 0; i < 10; i++) {
+      net.tick(50);
+    }
+
+    // Verify state converged on C!
+    expect(nodeC.localState.agents!["A"]).toBeDefined();
+    expect(nodeC.localState.agents!["A"].current).toBe("control_room");
+  });
+
+  it("should timeout pending heartbeats and trigger automatic route repair to route via redundant fallback paths", () => {
+    // Topology: A - B - C, A - D - C
+    const net = new MeshNetwork();
+    
+    const nodeA = new MeshNode("A", pack, 42);
+    const nodeB = new MeshNode("B", pack, 42);
+    const nodeC = new MeshNode("C", pack, 42);
+    const nodeD = new MeshNode("D", pack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+    net.registerNode(nodeD);
+
+    net.connectNodes("A", "B");
+    net.connectNodes("B", "C");
+    net.connectNodes("A", "D");
+    net.connectNodes("D", "C");
+
+    // Propagate presence
+    for (let i = 0; i < 15; i++) {
+      net.tick(50);
+    }
+
+    const chosenHop = nodeA.discovery.getNextHop("C")!;
+    const fallbackHop = chosenHop === "B" ? "D" : "B";
+
+    // A sends a heartbeat to C
+    nodeA.sendHeartbeat("C");
+
+    // Verify there is a pending heartbeat in A
+    expect(nodeA.pendingHeartbeats.size).toBe(1);
+
+    // Silently partition the connection between A and chosenHop
+    nodeA.directNeighbors.delete(chosenHop);
+    nodeA.peers.delete(chosenHop);
+    const chosenNode = net.nodes.get(chosenHop)!;
+    chosenNode.directNeighbors.delete("A");
+    chosenNode.peers.delete("A");
+
+    // Advance time beyond the timeout threshold (e.g. 350ms)
+    // Ticking the network will call checkHeartbeatTimeouts which detects the timeout
+    // and triggers route repair!
+    net.tick(350);
+
+    // Verify the heartbeat was timed out and triggered repair
+    expect(nodeA.heartbeatTimeoutsCount).toBeGreaterThan(0);
+    expect(nodeA.routeRepairsTriggered).toBeGreaterThan(0);
+    expect(nodeA.routeRepairsSucceeded).toBeGreaterThan(0);
+
+    // Verify route was repaired and now points to fallbackHop!
+    expect(nodeA.discovery.getNextHop("C")).toBe(fallbackHop);
+
+    // A new heartbeat sent after repair should succeed and route via fallbackHop
+    nodeA.sendHeartbeat("C");
+    
+    // Tick to deliver
+    for (let i = 0; i < 10; i++) {
+      net.tick(50);
+    }
+
+    // Verify C received the heartbeat and A received the ACK!
+    expect(nodeC.heartbeatsReceived.get("A")).toBeGreaterThan(0);
+    expect(nodeA.heartbeatAcksReceived.get("C")).toBeGreaterThan(0);
+  });
 });
+
