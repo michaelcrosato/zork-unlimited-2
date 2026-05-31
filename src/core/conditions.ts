@@ -28,6 +28,8 @@ export const ConditionSchema: z.ZodType<any> = z.lazy(() =>
         value: z.number(),
       }),
     }),
+    z.object({ weather_is: z.string() }),
+    z.object({ temperature_is: z.string() }),
     z.object({ all_of: z.array(ConditionSchema) }),
     z.object({ any_of: z.array(ConditionSchema) }),
     z.object({ none_of: z.array(ConditionSchema) }),
@@ -44,6 +46,8 @@ export type Condition =
   | { var_gte: { name: string; value: number } }
   | { var_lte: { name: string; value: number } }
   | { var_eq: { name: string; value: number } }
+  | { weather_is: string }
+  | { temperature_is: string }
   | { all_of: Condition[] }
   | { any_of: Condition[] }
   | { none_of: Condition[] };
@@ -84,6 +88,16 @@ export function evaluateCondition(state: GameState, cond: Condition): boolean {
     const { name, value } = cond.var_eq;
     const currentVal = state.vars[name] ?? 0;
     return currentVal === value;
+  }
+  if ("weather_is" in cond) {
+    const expected = cond.weather_is;
+    const current = state.environment?.weather ?? "clear";
+    return current === expected;
+  }
+  if ("temperature_is" in cond) {
+    const expected = cond.temperature_is;
+    const current = state.environment?.temperature ?? "mild";
+    return current === expected;
   }
   if ("all_of" in cond) {
     return cond.all_of.every((c) => evaluateCondition(state, c));

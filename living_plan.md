@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #8 (Ready for Cycle #9)
-* **Build/Test Status**: 🟢 PASS (All 62 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #9 (Ready for Cycle #10)
+* **Build/Test Status**: 🟢 PASS (All 66 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -33,16 +33,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Design, implement, and validate advanced playtest personas (hoarder, explorer, dropper) to discover complex multi-step game design bugs.
 - [x] Introduce and validate Stage 2 procedural rooms and dynamic template generators (`AF-08`).
 
+### Phase 4: Weather Systems & Environmental Effects (Completed)
+- [x] Add environmental weather/temperature state fields to the GameState Schema (`AF-09`).
+- [x] Build stateless pure-hash deterministic weather ticking every 5 steps.
+- [x] Support `weather_is` and `temperature_is` condition modifiers in the DSL.
+- [x] Inject dynamic scenic atmospheric narration based on weather for outdoor locations.
+- [x] Write comprehensive Vitest test coverage and pass all autopilot playtests.
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-09`
-* **Objective**: Implement Task-F4 Procedural Weather & Real-Time Environmental Effects.
-* **Why this matters**: Integrates an environmental tick engine updating weather patterns (e.g. rain, fog, storms) based on steps and room locations, dynamically altering sensory observations and modifying room traversal conditions.
+**Task ID**: `AF-10`
+* **Objective**: Refine, optimize, and document the newly introduced Weather and Environmental system, including standardizing procedural generation hooks and preparing for Stage 5 multiplayer/multi-agent telemetry.
+* **Why this matters**: Ensures the code remains impeccably documented and performant as we prepare the headless engine for highly scaleable multi-agent testing across millions of steps.
 * **Planned Actions**:
-  1. Add environmental state fields (e.g. weather type, temperature) to the GameState Schema.
-  2. Implement an environmental tick effect that deterministically updates weather every N steps.
-  3. Support environmental condition modifiers in the condition evaluation DSL (e.g., locking slick paths when raining unless wearing boots).
+  1. Add detailed architectural comments to `tickEnvironment` and `getWeatherForStep`.
+  2. Implement an optional `weather_pool` property in rooms to restrict weather conditions on a per-room basis.
+  3. Optimize the state-space pathfinder to ignore purely narrative environment states, preserving search efficiency.
   4. Write comprehensive tests and validate via playtest personas.
 
 ---

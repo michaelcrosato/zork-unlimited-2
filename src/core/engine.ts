@@ -129,6 +129,7 @@ export function step(
     }
 
     newState.step += 1;
+    newState = tickEnvironment(newState, events);
     return { state: newState, events, ok: true };
   }
 
@@ -306,6 +307,7 @@ export function step(
             newState.vars["hp"] = playerHp;
             newState.vars["mana"] = playerMana;
             newState.step += 1;
+            newState = tickEnvironment(newState, events);
             return { state: newState, events, ok: true };
           } else {
             combatLog += `🏃 You try to flee, but the ${enemy.name} blocks your escape!\n`;
@@ -360,6 +362,7 @@ export function step(
         });
 
         newState.step += 1;
+        newState = tickEnvironment(newState, events);
         return { state: newState, events, ok: true };
       }
     }
@@ -941,9 +944,90 @@ export function step(
   }
 
   newState.step += 1;
+  newState = tickEnvironment(newState, events);
   return {
     state: newState,
     events,
     ok: true,
   };
+}
+
+function getWeatherForStep(seed: number, step: number): { weather: string; temperature: string } {
+  const weathers = ["clear", "rain", "fog", "storm"];
+  const temperatures = ["cold", "mild", "hot"];
+
+  // Compute a deterministic hash of seed + floor(step / 5)
+  const interval = Math.floor(step / 5);
+  // A simple deterministic PRNG hash that won't consume state.seed
+  const h1 = Math.abs(Math.imul(seed ^ interval, 0x6D2B79F5)) | 0;
+  const weatherIndex = h1 % weathers.length;
+
+  const h2 = Math.abs(Math.imul(h1 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+  const tempIndex = h2 % temperatures.length;
+
+  return {
+    weather: weathers[weatherIndex],
+    temperature: temperatures[tempIndex],
+  };
+}
+
+function tickEnvironment(state: GameState, events: GameEvent[]): GameState {
+  if (!state.environment) {
+    state.environment = {
+      weather: "clear",
+      temperature: "mild",
+      lastUpdatedStep: 0,
+    };
+  }
+
+  const interval = Math.floor(state.step / 5);
+  const lastInterval = Math.floor(state.environment.lastUpdatedStep / 5);
+
+  if (state.step > 0 && interval !== lastInterval) {
+    const { weather: nextWeather, temperature: nextTemp } = getWeatherForStep(state.seed, state.step);
+
+    const oldWeather = state.environment.weather;
+    const oldTemp = state.environment.temperature;
+
+    const updatedState = {
+      ...state,
+      flags: { ...state.flags },
+      vars: { ...state.vars },
+      inventory: [...state.inventory],
+      objectState: { ...state.objectState },
+      journal: [...state.journal],
+      environment: {
+        weather: nextWeather,
+        temperature: nextTemp,
+        lastUpdatedStep: state.step,
+      },
+    };
+
+    if (nextWeather !== oldWeather) {
+      let msg = "";
+      if (nextWeather === "clear") msg = "The sky clears up, letting warm light shine through.";
+      else if (nextWeather === "rain") msg = "A steady rain begins to fall, slicking the ground.";
+      else if (nextWeather === "fog") msg = "A thick, chilly fog rolls in, obscuring your vision.";
+      else if (nextWeather === "storm") msg = "The wind picks up as a violent storm breaks overhead!";
+
+      events.push({
+        type: "narration",
+        text: `[Environment] ${msg}`,
+      });
+      updatedState.journal.push(`[Environment] ${msg}`);
+    }
+
+    if (nextTemp !== oldTemp && nextWeather === oldWeather) {
+      const msg = `The temperature shifts, becoming ${nextTemp}.`;
+      events.push({
+        type: "narration",
+        text: `[Environment] ${msg}`,
+      });
+      updatedState.journal.push(`[Environment] ${msg}`);
+    }
+
+    return updatedState;
+  }
+
+  return state;
 }

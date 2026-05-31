@@ -9,6 +9,14 @@ export const ObjectRuntimeSchema = z.object({
 
 export type ObjectRuntime = z.infer<typeof ObjectRuntimeSchema>;
 
+export const EnvironmentalStateSchema = z.object({
+  weather: z.string(),
+  temperature: z.string(),
+  lastUpdatedStep: z.number().int().nonnegative(),
+});
+
+export type EnvironmentalState = z.infer<typeof EnvironmentalStateSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -32,6 +40,9 @@ export const GameStateSchema = z.object({
   // termination
   ended: z.boolean(),
   endingId: z.string().nullable(),
+
+  // environmental state fields
+  environment: EnvironmentalStateSchema.optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -63,6 +74,11 @@ export const createInitialState = (options: {
     questStage: {},
     ended: false,
     endingId: null,
+    environment: {
+      weather: "clear",
+      temperature: "mild",
+      lastUpdatedStep: 0,
+    },
   };
 };
 
