@@ -206,4 +206,85 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     expect(nodeB.discovery.getKnownNodes()).not.toContain("C");
     expect(nodeB.discovery.getNextHop("C")).toBeNull();
   });
+
+  it("should trigger immersive narration descriptions and persistent cooperative sync logs for P2P network events", () => {
+    // We will use a custom content pack with custom network templates to assert behavior.
+    const customPack = {
+      ...pack,
+      network_templates: {
+        arrival: "A mysterious rift opens as {peerId} joins the fray.",
+        departure: "{peerId} vanishes into thin air.",
+        sync: "Cosmic energy surges as we sync state with {peerId}."
+      }
+    };
+
+    const net = new MeshNetwork();
+    
+    // Create MeshNodes using our customPack
+    const nodeA = new MeshNode("A", customPack, 42);
+    const nodeB = new MeshNode("B", customPack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+
+    // Physically connect them
+    net.connectNodes("A", "B");
+
+    // Before ticking, direct connections are established, and presence is announced.
+    // Ticking the network delivers the presence packets.
+    net.tick(100);
+
+    // Node A's discovery topology now has B.
+    // Let's verify that Node A triggered an "arrival" narration event for B!
+    const eventsA = nodeA.flushPendingEvents();
+    expect(eventsA).toContainEqual({
+      type: "narration",
+      text: "A mysterious rift opens as B joins the fray."
+    });
+
+    // Verify it is stored in the persistent logs
+    expect(nodeA.localState.cooperativeSyncLog).toContain("A mysterious rift opens as B joins the fray.");
+    expect(nodeA.localState.journal).toContain("A mysterious rift opens as B joins the fray.");
+
+    // Likewise, Node B should have triggered an "arrival" narration event for A!
+    const eventsB = nodeB.flushPendingEvents();
+    expect(eventsB).toContainEqual({
+      type: "narration",
+      text: "A mysterious rift opens as A joins the fray."
+    });
+
+    // Now, let's execute an action on B and sync to trigger a "sync" event on A.
+    // Let's perform a local action on B
+    const resB = nodeB.executeLocalAction({ type: "LOOK" });
+    expect(resB.ok).toBe(true);
+
+    // Node B syncs with A
+    const syncResult = nodeB.syncWithPeer("A");
+    expect(syncResult).toBe(true);
+
+    // Tick network to deliver gossip and reciprocal reply.
+    net.tick(150);
+
+    // Node A should have received B's gossip and updated its state, triggering a "sync" event.
+    const newEventsA = nodeA.flushPendingEvents();
+    expect(newEventsA).toContainEqual({
+      type: "narration",
+      text: "Cosmic energy surges as we sync state with B."
+    });
+    expect(nodeA.localState.cooperativeSyncLog).toContain("Cosmic energy surges as we sync state with B.");
+
+    // Now, let's test peer departure / leaving!
+    nodeB.leave();
+
+    // Tick network to deliver departure presence packet
+    net.tick(100);
+
+    // Node A should have processed the departure presence packet and triggered a "departure" event for B!
+    const departureEventsA = nodeA.flushPendingEvents();
+    expect(departureEventsA).toContainEqual({
+      type: "narration",
+      text: "B vanishes into thin air."
+    });
+    expect(nodeA.localState.cooperativeSyncLog).toContain("B vanishes into thin air.");
+  });
 });

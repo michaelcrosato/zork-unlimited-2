@@ -78,6 +78,7 @@ export const GameStateSchema = z.object({
   stateHistory: z.array(z.any()).optional(),
   vectorClock: z.record(z.string(), z.number()).optional(),
   lootClaims: z.record(z.string(), LootClaimSchema).optional(),
+  cooperativeSyncLog: z.array(z.string()).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -131,6 +132,7 @@ export const createInitialState = (options: {
     stateHistory: [],
     vectorClock: options.agentsInit ? Object.fromEntries(options.agentsInit.map((id) => [id, 0])) : {},
     lootClaims: {},
+    cooperativeSyncLog: [],
   };
 };
 

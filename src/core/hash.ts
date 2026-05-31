@@ -40,7 +40,7 @@ export function computeSha256(data: string): string {
  * Returns the full 64-character hex string.
  */
 export function computeStateHash(state: GameState): string {
-  const { stateHistory, ...rest } = state;
+  const { stateHistory, journal, cooperativeSyncLog, ...rest } = state;
   const canonical = canonicalStringify(rest);
   return computeSha256(canonical);
 }

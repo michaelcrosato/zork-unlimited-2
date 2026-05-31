@@ -140,6 +140,11 @@ export const ParserPackSchema = z.object({
   win_conditions: z.array(ParserWinConditionSchema).default([]),
   endings: z.array(ParserEndingSchema).default([]),
   procedural_templates: z.array(ProceduralRoomTemplateSchema).optional(),
+  network_templates: z.object({
+    arrival: z.string().optional(),
+    departure: z.string().optional(),
+    sync: z.string().optional(),
+  }).optional(),
 });
 
 export type ParserPack = z.infer<typeof ParserPackSchema>;

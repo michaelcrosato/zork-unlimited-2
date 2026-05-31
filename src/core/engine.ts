@@ -37,6 +37,7 @@ export function step(
     journal: [...state.journal],
     visited: { ...state.visited },
     questStage: { ...state.questStage },
+    cooperativeSyncLog: state.cooperativeSyncLog ? [...state.cooperativeSyncLog] : [],
   };
 
   const events: GameEvent[] = [];

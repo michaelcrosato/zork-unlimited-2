@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #15 (Ready for Cycle #16)
-* **Build/Test Status**: 🟢 PASS (All 88 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #16 (Ready for Cycle #17)
+* **Build/Test Status**: 🟢 PASS (All 89 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -73,16 +73,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Support automatic route calculation and multi-hop gossip forwarding through intermediary peers (`AF-15`).
 - [x] Add rigorous test cases for mesh discovery, packet routing, and message forwarding convergence (`AF-15`).
 
+### Phase 11: Immersive Peer Discovery & Cooperative Sync Narration (Completed)
+- [x] Add support for triggering `NarrationEvent` announcements for P2P peer events (`AF-16`).
+- [x] Implement customizable network narrative templates in the content pack schema (`AF-16`).
+- [x] Add persistent `cooperativeSyncLog` field to GameState (`AF-16`).
+- [x] Write rigorous Vitest tests for arrival, departure, and synchronization narration events (`AF-16`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-16`
-* **Objective**: Build a persistent Peer Discovery Narration & Cooperative Sync Event log in the Zork-style Parser engine, allowing players to see atmospheric announcements when peers dynamically join/leave, or when distant peers synchronize state.
-* **Why this matters**: Keeps players immersed in a multiplayer text adventure by providing narrative representation of P2P network events (peer joining/leaving/state sync) rather than just headless engine mutations.
+**Task ID**: `AF-17`
+* **Objective**: Design and build a multi-hop mesh heartbeat mechanism that periodically validates route persistence and dynamically repairs broken links to optimize peer message forwarding path latency.
+* **Why this matters**: As peer nodes join and leave dynamically in highly unstable mesh conditions, an active route repair mechanism keeps network communication paths alive and optimally low-latency.
 * **Planned Actions**:
-  1. Add support for triggering `NarrationEvent` or similar custom sensory announcements in the text-adventure narrative when P2P peer events (join/leave/sync) occur.
-  2. Implement customizable network narrative templates in the content pack schema to describe peer arrival and departure atmospherically.
-  3. Expand the Vitest suite to verify that network discovery events trigger correct, immersive narration descriptions to players.
+  1. Add support for routing periodic Link-State Heartbeats through direct and multi-hop neighbors.
+  2. Implement an automated top-level network repair routine on route failure to calculate fallback paths dynamically.
+  3. Expand tests to assert message delivery via fallback paths after physical partition of primary routes.
 
 ---
 

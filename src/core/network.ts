@@ -1,5 +1,6 @@
 import { GossipNode, GossipMessage } from "./gossip.js";
 import { Action, StepResult } from "../api/types.js";
+import { GameEvent } from "./events.js";
 
 /**
  * A presence announcement representing node existence, its current sequence number,
@@ -144,6 +145,46 @@ export class MeshNode extends GossipNode {
   public packetsReceivedCount = 0;
   public packetsForwardedCount = 0;
 
+  public pendingEvents: GameEvent[] = [];
+
+  public flushPendingEvents(): GameEvent[] {
+    const events = [...this.pendingEvents];
+    this.pendingEvents = [];
+    return events;
+  }
+
+  private triggerPeerEvent(eventType: "arrival" | "departure" | "sync", peerId: string): void {
+    let template = "";
+    if (this.pack && (this.pack as any).network_templates) {
+      template = (this.pack as any).network_templates[eventType] || "";
+    }
+    if (!template) {
+      const defaults = {
+        arrival: "A shimmering rift opens as {peerId} steps into the realm.",
+        departure: "{peerId} fades like morning mist, disconnecting from the mesh.",
+        sync: "A pulse of blue light rippling through the air indicates state synchronization with {peerId}.",
+      };
+      template = defaults[eventType];
+    }
+
+    const formattedText = template.replace(/{peerId}/g, peerId);
+
+    if (!this.localState.journal) {
+      this.localState.journal = [];
+    }
+    this.localState.journal.push(formattedText);
+
+    if (!this.localState.cooperativeSyncLog) {
+      this.localState.cooperativeSyncLog = [];
+    }
+    this.localState.cooperativeSyncLog.push(formattedText);
+
+    this.pendingEvents.push({
+      type: "narration",
+      text: formattedText,
+    });
+  }
+
   constructor(nodeId: string, pack: any, seed = 42) {
     super(nodeId, pack, seed);
     this.discovery = new NetworkDiscovery(nodeId);
@@ -250,11 +291,29 @@ export class MeshNode extends GossipNode {
     if (packet.destinationId === this.nodeId) {
       // Packet reached its destination
       if (packet.type === "presence") {
-        const fresh = this.discovery.updateTopology(packet.payload);
-        if (fresh && this.network) {
-          // Relaying the fresh presence announcement to other physical links
-          const incomingFrom = packet.route[packet.route.length - 2] ?? null;
-          this.network.floodPresence(this.nodeId, packet.payload, incomingFrom);
+        const announcement = packet.payload as PresenceAnnouncement;
+        const peerId = announcement.nodeId;
+
+        if (peerId !== this.nodeId) {
+          const wasKnown = this.discovery.topology.has(peerId);
+          const isDeparture = announcement.neighbors.length === 0;
+
+          const fresh = this.discovery.updateTopology(announcement);
+          if (fresh) {
+            if (!wasKnown && !isDeparture) {
+              this.triggerPeerEvent("arrival", peerId);
+            } else if (wasKnown && isDeparture) {
+              this.triggerPeerEvent("departure", peerId);
+            }
+
+            if (this.network) {
+              // Relaying the fresh presence announcement to other physical links
+              const incomingFrom = packet.route[packet.route.length - 2] ?? null;
+              this.network.floodPresence(this.nodeId, packet.payload, incomingFrom);
+            }
+          }
+        } else {
+          this.discovery.updateTopology(packet.payload);
         }
       } else if (packet.type === "gossip") {
         const originalMessage = packet.payload as GossipMessage;
@@ -262,14 +321,18 @@ export class MeshNode extends GossipNode {
 
         // If gossip succeeded in merging state updates, automatically trigger
         // a reciprocal reply to ensure complete, convergent synchronization
-        if (updated && this.network) {
-          const reply = this.generateGossipMessageFor(packet.sourceId);
-          this.network.sendRoutedPacket({
-            sourceId: this.nodeId,
-            destinationId: packet.sourceId,
-            type: "gossip",
-            payload: reply,
-          });
+        if (updated) {
+          this.triggerPeerEvent("sync", packet.sourceId);
+
+          if (this.network) {
+            const reply = this.generateGossipMessageFor(packet.sourceId);
+            this.network.sendRoutedPacket({
+              sourceId: this.nodeId,
+              destinationId: packet.sourceId,
+              type: "gossip",
+              payload: reply,
+            });
+          }
         }
       }
     } else {
