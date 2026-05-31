@@ -11,6 +11,10 @@ export { GossipNode, isClockBehind, mergeVectorClocks, getTransactionId, mergeAn
 export type { VectorClock, GossipMessage } from "./core/gossip.js";
 export { DecentralizedDungeonExpedition } from "./core/expedition.js";
 
+// Network & Mesh Discovery
+export { NetworkDiscovery, MeshNode, MeshNetwork } from "./core/network.js";
+export type { PresenceAnnouncement, RoutedPacket } from "./core/network.js";
+
 // Hashing & Seeded PRNG
 export { PureRand } from "./core/rng.js";
 export { canonicalStringify, computeSha256, computeStateHash, computeStateHashShort } from "./core/hash.js";

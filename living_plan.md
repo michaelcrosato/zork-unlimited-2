@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #14 (Ready for Cycle #15)
-* **Build/Test Status**: 🟢 PASS (All 84 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #15 (Ready for Cycle #16)
+* **Build/Test Status**: 🟢 PASS (All 88 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -68,16 +68,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement lock-free chest loot claiming using LWW CRDT transaction merges (`AF-14`).
 - [x] Write comprehensive unit and integration tests simulating explorations, partitions, and races (`AF-14`).
 
+### Phase 10: Local Network Discovery & Mesh Routing (Completed)
+- [x] Design a decentralized `NetworkDiscovery` registry that simulates dynamic P2P node joining/leaving (`AF-15`).
+- [x] Support automatic route calculation and multi-hop gossip forwarding through intermediary peers (`AF-15`).
+- [x] Add rigorous test cases for mesh discovery, packet routing, and message forwarding convergence (`AF-15`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-15`
-* **Objective**: Build a persistent local network discovery and automatic peer routing layer that allows nodes to dynamically discover peers, establish mesh connections, and exchange delta states automatically under high-latency network conditions.
-* **Why this matters**: Allows seamless real-world P2P synchronization without hardcoded connections, facilitating fully dynamic multiplayer text adventures.
+**Task ID**: `AF-16`
+* **Objective**: Build a persistent Peer Discovery Narration & Cooperative Sync Event log in the Zork-style Parser engine, allowing players to see atmospheric announcements when peers dynamically join/leave, or when distant peers synchronize state.
+* **Why this matters**: Keeps players immersed in a multiplayer text adventure by providing narrative representation of P2P network events (peer joining/leaving/state sync) rather than just headless engine mutations.
 * **Planned Actions**:
-  1. Design a decentralized `NetworkDiscovery` registry that simulates dynamic P2P node joining/leaving.
-  2. Support automatic route calculation and multi-hop gossip forwarding through intermediary peers.
-  3. Add rigorous test cases for mesh discovery, packet routing, and message forwarding convergence.
+  1. Add support for triggering `NarrationEvent` or similar custom sensory announcements in the text-adventure narrative when P2P peer events (join/leave/sync) occur.
+  2. Implement customizable network narrative templates in the content pack schema to describe peer arrival and departure atmospherically.
+  3. Expand the Vitest suite to verify that network discovery events trigger correct, immersive narration descriptions to players.
 
 ---
 
