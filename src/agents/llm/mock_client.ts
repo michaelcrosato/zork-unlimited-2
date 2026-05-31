@@ -306,7 +306,9 @@ export class MockLlmClient implements LlmClient {
           } else if ((vars.intelligence ?? 12) <= 12) {
             chosenId = "go_west";
           } else if (!inv.includes("broadsword") && !visited["dungeons"]) {
-            chosenId = "go_east";
+            chosenId = "go_north"; // Unarmed dropper goes north to dungeons first
+          } else if (!inv.includes("broadsword") && visited["dungeons"]) {
+            chosenId = "go_east"; // Backtrack to armory to pick up dropped broadsword
           } else {
             chosenId = "go_north"; // go to dungeons
           }
@@ -332,10 +334,7 @@ export class MockLlmClient implements LlmClient {
         } else if (currentRoom === "treasury") {
           if (flags["chest_unlocked"]) {
             if (flags["chest_opened"]) {
-              if (inv.includes("royal_crown") && !visited["throne_room"]) {
-                chosenId = "drop_royal_crown";
-                reason = "Dropper drops crown in treasury before meeting king";
-              } else if (hasAction("take_royal_crown")) {
+              if (hasAction("take_royal_crown")) {
                 chosenId = "take_royal_crown";
               } else {
                 chosenId = "go_east";
@@ -343,16 +342,20 @@ export class MockLlmClient implements LlmClient {
             } else chosenId = "open_treasury_chest";
           } else chosenId = "use_self_on_treasury_chest";
         } else if (currentRoom === "throne_room") {
-          if (!inv.includes("royal_crown") && hasAction("talk_king_aldous")) {
+          if (hasAction("dialogue_king_aldous_crown")) {
+            chosenId = "dialogue_king_aldous_crown";
+          } else if (hasAction("dialogue_king_aldous_victory")) {
+            chosenId = "dialogue_king_aldous_victory";
+          } else if (hasAction("dialogue_king_aldous_help")) {
+            chosenId = "dialogue_king_aldous_help";
+          } else if (hasAction("dialogue_king_aldous_bye")) {
+            chosenId = "dialogue_king_aldous_bye";
+          } else if (hasAction("talk_king_aldous") && (inv.includes("royal_crown") || (!inv.includes("royal_crown") && stepNum < 28))) {
             chosenId = "talk_king_aldous";
           } else if (!inv.includes("royal_crown")) {
             // Need the crown! Backtrack to treasury!
             chosenId = "go_west";
             reason = "Dropper backtracks to treasury to get crown";
-          } else if (hasAction("dialogue_king_aldous_crown")) {
-            chosenId = "dialogue_king_aldous_crown";
-          } else if (hasAction("dialogue_king_aldous_victory")) {
-            chosenId = "dialogue_king_aldous_victory";
           }
         }
         // "The Sealed Crypt" (chapel.yaml) Dropper path
@@ -466,16 +469,16 @@ export class MockLlmClient implements LlmClient {
             } else chosenId = "open_treasury_chest";
           } else chosenId = "use_self_on_treasury_chest";
         } else if (currentRoom === "throne_room") {
-          if (hasAction("talk_king_aldous")) {
+          if (hasAction("dialogue_king_aldous_crown")) {
+            chosenId = "dialogue_king_aldous_crown";
+          } else if (hasAction("dialogue_king_aldous_victory")) {
+            chosenId = "dialogue_king_aldous_victory";
+          } else if (hasAction("talk_king_aldous") && (inv.includes("royal_crown") || stepNum < 30)) {
             chosenId = "talk_king_aldous";
           } else if (hasAction("dialogue_king_aldous_help")) {
             chosenId = "dialogue_king_aldous_help";
           } else if (hasAction("dialogue_king_aldous_bye")) {
             chosenId = "dialogue_king_aldous_bye";
-          } else if (hasAction("dialogue_king_aldous_crown")) {
-            chosenId = "dialogue_king_aldous_crown";
-          } else if (hasAction("dialogue_king_aldous_victory")) {
-            chosenId = "dialogue_king_aldous_victory";
           } else {
             // Back to treasury to take the crown!
             chosenId = "go_west";
@@ -488,11 +491,11 @@ export class MockLlmClient implements LlmClient {
           if (!visited["chapel_yard"]) chosenId = "go_west";
           else chosenId = "go_north";
         } else if (currentRoom === "chapel_yard") {
-          if (hasAction("talk_innkeeper")) {
+          if (hasAction("talk_innkeeper") && !flags["heard_well_clue"]) {
             chosenId = "talk_innkeeper";
-          } else if (hasAction("dialogue_innkeeper_ask_well")) {
+          } else if (hasAction("dialogue_innkeeper_ask_well") && !flags["heard_well_clue"]) {
             chosenId = "dialogue_innkeeper_ask_well";
-          } else if (hasAction("dialogue_innkeeper_ask_crypt")) {
+          } else if (hasAction("dialogue_innkeeper_ask_crypt") && !flags["heard_crypt_clue"]) {
             chosenId = "dialogue_innkeeper_ask_crypt";
           } else if (hasAction("dialogue_innkeeper_leave")) {
             chosenId = "dialogue_innkeeper_leave";

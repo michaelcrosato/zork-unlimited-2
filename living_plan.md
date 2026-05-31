@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #6 (Ready for Cycle #7)
-* **Build/Test Status**: 🟢 PASS (All 49 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #7 (Ready for Cycle #8)
+* **Build/Test Status**: 🟢 PASS (All 59 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -33,17 +33,18 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement the `ai-autopilot.ts` run harness using deterministic mock LLMs.
 - [x] Support real LLM execution using environment variables (Gemini / OpenAI).
 - [x] Connect the output of playtests directly to automatic code fixes.
+- [x] Design, implement, and validate advanced playtest personas (hoarder, explorer, dropper) to discover complex multi-step game design bugs (AF-07).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-07`
-* **Objective**: Design and implement advanced playtest personas and real LLM testing guidelines to discover complex multi-step game design bugs.
-* **Why this matters**: Enhances testing coverage to discover more complex soft-locks or puzzle design issues that basic speedrunning pathing cannot reach.
+**Task ID**: `AF-08`
+* **Objective**: Introduce and validate Stage 2 procedural rooms or dynamic content hooks to expand the "unlimited" capacity of the engine.
+* **Why this matters**: Empowers procedural content generation (e.g. dynamic dungeons, random forest layout locks) while preserving strict determinism and replayability.
 * **Planned Actions**:
-  1. Add new playtest persona profiles to `MockLlmClient` and update `ApiLlmClient` prompts to support those personas.
-  2. Implement hoarder, explorer, and dropper testing routes in the parser games.
-  3. Validate persona-based runs and ensure they all compile and run in autopilot correctly.
+  1. Add support for procedural room generator templates in Zork-style parser schemas.
+  2. Implement an on-demand dungeon graph expanding effect (`generate_procedural_room`).
+  3. Verify deterministic PRNG-seeded layouts and solve soft-locks via pathfinder in autopilot.
 
 ---
 
