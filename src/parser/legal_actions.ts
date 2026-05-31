@@ -1,6 +1,7 @@
 import { GameState } from "../core/state.js";
 import { ParserPack, ParserRoom, ParserObject, ParserNPC } from "./schema.js";
 import { AvailableAction } from "../api/types.js";
+import { evaluateConditions } from "../core/conditions.js";
 
 /**
  * Dynamically computes all legal actions for the player in the current GameState
@@ -80,6 +81,11 @@ export function generateLegalActions(
 
       if (node) {
         node.topics.forEach((topic) => {
+          if (topic.conditions && topic.conditions.length > 0) {
+            if (!evaluateConditions(state, topic.conditions)) {
+              return;
+            }
+          }
           actions.push({
             id: `dialogue_${npc.id}_${topic.id}`,
             command: `ask about ${topic.prompt.toLowerCase()}`,

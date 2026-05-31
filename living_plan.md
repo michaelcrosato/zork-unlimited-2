@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #2 (Ready for Cycle #3)
-* **Build/Test Status**: 🟢 PASS (All 35 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #3 (Ready for Cycle #4)
+* **Build/Test Status**: 🟢 PASS (All 39 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -26,7 +26,7 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ### Phase 2: Game Feel & Mechanics Expansion (Active)
 - [x] Introduce "Sierra-Quest-style" score telemetry and puzzle trackers.
-- [ ] Add advanced NPC dialog trees and multi-option dynamic choice routing.
+- [x] Add advanced NPC dialogue trees and multi-option dynamic choice routing.
 - [ ] Implement a full graph-based pathfinder validator to check for hard soft-locks (detect unreachable win states).
 
 ### Phase 3: Headless Playtest Automation (Active)
@@ -37,13 +37,13 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-03`
-* **Objective**: Add advanced NPC dialogue trees and multi-option dynamic choice routing.
-* **Why this matters**: Adding dynamic conversation choices and trees allows story packs to implement rich narrative interactions and complex quest-giving characters while maintaining absolute state determinism.
+**Task ID**: `AF-04`
+* **Objective**: Implement a full graph-based pathfinder validator to check for hard soft-locks (detect unreachable win states).
+* **Why this matters**: A graph-based state pathfinder will automatically detect if there's any game state where the player is permanently locked out of winning (e.g. unreachable rooms, keys locked inside boxes they open, or broken transitions), ensuring design soundness before game launch.
 * **Planned Actions**:
-  1. Inspect existing state representations and NPC dialogue structures in the schema files and engine.
-  2. Implement schema/engine support for NPC dialogue state, dialogue routing, and conversation nodes.
-  3. Expand content packs and write unit tests verifying dialogue transitions and deterministic outcomes.
+  1. Design a state-space traversal algorithm in `src/validate/parser_validator.ts` and `src/validate/cyoa_validator.ts` to explore reachable rooms and state changes.
+  2. Implement detection of hard soft-locks by verifying that at least one sequence of legal actions leads from the starting room to a win condition.
+  3. Write robust unit tests with simple mock story packs that simulate broken layouts to verify that the pathfinder correctly flags them.
 
 ---
 
@@ -51,6 +51,7 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 | Risk | Impact | Mitigation Strategy |
 | :--- | :---: | :--- |
+| **State-space explosion during pathfinding** | High | Cap the maximum depth/steps of the state explorer and focus validation on critical gate variables and room reachability. |
 | **Timeout during playtest** | High | Keep playtest path lengths bounded (e.g. max 35 steps) and use efficient execution loops. |
 | **Nondeterminism in engine** | High | Standardized JSON serialization sorting keys before hashing. Property test action sequences to assert identical hashes. |
 | **Infinite debugging loops** | Medium | Limit autonomous cycle runs to a single task per CLI session, preventing internal loops. |

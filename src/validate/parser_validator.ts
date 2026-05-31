@@ -140,6 +140,18 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
             where: [`npc:${npc.id}`, `node:${node.id}`, `topic:${topic.id}`],
           });
         }
+        if (topic.routing) {
+          topic.routing.forEach((route, idx) => {
+            if (!route.end && route.goto && !nodeIds.has(route.goto)) {
+              findings.push({
+                severity: "error",
+                code: "REFERENCE_ERROR",
+                message: `Dialogue node '${node.id}' topic '${topic.id}' routing[${idx}] goto destination '${route.goto}' does not exist.`,
+                where: [`npc:${npc.id}`, `node:${node.id}`, `topic:${topic.id}`],
+              });
+            }
+          });
+        }
       });
     });
   });
