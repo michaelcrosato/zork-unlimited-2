@@ -94,7 +94,7 @@ export function step(
       };
     }
 
-    const effectResult = applyEffects(newState, choice.effects);
+    const effectResult = applyEffects(newState, choice.effects, pack);
     newState = effectResult.state;
     events.push(...effectResult.events);
 
@@ -110,7 +110,7 @@ export function step(
 
       const nextScene = cyoaPack.scenes.find((s) => s.id === nextSceneId);
       if (nextScene) {
-        const enterResult = applyEffects(newState, nextScene.on_enter);
+        const enterResult = applyEffects(newState, nextScene.on_enter, pack);
         newState = enterResult.state;
         events.push(...enterResult.events);
 
@@ -510,7 +510,7 @@ export function step(
       );
 
       if (matchingInter) {
-        const effectResult = applyEffects(newState, matchingInter.effects);
+        const effectResult = applyEffects(newState, matchingInter.effects, pack);
         newState = effectResult.state;
         events.push(...effectResult.events);
       } else {
@@ -569,7 +569,7 @@ export function step(
 
       if (matchingInter) {
         // Apply effects
-        const effectResult = applyEffects(newState, matchingInter.effects);
+        const effectResult = applyEffects(newState, matchingInter.effects, pack);
         newState = effectResult.state;
         events.push(...effectResult.events);
         break;
@@ -707,7 +707,7 @@ export function step(
       }
 
       // Apply effects
-      const effectResult = applyEffects(newState, inter.effects);
+      const effectResult = applyEffects(newState, inter.effects, pack);
       newState = effectResult.state;
       events.push(...effectResult.events);
       break;
@@ -733,7 +733,7 @@ export function step(
 
       // Apply welcome node effects
       if (welcomeNode && welcomeNode.effects) {
-        const effectResult = applyEffects(newState, welcomeNode.effects);
+        const effectResult = applyEffects(newState, welcomeNode.effects, pack);
         newState = effectResult.state;
         events.push(...effectResult.events);
       }
@@ -791,7 +791,7 @@ export function step(
 
       // Apply topic-level effects
       if (topic.effects && topic.effects.length > 0) {
-        const effectResult = applyEffects(newState, topic.effects);
+        const effectResult = applyEffects(newState, topic.effects, pack);
         newState = effectResult.state;
         events.push(...effectResult.events);
       }
@@ -823,7 +823,7 @@ export function step(
         const nextNode = npc.dialogue.nodes.find((n) => n.id === nextNodeId);
         if (nextNode) {
           // Apply node effects
-          const effectResult = applyEffects(newState, nextNode.effects);
+          const effectResult = applyEffects(newState, nextNode.effects, pack);
           newState = effectResult.state;
           events.push(...effectResult.events);
 
@@ -901,7 +901,7 @@ export function step(
             rejectionReason: `Nothing happens.`,
           };
         }
-        const effectResult = applyEffects(newState, inter.effects);
+        const effectResult = applyEffects(newState, inter.effects, pack);
         newState = effectResult.state;
         events.push(...effectResult.events);
       } else {

@@ -113,6 +113,17 @@ export const ParserEndingSchema = z.object({
 
 export type ParserEnding = z.infer<typeof ParserEndingSchema>;
 
+export const ProceduralRoomTemplateSchema = z.object({
+  id: z.string(),
+  name_pool: z.array(z.string()),
+  description_pool: z.array(z.string()),
+  possible_objects: z.array(z.string()).optional().default([]),
+  possible_npcs: z.array(z.string()).optional().default([]),
+  exits: z.array(ParserExitSchema).optional().default([]),
+});
+
+export type ProceduralRoomTemplate = z.infer<typeof ProceduralRoomTemplateSchema>;
+
 export const ParserPackSchema = z.object({
   meta: z.object({
     id: z.string(),
@@ -126,6 +137,7 @@ export const ParserPackSchema = z.object({
   npcs: z.array(ParserNPCSchema).default([]),
   win_conditions: z.array(ParserWinConditionSchema).default([]),
   endings: z.array(ParserEndingSchema).default([]),
+  procedural_templates: z.array(ProceduralRoomTemplateSchema).optional(),
 });
 
 export type ParserPack = z.infer<typeof ParserPackSchema>;

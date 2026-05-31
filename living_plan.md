@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #7 (Ready for Cycle #8)
-* **Build/Test Status**: 🟢 PASS (All 59 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #8 (Ready for Cycle #9)
+* **Build/Test Status**: 🟢 PASS (All 62 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -18,10 +18,7 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement SHA-256 state hashing for perfect replayability.
 - [x] Create Choose-Your-Own-Adventure (CYOA) schemas and validators.
 - [x] Create Zork-style Parser schemas and validators.
-- [x] Audit and resolve warnings in existing content packs:
-  - `content/parser/pack/heros_quest.yaml` (Parser)
-  - `content/parser/pack/chapel.yaml` (Parser)
-  - `content/cyoa/pack/watchtower.yaml` (CYOA)
+- [x] Audit and resolve warnings in existing content packs.
 - [x] Add rigorous unit tests for deep edge cases in effect/condition DSL.
 
 ### Phase 2: Game Feel & Mechanics Expansion (Completed)
@@ -29,22 +26,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Add advanced NPC dialogue trees and multi-option dynamic choice routing.
 - [x] Implement a full graph-based pathfinder validator to check for hard soft-locks (detect unreachable win states).
 
-### Phase 3: Headless Playtest Automation (Completed)
+### Phase 3: Headless Playtest Automation & Procedural Dungeons (Completed)
 - [x] Implement the `ai-autopilot.ts` run harness using deterministic mock LLMs.
 - [x] Support real LLM execution using environment variables (Gemini / OpenAI).
 - [x] Connect the output of playtests directly to automatic code fixes.
-- [x] Design, implement, and validate advanced playtest personas (hoarder, explorer, dropper) to discover complex multi-step game design bugs (AF-07).
+- [x] Design, implement, and validate advanced playtest personas (hoarder, explorer, dropper) to discover complex multi-step game design bugs.
+- [x] Introduce and validate Stage 2 procedural rooms and dynamic template generators (`AF-08`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-08`
-* **Objective**: Introduce and validate Stage 2 procedural rooms or dynamic content hooks to expand the "unlimited" capacity of the engine.
-* **Why this matters**: Empowers procedural content generation (e.g. dynamic dungeons, random forest layout locks) while preserving strict determinism and replayability.
+**Task ID**: `AF-09`
+* **Objective**: Implement Task-F4 Procedural Weather & Real-Time Environmental Effects.
+* **Why this matters**: Integrates an environmental tick engine updating weather patterns (e.g. rain, fog, storms) based on steps and room locations, dynamically altering sensory observations and modifying room traversal conditions.
 * **Planned Actions**:
-  1. Add support for procedural room generator templates in Zork-style parser schemas.
-  2. Implement an on-demand dungeon graph expanding effect (`generate_procedural_room`).
-  3. Verify deterministic PRNG-seeded layouts and solve soft-locks via pathfinder in autopilot.
+  1. Add environmental state fields (e.g. weather type, temperature) to the GameState Schema.
+  2. Implement an environmental tick effect that deterministically updates weather every N steps.
+  3. Support environmental condition modifiers in the condition evaluation DSL (e.g., locking slick paths when raining unless wearing boots).
+  4. Write comprehensive tests and validate via playtest personas.
 
 ---
 

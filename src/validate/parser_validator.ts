@@ -452,6 +452,44 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
     });
   }
 
+  // 10. Procedural Room Templates Verification
+  if (pack.procedural_templates) {
+    const templateIds = new Set<string>();
+    pack.procedural_templates.forEach((temp) => {
+      if (templateIds.has(temp.id)) {
+        findings.push({
+          severity: "error",
+          code: "DUPLICATE_TEMPLATE_ID",
+          message: `Duplicate procedural template ID: '${temp.id}'.`,
+          where: [`procedural_templates:${temp.id}`],
+        });
+      }
+      templateIds.add(temp.id);
+
+      temp.possible_objects?.forEach((objId) => {
+        if (!objectIds.has(objId)) {
+          findings.push({
+            severity: "error",
+            code: "REFERENCE_ERROR",
+            message: `Procedural template '${temp.id}' references non-existent possible_object '${objId}'.`,
+            where: [`procedural_templates:${temp.id}`],
+          });
+        }
+      });
+
+      temp.possible_npcs?.forEach((npcId) => {
+        if (!npcIds.has(npcId)) {
+          findings.push({
+            severity: "error",
+            code: "REFERENCE_ERROR",
+            message: `Procedural template '${temp.id}' references non-existent possible_npc '${npcId}'.`,
+            where: [`procedural_templates:${temp.id}`],
+          });
+        }
+      });
+    });
+  }
+
   // 9. Graph-based state-space pathfinder
   const pathfinderFindings = checkParserSoftlocks(pack);
   findings.push(...pathfinderFindings);

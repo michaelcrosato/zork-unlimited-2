@@ -68,11 +68,13 @@ Output format for each cycle:
 
 This is the end of your single cycle. Terminate now."
 
-# Verify that agy CLI is available
-if ! command -v agy &> /dev/null; then
-  echo "🔴 Error: The 'agy' (Antigravity) CLI tool could not be found."
-  echo "Please make sure it is installed and present in your system PATH."
-  exit 1
+# Verify execution command or that agy CLI is available
+if [[ -z "${AI_AGENT_CMD:-}" ]]; then
+  if ! command -v agy &> /dev/null; then
+    echo "🔴 Error: The 'agy' (Antigravity) CLI tool could not be found."
+    echo "Please make sure it is installed and present in your system PATH, or set AI_AGENT_CMD."
+    exit 1
+  fi
 fi
 
 CYCLE=1
@@ -90,9 +92,16 @@ while true; do
   echo "🌀 RUNNING AUTONOMOUS CYCLE #$CYCLE"
   echo "================================================================================"
   
-  # Run the agent in headless Antigravity YOLO mode (automatically approves command/tool requests)
-  agy --dangerously-skip-permissions --print "$PROMPT"
-  STATUS=$?
+  # Run the agent using AI_AGENT_CMD if set, otherwise fallback to agy
+  if [[ -n "${AI_AGENT_CMD:-}" ]]; then
+    echo "🤖 Executing agent via: $AI_AGENT_CMD"
+    echo "$PROMPT" | eval "$AI_AGENT_CMD"
+    STATUS=$?
+  else
+    echo "🤖 Executing agent via 'agy'..."
+    agy --dangerously-skip-permissions --print "$PROMPT"
+    STATUS=$?
+  fi
   
   if [ $STATUS -eq 0 ]; then
     FAILURES=0
