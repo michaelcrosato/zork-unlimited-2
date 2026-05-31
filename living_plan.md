@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #1 (Ready for Cycle #2)
-* **Build/Test Status**: 🟢 PASS (All 18 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #2 (Ready for Cycle #3)
+* **Build/Test Status**: 🟢 PASS (All 35 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -13,7 +13,7 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ## 📊 Backlog & Roadmap
 
-### Phase 1: Stability & Validation (Active)
+### Phase 1: Stability & Validation (Completed)
 - [x] Establish deterministic state step transitions and mulberry32 PRNG.
 - [x] Implement SHA-256 state hashing for perfect replayability.
 - [x] Create Choose-Your-Own-Adventure (CYOA) schemas and validators.
@@ -22,10 +22,10 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
   - `content/parser/pack/heros_quest.yaml` (Parser)
   - `content/parser/pack/chapel.yaml` (Parser)
   - `content/cyoa/pack/watchtower.yaml` (CYOA)
-- [ ] Add rigorous unit tests for deep edge cases in effect/condition DSL.
+- [x] Add rigorous unit tests for deep edge cases in effect/condition DSL.
 
-### Phase 2: Game Feel & Mechanics Expansion (Upcoming)
-- [ ] Introduce "Sierra-Quest-style" score telemetry and puzzle trackers.
+### Phase 2: Game Feel & Mechanics Expansion (Active)
+- [x] Introduce "Sierra-Quest-style" score telemetry and puzzle trackers.
 - [ ] Add advanced NPC dialog trees and multi-option dynamic choice routing.
 - [ ] Implement a full graph-based pathfinder validator to check for hard soft-locks (detect unreachable win states).
 
@@ -37,13 +37,13 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-02`
-* **Objective**: Implement comprehensive, rigorous unit tests for deep edge cases in the effect/condition DSL (Domain Specific Language) interpreter.
-* **Why this matters**: As the DSL is used to run complex game-state logic (e.g. state changes, flag setting, and condition matching), ensuring absolute correctness of all operators prevents hidden bugs in user-created content packs and playtests.
+**Task ID**: `AF-03`
+* **Objective**: Add advanced NPC dialogue trees and multi-option dynamic choice routing.
+* **Why this matters**: Adding dynamic conversation choices and trees allows story packs to implement rich narrative interactions and complex quest-giving characters while maintaining absolute state determinism.
 * **Planned Actions**:
-  1. Inspect existing DSL parsing and execution files in `src/core/conditions.ts` and `src/core/effects.ts`.
-  2. Identify edge cases (nested conditions, invalid operators, multiple conditions).
-  3. Author unit tests under `tests/dsl.test.ts` to fully exercise all edge conditions.
+  1. Inspect existing state representations and NPC dialogue structures in the schema files and engine.
+  2. Implement schema/engine support for NPC dialogue state, dialogue routing, and conversation nodes.
+  3. Expand content packs and write unit tests verifying dialogue transitions and deterministic outcomes.
 
 ---
 
@@ -54,3 +54,4 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 | **Timeout during playtest** | High | Keep playtest path lengths bounded (e.g. max 35 steps) and use efficient execution loops. |
 | **Nondeterminism in engine** | High | Standardized JSON serialization sorting keys before hashing. Property test action sequences to assert identical hashes. |
 | **Infinite debugging loops** | Medium | Limit autonomous cycle runs to a single task per CLI session, preventing internal loops. |
+
