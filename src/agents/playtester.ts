@@ -66,14 +66,23 @@ export async function runAiPlaytest(options: {
     // 2. Query playtester LLM client to choose an action
     let choiceResponse: { chosen_action_id: string; reason: string; expected_result: string };
     try {
+      const personaGuidelines: Record<string, string> = {
+        speedrunner: "Focus on the absolute fastest path to victory. Avoid unnecessary rooms, conversations, or item collections unless they are strictly required to win.",
+        hoarder: "Prioritize taking and collecting every item you see immediately. Never drop items. If no items are available to take, proceed with the main quest.",
+        dropper: "Pick up items but occasionally drop them, sometimes in odd or wrong locations, to stress test if they can be recovered. You must backtrack to retrieve them when you realize they are missing and needed.",
+        explorer: "Be thorough and curious. Explore every room, look at and inspect objects, and talk to every NPC to exhaust their dialogue trees before finishing the game.",
+        mainline: "A standard, logical player who follows the main quest in a straightforward manner, solving puzzles in the expected order."
+      };
+      const personaInstruction = personaGuidelines[persona] ?? personaGuidelines.mainline;
+
       choiceResponse = await client.completeJson<{
         chosen_action_id: string;
         reason: string;
         expected_result: string;
       }>({
         role: "playtester",
-        system: `You are an AI playtester playing under the '${persona}' persona. You receive the current game scene and available choices. Choose one choice to play.`,
-        input: { ...obs, persona, flags: state.flags, vars: state.vars },
+        system: `You are an AI playtester playing under the '${persona}' persona.\nGuidelines: ${personaInstruction}\nYou receive the current game scene and available choices. Choose one choice to play.`,
+        input: { ...obs, persona, flags: state.flags, vars: state.vars, visited: state.visited, step: state.step },
         schema: {
           type: "object",
           properties: {
