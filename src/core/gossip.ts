@@ -1,0 +1,333 @@
+import { GameState, Transaction, createInitialState } from "./state.js";
+import { Action, StepResult } from "../api/types.js";
+import { multiAgentStep } from "./sync.js";
+
+export interface VectorClock {
+  [nodeId: string]: number;
+}
+
+/**
+ * A message sent between nodes in the P2P network.
+ */
+export interface GossipMessage {
+  senderId: string;
+  vectorClock: VectorClock;
+  transactions: Transaction[];
+}
+
+/**
+ * Compares two vector clocks to see if clockB has updates clockA is missing.
+ * Returns true if clockB is strictly ahead of clockA in at least one entry,
+ * or if clockB contains peer node IDs that clockA is completely unaware of.
+ */
+export function isClockBehind(clockA: VectorClock, clockB: VectorClock): boolean {
+  for (const nodeId of Object.keys(clockB)) {
+    if (clockA[nodeId] === undefined) {
+      return true;
+    }
+    const valA = clockA[nodeId] ?? 0;
+    const valB = clockB[nodeId];
+    if (valB > valA) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Merges two vector clocks component-wise by taking the maximum value.
+ */
+export function mergeVectorClocks(clockA: VectorClock, clockB: VectorClock): VectorClock {
+  const merged: VectorClock = { ...clockA };
+  for (const [nodeId, valB] of Object.entries(clockB)) {
+    const valA = merged[nodeId] ?? 0;
+    merged[nodeId] = Math.max(valA, valB);
+  }
+  return merged;
+}
+
+/**
+ * Computes a unique, deterministic ID for a transaction.
+ */
+export function getTransactionId(tx: Transaction): string {
+  const actionStr = typeof tx.action === "string" ? tx.action : JSON.stringify(tx.action);
+  return `${tx.agentId}-${tx.sequenceNumber}-${tx.timestamp}-${tx.stateHashBefore}-${actionStr}`;
+}
+
+/**
+ * Merges two transaction lists, removing duplicates, and sorting them in a deterministic total order:
+ * 1. sequenceNumber (logical step) ascending
+ * 2. timestamp ascending
+ * 3. agentId alphabetically
+ */
+export function mergeAndSortTransactions(txsA: Transaction[], txsB: Transaction[]): Transaction[] {
+  const seen = new Set<string>();
+  const merged: Transaction[] = [];
+
+  const addUnique = (txs: Transaction[]) => {
+    for (const tx of txs) {
+      const id = getTransactionId(tx);
+      if (!seen.has(id)) {
+        seen.add(id);
+        merged.push(tx);
+      }
+    }
+  };
+
+  addUnique(txsA);
+  addUnique(txsB);
+
+  return merged.sort((a, b) => {
+    if (a.sequenceNumber !== b.sequenceNumber) {
+      return a.sequenceNumber - b.sequenceNumber;
+    }
+    if (a.timestamp !== b.timestamp) {
+      return a.timestamp - b.timestamp;
+    }
+    return a.agentId.localeCompare(b.agentId);
+  });
+}
+
+/**
+ * Merges monotonic fields directly between two states as a pure CRDT-style merge.
+ * - 'visited': Union/OR merge.
+ * - 'journal': Ordered union merge (preserving unique events in stable order).
+ */
+export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState): GameState {
+  const visited = { ...stateA.visited, ...stateB.visited };
+
+  const journalSet = new Set<string>();
+  const journal: string[] = [];
+  const addJournal = (items: string[]) => {
+    for (const item of items) {
+      if (!journalSet.has(item)) {
+        journalSet.add(item);
+        journal.push(item);
+      }
+    }
+  };
+  addJournal(stateA.journal || []);
+  addJournal(stateB.journal || []);
+
+  return {
+    ...stateA,
+    visited,
+    journal,
+  };
+}
+
+/**
+ * Reconstructs a converged GameState by replaying a deterministically sorted list of transactions
+ * starting from the original initial state parameters of the pack.
+ */
+export function reconstructState(
+  seed: number,
+  pack: any,
+  transactions: Transaction[],
+  allAgentIds: string[]
+): GameState {
+  // Deterministically sort the agents alphabetically to ensure identical hash generation across nodes
+  const sortedAgentIds = Array.from(new Set(allAgentIds)).sort();
+
+  let state = createInitialState({
+    seed,
+    start: pack.meta?.start || pack.start || "clearing",
+    flagsInit: pack.meta?.flags_init || [],
+    varsInit: pack.meta?.vars_init || {},
+    agentsInit: sortedAgentIds.length > 0 ? sortedAgentIds : undefined,
+  });
+
+  // Replay all transactions in order (omitting sequence/hash constraints to allow resolution)
+  for (const tx of transactions) {
+    const res = multiAgentStep(
+      state,
+      {
+        agentId: tx.agentId,
+        action: tx.action,
+      },
+      pack
+    );
+    if (res.ok) {
+      state = res.state;
+    }
+  }
+
+  return state;
+}
+
+/**
+ * Decoupled, local engine runtime node executing a vector clock and gossip sync protocol.
+ */
+export class GossipNode {
+  public nodeId: string;
+  public localState: GameState;
+  public vectorClock: VectorClock;
+  public pack: any;
+  public peers: Map<string, GossipNode> = new Map();
+
+  constructor(nodeId: string, pack: any, seed = 42) {
+    this.nodeId = nodeId;
+    this.pack = pack;
+    this.localState = createInitialState({
+      seed,
+      start: pack.meta?.start || pack.start || "clearing",
+      flagsInit: pack.meta?.flags_init || [],
+      varsInit: pack.meta?.vars_init || {},
+      agentsInit: [nodeId],
+    });
+    this.vectorClock = {
+      [nodeId]: 0,
+    };
+    this.localState.vectorClock = { ...this.vectorClock };
+  }
+
+  /**
+   * Connects this node to another peer in the decentralized network.
+   */
+  public connect(peer: GossipNode): void {
+    this.peers.set(peer.nodeId, peer);
+    peer.peers.set(this.nodeId, this);
+  }
+
+  /**
+   * Disconnects this node from a peer (simulates network partition/disconnect).
+   */
+  public disconnect(peerId: string): void {
+    const peer = this.peers.get(peerId);
+    if (peer) {
+      this.peers.delete(peerId);
+      peer.peers.delete(this.nodeId);
+    }
+  }
+
+  /**
+   * Executes an action locally on this engine instance.
+   * Increments the node's local component of the vector clock on success.
+   */
+  public executeLocalAction(action: Action): StepResult {
+    const res = multiAgentStep(
+      this.localState,
+      {
+        agentId: this.nodeId,
+        action,
+      },
+      this.pack
+    );
+
+    if (res.ok) {
+      this.localState = res.state;
+      this.vectorClock[this.nodeId] = (this.vectorClock[this.nodeId] ?? 0) + 1;
+      this.localState.vectorClock = { ...this.vectorClock };
+    }
+    return res;
+  }
+
+  /**
+   * Generates a gossip message to send to a specific peer.
+   * Based on the peer's known vector clock, sends only the missing delta transactions.
+   */
+  public generateGossipMessageFor(peerId: string): GossipMessage {
+    const peerNode = this.peers.get(peerId);
+    const peerClock = peerNode ? peerNode.vectorClock : {};
+
+    const agentTxCounts: Record<string, number> = {};
+    const deltaTransactions: Transaction[] = [];
+
+    for (const tx of this.localState.transactionJournal || []) {
+      const agentId = tx.agentId;
+      const currentCount = agentTxCounts[agentId] ?? 0;
+      agentTxCounts[agentId] = currentCount + 1;
+
+      // If the peer's clock indicates they have processed fewer transactions for this agent
+      // than the current transaction index, they are missing it.
+      const peerSeq = peerClock[agentId] ?? 0;
+      if (currentCount >= peerSeq) {
+        deltaTransactions.push(tx);
+      }
+    }
+
+    return {
+      senderId: this.nodeId,
+      vectorClock: { ...this.vectorClock },
+      transactions: deltaTransactions,
+    };
+  }
+
+  /**
+   * Receives a gossip message from a peer.
+   * Merges delta transactions, resolves conflicts, and reconstructs converged state.
+   */
+  public receiveGossip(message: GossipMessage): boolean {
+    // 1. Check if the message contains any updates or clock advancements we don't have
+    const isBehind = isClockBehind(this.vectorClock, message.vectorClock);
+    const hasNewTransactions = message.transactions.some(tx => {
+      const id = getTransactionId(tx);
+      const ourIds = (this.localState.transactionJournal || []).map(getTransactionId);
+      return !ourIds.includes(id);
+    });
+
+    if (!isBehind && !hasNewTransactions) {
+      return false; // No new information, abort gossip to avoid infinite storm
+    }
+
+    // 2. Merge vector clocks component-wise
+    this.vectorClock = mergeVectorClocks(this.vectorClock, message.vectorClock);
+
+    // 3. Merge transaction histories and sort deterministically
+    const mergedTxs = mergeAndSortTransactions(
+      this.localState.transactionJournal || [],
+      message.transactions
+    );
+
+    // 4. Gather all unique agent/peer IDs known from transactions and vector clock
+    const allAgentIds = Array.from(new Set([
+      ...mergedTxs.map(tx => tx.agentId),
+      ...Object.keys(this.vectorClock),
+      this.nodeId
+    ]));
+
+    // 5. Reconstruct converged GameState from transactions and the full list of agents
+    let convergedState = reconstructState(this.localState.seed, this.pack, mergedTxs, allAgentIds);
+
+    // Overwrite the transaction journal with the original canonical merged transactions to preserve timestamps/hashes
+    convergedState.transactionJournal = mergedTxs;
+
+    // 6. Merge independent monotonic fields (visited, journal) using CRDT rules
+    convergedState = mergeMonotonicStateFields(convergedState, this.localState);
+
+    // 7. Recalculate transaction counts to update vector clocks self-healingly
+    const agentCounts: Record<string, number> = {};
+    for (const tx of mergedTxs) {
+      if (tx.ok) {
+        agentCounts[tx.agentId] = (agentCounts[tx.agentId] ?? 0) + 1;
+      }
+    }
+    for (const [agentId, count] of Object.entries(agentCounts)) {
+      this.vectorClock[agentId] = Math.max(this.vectorClock[agentId] ?? 0, count);
+    }
+
+    convergedState.vectorClock = { ...this.vectorClock };
+    this.localState = convergedState;
+
+    return true;
+  }
+
+  /**
+   * Triggers a round of gossip synchronization with all connected peers.
+   * Returns the number of peers that successfully updated their state.
+   */
+  public gossip(): number {
+    let updatedCount = 0;
+    for (const peerId of this.peers.keys()) {
+      const msg = this.generateGossipMessageFor(peerId);
+      const peerNode = this.peers.get(peerId);
+      if (peerNode) {
+        const updated = peerNode.receiveGossip(msg);
+        if (updated) {
+          updatedCount++;
+        }
+      }
+    }
+    return updatedCount;
+  }
+}

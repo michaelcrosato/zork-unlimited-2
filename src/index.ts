@@ -6,6 +6,10 @@ export { step } from "./core/engine.js";
 export { multiAgentStep, buildObservationForAgent } from "./core/sync.js";
 export type { MultiAgentAction } from "./core/sync.js";
 
+// Gossip & P2P Sync
+export { GossipNode, isClockBehind, mergeVectorClocks, getTransactionId, mergeAndSortTransactions, mergeMonotonicStateFields, reconstructState } from "./core/gossip.js";
+export type { VectorClock, GossipMessage } from "./core/gossip.js";
+
 // Hashing & Seeded PRNG
 export { PureRand } from "./core/rng.js";
 export { canonicalStringify, computeSha256, computeStateHash, computeStateHashShort } from "./core/hash.js";

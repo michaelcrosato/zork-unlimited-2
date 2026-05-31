@@ -69,6 +69,7 @@ export const GameStateSchema = z.object({
   agents: z.record(z.string(), AgentStateSchema).optional(),
   transactionJournal: z.array(TransactionSchema).optional(),
   stateHistory: z.array(z.any()).optional(),
+  vectorClock: z.record(z.string(), z.number()).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -120,6 +121,7 @@ export const createInitialState = (options: {
     agents: options.agentsInit ? agents : undefined,
     transactionJournal: [],
     stateHistory: [],
+    vectorClock: options.agentsInit ? Object.fromEntries(options.agentsInit.map((id) => [id, 0])) : {},
   };
 };
 

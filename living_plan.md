@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #12 (Ready for Cycle #13)
-* **Build/Test Status**: 🟢 PASS (All 76 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #13 (Ready for Cycle #14)
+* **Build/Test Status**: 🟢 PASS (All 80 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -29,7 +29,7 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 ### Phase 3: Headless Playtest Automation & Procedural Dungeons (Completed)
 - [x] Implement the `ai-autopilot.ts` run harness using deterministic mock LLMs.
 - [x] Support real LLM execution using environment variables (Gemini / OpenAI).
-- [x] Connect the output of playtests directly to automatic code fixes.
+- [x] Connect the output of playtests directly to automatic code tests.
 - [x] Design, implement, and validate advanced playtest personas (hoarder, explorer, dropper) to discover complex multi-step game design bugs.
 - [x] Introduce and validate Stage 2 procedural rooms and dynamic template generators (`AF-08`).
 
@@ -58,16 +58,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Build a local buffer for agent actions (`AgentActionBuffer`) that handles laggy transport simulations (`AF-12`).
 - [x] Expand unit test suites to simulate concurrent agent racing conditions (`AF-12`).
 
+### Phase 8: Gossip Protocol & Delta-State Sync (Completed)
+- [x] Build a light peer sync representation using Vector Clocks (`AF-13`).
+- [x] Implement state reconciliation using commutative delta-state merges and deterministic transaction replay (`AF-13`).
+- [x] Write comprehensive unit and integration tests simulating network partitions and convergence upon recovery (`AF-13`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-13`
-* **Objective**: Implement a distributed gossip protocol or state-reconciliation protocol (like CRDTs or delta-state sync) to synchronize game state across multiple completely decoupled local engine runtimes.
-* **Why this matters**: Enables peer-to-peer multiplayer without requiring a central authority, allowing decentralized peer agents to explore and sync in real time.
+**Task ID**: `AF-14`
+* **Objective**: Build a Decentralized Cooperative Dungeon Expedition framework that utilizes the GossipNode P2P protocol to synchronize procedurally generated rooms and item loot drops dynamically across decoupled peers exploring a shared procedural dungeon world.
+* **Why this matters**: Demonstrates that the P2P gossip layer can seamlessly scale to handle dynamic procedural content generation and shared world state (like dynamic room spawns and loot chests) without centralized authority.
 * **Planned Actions**:
-  1. Build a light peer sync representation using vector clocks.
-  2. Implement state reconciliation using commutative delta merges.
-  3. Write tests simulating temporary network partitions and recovery.
+  1. Build a decentralized procedural room synchronizer that propagates dynamically generated rooms via GossipNode transactions.
+  2. Implement P2P lock-free chest loot claiming (LWW or single-owner assignment using CRDT transaction merges).
+  3. Write comprehensive unit and integration tests simulating peer explorations and resource races in P2P dungeons.
 
 ---
 
