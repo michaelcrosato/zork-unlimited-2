@@ -4,6 +4,7 @@ import { evaluateCondition } from "../src/core/conditions.js";
 import { step } from "../src/core/engine.js";
 import { buildObservation } from "../src/api/observation.js";
 import { ParserPack } from "../src/parser/schema.js";
+import { checkParserSoftlocks } from "../src/validate/parser_validator.js";
 
 describe("Procedural Weather & Environmental Engine", () => {
   it("should initialize with default clear/mild environment", () => {
@@ -161,5 +162,101 @@ describe("Procedural Weather & Environmental Engine", () => {
     const obsCrypt = buildObservation(state, pack);
     const descCrypt = (obsCrypt as any).description;
     expect(descCrypt).not.toContain("Rain is falling steadily from the gray sky.");
+  });
+
+  it("should restrict weather based on room weather_pool and force transitions on room change", () => {
+    const pack: ParserPack = {
+      meta: {
+        id: "weather-pool-test",
+        title: "Weather Pool Test Pack",
+        start_room: "room_inside",
+        vars_init: {},
+        flags_init: [],
+      },
+      rooms: [
+        {
+          id: "room_inside",
+          name: "Cozy Parlor",
+          description: "Inside a cozy parlor.",
+          objects: [],
+          npcs: [],
+          exits: [{ direction: "out", to: "room_outside", conditions: [] }],
+          weather_pool: ["clear"],
+        },
+        {
+          id: "room_outside",
+          name: "Slick Garden",
+          description: "Outside in a slick garden.",
+          objects: [],
+          npcs: [],
+          exits: [{ direction: "in", to: "room_inside", conditions: [] }],
+          weather_pool: ["rain", "storm"],
+        },
+      ],
+      objects: [],
+      npcs: [],
+      win_conditions: [],
+      endings: [],
+    };
+
+    let state = createInitialState({ seed: 42, start: "room_inside" });
+    // Initially weather is clear, which is allowed inside.
+    expect(state.environment?.weather).toBe("clear");
+
+    // Move to outside. The weather must immediately change to rain or storm because clear is not in outside's weather_pool.
+    let result = step(state, { type: "MOVE", direction: "out" }, pack);
+    expect(result.ok).toBe(true);
+    state = result.state;
+    expect(["rain", "storm"]).toContain(state.environment?.weather);
+    expect(result.events.some((e) => e.type === "narration" && e.text.startsWith("[Environment]"))).toBe(true);
+
+    // Move back inside. The weather must immediately change back to clear.
+    result = step(state, { type: "MOVE", direction: "in" }, pack);
+    expect(result.ok).toBe(true);
+    state = result.state;
+    expect(state.environment?.weather).toBe("clear");
+  });
+
+  it("should correctly optimize pathfinder state-space search by omitting environment from state keys unless weather conditions exist", () => {
+    const packWithoutWeather: ParserPack = {
+      meta: {
+        id: "no-weather-pack",
+        title: "No Weather Pack",
+        start_room: "room_a",
+        vars_init: {},
+        flags_init: [],
+      },
+      rooms: [
+        {
+          id: "room_a",
+          name: "Room A",
+          description: "Room A",
+          objects: [],
+          npcs: [],
+          exits: [{ direction: "east", to: "room_b", conditions: [] }],
+        },
+        {
+          id: "room_b",
+          name: "Room B",
+          description: "Room B",
+          objects: [],
+          npcs: [],
+          exits: [],
+        },
+      ],
+      objects: [],
+      npcs: [],
+      win_conditions: [
+        {
+          id: "win_cond",
+          conditions: [{ visited: "room_b" }],
+          ending: "win",
+        },
+      ],
+      endings: [{ id: "win", title: "Win", text: "You won!" }],
+    };
+
+    const findings = checkParserSoftlocks(packWithoutWeather);
+    expect(findings.length).toBe(0);
   });
 });

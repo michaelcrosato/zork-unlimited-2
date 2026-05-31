@@ -25,8 +25,10 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
     flagsInit: pack.meta.flags_init,
   });
 
+  const hasWeather = JSON.stringify(pack).includes('"weather_is"') || JSON.stringify(pack).includes('"temperature_is"');
+
   const getStateKey = (state: GameState): string => {
-    const clean = {
+    const clean: any = {
       current: state.current,
       flags: state.flags,
       vars: state.vars,
@@ -36,6 +38,12 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
       ended: state.ended,
       endingId: state.endingId,
     };
+    if (hasWeather && state.environment) {
+      clean.environment = {
+        weather: state.environment.weather,
+        temperature: state.environment.temperature,
+      };
+    }
     return canonicalStringify(clean);
   };
 

@@ -93,6 +93,7 @@ export const ParserRoomSchema = z.object({
   objects: z.array(z.string()).default([]), // Object IDs currently in this room
   npcs: z.array(z.string()).optional().default([]), // NPC IDs in this room
   exits: z.array(ParserExitSchema).default([]),
+  weather_pool: z.array(z.string()).optional(),
 });
 
 export type ParserRoom = z.infer<typeof ParserRoomSchema>;
@@ -120,6 +121,7 @@ export const ProceduralRoomTemplateSchema = z.object({
   possible_objects: z.array(z.string()).optional().default([]),
   possible_npcs: z.array(z.string()).optional().default([]),
   exits: z.array(ParserExitSchema).optional().default([]),
+  weather_pool: z.array(z.string()).optional(),
 });
 
 export type ProceduralRoomTemplate = z.infer<typeof ProceduralRoomTemplateSchema>;

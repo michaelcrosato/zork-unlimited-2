@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #9 (Ready for Cycle #10)
-* **Build/Test Status**: 🟢 PASS (All 66 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #10 (Ready for Cycle #11)
+* **Build/Test Status**: 🟢 PASS (All 68 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -40,17 +40,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Inject dynamic scenic atmospheric narration based on weather for outdoor locations.
 - [x] Write comprehensive Vitest test coverage and pass all autopilot playtests.
 
+### Phase 5: Environmental Restraints & Pathfinder Optimization (Completed)
+- [x] Add detailed architectural comments to `tickEnvironment` and `getWeatherForStep` explaining stateless pure-hash math (`AF-10`).
+- [x] Implement an optional `weather_pool` property in rooms/scenes and templates to restrict local room climate.
+- [x] Force immediate deterministic weather updates upon room entry when current weather is invalid for the new pool.
+- [x] Optimize pathfinder to omit environment fields from state keys unless weather conditions are defined in the pack.
+- [x] Add robust unit tests for climate restriction transitions and pathfinder key optimizations.
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-10`
-* **Objective**: Refine, optimize, and document the newly introduced Weather and Environmental system, including standardizing procedural generation hooks and preparing for Stage 5 multiplayer/multi-agent telemetry.
-* **Why this matters**: Ensures the code remains impeccably documented and performant as we prepare the headless engine for highly scaleable multi-agent testing across millions of steps.
+**Task ID**: `AF-11`
+* **Objective**: Implement multiplayer/multi-agent telemetry instrumentation and real-time state synchronization, preparing the engine for distributed playtesting across multiple cooperative/adversarial agents.
+* **Why this matters**: Enables high-throughput validation of complex multi-agent interactions and cooperative puzzle-solving in shared text-adventure worlds.
 * **Planned Actions**:
-  1. Add detailed architectural comments to `tickEnvironment` and `getWeatherForStep`.
-  2. Implement an optional `weather_pool` property in rooms to restrict weather conditions on a per-room basis.
-  3. Optimize the state-space pathfinder to ignore purely narrative environment states, preserving search efficiency.
-  4. Write comprehensive tests and validate via playtest personas.
+  1. Add a transaction journal to capture and serialize multi-agent interactions.
+  2. Implement an optimistic lock mechanism or sequence number validation for state sync.
+  3. Expand content packs to include multi-agent/multiplayer scenarios.
+  4. Write comprehensive tests and validate via multiplayer personas.
 
 ---
 

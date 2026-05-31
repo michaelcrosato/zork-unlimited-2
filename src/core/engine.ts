@@ -129,7 +129,7 @@ export function step(
     }
 
     newState.step += 1;
-    newState = tickEnvironment(newState, events);
+    newState = tickEnvironment(newState, events, pack);
     return { state: newState, events, ok: true };
   }
 
@@ -307,7 +307,7 @@ export function step(
             newState.vars["hp"] = playerHp;
             newState.vars["mana"] = playerMana;
             newState.step += 1;
-            newState = tickEnvironment(newState, events);
+            newState = tickEnvironment(newState, events, pack);
             return { state: newState, events, ok: true };
           } else {
             combatLog += `🏃 You try to flee, but the ${enemy.name} blocks your escape!\n`;
@@ -362,7 +362,7 @@ export function step(
         });
 
         newState.step += 1;
-        newState = tickEnvironment(newState, events);
+        newState = tickEnvironment(newState, events, pack);
         return { state: newState, events, ok: true };
       }
     }
@@ -944,7 +944,7 @@ export function step(
   }
 
   newState.step += 1;
-  newState = tickEnvironment(newState, events);
+  newState = tickEnvironment(newState, events, pack);
   return {
     state: newState,
     events,
@@ -952,8 +952,29 @@ export function step(
   };
 }
 
-function getWeatherForStep(seed: number, step: number): { weather: string; temperature: string } {
-  const weathers = ["clear", "rain", "fog", "storm"];
+/**
+ * Deterministically computes the weather and temperature for a given step and seed.
+ * 
+ * ### Architectural Rationale:
+ * 1. **Mathematical Purity & Determinism**:
+ *    This function uses `Math.imul` (signed 32-bit integer multiplication) to generate a
+ *    stateless, pure-hash pseudo-random value. This ensures 100% deterministic output
+ *    for any given seed + step sequence without modifying or consuming the dynamic PRNG
+ *    state (`state.seed`). This is critical for perfect state replayability and pathfinding validation.
+ * 
+ * 2. **Context-Aware Constraints (Weather Pools)**:
+ *    The `weatherPool` parameter allows constraining the possible weather types on a
+ *    per-room/per-scene basis. If a room defines `weather_pool`, the random selection is
+ *    mapped exclusively to elements in that array, ensuring narrative and mechanical consistency
+ *    (e.g., indoor rooms having only "clear"/dry weather, or deep dungeons with specialized conditions).
+ */
+function getWeatherForStep(
+  seed: number,
+  step: number,
+  weatherPool?: string[]
+): { weather: string; temperature: string } {
+  const defaultWeathers = ["clear", "rain", "fog", "storm"];
+  const weathers = (weatherPool && weatherPool.length > 0) ? weatherPool : defaultWeathers;
   const temperatures = ["cold", "mild", "hot"];
 
   // Compute a deterministic hash of seed + floor(step / 5)
@@ -971,7 +992,25 @@ function getWeatherForStep(seed: number, step: number): { weather: string; tempe
   };
 }
 
-function tickEnvironment(state: GameState, events: GameEvent[]): GameState {
+/**
+ * Ticks the environment state, handling weather shifts and room-restricted weather pools.
+ * 
+ * ### Architectural Rationale:
+ * 1. **5-Step Interval Ticking**:
+ *    To maintain realism and avoid narration clutter, weather shifts occur on a 5-step interval
+ *    using the formula `floor(step / 5)`.
+ * 
+ * 2. **Seamless Per-Room Constraints**:
+ *    When the player transitions to a new room/scene with a specialized `weather_pool`,
+ *    the current weather may become invalid. This function immediately detects invalid weather states
+ *    relative to the new room's `weather_pool` and forces a deterministic transition, emitting
+ *    appropriate narrative events to notify the player of the local atmosphere change.
+ */
+function tickEnvironment(
+  state: GameState,
+  events: GameEvent[],
+  pack?: CYOAPack | ParserPack
+): GameState {
   if (!state.environment) {
     state.environment = {
       weather: "clear",
@@ -980,11 +1019,31 @@ function tickEnvironment(state: GameState, events: GameEvent[]): GameState {
     };
   }
 
+  // Look up weather pool of the current room or scene
+  let weatherPool: string[] | undefined = undefined;
+  if (pack) {
+    if ("scenes" in pack) {
+      const scene = (pack as CYOAPack).scenes.find((s) => s.id === state.current);
+      if (scene) {
+        weatherPool = scene.weather_pool;
+      }
+    } else {
+      const room = findRoom(state, pack as ParserPack, state.current);
+      if (room) {
+        weatherPool = room.weather_pool;
+      }
+    }
+  }
+
   const interval = Math.floor(state.step / 5);
   const lastInterval = Math.floor(state.environment.lastUpdatedStep / 5);
 
-  if (state.step > 0 && interval !== lastInterval) {
-    const { weather: nextWeather, temperature: nextTemp } = getWeatherForStep(state.seed, state.step);
+  const isWeatherAllowed = !weatherPool || weatherPool.length === 0 || weatherPool.includes(state.environment.weather);
+  const intervalChanged = state.step > 0 && interval !== lastInterval;
+
+  // We tick if the 5-step interval has changed OR if the current weather is not allowed in this room
+  if (intervalChanged || !isWeatherAllowed) {
+    const { weather: nextWeather, temperature: nextTemp } = getWeatherForStep(state.seed, state.step, weatherPool);
 
     const oldWeather = state.environment.weather;
     const oldTemp = state.environment.temperature;
@@ -1009,6 +1068,9 @@ function tickEnvironment(state: GameState, events: GameEvent[]): GameState {
       else if (nextWeather === "rain") msg = "A steady rain begins to fall, slicking the ground.";
       else if (nextWeather === "fog") msg = "A thick, chilly fog rolls in, obscuring your vision.";
       else if (nextWeather === "storm") msg = "The wind picks up as a violent storm breaks overhead!";
+      else {
+        msg = `The weather changes, becoming ${nextWeather}.`;
+      }
 
       events.push({
         type: "narration",
