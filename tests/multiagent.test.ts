@@ -3,7 +3,7 @@ import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { parse as parseYaml } from "yaml";
 import { createInitialState } from "../src/core/state.js";
-import { multiAgentStep, buildObservationForAgent } from "../src/core/sync.js";
+import { multiAgentStep, buildObservationForAgent, AgentActionBuffer } from "../src/core/sync.js";
 import { computeStateHash } from "../src/index.js";
 
 const packPath = fileURLToPath(new URL("../content/parser/pack/multiplayer_forest.yaml", import.meta.url));
@@ -200,7 +200,7 @@ describe("Multi-Agent Telemetry & Real-Time Sync Tests", () => {
     expect(state.endingId).toBe("ending_victory");
   });
 
-  it("should enforce optimistic locking via sequence number and state hash checks", () => {
+  it("should enforce optimistic locking via sequence number and state hash checks when history is unavailable", () => {
     let state = createInitialState({
       seed: 42,
       start: "clearing",
@@ -225,9 +225,12 @@ describe("Multi-Agent Telemetry & Real-Time Sync Tests", () => {
     expect(res.ok).toBe(true);
     const updatedState = res.state;
 
+    // Clear history to simulate history unavailable / purged
+    const updatedStateNoHistory = { ...updatedState, stateHistory: undefined };
+
     // Beta attempts to act at sequence 0 -> REJECTED (optimistic locking conflict)
     let resConflict = multiAgentStep(
-      updatedState,
+      updatedStateNoHistory,
       {
         agentId: "helper_beta",
         action: { type: "LOOK" },
@@ -250,6 +253,168 @@ describe("Multi-Agent Telemetry & Real-Time Sync Tests", () => {
       pack
     );
     expect(resBetaCorrect.ok).toBe(true);
+  });
+
+  it("should successfully merge non-conflicting concurrent actions using state rollback", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      agentsInit: ["explorer_alpha", "helper_beta"],
+      flagsInit: pack.meta.flags_init,
+      varsInit: pack.meta.vars_init,
+    });
+
+    const expectedHash = computeStateHash(state);
+
+    // Alpha acts at sequence 0 -> moves to control room
+    let resAlpha = multiAgentStep(
+      state,
+      {
+        agentId: "explorer_alpha",
+        action: { type: "MOVE", direction: "west" },
+        expectedSequenceNumber: 0,
+        expectedStateHash: expectedHash,
+      },
+      pack
+    );
+    expect(resAlpha.ok).toBe(true);
+    state = resAlpha.state;
+
+    // Beta attempts to act concurrently at sequence 0 (stale sequence/hash) -> LOOK in clearing
+    // Since LOOK is non-conflicting and Beta is in the clearing (while Alpha moved to control room), this should succeed and merge!
+    let resBetaMerged = multiAgentStep(
+      state,
+      {
+        agentId: "helper_beta",
+        action: { type: "LOOK" },
+        expectedSequenceNumber: 0,
+        expectedStateHash: expectedHash,
+      },
+      pack
+    );
+    expect(resBetaMerged.ok).toBe(true);
+    state = resBetaMerged.state;
+
+    // Verify both changes were preserved: Alpha is in control_room, Beta is in clearing, step is 2
+    expect(state.agents!["explorer_alpha"].current).toBe("control_room");
+    expect(state.agents!["helper_beta"].current).toBe("clearing");
+    expect(state.step).toBe(2);
+  });
+
+  it("should reject conflicting concurrent actions (Write-Write conflict on objects/flags) even when history is available", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      agentsInit: ["explorer_alpha", "helper_beta"],
+      flagsInit: pack.meta.flags_init,
+      varsInit: pack.meta.vars_init,
+    });
+
+    const expectedHash = computeStateHash(state);
+
+    // Move explorer_alpha to control room so they can pull the lever
+    let resAlpha = multiAgentStep(
+      state,
+      {
+        agentId: "explorer_alpha",
+        action: { type: "MOVE", direction: "west" },
+      },
+      pack
+    );
+    expect(resAlpha.ok).toBe(true);
+    state = resAlpha.state;
+
+    const hashBeforeCo = computeStateHash(state);
+    const seqBeforeCo = state.step;
+
+    // 1. Alpha pulls the lever at sequence seqBeforeCo -> SUCCESS (unlocks cage)
+    let resAlphaPull = multiAgentStep(
+      state,
+      {
+        agentId: "explorer_alpha",
+        action: { type: "USE", item: "lever", target: "lever" },
+        expectedSequenceNumber: seqBeforeCo,
+        expectedStateHash: hashBeforeCo,
+      },
+      pack
+    );
+    expect(resAlphaPull.ok).toBe(true);
+    let stateWithPull = resAlphaPull.state;
+
+    // 2. Beta concurrently attempts to OPEN the cage at sequence seqBeforeCo -> REJECTED
+    // Since Beta tries to OPEN the cage at sequence seqBeforeCo (when it was still locked in the historical state),
+    // applying it directly to the historical state fails (because the cage is locked at step seqBeforeCo)!
+    // So the late action itself fails on historicalState, meaning it is correctly rejected!
+    let resBetaOpenConflict = multiAgentStep(
+      stateWithPull,
+      {
+        agentId: "helper_beta",
+        action: { type: "OPEN", target: "cage" },
+        expectedSequenceNumber: seqBeforeCo,
+        expectedStateHash: hashBeforeCo,
+      },
+      pack
+    );
+    expect(resBetaOpenConflict.ok).toBe(false);
+  });
+
+  it("should process ready actions from AgentActionBuffer with simulated latency", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      agentsInit: ["explorer_alpha", "helper_beta"],
+      flagsInit: pack.meta.flags_init,
+      varsInit: pack.meta.vars_init,
+    });
+
+    const buffer = new AgentActionBuffer();
+
+    const expectedHash = computeStateHash(state);
+
+    // Add Alpha's move west with 10ms latency
+    buffer.add(
+      {
+        agentId: "explorer_alpha",
+        action: { type: "MOVE", direction: "west" },
+        expectedSequenceNumber: 0,
+        expectedStateHash: expectedHash,
+      },
+      10
+    );
+
+    // Add Beta's look with 20ms latency
+    buffer.add(
+      {
+        agentId: "helper_beta",
+        action: { type: "LOOK" },
+        expectedSequenceNumber: 0,
+        expectedStateHash: expectedHash,
+      },
+      20
+    );
+
+    expect(buffer.getQueueLength()).toBe(2);
+
+    // At time t=5, no actions are ready
+    let processed = buffer.processReady(state, pack, Date.now() + 5);
+    expect(processed.results).toHaveLength(0);
+    expect(processed.state.step).toBe(0);
+
+    // At time t=15, Alpha's action is ready
+    processed = buffer.processReady(state, pack, Date.now() + 15);
+    expect(processed.results).toHaveLength(1);
+    expect(processed.results[0].agentId).toBe("explorer_alpha");
+    expect(processed.results[0].result.ok).toBe(true);
+    expect(processed.state.step).toBe(1);
+    state = processed.state;
+
+    // At time t=25, Beta's action is ready. Because Beta acts with stale expectedSequenceNumber: 0,
+    // the buffer/sync processes it using the rollback conflict resolution, merging it successfully!
+    processed = buffer.processReady(state, pack, Date.now() + 25);
+    expect(processed.results).toHaveLength(1);
+    expect(processed.results[0].agentId).toBe("helper_beta");
+    expect(processed.results[0].result.ok).toBe(true);
+    expect(processed.state.step).toBe(2);
   });
 
   it("should record comprehensive telemetry inside the transaction journal", () => {

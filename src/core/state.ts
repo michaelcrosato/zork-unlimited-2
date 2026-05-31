@@ -68,6 +68,7 @@ export const GameStateSchema = z.object({
   // multi-agent synchronization and telemetry
   agents: z.record(z.string(), AgentStateSchema).optional(),
   transactionJournal: z.array(TransactionSchema).optional(),
+  stateHistory: z.array(z.any()).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -118,6 +119,7 @@ export const createInitialState = (options: {
     },
     agents: options.agentsInit ? agents : undefined,
     transactionJournal: [],
+    stateHistory: [],
   };
 };
 
