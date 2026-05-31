@@ -44,6 +44,7 @@ export type { ValidationFinding, ValidationReport } from "./validate/report.js";
 // AI Agents & LLM Clients
 export type { LlmClient } from "./agents/llm/client.js";
 export { MockLlmClient } from "./agents/llm/mock_client.js";
+export { ApiLlmClient } from "./agents/llm/api_client.js";
 export { runAiPlaytest } from "./agents/playtester.js";
 export type { PlaytestLogEntry, PlaytestResult } from "./agents/playtester.js";
 export { draftStory } from "./agents/writer.js";

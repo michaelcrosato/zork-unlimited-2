@@ -7,6 +7,8 @@ import { validateCYOAPack } from "../validate/cyoa_validator.js";
 import { validateParserPack } from "../validate/parser_validator.js";
 import { runAiPlaytest } from "../agents/playtester.js";
 import { MockLlmClient } from "../agents/llm/mock_client.js";
+import { ApiLlmClient } from "../agents/llm/api_client.js";
+import { LlmClient } from "../agents/llm/client.js";
 
 interface PackResult {
   name: string;
@@ -53,7 +55,10 @@ async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
     { path: "content/cyoa/pack/watchtower.yaml", type: "CYOA" as const },
   ];
 
-  const client = new MockLlmClient();
+  const client: LlmClient =
+    process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY
+      ? new ApiLlmClient()
+      : new MockLlmClient();
 
   for (const packMeta of packs) {
     const fullPath = resolve(packMeta.path);
