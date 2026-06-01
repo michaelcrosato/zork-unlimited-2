@@ -216,7 +216,11 @@ export type Action =
   | { type: "PROPOSE_SWEEP_POOL_RANK_ADJUST"; proposalId: string; syndicateId: string; targetSyndicateId: string; targetRank: number; timestamp: number }
   | { type: "VOTE_SWEEP_POOL_RANK_ADJUST"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_SWEEP_POOL_RANK_ADJUST_FEE_CALIBRATION"; proposalId: string; syndicateId: string; targetProposalFee: number; targetVoteFee: number; timestamp: number }
-  | { type: "VOTE_SWEEP_POOL_RANK_ADJUST_FEE_CALIBRATION"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_SWEEP_POOL_RANK_ADJUST_FEE_CALIBRATION"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_SWEEP_POOL_RANK_ADJUST_FEE_GOVERNANCE_CAP"; proposalId: string; syndicateId: string; targetProposalFeeCap: number; targetVoteFeeCap: number; timestamp: number }
+  | { type: "VOTE_SWEEP_POOL_RANK_ADJUST_FEE_GOVERNANCE_CAP"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_SWEEP_POOL_REDISTRIBUTION_FEE_GOVERNANCE_CAP"; proposalId: string; syndicateId: string; targetProposalFeeCap: number; targetVoteFeeCap: number; timestamp: number }
+  | { type: "VOTE_SWEEP_POOL_REDISTRIBUTION_FEE_GOVERNANCE_CAP"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

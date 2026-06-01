@@ -1409,8 +1409,8 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(prop?.status).toBe("proposed");
     expect(prop?.resolved).toBe(false);
     expect(prop?.votes?.["player"]?.vote).toBe(true);
-    // Proposal fee deducted: 10000 - 200 = 9800
-    expect(state.syndicates?.alpha?.warChest).toBe(9800);
+    // Proposal fee deducted: 10000 - 90 = 9910
+    expect(state.syndicates?.alpha?.warChest).toBe(9910);
 
     // Vote to authorize by alice (majority of alpha: members are player and alice, majority is > 1 which is 2)
     const stepResult2 = multiAgentStep(
@@ -1438,8 +1438,8 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     // GameState fields updated!
     expect(state.sweepPoolRedistributionThreshold).toBe(300);
     expect(state.sweepPoolAutoCompound).toBe(true);
-    // Vote fee deducted: 9800 - 50 = 9750
-    expect(state.syndicates?.alpha?.warChest).toBe(9750);
+    // Vote fee deducted: 9910 - 23 = 9887
+    expect(state.syndicates?.alpha?.warChest).toBe(9887);
   });
 
   it("should automatically redistribute the sweep pool proportionally based on participation ranks on economy tick when standing recovers", () => {
@@ -2017,6 +2017,219 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       // Verify GameState fields are updated
       expect(state.sweepPoolRankAdjustBaseProposalFee).toBe(150);
       expect(state.sweepPoolRankAdjustBaseVoteFee).toBe(40);
+    });
+  });
+
+  describe("Syndicate SWF Sweep Pool Fee Governance Caps and Surplus Routing (AF-210)", () => {
+    it("should allow proposing and voting on sweep pool rank adjust fee governance caps", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player", "alice"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player", "alice"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+      };
+
+      // Propose rank adjust fee governance cap
+      const stepResult = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "PROPOSE_SWEEP_POOL_RANK_ADJUST_FEE_GOVERNANCE_CAP",
+            proposalId: "gov_cap_prop_1",
+            syndicateId: "alpha",
+            targetProposalFeeCap: 150,
+            targetVoteFeeCap: 40,
+            timestamp: 1005,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult.ok).toBe(true);
+      state = stepResult.state;
+
+      const prop = state.sweepPoolRankAdjustFeeGovernanceCapProposals?.["gov_cap_prop_1"];
+      expect(prop?.status).toBe("proposed");
+      expect(prop?.resolved).toBe(false);
+
+      // Vote to authorize by alice
+      const stepResult2 = multiAgentStep(
+        state,
+        {
+          agentId: "alice",
+          action: {
+            type: "VOTE_SWEEP_POOL_RANK_ADJUST_FEE_GOVERNANCE_CAP",
+            syndicateId: "alpha",
+            proposalId: "gov_cap_prop_1",
+            vote: true,
+            timestamp: 1020,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult2.ok).toBe(true);
+      state = stepResult2.state;
+
+      const propAfter = state.sweepPoolRankAdjustFeeGovernanceCapProposals?.["gov_cap_prop_1"];
+      expect(propAfter?.status).toBe("authorized");
+      expect(propAfter?.resolved).toBe(true);
+
+      // Verify GameState fields are updated
+      expect(state.sweepPoolRankAdjustProposalFeeCap).toBe(150);
+      expect(state.sweepPoolRankAdjustVoteFeeCap).toBe(40);
+    });
+
+    it("should allow proposing and voting on sweep pool redistribution fee governance caps", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player", "alice"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player", "alice"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+      };
+
+      // Propose redistribution fee governance cap
+      const stepResult = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "PROPOSE_SWEEP_POOL_REDISTRIBUTION_FEE_GOVERNANCE_CAP",
+            proposalId: "gov_cap_prop_2",
+            syndicateId: "alpha",
+            targetProposalFeeCap: 160,
+            targetVoteFeeCap: 45,
+            timestamp: 1005,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult.ok).toBe(true);
+      state = stepResult.state;
+
+      const prop = state.sweepPoolRedistributionFeeGovernanceCapProposals?.["gov_cap_prop_2"];
+      expect(prop?.status).toBe("proposed");
+      expect(prop?.resolved).toBe(false);
+
+      // Vote to authorize by alice
+      const stepResult2 = multiAgentStep(
+        state,
+        {
+          agentId: "alice",
+          action: {
+            type: "VOTE_SWEEP_POOL_REDISTRIBUTION_FEE_GOVERNANCE_CAP",
+            syndicateId: "alpha",
+            proposalId: "gov_cap_prop_2",
+            vote: true,
+            timestamp: 1020,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult2.ok).toBe(true);
+      state = stepResult2.state;
+
+      const propAfter = state.sweepPoolRedistributionFeeGovernanceCapProposals?.["gov_cap_prop_2"];
+      expect(propAfter?.status).toBe("authorized");
+      expect(propAfter?.resolved).toBe(true);
+
+      // Verify GameState fields are updated
+      expect(state.sweepPoolRedistributionProposalFeeCap).toBe(160);
+      expect(state.sweepPoolRedistributionVoteFeeCap).toBe(45);
+    });
+
+    it("should clamp dynamic proposal/vote fees at the authorized caps", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player", "alice"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player", "alice"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+        beta: {
+          id: "beta",
+          name: "Beta Syndicate",
+          members: [],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+      };
+
+      state.syndicateAlliances = {
+        alpha: { beta: "allied" },
+        beta: { alpha: "allied" },
+      };
+
+      // Set extremely low caps to test the clamping behavior
+      state.sweepPoolRankAdjustProposalFeeCap = 50;
+      state.sweepPoolRankAdjustVoteFeeCap = 15;
+      state.sweepPoolRankAdjustBaseProposalFee = 200;
+      state.sweepPoolRankAdjustBaseVoteFee = 50;
+      state.swfStakingSweepPool = 100;
+
+      // In this setup:
+      // allies = [beta] -> count = 1
+      // total reserves = 20000 -> allianceScalar = 0.9, reserveScalar = 0.5 -> dynamicFeeMultiplier = 0.45
+      // rawProposalFee = Math.round(200 * 0.45) = 90
+      // Since proposalFeeCap = 50, the actual proposal fee should be clamped to 50!
+
+      const stepResult = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "PROPOSE_SWEEP_POOL_RANK_ADJUST",
+            proposalId: "rank_prop_1",
+            syndicateId: "alpha",
+            targetSyndicateId: "beta",
+            targetRank: 5,
+            timestamp: 1005,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult.ok).toBe(true);
+      state = stepResult.state;
+
+      // Alpha's war chest should have 10000 - 50 = 9950 gold.
+      expect(state.syndicates?.alpha?.warChest).toBe(9950);
+      expect(state.swfStakingSweepPool).toBe(100);
     });
   });
 });

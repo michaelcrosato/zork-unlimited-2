@@ -2690,6 +2690,50 @@ export const SweepPoolRankAdjustFeeCalibrationProposalSchema = z.object({
 });
 export type SweepPoolRankAdjustFeeCalibrationProposal = z.infer<typeof SweepPoolRankAdjustFeeCalibrationProposalSchema>;
 
+export const SweepPoolRankAdjustFeeGovernanceCapProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetProposalFeeCap: z.number().int().nonnegative(),
+  targetVoteFeeCap: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SweepPoolRankAdjustFeeGovernanceCapProposal = z.infer<typeof SweepPoolRankAdjustFeeGovernanceCapProposalSchema>;
+
+export const SweepPoolRankAdjustFeeGovernanceCapVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SweepPoolRankAdjustFeeGovernanceCapVote = z.infer<typeof SweepPoolRankAdjustFeeGovernanceCapVoteSchema>;
+
+export const SweepPoolRedistributionFeeGovernanceCapProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetProposalFeeCap: z.number().int().nonnegative(),
+  targetVoteFeeCap: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SweepPoolRedistributionFeeGovernanceCapProposal = z.infer<typeof SweepPoolRedistributionFeeGovernanceCapProposalSchema>;
+
+export const SweepPoolRedistributionFeeGovernanceCapVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SweepPoolRedistributionFeeGovernanceCapVote = z.infer<typeof SweepPoolRedistributionFeeGovernanceCapVoteSchema>;
+
 
 
 
@@ -3612,6 +3656,16 @@ export const GameStateSchema = z.object({
   sweepPoolRankAdjustBaseProposalFee: z.number().int().nonnegative().optional(),
   sweepPoolRankAdjustBaseVoteFee: z.number().int().nonnegative().optional(),
   sweepPoolRankAdjustFeeCalibrationProposals: z.record(z.string(), SweepPoolRankAdjustFeeCalibrationProposalSchema).optional(),
+  sweepPoolRankAdjustProposalFeeCap: z.number().int().nonnegative().optional(),
+  sweepPoolRankAdjustVoteFeeCap: z.number().int().nonnegative().optional(),
+  sweepPoolRedistributionBaseProposalFee: z.number().int().nonnegative().optional(),
+  sweepPoolRedistributionBaseVoteFee: z.number().int().nonnegative().optional(),
+  sweepPoolRedistributionProposalFeeCap: z.number().int().nonnegative().optional(),
+  sweepPoolRedistributionVoteFeeCap: z.number().int().nonnegative().optional(),
+  sweepPoolRankAdjustFeeGovernanceCapProposals: z.record(z.string(), SweepPoolRankAdjustFeeGovernanceCapProposalSchema).optional(),
+  sweepPoolRankAdjustFeeGovernanceCapVotes: z.record(z.string(), z.record(z.string(), SweepPoolRankAdjustFeeGovernanceCapVoteSchema)).optional(),
+  sweepPoolRedistributionFeeGovernanceCapProposals: z.record(z.string(), SweepPoolRedistributionFeeGovernanceCapProposalSchema).optional(),
+  sweepPoolRedistributionFeeGovernanceCapVotes: z.record(z.string(), z.record(z.string(), SweepPoolRedistributionFeeGovernanceCapVoteSchema)).optional(),
 
 
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
@@ -4017,6 +4071,16 @@ export const createInitialState = (options: {
     sweepPoolRankAdjustBaseProposalFee: 200,
     sweepPoolRankAdjustBaseVoteFee: 50,
     sweepPoolRankAdjustFeeCalibrationProposals: {},
+    sweepPoolRankAdjustProposalFeeCap: 300,
+    sweepPoolRankAdjustVoteFeeCap: 100,
+    sweepPoolRedistributionBaseProposalFee: 200,
+    sweepPoolRedistributionBaseVoteFee: 50,
+    sweepPoolRedistributionProposalFeeCap: 300,
+    sweepPoolRedistributionVoteFeeCap: 100,
+    sweepPoolRankAdjustFeeGovernanceCapProposals: {},
+    sweepPoolRankAdjustFeeGovernanceCapVotes: {},
+    sweepPoolRedistributionFeeGovernanceCapProposals: {},
+    sweepPoolRedistributionFeeGovernanceCapVotes: {},
 
 
     swfReinsuranceOptionPremiumContributions: {},
@@ -5123,6 +5187,16 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     sweepPoolRankAdjustBaseProposalFee: rest.sweepPoolRankAdjustBaseProposalFee,
     sweepPoolRankAdjustBaseVoteFee: rest.sweepPoolRankAdjustBaseVoteFee,
     sweepPoolRankAdjustFeeCalibrationProposals: rest.sweepPoolRankAdjustFeeCalibrationProposals ? JSON.parse(JSON.stringify(rest.sweepPoolRankAdjustFeeCalibrationProposals)) : undefined,
+    sweepPoolRankAdjustProposalFeeCap: rest.sweepPoolRankAdjustProposalFeeCap,
+    sweepPoolRankAdjustVoteFeeCap: rest.sweepPoolRankAdjustVoteFeeCap,
+    sweepPoolRedistributionBaseProposalFee: rest.sweepPoolRedistributionBaseProposalFee,
+    sweepPoolRedistributionBaseVoteFee: rest.sweepPoolRedistributionBaseVoteFee,
+    sweepPoolRedistributionProposalFeeCap: rest.sweepPoolRedistributionProposalFeeCap,
+    sweepPoolRedistributionVoteFeeCap: rest.sweepPoolRedistributionVoteFeeCap,
+    sweepPoolRankAdjustFeeGovernanceCapProposals: rest.sweepPoolRankAdjustFeeGovernanceCapProposals ? JSON.parse(JSON.stringify(rest.sweepPoolRankAdjustFeeGovernanceCapProposals)) : undefined,
+    sweepPoolRankAdjustFeeGovernanceCapVotes: rest.sweepPoolRankAdjustFeeGovernanceCapVotes ? JSON.parse(JSON.stringify(rest.sweepPoolRankAdjustFeeGovernanceCapVotes)) : undefined,
+    sweepPoolRedistributionFeeGovernanceCapProposals: rest.sweepPoolRedistributionFeeGovernanceCapProposals ? JSON.parse(JSON.stringify(rest.sweepPoolRedistributionFeeGovernanceCapProposals)) : undefined,
+    sweepPoolRedistributionFeeGovernanceCapVotes: rest.sweepPoolRedistributionFeeGovernanceCapVotes ? JSON.parse(JSON.stringify(rest.sweepPoolRedistributionFeeGovernanceCapVotes)) : undefined,
 
 
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
@@ -9045,6 +9119,112 @@ export function reconcileSweepPoolRankAdjustFeeCalibrations(state: GameState, pa
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Sweep Pool Rank Adjust Fee Calibration Resolved] Syndicate ${syndicateId} successfully authorized fee calibration proposal ${proposalId} setting base proposal fee to ${targetProposalFee} and base vote fee to ${targetVoteFee}.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSweepPoolRankAdjustFeeGovernanceCaps(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sweepPoolRankAdjustFeeGovernanceCapProposals: state.sweepPoolRankAdjustFeeGovernanceCapProposals ? { ...state.sweepPoolRankAdjustFeeGovernanceCapProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sweepPoolRankAdjustFeeGovernanceCapProposals || {})) {
+    const proposal = newState.sweepPoolRankAdjustFeeGovernanceCapProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, targetProposalFeeCap, targetVoteFeeCap } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (falseVotes.length > 0) {
+      newState.sweepPoolRankAdjustFeeGovernanceCapProposals[proposalId] = {
+        ...proposal,
+        status: "disputed",
+      };
+    }
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sweepPoolRankAdjustFeeGovernanceCapProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      newState.sweepPoolRankAdjustProposalFeeCap = targetProposalFeeCap;
+      newState.sweepPoolRankAdjustVoteFeeCap = targetVoteFeeCap;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Rank Adjust Fee Governance Cap Resolved] Syndicate ${syndicateId} successfully authorized fee governance cap proposal ${proposalId} setting proposal fee cap to ${targetProposalFeeCap} and vote fee cap to ${targetVoteFeeCap}.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSweepPoolRedistributionFeeGovernanceCaps(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sweepPoolRedistributionFeeGovernanceCapProposals: state.sweepPoolRedistributionFeeGovernanceCapProposals ? { ...state.sweepPoolRedistributionFeeGovernanceCapProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sweepPoolRedistributionFeeGovernanceCapProposals || {})) {
+    const proposal = newState.sweepPoolRedistributionFeeGovernanceCapProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, targetProposalFeeCap, targetVoteFeeCap } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (falseVotes.length > 0) {
+      newState.sweepPoolRedistributionFeeGovernanceCapProposals[proposalId] = {
+        ...proposal,
+        status: "disputed",
+      };
+    }
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sweepPoolRedistributionFeeGovernanceCapProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      newState.sweepPoolRedistributionProposalFeeCap = targetProposalFeeCap;
+      newState.sweepPoolRedistributionVoteFeeCap = targetVoteFeeCap;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Redistribution Fee Governance Cap Resolved] Syndicate ${syndicateId} successfully authorized fee governance cap proposal ${proposalId} setting proposal fee cap to ${targetProposalFeeCap} and vote fee cap to ${targetVoteFeeCap}.`
       );
     }
   }
