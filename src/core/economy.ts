@@ -667,6 +667,7 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
     ...state,
     swfReinsuranceOptionOrderBookVolumes: state.swfReinsuranceOptionOrderBookVolumes ? { ...state.swfReinsuranceOptionOrderBookVolumes } : {},
     swfReinsuranceOptionOrderBookDepths: state.swfReinsuranceOptionOrderBookDepths ? { ...state.swfReinsuranceOptionOrderBookDepths } : {},
+    swfReinsuranceOptionVolatilityInsurancePools: state.swfReinsuranceOptionVolatilityInsurancePools ? JSON.parse(JSON.stringify(state.swfReinsuranceOptionVolatilityInsurancePools)) : {},
     journal: state.journal ? [...state.journal] : [],
   };
 
@@ -721,7 +722,34 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
 
     const highestBuyPrice = buyOrders.length > 0 ? Math.max(...buyOrders.map((o) => o.limitPrice)) : 0;
     const lowestSellPrice = sellOrders.length > 0 ? Math.min(...sellOrders.map((o) => o.limitPrice)) : 0;
-    const bidAskSpread = (highestBuyPrice > 0 && lowestSellPrice > 0) ? Math.max(0, lowestSellPrice - highestBuyPrice) : 0;
+    let bidAskSpread = (highestBuyPrice > 0 && lowestSellPrice > 0) ? Math.max(0, lowestSellPrice - highestBuyPrice) : 0;
+
+    // Volatility Insurance spread stabilization (AF-172)
+    const volPolicy = newState.swfReinsuranceOptionVolatilityInsurancePolicies?.[key];
+    const volPool = newState.swfReinsuranceOptionVolatilityInsurancePools?.[key];
+    if (volPolicy && volPool && volPool.balance > 0 && bidAskSpread > volPolicy.stabilizationThreshold) {
+      const originalSpread = bidAskSpread;
+      const spreadExcess = bidAskSpread - volPolicy.stabilizationThreshold;
+      const maxDrawdown = volPool.balance;
+      const spreadReduction = Math.min(spreadExcess, Math.floor(maxDrawdown / (volPolicy.drawdownMultiplier || 1)));
+      const drawdown = Math.round(spreadReduction * (volPolicy.drawdownMultiplier || 1));
+
+      if (drawdown > 0) {
+        if (!newState.swfReinsuranceOptionVolatilityInsurancePools) {
+          newState.swfReinsuranceOptionVolatilityInsurancePools = {};
+        }
+        newState.swfReinsuranceOptionVolatilityInsurancePools[key] = {
+          ...volPool,
+          balance: volPool.balance - drawdown,
+          timestamp: newState.step,
+        };
+        bidAskSpread = Math.max(volPolicy.stabilizationThreshold, bidAskSpread - spreadReduction);
+        
+        newState.journal.push(
+          `[SWF Reinsurance Option Spread Stabilization] Severe market volatility detected on ${key}. Narrowed bid-ask spread by ${spreadReduction} gold (from ${originalSpread} to ${bidAskSpread}) by drawing down ${drawdown} gold from Volatility Insurance Pool (New Pool Balance: ${newState.swfReinsuranceOptionVolatilityInsurancePools[key].balance} gold).`
+        );
+      }
+    }
 
     let poolLinkStateDropRate = 0.0;
     let cdoId = "";
@@ -833,6 +861,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   const afterMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
   newState.swfReinsuranceOptionOrderBookVolumes = afterMetrics.swfReinsuranceOptionOrderBookVolumes;
   newState.swfReinsuranceOptionOrderBookDepths = afterMetrics.swfReinsuranceOptionOrderBookDepths;
+  newState.swfReinsuranceOptionVolatilityInsurancePools = afterMetrics.swfReinsuranceOptionVolatilityInsurancePools;
   newState.journal = afterMetrics.journal;
 
   // Dynamic Volatility Index (VIX-style) calculation (AF-144)
@@ -7163,11 +7192,18 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         const rebateRate = Math.min(maxRebateRate, dynamicRebateRate);
         const rebateAmount = Math.round(finalPrice * rebateRate);
 
+        // Retrieve volatility insurance policy and calculate deflected amount if configured
+        const volInsurancePolicy = newState.swfReinsuranceOptionVolatilityInsurancePolicies?.[policyKey];
+        let deflectedAmount = 0;
+        if (volInsurancePolicy) {
+          deflectedAmount = Math.round(finalPrice * volInsurancePolicy.deflectionRate);
+        }
+
         // Check buyer warChest
         if ((buyer.warChest ?? 0) < finalPrice + finalFeeA) {
           continue; // Buyer doesn't have enough gold, skip this match
         }
-        if ((seller.warChest ?? 0) + finalPrice < finalFeeB) {
+        if ((seller.warChest ?? 0) + finalPrice - deflectedAmount < finalFeeB) {
           continue;
         }
 
@@ -7229,9 +7265,9 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
           };
         }
 
-        // Transfer gold using final price, deduct transaction fees, and apply rebate (AF-155)
+        // Transfer gold using final price, deduct transaction fees, apply rebate, and deflect volatility insurance if configured
         let netBuyerDiff = -finalPrice - finalFeeA;
-        let netSellerDiff = finalPrice - finalFeeB;
+        let netSellerDiff = finalPrice - finalFeeB - deflectedAmount;
         if (makerIsBuy) {
           netBuyerDiff += rebateAmount;
         } else {
@@ -7243,6 +7279,29 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
 
         newState.syndicates[buyOrder.syndicateId] = { ...buyer };
         newState.syndicates[sellOrder.syndicateId] = { ...seller };
+
+        // Deposit deflected amount to volatility insurance pool
+        if (deflectedAmount > 0 && volInsurancePolicy) {
+          if (!newState.swfReinsuranceOptionVolatilityInsurancePools) {
+            newState.swfReinsuranceOptionVolatilityInsurancePools = {};
+          }
+          if (!newState.swfReinsuranceOptionVolatilityInsurancePools[policyKey]) {
+            newState.swfReinsuranceOptionVolatilityInsurancePools[policyKey] = {
+              id: `pool_${policyKey}`,
+              swfYieldCdoId: buyOrder.swfYieldCdoId,
+              trancheId: buyOrder.trancheId,
+              balance: 0,
+              timestamp: newState.step,
+            };
+          }
+          const pool = newState.swfReinsuranceOptionVolatilityInsurancePools[policyKey];
+          pool.balance += deflectedAmount;
+          pool.timestamp = newState.step;
+
+          newState.journal.push(
+            `[SWF Reinsurance Option Volatility Insurance Deflection] Deflected ${deflectedAmount} gold (Rate: ${(volInsurancePolicy.deflectionRate * 100).toFixed(2)}%) from trade matching volume to Volatility Insurance Pool ${pool.id} (New Pool Balance: ${pool.balance} gold).`
+          );
+        }
 
         // Scale remaining order sizes
         if (buyOrder.size <= matchedSize) {
@@ -7481,6 +7540,7 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
   const afterMatchMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
   newState.swfReinsuranceOptionOrderBookVolumes = afterMatchMetrics.swfReinsuranceOptionOrderBookVolumes;
   newState.swfReinsuranceOptionOrderBookDepths = afterMatchMetrics.swfReinsuranceOptionOrderBookDepths;
+  newState.swfReinsuranceOptionVolatilityInsurancePools = afterMatchMetrics.swfReinsuranceOptionVolatilityInsurancePools;
   newState.journal = afterMatchMetrics.journal;
 
   // AF-153: Dynamic Liquidity Mining Reward distribution based on price closeness to mid-market price
