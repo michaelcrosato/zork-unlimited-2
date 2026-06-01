@@ -844,6 +844,24 @@ export const JointLoanUnderwriteVoteSchema = z.object({
 });
 export type JointLoanUnderwriteVote = z.infer<typeof JointLoanUnderwriteVoteSchema>;
 
+export const JointLoanInsurancePoolSchema = z.object({
+  syndicateId: z.string(),
+  poolGold: z.number().int().nonnegative(),
+  premiumRate: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type JointLoanInsurancePool = z.infer<typeof JointLoanInsurancePoolSchema>;
+
+export const AgentPremiumPolicySchema = z.object({
+  agentId: z.string(),
+  syndicateId: z.string(),
+  groupId: z.string(),
+  premiumPaid: z.number().int().nonnegative(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type AgentPremiumPolicy = z.infer<typeof AgentPremiumPolicySchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1070,6 +1088,8 @@ export const GameStateSchema = z.object({
   jointLoanUnderwrites: z.record(z.string(), JointLoanUnderwriteSchema).optional(),
   jointLoanUnderwriteVotes: z.record(z.string(), z.record(z.string(), JointLoanUnderwriteVoteSchema)).optional(),
   groupDefaults: z.record(z.string(), z.number().int()).optional(),
+  jointLoanInsurancePools: z.record(z.string(), JointLoanInsurancePoolSchema).optional(),
+  agentPremiumPolicies: z.record(z.string(), AgentPremiumPolicySchema).optional(),
 });
 
 
@@ -1222,6 +1242,8 @@ export const createInitialState = (options: {
     jointLoanUnderwrites: {},
     jointLoanUnderwriteVotes: {},
     groupDefaults: {},
+    jointLoanInsurancePools: {},
+    agentPremiumPolicies: {},
   };
 };
 
@@ -1947,6 +1969,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     jointLoanUnderwriteVotes: rest.jointLoanUnderwriteVotes ? JSON.parse(JSON.stringify(rest.jointLoanUnderwriteVotes)) : undefined,
     groupDefaults: rest.groupDefaults ? { ...rest.groupDefaults } : undefined,
     creditRecoveries: rest.creditRecoveries ? JSON.parse(JSON.stringify(rest.creditRecoveries)) : undefined,
+    jointLoanInsurancePools: rest.jointLoanInsurancePools ? JSON.parse(JSON.stringify(rest.jointLoanInsurancePools)) : undefined,
+    agentPremiumPolicies: rest.agentPremiumPolicies ? JSON.parse(JSON.stringify(rest.agentPremiumPolicies)) : undefined,
   };
   return clone;
 }

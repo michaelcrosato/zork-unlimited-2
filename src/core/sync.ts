@@ -14265,6 +14265,265 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized ESTABLISH_JOINT_LOAN_INSURANCE_POOL action (AF-100)
+  if ((action as any).type === "ESTABLISH_JOINT_LOAN_INSURANCE_POOL") {
+    const { syndicateId, initialDeposit, premiumRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+    const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+    const agentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to establish a joint loan insurance pool.`;
+    } else if (initialDeposit === undefined || initialDeposit <= 0 || !Number.isInteger(initialDeposit)) {
+      rejectionReason = `Initial deposit must be a positive integer.`;
+    } else if (premiumRate === undefined || premiumRate <= 0 || !Number.isInteger(premiumRate)) {
+      rejectionReason = `Premium rate must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} is not established.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot establish a pool.`;
+    } else if (agentGold < initialDeposit) {
+      rejectionReason = `Agent ${agentId} has insufficient gold to deposit ${initialDeposit} (has ${agentGold}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: agentGold - initialDeposit,
+      };
+
+      // Establish or update insurance pool
+      const currentPool = state.jointLoanInsurancePools?.[syndicateId];
+      newState.jointLoanInsurancePools = {
+        ...(state.jointLoanInsurancePools || {}),
+        [syndicateId]: {
+          syndicateId,
+          poolGold: (currentPool?.poolGold ?? 0) + initialDeposit,
+          premiumRate,
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate Bank] Agent ${agentId} established/funded joint loan insurance pool for ${syndicateId} with ${initialDeposit} gold at ${premiumRate}% premium rate.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🛡️ Joint loan insurance pool established/funded for ${syndicateId} by ${agentId} with ${initialDeposit} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "joint_loan_insurance_pool_established" as any,
+        syndicateId,
+        agentId,
+        initialDeposit,
+        premiumRate,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PURCHASE_JOINT_LOAN_INSURANCE action (AF-100)
+  if ((action as any).type === "PURCHASE_JOINT_LOAN_INSURANCE") {
+    const { syndicateId, groupId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const jointLoan = state.jointLoans?.[groupId];
+    const pool = state.jointLoanInsurancePools?.[syndicateId];
+    const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+    const agentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+    const policyKey = `${agentId}_${groupId}`;
+    const existingPolicy = state.agentPremiumPolicies?.[policyKey];
+    let premiumCost = 0;
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to purchase joint loan insurance.`;
+    } else if (!groupId) {
+      rejectionReason = `Group ID is required to purchase joint loan insurance.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!jointLoan) {
+      rejectionReason = `Joint loan group ${groupId} does not exist or is not active.`;
+    } else if (!pool) {
+      rejectionReason = `Joint loan insurance pool for syndicate ${syndicateId} is not established.`;
+    } else if (!jointLoan.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of joint loan group ${groupId}.`;
+    } else if (existingPolicy && existingPolicy.active) {
+      rejectionReason = `Agent ${agentId} already has an active premium policy for group ${groupId}.`;
+    } else {
+      premiumCost = Math.ceil(jointLoan.amount * (pool.premiumRate / 100));
+      if (agentGold < premiumCost) {
+        rejectionReason = `Agent ${agentId} has insufficient gold to pay premium cost of ${premiumCost} (has ${agentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && pool && jointLoan) {
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: agentGold - premiumCost,
+      };
+
+      // Add premium to pool
+      const updatedPool = {
+        ...pool,
+        poolGold: pool.poolGold + premiumCost,
+        timestamp,
+      };
+      newState.jointLoanInsurancePools = {
+        ...(state.jointLoanInsurancePools || {}),
+        [syndicateId]: updatedPool,
+      };
+
+      // Create premium policy
+      newState.agentPremiumPolicies = {
+        ...(state.agentPremiumPolicies || {}),
+        [policyKey]: {
+          agentId,
+          syndicateId,
+          groupId,
+          premiumPaid: premiumCost,
+          active: true,
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate Bank] Agent ${agentId} purchased joint loan insurance for group ${groupId} at a premium cost of ${premiumCost} gold.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🛡️ Agent ${agentId} purchased joint loan insurance for ${groupId} (Premium: ${premiumCost} gold).`,
+      } as any);
+
+      customEvents.push({
+        type: "joint_loan_insurance_purchased" as any,
+        groupId,
+        agentId,
+        premiumCost,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Handle decentralized PROPOSE_JOINT_LOAN_PENALTY_WAIVER action (AF-98)
   if ((action as any).type === "PROPOSE_JOINT_LOAN_PENALTY_WAIVER") {
     const { groupId, reducedInterestRate, waivePenalty, timestamp } = action as any;

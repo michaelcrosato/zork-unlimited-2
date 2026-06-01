@@ -2188,6 +2188,12 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
         // Collect from each member
         let totalCollected = 0;
+        const sparedAgents = new Set<string>();
+
+        if (newState.jointLoanInsurancePools) {
+          newState.jointLoanInsurancePools = { ...newState.jointLoanInsurancePools };
+        }
+
         for (const agentId of members) {
           const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
           const agentGold = newState.vars[goldKey] ?? 0;
@@ -2196,46 +2202,80 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           let collected = 0;
           let remainingDue = shareDue;
 
-          if (agentGold >= shareDue) {
-            newState.vars[goldKey] = agentGold - shareDue;
-            collected = shareDue;
-            remainingDue = 0;
-          } else {
-            newState.vars[goldKey] = 0;
-            collected = agentGold;
-            remainingDue = shareDue - collected;
-          }
-          totalCollected += collected;
+          // Apply insurance coverage first
+          const policyKey = `${agentId}_${groupId}`;
+          const policy = newState.agentPremiumPolicies?.[policyKey];
+          let coveragePaid = 0;
 
-          // Decrease credit rating & Add default alert
-          if (!updatedJointLoan.waivePenalty) {
-            // Decrease credit rating
-            if (!newState.creditRatings) newState.creditRatings = {};
-            const currentRating = newState.creditRatings[agentId] ?? 100;
-            newState.creditRatings[agentId] = Math.max(0, currentRating - 50);
-
-            // Add default alert
-            if (!newState.defaultAlerts) newState.defaultAlerts = {};
-            const alertKey = `${agentId}_${updatedJointLoan.syndicateId}`;
-            newState.defaultAlerts[alertKey] = {
-              agentId,
-              syndicateId: updatedJointLoan.syndicateId,
-              defaultStep: newState.step,
-              timestamp: newState.step,
-            };
-
-            newState.journal.push(`[Credit Score] Agent ${agentId} credit rating decreased by -50 due to joint loan default (New Score: ${newState.creditRatings[agentId]}).`);
-            newState.journal.push(`[Gossip Mesh Alert] Broadcasted debt default alert for agent ${agentId} (Defaulted in joint loan ${groupId} at bank ${updatedJointLoan.syndicateId}). Blacklisted mesh-wide.`);
-          } else {
-            newState.journal.push(`[Credit Score] Enforcer credit score penalty waived for agent ${agentId} on default of joint loan ${groupId}.`);
-            newState.journal.push(`[Gossip Mesh Alert] Debt default alert blacklisting waived for agent ${agentId} on default of joint loan ${groupId}.`);
+          if (policy && policy.active) {
+            const pool = newState.jointLoanInsurancePools?.[updatedJointLoan.syndicateId];
+            if (pool && pool.poolGold > 0) {
+              const updatedPool = { ...pool };
+              coveragePaid = Math.min(remainingDue, updatedPool.poolGold);
+              updatedPool.poolGold -= coveragePaid;
+              updatedPool.timestamp = newState.step;
+              newState.jointLoanInsurancePools![updatedJointLoan.syndicateId] = updatedPool;
+              
+              remainingDue -= coveragePaid;
+              collected += coveragePaid;
+              newState.journal.push(`[Insurance Pool] Joint loan insurance pool covered ${coveragePaid} gold of agent ${agentId}'s share of group ${groupId} default.`);
+            }
           }
 
-          newState.journal.push(`[Debt Recovery] Joint Loan default: Enforcers swept agent ${agentId}'s gold, collecting ${collected} gold (Remaining due: ${remainingDue}).`);
+          // Spared from enforcer sweep penalties only if fully covered by the insurance pool!
+          const fullyInsured = policy && policy.active && remainingDue === 0;
+
+          if (fullyInsured) {
+            sparedAgents.add(agentId);
+            newState.journal.push(`[Debt Recovery] Agent ${agentId} share of default was fully covered by the joint loan insurance pool. Collateral is spared and credit score is intact!`);
+          } else {
+            // Sweep agent's gold for the remaining due
+            if (agentGold >= remainingDue) {
+              newState.vars[goldKey] = agentGold - remainingDue;
+              collected += remainingDue;
+              remainingDue = 0;
+            } else {
+              newState.vars[goldKey] = 0;
+              collected += agentGold;
+              remainingDue -= agentGold;
+            }
+            totalCollected += collected;
+
+            // Decrease credit rating & Add default alert
+            if (!updatedJointLoan.waivePenalty) {
+              // Decrease credit rating
+              if (!newState.creditRatings) newState.creditRatings = {};
+              const currentRating = newState.creditRatings[agentId] ?? 100;
+              newState.creditRatings[agentId] = Math.max(0, currentRating - 50);
+
+              // Add default alert
+              if (!newState.defaultAlerts) newState.defaultAlerts = {};
+              const alertKey = `${agentId}_${updatedJointLoan.syndicateId}`;
+              newState.defaultAlerts[alertKey] = {
+                agentId,
+                syndicateId: updatedJointLoan.syndicateId,
+                defaultStep: newState.step,
+                timestamp: newState.step,
+              };
+
+              newState.journal.push(`[Credit Score] Agent ${agentId} credit rating decreased by -50 due to joint loan default (New Score: ${newState.creditRatings[agentId]}).`);
+              newState.journal.push(`[Gossip Mesh Alert] Broadcasted debt default alert for agent ${agentId} (Defaulted in joint loan ${groupId} at bank ${updatedJointLoan.syndicateId}). Blacklisted mesh-wide.`);
+            } else {
+              newState.journal.push(`[Credit Score] Enforcer credit score penalty waived for agent ${agentId} on default of joint loan ${groupId}.`);
+              newState.journal.push(`[Gossip Mesh Alert] Debt default alert blacklisting waived for agent ${agentId} on default of joint loan ${groupId}.`);
+            }
+
+            newState.journal.push(`[Debt Recovery] Joint Loan default: Enforcers swept agent ${agentId}'s gold, collecting ${collected - coveragePaid} gold (Remaining due: ${remainingDue}).`);
+          }
         }
 
-        // Liquidate ALL collaterals
+        // Liquidate ALL collaterals (unless spared)
         for (const col of updatedJointLoan.collaterals) {
+          if (sparedAgents.has(col.agentId)) {
+            newState.journal.push(`[Debt Recovery] Spared collateral ${col.collateralType} ${col.collateralId} for agent ${col.agentId} due to full insurance/gold coverage.`);
+            continue;
+          }
+
           if (col.collateralType === "safehouse") {
             if (newState.safehouses) {
               newState.safehouses = { ...newState.safehouses };

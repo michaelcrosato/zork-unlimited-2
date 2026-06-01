@@ -1356,6 +1356,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge jointLoanInsurancePools using LWW
+  const jointLoanInsurancePools = { ...stateA.jointLoanInsurancePools };
+  if (stateB.jointLoanInsurancePools) {
+    for (const [key, entryB] of Object.entries(stateB.jointLoanInsurancePools)) {
+      const entryA = jointLoanInsurancePools[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        jointLoanInsurancePools[key] = entryB;
+      }
+    }
+  }
+
+  // Merge agentPremiumPolicies using LWW
+  const agentPremiumPolicies = { ...stateA.agentPremiumPolicies };
+  if (stateB.agentPremiumPolicies) {
+    for (const [key, entryB] of Object.entries(stateB.agentPremiumPolicies)) {
+      const entryA = agentPremiumPolicies[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        agentPremiumPolicies[key] = entryB;
+      }
+    }
+  }
+
   // Merge turfCheckpoints using LWW
   const turfCheckpoints = { ...stateA.turfCheckpoints };
   if (stateB.turfCheckpoints) {
@@ -1690,6 +1712,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     jointLoanUnderwrites,
     jointLoanUnderwriteVotes,
     groupDefaults,
+    jointLoanInsurancePools,
+    agentPremiumPolicies,
   };
 }
 
