@@ -201,6 +201,96 @@ export class MeshNode extends GossipNode {
     return events;
   }
 
+  public reconcileCrossMeshOptionArbitrage(): void {
+    const state = this.localState;
+    if (!state.swfReinsuranceOptionCrossMeshArbitrageRoutes) return;
+
+    let changed = false;
+
+    for (const [routeId, route] of Object.entries(state.swfReinsuranceOptionCrossMeshArbitrageRoutes)) {
+      const { sourceNodeId, targetNodeId, swfYieldCdoId, trancheId } = route;
+      const policyKey = `${swfYieldCdoId}_${trancheId}`;
+      const policy = state.swfReinsuranceOptionCrossMeshArbitragePolicies?.[policyKey];
+      if (!policy) continue;
+
+      // Find the nodes in the network
+      const sourceNode = this.network?.nodes.get(sourceNodeId);
+      const targetNode = this.network?.nodes.get(targetNodeId);
+      if (!sourceNode || !targetNode) continue;
+
+      // Calculate spread difference between different gossip mesh nodes
+      const key = `${swfYieldCdoId}_${trancheId}`;
+      const spreadSource = sourceNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]?.bidAskSpread ?? 0;
+      const spreadTarget = targetNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]?.bidAskSpread ?? 0;
+      
+      const spreadDiff = Math.abs(spreadSource - spreadTarget);
+      
+      // Update spread differences in state schemas
+      if (route.spreadDifference !== spreadDiff) {
+        route.spreadDifference = spreadDiff;
+        route.timestamp = state.step;
+        changed = true;
+      }
+
+      const threshold = policy.arbitrageSpreadThreshold;
+      if (spreadDiff > threshold) {
+        // Price imbalance exceeds threshold! Automatic options purchase/sale and spread alignment reconciliation
+        const arbitrageProfit = Math.min(Math.floor((spreadDiff - threshold) * 0.5), policy.maxArbitrageVolume);
+        
+        if (arbitrageProfit > 0) {
+          // Execute automated buy/sell transactions on the nodes to balance options liquidity
+          const creatorSyndicateId = state.swfYieldCDOs?.[swfYieldCdoId]?.creatorSyndicateId;
+          if (creatorSyndicateId) {
+            const sourceSyndicate = sourceNode.localState.syndicates?.[creatorSyndicateId];
+            const targetSyndicate = targetNode.localState.syndicates?.[creatorSyndicateId];
+            
+            if (sourceSyndicate && targetSyndicate) {
+              sourceNode.localState.syndicates = { ...sourceNode.localState.syndicates };
+              sourceNode.localState.syndicates[creatorSyndicateId] = {
+                ...sourceSyndicate,
+                warChest: (sourceSyndicate.warChest ?? 0) + arbitrageProfit,
+              };
+              
+              targetNode.localState.syndicates = { ...targetNode.localState.syndicates };
+              targetNode.localState.syndicates[creatorSyndicateId] = {
+                ...targetSyndicate,
+                warChest: (targetSyndicate.warChest ?? 0) + arbitrageProfit,
+              };
+              
+              // Converge option spreads
+              const targetSpread = Math.floor((spreadSource + spreadTarget) / 2);
+              
+              if (sourceNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]) {
+                sourceNode.localState.swfReinsuranceOptionOrderBookDepths = { ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths };
+                sourceNode.localState.swfReinsuranceOptionOrderBookDepths[key] = {
+                  ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths[key],
+                  bidAskSpread: targetSpread,
+                };
+              }
+              if (targetNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]) {
+                targetNode.localState.swfReinsuranceOptionOrderBookDepths = { ...targetNode.localState.swfReinsuranceOptionOrderBookDepths };
+                targetNode.localState.swfReinsuranceOptionOrderBookDepths[key] = {
+                  ...targetNode.localState.swfReinsuranceOptionOrderBookDepths[key],
+                  bidAskSpread: targetSpread,
+                };
+              }
+
+              if (!sourceNode.localState.journal) sourceNode.localState.journal = [];
+              sourceNode.localState.journal.push(
+                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
+              );
+              
+              if (!targetNode.localState.journal) targetNode.localState.journal = [];
+              targetNode.localState.journal.push(
+                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
   private triggerPeerEvent(eventType: "arrival" | "departure" | "sync", peerId: string): void {
     let template = "";
     if (this.pack && (this.pack as any).network_templates) {
@@ -389,6 +479,7 @@ export class MeshNode extends GossipNode {
         // If gossip succeeded in merging state updates, automatically trigger
         // a reciprocal reply to ensure complete, convergent synchronization
         if (updated) {
+          this.reconcileCrossMeshOptionArbitrage();
           this.triggerPeerEvent("sync", packet.sourceId);
 
           if (this.network) {
@@ -402,6 +493,7 @@ export class MeshNode extends GossipNode {
         if (reassembled) {
           const updated = this.receiveGossip(reassembled);
           if (updated) {
+            this.reconcileCrossMeshOptionArbitrage();
             this.triggerPeerEvent("sync", packet.sourceId);
 
             if (this.network) {
@@ -938,6 +1030,11 @@ export class MeshNetwork {
         targetNode.receivePacket(pd.packet);
         deliveredCount++;
       }
+    }
+
+    // Call reconcileCrossMeshOptionArbitrage on all nodes to converge options spreads and balance liquidity
+    for (const node of this.nodes.values()) {
+      node.reconcileCrossMeshOptionArbitrage();
     }
 
     return deliveredCount;
