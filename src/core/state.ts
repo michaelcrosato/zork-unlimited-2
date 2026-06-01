@@ -1708,6 +1708,17 @@ export const MarginAccountSchema = z.object({
   advisorEnabled: z.boolean().optional(),
   advisorSafetyThreshold: z.number().nonnegative().optional(),
   lockedPositions: z.array(LockedLiquidityPositionSchema).optional(),
+  swfRehypothecationAuthorized: z.boolean().optional(),
+  swfRehypothecationVaultId: z.string().optional(),
+  swfRehypothecationPercentage: z.number().int().nonnegative().max(100).optional(),
+  swfRebalancingEnabled: z.boolean().optional(),
+  swfVaultTargets: z.record(z.string(), z.number().int().nonnegative().max(100)).optional(),
+  swfLiquidityBufferRatio: z.number().int().nonnegative().max(100).optional(),
+  swfBufferTriggerRatio: z.number().optional(),
+  swfLiquidityBuffer: z.number().int().nonnegative().optional(),
+  swfVaultAllocations: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  swfAdvisorEnabled: z.boolean().optional(),
+  swfAdvisorSafetyThreshold: z.number().nonnegative().optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -2035,6 +2046,29 @@ export const GameStateSchema = z.object({
     threshold: z.number().nonnegative(),
     timestamp: z.number().int(),
   }))).optional(),
+  swfMarginRehypothecationVotes: z.record(z.string(), z.record(z.string(), z.object({
+    vaultId: z.string(),
+    percentage: z.number().int().nonnegative().max(100),
+    timestamp: z.number().int(),
+  }))).optional(),
+  swfMarginRehypothecationRevokeVotes: z.record(z.string(), z.record(z.string(), z.object({
+    timestamp: z.number().int(),
+  }))).optional(),
+  swfMarginRebalancingPolicyVotes: z.record(z.string(), z.record(z.string(), z.object({
+    enabled: z.boolean(),
+    vaultTargets: z.record(z.string(), z.number().int().nonnegative().max(100)),
+    liquidityBufferRatio: z.number().int().nonnegative().max(100),
+    bufferTriggerRatio: z.number(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  swfRebalancingAdvisorVotes: z.record(z.string(), z.record(z.string(), z.object({
+    enabled: z.boolean(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  swfAdvisorSafetyThresholdVotes: z.record(z.string(), z.record(z.string(), z.object({
+    threshold: z.number().nonnegative(),
+    timestamp: z.number().int(),
+  }))).optional(),
   lockedLiquidityPositions: z.record(z.string(), z.array(LockedLiquidityPositionSchema)).optional(),
   lockedLiquidityEpochPools: z.record(z.string(), LockedLiquidityEpochPoolSchema).optional(),
   factionReservePools: z.record(z.string(), z.number().int().nonnegative()).optional(),
@@ -2281,6 +2315,11 @@ export const createInitialState = (options: {
     marginRebalancingPolicyVotes: {},
     rebalancingAdvisorVotes: {},
     advisorSafetyThresholdVotes: {},
+    swfMarginRehypothecationVotes: {},
+    swfMarginRehypothecationRevokeVotes: {},
+    swfMarginRebalancingPolicyVotes: {},
+    swfRebalancingAdvisorVotes: {},
+    swfAdvisorSafetyThresholdVotes: {},
     lockedLiquidityPositions: {},
     lockedLiquidityEpochPools: {},
     factionReservePools: {
@@ -3110,6 +3149,11 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     marginRebalancingPolicyVotes: rest.marginRebalancingPolicyVotes ? JSON.parse(JSON.stringify(rest.marginRebalancingPolicyVotes)) : undefined,
     rebalancingAdvisorVotes: rest.rebalancingAdvisorVotes ? JSON.parse(JSON.stringify(rest.rebalancingAdvisorVotes)) : undefined,
     advisorSafetyThresholdVotes: rest.advisorSafetyThresholdVotes ? JSON.parse(JSON.stringify(rest.advisorSafetyThresholdVotes)) : undefined,
+    swfMarginRehypothecationVotes: rest.swfMarginRehypothecationVotes ? JSON.parse(JSON.stringify(rest.swfMarginRehypothecationVotes)) : undefined,
+    swfMarginRehypothecationRevokeVotes: rest.swfMarginRehypothecationRevokeVotes ? JSON.parse(JSON.stringify(rest.swfMarginRehypothecationRevokeVotes)) : undefined,
+    swfMarginRebalancingPolicyVotes: rest.swfMarginRebalancingPolicyVotes ? JSON.parse(JSON.stringify(rest.swfMarginRebalancingPolicyVotes)) : undefined,
+    swfRebalancingAdvisorVotes: rest.swfRebalancingAdvisorVotes ? JSON.parse(JSON.stringify(rest.swfRebalancingAdvisorVotes)) : undefined,
+    swfAdvisorSafetyThresholdVotes: rest.swfAdvisorSafetyThresholdVotes ? JSON.parse(JSON.stringify(rest.swfAdvisorSafetyThresholdVotes)) : undefined,
     lockedLiquidityPositions: rest.lockedLiquidityPositions ? JSON.parse(JSON.stringify(rest.lockedLiquidityPositions)) : undefined,
     lockedLiquidityEpochPools: rest.lockedLiquidityEpochPools ? JSON.parse(JSON.stringify(rest.lockedLiquidityEpochPools)) : undefined,
     factionReservePools: rest.factionReservePools ? JSON.parse(JSON.stringify(rest.factionReservePools)) : undefined,
@@ -3771,6 +3815,356 @@ export function reconcileAdvisorSafetyThresholds(state: GameState, pack: any): G
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Advisor Safety Threshold Policy] Advisor safety threshold for Syndicate ${syndicateId} set by consensus majority (Threshold: ${fullyApprovedCombination.threshold}%).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFMarginRehypothecations(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfMarginRehypothecationVotes: state.swfMarginRehypothecationVotes ? { ...state.swfMarginRehypothecationVotes } : {},
+    swfMarginRehypothecationRevokeVotes: state.swfMarginRehypothecationRevokeVotes ? { ...state.swfMarginRehypothecationRevokeVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+
+    // Check if there is a consensus to revoke
+    const revokeVotes = newState.swfMarginRehypothecationRevokeVotes?.[syndicateId] || {};
+    const validRevokeVoters = Object.keys(revokeVotes).filter(voterId => syndicate.members.includes(voterId));
+    const revokeCount = validRevokeVoters.length;
+
+    if (revokeCount > totalMembers / 2) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfRehypothecationAuthorized: false,
+        swfRehypothecationVaultId: undefined,
+        swfRehypothecationPercentage: undefined,
+        timestamp: Math.max(...validRevokeVoters.map(v => revokeVotes[v].timestamp), newState.step),
+      };
+
+      if (newState.swfMarginRehypothecationVotes) {
+        delete newState.swfMarginRehypothecationVotes[syndicateId];
+      }
+      if (newState.swfMarginRehypothecationRevokeVotes) {
+        delete newState.swfMarginRehypothecationRevokeVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Margin Rehypothecation] SWF Rehypothecation for Syndicate ${syndicateId} has been REVOKED by consensus majority.`
+      );
+      continue;
+    }
+
+    // Check if there is a consensus to authorize
+    const authVotes = newState.swfMarginRehypothecationVotes?.[syndicateId] || {};
+    const combinationCounts: Record<string, {
+      vaultId: string;
+      percentage: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.vaultId}::${vote.percentage}`;
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            vaultId: vote.vaultId,
+            percentage: vote.percentage,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfRehypothecationAuthorized: true,
+        swfRehypothecationVaultId: fullyApprovedCombination.vaultId,
+        swfRehypothecationPercentage: fullyApprovedCombination.percentage,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      if (newState.swfMarginRehypothecationVotes) {
+        delete newState.swfMarginRehypothecationVotes[syndicateId];
+      }
+      if (newState.swfMarginRehypothecationRevokeVotes) {
+        delete newState.swfMarginRehypothecationRevokeVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Margin Rehypothecation] SWF Rehypothecation for Syndicate ${syndicateId} authorized by consensus majority (Vault: ${fullyApprovedCombination.vaultId}, Percentage: ${fullyApprovedCombination.percentage}%).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFMarginRebalancingPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfMarginRebalancingPolicyVotes: state.swfMarginRebalancingPolicyVotes ? { ...state.swfMarginRebalancingPolicyVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.swfMarginRebalancingPolicyVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      enabled: boolean;
+      vaultTargets: Record<string, number>;
+      liquidityBufferRatio: number;
+      bufferTriggerRatio: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const sortedTargets = Object.entries(vote.vaultTargets || {})
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([k, v]) => `${k}:${v}`)
+          .join(",");
+        const key = `${vote.enabled}::${sortedTargets}::${vote.liquidityBufferRatio}::${vote.bufferTriggerRatio}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            enabled: vote.enabled,
+            vaultTargets: vote.vaultTargets,
+            liquidityBufferRatio: vote.liquidityBufferRatio,
+            bufferTriggerRatio: vote.bufferTriggerRatio,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      const collateral = marginAccount.collateral;
+      const targetBuffer = Math.floor(collateral * (fullyApprovedCombination.liquidityBufferRatio / 100));
+      const targetRehypothecated = collateral - targetBuffer;
+      const swfVaultAllocations: Record<string, number> = {};
+
+      for (const [vaultId, pct] of Object.entries(fullyApprovedCombination.vaultTargets || {})) {
+        swfVaultAllocations[vaultId] = Math.floor(targetRehypothecated * ((pct as number) / 100));
+      }
+      const sumAllocated = Object.values(swfVaultAllocations).reduce((a, b) => a + b, 0);
+      const swfLiquidityBuffer = collateral - sumAllocated;
+
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfRebalancingEnabled: fullyApprovedCombination.enabled,
+        swfVaultTargets: fullyApprovedCombination.vaultTargets,
+        swfLiquidityBufferRatio: fullyApprovedCombination.liquidityBufferRatio,
+        swfBufferTriggerRatio: fullyApprovedCombination.bufferTriggerRatio,
+        swfLiquidityBuffer,
+        swfVaultAllocations,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      if (newState.swfMarginRebalancingPolicyVotes) {
+        delete newState.swfMarginRebalancingPolicyVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Margin Rebalancing Policy] SWF Rebalancing policy for Syndicate ${syndicateId} set by consensus majority (Enabled: ${fullyApprovedCombination.enabled}, Buffer Ratio: ${fullyApprovedCombination.liquidityBufferRatio}%, Buffer Trigger: ${fullyApprovedCombination.bufferTriggerRatio}%).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFRebalancingAdvisors(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfRebalancingAdvisorVotes: state.swfRebalancingAdvisorVotes ? { ...state.swfRebalancingAdvisorVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.swfRebalancingAdvisorVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      enabled: boolean;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.enabled}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            enabled: vote.enabled,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfAdvisorEnabled: fullyApprovedCombination.enabled,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      if (newState.swfRebalancingAdvisorVotes) {
+        delete newState.swfRebalancingAdvisorVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Rebalancing Advisor Policy] SWF Rebalancing advisor for Syndicate ${syndicateId} set by consensus majority (Enabled: ${fullyApprovedCombination.enabled}).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFAdvisorSafetyThresholds(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfAdvisorSafetyThresholdVotes: state.swfAdvisorSafetyThresholdVotes ? { ...state.swfAdvisorSafetyThresholdVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.swfAdvisorSafetyThresholdVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      threshold: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.threshold}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            threshold: vote.threshold,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfAdvisorSafetyThreshold: fullyApprovedCombination.threshold,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      if (newState.swfAdvisorSafetyThresholdVotes) {
+        delete newState.swfAdvisorSafetyThresholdVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Advisor Safety Threshold Policy] SWF Advisor safety threshold for Syndicate ${syndicateId} set by consensus majority (Threshold: ${fullyApprovedCombination.threshold}%).`
       );
     }
   }

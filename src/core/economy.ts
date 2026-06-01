@@ -3572,6 +3572,19 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
+      // AF-133: Dynamic Advisor-led Reallocations specifically for SWF CDS margins
+      if (marginAccount.swfAdvisorEnabled && marginAccount.swfAdvisorSafetyThreshold !== undefined && marginAccount.collateral > 0) {
+        const vaults = getSecondaryReserveVaults(newState);
+        const vaultsList = Object.values(vaults);
+        if (vaultsList.length > 0) {
+          const optimalTargets = findOptimalAdvisorAllocations(vaultsList, marginAccount.swfAdvisorSafetyThreshold);
+          marginAccount.swfVaultTargets = optimalTargets;
+          newState.journal.push(
+            `[SWF Advisor Rebalancing] Automated SWF Advisor updated vault targets for Syndicate ${syndicateId} to optimize yield under safety threshold of ${marginAccount.swfAdvisorSafetyThreshold}%: ${JSON.stringify(optimalTargets)}.`
+          );
+        }
+      }
+
       // AF-112: Auto-rebalance if rebalancing is enabled
       if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
         const collateral = marginAccount.collateral;
@@ -3585,6 +3598,21 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         const sumAllocated = Object.values(vaultAllocations).reduce((a, b) => a + b, 0);
         marginAccount.liquidityBuffer = collateral - sumAllocated;
         marginAccount.vaultAllocations = vaultAllocations;
+      }
+
+      // AF-133: Auto-rebalance if SWF rebalancing is enabled
+      if (marginAccount.swfRebalancingEnabled && marginAccount.collateral > 0) {
+        const collateral = marginAccount.collateral;
+        const targetBuffer = Math.floor(collateral * ((marginAccount.swfLiquidityBufferRatio ?? 0) / 100));
+        const targetRehypothecated = collateral - targetBuffer;
+        const vaultAllocations: Record<string, number> = {};
+
+        for (const [vaultId, pct] of Object.entries(marginAccount.swfVaultTargets || {})) {
+          vaultAllocations[vaultId] = Math.floor(targetRehypothecated * (pct / 100));
+        }
+        const sumAllocated = Object.values(vaultAllocations).reduce((a, b) => a + b, 0);
+        marginAccount.swfLiquidityBuffer = collateral - sumAllocated;
+        marginAccount.swfVaultAllocations = vaultAllocations;
       }
 
       // AF-111 & AF-112: Process margin rehypothecation yield / sweep risk
@@ -3774,7 +3802,189 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
-      if (marginAccount.collateral === 0 && (!marginAccount.leveragedCDSIds || marginAccount.leveragedCDSIds.length === 0) && (!marginAccount.leveragedTranchePositions || Object.keys(marginAccount.leveragedTranchePositions).length === 0)) {
+      // AF-133: Process SWF margin rehypothecation yield / sweep risk
+      if (marginAccount.swfRebalancingEnabled) {
+        const vaults = getSecondaryReserveVaults(newState);
+        const allocations = { ...(marginAccount.swfVaultAllocations || {}) };
+        let collateralChanged = false;
+
+        for (const [vaultId, allocatedAmount] of Object.entries(allocations)) {
+          if (allocatedAmount > 0 && marginAccount.collateral > 0) {
+            const vault = vaults[vaultId];
+            if (vault) {
+              // Roll for sweep risk
+              const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+              newState.seed = nextSeed;
+
+              const riskPercentage = Math.round(vault.sweepRisk * 100);
+              if (riskPercentage > 0 && sweepRoll <= riskPercentage) {
+                const actualDeduct = Math.min(allocatedAmount, marginAccount.collateral);
+                marginAccount.collateral -= actualDeduct;
+                allocations[vaultId] = 0;
+                collateralChanged = true;
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[SWF Rehypothecation Sweep] Regulators swept vault ${vault.name} (${vaultId}) containing rehypothecated SWF collateral of Syndicate ${syndicateId}! Liquidated all ${actualDeduct} gold (Sweep Roll: ${sweepRoll} <= Risk: ${riskPercentage}%).`
+                );
+              } else {
+                // Earn yield
+                let interest = 0;
+                if (vault.interestRate > 0) {
+                  const currentEpoch = Math.floor(newState.step / 5);
+                  const activeLocks = (marginAccount.lockedPositions ?? [])
+                    .filter(p => p.vaultId === vaultId && currentEpoch < p.endEpoch && !p.claimed);
+
+                  const totalLocked = activeLocks.reduce((sum, p) => sum + p.amount, 0);
+
+                  const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[vaultId];
+                  let effectiveInterestRate = vault.interestRate;
+                  if (sponsorPolicy) {
+                    const factionRep = newState.factionRep?.[sponsorPolicy.factionId] ?? 0;
+                    const repBoost = factionRep > 0 ? (factionRep * 0.005) : 0;
+                    effectiveInterestRate = vault.interestRate * (1.0 + repBoost + (sponsorPolicy.rewardRate * 0.2));
+                  }
+
+                  if (totalLocked > 0 && allocatedAmount > 0) {
+                    let lockedInterestSum = 0;
+                    for (const lock of activeLocks) {
+                      const shareFraction = lock.amount / totalLocked;
+                      const lockAllocated = Math.min(lock.amount, Math.floor(allocatedAmount * shareFraction));
+                      
+                      const yieldMultiplier = 1.0 + (lock.durationEpochs * 0.1);
+                      const lockInterest = Math.floor(lockAllocated * effectiveInterestRate * yieldMultiplier);
+                      lockedInterestSum += lockInterest;
+
+                      const repMultiplier = 1.0 + (lock.durationEpochs * 0.1);
+                      const baseRepAccrual = 1;
+                      const sponsorRepBonus = sponsorPolicy ? (1.0 + sponsorPolicy.rewardRate) : 1.0;
+                      const repAccrued = Math.max(1, Math.round(baseRepAccrual * repMultiplier * sponsorRepBonus));
+                      
+                      if (!newState.factionRep) newState.factionRep = {};
+                      newState.factionRep[lock.factionId] = (newState.factionRep[lock.factionId] ?? 0) + repAccrued;
+                      
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[Liquidity Mining Rep] Syndicate ${syndicateId} accrued +${repAccrued} faction reputation with ${lock.factionId} from active SWF lock in vault ${vaultId}.`
+                      );
+                    }
+                    const unlockedAmount = Math.max(0, allocatedAmount - totalLocked);
+                    const unlockedInterest = Math.floor(unlockedAmount * effectiveInterestRate);
+                    interest = Math.max(1, lockedInterestSum + unlockedInterest);
+                  } else {
+                    interest = Math.max(1, Math.floor(allocatedAmount * effectiveInterestRate));
+                  }
+                }
+                if (interest > 0) {
+                  const yieldReturned = Math.floor(interest * 0.80);
+                  if (yieldReturned > 0) {
+                    marginAccount.collateral += yieldReturned;
+                    marginAccount.swfLiquidityBuffer = (marginAccount.swfLiquidityBuffer ?? 0) + yieldReturned;
+                    collateralChanged = true;
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[SWF Rehypothecation Yield] Syndicate ${syndicateId} earned ${interest} gold passive interest from rehypothecated SWF collateral in ${vault.name} (Returned ${yieldReturned} gold to margin collateral).`
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (collateralChanged) {
+          marginAccount.swfVaultAllocations = allocations;
+          marginAccount.timestamp = newState.step;
+        }
+      } else {
+        if (marginAccount.swfRehypothecationAuthorized && marginAccount.swfRehypothecationVaultId && marginAccount.swfRehypothecationPercentage !== undefined && marginAccount.swfRehypothecationPercentage > 0 && marginAccount.collateral > 0) {
+          const vaults = getSecondaryReserveVaults(newState);
+          const vault = vaults[marginAccount.swfRehypothecationVaultId];
+          if (vault) {
+            const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.swfRehypothecationPercentage / 100));
+            if (rehypothecatedAmount > 0) {
+              const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+              newState.seed = nextSeed;
+
+              const riskPercentage = Math.round(vault.sweepRisk * 100);
+              if (riskPercentage > 0 && sweepRoll <= riskPercentage) {
+                marginAccount.collateral = Math.max(0, marginAccount.collateral - rehypothecatedAmount);
+                marginAccount.timestamp = newState.step;
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[SWF Rehypothecation Sweep] Regulators swept vault ${vault.name} (${marginAccount.swfRehypothecationVaultId}) containing rehypothecated SWF collateral of Syndicate ${syndicateId}! Liquidated all ${rehypothecatedAmount} gold (Sweep Roll: ${sweepRoll} <= Risk: ${riskPercentage}%).`
+                );
+              } else {
+                let interest = 0;
+                if (vault.interestRate > 0) {
+                  const vaultId = marginAccount.swfRehypothecationVaultId;
+                  const currentEpoch = Math.floor(newState.step / 5);
+                  const activeLocks = (marginAccount.lockedPositions ?? [])
+                    .filter(p => p.vaultId === vaultId && currentEpoch < p.endEpoch && !p.claimed);
+
+                  const totalLocked = activeLocks.reduce((sum, p) => sum + p.amount, 0);
+
+                  const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[vaultId];
+                  let effectiveInterestRate = vault.interestRate;
+                  if (sponsorPolicy) {
+                    const factionRep = newState.factionRep?.[sponsorPolicy.factionId] ?? 0;
+                    const repBoost = factionRep > 0 ? (factionRep * 0.005) : 0;
+                    effectiveInterestRate = vault.interestRate * (1.0 + repBoost + (sponsorPolicy.rewardRate * 0.2));
+                  }
+
+                  if (totalLocked > 0 && rehypothecatedAmount > 0) {
+                    let lockedInterestSum = 0;
+                    for (const lock of activeLocks) {
+                      const shareFraction = lock.amount / totalLocked;
+                      const lockAllocated = Math.min(lock.amount, Math.floor(rehypothecatedAmount * shareFraction));
+                      
+                      const yieldMultiplier = 1.0 + (lock.durationEpochs * 0.1);
+                      const lockInterest = Math.floor(lockAllocated * effectiveInterestRate * yieldMultiplier);
+                      lockedInterestSum += lockInterest;
+
+                      const repMultiplier = 1.0 + (lock.durationEpochs * 0.1);
+                      const baseRepAccrual = 1;
+                      const sponsorRepBonus = sponsorPolicy ? (1.0 + sponsorPolicy.rewardRate) : 1.0;
+                      const repAccrued = Math.max(1, Math.round(baseRepAccrual * repMultiplier * sponsorRepBonus));
+                      
+                      if (!newState.factionRep) newState.factionRep = {};
+                      newState.factionRep[lock.factionId] = (newState.factionRep[lock.factionId] ?? 0) + repAccrued;
+                      
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[Liquidity Mining Rep] Syndicate ${syndicateId} accrued +${repAccrued} faction reputation with ${lock.factionId} from active SWF lock in vault ${vaultId}.`
+                      );
+                    }
+                    const unlockedAmount = Math.max(0, rehypothecatedAmount - totalLocked);
+                    const unlockedInterest = Math.floor(unlockedAmount * effectiveInterestRate);
+                    interest = Math.max(1, lockedInterestSum + unlockedInterest);
+                  } else {
+                    interest = Math.max(1, Math.floor(rehypothecatedAmount * effectiveInterestRate));
+                  }
+                }
+                if (interest > 0) {
+                  const yieldReturned = Math.floor(interest * 0.80);
+                  if (yieldReturned > 0) {
+                    marginAccount.collateral += yieldReturned;
+                    marginAccount.timestamp = newState.step;
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[SWF Rehypothecation Yield] Syndicate ${syndicateId} earned ${interest} gold passive interest from rehypothecated SWF collateral in ${vault.name} (Returned ${yieldReturned} gold to margin collateral).`
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (marginAccount.collateral === 0 &&
+          (!marginAccount.leveragedCDSIds || marginAccount.leveragedCDSIds.length === 0) &&
+          (!marginAccount.leveragedSWFYieldCDOCDSIds || marginAccount.leveragedSWFYieldCDOCDSIds.length === 0) &&
+          (!marginAccount.leveragedTranchePositions || Object.keys(marginAccount.leveragedTranchePositions).length === 0)) {
         continue;
       }
 
@@ -3841,7 +4051,28 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
-      let maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium);
+      let swfRehypothecationPremium = 0;
+      if (marginAccount.swfRebalancingEnabled) {
+        const vaults = getSecondaryReserveVaults(newState);
+        const allocations = marginAccount.swfVaultAllocations || {};
+        for (const [vaultId, allocatedAmount] of Object.entries(allocations)) {
+          const vault = vaults[vaultId];
+          if (vault && allocatedAmount > 0) {
+            swfRehypothecationPremium += Math.round(allocatedAmount * (0.10 + vault.sweepRisk));
+          }
+        }
+      } else {
+        if (marginAccount.swfRehypothecationAuthorized && marginAccount.swfRehypothecationVaultId && marginAccount.swfRehypothecationPercentage !== undefined) {
+          const vaults = getSecondaryReserveVaults(newState);
+          const vault = vaults[marginAccount.swfRehypothecationVaultId];
+          if (vault) {
+            const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.swfRehypothecationPercentage / 100));
+            swfRehypothecationPremium = Math.round(rehypothecatedAmount * (0.10 + vault.sweepRisk));
+          }
+        }
+      }
+
+      let maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium + swfRehypothecationPremium);
 
       // AF-112: Preemptive Drawdown Loop to prevent margin call liquidations
       if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
@@ -3879,7 +4110,8 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                   tempPremium += Math.round(amt * (0.10 + vault.sweepRisk));
                 }
               }
-              maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + tempPremium);
+              rehypothecationPremium = tempPremium;
+              maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium + swfRehypothecationPremium);
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!
@@ -3889,6 +4121,57 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
           if (drewBackAny) {
             marginAccount.vaultAllocations = allocations;
+            marginAccount.timestamp = newState.step;
+          }
+        }
+      }
+
+      // AF-133: Preemptive Drawdown Loop for SWF rehypothecated collateral to prevent margin call liquidations
+      if (marginAccount.swfRebalancingEnabled && marginAccount.collateral > 0) {
+        const triggerRatio = marginAccount.swfBufferTriggerRatio ?? 1.2;
+        if (netEquity <= triggerRatio * maintenanceRequirement) {
+          const vaults = getSecondaryReserveVaults(newState);
+          const allocations = { ...(marginAccount.swfVaultAllocations || {}) };
+          
+          const sortedVaultIds = Object.keys(allocations).sort((a, b) => {
+            const riskA = vaults[a]?.sweepRisk ?? 0;
+            const riskB = vaults[b]?.sweepRisk ?? 0;
+            return riskB - riskA;
+          });
+
+          let drewBackAny = false;
+
+          for (const vaultId of sortedVaultIds) {
+            const allocatedAmount = allocations[vaultId] ?? 0;
+            if (allocatedAmount > 0) {
+              allocations[vaultId] = 0;
+              marginAccount.swfLiquidityBuffer = (marginAccount.swfLiquidityBuffer ?? 0) + allocatedAmount;
+              drewBackAny = true;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[SWF Preemptive Drawback] Syndicate ${syndicateId} drew back ${allocatedAmount} gold from SWF vault ${vaultId} to prevent margin liquidation.`
+              );
+
+              // Recompute swfRehypothecationPremium and maintenanceRequirement
+              let tempPremium = 0;
+              for (const [vId, amt] of Object.entries(allocations)) {
+                const vault = vaults[vId];
+                if (vault && amt > 0) {
+                  tempPremium += Math.round(amt * (0.10 + vault.sweepRisk));
+                }
+              }
+              swfRehypothecationPremium = tempPremium;
+              maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium + swfRehypothecationPremium);
+
+              if (netEquity > triggerRatio * maintenanceRequirement) {
+                break; // Safely avoided the danger zone!
+              }
+            }
+          }
+
+          if (drewBackAny) {
+            marginAccount.swfVaultAllocations = allocations;
             marginAccount.timestamp = newState.step;
           }
         }

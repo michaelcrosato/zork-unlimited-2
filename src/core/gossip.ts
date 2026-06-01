@@ -1983,6 +1983,96 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfMarginRehypothecationVotes using LWW
+  const swfMarginRehypothecationVotes = { ...stateA.swfMarginRehypothecationVotes };
+  if (stateB.swfMarginRehypothecationVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfMarginRehypothecationVotes)) {
+      if (!swfMarginRehypothecationVotes[syndicateId]) {
+        swfMarginRehypothecationVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfMarginRehypothecationVotes[syndicateId] = { ...swfMarginRehypothecationVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfMarginRehypothecationVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfMarginRehypothecationVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge swfMarginRehypothecationRevokeVotes using LWW
+  const swfMarginRehypothecationRevokeVotes = { ...stateA.swfMarginRehypothecationRevokeVotes };
+  if (stateB.swfMarginRehypothecationRevokeVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfMarginRehypothecationRevokeVotes)) {
+      if (!swfMarginRehypothecationRevokeVotes[syndicateId]) {
+        swfMarginRehypothecationRevokeVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfMarginRehypothecationRevokeVotes[syndicateId] = { ...swfMarginRehypothecationRevokeVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfMarginRehypothecationRevokeVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfMarginRehypothecationRevokeVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge swfMarginRebalancingPolicyVotes using LWW
+  const swfMarginRebalancingPolicyVotes = { ...stateA.swfMarginRebalancingPolicyVotes };
+  if (stateB.swfMarginRebalancingPolicyVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfMarginRebalancingPolicyVotes)) {
+      if (!swfMarginRebalancingPolicyVotes[syndicateId]) {
+        swfMarginRebalancingPolicyVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfMarginRebalancingPolicyVotes[syndicateId] = { ...swfMarginRebalancingPolicyVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfMarginRebalancingPolicyVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfMarginRebalancingPolicyVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge swfRebalancingAdvisorVotes using LWW
+  const swfRebalancingAdvisorVotes = { ...stateA.swfRebalancingAdvisorVotes };
+  if (stateB.swfRebalancingAdvisorVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfRebalancingAdvisorVotes)) {
+      if (!swfRebalancingAdvisorVotes[syndicateId]) {
+        swfRebalancingAdvisorVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfRebalancingAdvisorVotes[syndicateId] = { ...swfRebalancingAdvisorVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfRebalancingAdvisorVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfRebalancingAdvisorVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge swfAdvisorSafetyThresholdVotes using LWW
+  const swfAdvisorSafetyThresholdVotes = { ...stateA.swfAdvisorSafetyThresholdVotes };
+  if (stateB.swfAdvisorSafetyThresholdVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfAdvisorSafetyThresholdVotes)) {
+      if (!swfAdvisorSafetyThresholdVotes[syndicateId]) {
+        swfAdvisorSafetyThresholdVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfAdvisorSafetyThresholdVotes[syndicateId] = { ...swfAdvisorSafetyThresholdVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfAdvisorSafetyThresholdVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfAdvisorSafetyThresholdVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   // Merge factionSponsorProposals using LWW (Last-Write-Wins)
   const factionSponsorProposals = { ...stateA.factionSponsorProposals };
   if (stateB.factionSponsorProposals) {
@@ -2909,6 +2999,11 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     marginRehypothecationVotes,
     marginRehypothecationRevokeVotes,
     marginRebalancingPolicyVotes,
+    swfMarginRehypothecationVotes,
+    swfMarginRehypothecationRevokeVotes,
+    swfMarginRebalancingPolicyVotes,
+    swfRebalancingAdvisorVotes,
+    swfAdvisorSafetyThresholdVotes,
     factionSponsorProposals,
     factionSponsorPolicies,
     sponsorAuditProposals,

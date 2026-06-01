@@ -459,4 +459,391 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
     expect(merged.swfYieldCDOCDSs?.swf_cds_1?.timestamp).toBe(1010);
     expect(merged.swfYieldCDOCDSs?.swf_cds_1?.active).toBe(false);
   });
+
+  it("should support SWF margin rehypothecation authorization and revoke via consensus majority", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 200,
+        timestamp: 1000,
+      },
+    };
+
+    state.secondaryReserveVaults = {
+      iron_vault: {
+        vaultId: "iron_vault",
+        name: "Iron Vault",
+        interestRate: 0.10,
+        sweepRisk: 0.0,
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Player votes to authorize rehypothecation
+    const authAct1 = {
+      type: "AUTHORIZE_SWF_MARGIN_REHYPOTHECATION",
+      syndicateId: "writer_corp",
+      vaultId: "iron_vault",
+      percentage: 50,
+      timestamp: 1001,
+    };
+    let res = multiAgentStep(state, { agentId: "player", action: authAct1 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 1 vote out of 3 members is not majority
+    expect(state.marginAccounts?.writer_corp?.swfRehypothecationAuthorized).toBeUndefined();
+
+    // 2. Alice votes to authorize rehypothecation
+    const authAct2 = {
+      type: "AUTHORIZE_SWF_MARGIN_REHYPOTHECATION",
+      syndicateId: "writer_corp",
+      vaultId: "iron_vault",
+      percentage: 50,
+      timestamp: 1002,
+    };
+    res = multiAgentStep(state, { agentId: "alice", action: authAct2 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 2 votes out of 3 is a strict majority (> 1.5)
+    expect(state.marginAccounts?.writer_corp?.swfRehypothecationAuthorized).toBe(true);
+    expect(state.marginAccounts?.writer_corp?.swfRehypothecationVaultId).toBe("iron_vault");
+    expect(state.marginAccounts?.writer_corp?.swfRehypothecationPercentage).toBe(50);
+
+    // 3. Bob votes to revoke rehypothecation
+    const revokeAct1 = {
+      type: "REVOKE_SWF_MARGIN_REHYPOTHECATION",
+      syndicateId: "writer_corp",
+      timestamp: 1003,
+    };
+    res = multiAgentStep(state, { agentId: "bob", action: revokeAct1 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 1 vote out of 3 is not majority to revoke
+    expect(state.marginAccounts?.writer_corp?.swfRehypothecationAuthorized).toBe(true);
+
+    // 4. Player votes to revoke rehypothecation
+    const revokeAct2 = {
+      type: "REVOKE_SWF_MARGIN_REHYPOTHECATION",
+      syndicateId: "writer_corp",
+      timestamp: 1004,
+    };
+    res = multiAgentStep(state, { agentId: "player", action: revokeAct2 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 2 votes to revoke is majority
+    expect(state.marginAccounts?.writer_corp?.swfRehypothecationAuthorized).toBe(false);
+    expect(state.marginAccounts?.writer_corp?.swfRehypothecationVaultId).toBeUndefined();
+  });
+
+  it("should support SWF margin rebalancing policy, targets, buffer, and manual rebalance", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 200,
+        timestamp: 1000,
+      },
+    };
+
+    state.secondaryReserveVaults = {
+      iron_vault: {
+        vaultId: "iron_vault",
+        name: "Iron Vault",
+        interestRate: 0.10,
+        sweepRisk: 0.0,
+        timestamp: 1000,
+      },
+    };
+
+    // Both players vote to enable rebalancing policy
+    const policyAct = {
+      type: "SET_SWF_MARGIN_REBALANCING_POLICY",
+      syndicateId: "writer_corp",
+      enabled: true,
+      vaultTargets: { iron_vault: 100 },
+      liquidityBufferRatio: 20,
+      bufferTriggerRatio: 1.15,
+      timestamp: 1001,
+    };
+
+    let res = multiAgentStep(state, { agentId: "player", action: policyAct as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    res = multiAgentStep(state, { agentId: "alice", action: policyAct as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Policy should be enabled, and auto-rebalanced immediately!
+    // Buffer = 20% of 200 = 40. Allocated = 160.
+    const ma = state.marginAccounts?.writer_corp;
+    expect(ma?.swfRebalancingEnabled).toBe(true);
+    expect(ma?.swfLiquidityBufferRatio).toBe(20);
+    expect(ma?.swfLiquidityBuffer).toBe(40);
+    expect(ma?.swfVaultAllocations?.iron_vault).toBe(160);
+
+    // Increase collateral to 300, and trigger manual SWF rebalance
+    ma!.collateral = 300;
+    const rebalanceAct = {
+      type: "REBALANCE_SWF_MARGIN_COLLATERAL",
+      syndicateId: "writer_corp",
+      timestamp: 1002,
+    };
+    res = multiAgentStep(state, { agentId: "player", action: rebalanceAct as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Buffer = 20% of 300 = 60. Allocated = 240.
+    const updatedMa = state.marginAccounts?.writer_corp;
+    expect(updatedMa?.swfLiquidityBuffer).toBe(60);
+    expect(updatedMa?.swfVaultAllocations?.iron_vault).toBe(240);
+  });
+
+  it("should support SWF rebalancing advisor deployment and safety thresholds", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 200,
+        timestamp: 1000,
+      },
+    };
+
+    // Vote to deploy SWF advisor
+    const deployAct = {
+      type: "DEPLOY_SWF_REBALANCING_ADVISOR",
+      syndicateId: "writer_corp",
+      enabled: true,
+      timestamp: 1001,
+    };
+    let res = multiAgentStep(state, { agentId: "player", action: deployAct as any }, mockPack);
+    res = multiAgentStep(res.state, { agentId: "alice", action: deployAct as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    expect(state.marginAccounts?.writer_corp?.swfAdvisorEnabled).toBe(true);
+
+    // Vote to set safety threshold
+    const threshAct = {
+      type: "SET_SWF_ADVISOR_SAFETY_THRESHOLD",
+      syndicateId: "writer_corp",
+      threshold: 0.15,
+      timestamp: 1002,
+    };
+    res = multiAgentStep(state, { agentId: "player", action: threshAct as any }, mockPack);
+    res = multiAgentStep(res.state, { agentId: "alice", action: threshAct as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    expect(state.marginAccounts?.writer_corp?.swfAdvisorSafetyThreshold).toBe(0.15);
+  });
+
+  it("should process SWF rehypothecation yields and sweep risks inside tickEconomy", () => {
+    let state = createInitialState({
+      seed: 99999, // Specific seed that avoids sweep triggers
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 100,
+        swfRebalancingEnabled: true,
+        swfVaultTargets: { iron_vault: 100 },
+        swfLiquidityBufferRatio: 10,
+        swfLiquidityBuffer: 10,
+        swfVaultAllocations: { iron_vault: 90 },
+        timestamp: 1000,
+      },
+    };
+
+    // Ensure iron_vault exists and has yield/risk
+    state.secondaryReserveVaults = {
+      iron_vault: {
+        vaultId: "iron_vault",
+        name: "Iron Vault",
+        interestRate: 0.10, // 10% interest rate
+        sweepRisk: 0.0, // No sweep risk for this test
+        timestamp: 1000,
+      },
+    };
+
+    // Run tickEconomy
+    state = tickEconomy(state, mockPack);
+
+    // Yield = Math.floor(allocated * interestRate) = Math.floor(90 * 0.10) = 9
+    // Yield returned = Math.floor(9 * 0.80) = 7 gold!
+    // Collateral = 100 + 7 = 107
+    expect(state.marginAccounts?.writer_corp?.collateral).toBe(107);
+  });
+
+  it("should perform preemptive drawdown on SWF margins under risk of margin calls", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+      buyer_corp: {
+        id: "buyer_corp",
+        name: "Buyer Corporation",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 100, // Net equity = 100
+        swfRebalancingEnabled: true,
+        swfVaultTargets: { iron_vault: 100 },
+        swfLiquidityBufferRatio: 0,
+        swfLiquidityBuffer: 0,
+        swfVaultAllocations: { iron_vault: 100 }, // Premium = 100 * (0.10 + 0.05) = 15
+        swfBufferTriggerRatio: 1.25,
+        timestamp: 1000,
+      },
+    };
+
+    state.secondaryReserveVaults = {
+      iron_vault: {
+        vaultId: "iron_vault",
+        name: "Iron Vault",
+        interestRate: 0.0,
+        sweepRisk: 0.05, // 5% sweep risk
+        timestamp: 1000,
+      },
+    };
+
+    // Leverage SWF CDS of 400 notional (20% maintenance = 80 required)
+    // Premium = 15. Total required = 80 + 15 = 95.
+    // Trigger ratio = 1.25. Trigger limit = 1.25 * 95 = 118.75.
+    // Net Equity (100) <= Trigger Limit (118.75), so a preemptive drawdown triggers!
+    state.swfYieldCDOCDSs = {
+      swf_cds_1: {
+        id: "swf_cds_1",
+        buyerSyndicateId: "buyer_corp",
+        writerSyndicateId: "writer_corp",
+        swfYieldCdoId: "swf_cdo_1",
+        trancheId: "senior",
+        notionalValue: 400,
+        premiumRate: 0.01,
+        timestamp: 1000,
+        active: true,
+        marginEnabled: true,
+      },
+    };
+    state.marginAccounts.writer_corp.leveragedSWFYieldCDOCDSIds = ["swf_cds_1"];
+
+    state = tickEconomy(state, mockPack);
+
+    // Preemptive drawback occurred, drawing back the 100 gold allocation to buffer,
+    // reducing premium to 0 and preventing a margin call liquidation!
+    expect(state.marginAccounts?.writer_corp?.swfVaultAllocations?.iron_vault).toBe(0);
+    expect(state.marginAccounts?.writer_corp?.swfLiquidityBuffer).toBe(100);
+    expect(state.swfYieldCDOCDSs?.swf_cds_1?.active).toBe(true); // Still active!
+  });
+
+  it("should converge SWF margin votes correctly during Gossip merging", () => {
+    const stateA = createInitialState({ seed: 1, start: "clearing", agentsInit: ["player"] });
+    const stateB = createInitialState({ seed: 2, start: "clearing", agentsInit: ["player"] });
+
+    stateA.swfMarginRehypothecationVotes = {
+      writer_corp: {
+        player: { vaultId: "iron_vault", percentage: 40, timestamp: 1010 },
+      },
+    };
+
+    stateB.swfMarginRehypothecationVotes = {
+      writer_corp: {
+        player: { vaultId: "gold_vault", percentage: 60, timestamp: 1020 }, // Newer!
+      },
+    };
+
+    const merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.swfMarginRehypothecationVotes?.writer_corp?.player?.vaultId).toBe("gold_vault");
+    expect(merged.swfMarginRehypothecationVotes?.writer_corp?.player?.percentage).toBe(60);
+  });
 });
