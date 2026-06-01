@@ -3186,6 +3186,21 @@ export const SovereignDebtCDSCDOAutocallTriggerSchema = z.object({
 });
 export type SovereignDebtCDSCDOAutocallTrigger = z.infer<typeof SovereignDebtCDSCDOAutocallTriggerSchema>;
 
+export const SovereignDebtCDSCDOCrossTrancheHedgingSchema = z.object({
+  proposalId: z.string(),
+  cdoId: z.string(),
+  syndicateId: z.string(),
+  targetTrancheId: z.enum(["senior", "mezzanine"]),
+  allocationPercent: z.number().int().min(0).max(100),
+  status: z.enum(["proposed", "approved", "rejected"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOCrossTrancheHedging = z.infer<typeof SovereignDebtCDSCDOCrossTrancheHedgingSchema>;
+
 
 
 
@@ -4180,6 +4195,7 @@ export const GameStateSchema = z.object({
   cdsCdoTrancheMarginAdjustments: z.record(z.string(), SovereignDebtCDSCDOTrancheMarginAdjustmentSchema).optional(),
   cdsCdoTrancheLeverageAdjustments: z.record(z.string(), SovereignDebtCDSCDOTrancheLeverageAdjustmentSchema).optional(),
   cdsCdoAutocallTriggers: z.record(z.string(), SovereignDebtCDSCDOAutocallTriggerSchema).optional(),
+  cdsCdoCrossTrancheHedging: z.record(z.string(), SovereignDebtCDSCDOCrossTrancheHedgingSchema).optional(),
 
 
 
@@ -4641,6 +4657,7 @@ export const createInitialState = (options: {
     cdsCdoTrancheMarginAdjustments: {},
     cdsCdoTrancheLeverageAdjustments: {},
     cdsCdoAutocallTriggers: {},
+    cdsCdoCrossTrancheHedging: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5828,6 +5845,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoTrancheMarginAdjustments: rest.cdsCdoTrancheMarginAdjustments ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheMarginAdjustments)) : undefined,
     cdsCdoTrancheLeverageAdjustments: rest.cdsCdoTrancheLeverageAdjustments ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheLeverageAdjustments)) : undefined,
     cdsCdoAutocallTriggers: rest.cdsCdoAutocallTriggers ? JSON.parse(JSON.stringify(rest.cdsCdoAutocallTriggers)) : undefined,
+    cdsCdoCrossTrancheHedging: rest.cdsCdoCrossTrancheHedging ? JSON.parse(JSON.stringify(rest.cdsCdoCrossTrancheHedging)) : undefined,
 
   };
   return clone;
@@ -18199,6 +18217,38 @@ export function reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments(state: Ga
             );
           }
         }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtCDSCDOCrossTrancheHedging(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoCrossTrancheHedging: state.cdsCdoCrossTrancheHedging ? { ...state.cdsCdoCrossTrancheHedging } : {},
+  };
+
+  if (newState.cdsCdoCrossTrancheHedging) {
+    for (const [proposalId, proposal] of Object.entries(newState.cdsCdoCrossTrancheHedging)) {
+      if (proposal.status !== "proposed") continue;
+      const syndicate = newState.syndicates[proposal.syndicateId];
+      if (!syndicate) continue;
+      const votes = proposal.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > syndicate.members.length / 2;
+      if (passed) {
+        proposal.status = "approved";
+        
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDS CDO Cross-Tranche Hedging Approved] Syndicate ${proposal.syndicateId} approved cross-tranche yield hedging allocation of ${proposal.allocationPercent}% from equity tranche to ${proposal.targetTrancheId} tranche for CDO ${proposal.cdoId}.`
+        );
       }
     }
   }

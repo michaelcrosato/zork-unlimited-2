@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #230 (Ready for Cycle #231)
-* **Build/Test Status**: 🟢 PASS (All 796 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #231 (Ready for Cycle #232)
+* **Build/Test Status**: 🟢 PASS (All 803 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1503,14 +1503,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 212: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Cross-Tranche Hedging & Portfolio Stress Rebalancing (Completed)
+- [x] Define cross-tranche yield hedging allocation schemas and properties in GameState schemas (`AF-234`).
+- [x] Implement `SET_CDS_CDO_CROSS_TRANCHE_HEDGING` decentralized consensus action (`AF-234`).
+- [x] Wire the economy tick to automatically transfer designated equity yield payouts into the senior/mezzanine margin collateral accounts before margin requirement calculations to deflect margin calls dynamically (`AF-234`).
+- [x] Write comprehensive Vitest integration tests (`AF-234`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-234`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Cross-Tranche Hedging & Portfolio Stress Rebalancing.
-* **Why this matters**: Introduce cross-tranche portfolio hedging policies, allowing syndicates to allocate a portion of their equity tranche yield payments to dynamically hedge senior/mezzanine margin exposures under extreme defaults, minimizing overall collateral requirements.
+**Task ID**: `AF-235`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Cross-Tranche Hedging Liquidity Pool Reserve Floor & Governance Cap.
+* **Why this matters**: Introduce a minimum reserve floor and dynamic fee adjustments for cross-tranche yield hedging, preventing syndicates from over-allocating equity yield to the senior tranche when overall CDO pool liquidity is depleted, ensuring balanced risk distribution across the mesh.
 * **Planned Actions**:
-  1. Define cross-tranche yield hedging allocation schemas and properties in GameState schemas.
-  2. Implement `SET_CDS_CDO_CROSS_TRANCHE_HEDGING` decentralized consensus action.
-  3. Wire the economy tick to automatically transfer designated equity yield payouts into the senior/mezzanine margin collateral accounts before margin requirement calculations to deflect margin calls dynamically.
+  1. Define cross-tranche hedging reserve floor and governance cap properties in GameState schemas.
+  2. Implement decentralized consensus voting action to configure reserve floor and cap targets.
+  3. Wire the economy tick to clamp cross-tranche hedging allocations to the dynamic cap when CDO fractionalized vault reserves drop below the floor.
   4. Write comprehensive Vitest integration tests.
 
 ---

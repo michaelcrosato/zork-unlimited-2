@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers, reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers, reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments, reconcileSovereignDebtCDSCDOCrossTrancheHedging } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -47962,6 +47962,138 @@ export function multiAgentStep(
         trancheId,
         syndicateId,
         status: triggerStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle SET_CDS_CDO_CROSS_TRANCHE_HEDGING action (AF-234)
+  if ((action as any).type === "SET_CDS_CDO_CROSS_TRANCHE_HEDGING") {
+    const { proposalId, cdoId, syndicateId, targetTrancheId, allocationPercent, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignDebtCDSCDOPools?.[cdoId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!cdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!targetTrancheId || !["senior", "mezzanine"].includes(targetTrancheId)) {
+      rejectionReason = `Valid Target Tranche ID (senior, mezzanine) is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (allocationPercent === undefined || typeof allocationPercent !== "number" || allocationPercent < 0 || allocationPercent > 100) {
+      rejectionReason = `Valid allocation percentage (0 to 100) is required.`;
+    } else if (!pool) {
+      rejectionReason = `CDO pool ${cdoId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsCdoCrossTrancheHedging = newState.cdsCdoCrossTrancheHedging ? { ...newState.cdsCdoCrossTrancheHedging } : {};
+      const existingProp = newState.cdsCdoCrossTrancheHedging[proposalId];
+
+      if (!existingProp || existingProp.status !== "proposed") {
+        newState.cdsCdoCrossTrancheHedging[proposalId] = {
+          proposalId,
+          cdoId,
+          syndicateId,
+          targetTrancheId,
+          allocationPercent,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsCdoCrossTrancheHedging[proposalId] = {
+        ...newState.cdsCdoCrossTrancheHedging[proposalId],
+        votes: newState.cdsCdoCrossTrancheHedging[proposalId].votes ? { ...newState.cdsCdoCrossTrancheHedging[proposalId].votes } : {},
+      };
+
+      newState.cdsCdoCrossTrancheHedging[proposalId].votes = {
+        ...newState.cdsCdoCrossTrancheHedging[proposalId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileSovereignDebtCDSCDOCrossTrancheHedging(newState, pack);
+
+      const propStatus = newState.cdsCdoCrossTrancheHedging?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDS CDO Cross-Tranche Hedging Proposal Vote] Agent ${agentId} voted to set cross-tranche yield hedging allocation of ${allocationPercent}% from equity to ${targetTrancheId} tranche in CDO ${cdoId} (Status: ${propStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Agent ${agentId} voted to set cross-tranche yield hedging allocation of ${allocationPercent}% to ${targetTrancheId} tranche on CDO ${cdoId} by ${syndicateId} (Status: ${propStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "set_cds_cdo_cross_tranche_hedging" as any,
+        proposalId,
+        cdoId,
+        syndicateId,
+        targetTrancheId,
+        allocationPercent,
+        status: propStatus,
         timestamp,
       });
     }

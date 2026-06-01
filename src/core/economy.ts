@@ -7745,6 +7745,75 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
   newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
 
   for (const [cdoId, pool] of Object.entries(newState.sovereignDebtCDSCDOPools)) {
+    // Pre-pass: Process equity tranche autocallable yield payouts and apply cross-tranche hedging before any margin requirements are calculated.
+    const equityTranche = pool.tranches["equity"];
+    if (equityTranche && equityTranche.autocallTriggerLevel !== undefined && equityTranche.autocallCoupon !== undefined) {
+      if (equityTranche.autocallPaid === undefined) equityTranche.autocallPaid = {};
+      
+      const poolCDSContracts = Object.values(newState.sovereignDebtCDSContracts || {}).filter(c => c.cdoId === cdoId);
+      const totalDefaults = poolCDSContracts
+        .filter(c => c.status === "settled")
+        .reduce((sum, c) => sum + (c.notionalValue ?? 0), 0);
+
+      for (const [syndicateId, shares] of Object.entries(equityTranche.sharesOwned)) {
+        if (shares <= 0) continue;
+        const synd = newState.syndicates[syndicateId];
+        if (!synd) continue;
+
+        if (totalDefaults < equityTranche.autocallTriggerLevel && !equityTranche.autocallPaid[syndicateId]) {
+          const trancheTotal = equityTranche.totalValue || 1;
+          const payout = Math.floor(equityTranche.autocallCoupon * (shares / trancheTotal));
+
+          // Check if there is an approved cross-tranche hedging policy for this syndicate in this CDO
+          const hedgingConfig = Object.values(newState.cdsCdoCrossTrancheHedging || {}).find(
+            (h: any) => h.cdoId === cdoId && h.syndicateId === syndicateId && h.status === "approved"
+          );
+
+          if (hedgingConfig && hedgingConfig.allocationPercent > 0) {
+            const targetTrancheId = hedgingConfig.targetTrancheId;
+            const targetTranche = pool.tranches[targetTrancheId];
+            if (targetTranche) {
+              const allocationPercent = hedgingConfig.allocationPercent;
+              const hedgedAmount = Math.floor(payout * (allocationPercent / 100));
+              const remainingAmount = payout - hedgedAmount;
+
+              // Distribute
+              synd.warChest = (synd.warChest ?? 0) + remainingAmount;
+              
+              if (!targetTranche.marginCollateral) {
+                targetTranche.marginCollateral = {};
+              }
+              targetTranche.marginCollateral[syndicateId] = (targetTranche.marginCollateral[syndicateId] ?? 0) + hedgedAmount;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[CDS CDO Cross-Tranche Hedging Applied] Syndicate ${syndicateId} transferred ${hedgedAmount} gold (hedged portion of equity autocall yield payout) to CDO ${cdoId} ${targetTrancheId} tranche margin collateral.`
+              );
+              newState.journal.push(
+                `[CDS CDO Autocall Payout] Syndicate ${syndicateId} triggered autocall yield payout of ${payout} gold on CDO ${cdoId} tranche equity (Defaults: ${totalDefaults} < ${equityTranche.autocallTriggerLevel}).`
+              );
+            } else {
+              // Fallback
+              synd.warChest = (synd.warChest ?? 0) + payout;
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[CDS CDO Autocall Payout] Syndicate ${syndicateId} triggered autocall yield payout of ${payout} gold on CDO ${cdoId} tranche equity (Defaults: ${totalDefaults} < ${equityTranche.autocallTriggerLevel}).`
+              );
+            }
+          } else {
+            // No hedging config: full payout to warChest
+            synd.warChest = (synd.warChest ?? 0) + payout;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDS CDO Autocall Payout] Syndicate ${syndicateId} triggered autocall yield payout of ${payout} gold on CDO ${cdoId} tranche equity (Defaults: ${totalDefaults} < ${equityTranche.autocallTriggerLevel}).`
+            );
+          }
+
+          equityTranche.autocallPaid[syndicateId] = true;
+        }
+      }
+    }
+
     for (const trancheId of ["senior", "mezzanine", "equity"] as const) {
       let multiplier = 0.90;
       if (trancheId === "mezzanine") multiplier = 0.60;
