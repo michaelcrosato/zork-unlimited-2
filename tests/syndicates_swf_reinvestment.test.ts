@@ -2498,6 +2498,158 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       expect(insurancePools.length).toBeGreaterThan(0);
       expect(insurancePools[0].balance).toBe(expectedHedgeCost);
     });
+
+    it("should successfully apply faction standing and loyalty rank discounts to weather volatility option premium calculations", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+      };
+
+      // Authorize policy and oracle proposed by alpha
+      state.sweepPoolVolatilityHedgingPolicyAuthorized = true;
+      state.sweepPoolVolatilityHedgingThreshold = 60;
+      state.sweepPoolVolatilityHedgingRatio = 80;
+      state.sweepPoolVolatilityHedgingReserveFloor = 100;
+      state.swfStakingSweepPool = 500;
+
+      state.sweepPoolVolatilityHedgingProposals = {
+        "hedge_prop_1": {
+          proposalId: "hedge_prop_1",
+          syndicateId: "alpha",
+          volatilityThreshold: 60,
+          hedgingRatio: 80,
+          reserveFloor: 100,
+          status: "authorized",
+          resolved: true,
+          timestamp: 1000,
+        },
+      };
+
+      state.cooperativeStakingYieldSweepProposals = {
+        "sweep_prop_1": {
+          proposalId: "sweep_prop_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          factionId: "rangers",
+          criticalThreshold: 50,
+          sweepPercentage: 75,
+          status: "authorized",
+          resolved: true,
+          timestamp: 1000,
+        },
+      };
+
+      // Set environment to spiked (storm + tempest = 80 vol)
+      state.environment = {
+        weather: "storm",
+        temperature: "cold",
+        wind: "tempest",
+        lastUpdatedStep: state.step,
+      };
+
+      // Configure standing = 40 (standing discount = 40 * 0.0025 = 10%)
+      // Configure loyalty rank = Gold (rank discount = 20%)
+      // Total discount = 30% -> multiplier = 0.70
+      state.factionRep = {
+        rangers: 40,
+      };
+      state.factionLoyaltyRanks = {
+        "alpha-rangers": {
+          syndicateId: "alpha",
+          factionId: "rangers",
+          rank: "Gold",
+          timestamp: 1000,
+        },
+      };
+
+      const availableGold = state.swfStakingSweepPool - state.sweepPoolVolatilityHedgingReserveFloor; // 400
+      const baseHedgeCost = Math.floor(availableGold * 0.80); // 320
+      const expectedHedgeCost = Math.floor(baseHedgeCost * 0.70); // 224
+
+      const tickedState = tickEconomy(state, mockPack);
+
+      // Verify sweep pool has remaining gold (500 - 224 = 276)
+      expect(tickedState.swfStakingSweepPool).toBe(500 - expectedHedgeCost);
+
+      const insurancePools = Object.values(tickedState.swfReinsuranceOptionVolatilityInsurancePools || {});
+      expect(insurancePools.length).toBeGreaterThan(0);
+      expect(insurancePools[0].balance).toBe(expectedHedgeCost);
+
+      // Verify the journal contains discount logs
+      const discountLog = tickedState.journal.find((log: string) => log.includes("Applied faction alliance loyalty discount of 30%"));
+      expect(discountLog).toBeDefined();
+    });
+
+    it("should successfully award speculative profit payouts to the sweep pool when weather reverts to stable", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player"],
+      });
+
+      state.sweepPoolVolatilityHedgingPolicyAuthorized = true;
+      state.sweepPoolVolatilityHedgingThreshold = 60;
+      state.sweepPoolVolatilityHedgingRatio = 80;
+      state.sweepPoolVolatilityHedgingReserveFloor = 100;
+      state.swfStakingSweepPool = 500;
+      state.sweepPoolWeatherForecastOracleAuthorized = true;
+      state.sweepPoolWeatherForecastOracleAccuracyFloor = 100;
+
+      // Volatility insurance pool with some balance from previous ticks
+      state.swfReinsuranceOptionVolatilityInsurancePools = {
+        "default_weather_vol_pool": {
+          id: "default_weather_vol_pool",
+          swfYieldCdoId: "default_cdo",
+          trancheId: "senior" as any,
+          balance: 400,
+          timestamp: state.step,
+        },
+      };
+
+      // Set CURRENT environment to stable (clear + calm = 5 + 0 = 5 vol)
+      state.environment = {
+        weather: "clear",
+        temperature: "mild",
+        wind: "calm",
+        lastUpdatedStep: state.step,
+      };
+
+      // Set forecast to stable (reverst to stable, predictedVol is 20)
+      // Since predictedVol (20) < threshold (60)
+      // stabilityFactor = 1 - (20 / 60) = 0.66666
+      // speculativePayout = Math.floor(400 * 0.25 * 0.66666) = Math.floor(100 * 0.66666) = 66 gold
+      const predictedVol = 20;
+      const threshold = 60;
+      const stabilityFactor = 1.0 - (predictedVol / threshold);
+      const expectedPayout = Math.floor(400 * 0.25 * stabilityFactor); // 66
+
+      const tickedState = tickEconomy(state, mockPack);
+
+      // Verify payout is awarded to the sweep pool (500 + 66 = 566)
+      expect(tickedState.swfStakingSweepPool).toBe(500 + expectedPayout);
+
+      // Verify the insurance pool is drawn down (400 - 66 = 334)
+      const pool = tickedState.swfReinsuranceOptionVolatilityInsurancePools?.["default_weather_vol_pool"];
+      expect(pool?.balance).toBe(400 - expectedPayout);
+
+      // Verify the journal contains speculative payout log
+      const payoutLog = tickedState.journal.find((log: string) => log.includes("Awarded speculative profit payout"));
+      expect(payoutLog).toBeDefined();
+    });
   });
 });
 

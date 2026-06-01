@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #210 (Ready for Cycle #211)
-* **Build/Test Status**: 🟢 PASS (All 755 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #211 (Ready for Cycle #212)
+* **Build/Test Status**: 🟢 PASS (All 757 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1349,14 +1349,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 191: Syndicate SWF Sweep Pool Volatility Hedging Speculative Arbitrage and Faction Loyalty Bonuses (Completed)
+- [x] Define dynamic alliance rating pricing multipliers inside volatility option premium calculations (`AF-213`).
+- [x] Implement speculative payout triggers in economy ticks that award gold to the sweep pool on successful weather stabilization (`AF-213`).
+- [x] Write comprehensive Vitest integration tests in `tests/syndicates_swf_reinvestment.test.ts` verifying loyalty discounts and speculative returns (`AF-213`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-213`
-* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Speculative Arbitrage and Faction Loyalty Bonuses.
-* **Why this matters**: Scale hedging premiums dynamically based on faction alliance ratings and introduce speculative profit payouts to the sweep pool when predicted volatility reverts to stable weather.
+**Task ID**: `AF-214`
+* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Staking Consensus.
+* **Why this matters**: Scale decentralized voting participation and slashing policies inside cooperative sweep pool options under failed stability votes to enhance economic alignment.
 * **Planned Actions**:
-  1. Define dynamic alliance rating pricing multipliers inside volatility option premium calculations.
-  2. Implement speculative payout triggers in economy ticks that award gold to the sweep pool on successful weather stabilization.
-  3. Write comprehensive Vitest integration tests verifying loyalty discounts and speculative returns.
+  1. Define dynamic slashing and yield penalty distribution schemas inside cooperative sweep pool options under failed stability votes.
+  2. Implement voting consensus thresholds that dynamically scale slashing ratios based on faction alliances.
+  3. Write comprehensive Vitest integration tests verifying slashing enforcement and yield redistribution.
 
 ---
 

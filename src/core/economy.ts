@@ -8827,6 +8827,32 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
   const currentWeatherVol = baseVol + windVol;
 
   // 2. Check if index spikes above the threshold
+  // Find syndicateId and factionId from cooperative yield sweep / authorized hedging proposal
+  let activeSyndicateId = "";
+  let activeFactionId = "rangers"; // default faction if none found
+
+  // Find authorized volatility hedging proposal to get the syndicate ID
+  const activeHedgeProp = Object.values(newState.sweepPoolVolatilityHedgingProposals || {}).find(
+    (p: any) => p.status === "authorized"
+  );
+  if (activeHedgeProp) {
+    activeSyndicateId = activeHedgeProp.syndicateId;
+  }
+
+  // Find authorized cooperative staking sweep proposal to get the faction ID
+  if (newState.cooperativeStakingYieldSweepProposals) {
+    const activeSweepProp = Object.values(newState.cooperativeStakingYieldSweepProposals).find(
+      (p: any) => p.status === "authorized"
+    );
+    if (activeSweepProp) {
+      activeFactionId = activeSweepProp.factionId;
+      if (!activeSyndicateId) {
+        activeSyndicateId = activeSweepProp.syndicateId;
+      }
+    }
+  }
+
+  // 2. Check if index spikes above the threshold
   if (currentWeatherVol >= newState.sweepPoolVolatilityHedgingThreshold) {
     // 3. Spiked! Spend sweep pool gold above the reserve floor
     const availableGold = Math.max(0, (newState.swfStakingSweepPool ?? 0) - newState.sweepPoolVolatilityHedgingReserveFloor);
@@ -8870,7 +8896,27 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
       }
     }
 
-    const hedgeCost = Math.floor(availableGold * (activeRatio / 100));
+    const baseHedgeCost = Math.floor(availableGold * (activeRatio / 100));
+
+    // Calculate faction alliance loyalty discount on volatility option premium
+    let allianceMultiplier = 1.0;
+    let standing = 0;
+    let loyaltyRank = "None";
+    if (activeSyndicateId && activeFactionId) {
+      standing = getSyndicateFactionStanding(newState, activeSyndicateId, activeFactionId);
+      loyaltyRank = getSyndicateFactionLoyaltyRank(newState, activeSyndicateId, activeFactionId);
+
+      const standingDiscount = standing * 0.0025; // 0.25% discount per standing point
+      let rankDiscount = 0.0;
+      if (loyaltyRank === "Platinum") rankDiscount = 0.3;
+      else if (loyaltyRank === "Gold") rankDiscount = 0.2;
+      else if (loyaltyRank === "Silver") rankDiscount = 0.15;
+      else if (loyaltyRank === "Bronze") rankDiscount = 0.1;
+
+      allianceMultiplier = Math.max(0.5, 1.0 - (standingDiscount + rankDiscount));
+    }
+
+    const hedgeCost = Math.floor(baseHedgeCost * allianceMultiplier);
 
     if (hedgeCost > 0) {
       newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) - hedgeCost;
@@ -8899,9 +8945,64 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
         [firstPoolKey]: pool,
       };
 
+      let loyaltyDiscountLog = "";
+      if (allianceMultiplier < 1.0) {
+        const discountPct = Math.round((1.0 - allianceMultiplier) * 100);
+        loyaltyDiscountLog = ` (Applied faction alliance loyalty discount of ${discountPct}% based on standing ${standing} and loyalty rank ${loyaltyRank}).`;
+      }
+
       newState.journal.push(
-        `[Sweep Pool Volatility Hedging Triggered] Regional weather volatility index spiked to ${currentWeatherVol} >= Threshold ${newState.sweepPoolVolatilityHedgingThreshold}! Automatically purchased volatility insurance options by spending ${hedgeCost} gold from sweep pool reserves, maintaining reserve floor above ${newState.sweepPoolVolatilityHedgingReserveFloor} gold (New Volatility Insurance Pool ${firstPoolKey} Balance: ${pool.balance} gold).` + forecastLog
+        `[Sweep Pool Volatility Hedging Triggered] Regional weather volatility index spiked to ${currentWeatherVol} >= Threshold ${newState.sweepPoolVolatilityHedgingThreshold}! Automatically purchased volatility insurance options by spending ${hedgeCost} gold from sweep pool reserves, maintaining reserve floor above ${newState.sweepPoolVolatilityHedgingReserveFloor} gold (New Volatility Insurance Pool ${firstPoolKey} Balance: ${pool.balance} gold).` + forecastLog + loyaltyDiscountLog
       );
+    }
+  } else {
+    // Current weather is stable! Check if predicted weather is also stable to trigger a speculative payout
+    if (newState.sweepPoolWeatherForecastOracleAuthorized) {
+      const seed = newState.seed ?? 12345;
+      const forecastStep = (newState.step ?? 0) + 5;
+      const forecast = getWeatherForStep(seed, forecastStep);
+
+      let fBaseVol = 0;
+      if (forecast.weather === "storm") fBaseVol = 50;
+      else if (forecast.weather === "rain") fBaseVol = 20;
+      else if (forecast.weather === "fog") fBaseVol = 15;
+      else if (forecast.weather === "clear") fBaseVol = 5;
+
+      let fWindVol = 0;
+      if (forecast.wind === "tempest") fWindVol = 30;
+      else if (forecast.wind === "gale") fWindVol = 15;
+      else if (forecast.wind === "breezy") fWindVol = 5;
+
+      const predictedVol = fBaseVol + fWindVol;
+      const threshold = newState.sweepPoolVolatilityHedgingThreshold;
+
+      if (predictedVol < threshold) {
+        // Predicted weather is stable! Check if we have volatility insurance pools to draw speculative payouts from
+        const insurancePools = newState.swfReinsuranceOptionVolatilityInsurancePools || {};
+        const firstPoolKey = Object.keys(insurancePools)[0];
+        if (firstPoolKey && insurancePools[firstPoolKey] && insurancePools[firstPoolKey].balance > 0) {
+          const pool = { ...insurancePools[firstPoolKey] };
+          const balance = pool.balance ?? 0;
+
+          // Payout up to 25% of pool balance scaled by stability factor
+          const stabilityFactor = 1.0 - (predictedVol / threshold);
+          const payoutPercent = 0.25;
+          const speculativePayout = Math.max(1, Math.floor(balance * payoutPercent * stabilityFactor));
+
+          if (speculativePayout > 0) {
+            pool.balance = Math.max(0, balance - speculativePayout);
+            newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + speculativePayout;
+            newState.swfReinsuranceOptionVolatilityInsurancePools = {
+              ...insurancePools,
+              [firstPoolKey]: pool,
+            };
+
+            newState.journal.push(
+              `[Speculative Hedging Payout] Predicted weather volatility reverted to stable (${predictedVol} < Threshold ${threshold}). Awarded speculative profit payout of ${speculativePayout} gold back to the sweep pool from Volatility Insurance Pool ${firstPoolKey} (Remaining Pool Balance: ${pool.balance} gold).`
+            );
+          }
+        }
+      }
     }
   }
 
