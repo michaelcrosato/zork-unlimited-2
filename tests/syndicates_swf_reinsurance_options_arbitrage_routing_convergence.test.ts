@@ -911,4 +911,138 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     expect(routeAfterSecond?.pathSplitWeights?.C).toBeCloseTo(0.857, 2);
     expect(routeAfterSecond?.lastRecalculationStep).toBe(43);
   });
+
+  it("should prune degraded options arbitrage routes dynamically when latency exceeds maxPruningLatencyMs (AF-181)", () => {
+    const net = new MeshNetwork();
+    net.topologyPruningThresholdMs = 10000;
+
+    const nodeA = new MeshNode("A", mockPack, 42);
+    const nodeB = new MeshNode("B", mockPack, 42);
+    const nodeC = new MeshNode("C", mockPack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+
+    nodeA.directNeighbors.add("B");
+    nodeB.directNeighbors.add("A");
+    nodeB.directNeighbors.add("C");
+    nodeC.directNeighbors.add("B");
+
+    nodeA.announcePresence();
+    nodeB.announcePresence();
+    nodeC.announcePresence();
+
+    // Initialize state
+    const baseState = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 20000 },
+      agentsInit: ["player"],
+    });
+
+    baseState.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 5000,
+      },
+    };
+
+    baseState.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: {},
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.20,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    // Arbitrage policies
+    baseState.swfReinsuranceOptionCrossMeshArbitragePolicies = {
+      cdo_1_senior: {
+        swfYieldCdoId: "cdo_1",
+        trancheId: "senior",
+        arbitrageSpreadThreshold: 5.0,
+        maxArbitrageVolume: 100,
+        timestamp: 1000,
+      },
+    };
+
+    nodeA.localState = { ...baseState };
+    nodeB.localState = { ...baseState };
+    nodeC.localState = { ...baseState };
+
+    // Setup a route with enableRoutePruning and maxPruningLatencyMs = 80ms
+    const route = {
+      routeId: "route_A_B",
+      sourceNodeId: "A",
+      targetNodeId: "B",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      spreadDifference: 0,
+      timestamp: 1000,
+      enableRoutePruning: true,
+      maxPruningLatencyMs: 80,
+    };
+
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: route };
+    nodeB.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...route } };
+    nodeC.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...route } };
+
+    // Propagate presence and calculate routing tables
+    for (let i = 0; i < 5; i++) {
+      net.tick(100);
+    }
+
+    // Set a latency that is safe (e.g. 30ms)
+    nodeA.lastHeartbeatLatency.set("B", 30);
+
+    // Reconcile and check that the route is NOT pruned
+    nodeA.reconcileCrossMeshOptionArbitrage();
+    expect(nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B).toBeDefined();
+
+    // Now degrade/congest the link so latency becomes 90ms (> 80ms threshold)
+    nodeA.lastHeartbeatLatency.set("B", 90);
+
+    // Reconcile again
+    nodeA.reconcileCrossMeshOptionArbitrage();
+
+    // The route should be pruned (deleted) from node A's state!
+    expect(nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B).toBeUndefined();
+
+    // Verify journal logging of pruning
+    const journal = nodeA.localState.journal || [];
+    const pruningLog = journal.find(msg => msg.includes("[SWF Reinsurance Options Cross-Mesh Route Pruned]"));
+    expect(pruningLog).toBeDefined();
+    expect(pruningLog).toContain("Pruned options arbitrage route route_A_B");
+    expect(pruningLog).toContain("exceeding the threshold of 80ms");
+  });
 });

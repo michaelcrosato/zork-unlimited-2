@@ -2379,6 +2379,8 @@ export const SWFReinsuranceOptionCrossMeshArbitrageRouteSchema = z.object({
   pathSplitWeights: z.record(z.string(), z.number()).optional(),
   enableDynamicWeightRecalculation: z.boolean().optional(),
   lastRecalculationStep: z.number().int().nonnegative().optional(),
+  enableRoutePruning: z.boolean().optional(),
+  maxPruningLatencyMs: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionCrossMeshArbitrageRoute = z.infer<typeof SWFReinsuranceOptionCrossMeshArbitrageRouteSchema>;
 

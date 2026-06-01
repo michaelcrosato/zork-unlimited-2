@@ -206,6 +206,7 @@ export class MeshNode extends GossipNode {
     if (!state.swfReinsuranceOptionCrossMeshArbitrageRoutes) return;
 
     let changed = false;
+    const toPrune: string[] = [];
 
     const self = this;
     function getWeightedPathLength(discovery: NetworkDiscovery, start: string, end: string): number {
@@ -456,6 +457,23 @@ export class MeshNode extends GossipNode {
       }
 
       const finalLatency = Math.floor(totalWeightedLatency);
+
+      // Automated periodic route pruning check
+      if (route.enableRoutePruning && route.maxPruningLatencyMs !== undefined) {
+        if (finalLatency > route.maxPruningLatencyMs) {
+          toPrune.push(routeId);
+          if (!sourceNode.localState.journal) sourceNode.localState.journal = [];
+          sourceNode.localState.journal.push(
+            `[SWF Reinsurance Options Cross-Mesh Route Pruned] Pruned options arbitrage route ${routeId} from node ${sourceNodeId} to ${targetNodeId} due to latency (${finalLatency}ms) exceeding the threshold of ${route.maxPruningLatencyMs}ms.`
+          );
+          if (!targetNode.localState.journal) targetNode.localState.journal = [];
+          targetNode.localState.journal.push(
+            `[SWF Reinsurance Options Cross-Mesh Route Pruned] Pruned options arbitrage route ${routeId} from node ${sourceNodeId} to ${targetNodeId} due to latency (${finalLatency}ms) exceeding the threshold of ${route.maxPruningLatencyMs}ms.`
+          );
+          continue;
+        }
+      }
+
       const finalToll = Math.floor(totalWeightedToll);
       const finalPenalty = Math.round(totalWeightedPenalty * 10) / 10;
       const halted = allPathsHalted;
@@ -553,6 +571,13 @@ export class MeshNode extends GossipNode {
         sourceNode.localState.journal.push(
           `[SWF Reinsurance Option Cross-Mesh Arbitrage] Arbitrage rebalancing halted along route ${routeId}: ${haltReason}.`
         );
+      }
+    }
+
+    if (toPrune.length > 0) {
+      state.swfReinsuranceOptionCrossMeshArbitrageRoutes = { ...state.swfReinsuranceOptionCrossMeshArbitrageRoutes };
+      for (const rId of toPrune) {
+        delete state.swfReinsuranceOptionCrossMeshArbitrageRoutes[rId];
       }
     }
   }
