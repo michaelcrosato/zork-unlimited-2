@@ -587,6 +587,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
 
         // Reduce enforcer heat in the merchant's room based on syndicate dominance
+        let currentHeat = 0;
         if (newState.enforcementHeat?.[front.roomId]) {
           const dominance = syndicate.dominance ?? 50;
           const heatReduction = Math.max(1, Math.floor((dominance / 25) * front.level));
@@ -601,6 +602,61 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             },
           };
           newState.journal.push(`[Syndicate] Front business ${front.id} reduced enforcer heat in ${front.roomId} by ${heatReduction} (New heat: ${newHeat}).`);
+          currentHeat = newHeat;
+        }
+
+        // Check for laundering-volume-based dynamic events (AF-51)
+        // If the front business is highly active (cleanGold >= 150)
+        if (clean >= 150) {
+          if (currentHeat >= 25) {
+            // Trigger Enforcer Sweep!
+            const confiscatedDirty = dirty;
+            const confiscatedClean = Math.floor(clean / 2);
+            dirty = 0;
+            clean = clean - confiscatedClean;
+
+            // Reset room heat
+            if (newState.enforcementHeat?.[front.roomId]) {
+              newState.enforcementHeat[front.roomId] = {
+                ...newState.enforcementHeat[front.roomId],
+                heat: 0,
+              };
+            }
+
+            newState.journal.push(`[Syndicate] Enforcer sweep triggered at front business ${front.id} in room ${front.roomId} due to high laundering volume and heat! Confiscated ${confiscatedDirty} dirty gold and ${confiscatedClean} clean gold.`);
+            frontUpdated = true;
+          } else {
+            // Trigger Regional Market Boost!
+            const p = pack as any;
+            const npc = p.npcs?.find((n: any) => n.id === merchantId);
+            let mGold = 100;
+            if (newState.merchantGold?.[merchantId] !== undefined) {
+              mGold = newState.merchantGold[merchantId];
+            } else if (npc) {
+              mGold = npc.gold ?? npc.gold_limit ?? 100;
+            }
+
+            if (!newState.merchantGold) newState.merchantGold = {};
+            newState.merchantGold[merchantId] = mGold + 100;
+
+            // Increase syndicate dominance by 5 (up to max 100)
+            if (newState.syndicates?.[front.syndicateId]) {
+              const dominance = newState.syndicates[front.syndicateId].dominance ?? 50;
+              const newDominance = Math.min(100, dominance + 5);
+              
+              // Deep copy / update dominance
+              newState.syndicates = {
+                ...newState.syndicates,
+                [front.syndicateId]: {
+                  ...newState.syndicates[front.syndicateId],
+                  dominance: newDominance,
+                }
+              };
+              newState.journal.push(`[Syndicate] Regional market boost triggered at front business ${front.id} in room ${front.roomId}! Local syndicate dominance increased to ${newDominance} and merchant gold increased by 100.`);
+            }
+
+            frontUpdated = true;
+          }
         }
 
         if (frontUpdated) {

@@ -4361,6 +4361,123 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized UPGRADE_FRONT_BUSINESS action (AF-51)
+  if ((action as any).type === "UPGRADE_FRONT_BUSINESS") {
+    const { merchantId, cost, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const front = state.frontBusinesses?.[merchantId];
+
+    if (!merchantId) {
+      rejectionReason = `Merchant ID is required to upgrade a front business.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Upgrade cost ${cost} must be a non-negative integer.`;
+    } else if (!front) {
+      rejectionReason = `No front business exists for merchant ${merchantId}.`;
+    } else {
+      const syndicate = state.syndicates?.[front.syndicateId];
+      if (!syndicate) {
+        rejectionReason = `Owner syndicate ${front.syndicateId} does not exist.`;
+      } else if (!syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of syndicate ${front.syndicateId} owning the front business.`;
+      } else {
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        if (currentGold < cost) {
+          rejectionReason = `Insufficient gold to upgrade front business costing ${cost} (requires ${cost}, has ${currentGold}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && front) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const newLevel = front.level + 1;
+      const frontBusinesses = { ...(state.frontBusinesses || {}) };
+      frontBusinesses[merchantId] = {
+        ...front,
+        level: newLevel,
+        launderingCapacity: front.launderingCapacity + 500,
+        launderingRate: front.launderingRate + 50,
+        timestamp,
+      };
+      newState.frontBusinesses = frontBusinesses;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Upgraded front business for merchant ${merchantId} to level ${newLevel} for ${cost} gold by agent ${agentId}.`);
+      customEvents.push({
+        type: "front_business_upgraded",
+        agentId,
+        merchantId,
+        level: newLevel,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
 
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
