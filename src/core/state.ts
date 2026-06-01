@@ -626,6 +626,7 @@ export const GameStateSchema = z.object({
   cartelGlobalTaxPolicy: z.record(z.string(), z.number()).optional(),
   syndicateAlliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
   syndicateAllianceVotes: z.record(z.string(), z.record(z.string(), AllianceVoteSchema)).optional(),
+  factionWars: z.record(z.string(), z.record(z.string(), z.boolean())).optional(),
 });
 
 
@@ -745,6 +746,7 @@ export const createInitialState = (options: {
     cartelGlobalTaxPolicy: {},
     syndicateAlliances: {},
     syndicateAllianceVotes: {},
+    factionWars: {},
   };
 };
 
@@ -1030,6 +1032,24 @@ export function reconcileSyndicateAlliances(state: GameState, pack: any): GameSt
       newState.syndicateAlliances[syndicateIdB] = {};
     }
     newState.syndicateAlliances[syndicateIdB][syndicateIdA] = consensusState;
+  }
+
+  return newState;
+}
+
+export function reconcileFactionWars(state: GameState, pack: any): GameState {
+  if (!state.factionWars) return state;
+
+  const newState = {
+    ...state,
+    factionWars: { ...(state.factionWars || {}) },
+  };
+
+  for (const [syndicateId, wars] of Object.entries(state.factionWars)) {
+    newState.factionWars[syndicateId] = {
+      ...(newState.factionWars[syndicateId] || {}),
+      ...wars,
+    };
   }
 
   return newState;
@@ -1373,6 +1393,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cartelGlobalTaxPolicy: rest.cartelGlobalTaxPolicy ? { ...rest.cartelGlobalTaxPolicy } : undefined,
     syndicateAlliances: rest.syndicateAlliances ? JSON.parse(JSON.stringify(rest.syndicateAlliances)) : undefined,
     syndicateAllianceVotes: rest.syndicateAllianceVotes ? JSON.parse(JSON.stringify(rest.syndicateAllianceVotes)) : undefined,
+    factionWars: rest.factionWars ? JSON.parse(JSON.stringify(rest.factionWars)) : undefined,
   };
   return clone;
 }

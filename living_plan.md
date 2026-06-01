@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #70 (Ready for Cycle #71)
-* **Build/Test Status**: 🟢 PASS (All 316 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #71 (Ready for Cycle #72)
+* **Build/Test Status**: 🟢 PASS (All 323 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -421,17 +421,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire cartel war chests and faction bribes to traversal border checks and enforcer heat calculations (`AF-70`).
 - [x] Write comprehensive integration tests asserting all mechanics and convergence (`AF-70`).
 
+### Phase 65: Smuggler Syndicate Cartel Conquest Campaigns, Faction War Declarations, and Territory Taxation (Completed)
+- [x] Add `DECLARE_FACTION_WAR` and `LAUNCH_CAMPAIGN` decentralized actions (`AF-71`).
+- [x] Implement faction war status modifying strategic pricing, toll scaling, and enforcer pursuit BFS paths (`AF-71`).
+- [x] Wire campaign success probabilities to pooled cartel war chest investments (`AF-71`).
+- [x] Support passive tax distribution and regional taxation rules over controlled territories (`AF-71`).
+- [x] Write comprehensive integration tests asserting war declaration, campaigns, pricing/tolls, and gossip convergence (`AF-71`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-71`
-* **Objective**: Smuggler Syndicate Cartel Conquest Campaigns, Faction War Declarations, and Territory Taxation.
-* **Why this matters**: Support launching automated cartel military campaigns to seize faction territories, declaring hot wars on hostile factions, and enforcing regional taxation rules over controlled territories.
+**Task ID**: `AF-72`
+* **Objective**: Smuggler Syndicate Cartel Territory Defense Networks, Faction Counter-Attacks, and P2P Peace Treaties.
+* **Why this matters**: Support factions launching counter-attacks to reclaim seized territories, constructing cartel defense fortresses to repel counter-attacks, and voting on mesh-wide faction peace treaties to end active hot wars.
 * **Planned Actions**:
-  1. Add `LAUNCH_CAMPAIGN` and `DECLARE_FACTION_WAR` decentralized actions.
-  2. Implement faction war status modifying strategic pricing, toll scaling, and enforcer pursuit BFS paths.
-  3. Wire campaign success probabilities to pooled cartel war chest investments.
-  4. Write comprehensive integration tests.
+  1. Add `BUILD_DEFENSE_FORTRESS` and `PROPOSE_PEACE_TREATY` decentralized consensus actions.
+  2. Implement periodic faction counter-attacks ticking inside `tickEconomy`, triggering sieges against seized syndicate territories.
+  3. Wire counter-attack defense success rates to built fortresses, outposts, and pooled cartel resources.
+  4. Write comprehensive integration tests verifying P2P peace treaty consensus and territory defense resolution.
 
 ---
 

@@ -565,6 +565,12 @@ export function step(
         } else if (hasHostileAlliance) {
           tax = tax * 2; // Hostile factions pay double tax
         }
+        // Faction War scaling (AF-71)
+        const agentSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
+        const isAtWarWithFaction = factionId && agentSyndicates.some(s => state.factionWars?.[s.id]?.[factionId] === true);
+        if (isAtWarWithFaction) {
+          tax = tax * 4; // Factions at war charge 4x travel tax
+        }
         calculatedTax = tax;
       }
 
@@ -654,6 +660,13 @@ export function step(
               if (rep <= -10 && !hasCbaOverride) {
                 lockingRouteId = routeId;
               }
+              // Faction War scaling (AF-71)
+              const agentSynds = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
+              const isRouteFactionAtWar = rFactionId && agentSynds.some(s => state.factionWars?.[s.id]?.[rFactionId] === true);
+              if (isRouteFactionAtWar) {
+                toll = toll * 4; // Factions at war charge 4x route toll
+              }
+
               if (toll > maxToll) {
                 maxToll = toll;
                 tollingRouteId = routeId;
@@ -2532,7 +2545,7 @@ export function tickEnforcers(
   }
 
   // Helper BFS room-to-room pathfinder
-  const findNextRoom = (fromRoom: string, toRoom: string): string | null => {
+  const findNextRoom = (fromRoom: string, toRoom: string, enforcer: any): string | null => {
     if (fromRoom === toRoom) return null;
     const queue: string[][] = [[fromRoom]];
     const visited = new Set<string>([fromRoom]);
@@ -2564,6 +2577,18 @@ export function tickEnforcers(
       }
       for (const neighbor of getExits(current)) {
         if (!visited.has(neighbor)) {
+          // Faction War enforcer pursuit BFS modification: avoid enemy syndicate turf during war!
+          const enfFaction = enforcer.factionId ?? "rangers";
+          const enemySyndicates = Object.values(newState.syndicates || {}).filter(
+            s => s.members.includes(enforcer.targetId) && newState.factionWars?.[s.id]?.[enfFaction] === true
+          );
+          const isEnemyTurf = enemySyndicates.some(
+            s => newState.syndicateTurf?.[neighbor] === s.id || newState.turfGuardOutposts?.[neighbor]?.syndicateId === s.id
+          );
+          if (isEnemyTurf) {
+            continue; // Avoid this room/exit in path planning
+          }
+
           visited.add(neighbor);
           queue.push([...path, neighbor]);
         }
@@ -2619,7 +2644,7 @@ export function tickEnforcers(
 
         if (targetRoom) {
           if (enforcer.currentRoom !== targetRoom) {
-            const nextRoom = findNextRoom(enforcer.currentRoom, targetRoom);
+            const nextRoom = findNextRoom(enforcer.currentRoom, targetRoom, enforcer);
             if (nextRoom) {
               enforcer.currentRoom = nextRoom;
               enforcer.timestamp = newState.step;

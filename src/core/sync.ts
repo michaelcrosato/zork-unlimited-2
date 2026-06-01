@@ -8161,6 +8161,215 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized DECLARE_FACTION_WAR action (AF-71)
+  if ((action as any).type === "DECLARE_FACTION_WAR") {
+    const { syndicateId, factionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to declare faction war.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required to declare war.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      // Initialize factionWars if not present
+      if (!newState.factionWars) newState.factionWars = {};
+      if (!newState.factionWars[syndicateId]) newState.factionWars[syndicateId] = {};
+      
+      newState.factionWars[syndicateId][factionId] = true;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[War] Syndicate ${syndicateId} declared a hot war against faction ${factionId}!`);
+    }
+
+    newState.step += 1;
+
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "faction_war_declared", agentId, syndicateId, factionId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LAUNCH_CAMPAIGN action (AF-71)
+  if ((action as any).type === "LAUNCH_CAMPAIGN") {
+    const { syndicateId, factionId, roomId, goldInvestment, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const isAtWar = syndicateId && factionId && state.factionWars?.[syndicateId]?.[factionId] === true;
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to launch a campaign.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required to launch a campaign.`;
+    } else if (!roomId) {
+      rejectionReason = `Target room ID is required to launch a campaign.`;
+    } else if (!isAtWar) {
+      rejectionReason = `Syndicate ${syndicateId} must declare war on faction ${factionId} before launching a campaign.`;
+    } else if (goldInvestment < 0 || !Number.isInteger(goldInvestment)) {
+      rejectionReason = `Campaign gold investment ${goldInvestment} must be a non-negative integer.`;
+    } else {
+      const warChestGold = syndicate.warChest ?? 0;
+      if (warChestGold < goldInvestment) {
+        rejectionReason = `Insufficient gold in syndicate war chest to launch campaign with investment ${goldInvestment} (requires ${goldInvestment}, has ${warChestGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let success = false;
+    let successProb = 0;
+    let rolledValue = 0;
+
+    if (ok && syndicate) {
+      // Deduct gold investment from syndicate war chest
+      const updatedSyndicate = {
+        ...syndicate,
+        warChest: (syndicate.warChest ?? 0) - goldInvestment,
+      };
+      newState.syndicates = {
+        ...(newState.syndicates || {}),
+        [syndicateId]: updatedSyndicate,
+      };
+
+      // Calculate success probability based on war chest investment
+      successProb = 0.3 + (goldInvestment / (goldInvestment + 300)) * 0.6;
+      
+      // mulberry32 seeded deterministic outcome
+      const { value: roll, nextSeed } = PureRand.next(newState.seed);
+      newState.seed = nextSeed;
+      rolledValue = roll;
+
+      if (roll <= successProb) {
+        success = true;
+        // Seize territory control
+        if (!newState.territoryClaims) newState.territoryClaims = {};
+        newState.territoryClaims[roomId] = {
+          claimedBy: syndicateId,
+          factionId: syndicateId, // Syndicate takes ownership
+          timestamp,
+        };
+        if (!newState.territoryControl) newState.territoryControl = {};
+        newState.territoryControl[roomId] = syndicateId;
+      }
+
+      if (!newState.journal) newState.journal = [];
+      if (success) {
+        newState.journal.push(`[Campaign] Syndicate ${syndicateId} successfully launched campaign against faction ${factionId} in room ${roomId} (Investment: ${goldInvestment}, Roll: ${roll.toFixed(3)} vs Prob: ${successProb.toFixed(3)})!`);
+      } else {
+        newState.journal.push(`[Campaign] Campaign launched by syndicate ${syndicateId} against faction ${factionId} in room ${roomId} FAILED (Investment: ${goldInvestment}, Roll: ${roll.toFixed(3)} vs Prob: ${successProb.toFixed(3)}).`);
+      }
+    }
+
+    newState.step += 1;
+
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "campaign_launched", agentId, syndicateId, factionId, roomId, success, successProb, roll: rolledValue } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

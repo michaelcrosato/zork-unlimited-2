@@ -66,7 +66,10 @@ export type Action =
   | { type: "SHARE_ESPIONAGE_DATA"; syndicateId: string; targetSyndicateId: string; roomId: string; timestamp: number }
   | { type: "HIRE_TURF_GUARD"; roomId: string; syndicateId: string; cost: number; timestamp: number; useWarChest?: boolean }
   | { type: "CONTRIBUTE_WAR_CHEST"; syndicateId: string; amount: number; timestamp: number }
-  | { type: "PAY_FACTION_BRIBE"; factionId: string; syndicateId?: string; amount: number; timestamp: number; useWarChest?: boolean };
+  | { type: "PAY_FACTION_BRIBE"; factionId: string; syndicateId?: string; amount: number; timestamp: number; useWarChest?: boolean }
+  | { type: "DECLARE_FACTION_WAR"; syndicateId: string; factionId: string; timestamp: number }
+  | { type: "LAUNCH_CAMPAIGN"; syndicateId: string; factionId: string; roomId: string; goldInvestment: number; timestamp: number }
+  | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 
 

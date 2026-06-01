@@ -54,6 +54,18 @@ export function calculateTradePrice(
     }
   }
 
+  // 3c. Faction War Strategic Pricing Modifier (AF-71)
+  const npcFactionId = npc?.faction || controllingFactionId;
+  const traderSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(traderId));
+  const isAtWarWithFaction = npcFactionId && traderSyndicates.some(s => state.factionWars?.[s.id]?.[npcFactionId] === true);
+  if (isAtWarWithFaction) {
+    if (isBuy) {
+      multiplier *= 2.0; // Double price for buying from hostile faction
+    } else {
+      multiplier *= 0.5; // Halve payout for selling to hostile faction
+    }
+  }
+
   // 3b. Crime Syndicate Turf Reputation Modifier (AF-55)
   const controllingSyndicateId = state.syndicateTurf?.[state.current];
   if (controllingSyndicateId && !isSafehouse) {
@@ -570,37 +582,62 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   if (newState.step > 0 && newState.step % 5 === 0 && newState.territoryControl) {
     let totalTaxGold = 0;
     for (const [roomId, factionId] of Object.entries(newState.territoryControl)) {
-      const rep = newState.factionRep?.[factionId] ?? 0;
-      if (rep > 0) {
-        // Gain 1 gold per positive rep faction territory, plus bonus for higher rep
-        let roomTax = Math.max(1, Math.floor(rep / 10));
-        const rateMultiplier = newState.taxPolicy?.[factionId];
+      const syndicate = newState.syndicates?.[factionId];
+      if (syndicate) {
+        // Seized syndicate territory: collect regional taxes!
+        const dominance = syndicate.dominance ?? 50;
+        let roomTax = Math.max(1, Math.floor(dominance / 10));
+        const rateMultiplier = newState.taxPolicy?.[factionId] ?? syndicate.turfTaxRate;
         if (rateMultiplier !== undefined) {
           roomTax = roomTax * rateMultiplier;
         }
 
-        const espionage = newState.espionageNetworks?.[roomId];
-        if (espionage && espionage.status !== "sabotaged") {
-          const syndicate = newState.syndicates?.[espionage.syndicateId];
-          if (syndicate) {
-            const intercepted = Math.max(1, Math.floor(roomTax * 0.2));
-            roomTax = Math.max(0, roomTax - intercepted);
-
-            // Distribute the intercepted gold to the syndicate members
-            const members = syndicate.members ?? [];
-            const share = members.length > 0 ? Math.floor(intercepted / members.length) : 0;
-            if (share > 0) {
-              if (!newState.vars) newState.vars = {};
-              for (const member of members) {
-                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
-                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
-              }
+        if (roomTax > 0) {
+          // Distribute to syndicate members
+          const members = syndicate.members ?? [];
+          const share = members.length > 0 ? Math.floor(roomTax / members.length) : 0;
+          if (share > 0) {
+            if (!newState.vars) newState.vars = {};
+            for (const member of members) {
+              const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+              newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
             }
-            newState.journal.push(`[Espionage] Espionage Network in room ${roomId} intercepted ${intercepted} gold of faction taxes from faction ${factionId} (Distributed ${share} gold to each member of syndicate ${espionage.syndicateId}).`);
           }
+          newState.journal.push(`[Syndicate] Syndicate ${factionId} collected ${roomTax} gold in regional taxes from controlled territory ${roomId} (Distributed ${share} gold to each member).`);
         }
+      } else {
+        const rep = newState.factionRep?.[factionId] ?? 0;
+        if (rep > 0) {
+          // Gain 1 gold per positive rep faction territory, plus bonus for higher rep
+          let roomTax = Math.max(1, Math.floor(rep / 10));
+          const rateMultiplier = newState.taxPolicy?.[factionId];
+          if (rateMultiplier !== undefined) {
+            roomTax = roomTax * rateMultiplier;
+          }
 
-        totalTaxGold += roomTax;
+          const espionage = newState.espionageNetworks?.[roomId];
+          if (espionage && espionage.status !== "sabotaged") {
+            const syndicate = newState.syndicates?.[espionage.syndicateId];
+            if (syndicate) {
+              const intercepted = Math.max(1, Math.floor(roomTax * 0.2));
+              roomTax = Math.max(0, roomTax - intercepted);
+
+              // Distribute the intercepted gold to the syndicate members
+              const members = syndicate.members ?? [];
+              const share = members.length > 0 ? Math.floor(intercepted / members.length) : 0;
+              if (share > 0) {
+                if (!newState.vars) newState.vars = {};
+                for (const member of members) {
+                  const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                  newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+                }
+              }
+              newState.journal.push(`[Espionage] Espionage Network in room ${roomId} intercepted ${intercepted} gold of faction taxes from faction ${factionId} (Distributed ${share} gold to each member of syndicate ${espionage.syndicateId}).`);
+            }
+          }
+
+          totalTaxGold += roomTax;
+        }
       }
     }
     if (totalTaxGold > 0) {
