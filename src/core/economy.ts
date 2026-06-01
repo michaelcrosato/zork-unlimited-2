@@ -7854,6 +7854,10 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
         effectiveMultiplier = effectiveMultiplier * (1.0 + localHeatFactor + regionalVol);
 
+        if (pool.yieldHedgingOptionSpreadPenaltyCapMultiplier !== undefined) {
+          effectiveMultiplier = Math.min(effectiveMultiplier, pool.yieldHedgingOptionSpreadPenaltyCapMultiplier);
+        }
+
         // Apply faction standing-gated deflection discount (AF-250)
         if (pool.yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts) {
           let totalDiscount = 0;

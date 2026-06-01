@@ -3060,6 +3060,7 @@ export const SovereignDebtCDSCDOPoolSchema = z.object({
   yieldHedgingOptionMinSpread: z.number().min(0).optional(),
   yieldHedgingOptionMaxSpread: z.number().min(0).optional(),
   yieldHedgingOptionSpreadPenaltyMultiplier: z.number().min(1.0).optional(),
+  yieldHedgingOptionSpreadPenaltyCapMultiplier: z.number().min(1.0).optional(),
   yieldHedgingOptionSpreadPenaltyThresholdPercent: z.number().min(0.0).max(1.0).optional(),
   yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts: z.record(z.string(), z.number().min(0.0).max(1.0)).optional(),
 });
@@ -3414,6 +3415,7 @@ export const SovereignDebtCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposalSch
   cdoId: z.string(),
   syndicateId: z.string(),
   spreadPenaltyMultiplier: z.number().min(1.0),
+  spreadPenaltyCapMultiplier: z.number().min(1.0).optional(),
   spreadPenaltyThresholdPercent: z.number().min(0.0).max(1.0),
   factionStandingDiscounts: z.record(z.string(), z.number().min(0.0).max(1.0)).optional(),
   status: z.enum(["proposed", "authorized", "disputed"]).optional(),
@@ -19234,13 +19236,14 @@ export function reconcileCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposals(st
       const pool = newState.sovereignDebtCDSCDOPools[proposal.cdoId];
       if (pool) {
         pool.yieldHedgingOptionSpreadPenaltyMultiplier = proposal.spreadPenaltyMultiplier;
+        pool.yieldHedgingOptionSpreadPenaltyCapMultiplier = proposal.spreadPenaltyCapMultiplier;
         pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = proposal.spreadPenaltyThresholdPercent;
         pool.yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts = proposal.factionStandingDiscounts;
       }
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
-        `[CDO Yield-Hedging Option Spread Penalty Policy Approved] Syndicate ${proposal.syndicateId} approved spread penalty policy proposal ${proposalId} for CDO ${proposal.cdoId} (Multiplier: ${proposal.spreadPenaltyMultiplier}, Threshold: ${proposal.spreadPenaltyThresholdPercent * 100}%).`
+        `[CDO Yield-Hedging Option Spread Penalty Policy Approved] Syndicate ${proposal.syndicateId} approved spread penalty policy proposal ${proposalId} for CDO ${proposal.cdoId} (Multiplier: ${proposal.spreadPenaltyMultiplier}, Threshold: ${proposal.spreadPenaltyThresholdPercent * 100}%${proposal.spreadPenaltyCapMultiplier !== undefined ? `, Cap Multiplier: ${proposal.spreadPenaltyCapMultiplier}` : ""}).`
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals[proposalId] = {

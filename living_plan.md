@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #247 (Ready for Cycle #248)
-* **Build/Test Status**: 🟢 PASS (All 841 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #248 (Ready for Cycle #249)
+* **Build/Test Status**: 🟢 PASS (All 842 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1604,16 +1604,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement price adjustments checking player reputation alignments when scaling the effective multiplier in `tickEconomy` (`AF-250`).
 - [x] Write comprehensive unit and integration tests asserting faction standing discounts on option spreads under defaults (`AF-250`).
 
+### Phase 229: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Dynamic Volatility Arbitrage Spread Penalty Cap (Completed)
+- [x] Define dynamic spread penalty cap structures in option dynamic spread policies (`AF-251`).
+- [x] Implement cap enforcement logic capping the effective multiplier in `tickEconomy` (`AF-251`).
+- [x] Write comprehensive unit and integration tests asserting the spread penalty cap under high volatility default spikes (`AF-251`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-251`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Dynamic Volatility Arbitrage Spread Penalty Cap.
-* **Why this matters**: Enforce dynamic caps on option spreads under extreme volatility to protect market liquidity from cascading failures during multi-syndicate defaults.
+**Task ID**: `AF-252`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges.
+* **Why this matters**: Introduce dynamic interest rate surcharges for options market makers when their reserved liquidity drops below critical thresholds to incentivize active vault deposits.
 * **Planned Actions**:
-  1. Define dynamic spread penalty cap structures in option dynamic spread policies.
-  2. Implement cap enforcement logic capping the effective multiplier in `tickEconomy`.
-  3. Write comprehensive unit and integration tests asserting the spread penalty cap under high volatility default spikes.
+  1. Define dynamic interest rate surcharge structures in option dynamic spread policies.
+  2. Implement surcharge rate scaling logic inside `tickEconomy`.
+  3. Write comprehensive unit and integration tests asserting dynamic interest surcharges under liquidity stress.
 
 ---
 

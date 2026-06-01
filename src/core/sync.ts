@@ -50695,7 +50695,7 @@ export function multiAgentStep(
 
   // Handle PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY action (AF-247)
   if ((action as any).type === "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY") {
-    const { proposalId, cdoId, syndicateId, spreadPenaltyMultiplier, spreadPenaltyThresholdPercent, factionStandingDiscounts, timestamp } = action as any;
+    const { proposalId, cdoId, syndicateId, spreadPenaltyMultiplier, spreadPenaltyThresholdPercent, factionStandingDiscounts, spreadPenaltyCapMultiplier, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -50733,6 +50733,8 @@ export function multiAgentStep(
       rejectionReason = `Syndicate ID is required.`;
     } else if (spreadPenaltyMultiplier === undefined || typeof spreadPenaltyMultiplier !== "number" || spreadPenaltyMultiplier < 1) {
       rejectionReason = `Valid spread penalty multiplier (>= 1) is required.`;
+    } else if (spreadPenaltyCapMultiplier !== undefined && (typeof spreadPenaltyCapMultiplier !== "number" || spreadPenaltyCapMultiplier < 1)) {
+      rejectionReason = `Valid spread penalty cap multiplier (>= 1) is required.`;
     } else if (spreadPenaltyThresholdPercent === undefined || typeof spreadPenaltyThresholdPercent !== "number" || spreadPenaltyThresholdPercent < 0 || spreadPenaltyThresholdPercent > 1) {
       rejectionReason = `Valid spread penalty threshold percent (0 <= percent <= 1) is required.`;
     } else if (factionStandingDiscounts !== undefined && (typeof factionStandingDiscounts !== "object" || factionStandingDiscounts === null || Object.entries(factionStandingDiscounts).some(([k, v]) => typeof k !== "string" || k === "" || typeof v !== "number" || v < 0 || v > 1))) {
@@ -50772,6 +50774,7 @@ export function multiAgentStep(
         cdoId,
         syndicateId,
         spreadPenaltyMultiplier,
+        spreadPenaltyCapMultiplier,
         spreadPenaltyThresholdPercent,
         factionStandingDiscounts,
         status: "proposed",
@@ -50803,6 +50806,7 @@ export function multiAgentStep(
         cdoId,
         syndicateId,
         spreadPenaltyMultiplier,
+        spreadPenaltyCapMultiplier,
         spreadPenaltyThresholdPercent,
         status: propStatus,
         timestamp,

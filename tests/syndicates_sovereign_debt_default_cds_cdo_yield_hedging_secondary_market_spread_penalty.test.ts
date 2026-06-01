@@ -684,5 +684,153 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     let spreadC = stateC.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
     expect(spreadC).toBeCloseTo(106.25);
   });
+
+  it("should enforce dynamic spread penalty cap multipliers under extreme volatility default spikes (AF-251)", () => {
+    let state = setupState();
+
+    // 1. Propose spread penalty policy with a cap multiplier
+    let res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "spread_penalty_policy_cap",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        spreadPenaltyMultiplier: 2.0,
+        spreadPenaltyCapMultiplier: 3.0,
+        spreadPenaltyThresholdPercent: 0.20,
+        factionStandingDiscounts: {
+          faction_a: 0.20,
+        },
+        timestamp: 1100,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Vote to authorize proposal
+    let voteRes = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        syndicateId: "alpha",
+        proposalId: "spread_penalty_policy_cap",
+        vote: true,
+        timestamp: 1120,
+      } as any,
+    }, mockPack);
+    expect(voteRes.ok).toBe(true);
+    state = voteRes.state;
+
+    // Verify Copied to Pool
+    const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
+    expect(pool.yieldHedgingOptionSpreadPenaltyMultiplier).toBe(2.0);
+    expect(pool.yieldHedgingOptionSpreadPenaltyCapMultiplier).toBe(3.0);
+
+    // 2. Set default alert active
+    state.sovereignDebtDefaultAlerts = {
+      alert_1: {
+        proposalId: "alert_1",
+        syndicateId: "alpha",
+        targetSyndicateId: "beta",
+        sovereignDebtAmount: 5000,
+        status: "authorized",
+        resolved: false,
+        proposerId: "bob",
+        timestamp: 1000,
+      },
+    };
+
+    // 3. Set up active option contract owned by alpha
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        premiumPaid: 200,
+        coverageAmount: 2000,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: state.step + 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Listing has askPrice 1200, bid has bidPrice 1150 -> raw spread is 50
+    state.cdsCdoYieldHedgingOptionListings = {
+      opt_1: {
+        listingId: "opt_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+        votes: {},
+      },
+    };
+
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_opt_1: {
+        bidId: "bid_opt_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 1150,
+        status: "active",
+        timestamp: 1000,
+        votes: {},
+      },
+    };
+
+    // 4. Configure local territory enforcer heat volatility scales in the syndicate
+    state.syndicates!.alpha.territoryEnforcerHeatVolatilityScales = {
+      vault: 0.20, // scale factor for room 'vault'
+    };
+
+    // Set enforcer heat for room 'vault' (the current room, since state.current is 'vault')
+    state.enforcementHeat = {
+      vault: {
+        roomId: "vault",
+        heat: 5, // adds 5 * 0.20 = 1.0 to volatility
+        timestamp: 1000,
+      },
+    };
+
+    // Set environmental weather & wind (storm = 50, tempest = 30 -> regionalVol = 0.80)
+    state.environment = {
+      weather: "storm",
+      temperature: "cold",
+      wind: "tempest",
+      lastUpdatedStep: 0,
+    };
+
+    // Case A: High volatility without faction standing discounts
+    // baseMultiplier = 2.0
+    // heat multiplier component = 1.0 + 1.0 (heat) + 0.80 (weather) = 2.80
+    // uncappedMultiplier = 2.0 * 2.80 = 5.60
+    // cappedMultiplier = min(5.60, cap = 3.0) = 3.0
+    // expected spread = 50 * 3.0 = 150
+    const stateAInit = JSON.parse(JSON.stringify(state));
+    stateAInit.factionRep = {
+      faction_a: 10, // low reputation (< 50)
+    };
+
+    let stateA = tickEconomy(stateAInit, mockPack);
+    let spreadA = stateA.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadA).toBeCloseTo(150);
+
+    // Case B: High volatility with faction standing discount applied on top of capped multiplier
+    // cappedMultiplier = 3.0
+    // faction_a discount = 20%
+    // expected effective multiplier = 1.0 + (3.0 - 1.0) * (1.0 - 0.20) = 2.60
+    // expected spread = 50 * 2.60 = 130
+    const stateBInit = JSON.parse(JSON.stringify(state));
+    stateBInit.factionRep = {
+      faction_a: 60, // high reputation (>= 50)
+    };
+
+    let stateB = tickEconomy(stateBInit, mockPack);
+    let spreadB = stateB.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadB).toBeCloseTo(130);
+  });
 });
 
