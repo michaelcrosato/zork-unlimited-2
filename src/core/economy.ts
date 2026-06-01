@@ -5963,13 +5963,30 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 effectiveSize = Math.round(opt.size * (1.0 - marginDeflectionFactor));
               }
 
-              const penalty = Math.floor(effectiveSize * spotRate * pRate * 100);
+              // Check for authorized penalty waiver (AF-188)
+              let isPenaltyWaived = false;
+              if (newState.swfReinsuranceOptionPenaltyWaiverProposals) {
+                for (const prop of Object.values(newState.swfReinsuranceOptionPenaltyWaiverProposals)) {
+                  if (
+                    prop.syndicateId === syndicateId &&
+                    prop.swfYieldCdoId === opt.swfYieldCdoId &&
+                    prop.trancheId === opt.trancheId &&
+                    prop.status === "authorized" &&
+                    prop.waivePenalty
+                  ) {
+                    isPenaltyWaived = true;
+                    break;
+                  }
+                }
+              }
+
+              const penalty = isPenaltyWaived ? 0 : Math.floor(effectiveSize * spotRate * pRate * 100);
 
               // Charge writer's collateral
               netEquity -= penalty;
 
               // Pay option holder
-              if (opt.syndicateId !== "market_maker") {
+              if (opt.syndicateId !== "market_maker" && penalty > 0) {
                 const holder = newState.syndicates[opt.syndicateId];
                 if (holder) {
                   holder.warChest = (holder.warChest ?? 0) + penalty;
@@ -5982,7 +5999,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 timestamp: newState.step,
               };
 
-              newState.journal.push(`[Option Liquidation] Written option contract ${optId} of Syndicate ${syndicateId} has been liquidated. Charge penalty of ${penalty} gold paid to Syndicate ${opt.syndicateId}.`);
+              if (isPenaltyWaived) {
+                newState.journal.push(`[Option Liquidation] Written option contract ${optId} of Syndicate ${syndicateId} has been liquidated. Penalty WAIVED due to authorized penalty waiver.`);
+              } else {
+                newState.journal.push(`[Option Liquidation] Written option contract ${optId} of Syndicate ${syndicateId} has been liquidated. Charge penalty of ${penalty} gold paid to Syndicate ${opt.syndicateId}.`);
+              }
             }
           }
         }

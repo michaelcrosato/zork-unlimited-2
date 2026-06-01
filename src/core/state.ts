@@ -2249,6 +2249,25 @@ export const SWFReinsuranceOptionMarginPolicySchema = z.object({
 });
 export type SWFReinsuranceOptionMarginPolicy = z.infer<typeof SWFReinsuranceOptionMarginPolicySchema>;
 
+export const SWFReinsuranceOptionPenaltyWaiverProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  waivePenalty: z.boolean(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionPenaltyWaiverProposal = z.infer<typeof SWFReinsuranceOptionPenaltyWaiverProposalSchema>;
+
+export const SWFReinsuranceOptionPenaltyWaiverVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionPenaltyWaiverVote = z.infer<typeof SWFReinsuranceOptionPenaltyWaiverVoteSchema>;
+
 export const SWFReinsuranceOptionMarginVoteSchema = z.object({
   swfYieldCdoId: z.string(),
   trancheId: z.enum(["senior", "mezzanine", "equity"]),
@@ -3163,6 +3182,8 @@ export const GameStateSchema = z.object({
   adjustSWFReinsuranceOptionMarketMakerRebateVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionMarketMakerRebateVoteSchema)).optional(),
   swfReinsuranceOptionMarginPolicies: z.record(z.string(), SWFReinsuranceOptionMarginPolicySchema).optional(),
   adjustSWFReinsuranceOptionMarginVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionMarginVoteSchema)).optional(),
+  swfReinsuranceOptionPenaltyWaiverProposals: z.record(z.string(), SWFReinsuranceOptionPenaltyWaiverProposalSchema).optional(),
+  swfReinsuranceOptionPenaltyWaiverVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionPenaltyWaiverVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityInsurancePolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePolicySchema).optional(),
   adjustSWFReinsuranceOptionVolatilityInsuranceVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityInsuranceVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityInsurancePools: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePoolSchema).optional(),
@@ -3515,6 +3536,8 @@ export const createInitialState = (options: {
     adjustSWFReinsuranceOptionMarketMakerRebateVotes: {},
     swfReinsuranceOptionMarginPolicies: {},
     adjustSWFReinsuranceOptionMarginVotes: {},
+    swfReinsuranceOptionPenaltyWaiverProposals: {},
+    swfReinsuranceOptionPenaltyWaiverVotes: {},
     swfReinsuranceOptionVolatilityInsurancePolicies: {},
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: {},
     swfReinsuranceOptionVolatilityInsurancePools: {},
@@ -4573,6 +4596,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     adjustSWFReinsuranceOptionMarketMakerRebateVotes: rest.adjustSWFReinsuranceOptionMarketMakerRebateVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionMarketMakerRebateVotes)) : undefined,
     swfReinsuranceOptionMarginPolicies: rest.swfReinsuranceOptionMarginPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionMarginPolicies)) : undefined,
     adjustSWFReinsuranceOptionMarginVotes: rest.adjustSWFReinsuranceOptionMarginVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionMarginVotes)) : undefined,
+    swfReinsuranceOptionPenaltyWaiverProposals: rest.swfReinsuranceOptionPenaltyWaiverProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPenaltyWaiverProposals)) : undefined,
+    swfReinsuranceOptionPenaltyWaiverVotes: rest.swfReinsuranceOptionPenaltyWaiverVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPenaltyWaiverVotes)) : undefined,
     swfReinsuranceOptionVolatilityInsurancePolicies: rest.swfReinsuranceOptionVolatilityInsurancePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePolicies)) : undefined,
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes)) : undefined,
     swfReinsuranceOptionVolatilityInsurancePools: rest.swfReinsuranceOptionVolatilityInsurancePools ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePools)) : undefined,
@@ -13962,6 +13987,58 @@ export function reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting(state: G
         break;
       }
     }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionPenaltyWaivers(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionPenaltyWaiverProposals: state.swfReinsuranceOptionPenaltyWaiverProposals ? { ...state.swfReinsuranceOptionPenaltyWaiverProposals } : {},
+    swfReinsuranceOptionPenaltyWaiverVotes: state.swfReinsuranceOptionPenaltyWaiverVotes ? { ...state.swfReinsuranceOptionPenaltyWaiverVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfReinsuranceOptionPenaltyWaiverProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.swfReinsuranceOptionPenaltyWaiverVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+
+    if (authorizeVoters.size > totalMembers / 2) {
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+
+    newState.swfReinsuranceOptionPenaltyWaiverProposals[proposalId] = {
+      ...proposal,
+      status,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
   }
 
   return newState;
