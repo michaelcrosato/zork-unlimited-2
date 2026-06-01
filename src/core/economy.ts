@@ -8638,6 +8638,125 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
     }
   }
 
+  // AF-207: Sweep Pool Redistribution and Alliance Stability Pool Yield Auto-Compounding
+  if (
+    newState.swfStakingSweepPool !== undefined &&
+    newState.sweepPoolRedistributionThreshold !== undefined &&
+    newState.swfStakingSweepPool >= newState.sweepPoolRedistributionThreshold
+  ) {
+    if (newState.sweepPoolRedistributionProposals) {
+      for (const redistProp of Object.values(newState.sweepPoolRedistributionProposals)) {
+        if (redistProp.status !== "authorized") continue;
+
+        const { syndicateId, targetSyndicateId, autoCompound } = redistProp;
+
+        // Check if there is a corresponding authorized cooperative yield sweep proposal
+        let correspondingSweep: any = null;
+        if (newState.cooperativeStakingYieldSweepProposals) {
+          for (const sweepProp of Object.values(newState.cooperativeStakingYieldSweepProposals)) {
+            if (
+              sweepProp.status === "authorized" &&
+              ((sweepProp.syndicateId === syndicateId && sweepProp.targetSyndicateId === targetSyndicateId) ||
+               (sweepProp.syndicateId === targetSyndicateId && sweepProp.targetSyndicateId === syndicateId))
+            ) {
+              correspondingSweep = sweepProp;
+              break;
+            }
+          }
+        }
+
+        if (!correspondingSweep) continue;
+
+        const factionId = correspondingSweep.factionId;
+        const criticalThreshold = correspondingSweep.criticalThreshold;
+
+        const standing1 = getSyndicateFactionStanding(newState, syndicateId, factionId);
+        const standing2 = getSyndicateFactionStanding(newState, targetSyndicateId, factionId);
+
+        // Standing is recovered if both syndicates have standing >= criticalThreshold
+        if (standing1 >= criticalThreshold && standing2 >= criticalThreshold) {
+          const sweepPoolAmount = newState.swfStakingSweepPool;
+          newState.swfStakingSweepPool = 0; // Swept pool is fully redistributed
+
+          // Get participation ranks
+          const rank1 = newState.syndicateMeshParticipationRanks?.[syndicateId] ?? 1;
+          const rank2 = newState.syndicateMeshParticipationRanks?.[targetSyndicateId] ?? 1;
+          const totalRank = rank1 + rank2;
+
+          const share1 = Math.floor(sweepPoolAmount * (rank1 / totalRank));
+          const share2 = sweepPoolAmount - share1;
+
+          // Auto-compound or distribute
+          if (autoCompound) {
+            if (!newState.marginAccounts) newState.marginAccounts = {};
+            
+            // Initialize margin accounts if they don't exist
+            if (!newState.marginAccounts[syndicateId]) {
+              newState.marginAccounts[syndicateId] = {
+                syndicateId,
+                collateral: 0,
+                timestamp: newState.step,
+                swfStakingEnabled: true,
+                swfStakingTargets: { [factionId]: 100 },
+                swfLiquidityBuffer: 0,
+              };
+            }
+            if (!newState.marginAccounts[targetSyndicateId]) {
+              newState.marginAccounts[targetSyndicateId] = {
+                syndicateId: targetSyndicateId,
+                collateral: 0,
+                timestamp: newState.step,
+                swfStakingEnabled: true,
+                swfStakingTargets: { [factionId]: 100 },
+                swfLiquidityBuffer: 0,
+              };
+            }
+
+            const ma1 = newState.marginAccounts[syndicateId];
+            ma1.collateral += share1;
+            ma1.swfLiquidityBuffer = (ma1.swfLiquidityBuffer ?? 0) + share1;
+            ma1.timestamp = newState.step;
+
+            const ma2 = newState.marginAccounts[targetSyndicateId];
+            ma2.collateral += share2;
+            ma2.swfLiquidityBuffer = (ma2.swfLiquidityBuffer ?? 0) + share2;
+            ma2.timestamp = newState.step;
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Staking Sweep Auto-Compound] Redistributed and auto-compounded ${sweepPoolAmount} gold from sweep pool back to Syndicate ${syndicateId} (${share1} gold) and Syndicate ${targetSyndicateId} (${share2} gold) SWF staking targets.`
+            );
+          } else {
+            // Distribute as war chest gold
+            const syndicatesCopy = { ...newState.syndicates };
+            const synd1 = syndicatesCopy[syndicateId];
+            if (synd1) {
+              syndicatesCopy[syndicateId] = {
+                ...synd1,
+                warChest: (synd1.warChest ?? 0) + share1,
+              };
+            }
+            const synd2 = syndicatesCopy[targetSyndicateId];
+            if (synd2) {
+              syndicatesCopy[targetSyndicateId] = {
+                ...synd2,
+                warChest: (synd2.warChest ?? 0) + share2,
+              };
+            }
+            newState.syndicates = syndicatesCopy;
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Staking Sweep Redistribution] Redistributed ${sweepPoolAmount} gold from sweep pool back to Syndicate ${syndicateId} (${share1} gold) and Syndicate ${targetSyndicateId} (${share2} gold) war chests.`
+            );
+          }
+          // Only do one redistribution per tick to avoid redundant sweeps
+          break;
+        }
+      }
+    }
+  }
+
   return newState;
 }
 

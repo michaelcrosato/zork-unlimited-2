@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #204 (Ready for Cycle #205)
-* **Build/Test Status**: 🟢 PASS (All 744 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #205 (Ready for Cycle #206)
+* **Build/Test Status**: 🟢 PASS (All 746 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1307,15 +1307,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 185: Sweep Pool Redistribution and Alliance Stability Pool Yield Auto-Compounding (Completed)
+- [x] Define a redistribution threshold and participation rank parameters in the GameState (`AF-207`).
+- [x] Implement `PROPOSE_SWEEP_POOL_REDISTRIBUTION` and `VOTE_SWEEP_POOL_REDISTRIBUTION` consensus actions (`AF-207`).
+- [x] Wire the economy tick to auto-compound or distribute sweep gold back to allied syndicates on successful standing recovery (`AF-207`).
+- [x] Write comprehensive Vitest integration tests and merge support (`AF-207`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-207`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation Campaign Subsidies and Cooperative Mesh-Wide Staking Cross-Mesh Yield Compounding and Automated Liquidity Pool Sweeps Sweep Redistribution and Alliance Stability Pool Yield Auto-Compounding.
-* **Why this matters**: Allow swept staking yields in the shared sweep stabilization pool to be redistributed proportionally to allied syndicates as war chest gold or auto-compounded back into their respective SWF staking targets based on their mesh participation rank.
+**Task ID**: `AF-208`
+* **Objective**: Syndicate SWF Sweep Pool Re-weighting Votes & Faction Reputation Standings-Gated Adjustment.
+* **Why this matters**: Allow allied syndicates to adjust participation ranks dynamically via majority-consensus voting and wire faction reputation standing to scale ranks dynamically (rewarding high-standing syndicates with larger proportional sweep pool shares).
 * **Planned Actions**:
-  1. Define a redistribution threshold and participation rank parameters in the GameState.
-  2. Implement `PROPOSE_SWEEP_POOL_REDISTRIBUTION` and `VOTE_SWEEP_POOL_REDISTRIBUTION` consensus actions.
-  3. Wire the economy tick to auto-compound or distribute sweep gold back to allied syndicates on successful standing recovery.
-  4. Write comprehensive Vitest integration tests and merge support.
+  1. Define a `PROPOSE_SWEEP_POOL_RANK_ADJUST` and `VOTE_SWEEP_POOL_RANK_ADJUST` consensus action.
+  2. Implement dynamic standing-based scaling for participation ranks inside `tickEconomy` during sweep pool redistribution.
+  3. Write comprehensive Vitest integration tests and merge support.
 
 ---
 

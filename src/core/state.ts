@@ -2644,6 +2644,22 @@ export const CooperativeStakingYieldSweepProposalSchema = z.object({
 });
 export type CooperativeStakingYieldSweepProposal = z.infer<typeof CooperativeStakingYieldSweepProposalSchema>;
 
+export const SweepPoolRedistributionProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  redistributionThreshold: z.number().int().nonnegative(),
+  autoCompound: z.boolean(),
+  status: z.enum(["proposed", "authorized"]).optional(),
+  resolved: z.boolean().optional(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SweepPoolRedistributionProposal = z.infer<typeof SweepPoolRedistributionProposalSchema>;
+
 
 
 export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
@@ -3557,6 +3573,10 @@ export const GameStateSchema = z.object({
   swfStabilityPool: z.number().int().nonnegative().optional(),
   cooperativeStakingYieldSweepProposals: z.record(z.string(), CooperativeStakingYieldSweepProposalSchema).optional(),
   swfStakingSweepPool: z.number().int().nonnegative().optional(),
+  sweepPoolRedistributionThreshold: z.number().int().nonnegative().optional(),
+  syndicateMeshParticipationRanks: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  sweepPoolRedistributionProposals: z.record(z.string(), SweepPoolRedistributionProposalSchema).optional(),
+  sweepPoolAutoCompound: z.boolean().optional(),
 
 
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
@@ -3954,6 +3974,10 @@ export const createInitialState = (options: {
     swfStabilityPool: 0,
     cooperativeStakingYieldSweepProposals: {},
     swfStakingSweepPool: 0,
+    sweepPoolRedistributionThreshold: 500,
+    syndicateMeshParticipationRanks: {},
+    sweepPoolRedistributionProposals: {},
+    sweepPoolAutoCompound: false,
 
 
     swfReinsuranceOptionPremiumContributions: {},
@@ -8840,6 +8864,49 @@ export function reconcileCooperativeStakingYieldSweep(state: GameState, pack: an
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Cooperative Staking Yield Sweep Resolved] Syndicate ${syndicateId} successfully authorized cooperative staking yield sweep proposal ${proposalId} to pool with Syndicate ${targetSyndicateId} for faction ${factionId} (Threshold: ${criticalThreshold}, Sweep: ${sweepPercentage}%).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSweepPoolRedistribution(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sweepPoolRedistributionProposals: state.sweepPoolRedistributionProposals ? { ...state.sweepPoolRedistributionProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sweepPoolRedistributionProposals || {})) {
+    const proposal = newState.sweepPoolRedistributionProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, targetSyndicateId, redistributionThreshold, autoCompound } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sweepPoolRedistributionProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      // Set GameState values!
+      newState.sweepPoolRedistributionThreshold = redistributionThreshold;
+      newState.sweepPoolAutoCompound = autoCompound;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Redistribution Resolved] Syndicate ${syndicateId} successfully authorized sweep pool redistribution proposal ${proposalId} to pool with Syndicate ${targetSyndicateId} (Threshold: ${redistributionThreshold}, Auto-Compound: ${autoCompound ? "Enabled" : "Disabled"}).`
       );
     }
   }

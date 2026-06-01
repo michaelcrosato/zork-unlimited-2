@@ -1350,5 +1350,308 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       "[SWF Staking Sweep] Swept 45 gold from Syndicate alpha yield into the shared stabilization pool due to standing 30 falling below threshold 50 with faction rangers."
     );
   });
+
+  it("should support proposing and voting on sweep pool redistribution policies between allied syndicates", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: [],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Establish alliance
+    state.syndicateAlliances = {
+      alpha: { beta: "allied" },
+      beta: { alpha: "allied" },
+    };
+
+    // Propose sweep pool redistribution
+    const stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_SWEEP_POOL_REDISTRIBUTION",
+          proposalId: "redist_prop_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          redistributionThreshold: 300,
+          autoCompound: true,
+          timestamp: 1005,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult.ok).toBe(true);
+    state = stepResult.state;
+
+    const prop = state.sweepPoolRedistributionProposals?.["redist_prop_1"];
+    expect(prop?.status).toBe("proposed");
+    expect(prop?.resolved).toBe(false);
+    expect(prop?.votes?.["player"]?.vote).toBe(true);
+    // Proposal fee deducted: 10000 - 200 = 9800
+    expect(state.syndicates?.alpha?.warChest).toBe(9800);
+
+    // Vote to authorize by alice (majority of alpha: members are player and alice, majority is > 1 which is 2)
+    const stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_SWEEP_POOL_REDISTRIBUTION",
+          syndicateId: "alpha",
+          proposalId: "redist_prop_1",
+          vote: true,
+          timestamp: 1020,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    // Verify authorized and resolved
+    const propAfter = state.sweepPoolRedistributionProposals?.["redist_prop_1"];
+    expect(propAfter?.status).toBe("authorized");
+    expect(propAfter?.resolved).toBe(true);
+    // GameState fields updated!
+    expect(state.sweepPoolRedistributionThreshold).toBe(300);
+    expect(state.sweepPoolAutoCompound).toBe(true);
+    // Vote fee deducted: 9800 - 50 = 9750
+    expect(state.syndicates?.alpha?.warChest).toBe(9750);
+  });
+
+  it("should automatically redistribute the sweep pool proportionally based on participation ranks on economy tick when standing recovers", () => {
+    // 1. Test Auto-Compound (autoCompound: true)
+    {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+        beta: {
+          id: "beta",
+          name: "Beta Syndicate",
+          members: [],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+      };
+
+      // Set alliance
+      state.syndicateAlliances = {
+        alpha: { beta: "allied" },
+        beta: { alpha: "allied" },
+      };
+
+      // Set participation ranks: alpha = 3, beta = 2
+      state.syndicateMeshParticipationRanks = {
+        alpha: 3,
+        beta: 2,
+      };
+
+      // Configure sweep pool and threshold
+      state.swfStakingSweepPool = 500;
+      state.sweepPoolRedistributionThreshold = 300;
+
+      // Authorized redistribution policy with auto-compound
+      state.sweepPoolRedistributionProposals = {
+        "redist_prop_1": {
+          proposalId: "redist_prop_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          redistributionThreshold: 300,
+          autoCompound: true,
+          status: "authorized",
+          resolved: true,
+          timestamp: 1000,
+        },
+      };
+
+      // Corresponding authorized sweep policy
+      state.cooperativeStakingYieldSweepProposals = {
+        "sweep_prop_1": {
+          proposalId: "sweep_prop_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          factionId: "rangers",
+          criticalThreshold: 50,
+          sweepPercentage: 75,
+          status: "authorized",
+          resolved: true,
+          timestamp: 1000,
+        },
+      };
+
+      // Staking targets configured inside margin accounts
+      state.marginAccounts = {
+        alpha: {
+          syndicateId: "alpha",
+          collateral: 1000,
+          timestamp: 1000,
+          swfStakingEnabled: true,
+          swfStakingTargets: { rangers: 100 },
+          swfLiquidityBuffer: 600,
+        },
+        beta: {
+          syndicateId: "beta",
+          collateral: 2000,
+          timestamp: 1000,
+          swfStakingEnabled: true,
+          swfStakingTargets: { rangers: 100 },
+          swfLiquidityBuffer: 800,
+        },
+      };
+
+      // Recovered standing (60 >= critical threshold 50)
+      state.factionRep = {
+        rangers: 60,
+      };
+
+      // Tick economy
+      const afterState = tickEconomy(state, mockPack);
+
+      // Verify sweep pool is fully cleared
+      expect(afterState.swfStakingSweepPool).toBe(0);
+
+      // Proportional redistribution checks (Total = 500, alpha rank = 3, beta rank = 2 -> alpha gets 300, beta gets 200)
+      const ma1 = afterState.marginAccounts?.alpha;
+      const ma2 = afterState.marginAccounts?.beta;
+      expect(ma1?.collateral).toBe(1396); // 1000 + 300 redistributed + 96 tick yield
+      expect(ma1?.swfLiquidityBuffer).toBe(996); // 600 + 300 redistributed + 96 tick yield
+      expect(ma2?.collateral).toBe(2347); // 2000 + 200 redistributed + 147 tick yield (with sequential 72 rep)
+      expect(ma2?.swfLiquidityBuffer).toBe(1147); // 800 + 200 redistributed + 147 tick yield (with sequential 72 rep)
+
+      expect(afterState.journal).toContain(
+        "[SWF Staking Sweep Auto-Compound] Redistributed and auto-compounded 500 gold from sweep pool back to Syndicate alpha (300 gold) and Syndicate beta (200 gold) SWF staking targets."
+      );
+    }
+
+    // 2. Test War Chest distribution (autoCompound: false)
+    {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+        beta: {
+          id: "beta",
+          name: "Beta Syndicate",
+          members: [],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+      };
+
+      // Set alliance
+      state.syndicateAlliances = {
+        alpha: { beta: "allied" },
+        beta: { alpha: "allied" },
+      };
+
+      // Set participation ranks: alpha = 1, beta = 3
+      state.syndicateMeshParticipationRanks = {
+        alpha: 1,
+        beta: 3,
+      };
+
+      // Configure sweep pool and threshold
+      state.swfStakingSweepPool = 400;
+      state.sweepPoolRedistributionThreshold = 200;
+
+      // Authorized redistribution policy without auto-compound
+      state.sweepPoolRedistributionProposals = {
+        "redist_prop_1": {
+          proposalId: "redist_prop_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          redistributionThreshold: 200,
+          autoCompound: false,
+          status: "authorized",
+          resolved: true,
+          timestamp: 1000,
+        },
+      };
+
+      // Corresponding authorized sweep policy
+      state.cooperativeStakingYieldSweepProposals = {
+        "sweep_prop_1": {
+          proposalId: "sweep_prop_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          factionId: "rangers",
+          criticalThreshold: 50,
+          sweepPercentage: 75,
+          status: "authorized",
+          resolved: true,
+          timestamp: 1000,
+        },
+      };
+
+      // Recovered standing (60 >= critical threshold 50)
+      state.factionRep = {
+        rangers: 60,
+      };
+
+      // Tick economy
+      const afterState = tickEconomy(state, mockPack);
+
+      // Verify sweep pool is fully cleared
+      expect(afterState.swfStakingSweepPool).toBe(0);
+
+      // Proportional redistribution checks (Total = 400, alpha rank = 1, beta rank = 3 -> alpha gets 100, beta gets 300)
+      expect(afterState.syndicates?.alpha?.warChest).toBe(10100); // 10000 + 100
+      expect(afterState.syndicates?.beta?.warChest).toBe(10300); // 10000 + 300
+
+      expect(afterState.journal).toContain(
+        "[SWF Staking Sweep Redistribution] Redistributed 400 gold from sweep pool back to Syndicate alpha (100 gold) and Syndicate beta (300 gold) war chests."
+      );
+    }
+  });
 });
 
