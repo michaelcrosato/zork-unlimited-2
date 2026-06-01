@@ -2530,13 +2530,34 @@ export function tickProductionLabs(
 
         // Distribute to contributing syndicates based on contribution ratio
         for (const [syndicateId, contrib] of Object.entries(contributions)) {
-          const syndicate = updatedSyndicates[syndicateId];
-          if (!syndicate) continue;
-
           const ratio = contrib / totalContributed;
           const share = Math.floor(payAmount * ratio);
-          if (share > 0) {
-            syndicate.warChest = (syndicate.warChest ?? 0) + share;
+          if (share <= 0) continue;
+
+          if (syndicateId.startsWith("pool_")) {
+            const poolId = syndicateId.substring(5);
+            const pool = newState.sovereignBondLendingPools?.[poolId];
+            if (pool && pool.totalDeposited > 0) {
+              // Distribute this share to the pool depositors pro-rata
+              let poolDistributed = 0;
+              const depositors = Object.keys(pool.deposits);
+              for (let i = 0; i < depositors.length; i++) {
+                const depSyndicateId = depositors[i];
+                const depShare = i === depositors.length - 1
+                  ? share - poolDistributed
+                  : Math.floor(share * ((pool.deposits[depSyndicateId] || 0) / pool.totalDeposited));
+                poolDistributed += depShare;
+                const depSyndicate = updatedSyndicates[depSyndicateId];
+                if (depSyndicate) {
+                  depSyndicate.warChest = (depSyndicate.warChest ?? 0) + depShare;
+                }
+              }
+            }
+          } else {
+            const syndicate = updatedSyndicates[syndicateId];
+            if (syndicate) {
+              syndicate.warChest = (syndicate.warChest ?? 0) + share;
+            }
           }
         }
 
@@ -2594,13 +2615,27 @@ export function tickProductionLabs(
     const syndicates = { ...(newState.syndicates || {}) };
     let positionsChanged = false;
 
+    // Update dynamic lending pool fee rates based on utilization before processing positions
+    if (newState.sovereignBondLendingPools && Object.keys(newState.sovereignBondLendingPools).length > 0) {
+      for (const pool of Object.values(newState.sovereignBondLendingPools)) {
+        const U = pool.totalDeposited > 0 ? pool.totalBorrowed / pool.totalDeposited : 0;
+        pool.borrowFeeRate = 5 + 10 * U;
+      }
+    }
+
     for (const [posId, pos] of Object.entries(updatedPositions)) {
       if (pos.status === "Active" || pos.status === "ShortSold") {
         const borrowerSyndicate = syndicates[pos.borrowerSyndicateId];
-        const lenderSyndicate = syndicates[pos.lenderSyndicateId];
+        const poolId = pos.lendingPoolId;
+        const pool = poolId ? newState.sovereignBondLendingPools?.[poolId] : undefined;
+        const lenderSyndicate = !pool ? syndicates[pos.lenderSyndicateId] : undefined;
         const bond = newState.cooperativeSovereigntyBondProposals?.[pos.bondId];
 
-        if (!borrowerSyndicate || !lenderSyndicate || !bond) continue;
+        if (!borrowerSyndicate || (!lenderSyndicate && !pool) || !bond) continue;
+
+        if (pool) {
+          pos.borrowFeeRate = pool.borrowFeeRate;
+        }
 
         // 1. Calculate borrow fee
         const borrowerMargin = newState.marginAccounts?.[pos.borrowerSyndicateId];
@@ -2626,7 +2661,25 @@ export function tickProductionLabs(
           const totalCompensation = confiscatedCollateral + borrowerRemainingWarChest;
 
           borrowerSyndicate.warChest = 0;
-          lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + totalCompensation;
+          if (pool) {
+            // Distribute to depositors pro-rata
+            let distributed = 0;
+            const depositors = Object.keys(pool.deposits);
+            for (let i = 0; i < depositors.length; i++) {
+              const depSyndicateId = depositors[i];
+              const shareAmount = i === depositors.length - 1
+                ? totalCompensation - distributed
+                : Math.floor(totalCompensation * ((pool.deposits[depSyndicateId] || 0) / pool.totalDeposited));
+              distributed += shareAmount;
+              const depSyndicate = syndicates[depSyndicateId];
+              if (depSyndicate) {
+                depSyndicate.warChest = (depSyndicate.warChest ?? 0) + shareAmount;
+              }
+            }
+            pool.totalBorrowed = Math.max(0, pool.totalBorrowed - pos.amount);
+          } else if (lenderSyndicate) {
+            lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + totalCompensation;
+          }
 
           updatedPositions[posId] = {
             ...pos,
@@ -2637,7 +2690,7 @@ export function tickProductionLabs(
 
           if (!newState.journal) newState.journal = [];
           newState.journal.push(
-            `[Sovereign Bond Liquidation] Forced liquidation of position ${posId} due to borrow fee/dividend default. Lender syndicate ${pos.lenderSyndicateId} compensated with ${totalCompensation} gold.`
+            `[Sovereign Bond Liquidation] Forced liquidation of position ${posId} due to borrow fee/dividend default. Lender compensated with ${totalCompensation} gold.`
           );
           events.push({
             type: "narration",
@@ -2647,7 +2700,7 @@ export function tickProductionLabs(
           continue;
         }
 
-        // Deduct fees and pay lender
+        // Deduct fees and pay lender/pool depositors pro-rata
         let remainingOwed = totalOwedThisTick;
         const warChestDeduction = Math.min(borrowerSyndicate.warChest ?? 0, remainingOwed);
         borrowerSyndicate.warChest = (borrowerSyndicate.warChest ?? 0) - warChestDeduction;
@@ -2659,19 +2712,53 @@ export function tickProductionLabs(
           pos.collateralGold -= collateralDeduction;
         }
 
-        lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + totalOwedThisTick;
+        if (pool) {
+          // Distribute to depositors pro-rata
+          let distributed = 0;
+          const depositors = Object.keys(pool.deposits);
+          for (let i = 0; i < depositors.length; i++) {
+            const depSyndicateId = depositors[i];
+            const shareAmount = i === depositors.length - 1
+              ? totalOwedThisTick - distributed
+              : Math.floor(totalOwedThisTick * ((pool.deposits[depSyndicateId] || 0) / pool.totalDeposited));
+            distributed += shareAmount;
+            const depSyndicate = syndicates[depSyndicateId];
+            if (depSyndicate) {
+              depSyndicate.warChest = (depSyndicate.warChest ?? 0) + shareAmount;
+            }
+          }
+
+          // Pro-rata reputation rewards to pool depositors
+          const repReward = Math.max(1, Math.floor(pool.totalBorrowed / 200));
+          let distributedRep = 0;
+          if (!newState.factionRep) newState.factionRep = {};
+          for (let i = 0; i < depositors.length; i++) {
+            const depSyndicateId = depositors[i];
+            const repShare = i === depositors.length - 1
+              ? repReward - distributedRep
+              : Math.round(repReward * ((pool.deposits[depSyndicateId] || 0) / pool.totalDeposited));
+            distributedRep += repShare;
+            if (repShare > 0) {
+              newState.factionRep[bond.factionId] = (newState.factionRep[bond.factionId] ?? 0) + repShare;
+              newState.factionRep[depSyndicateId] = (newState.factionRep[depSyndicateId] ?? 0) + repShare;
+            }
+          }
+        } else if (lenderSyndicate) {
+          lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + totalOwedThisTick;
+        }
 
         pos.accumulatedBorrowFees += scaledFee;
         updatedPositions[posId] = {
           ...pos,
           collateralGold: pos.collateralGold,
           accumulatedBorrowFees: pos.accumulatedBorrowFees,
+          borrowFeeRate: pos.borrowFeeRate,
         };
         positionsChanged = true;
 
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
-          `[Sovereign Bond Borrow Fee] Position ${posId} accrued ${scaledFee} gold borrow fee${dividendAmount > 0 ? ` and ${dividendAmount} gold dividend` : ''} paid to lender ${pos.lenderSyndicateId}.`
+          `[Sovereign Bond Borrow Fee] Position ${posId} accrued ${scaledFee} gold borrow fee${dividendAmount > 0 ? ` and ${dividendAmount} gold dividend` : ''} paid to lender.`
         );
 
         // 3. Margin call sweep / price change checks for ShortSold position
@@ -2708,7 +2795,25 @@ export function tickProductionLabs(
             if (pos.collateralGold < maintenanceMargin) {
               // Forced liquidation
               const confiscatedCollateral = pos.collateralGold;
-              lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + confiscatedCollateral;
+              if (pool) {
+                // Distribute to depositors pro-rata
+                let distributed = 0;
+                const depositors = Object.keys(pool.deposits);
+                for (let i = 0; i < depositors.length; i++) {
+                  const depSyndicateId = depositors[i];
+                  const shareAmount = i === depositors.length - 1
+                    ? confiscatedCollateral - distributed
+                    : Math.floor(confiscatedCollateral * ((pool.deposits[depSyndicateId] || 0) / pool.totalDeposited));
+                  distributed += shareAmount;
+                  const depSyndicate = syndicates[depSyndicateId];
+                  if (depSyndicate) {
+                    depSyndicate.warChest = (depSyndicate.warChest ?? 0) + shareAmount;
+                  }
+                }
+                pool.totalBorrowed = Math.max(0, pool.totalBorrowed - pos.amount);
+              } else if (lenderSyndicate) {
+                lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + confiscatedCollateral;
+              }
 
               updatedPositions[posId] = {
                 ...pos,
@@ -2718,7 +2823,7 @@ export function tickProductionLabs(
               positionsChanged = true;
 
               newState.journal.push(
-                `[Sovereign Bond Margin Liquidation] Forced liquidation of position ${posId} due to margin call failure. Lender syndicate ${pos.lenderSyndicateId} compensated with ${confiscatedCollateral} gold.`
+                `[Sovereign Bond Margin Liquidation] Forced liquidation of position ${posId} due to margin call failure. Lender compensated with ${confiscatedCollateral} gold.`
               );
               events.push({
                 type: "narration",

@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -29884,6 +29884,14 @@ export function multiAgentStep(
         newState.cooperativeSovereigntyBondProposals = bondsCopy;
       }
 
+      if (position.lendingPoolId) {
+        const poolsCopy = { ...(state.sovereignBondLendingPools || {}) };
+        const currentPool = { ...poolsCopy[position.lendingPoolId] };
+        currentPool.totalBorrowed = Math.max(0, currentPool.totalBorrowed - position.amount);
+        poolsCopy[position.lendingPoolId] = currentPool;
+        newState.sovereignBondLendingPools = poolsCopy;
+      }
+
       syndicates[position.borrowerSyndicateId] = borrowerCopied;
       newState.syndicates = syndicates;
 
@@ -29946,6 +29954,515 @@ export function multiAgentStep(
       };
     }
 
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ESTABLISH_BOND_LENDING_POOL action (AF-141)
+  if ((action as any).type === "ESTABLISH_BOND_LENDING_POOL") {
+    const { poolId, creatorSyndicateId, bondId, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const creatorSyndicate = state.syndicates?.[creatorSyndicateId];
+    const bond = state.cooperativeSovereigntyBondProposals?.[bondId];
+
+    if (!poolId) {
+      rejectionReason = `Pool ID is required.`;
+    } else if (!creatorSyndicateId) {
+      rejectionReason = `Creator syndicate ID is required.`;
+    } else if (!bondId) {
+      rejectionReason = `Bond ID is required.`;
+    } else if (!creatorSyndicate) {
+      rejectionReason = `Syndicate ${creatorSyndicateId} does not exist.`;
+    } else if (!creatorSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${creatorSyndicateId} and cannot establish a pool.`;
+    } else if (!bond) {
+      rejectionReason = `Bond ${bondId} does not exist.`;
+    } else if (bond.status !== "Active" || !bond.resolved) {
+      rejectionReason = `Bond ${bondId} is not active.`;
+    } else if (state.sovereignBondLendingPools?.[poolId]) {
+      rejectionReason = `Lending pool ${poolId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      const pools = { ...(state.sovereignBondLendingPools || {}) };
+      pools[poolId] = {
+        id: poolId,
+        creatorSyndicateId,
+        bondId,
+        deposits: {},
+        totalDeposited: 0,
+        totalBorrowed: 0,
+        borrowFeeRate: 5.0,
+        timestamp,
+      };
+      newState.sovereignBondLendingPools = pools;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Bond Lending Pool Established] Syndicate ${creatorSyndicateId} established lending pool ${poolId} for bond ${bondId}.`
+      );
+      customEvents.push({
+        type: "narration",
+        text: `🏛️ [Sovereign Bond Lending Pool Established] Syndicate ${creatorSyndicateId} established lending pool ${poolId} for bond ${bondId}.`,
+      } as any);
+      customEvents.push({
+        type: "bond_lending_pool_established" as any,
+        poolId,
+        creatorSyndicateId,
+        bondId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEPOSIT_BOND_TO_POOL action (AF-141)
+  if ((action as any).type === "DEPOSIT_BOND_TO_POOL") {
+    const { poolId, syndicateId, amount, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignBondLendingPools?.[poolId];
+    const syndicate = state.syndicates?.[syndicateId];
+    let bond: any;
+
+    if (!poolId) {
+      rejectionReason = `Pool ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Deposit amount must be a positive integer.`;
+    } else if (!pool) {
+      rejectionReason = `Lending pool ${poolId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot deposit.`;
+    } else {
+      bond = state.cooperativeSovereigntyBondProposals?.[pool.bondId];
+      if (!bond || bond.status !== "Active" || !bond.resolved) {
+        rejectionReason = `Associated bond ${pool.bondId} is not active.`;
+      } else {
+        const availableShares = getSyndicateAvailableBondShares(state, pool.bondId, syndicateId);
+        if (availableShares < amount) {
+          rejectionReason = `Syndicate ${syndicateId} has insufficient available bond shares (${availableShares} < ${amount}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && pool && bond) {
+      const pools = { ...(state.sovereignBondLendingPools || {}) };
+      const currentPool = { ...pools[poolId] };
+      const deposits = { ...currentPool.deposits };
+      deposits[syndicateId] = (deposits[syndicateId] ?? 0) + amount;
+      currentPool.deposits = deposits;
+      currentPool.totalDeposited += amount;
+      
+      // Update dynamic interest rate based on new utilization
+      const U = currentPool.totalDeposited > 0 ? currentPool.totalBorrowed / currentPool.totalDeposited : 0;
+      currentPool.borrowFeeRate = 5 + 10 * U;
+      pools[poolId] = currentPool;
+      newState.sovereignBondLendingPools = pools;
+
+      // Transfer ownership from individual contribution to pool_<poolId>
+      const bondsCopy = { ...(state.cooperativeSovereigntyBondProposals || {}) };
+      const currentBond = { ...bondsCopy[pool.bondId] };
+      const contributions = { ...currentBond.contributions };
+      contributions[syndicateId] = (contributions[syndicateId] ?? 0) - amount;
+      if (contributions[syndicateId] <= 0) {
+        delete contributions[syndicateId];
+      }
+      contributions["pool_" + poolId] = (contributions["pool_" + poolId] ?? 0) + amount;
+      currentBond.contributions = contributions;
+      bondsCopy[pool.bondId] = currentBond;
+      newState.cooperativeSovereigntyBondProposals = bondsCopy;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Bond Deposited to Pool] Syndicate ${syndicateId} deposited ${amount} shares into pool ${poolId}.`
+      );
+      customEvents.push({
+        type: "narration",
+        text: `📥 [Sovereign Bond Deposited to Pool] Syndicate ${syndicateId} deposited ${amount} shares into pool ${poolId}.`,
+      } as any);
+      customEvents.push({
+        type: "bond_deposited_to_pool" as any,
+        poolId,
+        syndicateId,
+        amount,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized WITHDRAW_BOND_FROM_POOL action (AF-141)
+  if ((action as any).type === "WITHDRAW_BOND_FROM_POOL") {
+    const { poolId, syndicateId, amount, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignBondLendingPools?.[poolId];
+    const syndicate = state.syndicates?.[syndicateId];
+    let bond: any;
+
+    if (!poolId) {
+      rejectionReason = `Pool ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Withdrawal amount must be a positive integer.`;
+    } else if (!pool) {
+      rejectionReason = `Lending pool ${poolId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot withdraw.`;
+    } else {
+      bond = state.cooperativeSovereigntyBondProposals?.[pool.bondId];
+      if (!bond) {
+        rejectionReason = `Associated bond ${pool.bondId} does not exist.`;
+      } else {
+        const deposited = pool.deposits[syndicateId] ?? 0;
+        const availableToWithdraw = pool.totalDeposited - pool.totalBorrowed;
+        if (deposited < amount) {
+          rejectionReason = `Syndicate ${syndicateId} has only ${deposited} shares deposited in pool ${poolId} (requested ${amount}).`;
+        } else if (availableToWithdraw < amount) {
+          rejectionReason = `Pool ${poolId} has insufficient unborrowed shares available for withdrawal (${availableToWithdraw} < ${amount}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && pool && bond) {
+      const pools = { ...(state.sovereignBondLendingPools || {}) };
+      const currentPool = { ...pools[poolId] };
+      const deposits = { ...currentPool.deposits };
+      deposits[syndicateId] = Math.max(0, (deposits[syndicateId] ?? 0) - amount);
+      if (deposits[syndicateId] === 0) {
+        delete deposits[syndicateId];
+      }
+      currentPool.deposits = deposits;
+      currentPool.totalDeposited = Math.max(0, currentPool.totalDeposited - amount);
+      
+      // Update dynamic interest rate based on new utilization
+      const U = currentPool.totalDeposited > 0 ? currentPool.totalBorrowed / currentPool.totalDeposited : 0;
+      currentPool.borrowFeeRate = 5 + 10 * U;
+      pools[poolId] = currentPool;
+      newState.sovereignBondLendingPools = pools;
+
+      // Transfer ownership from pool_<poolId> back to individual contribution
+      const bondsCopy = { ...(state.cooperativeSovereigntyBondProposals || {}) };
+      const currentBond = { ...bondsCopy[pool.bondId] };
+      const contributions = { ...currentBond.contributions };
+      contributions["pool_" + poolId] = Math.max(0, (contributions["pool_" + poolId] ?? 0) - amount);
+      if (contributions["pool_" + poolId] <= 0) {
+        delete contributions["pool_" + poolId];
+      }
+      contributions[syndicateId] = (contributions[syndicateId] ?? 0) + amount;
+      currentBond.contributions = contributions;
+      bondsCopy[pool.bondId] = currentBond;
+      newState.cooperativeSovereigntyBondProposals = bondsCopy;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Bond Withdrawn from Pool] Syndicate ${syndicateId} withdrew ${amount} shares from pool ${poolId}.`
+      );
+      customEvents.push({
+        type: "narration",
+        text: `📤 [Sovereign Bond Withdrawn from Pool] Syndicate ${syndicateId} withdrew ${amount} shares from pool ${poolId}.`,
+      } as any);
+      customEvents.push({
+        type: "bond_withdrawn_from_pool" as any,
+        poolId,
+        syndicateId,
+        amount,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BORROW_BOND_FROM_POOL action (AF-141)
+  if ((action as any).type === "BORROW_BOND_FROM_POOL") {
+    const { borrowId, poolId, borrowerSyndicateId, amount, collateralGold, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignBondLendingPools?.[poolId];
+    const borrowerSyndicate = state.syndicates?.[borrowerSyndicateId];
+    let bond: any;
+
+    if (!borrowId) {
+      rejectionReason = `Borrow ID is required.`;
+    } else if (!poolId) {
+      rejectionReason = `Pool ID is required.`;
+    } else if (!borrowerSyndicateId) {
+      rejectionReason = `Borrower syndicate ID is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Borrow amount must be a positive integer.`;
+    } else if (collateralGold === undefined || collateralGold < 0 || !Number.isInteger(collateralGold)) {
+      rejectionReason = `Collateral gold must be a non-negative integer.`;
+    } else if (!pool) {
+      rejectionReason = `Lending pool ${poolId} does not exist.`;
+    } else if (!borrowerSyndicate) {
+      rejectionReason = `Borrower syndicate ${borrowerSyndicateId} does not exist.`;
+    } else if (!borrowerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of borrower syndicate ${borrowerSyndicateId} and cannot borrow from pool.`;
+    } else if (state.sovereignBondBorrowPositions?.[borrowId]) {
+      rejectionReason = `Borrow position ${borrowId} already exists.`;
+    } else if ((borrowerSyndicate.warChest ?? 0) < collateralGold) {
+      rejectionReason = `Borrower syndicate ${borrowerSyndicateId} has insufficient war chest (${borrowerSyndicate.warChest ?? 0} gold) to cover collateral of ${collateralGold} gold.`;
+    } else {
+      bond = state.cooperativeSovereigntyBondProposals?.[pool.bondId];
+      if (!bond || bond.status !== "Active" || !bond.resolved) {
+        rejectionReason = `Associated bond ${pool.bondId} is not active.`;
+      } else {
+        const availableToBorrow = pool.totalDeposited - pool.totalBorrowed;
+        if (availableToBorrow < amount) {
+          rejectionReason = `Lending pool ${poolId} has insufficient available unborrowed shares (${availableToBorrow} < ${amount}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && pool && bond && borrowerSyndicate) {
+      const positions = { ...(state.sovereignBondBorrowPositions || {}) };
+      const currentRate = pool.borrowFeeRate;
+
+      positions[borrowId] = {
+        id: borrowId,
+        borrowerSyndicateId,
+        lenderSyndicateId: "pool_" + poolId,
+        bondId: pool.bondId,
+        amount,
+        collateralGold,
+        borrowFeeRate: currentRate,
+        status: "Active" as const,
+        timestamp,
+        accumulatedBorrowFees: 0,
+        lendingPoolId: poolId,
+      };
+      newState.sovereignBondBorrowPositions = positions;
+
+      // Lock collateral gold from borrower's war chest
+      const syndicates = { ...(state.syndicates || {}) };
+      const borrowerCopied = { ...syndicates[borrowerSyndicateId] };
+      borrowerCopied.warChest = (borrowerCopied.warChest ?? 0) - collateralGold;
+      syndicates[borrowerSyndicateId] = borrowerCopied;
+      newState.syndicates = syndicates;
+
+      // Update pool total borrowed
+      const pools = { ...(state.sovereignBondLendingPools || {}) };
+      const currentPool = { ...pools[poolId] };
+      currentPool.totalBorrowed += amount;
+      
+      // Update dynamic interest rate based on new utilization
+      const U = currentPool.totalDeposited > 0 ? currentPool.totalBorrowed / currentPool.totalDeposited : 0;
+      currentPool.borrowFeeRate = 5 + 10 * U;
+      pools[poolId] = currentPool;
+      newState.sovereignBondLendingPools = pools;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Bond Borrowed from Pool] Syndicate ${borrowerSyndicateId} borrowed ${amount} of bond ${pool.bondId} from pool ${poolId} with ${collateralGold} gold collateral.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📈 [Sovereign Bond Borrowed from Pool] Syndicate ${borrowerSyndicateId} borrowed ${amount} of bond ${pool.bondId} from pool ${poolId} (Collateral: ${collateralGold} gold).`,
+      } as any);
+
+      customEvents.push({
+        type: "bond_borrowed_from_pool" as any,
+        borrowId,
+        poolId,
+        borrowerSyndicateId,
+        amount,
+        collateralGold,
+        borrowFeeRate: currentRate,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
     return {
       state: newState,
       events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],

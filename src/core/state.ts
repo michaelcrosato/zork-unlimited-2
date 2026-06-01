@@ -1333,6 +1333,18 @@ export const SecondaryBondListingSchema = z.object({
 });
 export type SecondaryBondListing = z.infer<typeof SecondaryBondListingSchema>;
 
+export const SovereignBondLendingPoolSchema = z.object({
+  id: z.string(),
+  creatorSyndicateId: z.string(),
+  bondId: z.string(),
+  deposits: z.record(z.string(), z.number().int().nonnegative()),
+  totalDeposited: z.number().int().nonnegative(),
+  totalBorrowed: z.number().int().nonnegative(),
+  borrowFeeRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SovereignBondLendingPool = z.infer<typeof SovereignBondLendingPoolSchema>;
+
 export const SovereignBondBorrowPositionSchema = z.object({
   id: z.string(),
   borrowerSyndicateId: z.string(),
@@ -1344,6 +1356,7 @@ export const SovereignBondBorrowPositionSchema = z.object({
   status: z.enum(["Proposed", "Active", "ShortSold", "Covered", "Liquidated"]),
   timestamp: z.number().int(),
   accumulatedBorrowFees: z.number().int().nonnegative().default(0),
+  lendingPoolId: z.string().optional(),
 });
 export type SovereignBondBorrowPosition = z.infer<typeof SovereignBondBorrowPositionSchema>;
 
@@ -2215,6 +2228,7 @@ export const GameStateSchema = z.object({
   cooperativeSovereigntyBondProposals: z.record(z.string(), CooperativeSovereigntyBondProposalSchema).optional(),
   secondaryBondListings: z.record(z.string(), SecondaryBondListingSchema).optional(),
   sovereignBondBorrowPositions: z.record(z.string(), SovereignBondBorrowPositionSchema).optional(),
+  sovereignBondLendingPools: z.record(z.string(), SovereignBondLendingPoolSchema).optional(),
   factionCdoInsurancePoolProposals: z.record(z.string(), FactionCdoInsurancePoolProposalSchema).optional(),
   multiFactionCdoRiskRatings: z.record(z.string(), MultiFactionCdoRiskRatingSchema).optional(),
   multiFactionCdoRiskRatingProposals: z.record(z.string(), MultiFactionCdoRiskRatingProposalSchema).optional(),
@@ -2486,6 +2500,7 @@ export const createInitialState = (options: {
     cooperativeSovereigntyBondProposals: {},
     secondaryBondListings: {},
     sovereignBondBorrowPositions: {},
+    sovereignBondLendingPools: {},
     factionCdoInsurancePoolProposals: {},
     multiFactionCdoRiskRatings: {},
     multiFactionCdoRiskRatingProposals: {},
@@ -3328,6 +3343,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cooperativeSovereigntyBondProposals: rest.cooperativeSovereigntyBondProposals ? JSON.parse(JSON.stringify(rest.cooperativeSovereigntyBondProposals)) : undefined,
     secondaryBondListings: rest.secondaryBondListings ? JSON.parse(JSON.stringify(rest.secondaryBondListings)) : undefined,
     sovereignBondBorrowPositions: rest.sovereignBondBorrowPositions ? JSON.parse(JSON.stringify(rest.sovereignBondBorrowPositions)) : undefined,
+    sovereignBondLendingPools: rest.sovereignBondLendingPools ? JSON.parse(JSON.stringify(rest.sovereignBondLendingPools)) : undefined,
     factionCdoInsurancePoolProposals: rest.factionCdoInsurancePoolProposals ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePoolProposals)) : undefined,
     multiFactionCdoRiskRatings: rest.multiFactionCdoRiskRatings ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatings)) : undefined,
     multiFactionCdoRiskRatingProposals: rest.multiFactionCdoRiskRatingProposals ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatingProposals)) : undefined,
@@ -9223,6 +9239,39 @@ export function getBondPricePerShare(state: GameState, bondId: string): number {
     return finalPrice / latestListing.amount;
   }
   return 1.0;
+}
+
+export function getSyndicateAvailableBondShares(state: GameState, bondId: string, syndicateId: string): number {
+  const bond = state.cooperativeSovereigntyBondProposals?.[bondId];
+  if (!bond || bond.status !== "Active") return 0;
+
+  const totalContribution = bond.contributions[syndicateId] || 0;
+
+  // Subtract amount listed in Open secondary listings
+  let totalActiveListed = 0;
+  for (const listing of Object.values(state.secondaryBondListings || {})) {
+    if (listing.bondId === bondId && listing.sellerSyndicateId === syndicateId && listing.status === "Open") {
+      totalActiveListed += listing.amount;
+    }
+  }
+
+  // Subtract amount lent individually in Active or ShortSold borrow positions
+  let totalLent = 0;
+  for (const pos of Object.values(state.sovereignBondBorrowPositions || {})) {
+    if (pos.bondId === bondId && pos.lenderSyndicateId === syndicateId && (pos.status === "Active" || pos.status === "ShortSold")) {
+      totalLent += pos.amount;
+    }
+  }
+
+  // Subtract amount deposited in all lending pools for this bond
+  let totalDepositedInPools = 0;
+  for (const pool of Object.values(state.sovereignBondLendingPools || {})) {
+    if (pool.bondId === bondId) {
+      totalDepositedInPools += pool.deposits[syndicateId] || 0;
+    }
+  }
+
+  return Math.max(0, totalContribution - totalActiveListed - totalLent - totalDepositedInPools);
 }
 
 

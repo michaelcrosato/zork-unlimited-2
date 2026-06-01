@@ -2563,6 +2563,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge sovereignBondBorrowPositions using LWW (Last-Write-Wins)
+  const sovereignBondBorrowPositions = { ...stateA.sovereignBondBorrowPositions };
+  if (stateB.sovereignBondBorrowPositions) {
+    for (const [posId, posB] of Object.entries(stateB.sovereignBondBorrowPositions)) {
+      const posA = sovereignBondBorrowPositions[posId];
+      if (!posA || posB.timestamp > posA.timestamp) {
+        sovereignBondBorrowPositions[posId] = { ...posB };
+      }
+    }
+  }
+
+  // Merge sovereignBondLendingPools using LWW (Last-Write-Wins)
+  const sovereignBondLendingPools = { ...stateA.sovereignBondLendingPools };
+  if (stateB.sovereignBondLendingPools) {
+    for (const [poolId, poolB] of Object.entries(stateB.sovereignBondLendingPools)) {
+      const poolA = sovereignBondLendingPools[poolId];
+      if (!poolA || poolB.timestamp > poolA.timestamp) {
+        sovereignBondLendingPools[poolId] = { ...poolB };
+      }
+    }
+  }
+
   // Merge secondaryBondListings using LWW (Last-Write-Wins)
   const secondaryBondListings = { ...stateA.secondaryBondListings };
   if (stateB.secondaryBondListings) {
@@ -3228,6 +3250,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cooperativeYieldCampaignProposals,
     cooperativeSovereigntyBondProposals,
     secondaryBondListings,
+    sovereignBondBorrowPositions,
+    sovereignBondLendingPools,
     factionCdoInsurancePoolProposals,
     multiFactionCdoRiskRatings,
     multiFactionCdoRiskRatingProposals,

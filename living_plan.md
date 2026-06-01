@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #140 (Ready for Cycle #141)
-* **Build/Test Status**: 🟢 PASS (All 607 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #141 (Ready for Cycle #142)
+* **Build/Test Status**: 🟢 PASS (All 608 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -841,16 +841,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire borrow fee accruals, margin call sweeps on price changes, and default/liquidation of short collateral (`AF-140`).
 - [x] Write comprehensive unit and integration tests (`AF-140`).
 
+### Phase 119: Syndicate SWF Sovereign Bond Short Lending Pools & Arbitrage Routing (Completed)
+- [x] Define sovereign bond lending pool schemas inside `GameState` (`AF-141`).
+- [x] Implement decentralized consensus actions to establish a lending pool, deposit/withdraw bond shares, and borrow from the pool (`AF-141`).
+- [x] Wire pro-rata interest distribution and dynamic fee adjustment mechanisms into the economy ticks (`AF-141`).
+- [x] Write comprehensive unit and integration tests (`AF-141`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-141`
-* **Objective**: Syndicate SWF Sovereign Bond Short Lending Pools & Arbitrage Routing.
-* **Why this matters**: Implement short-lending pools where multiple syndicates can deposit active cooperative sovereignty bond shares into shared lending pools. Other syndicates can borrow from these pools dynamically, and depositors receive pro-rata interest yields and reputation rewards, optimizing credit liquidity.
+**Task ID**: `AF-142`
+* **Objective**: Syndicate SWF Sovereign Bond Arbitrage Routing & Liquidity Injection.
+* **Why this matters**: Implement automated arbitrage routing contracts that can query the borrow rates and yields of multiple lending pools and route capital/collateral automatically to maximize yields and reputation boosts. Also, factions can inject liquidity into short lending pools dynamically when utilization exceeds 80%, stabilizing credit liquidity.
 * **Planned Actions**:
-  1. Define sovereign bond lending pool schemas inside `GameState`.
-  2. Implement decentralized consensus actions to establish a lending pool, deposit/withdraw bond shares, and borrow from the pool.
-  3. Wire pro-rata interest distribution and dynamic fee adjustment mechanisms into the economy ticks.
+  1. Define arbitrage routing policies and capital allocation parameters in GameState.
+  2. Implement decentralized consensus actions to trigger automated yield reallocation or deploy capital into high-yield pools.
+  3. Wire faction-backed liquidity injections and rebalancing ticks into the economy.
   4. Write robust unit and integration tests.
 
 ---
