@@ -2991,10 +2991,27 @@ export const SovereignDebtDefaultPenaltyWaiverProposalSchema = z.object({
 });
 export type SovereignDebtDefaultPenaltyWaiverProposal = z.infer<typeof SovereignDebtDefaultPenaltyWaiverProposalSchema>;
 
+export const SovereignDebtCDSContractSchema = z.object({
+  cdsId: z.string(),
+  buyerSyndicateId: z.string(),
+  writerSyndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  notionalValue: z.number(),
+  status: z.enum(["proposed", "active", "settled", "terminated"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSContract = z.infer<typeof SovereignDebtCDSContractSchema>;
 
-
-
-
+export const SovereignDebtCDSPortfolioSchema = z.object({
+  syndicateId: z.string(),
+  purchasedCDSIds: z.array(z.string()),
+  writtenCDSIds: z.array(z.string()),
+});
+export type SovereignDebtCDSPortfolio = z.infer<typeof SovereignDebtCDSPortfolioSchema>;
 
 
 
@@ -3976,6 +3993,8 @@ export const GameStateSchema = z.object({
   sovereignDebtResolveAlerts: z.record(z.string(), SovereignDebtResolveAlertSchema).optional(),
   sovereignDebtDefaultGracePeriods: z.record(z.string(), SovereignDebtDefaultGracePeriodProposalSchema).optional(),
   sovereignDebtDefaultPenaltyWaivers: z.record(z.string(), SovereignDebtDefaultPenaltyWaiverProposalSchema).optional(),
+  sovereignDebtCDSContracts: z.record(z.string(), SovereignDebtCDSContractSchema).optional(),
+  sovereignDebtCDSPortfolios: z.record(z.string(), SovereignDebtCDSPortfolioSchema).optional(),
 
 
 
@@ -4424,6 +4443,8 @@ export const createInitialState = (options: {
     sovereignDebtResolveAlerts: {},
     sovereignDebtDefaultGracePeriods: {},
     sovereignDebtDefaultPenaltyWaivers: {},
+    sovereignDebtCDSContracts: {},
+    sovereignDebtCDSPortfolios: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5598,6 +5619,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     sovereignDebtResolveAlerts: rest.sovereignDebtResolveAlerts ? JSON.parse(JSON.stringify(rest.sovereignDebtResolveAlerts)) : undefined,
     sovereignDebtDefaultGracePeriods: rest.sovereignDebtDefaultGracePeriods ? JSON.parse(JSON.stringify(rest.sovereignDebtDefaultGracePeriods)) : undefined,
     sovereignDebtDefaultPenaltyWaivers: rest.sovereignDebtDefaultPenaltyWaivers ? JSON.parse(JSON.stringify(rest.sovereignDebtDefaultPenaltyWaivers)) : undefined,
+    sovereignDebtCDSContracts: rest.sovereignDebtCDSContracts ? JSON.parse(JSON.stringify(rest.sovereignDebtCDSContracts)) : undefined,
+    sovereignDebtCDSPortfolios: rest.sovereignDebtCDSPortfolios ? JSON.parse(JSON.stringify(rest.sovereignDebtCDSPortfolios)) : undefined,
 
   };
   return clone;
@@ -17461,6 +17484,83 @@ export function reconcileSovereignDebtDefaultPenaltyWaivers(state: GameState, pa
         resolved: true,
         status: "disputed",
       };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtCDSContracts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSContracts: state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {},
+    sovereignDebtCDSPortfolios: state.sovereignDebtCDSPortfolios ? { ...state.sovereignDebtCDSPortfolios } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [cdsId, contract] of Object.entries(newState.sovereignDebtCDSContracts)) {
+    if (contract.status !== "proposed") continue;
+
+    const buyerSyndicate = newState.syndicates[contract.buyerSyndicateId];
+    if (!buyerSyndicate) continue;
+
+    const votes = contract.votes || {};
+
+    // Buyer votes
+    const buyerTrueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => buyerSyndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+    const buyerPassed = buyerTrueVotes.length > buyerSyndicate.members.length / 2;
+
+    // Writer votes (if not system)
+    let writerPassed = true;
+    if (contract.writerSyndicateId !== "system" && contract.writerSyndicateId !== "swf") {
+      const writerSyndicate = newState.syndicates[contract.writerSyndicateId];
+      if (writerSyndicate) {
+        const writerTrueVotes = Object.entries(votes)
+          .filter(([voterId, voteObj]) => writerSyndicate.members.includes(voterId) && voteObj.vote === true)
+          .map(([voterId]) => voterId);
+        writerPassed = writerTrueVotes.length > writerSyndicate.members.length / 2;
+      } else {
+        writerPassed = false;
+      }
+    }
+
+    if (buyerPassed && writerPassed) {
+      newState.sovereignDebtCDSContracts[cdsId] = {
+        ...contract,
+        status: "active",
+      };
+
+      // Add to portfolios
+      // Buyer portfolio
+      const buyerPort = newState.sovereignDebtCDSPortfolios[contract.buyerSyndicateId] || {
+        syndicateId: contract.buyerSyndicateId,
+        purchasedCDSIds: [],
+        writtenCDSIds: [],
+      };
+      if (!buyerPort.purchasedCDSIds.includes(cdsId)) {
+        buyerPort.purchasedCDSIds = [...buyerPort.purchasedCDSIds, cdsId];
+      }
+      newState.sovereignDebtCDSPortfolios[contract.buyerSyndicateId] = buyerPort;
+
+      // Writer portfolio (if not system)
+      if (contract.writerSyndicateId !== "system" && contract.writerSyndicateId !== "swf") {
+        const writerPort = newState.sovereignDebtCDSPortfolios[contract.writerSyndicateId] || {
+          syndicateId: contract.writerSyndicateId,
+          purchasedCDSIds: [],
+          writtenCDSIds: [],
+        };
+        if (!writerPort.writtenCDSIds.includes(cdsId)) {
+          writerPort.writtenCDSIds = [...writerPort.writtenCDSIds, cdsId];
+        }
+        newState.sovereignDebtCDSPortfolios[contract.writerSyndicateId] = writerPort;
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt CDS Activated] CDS contract ${cdsId} activated (Buyer: ${contract.buyerSyndicateId}, Writer: ${contract.writerSyndicateId}, Target: ${contract.targetSyndicateId}, Notional: ${contract.notionalValue} gold).`
+      );
     }
   }
 

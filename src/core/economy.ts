@@ -7230,7 +7230,147 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
   // AF-226: Tick Sovereign Debt Default Alerts & reputation penalties
   finalState = tickSovereignDebtDefaultAlerts(finalState);
+  // AF-228: Tick Sovereign Debt CDS Contracts & Settlements
+  finalState = tickSovereignDebtCDS(finalState);
   return finalState;
+}
+
+export function tickSovereignDebtCDS(state: GameState): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSContracts: state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  const activeContracts = Object.values(newState.sovereignDebtCDSContracts).filter(
+    (contract: any) => contract.status === "active"
+  );
+
+  for (const contract of activeContracts) {
+    const { cdsId, buyerSyndicateId, writerSyndicateId, targetSyndicateId, notionalValue } = contract as any;
+
+    const buyerSyndicate = newState.syndicates[buyerSyndicateId];
+    if (!buyerSyndicate) continue;
+
+    // Check if target syndicate has entered default status (has an authorized default alert that is NOT resolved)
+    const hasAuthorizedDefault = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
+      (alert: any) => alert.targetSyndicateId === targetSyndicateId && alert.status === "authorized" && !alert.resolved
+    );
+
+    if (hasAuthorizedDefault) {
+      // Trigger automatic settlement!
+      newState.sovereignDebtCDSContracts[cdsId] = {
+        ...contract,
+        status: "settled",
+      };
+
+      // Deduct from writer and add to buyer
+      if (writerSyndicateId !== "system" && writerSyndicateId !== "swf") {
+        const writerSyndicate = newState.syndicates[writerSyndicateId];
+        if (writerSyndicate) {
+          const updatedWriter = { ...writerSyndicate };
+          updatedWriter.warChest = Math.max(0, (updatedWriter.warChest ?? 0) - notionalValue);
+          newState.syndicates[writerSyndicateId] = updatedWriter;
+        }
+      } else {
+        // paid from system sweep pool
+        newState.swfStakingSweepPool = Math.max(0, (newState.swfStakingSweepPool ?? 0) - notionalValue);
+      }
+
+      const updatedBuyer = { ...buyerSyndicate };
+      updatedBuyer.warChest = (updatedBuyer.warChest ?? 0) + notionalValue;
+      newState.syndicates[buyerSyndicateId] = updatedBuyer;
+
+      newState.journal.push(
+        `[Sovereign Debt CDS Settlement] CDS ${cdsId} automatically settled due to default of target Syndicate ${targetSyndicateId}. Transferred payout of ${notionalValue} gold to Buyer Syndicate ${buyerSyndicateId} from Writer ${writerSyndicateId}.`
+      );
+      continue;
+    }
+
+    // Dynamic premium pricing based on active default risk indicators
+    // Indicators: Outstanding deflection fees, enforcer heat, and active grace periods
+    const outstandingFees = newState.outstandingDeflectionFees?.[targetSyndicateId] ?? 0;
+
+    // Calculate target syndicate enforcer heat (max heat in rooms with assets, or overall max fallback)
+    let enforcerHeat = 0;
+    let hasAsset = false;
+    if (newState.safehouses) {
+      for (const sh of Object.values(newState.safehouses)) {
+        if (sh.syndicateId === targetSyndicateId) {
+          hasAsset = true;
+          const h = newState.enforcementHeat?.[sh.roomId]?.heat ?? 0;
+          if (h > enforcerHeat) enforcerHeat = h;
+        }
+      }
+    }
+    if (newState.turfGuardOutposts) {
+      for (const op of Object.values(newState.turfGuardOutposts)) {
+        if ((op as any).syndicateId === targetSyndicateId) {
+          hasAsset = true;
+          const h = newState.enforcementHeat?.[(op as any).roomId]?.heat ?? 0;
+          if (h > enforcerHeat) enforcerHeat = h;
+        }
+      }
+    }
+    if (!hasAsset && newState.enforcementHeat) {
+      for (const entry of Object.values(newState.enforcementHeat)) {
+        if (entry.heat > enforcerHeat) enforcerHeat = entry.heat;
+      }
+    }
+
+    // Active grace periods check
+    let hasActiveGrace = false;
+    if (newState.sovereignDebtDefaultGracePeriods) {
+      for (const grace of Object.values(newState.sovereignDebtDefaultGracePeriods)) {
+        if (grace.targetSyndicateId === targetSyndicateId && grace.status === "authorized" && (grace.remainingSteps ?? 0) > 0) {
+          hasActiveGrace = true;
+          break;
+        }
+      }
+    }
+
+    // Premium pricing formula
+    const basePremium = Math.max(10, Math.round(notionalValue * 0.05)); // 5% base
+    const feeMultiplier = 1.0 + (outstandingFees / 500);
+    const heatMultiplier = 1.0 + (enforcerHeat / 50);
+    const graceMultiplier = hasActiveGrace ? 0.5 : 1.0; // 50% discount due to active grace period
+
+    const premium = Math.round(basePremium * feeMultiplier * heatMultiplier * graceMultiplier);
+
+    // Accrue payment
+    if ((buyerSyndicate.warChest ?? 0) >= premium) {
+      const updatedBuyer = { ...buyerSyndicate };
+      updatedBuyer.warChest = (updatedBuyer.warChest ?? 0) - premium;
+      newState.syndicates[buyerSyndicateId] = updatedBuyer;
+
+      if (writerSyndicateId !== "system" && writerSyndicateId !== "swf") {
+        const writerSyndicate = newState.syndicates[writerSyndicateId];
+        if (writerSyndicate) {
+          const updatedWriter = { ...writerSyndicate };
+          updatedWriter.warChest = (updatedWriter.warChest ?? 0) + premium;
+          newState.syndicates[writerSyndicateId] = updatedWriter;
+        }
+      } else {
+        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + premium;
+      }
+
+      newState.journal.push(
+        `[Sovereign Debt CDS Premium] Buyer Syndicate ${buyerSyndicateId} paid dynamic premium of ${premium} gold to Writer ${writerSyndicateId} for CDS ${cdsId} (Indicators: Outstanding Fees: ${outstandingFees}, Heat: ${enforcerHeat}, Grace Active: ${hasActiveGrace}).`
+      );
+    } else {
+      // Terminate due to lack of payment
+      newState.sovereignDebtCDSContracts[cdsId] = {
+        ...contract,
+        status: "terminated",
+      };
+      newState.journal.push(
+        `[Sovereign Debt CDS Terminated] CDS contract ${cdsId} terminated due to insufficient war chest in Buyer Syndicate ${buyerSyndicateId} (Required premium: ${premium} gold).`
+      );
+    }
+  }
+
+  return newState;
 }
 
 export function tickSovereignDebtDefaultAlerts(state: GameState): GameState {

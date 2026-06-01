@@ -250,7 +250,9 @@ export type Action =
   | { type: "PROPOSE_DEFAULT_GRACE_PERIOD"; proposalId: string; syndicateId: string; targetSyndicateId: string; alertProposalId: string; gracePeriodSteps: number; timestamp: number }
   | { type: "VOTE_DEFAULT_GRACE_PERIOD"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_DEFAULT_PENALTY_WAIVER"; proposalId: string; syndicateId: string; targetSyndicateId: string; alertProposalId: string; timestamp: number }
-  | { type: "VOTE_DEFAULT_PENALTY_WAIVER"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_DEFAULT_PENALTY_WAIVER"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PURCHASE_CDS_CONTRACT"; cdsId: string; buyerSyndicateId: string; writerSyndicateId: string; targetSyndicateId: string; notionalValue: number; timestamp: number }
+  | { type: "SETTLE_CDS_CLAIMS"; cdsId: string; buyerSyndicateId: string; timestamp: number };
 
 
 

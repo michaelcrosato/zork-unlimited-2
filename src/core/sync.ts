@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -43858,6 +43858,310 @@ export function multiAgentStep(
         proposalId,
         agentId,
         vote,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle PURCHASE_CDS_CONTRACT action (AF-228)
+  if ((action as any).type === "PURCHASE_CDS_CONTRACT") {
+    const { cdsId, buyerSyndicateId, writerSyndicateId, targetSyndicateId, notionalValue, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+    const targetSyndicate = state.syndicates?.[targetSyndicateId];
+    const isSystemWriter = writerSyndicateId === "system" || writerSyndicateId === "swf";
+    const writerSyndicate = !isSystemWriter ? state.syndicates?.[writerSyndicateId] : undefined;
+
+    const existingContract = state.sovereignDebtCDSContracts?.[cdsId];
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (!writerSyndicateId) {
+      rejectionReason = `Writer Syndicate ID is required.`;
+    } else if (!targetSyndicateId) {
+      rejectionReason = `Target Syndicate ID is required.`;
+    } else if (notionalValue === undefined || typeof notionalValue !== "number" || notionalValue <= 0) {
+      rejectionReason = `Notional value must be a positive number.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer Syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (!targetSyndicate) {
+      rejectionReason = `Target Syndicate ${targetSyndicateId} does not exist.`;
+    } else if (buyerSyndicateId === targetSyndicateId) {
+      rejectionReason = `Buyer Syndicate and Target Syndicate cannot be the same.`;
+    } else if (!isSystemWriter && !writerSyndicate) {
+      rejectionReason = `Writer Syndicate ${writerSyndicateId} does not exist.`;
+    } else if (!isSystemWriter && buyerSyndicateId === writerSyndicateId) {
+      rejectionReason = `Buyer and Writer Syndicates must be different.`;
+    } else {
+      // Check agent membership
+      const isBuyerMember = buyerSyndicate.members.includes(agentId);
+      const isWriterMember = writerSyndicate ? writerSyndicate.members.includes(agentId) : false;
+
+      if (!isBuyerMember && !isWriterMember) {
+        rejectionReason = `Agent ${agentId} is not a member of either buyer syndicate ${buyerSyndicateId} or writer syndicate ${writerSyndicateId}.`;
+      } else if (existingContract) {
+        // Validate matching properties
+        if (existingContract.buyerSyndicateId !== buyerSyndicateId) {
+          rejectionReason = `CDS contract ${cdsId} already exists with a different buyer syndicate.`;
+        } else if (existingContract.writerSyndicateId !== writerSyndicateId) {
+          rejectionReason = `CDS contract ${cdsId} already exists with a different writer syndicate.`;
+        } else if (existingContract.targetSyndicateId !== targetSyndicateId) {
+          rejectionReason = `CDS contract ${cdsId} already exists with a different target syndicate.`;
+        } else if (existingContract.notionalValue !== notionalValue) {
+          rejectionReason = `CDS contract ${cdsId} already exists with a different notional value.`;
+        } else if (existingContract.votes?.[agentId]) {
+          rejectionReason = `Agent ${agentId} has already voted/signed for CDS contract ${cdsId}.`;
+        } else {
+          ok = true;
+        }
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.sovereignDebtCDSContracts = newState.sovereignDebtCDSContracts ? { ...newState.sovereignDebtCDSContracts } : {};
+      if (!newState.sovereignDebtCDSContracts[cdsId]) {
+        newState.sovereignDebtCDSContracts[cdsId] = {
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          targetSyndicateId,
+          notionalValue,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      } else {
+        newState.sovereignDebtCDSContracts[cdsId] = {
+          ...newState.sovereignDebtCDSContracts[cdsId],
+          votes: newState.sovereignDebtCDSContracts[cdsId].votes ? { ...newState.sovereignDebtCDSContracts[cdsId].votes } : {},
+        };
+      }
+
+      newState.sovereignDebtCDSContracts[cdsId].votes = {
+        ...newState.sovereignDebtCDSContracts[cdsId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileSovereignDebtCDSContracts(newState, pack);
+
+      const contractStatus = newState.sovereignDebtCDSContracts?.[cdsId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt CDS Purchased/Signed] Agent ${agentId} signed/authorized CDS ${cdsId} (Status: ${contractStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🛡️ Agent ${agentId} signed CDS contract ${cdsId} (Buyer: ${buyerSyndicateId}, Target: ${targetSyndicateId}, Status: ${contractStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "purchase_cds_contract" as any,
+        cdsId,
+        agentId,
+        buyerSyndicateId,
+        writerSyndicateId,
+        targetSyndicateId,
+        notionalValue,
+        status: contractStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle SETTLE_CDS_CLAIMS action (AF-228)
+  if ((action as any).type === "SETTLE_CDS_CLAIMS") {
+    const { cdsId, buyerSyndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const contract = state.sovereignDebtCDSContracts?.[cdsId];
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+
+    let targetSyndicateId = "";
+    let hasAuthorizedDefault = false;
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (!contract) {
+      rejectionReason = `CDS contract ${cdsId} does not exist.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer Syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (contract.buyerSyndicateId !== buyerSyndicateId) {
+      rejectionReason = `Syndicate ${buyerSyndicateId} is not the buyer of CDS contract ${cdsId}.`;
+    } else if (contract.status !== "active") {
+      rejectionReason = `CDS contract ${cdsId} is not in ACTIVE status (current status: ${contract.status}).`;
+    } else if (!buyerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of buyer syndicate ${buyerSyndicateId}.`;
+    } else {
+      targetSyndicateId = contract.targetSyndicateId;
+      // Check if target syndicate has an authorized default alert that is NOT resolved
+      hasAuthorizedDefault = Object.values(state.sovereignDebtDefaultAlerts || {}).some(
+        (alert: any) => alert.targetSyndicateId === targetSyndicateId && alert.status === "authorized" && !alert.resolved
+      );
+
+      if (!hasAuthorizedDefault) {
+        rejectionReason = `Target Syndicate ${targetSyndicateId} is not in default (no active authorized default alert found).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && contract) {
+      newState.sovereignDebtCDSContracts = {
+        ...newState.sovereignDebtCDSContracts,
+        [cdsId]: {
+          ...contract,
+          status: "settled",
+        },
+      };
+
+      const notionalValue = contract.notionalValue;
+      const writerSyndicateId = contract.writerSyndicateId;
+
+      // Transfer funds
+      const updatedBuyer = { ...buyerSyndicate };
+      updatedBuyer.warChest = (updatedBuyer.warChest ?? 0) + notionalValue;
+      newState.syndicates = {
+        ...newState.syndicates,
+        [buyerSyndicateId]: updatedBuyer,
+      };
+
+      if (writerSyndicateId !== "system" && writerSyndicateId !== "swf") {
+        const writerSyndicate = newState.syndicates?.[writerSyndicateId];
+        if (writerSyndicate) {
+          const updatedWriter = { ...writerSyndicate };
+          updatedWriter.warChest = Math.max(0, (updatedWriter.warChest ?? 0) - notionalValue);
+          newState.syndicates[writerSyndicateId] = updatedWriter;
+        }
+      } else {
+        newState.swfStakingSweepPool = Math.max(0, (newState.swfStakingSweepPool ?? 0) - notionalValue);
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt CDS Settle Claim] CDS ${cdsId} manually settled. Transferred payout of ${notionalValue} gold to Buyer Syndicate ${buyerSyndicateId} from Writer ${writerSyndicateId}.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 CDS contract ${cdsId} settled! Buyer Syndicate ${buyerSyndicateId} received payout of ${notionalValue} gold due to target Syndicate ${targetSyndicateId} default.`,
+      } as any);
+
+      customEvents.push({
+        type: "settle_cds_claims" as any,
+        cdsId,
+        buyerSyndicateId,
+        writerSyndicateId,
+        targetSyndicateId,
+        notionalValue,
         timestamp,
       });
     }
