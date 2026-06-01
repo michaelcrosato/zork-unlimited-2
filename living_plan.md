@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #249 (Ready for Cycle #250)
-* **Build/Test Status**: 🟢 PASS (All 845 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #250 (Ready for Cycle #251)
+* **Build/Test Status**: 🟢 PASS (All 846 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1614,16 +1614,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement surcharge rate scaling logic inside `tickEconomy` (`AF-252`).
 - [x] Write comprehensive unit and integration tests asserting dynamic interest surcharges under liquidity stress (`AF-252`).
 
+### Phase 231: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound (Completed)
+- [x] Define auto-compounding parameters in options dynamic spread and fee policy proposals (`AF-253`).
+- [x] Implement reinvestment logic in `tickEconomy` allocating surcharge payouts to tranche margin collateral (`AF-253`).
+- [x] Write comprehensive Vitest unit and integration tests asserting automated compounding and margin replenishment (`AF-253`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-253`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound.
-* **Why this matters**: Support automatically compounding dynamic interest rate surcharges directly into the vault balance or options margin account to strengthen capital reserves during default events.
+**Task ID**: `AF-254`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling.
+* **Why this matters**: Allow faction standing to dynamically scale down surcharges or boost compounding yield allocations for allied syndicate members during default events, aligning strategic diplomacy with financial risk mitigation.
 * **Planned Actions**:
-  1. Define auto-compounding parameters in options dynamic spread and fee policy proposals.
-  2. Implement reinvestment logic in `tickEconomy` allocating surcharge payouts to tranche margin collateral.
-  3. Write comprehensive tests and verify types.
+  1. Define faction loyalty discount scaling rules for auto-compounding surcharges in the policy proposal.
+  2. Update reinvestment math in `tickEconomy` to reduce dynamic surcharges or boost margin compound allocations for high-reputation members.
+  3. Write comprehensive integration tests.
 
 ---
 

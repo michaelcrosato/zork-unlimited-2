@@ -7973,10 +7973,10 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
       // 5. Dynamic bid-ask matching algorithms
       if (validLowestAsk > 0 && validHighestBid > 0 && validHighestBid >= validLowestAsk && newState.cdsCdoYieldHedgingOptionListings && newState.cdsCdoYieldHedgingOptionBids) {
-        const matchingListing = Object.values(newState.cdsCdoYieldHedgingOptionListings).find(
+        const matchingListing: any = Object.values(newState.cdsCdoYieldHedgingOptionListings).find(
           (l: any) => l.optionId === optionId && l.status === "active" && l.askPrice === lowestAsk
         );
-        const matchingBid = Object.values(newState.cdsCdoYieldHedgingOptionBids).find(
+        const matchingBid: any = Object.values(newState.cdsCdoYieldHedgingOptionBids).find(
           (b: any) => b.optionId === optionId && b.status === "active" && b.bidPrice === highestBid
         );
 
@@ -8052,13 +8052,38 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               newState = distributeOptionFeeDividends(newState as GameState, cdoId, feeAmount) as any;
             }
 
-            // Deposit MM surcharge into CDO fractionalized vault
+            // Deposit MM surcharge into CDO fractionalized vault or auto-compound (AF-253)
+            let isCompounded = false;
+            let compoundedTrancheId: string | undefined;
             if (mmSurchargeAmount > 0) {
-              pool.fractionalizedVault = {
-                ...pool.fractionalizedVault,
-                balance: (pool.fractionalizedVault.balance ?? 0) + mmSurchargeAmount,
-                timestamp: newState.step,
-              };
+              if (pool.yieldHedgingOptionMarketMakerSurchargeAutoCompound &&
+                  pool.yieldHedgingOptionMarketMakerSurchargeCompoundTrancheId &&
+                  pool.tranches?.[pool.yieldHedgingOptionMarketMakerSurchargeCompoundTrancheId]) {
+                compoundedTrancheId = pool.yieldHedgingOptionMarketMakerSurchargeCompoundTrancheId;
+                const tranche = pool.tranches[compoundedTrancheId as "senior" | "mezzanine" | "equity"];
+                const collMap = { ...(tranche.marginCollateral || {}) };
+                const newColl = (collMap[sellerSyndicateId] ?? 0) + mmSurchargeAmount;
+                collMap[sellerSyndicateId] = newColl;
+                tranche.marginCollateral = collMap;
+                tranche.timestamp = newState.step;
+                
+                // Reset margin call if cleared
+                if (newColl >= (tranche.maintenanceThreshold ?? 0)) {
+                  if (tranche.marginCallActive?.[sellerSyndicateId]) {
+                    tranche.marginCallActive = {
+                      ...tranche.marginCallActive,
+                      [sellerSyndicateId]: false,
+                    };
+                  }
+                }
+                isCompounded = true;
+              } else {
+                pool.fractionalizedVault = {
+                  ...pool.fractionalizedVault,
+                  balance: (pool.fractionalizedVault.balance ?? 0) + mmSurchargeAmount,
+                  timestamp: newState.step,
+                };
+              }
             }
 
             // Cancel / complete all other active listings and bids for this option
@@ -8073,9 +8098,15 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               }
             }
 
+            const surchargeLog = mmSurchargeAmount > 0
+              ? (isCompounded
+                ? ` (Dynamic MM Liquidity Surcharge: ${mmSurchargeAmount} gold compounded into ${compoundedTrancheId} tranche margin collateral, surcharge rate: ${(effectiveMMSurcharge * 100).toFixed(2)}%)`
+                : ` (Dynamic MM Liquidity Surcharge: ${mmSurchargeAmount} gold deposited to vault, surcharge rate: ${(effectiveMMSurcharge * 100).toFixed(2)}%)`)
+              : "";
+
             if (!newState.journal) newState.journal = [];
             newState.journal.push(
-              `[CDO Yield-Hedging Option Traded] Option ${optionId} traded from ${sellerSyndicateId} to ${bidderSyndicateId} at price ${tradePrice} gold${pool.dynamicMatchingEnabled ? " (Dynamic Mid-Price Match)" : ""}${feeAmount > 0 ? ` (Levied Transaction Fee: ${feeAmount} gold)` : ""}${mmSurchargeAmount > 0 ? ` (Dynamic MM Liquidity Surcharge: ${mmSurchargeAmount} gold deposited to vault, surcharge rate: ${(effectiveMMSurcharge * 100).toFixed(2)}%)` : ""}.`
+              `[CDO Yield-Hedging Option Traded] Option ${optionId} traded from ${sellerSyndicateId} to ${bidderSyndicateId} at price ${tradePrice} gold${pool.dynamicMatchingEnabled ? " (Dynamic Mid-Price Match)" : ""}${feeAmount > 0 ? ` (Levied Transaction Fee: ${feeAmount} gold)` : ""}${surchargeLog}.`
             );
           }
         }

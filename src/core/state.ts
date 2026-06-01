@@ -3065,6 +3065,8 @@ export const SovereignDebtCDSCDOPoolSchema = z.object({
   yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts: z.record(z.string(), z.number().min(0.0).max(1.0)).optional(),
   yieldHedgingOptionMarketMakerSurchargeRate: z.number().min(0.0).optional(),
   yieldHedgingOptionMarketMakerBufferThresholdPercent: z.number().min(0.0).max(1.0).optional(),
+  yieldHedgingOptionMarketMakerSurchargeAutoCompound: z.boolean().optional(),
+  yieldHedgingOptionMarketMakerSurchargeCompoundTrancheId: z.enum(["senior", "mezzanine", "equity"]).optional(),
 });
 export type SovereignDebtCDSCDOPool = z.infer<typeof SovereignDebtCDSCDOPoolSchema>;
 
@@ -3422,6 +3424,8 @@ export const SovereignDebtCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposalSch
   factionStandingDiscounts: z.record(z.string(), z.number().min(0.0).max(1.0)).optional(),
   marketMakerSurchargeRate: z.number().min(0.0).optional(),
   marketMakerSurchargeThresholdPercent: z.number().min(0.0).max(1.0).optional(),
+  marketMakerSurchargeAutoCompound: z.boolean().optional(),
+  marketMakerSurchargeCompoundTrancheId: z.enum(["senior", "mezzanine", "equity"]).optional(),
   status: z.enum(["proposed", "authorized", "disputed"]).optional(),
   resolved: z.boolean().optional(),
   proposerId: z.string(),
@@ -19245,11 +19249,13 @@ export function reconcileCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposals(st
         pool.yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts = proposal.factionStandingDiscounts;
         pool.yieldHedgingOptionMarketMakerSurchargeRate = proposal.marketMakerSurchargeRate;
         pool.yieldHedgingOptionMarketMakerBufferThresholdPercent = proposal.marketMakerSurchargeThresholdPercent;
+        pool.yieldHedgingOptionMarketMakerSurchargeAutoCompound = proposal.marketMakerSurchargeAutoCompound;
+        pool.yieldHedgingOptionMarketMakerSurchargeCompoundTrancheId = proposal.marketMakerSurchargeCompoundTrancheId;
       }
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
-        `[CDO Yield-Hedging Option Spread Penalty Policy Approved] Syndicate ${proposal.syndicateId} approved spread penalty policy proposal ${proposalId} for CDO ${proposal.cdoId} (Multiplier: ${proposal.spreadPenaltyMultiplier}, Threshold: ${proposal.spreadPenaltyThresholdPercent * 100}%${proposal.spreadPenaltyCapMultiplier !== undefined ? `, Cap Multiplier: ${proposal.spreadPenaltyCapMultiplier}` : ""}${proposal.marketMakerSurchargeRate !== undefined && proposal.marketMakerSurchargeThresholdPercent !== undefined ? `, MM Surcharge Rate: ${proposal.marketMakerSurchargeRate}, MM Threshold: ${proposal.marketMakerSurchargeThresholdPercent * 100}%` : ""}).`
+        `[CDO Yield-Hedging Option Spread Penalty Policy Approved] Syndicate ${proposal.syndicateId} approved spread penalty policy proposal ${proposalId} for CDO ${proposal.cdoId} (Multiplier: ${proposal.spreadPenaltyMultiplier}, Threshold: ${proposal.spreadPenaltyThresholdPercent * 100}%${proposal.spreadPenaltyCapMultiplier !== undefined ? `, Cap Multiplier: ${proposal.spreadPenaltyCapMultiplier}` : ""}${proposal.marketMakerSurchargeRate !== undefined && proposal.marketMakerSurchargeThresholdPercent !== undefined ? `, MM Surcharge Rate: ${proposal.marketMakerSurchargeRate}, MM Threshold: ${proposal.marketMakerSurchargeThresholdPercent * 100}%` : ""}${proposal.marketMakerSurchargeAutoCompound !== undefined ? `, MM Auto-Compound: ${proposal.marketMakerSurchargeAutoCompound}` : ""}${proposal.marketMakerSurchargeCompoundTrancheId !== undefined ? `, MM Compound Tranche: ${proposal.marketMakerSurchargeCompoundTrancheId}` : ""}).`
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals[proposalId] = {

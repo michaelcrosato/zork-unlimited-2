@@ -50695,7 +50695,7 @@ export function multiAgentStep(
 
   // Handle PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY action (AF-247)
   if ((action as any).type === "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY") {
-    const { proposalId, cdoId, syndicateId, spreadPenaltyMultiplier, spreadPenaltyThresholdPercent, factionStandingDiscounts, spreadPenaltyCapMultiplier, marketMakerSurchargeRate, marketMakerSurchargeThresholdPercent, timestamp } = action as any;
+    const { proposalId, cdoId, syndicateId, spreadPenaltyMultiplier, spreadPenaltyThresholdPercent, factionStandingDiscounts, spreadPenaltyCapMultiplier, marketMakerSurchargeRate, marketMakerSurchargeThresholdPercent, marketMakerSurchargeAutoCompound, marketMakerSurchargeCompoundTrancheId, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -50741,6 +50741,10 @@ export function multiAgentStep(
       rejectionReason = `Valid market maker surcharge rate (>= 0) is required.`;
     } else if (marketMakerSurchargeThresholdPercent !== undefined && (typeof marketMakerSurchargeThresholdPercent !== "number" || marketMakerSurchargeThresholdPercent < 0 || marketMakerSurchargeThresholdPercent > 1)) {
       rejectionReason = `Valid market maker surcharge threshold percent (0 <= percent <= 1) is required.`;
+    } else if (marketMakerSurchargeAutoCompound !== undefined && typeof marketMakerSurchargeAutoCompound !== "boolean") {
+      rejectionReason = `Valid market maker surcharge auto compound flag must be a boolean.`;
+    } else if (marketMakerSurchargeCompoundTrancheId !== undefined && !["senior", "mezzanine", "equity"].includes(marketMakerSurchargeCompoundTrancheId)) {
+      rejectionReason = `Valid market maker surcharge compound tranche ID must be 'senior', 'mezzanine', or 'equity'.`;
     } else if (factionStandingDiscounts !== undefined && (typeof factionStandingDiscounts !== "object" || factionStandingDiscounts === null || Object.entries(factionStandingDiscounts).some(([k, v]) => typeof k !== "string" || k === "" || typeof v !== "number" || v < 0 || v > 1))) {
       rejectionReason = `Valid faction standing discounts are required.`;
     } else if (!pool) {
@@ -50783,6 +50787,8 @@ export function multiAgentStep(
         factionStandingDiscounts,
         marketMakerSurchargeRate,
         marketMakerSurchargeThresholdPercent,
+        marketMakerSurchargeAutoCompound,
+        marketMakerSurchargeCompoundTrancheId,
         status: "proposed",
         resolved: false,
         proposerId: agentId,
@@ -50814,6 +50820,8 @@ export function multiAgentStep(
         spreadPenaltyMultiplier,
         spreadPenaltyCapMultiplier,
         spreadPenaltyThresholdPercent,
+        marketMakerSurchargeAutoCompound,
+        marketMakerSurchargeCompoundTrancheId,
         status: propStatus,
         timestamp,
       });
