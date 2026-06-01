@@ -591,6 +591,37 @@ export const MastermindContractSchema = z.object({
 });
 export type MastermindContract = z.infer<typeof MastermindContractSchema>;
 
+export const ShadowMarketSchema = z.object({
+  id: z.string(),
+  roomId: z.string(),
+  syndicateId: z.string(),
+  timestamp: z.number().int(),
+});
+export type ShadowMarket = z.infer<typeof ShadowMarketSchema>;
+
+export const ArbitrageContractSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  startRoomId: z.string(),
+  endRoomId: z.string(),
+  profitSpread: z.number(),
+  status: z.enum(["active", "completed", "failed"]),
+  progress: z.number().int().nonnegative(),
+  duration: z.number().int().positive(),
+  timestamp: z.number().int(),
+});
+export type ArbitrageContract = z.infer<typeof ArbitrageContractSchema>;
+
+export const UnderwriterSabotageSchema = z.object({
+  id: z.string(),
+  roomId: z.string(),
+  targetSyndicateId: z.string(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type UnderwriterSabotage = z.infer<typeof UnderwriterSabotageSchema>;
+
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -724,6 +755,9 @@ export const GameStateSchema = z.object({
   decoyConvoys: z.record(z.string(), DecoyConvoySchema).optional(),
   enforcerDefundingVotes: z.record(z.string(), z.record(z.string(), EnforcerDefundingVoteSchema)).optional(),
   mastermindContracts: z.record(z.string(), MastermindContractSchema).optional(),
+  shadowMarkets: z.record(z.string(), ShadowMarketSchema).optional(),
+  arbitrageContracts: z.record(z.string(), ArbitrageContractSchema).optional(),
+  underwriterSabotages: z.record(z.string(), UnderwriterSabotageSchema).optional(),
 });
 
 
@@ -852,6 +886,9 @@ export const createInitialState = (options: {
     decoyConvoys: {},
     enforcerDefundingVotes: {},
     mastermindContracts: {},
+    shadowMarkets: {},
+    arbitrageContracts: {},
+    underwriterSabotages: {},
   };
 };
 
@@ -1541,6 +1578,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     decoyConvoys: rest.decoyConvoys ? JSON.parse(JSON.stringify(rest.decoyConvoys)) : undefined,
     enforcerDefundingVotes: rest.enforcerDefundingVotes ? JSON.parse(JSON.stringify(rest.enforcerDefundingVotes)) : undefined,
     mastermindContracts: rest.mastermindContracts ? JSON.parse(JSON.stringify(rest.mastermindContracts)) : undefined,
+    shadowMarkets: rest.shadowMarkets ? JSON.parse(JSON.stringify(rest.shadowMarkets)) : undefined,
+    arbitrageContracts: rest.arbitrageContracts ? JSON.parse(JSON.stringify(rest.arbitrageContracts)) : undefined,
+    underwriterSabotages: rest.underwriterSabotages ? JSON.parse(JSON.stringify(rest.underwriterSabotages)) : undefined,
   };
   return clone;
 }

@@ -81,6 +81,9 @@ export type Action =
   | { type: "LAUNCH_DECOY_CONVOY"; decoyId: string; syndicateId: string; routeId: string; cost?: number; timestamp: number }
   | { type: "LAUNCH_MASTERMIND_CONTRACT"; contractId: string; syndicateId: string; payoutArbitrageMultiplier: number; cost?: number; timestamp: number }
   | { type: "PROPOSE_ENFORCER_DEFUNDING"; syndicateId: string; targetReduction: number; vote?: boolean; timestamp: number }
+  | { type: "ESTABLISH_SHADOW_MARKET"; shadowMarketId: string; roomId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "LAUNCH_ARBITRAGE_CONTRACT"; contractId: string; syndicateId: string; startRoomId: string; endRoomId: string; profitSpread: number; cost?: number; timestamp: number }
+  | { type: "SABOTAGE_UNDERWRITER"; roomId: string; targetSyndicateId: string; cost?: number; timestamp: number }
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 

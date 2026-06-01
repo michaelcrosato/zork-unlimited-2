@@ -641,6 +641,85 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Shadow Market Contraband Trade Ticking (AF-78)
+  if (newState.shadowMarkets) {
+    for (const [marketId, market] of Object.entries(newState.shadowMarkets)) {
+      const syndicate = newState.syndicates?.[market.syndicateId];
+      if (syndicate) {
+        // Automatically bypass all regional tolls/tariffs (by trading virtually directly)
+        // Buy spread = 85, Sell spread = 125, Net profit = 40 gold
+        const profit = 40;
+        const members = syndicate.members ?? [];
+        const share = members.length > 0 ? Math.floor(profit / members.length) : 0;
+        if (share > 0) {
+          if (!newState.vars) newState.vars = {};
+          for (const member of members) {
+            const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+            newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+          }
+          newState.journal.push(`[Shadow Market] Shadow market ${marketId} in room ${market.roomId} executed an automatic contraband trade bypassing all tariffs/tolls. Distributed fixed cartel premium spread profit of ${profit} gold (${share} gold per member) to syndicate ${market.syndicateId}.`);
+        }
+      }
+    }
+  }
+
+  // Arbitrage Contracts Ticking (AF-78)
+  if (newState.arbitrageContracts) {
+    newState.arbitrageContracts = { ...newState.arbitrageContracts };
+    for (const [contractId, contract] of Object.entries(newState.arbitrageContracts)) {
+      if (contract.status === "active") {
+        const nextProgress = contract.progress + 1;
+        const syndicate = newState.syndicates?.[contract.syndicateId];
+        
+        if (nextProgress >= contract.duration) {
+          // Arbitrage Contract completed!
+          newState.arbitrageContracts[contractId] = {
+            ...contract,
+            progress: contract.duration,
+            status: "completed",
+            timestamp: newState.step,
+          };
+          
+          // Completion bonus payout
+          const completionPayout = Math.round(150 * contract.profitSpread);
+          if (syndicate) {
+            const members = syndicate.members ?? [];
+            const share = members.length > 0 ? Math.floor(completionPayout / members.length) : 0;
+            if (share > 0) {
+              if (!newState.vars) newState.vars = {};
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+              }
+              newState.journal.push(`[Arbitrage] Arbitrage Contract ${contractId} completed! Distributed locked-in completion bonus of ${completionPayout} gold (${share} gold to each member of syndicate ${contract.syndicateId}).`);
+            }
+          }
+        } else {
+          // Progress contract and distribute a tick payout
+          newState.arbitrageContracts[contractId] = {
+            ...contract,
+            progress: nextProgress,
+            timestamp: newState.step,
+          };
+          
+          const tickPayout = Math.round(30 * contract.profitSpread);
+          if (syndicate) {
+            const members = syndicate.members ?? [];
+            const share = members.length > 0 ? Math.floor(tickPayout / members.length) : 0;
+            if (share > 0) {
+              if (!newState.vars) newState.vars = {};
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+              }
+              newState.journal.push(`[Arbitrage] Arbitrage Contract ${contractId} progressed (${nextProgress}/${contract.duration}). Distributed passive locked-in arbitrage payout of ${tickPayout} gold (${share} gold to each member).`);
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Covert Cells Special Operations Sabotage Ticking (AF-73)
   if (newState.covertCells) {
     for (const [roomId, cell] of Object.entries(newState.covertCells)) {
