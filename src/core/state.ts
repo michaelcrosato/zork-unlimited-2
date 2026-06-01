@@ -285,6 +285,12 @@ export type TurfGuard = z.infer<typeof TurfGuardSchema>;
 
 
 
+export const SyndicateTaxVoteSchema = z.object({
+  rate: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SyndicateTaxVote = z.infer<typeof SyndicateTaxVoteSchema>;
+
 export const CrimeSyndicateSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -292,6 +298,7 @@ export const CrimeSyndicateSchema = z.object({
   definedBy: z.string(),
   timestamp: z.number().int(),
   dominance: z.number().int().nonnegative().optional(),
+  turfTaxRate: z.number().int().nonnegative().optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
 
@@ -435,6 +442,7 @@ export const GameStateSchema = z.object({
   blackMarkets: z.record(z.string(), SyndicateBlackMarketSchema).optional(),
   frontBusinesses: z.record(z.string(), SyndicateFrontBusinessSchema).optional(),
   turfGuards: z.record(z.string(), TurfGuardSchema).optional(),
+  syndicateTaxVotes: z.record(z.string(), z.record(z.string(), SyndicateTaxVoteSchema)).optional(),
 });
 
 
@@ -536,6 +544,7 @@ export const createInitialState = (options: {
     blackMarkets: {},
     frontBusinesses: {},
     turfGuards: {},
+    syndicateTaxVotes: {},
   };
 };
 
@@ -947,6 +956,48 @@ export function reconcileCartelPolicies(state: GameState, pack: any): GameState 
     newState.cartelPolicies[cartelId] = {
       priceMultiplier: consensusMultiplier,
       embargoedFactions: consensusEmbargoes,
+    };
+  }
+
+  return newState;
+}
+
+export function reconcileSyndicateTaxes(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  if (!newState.syndicateTaxVotes) {
+    newState.syndicateTaxVotes = {};
+  }
+
+  for (const [syndicateId, votes] of Object.entries(newState.syndicateTaxVotes)) {
+    const syndicate = newState.syndicates[syndicateId];
+    if (!syndicate) continue;
+
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.rate] = (counts[vote.rate] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    let consensusRate = syndicate.turfTaxRate ?? 0;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort rates descending to prefer higher rates.
+    const uniqueRates = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = counts[rate];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    newState.syndicates[syndicateId] = {
+      ...syndicate,
+      turfTaxRate: consensusRate,
     };
   }
 
