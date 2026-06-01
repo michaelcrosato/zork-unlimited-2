@@ -521,6 +521,33 @@ export const ProtectionRacketSchema = z.object({
 });
 export type ProtectionRacket = z.infer<typeof ProtectionRacketSchema>;
 
+export const HiddenPassageSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  fromRoomId: z.string(),
+  toRoomId: z.string(),
+  cost: z.number().int().nonnegative().optional(),
+  timestamp: z.number().int(),
+});
+export type HiddenPassage = z.infer<typeof HiddenPassageSchema>;
+
+export const FactionInfiltrationSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  factionId: z.string(),
+  cost: z.number().int().nonnegative().optional(),
+  dominanceBonus: z.number().int(),
+  timestamp: z.number().int(),
+});
+export type FactionInfiltration = z.infer<typeof FactionInfiltrationSchema>;
+
+export const SyndicateBankSchema = z.object({
+  syndicateId: z.string(),
+  balances: z.record(z.string(), z.number().int().nonnegative()),
+  timestamp: z.number().int(),
+});
+export type SyndicateBank = z.infer<typeof SyndicateBankSchema>;
+
 export const DefenseFortressSchema = z.object({
   roomId: z.string(),
   syndicateId: z.string(),
@@ -789,6 +816,9 @@ export const GameStateSchema = z.object({
   treatyInfiltrators: z.record(z.string(), TreatyInfiltratorSchema).optional(),
   tariffExemptionVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), TariffExemptionVoteSchema))).optional(),
   tariffExemptionPolicies: z.record(z.string(), z.record(z.string(), z.boolean())).optional(),
+  hiddenPassages: z.record(z.string(), HiddenPassageSchema).optional(),
+  factionInfiltrations: z.record(z.string(), FactionInfiltrationSchema).optional(),
+  syndicateBanks: z.record(z.string(), SyndicateBankSchema).optional(),
 });
 
 

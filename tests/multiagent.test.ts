@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { parse as parseYaml } from "yaml";
@@ -359,6 +359,9 @@ describe("Multi-Agent Telemetry & Real-Time Sync Tests", () => {
   });
 
   it("should process ready actions from AgentActionBuffer with simulated latency", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1000);
+
     let state = createInitialState({
       seed: 42,
       start: "clearing",
@@ -396,12 +399,12 @@ describe("Multi-Agent Telemetry & Real-Time Sync Tests", () => {
     expect(buffer.getQueueLength()).toBe(2);
 
     // At time t=5, no actions are ready
-    let processed = buffer.processReady(state, pack, Date.now() + 5);
+    let processed = buffer.processReady(state, pack, 1000 + 5);
     expect(processed.results).toHaveLength(0);
     expect(processed.state.step).toBe(0);
 
     // At time t=15, Alpha's action is ready
-    processed = buffer.processReady(state, pack, Date.now() + 15);
+    processed = buffer.processReady(state, pack, 1000 + 15);
     expect(processed.results).toHaveLength(1);
     expect(processed.results[0].agentId).toBe("explorer_alpha");
     expect(processed.results[0].result.ok).toBe(true);
@@ -410,11 +413,13 @@ describe("Multi-Agent Telemetry & Real-Time Sync Tests", () => {
 
     // At time t=25, Beta's action is ready. Because Beta acts with stale expectedSequenceNumber: 0,
     // the buffer/sync processes it using the rollback conflict resolution, merging it successfully!
-    processed = buffer.processReady(state, pack, Date.now() + 25);
+    processed = buffer.processReady(state, pack, 1000 + 25);
     expect(processed.results).toHaveLength(1);
     expect(processed.results[0].agentId).toBe("helper_beta");
     expect(processed.results[0].result.ok).toBe(true);
     expect(processed.state.step).toBe(2);
+
+    vi.useRealTimers();
   });
 
   it("should record comprehensive telemetry inside the transaction journal", () => {

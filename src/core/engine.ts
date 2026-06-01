@@ -535,11 +535,15 @@ export function step(
 
       // Territory-based exit traversal constraints & faction tax mechanics
       const destRoomId = exit.to;
-      const factionId = state.territoryControl?.[destRoomId];
+      const isHiddenPassageUsed = Object.values(state.hiddenPassages || {}).some(
+        (hp) => (hp.fromRoomId === currentRoom.id && hp.toRoomId === destRoomId) ||
+                (hp.fromRoomId === destRoomId && hp.toRoomId === currentRoom.id)
+      );
+      const factionId = isHiddenPassageUsed ? undefined : state.territoryControl?.[destRoomId];
 
       // Check if player is carrying contraband
       const contrabandItems = getContrabandInInventory(state, pack);
-      const carriesContraband = contrabandItems.length > 0;
+      const carriesContraband = isHiddenPassageUsed ? false : (contrabandItems.length > 0);
 
       // Pre-calculate Tax
       let calculatedTax = 0;
@@ -630,7 +634,7 @@ export function step(
 
       // Pre-calculate Syndicate Extortion Toll (AF-45)
       let calculatedExtortionToll = 0;
-      const controllingSyndicateId = state.syndicateTurf?.[destRoomId];
+      const controllingSyndicateId = isHiddenPassageUsed ? undefined : state.syndicateTurf?.[destRoomId];
       let syndicateName = "";
       if (controllingSyndicateId) {
         const syndicate = state.syndicates?.[controllingSyndicateId];
@@ -668,7 +672,7 @@ export function step(
       let tollingRouteId: string | null = null;
       let hostileRouteFactionId: string | null = null;
 
-      if (state.tradeRoutes) {
+      if (!isHiddenPassageUsed && state.tradeRoutes) {
         for (const [routeId, route] of Object.entries(state.tradeRoutes)) {
           if (route.rooms.includes(destRoomId)) {
             const rFactionId = route.factionId;
@@ -1053,6 +1057,12 @@ export function step(
 
       // Apply enter effects of the new room if found
       const newRoom = findRoom(newState, parserPack, exit.to);
+      if (isHiddenPassageUsed) {
+        events.push({
+          type: "narration",
+          text: `🤫 You traversed the hidden passage undetected, completely bypassing all border checks, checkpoints, taxes, and tolls!`,
+        });
+      }
       if (newRoom) {
         events.push({
           type: "narration",

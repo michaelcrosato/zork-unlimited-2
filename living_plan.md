@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #80 (Ready for Cycle #81)
-* **Build/Test Status**: 🟢 PASS (All 375 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #81 (Ready for Cycle #82)
+* **Build/Test Status**: 🟢 PASS (All 380 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -479,22 +479,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire shadow alliances to double-tax hostile faction regions while waiving taxes in allied shadow territories (`AF-79`).
 - [x] Write comprehensive Vitest integration tests (`AF-79`).
 
-### Phase 73: Dreadnought Convoys, Treaty Infiltrators, and High-Reputation Tariff Exemption Acts (Completed)
-- [x] Add `BUILD_DREADNOUGHT_CONVOY`, `ESTABLISH_TREATY_INFILTRATOR`, and `VOTE_TARIFF_EXEMPTION` decentralized actions (`AF-80`).
-- [x] Implement Dreadnought Convoy ticking inside `tickSmugglingConvoys` with defense turret counter-strike math (`AF-80`).
-- [x] Wire tariff exemptions to waive trade tariffs in faction regions when reputational standing is exceptionally high (`AF-80`).
-- [x] Write comprehensive Vitest integration tests (`AF-80`).
+### Phase 74: Hidden Passages, Faction Infiltrations, and Black-Market Banks (Completed)
+- [x] Add `CONSTRUCT_HIDDEN_PASSAGE`, `INFILTRATE_FACTION_NETWORK`, and `DEPOSIT_SYNDICATE_BANK` decentralized actions (`AF-81`).
+- [x] Implement hidden passage logic in move traversals to completely bypass tax, toll, border smuggling, and contraband checkpoint checks (`AF-81`).
+- [x] Wire cartel banks to safeguard syndicate member gold and prevent regulator penalty confiscations (`AF-81`).
+- [x] Write comprehensive Vitest integration tests (`AF-81`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-81`
-* **Objective**: Smuggler Syndicate Cartel Hidden Passages, Cross-Faction Infiltration Networks, and Black-Market Syndicate Banks.
-* **Why this matters**: Introduce hidden passages that allow agents to traverse border checks undetected, support P2P mesh-synchronized faction networks to gather strategic intel and increase cartel dominance, and build highly secure syndicate banks protecting cartel assets from confiscation.
+**Task ID**: `AF-82`
+* **Objective**: Smuggler Syndicate Cartel Counterfeit Currency, Dynamic Black-Market Exchange Rates, and Money Laundering Front Business Audit Mitigation.
+* **Why this matters**: Introduce counterfeit currency production lines, allow dynamic black-market exchange rates that fluctuate based on regional enforcer heat and syndicate dominance, and build audit mitigation policies to further insulate front businesses from regulator sweeps.
 * **Planned Actions**:
-  1. Add `CONSTRUCT_HIDDEN_PASSAGE`, `INFILTRATE_FACTION_NETWORK`, and `DEPOSIT_SYNDICATE_BANK` decentralized actions.
-  2. Implement hidden passage logic in move traversals to completely bypass tax, toll, and border smuggling checks.
-  3. Wire cartel banks to safeguard syndicate member gold and prevent regulator penalty confiscations.
+  1. Add `MINT_COUNTERFEIT_GOLD`, `TRADE_EXCHANGE_RATE`, and `ESTABLISH_AUDIT_MITIGATION` decentralized actions.
+  2. Implement currency valuation and heat-based exchange rate equations in trade transactions.
+  3. Wire audit mitigation to lower failed audit confiscation rates.
   4. Write comprehensive Vitest integration tests.
 
 ---

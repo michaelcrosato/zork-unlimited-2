@@ -90,7 +90,10 @@ export type Action =
   | { type: "BUILD_DREADNOUGHT_CONVOY"; convoyId: string; syndicateId: string; routeId: string; cargo: number; goldCost?: number; timestamp: number }
   | { type: "ESTABLISH_TREATY_INFILTRATOR"; infiltratorId: string; syndicateId: string; roomId: string; cost?: number; timestamp: number }
   | { type: "VOTE_TARIFF_EXEMPTION"; factionId: string; syndicateId: string; vote?: boolean; timestamp: number }
-  | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
+  | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number }
+  | { type: "CONSTRUCT_HIDDEN_PASSAGE"; passageId: string; syndicateId: string; fromRoomId: string; toRoomId: string; cost?: number; timestamp: number }
+  | { type: "INFILTRATE_FACTION_NETWORK"; syndicateId: string; factionId: string; cost?: number; timestamp: number }
+  | { type: "DEPOSIT_SYNDICATE_BANK"; syndicateId: string; agentId: string; amount: number; timestamp: number };
 
 
 
