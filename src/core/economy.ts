@@ -548,6 +548,77 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // 6. Periodic passive front business laundering (AF-50)
+  if (newState.step > 0 && newState.step % 5 === 0 && newState.frontBusinesses) {
+    const updatedFronts = { ...newState.frontBusinesses };
+    let frontsChanged = false;
+
+    for (const [merchantId, front] of Object.entries(updatedFronts)) {
+      const syndicate = newState.syndicates?.[front.syndicateId];
+      if (syndicate) {
+        let frontUpdated = false;
+        let dirty = front.dirtyGold;
+        let clean = front.cleanGold;
+
+        if (dirty > 0) {
+          const launderRate = front.launderingRate * front.level;
+          const launderedAmount = Math.min(dirty, launderRate);
+
+          if (launderedAmount > 0) {
+            dirty -= launderedAmount;
+            clean += launderedAmount;
+
+            // Distribute among syndicate members
+            const members = syndicate.members ?? [];
+            const share = members.length > 0 ? Math.floor(launderedAmount / members.length) : 0;
+            if (share > 0) {
+              if (!newState.vars) newState.vars = {};
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+              }
+            }
+
+            newState.vars["totalDirtyGoldLaundered"] = (newState.vars["totalDirtyGoldLaundered"] ?? 0) + launderedAmount;
+            newState.journal.push(`[Syndicate] Front business ${front.id} laundered ${launderedAmount} gold (Distributed ${share} gold to each member).`);
+
+            frontUpdated = true;
+          }
+        }
+
+        // Reduce enforcer heat in the merchant's room based on syndicate dominance
+        if (newState.enforcementHeat?.[front.roomId]) {
+          const dominance = syndicate.dominance ?? 50;
+          const heatReduction = Math.max(1, Math.floor((dominance / 25) * front.level));
+          const entry = newState.enforcementHeat[front.roomId];
+          const newHeat = Math.max(0, entry.heat - heatReduction);
+
+          newState.enforcementHeat = {
+            ...newState.enforcementHeat,
+            [front.roomId]: {
+              ...entry,
+              heat: newHeat,
+            },
+          };
+          newState.journal.push(`[Syndicate] Front business ${front.id} reduced enforcer heat in ${front.roomId} by ${heatReduction} (New heat: ${newHeat}).`);
+        }
+
+        if (frontUpdated) {
+          updatedFronts[merchantId] = {
+            ...front,
+            dirtyGold: dirty,
+            cleanGold: clean,
+          };
+          frontsChanged = true;
+        }
+      }
+    }
+
+    if (frontsChanged) {
+      newState.frontBusinesses = updatedFronts;
+    }
+  }
+
   return newState;
 }
 

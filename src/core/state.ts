@@ -259,6 +259,21 @@ export const SyndicateBlackMarketSchema = z.object({
 });
 export type SyndicateBlackMarket = z.infer<typeof SyndicateBlackMarketSchema>;
 
+export const SyndicateFrontBusinessSchema = z.object({
+  id: z.string(),
+  merchantId: z.string(),
+  roomId: z.string(),
+  syndicateId: z.string(),
+  level: z.number().int().positive(),
+  dirtyGold: z.number().int().nonnegative(),
+  cleanGold: z.number().int().nonnegative(),
+  launderingCapacity: z.number().int().nonnegative(),
+  launderingRate: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SyndicateFrontBusiness = z.infer<typeof SyndicateFrontBusinessSchema>;
+
+
 
 export const CrimeSyndicateSchema = z.object({
   id: z.string(),
@@ -408,7 +423,9 @@ export const GameStateSchema = z.object({
   deflectionPolicies: z.record(z.string(), DeflectionPolicySchema).optional(),
   safehouses: z.record(z.string(), SyndicateSafehouseSchema).optional(),
   blackMarkets: z.record(z.string(), SyndicateBlackMarketSchema).optional(),
+  frontBusinesses: z.record(z.string(), SyndicateFrontBusinessSchema).optional(),
 });
+
 
 export type GameState = z.infer<typeof GameStateSchema>;
 
@@ -506,8 +523,10 @@ export const createInitialState = (options: {
     deflectionPolicies: {},
     safehouses: {},
     blackMarkets: {},
+    frontBusinesses: {},
   };
 };
+
 
 export function getFactionRepInit(pack: any): Record<string, number> | undefined {
   if (!pack || !pack.factions) return undefined;

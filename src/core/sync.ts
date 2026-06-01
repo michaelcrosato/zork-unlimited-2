@@ -4117,6 +4117,251 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized BUY_FRONT_BUSINESS action (AF-50)
+  if ((action as any).type === "BUY_FRONT_BUSINESS") {
+    const { merchantId, syndicateId, cost, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const p = pack as any;
+    const merchantRoom = p.rooms?.find((r: any) => r.npcs?.includes(merchantId));
+    const npcExists = p.npcs?.some((n: any) => n.id === merchantId);
+
+
+    if (!merchantId) {
+      rejectionReason = `Merchant ID is required to buy a front business.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to buy a front business.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Front business cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!npcExists) {
+      rejectionReason = `Merchant ${merchantId} does not exist in content pack.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.frontBusinesses?.[merchantId]) {
+      rejectionReason = `Merchant ${merchantId} is already owned as a front business.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to buy front business costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Register front business
+      const frontBusinesses = { ...(state.frontBusinesses || {}) };
+      frontBusinesses[merchantId] = {
+        id: `front_${merchantId}`,
+        merchantId,
+        roomId: merchantRoom ? merchantRoom.id : state.current,
+        syndicateId,
+        level: 1,
+        dirtyGold: 0,
+        cleanGold: 0,
+        launderingCapacity: 500,
+        launderingRate: 50,
+        timestamp,
+      };
+      newState.frontBusinesses = frontBusinesses;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Purchased front business for merchant ${merchantId} in room ${merchantRoom ? merchantRoom.id : state.current} for ${cost} gold by agent ${agentId} of syndicate ${syndicateId}.`);
+      customEvents.push({
+        type: "front_business_purchased",
+        agentId,
+        merchantId,
+        roomId: merchantRoom ? merchantRoom.id : state.current,
+        syndicateId,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LAUNDER_GOLD action (AF-50)
+  if ((action as any).type === "LAUNDER_GOLD") {
+    const { merchantId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const front = state.frontBusinesses?.[merchantId];
+
+    if (!merchantId) {
+      rejectionReason = `Merchant ID is required to launder gold.`;
+    } else if (amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Laundering amount ${amount} must be a positive integer.`;
+    } else if (!front) {
+      rejectionReason = `No front business exists for merchant ${merchantId}.`;
+    } else {
+      const syndicate = state.syndicates?.[front.syndicateId];
+      if (!syndicate) {
+        rejectionReason = `Owner syndicate ${front.syndicateId} does not exist.`;
+      } else if (!syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of syndicate ${front.syndicateId} owning the front business.`;
+      } else if (front.dirtyGold + amount > front.launderingCapacity) {
+        rejectionReason = `Cannot launder gold: amount ${amount} would exceed laundering capacity (${front.dirtyGold}/${front.launderingCapacity}).`;
+      } else {
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        if (currentGold < amount) {
+          rejectionReason = `Insufficient gold to launder (requires ${amount}, has ${currentGold}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && front) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold from agent
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - amount,
+      };
+
+      // Add to front business dirty gold
+      const frontBusinesses = { ...(state.frontBusinesses || {}) };
+      frontBusinesses[merchantId] = {
+        ...front,
+        dirtyGold: front.dirtyGold + amount,
+        timestamp,
+      };
+      newState.frontBusinesses = frontBusinesses;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Agent ${agentId} deposited ${amount} gold for laundering at front business ${front.id}.`);
+      customEvents.push({
+        type: "gold_deposited_for_laundering",
+        agentId,
+        merchantId,
+        amount,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

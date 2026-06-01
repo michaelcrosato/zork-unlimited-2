@@ -1,8 +1,9 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #49 (Ready for Cycle #50)
-* **Build/Test Status**: 🟢 PASS (All 216 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #50 (Ready for Cycle #51)
+* **Build/Test Status**: 🟢 PASS (All 219 Vitest tests passing, 0 errors/0 warnings on content validation)
+
 
 ---
 
@@ -293,17 +294,25 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
-## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-50`
-* **Objective**: Crime Syndicate Laundering & Front Businesses.
-* **Why this matters**: Allow crime syndicates to invest gold into legitimate local merchants, converting them into syndicate front businesses that periodically launder extortion and contraband gold, lowering regional enforcement heat while generating passive clean gold for syndicate members.
-* **Planned Actions**:
-  1. Define Syndicate Front Business schemas and structures in GameState.
-  2. Implement decentralized actions to BUY_FRONT_BUSINESS and LAUNDER_GOLD.
-  3. Wire periodic passive laundering ticks within `tickEconomy` that clean dirty gold and reduce enforcer heat based on syndicate dominance.
-  4. Write comprehensive integration tests.
+### Phase 44: Crime Syndicate Laundering & Front Businesses (Completed)
+- [x] Define Syndicate Front Business schemas and structures in GameState (`AF-50`).
+- [x] Implement decentralized actions to BUY_FRONT_BUSINESS and LAUNDER_GOLD (`AF-50`).
+- [x] Wire periodic passive laundering ticks within `tickEconomy` that clean dirty gold and reduce enforcer heat based on syndicate dominance (`AF-50`).
+- [x] Write comprehensive integration tests verifying front business purchases, deposits, laundering, heat reduction, and gold distribution (`AF-50`).
 
 ---
+
+## ⚡ Active Task for Next Cycle
+**Task ID**: `AF-51`
+* **Objective**: Front Business Upgrades & Strategic Market Manipulation.
+* **Why this matters**: Expand the syndicate front business system to support `UPGRADE_FRONT_BUSINESS` actions that increase laundering capacity and rate, and introduce dynamic events where highly active front businesses trigger regional market boosts or enforcer sweeps based on laundering volumes.
+* **Planned Actions**:
+  1. Add `UPGRADE_FRONT_BUSINESS` decentralized action increasing capacity and rate.
+  2. Implement laundering-volume-based enforcer sweep triggers when heat exceeds threshold.
+  3. Write comprehensive integration tests.
+
+---
+
 
 ## ⚠️ Risks & Mitigation
 
