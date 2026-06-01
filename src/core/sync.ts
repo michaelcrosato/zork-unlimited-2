@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -9572,6 +9572,230 @@ export function multiAgentStep(
         routeId,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LAUNCH_MASTERMIND_CONTRACT action (AF-77)
+  if ((action as any).type === "LAUNCH_MASTERMIND_CONTRACT") {
+    const { contractId, syndicateId, payoutArbitrageMultiplier, cost, timestamp } = action as any;
+    const actualCost = cost ?? 400;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!contractId) {
+      rejectionReason = `Contract ID is required to launch a mastermind contract.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to launch a mastermind contract.`;
+    } else if (payoutArbitrageMultiplier <= 0) {
+      rejectionReason = `Payout arbitrage multiplier must be a positive number.`;
+    } else if (actualCost < 0 || !Number.isInteger(actualCost)) {
+      rejectionReason = `Mastermind contract cost ${actualCost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < actualCost) {
+        rejectionReason = `Insufficient gold to launch mastermind contract costing ${actualCost} (requires ${actualCost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - actualCost,
+      };
+
+      const mastermindContracts = { ...(state.mastermindContracts || {}) };
+      mastermindContracts[contractId] = {
+        id: contractId,
+        syndicateId,
+        payoutArbitrageMultiplier,
+        status: "active" as const,
+        progress: 0,
+        duration: 5,
+        timestamp,
+      };
+      newState.mastermindContracts = mastermindContracts;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Mastermind contract ${contractId} was launched by agent ${agentId} for syndicate ${syndicateId} with payout multiplier ${payoutArbitrageMultiplier}x.`);
+
+      customEvents.push({
+        type: "mastermind_contract_launched",
+        agentId,
+        syndicateId,
+        contractId,
+        payoutArbitrageMultiplier,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_ENFORCER_DEFUNDING action (AF-77)
+  if ((action as any).type === "PROPOSE_ENFORCER_DEFUNDING") {
+    const { syndicateId, targetReduction, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to propose enforcer defunding.`;
+    } else if (targetReduction < 0 || targetReduction > 1) {
+      rejectionReason = `Proposed target reduction ${targetReduction} must be between 0 and 1.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const enforcerDefundingVotes = { ...(state.enforcerDefundingVotes || {}) };
+      if (!enforcerDefundingVotes[syndicateId]) {
+        enforcerDefundingVotes[syndicateId] = {};
+      } else {
+        enforcerDefundingVotes[syndicateId] = { ...enforcerDefundingVotes[syndicateId] };
+      }
+
+      const existingVote = enforcerDefundingVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        enforcerDefundingVotes[syndicateId][agentId] = {
+          targetReduction,
+          timestamp,
+        };
+        newState.enforcerDefundingVotes = enforcerDefundingVotes;
+        newState = reconcileEnforcerDefunding(newState, pack);
+
+        const newConsensusRate = newState.syndicates?.[syndicateId]?.enforcerDefundingRate ?? 0;
+        newState.journal.push(`[Syndicate] Agent ${agentId} voted for enforcer defunding target reduction ${targetReduction} in syndicate ${syndicateId} (New consensus rate: ${newConsensusRate}).`);
+
+        customEvents.push({
+          type: "enforcer_defunding_proposed",
+          agentId,
+          syndicateId,
+          targetReduction,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
     }
 
     newState.step += 1;

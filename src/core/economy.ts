@@ -99,6 +99,27 @@ export function calculateTradePrice(
           effectiveTariffRate = tariffRate / 2;
         }
 
+        // Mastermind Contract allied faction tariff override (AF-77)
+        let mastermindOverride = false;
+        if (state.mastermindContracts) {
+          const activeContracts = Object.values(state.mastermindContracts).filter(c => c.status === "active");
+          for (const contract of activeContracts) {
+            const synd = state.syndicates?.[contract.syndicateId];
+            if (synd && synd.members.includes(traderId)) {
+              if (state.alliances && (
+                state.alliances[controllingFactionId]?.[contract.syndicateId] === "allied" ||
+                state.alliances[contract.syndicateId]?.[controllingFactionId] === "allied"
+              )) {
+                mastermindOverride = true;
+                break;
+              }
+            }
+          }
+        }
+        if (mastermindOverride) {
+          effectiveTariffRate = 0;
+        }
+
         if (effectiveTariffRate > 0) {
           if (isBuy) {
             multiplier *= (1.0 + effectiveTariffRate / 100.0);
@@ -307,6 +328,18 @@ export function calculateTradePrice(
           contrabandMultiplier = payoutEntry.payout / 100.0;
         }
         multiplier *= contrabandMultiplier;
+
+        // Mastermind Contract global contraband payout arbitrage (AF-77)
+        if (state.mastermindContracts) {
+          const activeContracts = Object.values(state.mastermindContracts).filter(c => c.status === "active");
+          for (const contract of activeContracts) {
+            const synd = state.syndicates?.[contract.syndicateId];
+            if (synd && synd.members.includes(traderId)) {
+              multiplier *= contract.payoutArbitrageMultiplier;
+              break;
+            }
+          }
+        }
       }
 
       // Apply global market price multipliers for contraband based on regional supply, syndicate dominance, and enforcement pressure (AF-44)
@@ -548,6 +581,63 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
     if (guardsChanged) {
       newState.turfGuards = turfGuards;
+    }
+  }
+
+  // Mastermind Contracts Ticking (AF-77)
+  if (newState.mastermindContracts) {
+    newState.mastermindContracts = { ...newState.mastermindContracts };
+    for (const [contractId, contract] of Object.entries(newState.mastermindContracts)) {
+      if (contract.status === "active") {
+        const nextProgress = contract.progress + 1;
+        const syndicate = newState.syndicates?.[contract.syndicateId];
+        
+        if (nextProgress >= contract.duration) {
+          // Mastermind Contract completed!
+          newState.mastermindContracts[contractId] = {
+            ...contract,
+            progress: contract.duration,
+            status: "completed",
+            timestamp: newState.step,
+          };
+          
+          // Completion bonus payout
+          const completionPayout = Math.round(250 * contract.payoutArbitrageMultiplier);
+          if (syndicate) {
+            const members = syndicate.members ?? [];
+            const share = members.length > 0 ? Math.floor(completionPayout / members.length) : 0;
+            if (share > 0) {
+              if (!newState.vars) newState.vars = {};
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+              }
+              newState.journal.push(`[Mastermind] Mastermind Contract ${contractId} has been successfully completed! Distributed a completion bonus of ${completionPayout} gold (${share} gold to each member of syndicate ${contract.syndicateId}).`);
+            }
+          }
+        } else {
+          // Progress contract and distribute a tick payout
+          newState.mastermindContracts[contractId] = {
+            ...contract,
+            progress: nextProgress,
+            timestamp: newState.step,
+          };
+          
+          const tickPayout = Math.round(50 * contract.payoutArbitrageMultiplier);
+          if (syndicate) {
+            const members = syndicate.members ?? [];
+            const share = members.length > 0 ? Math.floor(tickPayout / members.length) : 0;
+            if (share > 0) {
+              if (!newState.vars) newState.vars = {};
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+              }
+              newState.journal.push(`[Mastermind] Mastermind Contract ${contractId} progressed (${nextProgress}/${contract.duration}). Distributed passive arbitrage payout of ${tickPayout} gold (${share} gold to each member).`);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -1124,8 +1214,14 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                              totalFirepower +
                              totalArmor;
 
-          const { value: auditStrength, nextSeed } = PureRand.nextInt(newState.seed, 20, 100);
+          const { value: rawAuditStrength, nextSeed } = PureRand.nextInt(newState.seed, 20, 100);
           newState.seed = nextSeed;
+
+          const synd = newState.syndicates?.[front.syndicateId];
+          const defundingRate = synd?.enforcerDefundingRate ?? 0;
+          const auditStrength = defundingRate > 0
+            ? Math.max(1, Math.round(rawAuditStrength * (1 - defundingRate)))
+            : rawAuditStrength;
 
           let eliteAuditDeflection = false;
           let deflectingEliteName = "";
@@ -1215,7 +1311,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             if (guards > 0 || outpost) {
               const { value: rolledStrength, nextSeed } = PureRand.nextInt(newState.seed, 1, 50);
               newState.seed = nextSeed;
-              sweepStrength = rolledStrength;
+              const synd = newState.syndicates?.[front.syndicateId];
+              const defundingRate = synd?.enforcerDefundingRate ?? 0;
+              sweepStrength = defundingRate > 0
+                ? Math.max(1, Math.round(rolledStrength * (1 - defundingRate)))
+                : rolledStrength;
               if (defenseScore >= sweepStrength) {
                 sweepDefended = true;
               }

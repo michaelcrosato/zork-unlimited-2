@@ -1,4 +1,4 @@
-import { GameState, findRoom, getRoomExits, cloneMerchantInventories } from "./state.js";
+import { GameState, findRoom, getRoomExits, cloneMerchantInventories, getEnforcerDefundingRate } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { GameEvent } from "./events.js";
 import { evaluateConditions } from "./conditions.js";
@@ -237,8 +237,22 @@ export function step(
         }
 
         let enemyHp = newState.vars[enemyVarHp];
-        const enemyMaxHp = enemy.max_hp ?? enemy.hp ?? 10;
-        const enemyAttack = enemy.attack ?? 2;
+        let enemyMaxHp = enemy.max_hp ?? enemy.hp ?? 10;
+        let enemyAttack = enemy.attack ?? 2;
+        
+        // Lower enforcer agency HP/attack stats dynamically during combat!
+        if (enemy && ("isBountyHunter" in enemy || newState.enforcers?.[enemy.id] !== undefined)) {
+          const defundingRate = getEnforcerDefundingRate(newState, "player");
+          if (defundingRate > 0) {
+            enemyMaxHp = Math.max(1, Math.round(enemyMaxHp * (1 - defundingRate)));
+            enemyAttack = Math.max(1, Math.round(enemyAttack * (1 - defundingRate)));
+            if (enemyHp > enemyMaxHp) {
+              enemyHp = enemyMaxHp;
+              newState.vars[enemyVarHp] = enemyHp;
+            }
+          }
+        }
+
         const enemyDefense = enemy.defense ?? 10;
         const enemyGold = enemy.gold ?? 5;
         const enemyXp = enemy.xp ?? 10;
@@ -959,6 +973,10 @@ export function step(
               const scaledHp = 30 + repPenalty;
               const scaledDefense = 12 + Math.floor(repPenalty / 5);
 
+              const defundingRate = getEnforcerDefundingRate(newState, agentId);
+              const initialHp = defundingRate > 0
+                ? Math.max(1, Math.round(scaledHp * (1 - defundingRate)))
+                : scaledHp;
               newState.enforcers = {
                 ...(newState.enforcers || {}),
                 [enforcerId]: {
@@ -969,8 +987,8 @@ export function step(
                   status: "idle",
                   isBountyHunter: false,
                   timestamp: newState.step,
-                  hp: scaledHp,
-                  max_hp: scaledHp,
+                  hp: initialHp,
+                  max_hp: initialHp,
                   attack: 4,
                   defense: scaledDefense,
                   gold: 50,
@@ -978,7 +996,7 @@ export function step(
                 }
               };
               newState.flags[`in_combat_with_${enforcerId}`] = true;
-              newState.vars[`npc_hp_${enforcerId}`] = scaledHp;
+              newState.vars[`npc_hp_${enforcerId}`] = initialHp;
 
               if (isHatedEnemy) {
                 newState.journal.push(`[Syndicate] Hated enemy Agent ${agentId} intercepted at ${controllingSyndicateId} checkpoint in ${destRoomId} carrying contraband. Pre-emptive ambush triggered!`);
@@ -2718,15 +2736,17 @@ export function tickEnforcers(
       }
     }
 
-    // 2. Check if they have high reputation (reputation >= 50 with any faction or in vars)
+    // 2. Check if they have high reputation (reputation >= 50 with any faction or in vars, scaled by defunding rate)
     let hasHighRep = false;
+    const defundingRate = getEnforcerDefundingRate(newState, candidateId);
+    const repThreshold = Math.max(1, Math.round(50 * (1 - defundingRate)));
     if (newState.factionRep) {
-      if (Object.values(newState.factionRep).some(v => v >= 50)) {
+      if (Object.values(newState.factionRep).some(v => v >= repThreshold)) {
         hasHighRep = true;
       }
     }
     if (newState.vars) {
-      if (Object.entries(newState.vars).some(([k, v]) => (k === "faction_rep" || k.startsWith("faction_rep_")) && v >= 50)) {
+      if (Object.entries(newState.vars).some(([k, v]) => (k === "faction_rep" || k.startsWith("faction_rep_")) && v >= repThreshold)) {
         hasHighRep = true;
       }
     }
@@ -2966,7 +2986,11 @@ export function tickEnforcers(
                     text: `💥 Ambush! Smuggling Bounty Hunter ${enforcer.name} corners you in ${enforcer.currentRoom} for your active bounty!`
                   } as any);
                   newState.flags[`in_combat_with_${enforcer.id}`] = true;
-                  newState.vars[`npc_hp_${enforcer.id}`] = enforcer.hp ?? 20;
+                  const defundingRate = getEnforcerDefundingRate(newState, "player");
+                  const initialHp = enforcer.hp ?? 20;
+                  newState.vars[`npc_hp_${enforcer.id}`] = defundingRate > 0
+                    ? Math.max(1, Math.round(initialHp * (1 - defundingRate)))
+                    : initialHp;
                 }
               }
             } else {
@@ -3083,7 +3107,11 @@ export function tickEnforcers(
                 text: `💥 Ambush! Enforcement Agent ${enforcer.name} detects contraband (${contraband.join(", ")}) in your inventory and attacks due to your hostile standing with ${factionId}!`
               } as any);
               newState.flags[`in_combat_with_${enforcer.id}`] = true;
-              newState.vars[`npc_hp_${enforcer.id}`] = enforcer.hp ?? 20;
+              const defundingRate = getEnforcerDefundingRate(newState, "player");
+              const initialHp = enforcer.hp ?? 20;
+              newState.vars[`npc_hp_${enforcer.id}`] = defundingRate > 0
+                ? Math.max(1, Math.round(initialHp * (1 - defundingRate)))
+                : initialHp;
             } else {
               const inventoryFilter = newState.inventory.filter(itemId => !contraband.includes(itemId));
               let val = 0;

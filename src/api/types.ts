@@ -79,6 +79,8 @@ export type Action =
   | { type: "LAUNCH_COUNTER_SABOTAGE"; syndicateId: string; cost?: number; timestamp: number }
   | { type: "HIRE_LEGENDARY_HITMAN"; hitmanId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "LAUNCH_DECOY_CONVOY"; decoyId: string; syndicateId: string; routeId: string; cost?: number; timestamp: number }
+  | { type: "LAUNCH_MASTERMIND_CONTRACT"; contractId: string; syndicateId: string; payoutArbitrageMultiplier: number; cost?: number; timestamp: number }
+  | { type: "PROPOSE_ENFORCER_DEFUNDING"; syndicateId: string; targetReduction: number; vote?: boolean; timestamp: number }
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 

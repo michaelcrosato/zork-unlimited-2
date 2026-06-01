@@ -463,6 +463,7 @@ export const CrimeSyndicateSchema = z.object({
   intelTransactions: z.array(IntelTransactionSchema).optional(),
   ringleader: z.string().optional(),
   warChest: z.number().int().nonnegative().optional(),
+  enforcerDefundingRate: z.number().optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
 
@@ -572,6 +573,23 @@ export const DecoyConvoySchema = z.object({
   timestamp: z.number().int(),
 });
 export type DecoyConvoy = z.infer<typeof DecoyConvoySchema>;
+
+export const EnforcerDefundingVoteSchema = z.object({
+  targetReduction: z.number(),
+  timestamp: z.number().int(),
+});
+export type EnforcerDefundingVote = z.infer<typeof EnforcerDefundingVoteSchema>;
+
+export const MastermindContractSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  payoutArbitrageMultiplier: z.number(),
+  status: z.enum(["active", "completed", "failed"]),
+  progress: z.number().int().nonnegative(),
+  duration: z.number().int().positive(),
+  timestamp: z.number().int(),
+});
+export type MastermindContract = z.infer<typeof MastermindContractSchema>;
 
 export const GameStateSchema = z.object({
   // identity / determinism
@@ -704,6 +722,8 @@ export const GameStateSchema = z.object({
   eliteEnforcers: z.record(z.string(), EliteEnforcerSchema).optional(),
   legendaryHitmen: z.record(z.string(), LegendaryHitmanSchema).optional(),
   decoyConvoys: z.record(z.string(), DecoyConvoySchema).optional(),
+  enforcerDefundingVotes: z.record(z.string(), z.record(z.string(), EnforcerDefundingVoteSchema)).optional(),
+  mastermindContracts: z.record(z.string(), MastermindContractSchema).optional(),
 });
 
 
@@ -830,6 +850,8 @@ export const createInitialState = (options: {
     eliteEnforcers: {},
     legendaryHitmen: {},
     decoyConvoys: {},
+    enforcerDefundingVotes: {},
+    mastermindContracts: {},
   };
 };
 
@@ -1517,6 +1539,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     eliteEnforcers: rest.eliteEnforcers ? JSON.parse(JSON.stringify(rest.eliteEnforcers)) : undefined,
     legendaryHitmen: rest.legendaryHitmen ? JSON.parse(JSON.stringify(rest.legendaryHitmen)) : undefined,
     decoyConvoys: rest.decoyConvoys ? JSON.parse(JSON.stringify(rest.decoyConvoys)) : undefined,
+    enforcerDefundingVotes: rest.enforcerDefundingVotes ? JSON.parse(JSON.stringify(rest.enforcerDefundingVotes)) : undefined,
+    mastermindContracts: rest.mastermindContracts ? JSON.parse(JSON.stringify(rest.mastermindContracts)) : undefined,
   };
   return clone;
 }
@@ -1557,6 +1581,48 @@ export function reconcileSyndicateBribes(state: GameState, pack: any): GameState
     newState.syndicates[syndicateId] = {
       ...syndicate,
       turfBribeCost: consensusAmount,
+    };
+  }
+
+  return newState;
+}
+
+export function reconcileEnforcerDefunding(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  if (!newState.enforcerDefundingVotes) {
+    newState.enforcerDefundingVotes = {};
+  }
+
+  for (const [syndicateId, votes] of Object.entries(newState.enforcerDefundingVotes)) {
+    const syndicate = newState.syndicates[syndicateId];
+    if (!syndicate) continue;
+
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.targetReduction] = (counts[vote.targetReduction] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    let consensusRate = syndicate.enforcerDefundingRate ?? 0;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort descending to prefer higher reduction (more aggressive defunding) on tie
+    const uniqueRates = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = counts[rate];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    newState.syndicates[syndicateId] = {
+      ...syndicate,
+      enforcerDefundingRate: consensusRate,
     };
   }
 
@@ -1703,4 +1769,25 @@ export function reconcileSmugglerGuildCbas(state: GameState, pack: any): GameSta
   }
 
   return newState;
+}
+
+export function getEnforcerDefundingRate(state: GameState, targetId?: string): number {
+  if (!state.syndicates) return 0;
+  if (targetId) {
+    const synd = Object.values(state.syndicates).find(s => s.members.includes(targetId));
+    if (synd && synd.enforcerDefundingRate !== undefined) {
+      return synd.enforcerDefundingRate;
+    }
+  }
+  const playerSynd = Object.values(state.syndicates).find(s => s.members.includes("player"));
+  if (playerSynd && playerSynd.enforcerDefundingRate !== undefined) {
+    return playerSynd.enforcerDefundingRate;
+  }
+  let maxRate = 0;
+  for (const synd of Object.values(state.syndicates)) {
+    if (synd.enforcerDefundingRate !== undefined && synd.enforcerDefundingRate > maxRate) {
+      maxRate = synd.enforcerDefundingRate;
+    }
+  }
+  return maxRate;
 }
