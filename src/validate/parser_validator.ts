@@ -26,7 +26,8 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
     factionRepInit: getFactionRepInit(pack),
   });
 
-  const hasWeather = JSON.stringify(pack).includes('"weather_is"') || JSON.stringify(pack).includes('"temperature_is"');
+  const packStr = JSON.stringify(pack);
+  const hasWeather = packStr.includes('"weather_is"') || packStr.includes('"temperature_is"');
 
   const getStateKey = (state: GameState): string => {
     const clean: any = {
