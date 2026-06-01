@@ -6191,6 +6191,15 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
     // Track updated allocated capital
     const newCapitalAllocated = { ...pool.capitalAllocated };
 
+    // Initialize pool collateral and dividend structures if enabling bridging
+    let currentPoolCollateral = pool.poolCollateral ? { ...pool.poolCollateral } : {};
+    let currentDividends = pool.fractionalDividendPayouts ? { ...pool.fractionalDividendPayouts } : {};
+    if (pool.fractionalYieldBridgingEnabled) {
+      if (currentPoolCollateral.collective === undefined) {
+        currentPoolCollateral.collective = 0;
+      }
+    }
+
     for (const syndicateId of participatingSyndicates) {
       const syndicate = newState.syndicates[syndicateId];
       if (!syndicate) continue;
@@ -6212,6 +6221,21 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
             `[SWF Multi-Fund Rebalance Deposit] Syndicate ${syndicateId} deposited ${toDeposit} gold to Reinsurance Pool ${poolId} to maintain volatility-hedged share of ${targetSharePerSyndicate} gold (Spot Volatility: ${spotVolatility.toFixed(2)}%).`
           );
         }
+
+        // Reserve Recovery Tick: Draw from collective pool collateral if syndicate cannot meet its target share
+        if (pool.fractionalYieldBridgingEnabled && newCapitalAllocated[syndicateId] < targetSharePerSyndicate) {
+          const stillNeeded = targetSharePerSyndicate - newCapitalAllocated[syndicateId];
+          const collAvailable = currentPoolCollateral.collective ?? 0;
+          const drawn = Math.min(stillNeeded, collAvailable);
+
+          if (drawn > 0) {
+            currentPoolCollateral.collective = collAvailable - drawn;
+            newCapitalAllocated[syndicateId] += drawn;
+            newState.journal.push(
+              `[SWF Multi-Fund Reserve Recovery] Recovers capital for distressed Syndicate ${syndicateId} using bridged pool collateral (Recovered: ${drawn} gold from collective collateral reserve).`
+            );
+          }
+        }
       } else if (currentAllocated > targetSharePerSyndicate) {
         // Excess capital refund
         const excess = currentAllocated - targetSharePerSyndicate;
@@ -6229,7 +6253,7 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
     // Update totalReserve
     const newTotalReserve = Object.values(newCapitalAllocated).reduce((sum, val) => sum + val, 0);
 
-    // 3. Dynamic Yield Arbitrage Routing
+    // 3. Dynamic Yield Arbitrage Routing & Fractional Bridging
     let arbitrageGoldEarned = 0;
     if (pool.arbitrageRoutes && pool.arbitrageRoutes.length > 0) {
       let maxTargetYield = 0.15;
@@ -6247,9 +6271,41 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
       if (yieldSpread > 0) {
         const routedCapital = Math.round(newTotalReserve * 0.25);
         arbitrageGoldEarned = Math.round(routedCapital * yieldSpread);
+      }
+    }
 
-        if (arbitrageGoldEarned > 0) {
-          const sharePerSyndicate = Math.floor(arbitrageGoldEarned / numSyndicates);
+    // Generate base yield if no arbitrage target or spread to ensure there is always some yield
+    let totalYield = arbitrageGoldEarned;
+    if (totalYield === 0 && pool.targetYieldRate > 0) {
+      totalYield = Math.round(newTotalReserve * pool.targetYieldRate);
+    }
+
+    if (totalYield > 0) {
+      if (pool.fractionalYieldBridgingEnabled) {
+        const bridgeRatio = pool.fractionalBridgeRatio ?? 0.4;
+        const bridgedYield = Math.round(totalYield * bridgeRatio);
+        const remainingYield = totalYield - bridgedYield;
+
+        // Route the bridged yield to the collective collateral reserve
+        if (bridgedYield > 0) {
+          currentPoolCollateral.collective = (currentPoolCollateral.collective ?? 0) + bridgedYield;
+
+          // Track fractional dividend payouts
+          const divShare = Math.floor(bridgedYield / numSyndicates);
+          if (divShare > 0) {
+            for (const syndicateId of participatingSyndicates) {
+              currentDividends[syndicateId] = (currentDividends[syndicateId] ?? 0) + divShare;
+            }
+          }
+
+          newState.journal.push(
+            `[SWF Multi-Fund Fractional Yield Bridged] Pool ${poolId} bridged ${bridgedYield} gold of yield across mesh to collective collateral pool (Fractional Dividend Share: ${divShare} gold per syndicate).`
+          );
+        }
+
+        // Distribute remaining yield directly to war chests
+        if (remainingYield > 0) {
+          const sharePerSyndicate = Math.floor(remainingYield / numSyndicates);
           if (sharePerSyndicate > 0) {
             for (const syndicateId of participatingSyndicates) {
               const syndicate = newState.syndicates[syndicateId];
@@ -6261,10 +6317,54 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
               }
             }
             newState.journal.push(
-              `[SWF Reinsurance Pool Arbitrage] Pool ${poolId} routed ${routedCapital} gold to high-yield targets, earning ${arbitrageGoldEarned} gold arbitrage yield (distributed ${sharePerSyndicate} gold to each participant).`
+              `[SWF Multi-Fund Yield Payout] Distributed ${remainingYield} gold of direct yield to participants (${sharePerSyndicate} gold each).`
             );
           }
         }
+      } else {
+        // Normal non-bridged distribution
+        const sharePerSyndicate = Math.floor(totalYield / numSyndicates);
+        if (sharePerSyndicate > 0) {
+          for (const syndicateId of participatingSyndicates) {
+            const syndicate = newState.syndicates[syndicateId];
+            if (syndicate) {
+              newState.syndicates[syndicateId] = {
+                ...syndicate,
+                warChest: (syndicate.warChest ?? 0) + sharePerSyndicate,
+              };
+            }
+          }
+          if (arbitrageGoldEarned > 0) {
+            newState.journal.push(
+              `[SWF Reinsurance Pool Arbitrage] Pool ${poolId} routed ${Math.round(newTotalReserve * 0.25)} gold to high-yield targets, earning ${arbitrageGoldEarned} gold arbitrage yield (distributed ${sharePerSyndicate} gold to each participant).`
+            );
+          } else {
+            newState.journal.push(
+              `[SWF Reinsurance Pool Base Yield] Pool ${poolId} generated ${totalYield} gold base yield (distributed ${sharePerSyndicate} gold to each participant).`
+            );
+          }
+        }
+      }
+    }
+
+    // Dynamic Collateral Sweep: if collective reserve exceeds the crossMeshReserveTarget, distribute the excess
+    if (pool.fractionalYieldBridgingEnabled && pool.crossMeshReserveTarget && (currentPoolCollateral.collective ?? 0) > pool.crossMeshReserveTarget) {
+      const excessCollateral = currentPoolCollateral.collective! - pool.crossMeshReserveTarget;
+      currentPoolCollateral.collective = pool.crossMeshReserveTarget;
+      const excessShare = Math.floor(excessCollateral / numSyndicates);
+      if (excessShare > 0) {
+        for (const syndicateId of participatingSyndicates) {
+          const syndicate = newState.syndicates[syndicateId];
+          if (syndicate) {
+            newState.syndicates[syndicateId] = {
+              ...syndicate,
+              warChest: (syndicate.warChest ?? 0) + excessShare,
+            };
+          }
+        }
+        newState.journal.push(
+          `[SWF Multi-Fund Collateral Sweep] Pool ${poolId} swept excess collateral of ${excessCollateral} gold above target of ${pool.crossMeshReserveTarget} gold, distributing ${excessShare} gold to each participant.`
+        );
       }
     }
 
@@ -6275,6 +6375,8 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
       totalReserve: newTotalReserve,
       historicalVolatility: spotVolatility,
       timestamp: newState.step,
+      poolCollateral: currentPoolCollateral,
+      fractionalDividendPayouts: currentDividends,
     };
   }
 

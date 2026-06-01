@@ -34141,7 +34141,22 @@ export function multiAgentStep(
 
   // Handle ADJUST_SWF_MULTI_FUND_REINSURANCE_POOL action (AF-166)
   if ((action as any).type === "ADJUST_SWF_MULTI_FUND_REINSURANCE_POOL") {
-    const { poolId, syndicateId, syndicateIds, capitalAllocated, volatilityHedgeRatio, targetYieldRate, historicalVolatility, arbitrageRoutes, timestamp } = action as any;
+    const {
+      poolId,
+      syndicateId,
+      syndicateIds,
+      capitalAllocated,
+      volatilityHedgeRatio,
+      targetYieldRate,
+      historicalVolatility,
+      arbitrageRoutes,
+      timestamp,
+      fractionalYieldBridgingEnabled,
+      fractionalBridgeRatio,
+      poolCollateral,
+      crossMeshReserveTarget,
+      fractionalDividendPayouts,
+    } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -34188,6 +34203,11 @@ export function multiAgentStep(
         historicalVolatility,
         arbitrageRoutes,
         timestamp,
+        fractionalYieldBridgingEnabled,
+        fractionalBridgeRatio,
+        poolCollateral,
+        crossMeshReserveTarget,
+        fractionalDividendPayouts,
       };
       newState.adjustSWFMultiFundReinsuranceVotes = adjustSWFMultiFundReinsuranceVotes;
 

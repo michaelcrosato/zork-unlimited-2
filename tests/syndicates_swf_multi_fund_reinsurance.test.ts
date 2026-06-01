@@ -203,4 +203,90 @@ describe("Syndicate SWF Multi-Fund Reinsurance Pools Dynamic Yield Arbitrage & V
     expect(state.syndicates?.alpha_corp?.warChest).toBe(5018);
     expect(state.syndicates?.beta_corp?.warChest).toBe(5018);
   });
+
+  it("should support fractional yield bridging, reserve recovery, and dynamic collateral sweeps", () => {
+    let state = createInitialState({
+      seed: 33333,
+      start: "market",
+      varsInit: { gold: 20000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      alpha_corp: {
+        id: "alpha_corp",
+        name: "Alpha Corp",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 0, // Depleted war chest to trigger recovery!
+      },
+      beta_corp: {
+        id: "beta_corp",
+        name: "Beta Corp",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 5000,
+      },
+    };
+
+    // Pre-activate a pool with bridging enabled
+    state.swfMultiFundReinsurancePools = {
+      pool_1: {
+        id: "pool_1",
+        syndicateIds: ["alpha_corp", "beta_corp"],
+        capitalAllocated: {
+          alpha_corp: 1000, // Distress: below the target share of 1100
+          beta_corp: 1000,
+        },
+        totalReserve: 2000,
+        volatilityHedgeRatio: 0.5,
+        targetYieldRate: 0.10, // 10% base yield
+        historicalVolatility: 20.0,
+        timestamp: 1000,
+        active: true,
+        fractionalYieldBridgingEnabled: true,
+        fractionalBridgeRatio: 0.40, // 40% bridged
+        poolCollateral: {
+          collective: 200, // Pre-seeded collateral reserve
+        },
+        crossMeshReserveTarget: 150, // Set target to trigger collateral sweeps
+        fractionalDividendPayouts: {},
+      },
+    };
+
+    // Step 0:
+    // Fluctuation step % 6 = 0 -> spotVolatility = 20 + 0 = 20.
+    // required multiplier = 1 + (20/100)*0.5 = 1.1x.
+    // totalRequired = 2000 * 1.1 = 2200. Share per syndicate = 1100.
+    // alpha_corp needs 100 but has 0 warChest. It will draw 100 from collective collateral (200 -> 100).
+    // beta_corp has plenty of warChest and will deposit 100 normally from 5000 -> 4900.
+    //
+    // Base Yield = 2200 * 0.10 = 220 gold.
+    // Bridged Yield = 220 * 0.40 = 88 gold.
+    // Remaining Direct Yield = 220 - 88 = 132 gold (66 gold each).
+    // Bridged Yield adds to collective collateral: 100 + 88 = 188.
+    // Dividends tracker gets 44 each.
+    //
+    // Collateral Sweep: 188 exceeds target 150 by 38. Capped at 150.
+    // 38 gold is swept and distributed equally (19 gold each).
+    // Final alpha_corp warChest: 0 (start) + 66 (direct yield) + 19 (sweep) = 85 gold.
+    // Final beta_corp warChest: 5000 (start) - 100 (deposit) + 66 (direct yield) + 19 (sweep) = 4985 gold.
+    state.step = 0;
+    state = tickEconomy(state, mockPack);
+
+    const pool = state.swfMultiFundReinsurancePools?.["pool_1"];
+    expect(pool).toBeDefined();
+    expect(pool?.capitalAllocated.alpha_corp).toBe(1100); // Fully recovered!
+    expect(pool?.capitalAllocated.beta_corp).toBe(1100);
+    expect(pool?.poolCollateral?.collective).toBe(150); // Capped at target by sweep
+    expect(pool?.fractionalDividendPayouts?.alpha_corp).toBe(44);
+    expect(pool?.fractionalDividendPayouts?.beta_corp).toBe(44);
+
+    expect(state.syndicates?.alpha_corp?.warChest).toBe(85);
+    expect(state.syndicates?.beta_corp?.warChest).toBe(4985);
+  });
 });

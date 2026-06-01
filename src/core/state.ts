@@ -1858,6 +1858,11 @@ export const SWFMultiFundReinsurancePoolSchema = z.object({
   timestamp: z.number().int(),
   active: z.boolean(),
   arbitrageRoutes: z.array(z.string()).optional(),
+  fractionalYieldBridgingEnabled: z.boolean().optional(),
+  fractionalBridgeRatio: z.number().nonnegative().optional(),
+  poolCollateral: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  crossMeshReserveTarget: z.number().int().nonnegative().optional(),
+  fractionalDividendPayouts: z.record(z.string(), z.number().int().nonnegative()).optional(),
 });
 export type SWFMultiFundReinsurancePool = z.infer<typeof SWFMultiFundReinsurancePoolSchema>;
 
@@ -1871,6 +1876,11 @@ export const SWFMultiFundReinsuranceVoteSchema = z.object({
   historicalVolatility: z.number().nonnegative(),
   arbitrageRoutes: z.array(z.string()).optional(),
   timestamp: z.number().int(),
+  fractionalYieldBridgingEnabled: z.boolean().optional(),
+  fractionalBridgeRatio: z.number().nonnegative().optional(),
+  poolCollateral: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  crossMeshReserveTarget: z.number().int().nonnegative().optional(),
+  fractionalDividendPayouts: z.record(z.string(), z.number().int().nonnegative()).optional(),
 });
 export type SWFMultiFundReinsuranceVote = z.infer<typeof SWFMultiFundReinsuranceVoteSchema>;
 
@@ -12910,12 +12920,17 @@ export function reconcileSWFMultiFundReinsurance(state: GameState, pack: any): G
       targetYieldRate: number;
       historicalVolatility: number;
       arbitrageRoutes?: string[];
+      fractionalYieldBridgingEnabled?: boolean;
+      fractionalBridgeRatio?: number;
+      poolCollateral?: Record<string, number>;
+      crossMeshReserveTarget?: number;
+      fractionalDividendPayouts?: Record<string, number>;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
-      const key = `${vote.poolId}::${vote.syndicateIds.sort().join(",")}::${JSON.stringify(vote.capitalAllocated)}::${vote.volatilityHedgeRatio}::${vote.targetYieldRate}::${vote.historicalVolatility}::${JSON.stringify(vote.arbitrageRoutes ?? [])}`;
+      const key = `${vote.poolId}::${vote.syndicateIds.sort().join(",")}::${JSON.stringify(vote.capitalAllocated)}::${vote.volatilityHedgeRatio}::${vote.targetYieldRate}::${vote.historicalVolatility}::${JSON.stringify(vote.arbitrageRoutes ?? [])}::${vote.fractionalYieldBridgingEnabled ?? false}::${vote.fractionalBridgeRatio ?? 0}::${JSON.stringify(vote.poolCollateral ?? {})}::${vote.crossMeshReserveTarget ?? 0}::${JSON.stringify(vote.fractionalDividendPayouts ?? {})}`;
       if (!voteGroups[key]) {
         voteGroups[key] = {
           poolId: vote.poolId,
@@ -12925,6 +12940,11 @@ export function reconcileSWFMultiFundReinsurance(state: GameState, pack: any): G
           targetYieldRate: vote.targetYieldRate,
           historicalVolatility: vote.historicalVolatility,
           arbitrageRoutes: vote.arbitrageRoutes,
+          fractionalYieldBridgingEnabled: vote.fractionalYieldBridgingEnabled,
+          fractionalBridgeRatio: vote.fractionalBridgeRatio,
+          poolCollateral: vote.poolCollateral,
+          crossMeshReserveTarget: vote.crossMeshReserveTarget,
+          fractionalDividendPayouts: vote.fractionalDividendPayouts,
           voters: new Set<string>(),
           timestamps: [],
         };
@@ -12961,6 +12981,11 @@ export function reconcileSWFMultiFundReinsurance(state: GameState, pack: any): G
           timestamp: Math.max(...group.timestamps, newState.step),
           active: true,
           arbitrageRoutes: group.arbitrageRoutes,
+          fractionalYieldBridgingEnabled: group.fractionalYieldBridgingEnabled,
+          fractionalBridgeRatio: group.fractionalBridgeRatio,
+          poolCollateral: group.poolCollateral,
+          crossMeshReserveTarget: group.crossMeshReserveTarget,
+          fractionalDividendPayouts: group.fractionalDividendPayouts,
         };
 
         delete newState.adjustSWFMultiFundReinsuranceVotes![poolId];
