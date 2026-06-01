@@ -607,37 +607,64 @@ export function step(
           // Caught!
           const borderFactionId = factionId || hostileRouteFactionId;
           
-          // Confiscate contraband
-          newState.inventory = newState.inventory.filter(itemId => !contrabandItems.includes(itemId));
-          
-          // Faction reputation penalty
-          if (borderFactionId) {
-            newState.factionRep = newState.factionRep || {};
-            const currentRep = newState.factionRep[borderFactionId] ?? 0;
-            newState.factionRep[borderFactionId] = currentRep - 15;
-          }
+          const hasInsurance = newState.smugglingInsurance?.["player"]?.active === true;
+          const factionBribe = borderFactionId ? newState.bribes?.[borderFactionId] : undefined;
+          const hasBribe = factionBribe && factionBribe.amount > 0;
 
-          // Gold fine based on confiscated value
-          let contrabandValue = 0;
-          if (pack && (pack as any).objects) {
-            for (const itemId of contrabandItems) {
-              const obj = (pack as any).objects.find((o: any) => o.id === itemId);
-              contrabandValue += obj?.cost ?? 10;
+          if (hasInsurance) {
+            // Avoid confiscation and fines!
+            if (newState.smugglingInsurance?.["player"]) {
+              newState.smugglingInsurance["player"] = {
+                ...newState.smugglingInsurance["player"],
+                active: false,
+                timestamp: newState.step,
+              };
             }
-          }
-          const fine = Math.round(contrabandValue * 1.5) || 50;
-          const currentGold = newState.vars["gold"] ?? 0;
-          newState.vars["gold"] = Math.max(0, currentGold - fine);
+            events.push({
+              type: "narration",
+              text: `👮 Caught smuggling at the border! However, your Cartel Smuggling Insurance covers the incident. The border patrol lets you pass and your contraband is safe.`,
+            });
+            isSmugglingBypassed = true;
+          } else if (hasBribe) {
+            // Avoid confiscation and fines!
+            events.push({
+              type: "narration",
+              text: `👮 Caught smuggling! However, you paid a bribe of ${factionBribe.amount} gold to faction ${borderFactionId || "border patrol"}. The guards wink and let you pass with your contraband.`,
+            });
+            isSmugglingBypassed = true;
+          } else {
+            // Confiscate contraband
+            newState.inventory = newState.inventory.filter(itemId => !contrabandItems.includes(itemId));
+            
+            // Faction reputation penalty
+            if (borderFactionId) {
+              newState.factionRep = newState.factionRep || {};
+              const currentRep = newState.factionRep[borderFactionId] ?? 0;
+              newState.factionRep[borderFactionId] = currentRep - 15;
+            }
 
-          return {
-            state: newState,
-            events: [{
-              type: "rejected",
-              reason: `You were caught by the border patrol smuggling contraband (${contrabandItems.join(", ")})! The contraband was confiscated, you were fined ${fine} gold, and your reputation with faction ${borderFactionId || "border patrol"} was reduced. You were turned back.`
-            } as any],
-            ok: false,
-            rejectionReason: `Caught smuggling contraband at the border.`,
-          };
+            // Gold fine based on confiscated value
+            let contrabandValue = 0;
+            if (pack && (pack as any).objects) {
+              for (const itemId of contrabandItems) {
+                const obj = (pack as any).objects.find((o: any) => o.id === itemId);
+                contrabandValue += obj?.cost ?? 10;
+              }
+            }
+            const fine = Math.round(contrabandValue * 1.5) || 50;
+            const currentGold = newState.vars["gold"] ?? 0;
+            newState.vars["gold"] = Math.max(0, currentGold - fine);
+
+            return {
+              state: newState,
+              events: [{
+                type: "rejected",
+                reason: `You were caught by the border patrol smuggling contraband (${contrabandItems.join(", ")})! The contraband was confiscated, you were fined ${fine} gold, and your reputation with faction ${borderFactionId || "border patrol"} was reduced. You were turned back.`
+              } as any],
+              ok: false,
+              rejectionReason: `Caught smuggling contraband at the border.`,
+            };
+          }
         } else {
           // Success!
           isSmugglingBypassed = true;
@@ -1706,12 +1733,35 @@ function tickEnforcers(
                 (f) => f.startsWith("in_combat_with_") && newState.flags[f]
               );
               if (!activeCombat && !newState.ended) {
-                events.push({
-                  type: "narration",
-                  text: `💥 Ambush! Smuggling Bounty Hunter ${enforcer.name} corners you in ${enforcer.currentRoom} for your active bounty!`
-                } as any);
-                newState.flags[`in_combat_with_${enforcer.id}`] = true;
-                newState.vars[`npc_hp_${enforcer.id}`] = enforcer.hp ?? 20;
+                const hasInsurance = newState.smugglingInsurance?.["player"]?.active === true;
+                const enforcerBribe = newState.bribes?.[enforcer.id];
+                const hasBribe = enforcerBribe && enforcerBribe.amount > 0;
+
+                if (hasInsurance) {
+                  if (newState.smugglingInsurance?.["player"]) {
+                    newState.smugglingInsurance["player"] = {
+                      ...newState.smugglingInsurance["player"],
+                      active: false,
+                      timestamp: newState.step,
+                    };
+                  }
+                  events.push({
+                    type: "narration",
+                    text: `🛡️ Bounty Hunter ${enforcer.name} corners you in ${enforcer.currentRoom}, but your Cartel Smuggling Insurance covers your bounty! They stand down.`
+                  } as any);
+                } else if (hasBribe) {
+                  events.push({
+                    type: "narration",
+                    text: `🛡️ Bounty Hunter ${enforcer.name} corners you in ${enforcer.currentRoom}, but accepts your bribe of ${enforcerBribe.amount} gold and stands down.`
+                  } as any);
+                } else {
+                  events.push({
+                    type: "narration",
+                    text: `💥 Ambush! Smuggling Bounty Hunter ${enforcer.name} corners you in ${enforcer.currentRoom} for your active bounty!`
+                  } as any);
+                  newState.flags[`in_combat_with_${enforcer.id}`] = true;
+                  newState.vars[`npc_hp_${enforcer.id}`] = enforcer.hp ?? 20;
+                }
               }
             } else {
               const { value: fightRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
@@ -1756,7 +1806,30 @@ function tickEnforcers(
             const factionId = enforcer.factionId ?? "rangers";
             const rep = newState.factionRep?.[factionId] ?? 0;
 
-            if (rep >= 10) {
+            const hasInsurance = newState.smugglingInsurance?.["player"]?.active === true;
+            const enforcerBribe = newState.bribes?.[enforcer.id];
+            const factionBribe = enforcer.factionId ? newState.bribes?.[enforcer.factionId] : undefined;
+            const hasBribe = (enforcerBribe && enforcerBribe.amount > 0) || (factionBribe && factionBribe.amount > 0);
+            const bribeAmount = (enforcerBribe?.amount ?? 0) || (factionBribe?.amount ?? 0);
+
+            if (hasInsurance) {
+              if (newState.smugglingInsurance?.["player"]) {
+                newState.smugglingInsurance["player"] = {
+                  ...newState.smugglingInsurance["player"],
+                  active: false,
+                  timestamp: newState.step,
+                };
+              }
+              events.push({
+                type: "narration",
+                text: `👮 Enforcement Agent ${enforcer.name} stops you, but your Cartel Smuggling Insurance covers the contraband (${contraband.join(", ")}). They let you pass safely.`
+              } as any);
+            } else if (hasBribe) {
+              events.push({
+                type: "narration",
+                text: `👮 Enforcement Agent ${enforcer.name} stops you, but recognizes your bribe of ${bribeAmount} gold and lets you pass with your contraband (${contraband.join(", ")}).`
+              } as any);
+            } else if (rep >= 10) {
               events.push({
                 type: "narration",
                 text: `👮 Enforcement Agent ${enforcer.name} stops you, but recognizes your allied standing with ${factionId} and lets you pass with a warning.`

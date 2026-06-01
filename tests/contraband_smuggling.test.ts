@@ -351,4 +351,188 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect((resTrade.events[0] as any).reason).not.toContain("embargo");
     expect((resTrade.events[0] as any).reason).toContain("stock");
   });
+
+  it("should successfully bypass border confiscation and fines when caught smuggling if the player has active Cartel Smuggling Insurance", () => {
+    let state = createInitialState({
+      seed: 8, // Set a seed that leads to caught detection roll
+      start: "safehouse",
+      varsInit: { gold: 200 },
+      factionRepInit: { rangers: -5 },
+      territoryControlInit: { border_post: "rangers" },
+    });
+
+    // Take contraband
+    state = step(state, { type: "TAKE", item: "lockpick" }, mockPack).state;
+    expect(state.inventory).toContain("lockpick");
+
+    // Buy smuggling insurance (cost 100 gold)
+    const buyRes = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "BUY_SMUGGLING_INSURANCE",
+        cost: 100,
+        timestamp: 100,
+      } as any,
+    }, mockPack);
+    expect(buyRes.ok).toBe(true);
+    state = buyRes.state;
+    expect(state.vars["gold"]).toBe(100); // 200 - 100
+    expect(state.smugglingInsurance?.["player"]?.active).toBe(true);
+
+    // Fail smuggling check due to high detection chance
+    state.vars["smuggling"] = -10; 
+
+    // Move to border_post. With insurance, this should succeed!
+    const resMove = step(state, { type: "MOVE", direction: "NORTH" }, mockPack);
+    expect(resMove.ok).toBe(true);
+    expect(resMove.state.current).toBe("border_post");
+    expect(resMove.state.inventory).toContain("lockpick"); // Not confiscated!
+    expect(resMove.state.vars["gold"]).toBe(100); // No fine!
+    expect(resMove.state.smugglingInsurance?.["player"]?.active).toBe(false); // Consumed!
+    expect(resMove.events.some(e => e.type === "narration" && (e as any).text.includes("Cartel Smuggling Insurance covers"))).toBe(true);
+  });
+
+  it("should successfully bypass border confiscation and fines when caught smuggling if the player has paid a bribe to the border faction", () => {
+    let state = createInitialState({
+      seed: 8, // Set a seed that leads to caught detection roll
+      start: "safehouse",
+      varsInit: { gold: 200 },
+      factionRepInit: { rangers: -5 },
+      territoryControlInit: { border_post: "rangers" },
+    });
+
+    // Take contraband
+    state = step(state, { type: "TAKE", item: "lockpick" }, mockPack).state;
+
+    // Pay a bribe of 50 gold to faction rangers
+    const bribeRes = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PAY_BRIBE",
+        enforcerId: "rangers",
+        amount: 50,
+        timestamp: 100,
+      } as any,
+    }, mockPack);
+    expect(bribeRes.ok).toBe(true);
+    state = bribeRes.state;
+    expect(state.vars["gold"]).toBe(150); // 200 - 50
+    expect(state.bribes?.["rangers"]?.amount).toBe(50);
+
+    // Fail smuggling check due to high detection chance
+    state.vars["smuggling"] = -10;
+
+    // Move to border_post. With bribe, this should succeed!
+    const resMove = step(state, { type: "MOVE", direction: "NORTH" }, mockPack);
+    expect(resMove.ok).toBe(true);
+    expect(resMove.state.current).toBe("border_post");
+    expect(resMove.state.inventory).toContain("lockpick"); // Not confiscated!
+    expect(resMove.state.vars["gold"]).toBe(150); // No fine!
+    expect(resMove.events.some(e => e.type === "narration" && (e as any).text.includes("paid a bribe"))).toBe(true);
+  });
+
+  it("should allow a player to avoid combat or confiscation by paying bribes to static enforcers or bounty hunters", () => {
+    // 1. Static enforcer with bribe
+    let state = createInitialState({
+      seed: 42,
+      start: "safehouse",
+      varsInit: { gold: 200 },
+      factionRepInit: { rangers: -10 }, // hostile -> attacks normal
+    });
+
+    state.enforcers = {
+      enforcer_bob: {
+        id: "enforcer_bob",
+        name: "Captain Bob",
+        factionId: "rangers",
+        currentRoom: "border_post",
+        status: "idle",
+        isBountyHunter: false,
+        timestamp: 0,
+        hp: 15,
+        max_hp: 15,
+        attack: 2,
+        defense: 10,
+        gold: 30,
+        xp: 20,
+      },
+    };
+
+    // Take contraband
+    state = step(state, { type: "TAKE", item: "lockpick" }, mockPack).state;
+
+    // Bribe Bob with 60 gold
+    const bribeRes = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PAY_BRIBE",
+        enforcerId: "enforcer_bob",
+        amount: 60,
+        timestamp: 100,
+      } as any,
+    }, mockPack);
+    expect(bribeRes.ok).toBe(true);
+    state = bribeRes.state;
+    expect(state.vars["gold"]).toBe(140);
+
+    // Move to border_post where enforcer Bob is. With bribe, they let the player pass without combat or confiscation!
+    const resMove = step(state, { type: "MOVE", direction: "NORTH" }, mockPack);
+    expect(resMove.ok).toBe(true);
+    expect(resMove.state.current).toBe("border_post");
+    expect(resMove.state.inventory).toContain("lockpick"); // safe!
+    expect(resMove.state.flags["in_combat_with_enforcer_bob"]).toBeFalsy(); // no combat!
+    expect(resMove.events.some(e => e.type === "narration" && (e as any).text.includes("recognizes your bribe"))).toBe(true);
+  });
+
+  it("should synchronize active smuggling insurance policies and bribes across the gossip mesh", () => {
+    const pack = mockPack;
+    const nodeA = new GossipNode("alice", pack, 42);
+    const nodeB = new GossipNode("bob", pack, 42);
+
+    nodeA.connect(nodeB);
+
+    // Node A buys smuggling insurance
+    const txA = nodeA.executeLocalAction({
+      type: "BUY_SMUGGLING_INSURANCE",
+      cost: 60,
+      timestamp: 1500,
+    } as any);
+    expect(txA.ok).toBe(true);
+
+    // Node B pays a bribe to enforcer_bob
+    const txB = nodeB.executeLocalAction({
+      type: "PAY_BRIBE",
+      enforcerId: "enforcer_bob",
+      amount: 80,
+      timestamp: 1600,
+    } as any);
+    expect(txB.ok).toBe(true);
+
+    // Reconcile mesh states
+    nodeA.gossip();
+    nodeB.gossip();
+
+    // Assert full convergence!
+    expect(nodeA.localState.smugglingInsurance?.["alice"]).toEqual({
+      buyerId: "alice",
+      active: true,
+      timestamp: 1500,
+    });
+    expect(nodeB.localState.smugglingInsurance?.["alice"]).toEqual({
+      buyerId: "alice",
+      active: true,
+      timestamp: 1500,
+    });
+
+    expect(nodeA.localState.bribes?.["enforcer_bob"]).toEqual({
+      enforcerId: "enforcer_bob",
+      amount: 80,
+      timestamp: 1600,
+    });
+    expect(nodeB.localState.bribes?.["enforcer_bob"]).toEqual({
+      enforcerId: "enforcer_bob",
+      amount: 80,
+      timestamp: 1600,
+    });
+  });
 });

@@ -665,6 +665,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge smugglingInsurance using LWW (Last-Write-Wins)
+  const smugglingInsurance = { ...stateA.smugglingInsurance };
+  if (stateB.smugglingInsurance) {
+    for (const [buyerId, entryB] of Object.entries(stateB.smugglingInsurance)) {
+      const entryA = smugglingInsurance[buyerId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        smugglingInsurance[buyerId] = entryB;
+      }
+    }
+  }
+
+  // Merge bribes using LWW (Last-Write-Wins)
+  const bribes = { ...stateA.bribes };
+  if (stateB.bribes) {
+    for (const [enforcerId, entryB] of Object.entries(stateB.bribes)) {
+      const entryA = bribes[enforcerId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        bribes[enforcerId] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -694,6 +716,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     blackMarketPayouts,
     bounties,
     enforcers,
+    smugglingInsurance,
+    bribes,
   };
 }
 

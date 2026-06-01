@@ -206,6 +206,20 @@ export const EnforcerSchema = z.object({
 });
 export type Enforcer = z.infer<typeof EnforcerSchema>;
 
+export const SmugglingInsuranceSchema = z.object({
+  buyerId: z.string(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SmugglingInsurance = z.infer<typeof SmugglingInsuranceSchema>;
+
+export const BribeSchema = z.object({
+  enforcerId: z.string(),
+  amount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type Bribe = z.infer<typeof BribeSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -287,6 +301,10 @@ export const GameStateSchema = z.object({
   // Smuggling Bounty Hunters & Enforcement Agents (AF-41)
   bounties: z.record(z.string(), BountySchema).optional(),
   enforcers: z.record(z.string(), EnforcerSchema).optional(),
+
+  // Cartel Smuggling Insurance and Bribe Mechanics (AF-42)
+  smugglingInsurance: z.record(z.string(), SmugglingInsuranceSchema).optional(),
+  bribes: z.record(z.string(), BribeSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -373,6 +391,8 @@ export const createInitialState = (options: {
     blackMarketPayouts: {},
     bounties: {},
     enforcers: {},
+    smugglingInsurance: {},
+    bribes: {},
   };
 };
 
