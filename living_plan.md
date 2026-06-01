@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #252 (Ready for Cycle #253)
-* **Build/Test Status**: 🟢 PASS (All 849 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #253 (Ready for Cycle #254)
+* **Build/Test Status**: 🟢 PASS (All 850 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1630,15 +1630,20 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the cooldown check inside `tickEconomy` to freeze discount adjustments under panic override (`AF-255`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-255`).
 
+### Phase 234: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension (Completed)
+- [x] Define panic override extension proposal and voting schemas for surcharge standing discounts (`AF-256`).
+- [x] Wire the cooldown check inside `tickEconomy` to respect extended panic overrides (`AF-256`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-256`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-256`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension.
-* **Why this matters**: Introduce custom voting and panic override extensions specifically for dynamic MM surcharge discount/boost scaling, allowing syndicates to extend authorized panic overrides during prolonged extreme market panic or partition recovery events.
+**Task ID**: `AF-257`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation.
+* **Why this matters**: Introduce custom voting and panic override extension cancellations specifically for dynamic MM surcharge discount/boost scaling, allowing syndicates to cancel active panic override extensions early when market recovery or partition resolution occurs ahead of schedule.
 * **Planned Actions**:
-  1. Define panic override extension proposal and voting schemas for surcharge standing discounts.
-  2. Wire the cooldown check inside `tickEconomy` to respect extended panic overrides.
+  1. Define panic override extension cancellation proposal and voting schemas for surcharge standing discounts.
+  2. Wire the cooldown check inside `tickEconomy` to terminate panic overrides when cancellation proposals are authorized.
   3. Write comprehensive Vitest unit and integration tests.
 
 ---

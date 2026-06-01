@@ -1043,8 +1043,8 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     newState.step = updatedProp!.cooldownEndStep! + 1;
 
     // Reset option status to "active" and seller syndicate to "alpha"
-    newState.cdsCdoYieldHedgingOptionContracts.opt_1 = {
-      ...newState.cdsCdoYieldHedgingOptionContracts.opt_1,
+    newState.cdsCdoYieldHedgingOptionContracts!.opt_1 = {
+      ...newState.cdsCdoYieldHedgingOptionContracts!.opt_1,
       status: "active",
       syndicateId: "alpha",
     };
