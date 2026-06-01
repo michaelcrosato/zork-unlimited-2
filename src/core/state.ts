@@ -1317,6 +1317,22 @@ export const CooperativeSovereigntyBondProposalSchema = z.object({
 });
 export type CooperativeSovereigntyBondProposal = z.infer<typeof CooperativeSovereigntyBondProposalSchema>;
 
+export const SecondaryBondListingSchema = z.object({
+  id: z.string(),
+  bondId: z.string(),
+  sellerSyndicateId: z.string(),
+  amount: z.number().int().positive(),
+  askPrice: z.number().int().positive(),
+  status: z.enum(["Open", "Completed", "Cancelled"]),
+  timestamp: z.number().int(),
+  bids: z.record(z.string(), z.object({
+    bidderSyndicateId: z.string(),
+    bidAmount: z.number().int().positive(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SecondaryBondListing = z.infer<typeof SecondaryBondListingSchema>;
+
 export const FactionCdoInsurancePoolProposalSchema = z.object({
   id: z.string(),
   syndicateId: z.string(),
@@ -2183,6 +2199,7 @@ export const GameStateSchema = z.object({
   cdoMiningBoosters: z.record(z.string(), CdoMiningBoosterSchema).optional(),
   cooperativeYieldCampaignProposals: z.record(z.string(), CooperativeYieldCampaignProposalSchema).optional(),
   cooperativeSovereigntyBondProposals: z.record(z.string(), CooperativeSovereigntyBondProposalSchema).optional(),
+  secondaryBondListings: z.record(z.string(), SecondaryBondListingSchema).optional(),
   factionCdoInsurancePoolProposals: z.record(z.string(), FactionCdoInsurancePoolProposalSchema).optional(),
   multiFactionCdoRiskRatings: z.record(z.string(), MultiFactionCdoRiskRatingSchema).optional(),
   multiFactionCdoRiskRatingProposals: z.record(z.string(), MultiFactionCdoRiskRatingProposalSchema).optional(),
@@ -2452,6 +2469,7 @@ export const createInitialState = (options: {
     cdoMiningBoosters: {},
     cooperativeYieldCampaignProposals: {},
     cooperativeSovereigntyBondProposals: {},
+    secondaryBondListings: {},
     factionCdoInsurancePoolProposals: {},
     multiFactionCdoRiskRatings: {},
     multiFactionCdoRiskRatingProposals: {},
@@ -3292,6 +3310,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdoMiningBoosters: rest.cdoMiningBoosters ? JSON.parse(JSON.stringify(rest.cdoMiningBoosters)) : undefined,
     cooperativeYieldCampaignProposals: rest.cooperativeYieldCampaignProposals ? JSON.parse(JSON.stringify(rest.cooperativeYieldCampaignProposals)) : undefined,
     cooperativeSovereigntyBondProposals: rest.cooperativeSovereigntyBondProposals ? JSON.parse(JSON.stringify(rest.cooperativeSovereigntyBondProposals)) : undefined,
+    secondaryBondListings: rest.secondaryBondListings ? JSON.parse(JSON.stringify(rest.secondaryBondListings)) : undefined,
     factionCdoInsurancePoolProposals: rest.factionCdoInsurancePoolProposals ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePoolProposals)) : undefined,
     multiFactionCdoRiskRatings: rest.multiFactionCdoRiskRatings ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatings)) : undefined,
     multiFactionCdoRiskRatingProposals: rest.multiFactionCdoRiskRatingProposals ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatingProposals)) : undefined,

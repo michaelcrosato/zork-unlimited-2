@@ -2563,6 +2563,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge secondaryBondListings using LWW (Last-Write-Wins)
+  const secondaryBondListings = { ...stateA.secondaryBondListings };
+  if (stateB.secondaryBondListings) {
+    for (const [listingId, listingB] of Object.entries(stateB.secondaryBondListings)) {
+      const listingA = secondaryBondListings[listingId];
+      if (!listingA || listingB.timestamp > listingA.timestamp) {
+        secondaryBondListings[listingId] = { ...listingB };
+      }
+    }
+  }
+
   // Merge factionCdoInsurancePoolProposals using LWW (Last-Write-Wins)
   const factionCdoInsurancePoolProposals = { ...stateA.factionCdoInsurancePoolProposals };
   if (stateB.factionCdoInsurancePoolProposals) {
@@ -3216,6 +3227,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cdoMiningBoosters,
     cooperativeYieldCampaignProposals,
     cooperativeSovereigntyBondProposals,
+    secondaryBondListings,
     factionCdoInsurancePoolProposals,
     multiFactionCdoRiskRatings,
     multiFactionCdoRiskRatingProposals,

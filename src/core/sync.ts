@@ -28956,6 +28956,420 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized LIST_BOND_FOR_SALE action (AF-139)
+  if ((action as any).type === "LIST_BOND_FOR_SALE") {
+    const { listingId, bondId, syndicateId, amount, askPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bond = state.cooperativeSovereigntyBondProposals?.[bondId];
+
+    if (!listingId) {
+      rejectionReason = `Listing ID is required.`;
+    } else if (!bondId) {
+      rejectionReason = `Bond ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Amount must be a positive integer.`;
+    } else if (askPrice === undefined || askPrice <= 0 || !Number.isInteger(askPrice)) {
+      rejectionReason = `Ask price must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot list bond for sale.`;
+    } else if (!bond) {
+      rejectionReason = `Bond ${bondId} does not exist.`;
+    } else if (bond.status !== "Active" || !bond.resolved) {
+      rejectionReason = `Bond ${bondId} is not active.`;
+    } else if (state.secondaryBondListings?.[listingId]) {
+      rejectionReason = `Secondary bond listing ${listingId} already exists.`;
+    } else {
+      // Calculate already listed amount in Open listings for this syndicate
+      let totalActiveListed = 0;
+      for (const listing of Object.values(state.secondaryBondListings || {})) {
+        if (listing.bondId === bondId && listing.sellerSyndicateId === syndicateId && listing.status === "Open") {
+          totalActiveListed += listing.amount;
+        }
+      }
+      const availableContribution = (bond.contributions[syndicateId] || 0) - totalActiveListed;
+      if (availableContribution < amount) {
+        rejectionReason = `Syndicate ${syndicateId} has insufficient unlisted contribution in bond ${bondId} (${availableContribution} < ${amount}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && bond) {
+      const listings = { ...(state.secondaryBondListings || {}) };
+      listings[listingId] = {
+        id: listingId,
+        bondId,
+        sellerSyndicateId: syndicateId,
+        amount,
+        askPrice,
+        status: "Open" as const,
+        timestamp,
+        bids: {},
+      };
+
+      newState.secondaryBondListings = listings;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Secondary Bond Listed] Syndicate ${syndicateId} listed ${amount} gold share of bond ${bondId} for sale at ask price ${askPrice}.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📈 [Secondary Bond Listed] Syndicate ${syndicateId} listed ${amount} share of bond ${bondId} at ask price ${askPrice} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "secondary_bond_listed" as any,
+        listingId,
+        bondId,
+        syndicateId,
+        amount,
+        askPrice,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PLACE_BOND_BID action (AF-139)
+  if ((action as any).type === "PLACE_BOND_BID") {
+    const { listingId, syndicateId, bidAmount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const listing = state.secondaryBondListings?.[listingId];
+
+    if (!listingId) {
+      rejectionReason = `Listing ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (bidAmount === undefined || bidAmount <= 0 || !Number.isInteger(bidAmount)) {
+      rejectionReason = `Bid amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot place a bid.`;
+    } else if (!listing) {
+      rejectionReason = `Secondary bond listing ${listingId} does not exist.`;
+    } else if (listing.status !== "Open") {
+      rejectionReason = `Secondary bond listing ${listingId} is not open.`;
+    } else if (listing.sellerSyndicateId === syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} is the seller of listing ${listingId} and cannot bid on it.`;
+    } else if ((syndicate.warChest ?? 0) < bidAmount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient war chest (${syndicate.warChest ?? 0} gold) to place bid of ${bidAmount} gold.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && listing) {
+      const listings = { ...(state.secondaryBondListings || {}) };
+      const currentListing = { ...listings[listingId] };
+      const bids = currentListing.bids ? { ...currentListing.bids } : {};
+
+      bids[syndicateId] = {
+        bidderSyndicateId: syndicateId,
+        bidAmount,
+        timestamp,
+      };
+
+      currentListing.bids = bids;
+      listings[listingId] = currentListing;
+
+      newState.secondaryBondListings = listings;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Secondary Bond Bid Placed] Syndicate ${syndicateId} bid ${bidAmount} gold on listing ${listingId}.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📈 [Secondary Bond Bid] Syndicate ${syndicateId} bid ${bidAmount} gold on listing ${listingId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "secondary_bond_bid_placed" as any,
+        listingId,
+        syndicateId,
+        bidAmount,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized EXECUTE_BOND_SALE action (AF-139)
+  if ((action as any).type === "EXECUTE_BOND_SALE") {
+    const { listingId, syndicateId, buyerSyndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const sellerSyndicate = state.syndicates?.[syndicateId];
+    const buyerSyndicate = buyerSyndicateId === "market_maker" ? { id: "market_maker", warChest: 99999999 } : state.syndicates?.[buyerSyndicateId];
+    const listing = state.secondaryBondListings?.[listingId];
+
+    let bond: any;
+    let finalPrice = 0;
+
+    if (!listingId) {
+      rejectionReason = `Listing ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer syndicate ID is required.`;
+    } else if (!listing) {
+      rejectionReason = `Secondary bond listing ${listingId} does not exist.`;
+    } else if (listing.status !== "Open") {
+      rejectionReason = `Secondary bond listing ${listingId} is not open.`;
+    } else if (listing.sellerSyndicateId !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} is not the seller of listing ${listingId}.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller syndicate ${syndicateId} does not exist.`;
+    } else if (!sellerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of seller syndicate ${syndicateId} and cannot execute sale.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else {
+      bond = state.cooperativeSovereigntyBondProposals?.[listing.bondId];
+      if (!bond) {
+        rejectionReason = `Cooperative bond ${listing.bondId} associated with listing does not exist.`;
+      } else if (bond.status !== "Active" || !bond.resolved) {
+        rejectionReason = `Cooperative bond ${listing.bondId} is no longer active.`;
+      } else if ((bond.contributions[syndicateId] || 0) < listing.amount) {
+        rejectionReason = `Seller syndicate ${syndicateId} has insufficient contribution in bond ${listing.bondId} (${bond.contributions[syndicateId] || 0} < ${listing.amount}).`;
+      } else {
+        const bid = buyerSyndicateId === "market_maker" 
+          ? (listing.bids?.["market_maker"] || { bidderSyndicateId: "market_maker", bidAmount: listing.askPrice }) 
+          : listing.bids?.[buyerSyndicateId];
+
+        if (!bid) {
+          rejectionReason = `Buyer syndicate ${buyerSyndicateId} has not placed a bid on listing ${listingId}.`;
+        } else {
+          finalPrice = bid.bidAmount;
+          if (buyerSyndicateId !== "market_maker" && (buyerSyndicate.warChest ?? 0) < finalPrice) {
+            rejectionReason = `Buyer syndicate ${buyerSyndicateId} has insufficient war chest (${buyerSyndicate.warChest ?? 0} gold) to cover execution price ${finalPrice} gold.`;
+          } else {
+            ok = true;
+          }
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && sellerSyndicate && buyerSyndicate && listing && bond) {
+      const listings = { ...(state.secondaryBondListings || {}) };
+      const currentListing = { ...listings[listingId], status: "Completed" as const, timestamp };
+      listings[listingId] = currentListing;
+      newState.secondaryBondListings = listings;
+
+      const syndicates = { ...(state.syndicates || {}) };
+      const sellerCopied = { ...syndicates[syndicateId] };
+      sellerCopied.warChest = (sellerCopied.warChest ?? 0) + finalPrice;
+      syndicates[syndicateId] = sellerCopied;
+
+      if (buyerSyndicateId !== "market_maker") {
+        const buyerCopied = { ...syndicates[buyerSyndicateId] };
+        buyerCopied.warChest = (buyerCopied.warChest ?? 0) - finalPrice;
+        syndicates[buyerSyndicateId] = buyerCopied;
+      }
+      newState.syndicates = syndicates;
+
+      // Transfer bond ownership contribution!
+      const bondsCopy = { ...(state.cooperativeSovereigntyBondProposals || {}) };
+      const currentBond = { ...bondsCopy[listing.bondId] };
+      const contributions = { ...currentBond.contributions };
+
+      contributions[syndicateId] = (contributions[syndicateId] ?? 0) - listing.amount;
+      if (contributions[syndicateId] <= 0) {
+        delete contributions[syndicateId];
+      }
+      contributions[buyerSyndicateId] = (contributions[buyerSyndicateId] ?? 0) + listing.amount;
+
+      currentBond.contributions = contributions;
+      bondsCopy[listing.bondId] = currentBond;
+      newState.cooperativeSovereigntyBondProposals = bondsCopy;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Secondary Bond Sale Executed] Syndicate ${syndicateId} sold ${listing.amount} share of bond ${listing.bondId} to syndicate ${buyerSyndicateId} for ${finalPrice} gold.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🤝 [Secondary Bond Sale] Syndicate ${syndicateId} sold ${listing.amount} share of bond ${listing.bondId} to syndicate ${buyerSyndicateId} for ${finalPrice} gold!`,
+      } as any);
+
+      customEvents.push({
+        type: "secondary_bond_sale_executed" as any,
+        listingId,
+        sellerSyndicateId: syndicateId,
+        buyerSyndicateId,
+        amount: listing.amount,
+        price: finalPrice,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {
