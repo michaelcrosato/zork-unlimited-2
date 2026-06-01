@@ -1211,6 +1211,32 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // AF-262: CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment
+  if (newState.step % 5 === 0 && newState.sovereignDebtCDSCDOPools) {
+    newState.sovereignDebtCDSCDOPools = { ...newState.sovereignDebtCDSCDOPools };
+    for (const [cdoId, pool] of Object.entries(newState.sovereignDebtCDSCDOPools)) {
+      const originalAmount = pool.accumulatedReinvestmentPool ?? 0;
+      const threshold = pool.autoReinvestThreshold ?? 0;
+      if (originalAmount > 0 && threshold > 0 && originalAmount >= threshold) {
+        let reinvestedAmount = originalAmount;
+        newState.sovereignDebtCDSCDOPools[cdoId] = {
+          ...pool,
+          accumulatedReinvestmentPool: 0,
+          fractionalizedVault: {
+            ...pool.fractionalizedVault,
+            balance: pool.fractionalizedVault.balance + reinvestedAmount,
+            timestamp: newState.step,
+          }
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDS CDO Yield-Pro-Rata Auto-Reinvestment] Automatically reinvested ${reinvestedAmount} gold of accumulated calibration fees into CDO ${cdoId} stability pool to maintain liquidity buffers above the floor.`
+        );
+      }
+    }
+  }
+
   // Wire grace ticks for surcharge panic override early cancellation grace period (AF-258/AF-259)
   if (newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals) {
     newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals = { ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals };
