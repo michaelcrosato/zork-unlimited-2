@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #59 (Ready for Cycle #60)
-* **Build/Test Status**: 🟢 PASS (All 267 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #60 (Ready for Cycle #61)
+* **Build/Test Status**: 🟢 PASS (All 271 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -352,16 +352,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire automatic insurance claim processing inside `tickSmugglingConvoys` on convoy ambush destruction, distributing compensation gold to members (`AF-59`).
 - [x] Write comprehensive unit, integration, and P2P mesh convergence tests (`AF-59`).
 
+### Phase 54: Crime Syndicate Contraband Insurance Underwriting & Dynamic Premium Adjustments (Completed)
+- [x] Define dynamic insurance premium scaling formulas inside the economy/sync system (`AF-60`).
+- [x] Implement route-risk evaluation based on room enforcement heat, active factions, and historical ambush occurrences (`AF-60`).
+- [x] Validate premium calculations dynamically upon `PURCHASE_CONVOY_INSURANCE` transactions (`AF-60`).
+- [x] Write comprehensive integration tests asserting underwriting scaling, hostile faction markups, heat scaling, and loss history maluses (`AF-60`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-60`
-* **Objective**: Crime Syndicate Contraband Insurance Underwriting & Dynamic Premium Adjustments.
-* **Why this matters**: Scale insurance premium costs dynamically based on the target convoy's route risk profile, historical syndicate loss rates, and local enforcement heat.
+**Task ID**: `AF-61`
+* **Objective**: Crime Syndicate Money Laundering Audits & Regulatory Enforcer Sweeps.
+* **Why this matters**: Introduce random dynamic tax audits and front business enforcer sweeps driven by the laundering volume and overall enforcer heat.
 * **Planned Actions**:
-  1. Define dynamic insurance premium scaling formulas inside the economy/sync system.
-  2. Implement route-risk evaluation based on room enforcement heat, active factions, and historical ambush occurrences.
-  3. Validate premium calculations dynamically upon `PURCHASE_CONVOY_INSURANCE` transactions.
+  1. Add laundering audit triggers to the front business / economy tick systems.
+  2. Implement enforcer raid penalties and asset confiscation based on active protection levels.
+  3. Sync audit states across the Gossip mesh.
   4. Write comprehensive integration tests.
 
 ---
@@ -375,3 +381,4 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 | **Timeout during playtest** | High | Keep playtest path lengths bounded (e.g. max 35 steps) and use efficient execution loops. |
 | **Nondeterminism in engine** | High | Standardized JSON serialization sorting keys before hashing. Property test action sequences to assert identical hashes. |
 | **Infinite debugging loops** | Medium | Limit autonomous cycle runs to a single task per CLI session, preventing internal loops. |
+

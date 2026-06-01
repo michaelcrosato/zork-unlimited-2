@@ -962,3 +962,68 @@ export function findArbitrageOpportunities(
   // Sort by profit descending
   return opportunities.sort((a, b) => b.profit - a.profit);
 }
+
+/**
+ * Calculates dynamic insurance premium for a smuggling convoy.
+ * Factors in convoy cargo size, route enforcement heat, active factions/reputation,
+ * and historical syndicate loss rates.
+ */
+export function calculateConvoyInsurancePremium(state: GameState, convoyId: string): number {
+  const convoy = state.smugglingConvoys?.[convoyId];
+  if (!convoy) {
+    return 150; // Fallback
+  }
+
+  // Base premium is proportional to cargo size
+  const basePremium = convoy.cargo * 50;
+
+  // 1. Route Risk Evaluation (Room enforcement heat and controlling factions)
+  const route = state.tradeRoutes?.[convoy.routeId];
+  let totalHeat = 0;
+  let factionRepPenalty = 0;
+
+  if (route && route.rooms) {
+    for (const roomId of route.rooms) {
+      // enforcement heat
+      const roomHeat = state.enforcementHeat?.[roomId]?.heat ?? 0;
+      totalHeat += roomHeat;
+
+      // active faction
+      const factionId = state.territoryControl?.[roomId];
+      if (factionId) {
+        const rep = state.factionRep?.[factionId] ?? 0;
+        if (rep < 0) {
+          factionRepPenalty += Math.abs(rep);
+        } else {
+          factionRepPenalty -= rep * 0.5; // Friendly faction reduces risk
+        }
+      }
+    }
+  }
+
+  // Combine route heat and faction reputation into route risk multiplier
+  const routeRiskMultiplier = Math.max(0.5, 1.0 + (totalHeat * 0.015) + (factionRepPenalty * 0.02));
+
+  // 2. Historical Syndicate Loss Rate
+  const syndicateConvoys = Object.values(state.smugglingConvoys || {}).filter(
+    (c) => c.syndicateId === convoy.syndicateId
+  );
+  const finishedConvoys = syndicateConvoys.filter(
+    (c) => c.status === "completed" || c.status === "ambushed"
+  );
+  const lostConvoys = finishedConvoys.filter((c) => c.status === "ambushed");
+
+  let lossRate = 0;
+  if (finishedConvoys.length > 0) {
+    lossRate = lostConvoys.length / finishedConvoys.length;
+  }
+
+  // Loss rate multiplier: ranges from 1.0 (no history or 0% losses) up to 2.0 (100% losses)
+  const lossRateMultiplier = 1.0 + lossRate * 1.0;
+
+  const finalPremium = Math.round(basePremium * routeRiskMultiplier * lossRateMultiplier);
+
+  // Ensure premium is a positive integer, at least 10 gold
+  return Math.max(10, finalPremium);
+}
+

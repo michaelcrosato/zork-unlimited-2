@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { getMerchantGold, getContrabandInInventory } from "./economy.js";
+import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium } from "./economy.js";
 
 export interface MultiAgentAction {
   agentId: string;
@@ -5119,8 +5119,8 @@ export function multiAgentStep(
   // Handle decentralized PURCHASE_CONVOY_INSURANCE action (AF-59)
   if ((action as any).type === "PURCHASE_CONVOY_INSURANCE") {
     const { convoyId, syndicateId, timestamp } = action as any;
-    const defaultCost = 150;
-    const cost = (action as any).cost ?? (action as any).goldCost ?? defaultCost;
+    const expectedPremium = calculateConvoyInsurancePremium(state, convoyId);
+    const cost = (action as any).cost ?? (action as any).goldCost ?? expectedPremium;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -5146,6 +5146,8 @@ export function multiAgentStep(
       rejectionReason = `Convoy ${convoyId} is not en_route (current status: ${convoy.status}).`;
     } else if (state.convoyInsurance?.[convoyId]?.active) {
       rejectionReason = `Smuggling convoy ${convoyId} already has an active insurance policy.`;
+    } else if (cost < expectedPremium) {
+      rejectionReason = `Insufficient insurance premium paid. Required at least ${expectedPremium}, got ${cost}.`;
     } else {
       const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
       const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
@@ -5155,6 +5157,7 @@ export function multiAgentStep(
         ok = true;
       }
     }
+
 
     let newState = { ...state };
     let customEvents: any[] = [];
