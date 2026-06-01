@@ -1219,6 +1219,21 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       const threshold = pool.autoReinvestThreshold ?? 0;
       if (originalAmount > 0 && threshold > 0 && originalAmount >= threshold) {
         let reinvestedAmount = originalAmount;
+        const cap = pool.maxAutoReinvestYieldCap;
+        if (cap !== undefined && originalAmount > cap) {
+          reinvestedAmount = cap;
+          if (!newState.auditLogs) {
+            newState.auditLogs = [];
+          }
+          newState.auditLogs.push(
+            `[CDS_CDO_REINVESTMENT_AUDIT_BREACH] Syndicate CDS CDO auto-reinvestment breach detected for pool ${cdoId}. Attempted: ${originalAmount} gold, Cap: ${cap} gold. Clamped to cap.`
+          );
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[CDS_CDO_REINVESTMENT_AUDIT_BREACH] Audit triggered! Attempted reinvestment of ${originalAmount} gold for CDO ${cdoId} breached the authorized governance cap of ${cap} gold. Clamped to cap.`
+          );
+        }
+
         newState.sovereignDebtCDSCDOPools[cdoId] = {
           ...pool,
           accumulatedReinvestmentPool: 0,

@@ -302,7 +302,11 @@ export type Action =
   | { type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST"; proposalId: string; syndicateId: string; cdoId: string; targetProposalId: string; newMinLiquidityThreshold: number; timestamp: number }
   | { type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION"; proposalId: string; syndicateId: string; cdoId: string; newProposalFee: number; newVoteFee: number; timestamp: number }
-  | { type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT"; proposalId: string; syndicateId: string; cdoId: string; autoReinvestThreshold: number; timestamp: number }
+  | { type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP"; proposalId: string; syndicateId: string; cdoId: string; maxAutoReinvestYieldCap: number; timestamp: number }
+  | { type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number };
 
 
 
