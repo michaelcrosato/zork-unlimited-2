@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -43243,6 +43243,618 @@ export function multiAgentStep(
 
       customEvents.push({
         type: "vote_resolve_default_alert" as any,
+        proposalId,
+        agentId,
+        vote,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle PROPOSE_DEFAULT_GRACE_PERIOD action (AF-227)
+  if ((action as any).type === "PROPOSE_DEFAULT_GRACE_PERIOD") {
+    const { proposalId, syndicateId, targetSyndicateId, alertProposalId, gracePeriodSteps, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const targetSyndicate = state.syndicates?.[targetSyndicateId];
+    const alert = state.sovereignDebtDefaultAlerts?.[alertProposalId];
+
+    // Calculate dynamic proposal fee
+    const allies = Object.keys(state.syndicates || {}).filter(otherId => {
+      if (otherId === syndicateId) return false;
+      return (
+        state.syndicateAlliances?.[syndicateId]?.[otherId] === "allied" ||
+        state.syndicateAlliances?.[otherId]?.[syndicateId] === "allied"
+      );
+    });
+    const allianceCount = allies.length;
+    const proposerWarChest = syndicate?.warChest ?? 0;
+    const alliesWarChest = allies.reduce((sum, allyId) => sum + (state.syndicates?.[allyId]?.warChest ?? 0), 0);
+    const totalTreasuryReserves = proposerWarChest + alliesWarChest;
+
+    const allianceScalar = Math.max(0.5, 1.0 - allianceCount * 0.1);
+    const reserveScalar = Math.max(0.5, 1.0 - Math.floor(totalTreasuryReserves / 1000) * 0.05);
+    const dynamicFeeMultiplier = allianceScalar * reserveScalar;
+
+    const baseProposalFee = 200;
+    const rawProposalFee = Math.round(baseProposalFee * dynamicFeeMultiplier);
+    const proposalFeeCap = 300;
+    const actualProposalFee = Math.min(rawProposalFee, proposalFeeCap);
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!targetSyndicateId) {
+      rejectionReason = `Target Syndicate ID is required.`;
+    } else if (!alertProposalId) {
+      rejectionReason = `Alert Proposal ID is required.`;
+    } else if (gracePeriodSteps === undefined || typeof gracePeriodSteps !== "number" || gracePeriodSteps <= 0) {
+      rejectionReason = `Grace period steps must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Proposing Syndicate ${syndicateId} does not exist.`;
+    } else if (!targetSyndicate) {
+      rejectionReason = `Target Syndicate ${targetSyndicateId} does not exist.`;
+    } else if (!alert) {
+      rejectionReason = `Sovereign debt default alert proposal ${alertProposalId} does not exist.`;
+    } else if (alert.status !== "authorized" || alert.resolved) {
+      rejectionReason = `Target default alert ${alertProposalId} must be authorized and not resolved.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposing syndicate ${syndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < actualProposalFee) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover proposal fee (${actualProposalFee} gold).`;
+    } else if (state.sovereignDebtDefaultGracePeriods?.[proposalId]) {
+      rejectionReason = `Sovereign debt default grace period proposal ${proposalId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - actualProposalFee);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      const surplus = actualProposalFee > baseProposalFee ? actualProposalFee - baseProposalFee : 0;
+      if (surplus > 0) {
+        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + surplus;
+      }
+
+      newState.sovereignDebtDefaultGracePeriods = newState.sovereignDebtDefaultGracePeriods ? { ...newState.sovereignDebtDefaultGracePeriods } : {};
+      newState.sovereignDebtDefaultGracePeriods[proposalId] = {
+        proposalId,
+        syndicateId,
+        targetSyndicateId,
+        alertProposalId,
+        gracePeriodSteps,
+        status: "proposed",
+        resolved: false,
+        proposerId: agentId,
+        timestamp,
+        votes: {
+          [agentId]: { vote: true, timestamp },
+        },
+      };
+
+      newState = reconcileSovereignDebtDefaultGracePeriods(newState, pack);
+
+      const propStatus = newState.sovereignDebtDefaultGracePeriods?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Grace Period Proposed] Agent ${agentId} proposed default grace period proposal ${proposalId} on target Syndicate ${targetSyndicateId} (Steps: ${gracePeriodSteps}, Status: ${propStatus.toUpperCase()}, Fee: ${actualProposalFee} gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Sovereign debt default grace period proposal ${proposalId} created by ${agentId} for Syndicate ${syndicateId} on target Syndicate ${targetSyndicateId} (Steps: ${gracePeriodSteps}).`,
+      } as any);
+
+      customEvents.push({
+        type: "sovereign_debt_default_grace_period_proposed" as any,
+        proposalId,
+        agentId,
+        syndicateId,
+        targetSyndicateId,
+        alertProposalId,
+        gracePeriodSteps,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle VOTE_DEFAULT_GRACE_PERIOD action (AF-227)
+  if ((action as any).type === "VOTE_DEFAULT_GRACE_PERIOD") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposal = state.sovereignDebtDefaultGracePeriods?.[proposalId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    // Calculate dynamic vote fee
+    const allies = Object.keys(state.syndicates || {}).filter(otherId => {
+      if (otherId === syndicateId) return false;
+      return (
+        state.syndicateAlliances?.[syndicateId]?.[otherId] === "allied" ||
+        state.syndicateAlliances?.[otherId]?.[syndicateId] === "allied"
+      );
+    });
+    const allianceCount = allies.length;
+    const proposerWarChest = syndicate?.warChest ?? 0;
+    const alliesWarChest = allies.reduce((sum, allyId) => sum + (state.syndicates?.[allyId]?.warChest ?? 0), 0);
+    const totalTreasuryReserves = proposerWarChest + alliesWarChest;
+
+    const allianceScalar = Math.max(0.5, 1.0 - allianceCount * 0.1);
+    const reserveScalar = Math.max(0.5, 1.0 - Math.floor(totalTreasuryReserves / 1000) * 0.05);
+    const dynamicFeeMultiplier = allianceScalar * reserveScalar;
+
+    const baseVoteFee = 50;
+    const rawVoteFee = Math.round(baseVoteFee * dynamicFeeMultiplier);
+    const voteFeeCap = 100;
+    const actualVoteFee = Math.min(rawVoteFee, voteFeeCap);
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (vote === undefined || typeof vote !== "boolean") {
+      rejectionReason = `Vote flag must be a boolean.`;
+    } else if (!proposal) {
+      rejectionReason = `Sovereign debt default grace period proposal ${proposalId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of voting syndicate ${syndicateId}.`;
+    } else if (proposal.resolved) {
+      rejectionReason = `Sovereign debt default grace period proposal ${proposalId} has already been resolved/closed.`;
+    } else if (proposal.votes?.[agentId]) {
+      rejectionReason = `Agent ${agentId} has already voted on proposal ${proposalId}.`;
+    } else if ((syndicate.warChest ?? 0) < actualVoteFee) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover vote fee (${actualVoteFee} gold).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && proposal && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - actualVoteFee);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      const surplus = actualVoteFee > baseVoteFee ? actualVoteFee - baseVoteFee : 0;
+      if (surplus > 0) {
+        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + surplus;
+      }
+
+      newState.sovereignDebtDefaultGracePeriods = { ...newState.sovereignDebtDefaultGracePeriods };
+      const updatedProposal = { ...newState.sovereignDebtDefaultGracePeriods[proposalId] };
+      updatedProposal.votes = updatedProposal.votes ? { ...updatedProposal.votes } : {};
+      updatedProposal.votes[agentId] = { vote, timestamp };
+      newState.sovereignDebtDefaultGracePeriods[proposalId] = updatedProposal;
+
+      newState = reconcileSovereignDebtDefaultGracePeriods(newState, pack);
+
+      const propStatus = newState.sovereignDebtDefaultGracePeriods?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Grace Period Voted] Agent ${agentId} voted to ${vote ? "AUTHORIZE" : "DISPUTE"} grace period proposal ${proposalId} (Status: ${propStatus.toUpperCase()}, Fee: ${actualVoteFee} gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Sovereign debt default grace period vote cast by ${agentId} for proposal ${proposalId} (Vote: ${vote ? "Authorize" : "Dispute"}).`,
+      } as any);
+
+      customEvents.push({
+        type: "vote_sovereign_debt_default_grace_period" as any,
+        proposalId,
+        agentId,
+        vote,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle PROPOSE_DEFAULT_PENALTY_WAIVER action (AF-227)
+  if ((action as any).type === "PROPOSE_DEFAULT_PENALTY_WAIVER") {
+    const { proposalId, syndicateId, targetSyndicateId, alertProposalId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const targetSyndicate = state.syndicates?.[targetSyndicateId];
+    const alert = state.sovereignDebtDefaultAlerts?.[alertProposalId];
+
+    // Calculate dynamic proposal fee
+    const allies = Object.keys(state.syndicates || {}).filter(otherId => {
+      if (otherId === syndicateId) return false;
+      return (
+        state.syndicateAlliances?.[syndicateId]?.[otherId] === "allied" ||
+        state.syndicateAlliances?.[otherId]?.[syndicateId] === "allied"
+      );
+    });
+    const allianceCount = allies.length;
+    const proposerWarChest = syndicate?.warChest ?? 0;
+    const alliesWarChest = allies.reduce((sum, allyId) => sum + (state.syndicates?.[allyId]?.warChest ?? 0), 0);
+    const totalTreasuryReserves = proposerWarChest + alliesWarChest;
+
+    const allianceScalar = Math.max(0.5, 1.0 - allianceCount * 0.1);
+    const reserveScalar = Math.max(0.5, 1.0 - Math.floor(totalTreasuryReserves / 1000) * 0.05);
+    const dynamicFeeMultiplier = allianceScalar * reserveScalar;
+
+    const baseProposalFee = 200;
+    const rawProposalFee = Math.round(baseProposalFee * dynamicFeeMultiplier);
+    const proposalFeeCap = 300;
+    const actualProposalFee = Math.min(rawProposalFee, proposalFeeCap);
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!targetSyndicateId) {
+      rejectionReason = `Target Syndicate ID is required.`;
+    } else if (!alertProposalId) {
+      rejectionReason = `Alert Proposal ID is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Proposing Syndicate ${syndicateId} does not exist.`;
+    } else if (!targetSyndicate) {
+      rejectionReason = `Target Syndicate ${targetSyndicateId} does not exist.`;
+    } else if (!alert) {
+      rejectionReason = `Sovereign debt default alert proposal ${alertProposalId} does not exist.`;
+    } else if (alert.status !== "authorized" || alert.resolved) {
+      rejectionReason = `Target default alert ${alertProposalId} must be authorized and not resolved.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposing syndicate ${syndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < actualProposalFee) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover proposal fee (${actualProposalFee} gold).`;
+    } else if (state.sovereignDebtDefaultPenaltyWaivers?.[proposalId]) {
+      rejectionReason = `Sovereign debt default penalty waiver proposal ${proposalId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - actualProposalFee);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      const surplus = actualProposalFee > baseProposalFee ? actualProposalFee - baseProposalFee : 0;
+      if (surplus > 0) {
+        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + surplus;
+      }
+
+      newState.sovereignDebtDefaultPenaltyWaivers = newState.sovereignDebtDefaultPenaltyWaivers ? { ...newState.sovereignDebtDefaultPenaltyWaivers } : {};
+      newState.sovereignDebtDefaultPenaltyWaivers[proposalId] = {
+        proposalId,
+        syndicateId,
+        targetSyndicateId,
+        alertProposalId,
+        status: "proposed",
+        resolved: false,
+        proposerId: agentId,
+        timestamp,
+        votes: {
+          [agentId]: { vote: true, timestamp },
+        },
+      };
+
+      newState = reconcileSovereignDebtDefaultPenaltyWaivers(newState, pack);
+
+      const propStatus = newState.sovereignDebtDefaultPenaltyWaivers?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Penalty Waiver Proposed] Agent ${agentId} proposed default penalty waiver proposal ${proposalId} on target Syndicate ${targetSyndicateId} (Status: ${propStatus.toUpperCase()}, Fee: ${actualProposalFee} gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Sovereign debt default penalty waiver proposal ${proposalId} created by ${agentId} for Syndicate ${syndicateId} on target Syndicate ${targetSyndicateId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "sovereign_debt_default_penalty_waiver_proposed" as any,
+        proposalId,
+        agentId,
+        syndicateId,
+        targetSyndicateId,
+        alertProposalId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle VOTE_DEFAULT_PENALTY_WAIVER action (AF-227)
+  if ((action as any).type === "VOTE_DEFAULT_PENALTY_WAIVER") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposal = state.sovereignDebtDefaultPenaltyWaivers?.[proposalId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    // Calculate dynamic vote fee
+    const allies = Object.keys(state.syndicates || {}).filter(otherId => {
+      if (otherId === syndicateId) return false;
+      return (
+        state.syndicateAlliances?.[syndicateId]?.[otherId] === "allied" ||
+        state.syndicateAlliances?.[otherId]?.[syndicateId] === "allied"
+      );
+    });
+    const allianceCount = allies.length;
+    const proposerWarChest = syndicate?.warChest ?? 0;
+    const alliesWarChest = allies.reduce((sum, allyId) => sum + (state.syndicates?.[allyId]?.warChest ?? 0), 0);
+    const totalTreasuryReserves = proposerWarChest + alliesWarChest;
+
+    const allianceScalar = Math.max(0.5, 1.0 - allianceCount * 0.1);
+    const reserveScalar = Math.max(0.5, 1.0 - Math.floor(totalTreasuryReserves / 1000) * 0.05);
+    const dynamicFeeMultiplier = allianceScalar * reserveScalar;
+
+    const baseVoteFee = 50;
+    const rawVoteFee = Math.round(baseVoteFee * dynamicFeeMultiplier);
+    const voteFeeCap = 100;
+    const actualVoteFee = Math.min(rawVoteFee, voteFeeCap);
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (vote === undefined || typeof vote !== "boolean") {
+      rejectionReason = `Vote flag must be a boolean.`;
+    } else if (!proposal) {
+      rejectionReason = `Sovereign debt default penalty waiver proposal ${proposalId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of voting syndicate ${syndicateId}.`;
+    } else if (proposal.resolved) {
+      rejectionReason = `Sovereign debt default penalty waiver proposal ${proposalId} has already been resolved/closed.`;
+    } else if (proposal.votes?.[agentId]) {
+      rejectionReason = `Agent ${agentId} has already voted on proposal ${proposalId}.`;
+    } else if ((syndicate.warChest ?? 0) < actualVoteFee) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover vote fee (${actualVoteFee} gold).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && proposal && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - actualVoteFee);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      const surplus = actualVoteFee > baseVoteFee ? actualVoteFee - baseVoteFee : 0;
+      if (surplus > 0) {
+        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + surplus;
+      }
+
+      newState.sovereignDebtDefaultPenaltyWaivers = { ...newState.sovereignDebtDefaultPenaltyWaivers };
+      const updatedProposal = { ...newState.sovereignDebtDefaultPenaltyWaivers[proposalId] };
+      updatedProposal.votes = updatedProposal.votes ? { ...updatedProposal.votes } : {};
+      updatedProposal.votes[agentId] = { vote, timestamp };
+      newState.sovereignDebtDefaultPenaltyWaivers[proposalId] = updatedProposal;
+
+      newState = reconcileSovereignDebtDefaultPenaltyWaivers(newState, pack);
+
+      const propStatus = newState.sovereignDebtDefaultPenaltyWaivers?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Penalty Waiver Voted] Agent ${agentId} voted to ${vote ? "AUTHORIZE" : "DISPUTE"} penalty waiver proposal ${proposalId} (Status: ${propStatus.toUpperCase()}, Fee: ${actualVoteFee} gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Sovereign debt default penalty waiver vote cast by ${agentId} for proposal ${proposalId} (Vote: ${vote ? "Authorize" : "Dispute"}).`,
+      } as any);
+
+      customEvents.push({
+        type: "vote_sovereign_debt_default_penalty_waiver" as any,
         proposalId,
         agentId,
         vote,

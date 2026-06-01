@@ -246,7 +246,11 @@ export type Action =
   | { type: "PROPOSE_DEFAULT_ALERT"; proposalId: string; syndicateId: string; targetSyndicateId: string; sovereignDebtAmount: number; timestamp: number }
   | { type: "VOTE_DEFAULT_ALERT"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_RESOLVE_DEFAULT_ALERT"; proposalId: string; syndicateId: string; targetSyndicateId: string; alertProposalId: string; timestamp: number }
-  | { type: "VOTE_RESOLVE_DEFAULT_ALERT"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_RESOLVE_DEFAULT_ALERT"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_DEFAULT_GRACE_PERIOD"; proposalId: string; syndicateId: string; targetSyndicateId: string; alertProposalId: string; gracePeriodSteps: number; timestamp: number }
+  | { type: "VOTE_DEFAULT_GRACE_PERIOD"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_DEFAULT_PENALTY_WAIVER"; proposalId: string; syndicateId: string; targetSyndicateId: string; alertProposalId: string; timestamp: number }
+  | { type: "VOTE_DEFAULT_PENALTY_WAIVER"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

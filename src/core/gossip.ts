@@ -1,6 +1,6 @@
 import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileCooperativeRehabSubsidy, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies, reconcileSWFStakingPolicies } from "./state.js";
 import { reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileSWFReinsuranceOptionPenaltyWaivers, reconcileSWFReinsuranceOptionPenaltyRefunds, reconcileSWFReinsuranceOptionSpreadAdjustments, reconcileSWFReinsuranceOptionVolatilityFloors, reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrides, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCaps } from "./state.js";
-import { reconcileSweepPoolRankAdjustFeeCalibrations, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts } from "./state.js";
+import { reconcileSweepPoolRankAdjustFeeCalibrations, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -3933,11 +3933,35 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge sovereignDebtDefaultGracePeriods using LWW
+  const sovereignDebtDefaultGracePeriods = { ...stateA.sovereignDebtDefaultGracePeriods };
+  if (stateB.sovereignDebtDefaultGracePeriods) {
+    for (const [propId, propB] of Object.entries(stateB.sovereignDebtDefaultGracePeriods)) {
+      const propA = sovereignDebtDefaultGracePeriods[propId];
+      if (!propA || propB.timestamp > propA.timestamp) {
+        sovereignDebtDefaultGracePeriods[propId] = propB;
+      }
+    }
+  }
+
+  // Merge sovereignDebtDefaultPenaltyWaivers using LWW
+  const sovereignDebtDefaultPenaltyWaivers = { ...stateA.sovereignDebtDefaultPenaltyWaivers };
+  if (stateB.sovereignDebtDefaultPenaltyWaivers) {
+    for (const [propId, propB] of Object.entries(stateB.sovereignDebtDefaultPenaltyWaivers)) {
+      const propA = sovereignDebtDefaultPenaltyWaivers[propId];
+      if (!propA || propB.timestamp > propA.timestamp) {
+        sovereignDebtDefaultPenaltyWaivers[propId] = propB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
     sovereignDebtDefaultAlerts,
     sovereignDebtResolveAlerts,
+    sovereignDebtDefaultGracePeriods,
+    sovereignDebtDefaultPenaltyWaivers,
     swfReinsuranceOptionOrderBookDepths,
     swfReinsuranceOptionPenaltyWaiverProposals,
     swfReinsuranceOptionPenaltyWaiverVotes,
@@ -4585,6 +4609,8 @@ export class GossipNode {
     convergedState = reconcileSWFAllianceYieldAutoRepayProposals(convergedState, this.pack);
     convergedState = reconcileSovereignDebtDefaultAlerts(convergedState, this.pack);
     convergedState = reconcileSovereignDebtResolveAlerts(convergedState, this.pack);
+    convergedState = reconcileSovereignDebtDefaultGracePeriods(convergedState, this.pack);
+    convergedState = reconcileSovereignDebtDefaultPenaltyWaivers(convergedState, this.pack);
 
 
     // Detect territory control changes during gossip convergence

@@ -520,7 +520,24 @@ export function calculateTradePrice(
   // AF-226: Dynamic Strategic Pricing under default alert
   const hasActiveDefaultAlert = traderSyndicates.some(s => {
     return Object.values(state.sovereignDebtDefaultAlerts || {}).some(alert => {
-      return alert.targetSyndicateId === s.id && alert.status === "authorized" && !alert.resolved;
+      if (alert.targetSyndicateId !== s.id || alert.status !== "authorized" || alert.resolved) {
+        return false;
+      }
+
+      // AF-227: Defer pricing penalty if active grace period or authorized waiver is in effect
+      const isGracePeriodActive = Object.values(state.sovereignDebtDefaultGracePeriods || {}).some(
+        (gp: any) => gp.alertProposalId === alert.proposalId && gp.status === "authorized" && gp.remainingSteps !== undefined && gp.remainingSteps > 0
+      );
+
+      const isWaiverActive = Object.values(state.sovereignDebtDefaultPenaltyWaivers || {}).some(
+        (pw: any) => pw.alertProposalId === alert.proposalId && pw.status === "authorized" && !pw.resolved
+      );
+
+      if (isGracePeriodActive || isWaiverActive) {
+        return false;
+      }
+
+      return true;
     });
   });
   if (hasActiveDefaultAlert) {
@@ -7217,24 +7234,45 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 }
 
 export function tickSovereignDebtDefaultAlerts(state: GameState): GameState {
-  if (!state.sovereignDebtDefaultAlerts) return state;
-
   const newState = {
     ...state,
     factionRep: state.factionRep ? { ...state.factionRep } : {},
     journal: state.journal ? [...state.journal] : [],
+    sovereignDebtDefaultGracePeriods: state.sovereignDebtDefaultGracePeriods ? { ...state.sovereignDebtDefaultGracePeriods } : {},
   };
 
   const activeAlerts = Object.values(newState.sovereignDebtDefaultAlerts || {}).filter(
-    (alert: any) => alert.status === "authorized"
+    (alert: any) => alert.status === "authorized" && !alert.resolved
   );
-
 
   for (const alert of activeAlerts) {
     const targetSyndicateId = alert.targetSyndicateId;
     const outstandingFee = newState.outstandingDeflectionFees?.[targetSyndicateId] ?? 0;
     
     if (outstandingFee > 0) {
+      // AF-227: Check if active grace periods or authorized waivers are in effect for this alert
+      const activeGracePeriod = Object.values(newState.sovereignDebtDefaultGracePeriods || {}).find(
+        (gp: any) => gp.alertProposalId === alert.proposalId && gp.status === "authorized" && gp.remainingSteps !== undefined && gp.remainingSteps > 0
+      ) as any;
+
+      const isWaiverActive = Object.values(newState.sovereignDebtDefaultPenaltyWaivers || {}).some(
+        (pw: any) => pw.alertProposalId === alert.proposalId && pw.status === "authorized" && !pw.resolved
+      );
+
+      if (activeGracePeriod) {
+        newState.journal.push(
+          `[Sovereign Debt Default Alert Penalty Deferred] Syndicate ${targetSyndicateId} bypasses reputation penalty due to active default grace period extension (Remaining: ${activeGracePeriod.remainingSteps} steps, Alert ID: ${alert.proposalId}).`
+        );
+        continue;
+      }
+
+      if (isWaiverActive) {
+        newState.journal.push(
+          `[Sovereign Debt Default Alert Penalty Deferred] Syndicate ${targetSyndicateId} bypasses reputation penalty due to authorized default penalty waiver (Alert ID: ${alert.proposalId}).`
+        );
+        continue;
+      }
+
       const currentRep = newState.factionRep[targetSyndicateId] ?? 0;
       const penalty = 15;
       newState.factionRep[targetSyndicateId] = currentRep - penalty;
@@ -7242,6 +7280,17 @@ export function tickSovereignDebtDefaultAlerts(state: GameState): GameState {
       newState.journal.push(
         `[Sovereign Debt Default Alert Penalty] Syndicate ${targetSyndicateId} failed to service outstanding deflection fee of ${outstandingFee} gold. Applied reputation penalty of -${penalty} faction reputation (New Faction Reputation: ${newState.factionRep[targetSyndicateId]}).`
       );
+    }
+  }
+
+  // Decrement remaining steps of active grace periods after check
+  for (const [id, gp] of Object.entries(newState.sovereignDebtDefaultGracePeriods || {})) {
+    const gpObj = gp as any;
+    if (gpObj.status === "authorized" && gpObj.remainingSteps !== undefined && gpObj.remainingSteps > 0) {
+      newState.sovereignDebtDefaultGracePeriods[id] = {
+        ...gpObj,
+        remainingSteps: gpObj.remainingSteps - 1,
+      };
     }
   }
 

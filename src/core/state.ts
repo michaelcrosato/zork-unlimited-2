@@ -2957,6 +2957,40 @@ export const SovereignDebtResolveAlertSchema = z.object({
 });
 export type SovereignDebtResolveAlert = z.infer<typeof SovereignDebtResolveAlertSchema>;
 
+export const SovereignDebtDefaultGracePeriodProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  alertProposalId: z.string(),
+  gracePeriodSteps: z.number().int().positive(),
+  remainingSteps: z.number().int().optional(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtDefaultGracePeriodProposal = z.infer<typeof SovereignDebtDefaultGracePeriodProposalSchema>;
+
+export const SovereignDebtDefaultPenaltyWaiverProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  alertProposalId: z.string(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtDefaultPenaltyWaiverProposal = z.infer<typeof SovereignDebtDefaultPenaltyWaiverProposalSchema>;
+
 
 
 
@@ -3940,6 +3974,8 @@ export const GameStateSchema = z.object({
   outstandingDeflectionFees: z.record(z.string(), z.number().int().nonnegative()).optional(),
   sovereignDebtDefaultAlerts: z.record(z.string(), SovereignDebtDefaultAlertSchema).optional(),
   sovereignDebtResolveAlerts: z.record(z.string(), SovereignDebtResolveAlertSchema).optional(),
+  sovereignDebtDefaultGracePeriods: z.record(z.string(), SovereignDebtDefaultGracePeriodProposalSchema).optional(),
+  sovereignDebtDefaultPenaltyWaivers: z.record(z.string(), SovereignDebtDefaultPenaltyWaiverProposalSchema).optional(),
 
 
 
@@ -4386,6 +4422,8 @@ export const createInitialState = (options: {
     outstandingDeflectionFees: {},
     sovereignDebtDefaultAlerts: {},
     sovereignDebtResolveAlerts: {},
+    sovereignDebtDefaultGracePeriods: {},
+    sovereignDebtDefaultPenaltyWaivers: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5558,6 +5596,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     outstandingDeflectionFees: rest.outstandingDeflectionFees ? JSON.parse(JSON.stringify(rest.outstandingDeflectionFees)) : undefined,
     sovereignDebtDefaultAlerts: rest.sovereignDebtDefaultAlerts ? JSON.parse(JSON.stringify(rest.sovereignDebtDefaultAlerts)) : undefined,
     sovereignDebtResolveAlerts: rest.sovereignDebtResolveAlerts ? JSON.parse(JSON.stringify(rest.sovereignDebtResolveAlerts)) : undefined,
+    sovereignDebtDefaultGracePeriods: rest.sovereignDebtDefaultGracePeriods ? JSON.parse(JSON.stringify(rest.sovereignDebtDefaultGracePeriods)) : undefined,
+    sovereignDebtDefaultPenaltyWaivers: rest.sovereignDebtDefaultPenaltyWaivers ? JSON.parse(JSON.stringify(rest.sovereignDebtDefaultPenaltyWaivers)) : undefined,
 
   };
   return clone;
@@ -17322,6 +17362,101 @@ export function reconcileSovereignDebtResolveAlerts(state: GameState, pack: any)
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.sovereignDebtResolveAlerts[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtDefaultGracePeriods(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtDefaultGracePeriods: state.sovereignDebtDefaultGracePeriods ? { ...state.sovereignDebtDefaultGracePeriods } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.sovereignDebtDefaultGracePeriods)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sovereignDebtDefaultGracePeriods[proposalId] = {
+        ...proposal,
+        resolved: false,
+        status: "authorized",
+        remainingSteps: proposal.gracePeriodSteps,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Grace Period Authorized] Syndicate ${proposal.syndicateId} authorized default grace period proposal ${proposalId} on target Syndicate ${proposal.targetSyndicateId} (Steps: ${proposal.gracePeriodSteps}).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.sovereignDebtDefaultGracePeriods[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtDefaultPenaltyWaivers(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtDefaultPenaltyWaivers: state.sovereignDebtDefaultPenaltyWaivers ? { ...state.sovereignDebtDefaultPenaltyWaivers } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.sovereignDebtDefaultPenaltyWaivers)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sovereignDebtDefaultPenaltyWaivers[proposalId] = {
+        ...proposal,
+        resolved: false,
+        status: "authorized",
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Penalty Waiver Authorized] Syndicate ${proposal.syndicateId} authorized default penalty waiver proposal ${proposalId} on target Syndicate ${proposal.targetSyndicateId}.`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.sovereignDebtDefaultPenaltyWaivers[proposalId] = {
         ...proposal,
         resolved: true,
         status: "disputed",
