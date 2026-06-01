@@ -3404,6 +3404,36 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals using LWW
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals };
+  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals) {
+    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals)) {
+      const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals[proposalId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals[proposalId] = entryB;
+      }
+    }
+  }
+
+  // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes using LWW
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes };
+  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes) {
+    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes)) {
+      if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes[proposalId]) {
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes[proposalId] = { ...bInner };
+      } else {
+        const aInner = { ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes[proposalId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes[proposalId] = aInner;
+      }
+    }
+  }
+
   // Merge swfReinsuranceOptionPremiumContributions using LWW
   const swfReinsuranceOptionPremiumContributions = { ...stateA.swfReinsuranceOptionPremiumContributions };
   if (stateB.swfReinsuranceOptionPremiumContributions) {
@@ -3431,6 +3461,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfReinsuranceOptionVolatilityFloorAutoAdjustVotes,
     swfReinsuranceOptionVolatilityFloorPanicOverrideProposals,
     swfReinsuranceOptionVolatilityFloorPanicOverrideVotes,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes,
     swfReinsuranceOptionPremiumContributions,
     swfReinsuranceOptionCrossMeshArbitrageRoutes,
     swfReinsuranceOptionCrossSyndicatePools,
