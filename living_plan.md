@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #240 (Ready for Cycle #241)
-* **Build/Test Status**: 🟢 PASS (All 828 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #241 (Ready for Cycle #242)
+* **Build/Test Status**: 🟢 PASS (All 832 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1570,15 +1570,20 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the economy tick to levy transaction fees on successful options trades, deposit them into the staking pool, and distribute dividends deterministically (`AF-243`).
 - [x] Write comprehensive Vitest unit and integration tests inside `tests/syndicates_sovereign_debt_default_cds_cdo_yield_hedging_secondary_market_fees.test.ts` (`AF-243`).
 
+### Phase 222: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Transaction Fee Policy Adjustments and dynamic volatility premium thresholds (Completed)
+- [x] Define dynamic fee adjustment policies and voting consensus schemas in GameState (`AF-244`).
+- [x] Wire secondary market fee scaling to partition rates and regional stability indexes (`AF-244`).
+- [x] Write comprehensive unit and integration tests inside `tests/syndicates_sovereign_debt_default_cds_cdo_yield_hedging_secondary_market_fees_adjustments.test.ts` (`AF-244`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-244`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Transaction Fee Policy Adjustments and dynamic volatility premium thresholds.
-* **Why this matters**: Support dynamic fee adjusting proposals and voting on fee policies with custom volatility scales, ensuring robust economic stabilization under high mesh partition stress.
+**Task ID**: `AF-245`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Bid-Ask Dynamic Spread Controls and Faction Reputation Standing-Gated Fee Waivers.
+* **Why this matters**: Support decentralized voting and proposals to establish dynamic spread ranges and standing-gated fee waivers, providing strategic cost recovery options to allied mesh members under high partition stress.
 * **Planned Actions**:
-  1. Define dynamic fee adjustment policies and voting consensus schemas in GameState.
-  2. Wire secondary market fee scaling to partition rates and regional stability indexes.
+  1. Define bid-ask dynamic spread control policy schemas and voting consensus in GameState.
+  2. Wire standing-gated fee waivers to waive transaction fees for Platinum-tier allied members.
   3. Write comprehensive unit and integration tests.
 
 ---
