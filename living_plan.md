@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #212 (Ready for Cycle #213)
-* **Build/Test Status**: 🟢 PASS (All 760 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #213 (Ready for Cycle #214)
+* **Build/Test Status**: 🟢 PASS (All 762 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1363,14 +1363,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 193: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Oracle Manipulation Defenses (Completed)
+- [x] Define oracle reputation dispute and stake-slashing schemas for weather forecast reporting anomalies in GameState (`AF-215`).
+- [x] Implement dynamic voting-based consensus to dispute and slash malicious oracles (`AF-215`).
+- [x] Write comprehensive Vitest integration tests in `tests/syndicates_swf_oracle_defenses.test.ts` verifying manipulation defenses and oracle slashing (`AF-215`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-215`
-* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Oracle Manipulation Defenses.
-* **Why this matters**: Protect dynamic volatility hedging purchases and speculative payouts from malicious weather forecast oracle reporting via decentralized validation and stake-slashing.
+**Task ID**: `AF-216`
+* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Multi-Oracle Consensus & Aggregate Forecasting.
+* **Why this matters**: Support aggregating forecasts from multiple registered oracles to mitigate single-oracle central failure risks, resolving conflicting reports via consensus voting or weighted-average aggregate math.
 * **Planned Actions**:
-  1. Define oracle reputation dispute and stake-slashing schemas for weather forecast reporting anomalies.
-  2. Implement dynamic voting-based consensus to dispute and slash malicious oracles.
-  3. Write comprehensive Vitest integration tests verifying manipulation defenses and oracle slashing.
+  1. Support registering multiple weather forecast oracles in state with custom staking and reputation weights.
+  2. Implement a weighted-average aggregate forecasting function in `tickEconomy` scaling oracle inputs by their reputation scores.
+  3. Write comprehensive Vitest integration tests asserting aggregate forecasting, oracle additions, and joint dispute reconciliation.
 
 ---
 

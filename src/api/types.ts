@@ -223,8 +223,10 @@ export type Action =
   | { type: "VOTE_SWEEP_POOL_REDISTRIBUTION_FEE_GOVERNANCE_CAP"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY"; proposalId: string; syndicateId: string; volatilityThreshold: number; hedgingRatio: number; reserveFloor: number; timestamp: number }
   | { type: "VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
-  | { type: "PROPOSE_WEATHER_FORECAST_ORACLE"; proposalId: string; syndicateId: string; oracleReputationThreshold: number; forecastAccuracyFloor: number; timestamp: number }
-  | { type: "VOTE_WEATHER_FORECAST_ORACLE"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "PROPOSE_WEATHER_FORECAST_ORACLE"; proposalId: string; syndicateId: string; oracleReputationThreshold: number; forecastAccuracyFloor: number; oracleStake?: number; timestamp: number }
+  | { type: "VOTE_WEATHER_FORECAST_ORACLE"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_ORACLE_DISPUTE"; disputeId: string; syndicateId: string; anomalyStep: number; disputeStake: number; timestamp: number }
+  | { type: "VOTE_ORACLE_DISPUTE"; syndicateId: string; disputeId: string; vote: boolean; timestamp: number };
 
 
 

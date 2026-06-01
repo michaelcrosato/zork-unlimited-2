@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -39514,7 +39514,7 @@ export function multiAgentStep(
 
   // Handle PROPOSE_WEATHER_FORECAST_ORACLE action (AF-212)
   if ((action as any).type === "PROPOSE_WEATHER_FORECAST_ORACLE") {
-    const { proposalId, syndicateId, oracleReputationThreshold, forecastAccuracyFloor, timestamp } = action as any;
+    const { proposalId, syndicateId, oracleReputationThreshold, forecastAccuracyFloor, oracleStake, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -39551,12 +39551,16 @@ export function multiAgentStep(
       rejectionReason = `Oracle reputation threshold must be a non-negative number.`;
     } else if (forecastAccuracyFloor === undefined || typeof forecastAccuracyFloor !== "number" || forecastAccuracyFloor < 0 || forecastAccuracyFloor > 100) {
       rejectionReason = `Forecast accuracy floor must be a percentage between 0 and 100.`;
+    } else if (oracleStake !== undefined && (typeof oracleStake !== "number" || oracleStake < 0)) {
+      rejectionReason = `Oracle stake must be a non-negative number.`;
     } else if (!syndicate) {
       rejectionReason = `Proposing Syndicate ${syndicateId} does not exist.`;
     } else if (!syndicate.members.includes(agentId)) {
       rejectionReason = `Agent ${agentId} is not a member of proposing syndicate ${syndicateId}.`;
     } else if ((syndicate.warChest ?? 0) < actualProposalFee) {
       rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover proposal fee (${actualProposalFee} gold).`;
+    } else if ((syndicate.warChest ?? 0) < actualProposalFee + (oracleStake ?? 500)) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover both proposal fee (${actualProposalFee} gold) and oracle stake (${oracleStake ?? 500} gold).`;
     } else if (state.sweepPoolWeatherForecastOracleProposals?.[proposalId]) {
       rejectionReason = `Weather forecast oracle proposal ${proposalId} already exists.`;
     } else {
@@ -39584,6 +39588,7 @@ export function multiAgentStep(
         syndicateId,
         oracleReputationThreshold,
         forecastAccuracyFloor,
+        oracleStake: oracleStake ?? 500,
         status: "proposed",
         resolved: false,
         timestamp,
@@ -39751,6 +39756,239 @@ export function multiAgentStep(
       customEvents.push({
         type: "sweep_pool_weather_forecast_oracle_voted" as any,
         proposalId,
+        agentId,
+        vote,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle PROPOSE_ORACLE_DISPUTE action (AF-215)
+  if ((action as any).type === "PROPOSE_ORACLE_DISPUTE") {
+    const { disputeId, syndicateId, anomalyStep, disputeStake, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!disputeId) {
+      rejectionReason = `Dispute ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (anomalyStep === undefined || typeof anomalyStep !== "number" || anomalyStep < 0) {
+      rejectionReason = `Anomaly step must be a non-negative number.`;
+    } else if (disputeStake === undefined || typeof disputeStake !== "number" || disputeStake < 0) {
+      rejectionReason = `Dispute stake must be a non-negative number.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposing syndicate ${syndicateId}.`;
+    } else if (!state.sweepPoolWeatherForecastOracleAuthorized) {
+      rejectionReason = `No weather forecast oracle is currently authorized.`;
+    } else if ((syndicate.warChest ?? 0) < disputeStake) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover dispute stake (${disputeStake} gold).`;
+    } else if (state.sweepPoolWeatherForecastOracleDisputes?.[disputeId]) {
+      rejectionReason = `Oracle dispute ${disputeId} already exists.`;
+    } else if (!state.weatherForecastAnomalies?.includes(anomalyStep)) {
+      rejectionReason = `No weather forecast anomaly was recorded at step ${anomalyStep}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - disputeStake);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      newState.sweepPoolWeatherForecastOracleDisputes = newState.sweepPoolWeatherForecastOracleDisputes ? { ...newState.sweepPoolWeatherForecastOracleDisputes } : {};
+      newState.sweepPoolWeatherForecastOracleDisputes[disputeId] = {
+        disputeId,
+        syndicateId,
+        anomalyStep,
+        disputeStake,
+        status: "proposed",
+        resolved: false,
+        timestamp,
+        votes: {
+          [agentId]: { vote: true, timestamp },
+        },
+      };
+
+      newState = reconcileSweepPoolWeatherForecastOracleDisputes(newState, pack);
+
+      const dispStatus = newState.sweepPoolWeatherForecastOracleDisputes?.[disputeId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Oracle Dispute Proposed] Agent ${agentId} proposed oracle dispute ${disputeId} targeting anomaly at step ${anomalyStep} (Stake: ${disputeStake} gold, Status: ${dispStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `⚖️ Weather forecast oracle dispute ${disputeId} proposed by ${agentId} for Syndicate ${syndicateId} targeting anomaly at step ${anomalyStep}.`,
+      } as any);
+
+      customEvents.push({
+        type: "sweep_pool_weather_forecast_oracle_dispute_proposed" as any,
+        disputeId,
+        agentId,
+        syndicateId,
+        anomalyStep,
+        disputeStake,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle VOTE_ORACLE_DISPUTE action (AF-215)
+  if ((action as any).type === "VOTE_ORACLE_DISPUTE") {
+    const { syndicateId, disputeId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const dispute = state.sweepPoolWeatherForecastOracleDisputes?.[disputeId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!disputeId) {
+      rejectionReason = `Dispute ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (vote === undefined || typeof vote !== "boolean") {
+      rejectionReason = `Vote flag must be a boolean.`;
+    } else if (!dispute) {
+      rejectionReason = `Weather forecast oracle dispute ${disputeId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on this dispute.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && dispute && syndicate) {
+      newState.sweepPoolWeatherForecastOracleDisputes = { ...newState.sweepPoolWeatherForecastOracleDisputes };
+      const updatedDispute = { ...newState.sweepPoolWeatherForecastOracleDisputes[disputeId] };
+      updatedDispute.votes = updatedDispute.votes ? { ...updatedDispute.votes } : {};
+      updatedDispute.votes[agentId] = { vote, timestamp };
+      newState.sweepPoolWeatherForecastOracleDisputes[disputeId] = updatedDispute;
+
+      newState = reconcileSweepPoolWeatherForecastOracleDisputes(newState, pack);
+
+      const dispStatus = newState.sweepPoolWeatherForecastOracleDisputes?.[disputeId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Oracle Dispute Voted] Agent ${agentId} voted on oracle dispute ${disputeId} (Vote: ${vote ? "AUTHORIZE" : "DISMISS"}, Status: ${dispStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `⚖️ Weather forecast oracle dispute vote cast by ${agentId} for dispute ${disputeId} (Vote: ${vote ? "Authorize" : "Dismiss"}).`,
+      } as any);
+
+      customEvents.push({
+        type: "sweep_pool_weather_forecast_oracle_dispute_voted" as any,
+        disputeId,
         agentId,
         vote,
         timestamp,

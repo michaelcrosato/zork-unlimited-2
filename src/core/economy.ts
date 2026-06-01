@@ -8800,6 +8800,41 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
     journal: state.journal ? [...state.journal] : [],
   };
 
+  if (newState.sweepPoolWeatherForecastOracleAuthorized) {
+    const currentStepStr = (newState.step ?? 0).toString();
+    const predictionForCurrentStep = newState.weatherForecastHistory?.[currentStepStr];
+    if (predictionForCurrentStep !== undefined) {
+      const actualWeather = newState.environment?.weather ?? "clear";
+      const actualWind = newState.environment?.wind ?? "calm";
+      
+      let actBaseVol = 0;
+      if (actualWeather === "storm") actBaseVol = 50;
+      else if (actualWeather === "rain") actBaseVol = 20;
+      else if (actualWeather === "fog") actBaseVol = 15;
+      else if (actualWeather === "clear") actBaseVol = 5;
+
+      let actWindVol = 0;
+      if (actualWind === "tempest") actWindVol = 30;
+      else if (actualWind === "gale") actWindVol = 15;
+      else if (actualWind === "breezy") actWindVol = 5;
+      
+      const actualVol = actBaseVol + actWindVol;
+      
+      if (Math.abs(predictionForCurrentStep - actualVol) > 20) {
+        if (!newState.weatherForecastAnomalies) {
+          newState.weatherForecastAnomalies = [];
+        }
+        if (!newState.weatherForecastAnomalies.includes(newState.step)) {
+          newState.weatherForecastAnomalies.push(newState.step);
+        }
+        
+        newState.journal.push(
+          `[Oracle Anomaly Detected] Weather forecast oracle predicted volatility ${predictionForCurrentStep} for step ${newState.step}, but actual volatility was ${actualVol} (Mismatch > 20 points). Anomaly registered at step ${newState.step}.`
+        );
+      }
+    }
+  }
+
   if (
     newState.sweepPoolVolatilityHedgingPolicyAuthorized !== true ||
     newState.sweepPoolVolatilityHedgingThreshold === undefined ||
@@ -8876,7 +8911,17 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
       else if (forecast.wind === "gale") fWindVol = 15;
       else if (forecast.wind === "breezy") fWindVol = 5;
 
-      const predictedVol = fBaseVol + fWindVol;
+      let predictedVol = fBaseVol + fWindVol;
+      const stepStr = forecastStep.toString();
+      if (newState.weatherForecastOracleMaliciousOverride?.[stepStr] !== undefined) {
+        predictedVol = newState.weatherForecastOracleMaliciousOverride[stepStr];
+      }
+
+      if (!newState.weatherForecastHistory) {
+        newState.weatherForecastHistory = {};
+      }
+      newState.weatherForecastHistory[stepStr] = predictedVol;
+
       const threshold = newState.sweepPoolVolatilityHedgingThreshold;
       const accuracy = newState.sweepPoolWeatherForecastOracleAccuracyFloor ?? 100;
 
@@ -8973,7 +9018,17 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
       else if (forecast.wind === "gale") fWindVol = 15;
       else if (forecast.wind === "breezy") fWindVol = 5;
 
-      const predictedVol = fBaseVol + fWindVol;
+      let predictedVol = fBaseVol + fWindVol;
+      const stepStr = forecastStep.toString();
+      if (newState.weatherForecastOracleMaliciousOverride?.[stepStr] !== undefined) {
+        predictedVol = newState.weatherForecastOracleMaliciousOverride[stepStr];
+      }
+
+      if (!newState.weatherForecastHistory) {
+        newState.weatherForecastHistory = {};
+      }
+      newState.weatherForecastHistory[stepStr] = predictedVol;
+
       const threshold = newState.sweepPoolVolatilityHedgingThreshold;
 
       if (predictedVol < threshold) {
