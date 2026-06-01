@@ -1151,5 +1151,170 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     expect(merged.jointLoanDebtSettlementVotes?.jgroup1?.player.timestamp).toBe(1050);
     expect(merged.jointLoanDebtSettlementVotes?.jgroup1?.player.settlementAmount).toBe(240);
   });
+
+  it("should handle SWAP_JOINT_COLLATERAL voting, consensus, value validation, and Gossip mesh convergence (AF-96)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 200, gold_alice: 200 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "clearing",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 500
+      },
+      woods: {
+        id: "woods",
+        roomId: "woods",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 2, // value 600
+      },
+    };
+
+    state.jointLoans = {
+      jgroup1: {
+        id: "jgroup1",
+        syndicateId: "blood_fangs",
+        members: ["player", "alice"],
+        collaterals: [
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" }, // 500 value
+        ],
+        amount: 300,
+        interestAccrued: 50,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Group member 'player' proposes swapping 'clearing' (value 500) for 'woods' (value 600)
+    const action1 = {
+      type: "SWAP_JOINT_COLLATERAL",
+      groupId: "jgroup1",
+      removeCollateralType: "safehouse",
+      removeCollateralId: "clearing",
+      addCollateralType: "safehouse",
+      addCollateralId: "woods",
+      timestamp: 1020,
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
+    expect(res1.ok).toBe(true);
+    // Should register the vote but NOT swap yet (no double-majority)
+    expect(res1.state.jointLoans?.jgroup1?.collaterals[0].collateralId).toBe("clearing");
+    expect(res1.state.jointLoanCollateralSwapVotes?.jgroup1?.player).toBeDefined();
+
+    // 2. Syndicate bank member 'bob' votes for the swap
+    const action2 = {
+      type: "SWAP_JOINT_COLLATERAL",
+      groupId: "jgroup1",
+      removeCollateralType: "safehouse",
+      removeCollateralId: "clearing",
+      addCollateralType: "safehouse",
+      addCollateralId: "woods",
+      timestamp: 1025,
+    };
+
+    let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
+    expect(res2.ok).toBe(true);
+    // Still not enough group majority (only player voted in group, alice has not)
+    expect(res2.state.jointLoans?.jgroup1?.collaterals[0].collateralId).toBe("clearing");
+
+    // 3. Group member 'alice' votes for the swap
+    const action3 = {
+      type: "SWAP_JOINT_COLLATERAL",
+      groupId: "jgroup1",
+      removeCollateralType: "safehouse",
+      removeCollateralId: "clearing",
+      addCollateralType: "safehouse",
+      addCollateralId: "woods",
+      timestamp: 1030,
+    };
+
+    let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
+    expect(res3.ok).toBe(true);
+
+    // Consensus reached! The collateral must be swapped to 'woods'
+    expect(res3.state.jointLoans?.jgroup1?.collaterals[0].collateralId).toBe("woods");
+    // Votes must be cleared
+    expect(res3.state.jointLoanCollateralSwapVotes?.jgroup1).toBeUndefined();
+  });
+
+  it("should merge jointLoanCollateralSwapVotes and reconcile terms across Gossip synchronization", () => {
+    let stateA = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateA.jointLoanCollateralSwapVotes = {
+      jgroup1: {
+        player: {
+          removeCollateralType: "safehouse",
+          removeCollateralId: "clearing",
+          addCollateralType: "safehouse",
+          addCollateralId: "woods",
+          timestamp: 1050,
+        },
+      },
+    };
+
+    let stateB = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateB.jointLoanCollateralSwapVotes = {
+      jgroup1: {
+        player: {
+          removeCollateralType: "safehouse",
+          removeCollateralId: "clearing",
+          addCollateralType: "safehouse",
+          addCollateralId: "clearing",
+          timestamp: 1020, // older
+        },
+      },
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.jointLoanCollateralSwapVotes?.jgroup1?.player.timestamp).toBe(1050);
+    expect(merged.jointLoanCollateralSwapVotes?.jgroup1?.player.addCollateralId).toBe("woods");
+  });
 });
 
