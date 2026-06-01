@@ -290,7 +290,9 @@ export type Action =
   | { type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY"; proposalId: string; cdoId: string; syndicateId: string; spreadPenaltyMultiplier: number; spreadPenaltyCapMultiplier?: number; spreadPenaltyThresholdPercent: number; factionStandingDiscounts?: Record<string, number>; marketMakerSurchargeRate?: number; marketMakerSurchargeThresholdPercent?: number; marketMakerSurchargeAutoCompound?: boolean; marketMakerSurchargeCompoundTrancheId?: "senior" | "mezzanine" | "equity"; marketMakerSurchargeFactionStandingDiscounts?: Record<string, number>; timestamp: number }
   | { type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE"; proposalId: string; cdoId: string; syndicateId: string; panicOverrideActive: boolean; cooldownDuration: number; timestamp: number }
-  | { type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION"; proposalId: string; targetProposalId: string; cdoId: string; syndicateId: string; extensionDuration: number; timestamp: number }
+  | { type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number };
 
 
 
