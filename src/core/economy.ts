@@ -654,6 +654,65 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Elite Enforcers Combat Patrol Ticking (AF-75)
+  if (newState.eliteEnforcers) {
+    for (const [eliteId, elite] of Object.entries(newState.eliteEnforcers)) {
+      if (elite.status !== "active") continue;
+
+      // 100% chance of combat patrol per economic tick
+      const patrolChance = 1.0;
+      const { value: roll, nextSeed } = PureRand.next(newState.seed);
+      newState.seed = nextSeed;
+
+      if (roll <= patrolChance) {
+        // Find rival turf guards to execute
+        const rivalGuards = Object.entries(newState.turfGuards || {}).filter(([roomId, guards]) => {
+          return guards.syndicateId !== elite.syndicateId && guards.count > 0;
+        });
+
+        if (rivalGuards.length > 0) {
+          const { value: index, nextSeed: s2 } = PureRand.nextInt(newState.seed, 0, rivalGuards.length - 1);
+          newState.seed = s2;
+          const [roomId, guards] = rivalGuards[index];
+
+          newState.turfGuards = {
+            ...(newState.turfGuards || {}),
+            [roomId]: {
+              ...guards,
+              count: Math.max(0, guards.count - 1),
+            },
+          };
+          newState.journal.push(`[EliteEnforcer] Elite enforcer ${elite.name} executed a rival turf guard in room ${roomId}!`);
+        } else {
+          // Fallback: reduce enforcer heat in one of our syndicate's controlled rooms
+          const ourTurfRooms = Object.entries(newState.syndicateTurf || {})
+            .filter(([_, syndicateId]) => syndicateId === elite.syndicateId)
+            .map(([roomId, _]) => roomId);
+
+          if (ourTurfRooms.length > 0) {
+            const { value: index, nextSeed: s2 } = PureRand.nextInt(newState.seed, 0, ourTurfRooms.length - 1);
+            newState.seed = s2;
+            const roomId = ourTurfRooms[index];
+            const currentHeatEntry = newState.enforcementHeat?.[roomId];
+            if (currentHeatEntry) {
+              const heatReduction = 40;
+              const newHeat = Math.max(0, currentHeatEntry.heat - heatReduction);
+              newState.enforcementHeat = {
+                ...(newState.enforcementHeat || {}),
+                [roomId]: {
+                  ...currentHeatEntry,
+                  heat: newHeat,
+                  timestamp: newState.step,
+                },
+              };
+              newState.journal.push(`[EliteEnforcer] Elite enforcer ${elite.name} reduced local enforcer heat in room ${roomId} by ${heatReduction} (New heat: ${newHeat}).`);
+            }
+          }
+        }
+      }
+    }
+  }
+
   // 5. Faction Counter-Attacks and Sieges (AF-72)
   if (newState.step > 0 && newState.step % 10 === 0 && newState.territoryControl) {
     const activeControl = { ...newState.territoryControl };
@@ -1019,9 +1078,25 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           const { value: auditStrength, nextSeed } = PureRand.nextInt(newState.seed, 20, 100);
           newState.seed = nextSeed;
 
-          if (defenseScore >= auditStrength) {
+          let eliteAuditDeflection = false;
+          let deflectingEliteName = "";
+          if (newState.eliteEnforcers) {
+            const matchingElite = Object.values(newState.eliteEnforcers).find(
+              e => e.syndicateId === front.syndicateId && e.status === "active"
+            );
+            if (matchingElite) {
+              eliteAuditDeflection = true;
+              deflectingEliteName = matchingElite.name;
+            }
+          }
+
+          if (eliteAuditDeflection || defenseScore >= auditStrength) {
             // Defended!
-            newState.journal.push(`[Syndicate] Front business ${front.id} successfully passed money laundering audit in room ${front.roomId}! Active protection systems repelled regulators (Defense: ${defenseScore} vs Audit Strength: ${auditStrength}).`);
+            if (eliteAuditDeflection) {
+              newState.journal.push(`[EliteEnforcer] Elite enforcer ${deflectingEliteName} intercepted and deflected the enforcer audit raid at front business ${front.id} in room ${front.roomId}!`);
+            } else {
+              newState.journal.push(`[Syndicate] Front business ${front.id} successfully passed money laundering audit in room ${front.roomId}! Active protection systems repelled regulators (Defense: ${defenseScore} vs Audit Strength: ${auditStrength}).`);
+            }
             activeAudit = false;
             if (newState.enforcementHeat?.[front.roomId]) {
               newState.enforcementHeat[front.roomId] = {
@@ -1110,12 +1185,27 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               }
             }
 
-            if (saboteurDeflection) {
+            // Elite Enforcer Sweep Interception (AF-75)
+            let eliteDeflection = false;
+            let deflectingEliteName = "";
+            if (newState.eliteEnforcers) {
+              const matchingElite = Object.values(newState.eliteEnforcers).find(
+                e => e.syndicateId === front.syndicateId && e.status === "active"
+              );
+              if (matchingElite) {
+                eliteDeflection = true;
+                deflectingEliteName = matchingElite.name;
+              }
+            }
+
+            if (saboteurDeflection || eliteDeflection) {
               sweepDefended = true;
             }
 
             if (sweepDefended) {
-              if (saboteurDeflection) {
+              if (eliteDeflection) {
+                newState.journal.push(`[EliteEnforcer] Elite enforcer ${deflectingEliteName} intercepted and repelled the enforcer sweep at front business ${front.id} in room ${front.roomId}!`);
+              } else if (saboteurDeflection) {
                 newState.journal.push(`[Saboteur] Saboteur ${deflectingSaboteurName} successfully deflected the enforcer sweep at front business ${front.id} in room ${front.roomId}!`);
               } else if (outpost) {
                 let msg = `[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards and Defense Outpost (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`;

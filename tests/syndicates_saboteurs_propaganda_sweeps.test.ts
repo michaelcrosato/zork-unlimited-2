@@ -4,6 +4,7 @@ import { tickEconomy, calculateTradePrice } from "../src/core/economy.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { GossipNode, mergeMonotonicStateFields } from "../src/core/gossip.js";
+import { tickEnforcers } from "../src/core/engine.js";
 
 describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and Global Propaganda Networks (AF-74)", () => {
   const mockPack: ParserPack = ParserPackSchema.parse({
@@ -488,6 +489,216 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
       expect(merged?.["enforcer_jenkins"].status).toBe("compromised"); // LWW won
       expect(merged?.["enforcer_brady"]).toBeDefined();
       expect(merged?.["enforcer_brady"].status).toBe("active");
+    });
+  });
+
+  describe("RECRUIT_ELITE_ENFORCER (AF-75)", () => {
+    it("should successfully recruit an elite enforcer if faction rep >= 50 and agent has enough gold", () => {
+      let state = createInitialState({
+        seed: 123,
+        start: "market",
+        varsInit: { gold: 500 },
+        agentsInit: ["player"],
+      });
+
+      state.syndicates = {
+        shadow_cartel: {
+          id: "shadow_cartel",
+          name: "Shadow Cartel",
+          members: ["player"],
+          definedBy: "player",
+          timestamp: 100,
+        },
+      };
+
+      state.factionRep = {
+        rangers: 60, // >= 50
+      };
+
+      const res = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "RECRUIT_ELITE_ENFORCER",
+            npcId: "merchant_timmy",
+            factionId: "rangers",
+            syndicateId: "shadow_cartel",
+            timestamp: 105,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(res.ok).toBe(true);
+      expect(res.state.eliteEnforcers?.["merchant_timmy"]).toBeDefined();
+      expect(res.state.eliteEnforcers?.["merchant_timmy"].status).toBe("active");
+      expect(res.state.vars["gold"]).toBe(250); // 500 - 250
+    });
+
+    it("should reject recruiting an elite enforcer if faction rep < 50", () => {
+      let state = createInitialState({
+        seed: 123,
+        start: "market",
+        varsInit: { gold: 500 },
+        agentsInit: ["player"],
+      });
+
+      state.syndicates = {
+        shadow_cartel: {
+          id: "shadow_cartel",
+          name: "Shadow Cartel",
+          members: ["player"],
+          definedBy: "player",
+          timestamp: 100,
+        },
+      };
+
+      state.factionRep = {
+        rangers: 40, // < 50
+      };
+
+      const res = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "RECRUIT_ELITE_ENFORCER",
+            npcId: "merchant_timmy",
+            factionId: "rangers",
+            syndicateId: "shadow_cartel",
+            timestamp: 105,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(res.ok).toBe(false);
+      expect(res.rejectionReason).toContain("is too low");
+    });
+  });
+
+  describe("LAUNCH_COUNTER_SABOTAGE (AF-75)", () => {
+    it("should successfully neutralize active rival saboteurs", () => {
+      let state = createInitialState({
+        seed: 123,
+        start: "market",
+        varsInit: { gold: 500 },
+        agentsInit: ["player"],
+      });
+
+      state.syndicates = {
+        shadow_cartel: {
+          id: "shadow_cartel",
+          name: "Shadow Cartel",
+          members: ["player"],
+          definedBy: "player",
+          timestamp: 100,
+        },
+      };
+
+      state.saboteurs = {
+        rival_saboteur: {
+          id: "rival_saboteur",
+          name: "Rival Saboteur",
+          syndicateId: "other_syndicate",
+          status: "active",
+          timestamp: 100,
+        },
+      };
+
+      const res = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "LAUNCH_COUNTER_SABOTAGE",
+            syndicateId: "shadow_cartel",
+            timestamp: 105,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(res.ok).toBe(true);
+      expect(res.state.saboteurs?.["rival_saboteur"].status).toBe("compromised");
+      expect(res.state.vars["gold"]).toBe(300); // 500 - 200
+    });
+  });
+
+  describe("Elite Enforcer & Bounty Ticking Ticks (AF-75)", () => {
+    it("should allow elite enforcers to execute rival guards and reduce heat", () => {
+      let state = createInitialState({
+        seed: 123,
+        start: "market",
+        agentsInit: ["player"],
+      });
+
+      state.eliteEnforcers = {
+        elite_ranger: {
+          id: "elite_ranger",
+          name: "Elite Ranger",
+          factionId: "rangers",
+          syndicateId: "shadow_cartel",
+          status: "active",
+          timestamp: 100,
+        },
+      };
+
+      state.turfGuards = {
+        market: {
+          roomId: "market",
+          syndicateId: "rival_syndicate",
+          count: 3,
+          cost: 100,
+          timestamp: 100,
+        },
+      };
+
+      // Perform tickEconomy
+      let tickedState = tickEconomy(state, mockPack);
+      expect(tickedState.turfGuards?.["market"].count).toBe(2);
+
+      // Now with no rival guards, it should reduce heat
+      tickedState.turfGuards = {}; // Clear rival turf guards so elite enforcer falls back to heat reduction
+      tickedState.enforcementHeat = {
+        market: {
+          roomId: "market",
+          heat: 50,
+          timestamp: 100,
+        },
+      };
+      tickedState.syndicateTurf = {
+        market: "shadow_cartel",
+      };
+
+      tickedState = tickEconomy(tickedState, mockPack);
+      expect(tickedState.enforcementHeat?.["market"].heat).toBe(10); // 50 - 40
+    });
+
+    it("should automatically track high-reputation players carrying contraband", () => {
+      let state = createInitialState({
+        seed: 123,
+        start: "market",
+        agentsInit: ["player"],
+      });
+
+      // Player carries contraband item 'royal_gem'
+      state.inventory = ["royal_gem"];
+
+      // Player has high reputation
+      state.factionRep = {
+        rangers: 60,
+      };
+
+      const events: any[] = [];
+      let tickedState = tickEnforcers(state, events, mockPack);
+
+      expect(tickedState.bounties?.["player"]).toBeDefined();
+      expect(tickedState.bounties?.["player"].active).toBe(true);
+      expect(tickedState.enforcers?.["bounty_hunter_player"]).toBeDefined();
+      expect(tickedState.enforcers?.["bounty_hunter_player"].status).toBe("pursuing");
+      expect(tickedState.enforcers?.["bounty_hunter_player"].targetId).toBe("player");
     });
   });
 });

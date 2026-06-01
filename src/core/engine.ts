@@ -2564,20 +2564,101 @@ export function tickEnforcers(
 ): GameState {
   let newState = tickUndercoverAgents(state, events, pack);
   newState = tickInformants(newState, events, pack);
-  if (!pack || !("rooms" in pack) || !newState.enforcers || Object.keys(newState.enforcers).length === 0) {
+  if (!pack || !("rooms" in pack)) {
     return newState;
   }
 
   const parserPack = pack as ParserPack;
   newState = { ...newState };
-  if (newState.enforcers) {
-    newState.enforcers = { ...newState.enforcers };
-  }
+  newState.enforcers = newState.enforcers ? { ...newState.enforcers } : {};
   if (newState.vars) {
     newState.vars = { ...newState.vars };
   }
   if (newState.flags) {
     newState.flags = { ...newState.flags };
+  }
+
+  // Global Bounty Hunting Network: Automatically track and target high-reputation player or NPC agents carrying contraband (AF-75)
+  const candidates = ["player", ...Object.keys(newState.agents || {})];
+  for (const candidateId of candidates) {
+    // 1. Check if they carry contraband
+    let carriesContraband = false;
+    if (candidateId === "player") {
+      carriesContraband = getContrabandInInventory(newState, parserPack).length > 0;
+    } else {
+      const agent = newState.agents?.[candidateId];
+      if (agent && agent.inventory) {
+        for (const itemId of agent.inventory) {
+          const packObj = parserPack.objects?.find((o: any) => o.id === itemId);
+          const isPackContraband = packObj?.contraband === true;
+          const isBlacklisted = newState.contrabandBlacklist?.[itemId]?.blacklisted === true;
+          if (isPackContraband || isBlacklisted) {
+            carriesContraband = true;
+            break;
+          }
+        }
+      }
+    }
+
+    // 2. Check if they have high reputation (reputation >= 50 with any faction or in vars)
+    let hasHighRep = false;
+    if (newState.factionRep) {
+      if (Object.values(newState.factionRep).some(v => v >= 50)) {
+        hasHighRep = true;
+      }
+    }
+    if (newState.vars) {
+      if (Object.entries(newState.vars).some(([k, v]) => (k === "faction_rep" || k.startsWith("faction_rep_")) && v >= 50)) {
+        hasHighRep = true;
+      }
+    }
+
+    // If carrying contraband AND has high reputation, target them!
+    if (carriesContraband && hasHighRep) {
+      if (!newState.bounties) newState.bounties = {};
+      const existingBounty = newState.bounties[candidateId];
+      if (!existingBounty || !existingBounty.active) {
+        newState.bounties[candidateId] = {
+          targetId: candidateId,
+          amount: 250,
+          timestamp: newState.step,
+          active: true,
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[BountyNetwork] Global network placed a 250 gold bounty on high-reputation agent ${candidateId} for carrying contraband!`);
+      }
+
+      // Spawn or reset bounty hunter
+      const hunterId = `bounty_hunter_${candidateId}`;
+      const startRoom = parserPack.rooms?.[0]?.id ?? "market";
+      if (!newState.enforcers[hunterId]) {
+        newState.enforcers[hunterId] = {
+          id: hunterId,
+          name: `Hunter ${candidateId}`,
+          currentRoom: startRoom,
+          status: "pursuing",
+          isBountyHunter: true,
+          targetId: candidateId,
+          timestamp: newState.step,
+          hp: 30,
+          max_hp: 30,
+          attack: 5,
+          defense: 3,
+          gold: 100,
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[BountyNetwork] Smuggling Bounty Hunter Hunter ${candidateId} has been dispatched to pursue agent ${candidateId}!`);
+      } else if (newState.enforcers[hunterId].status === "defeated") {
+        newState.enforcers[hunterId] = {
+          ...newState.enforcers[hunterId],
+          status: "pursuing",
+          targetId: candidateId,
+          timestamp: newState.step,
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[BountyNetwork] Smuggling Bounty Hunter Hunter ${candidateId} has resumed pursuit of agent ${candidateId}!`);
+      }
+    }
   }
 
   // Helper BFS room-to-room pathfinder

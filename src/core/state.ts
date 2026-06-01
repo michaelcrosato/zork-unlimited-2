@@ -544,6 +544,16 @@ export const SaboteurSchema = z.object({
 });
 export type Saboteur = z.infer<typeof SaboteurSchema>;
 
+export const EliteEnforcerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  factionId: z.string(),
+  syndicateId: z.string(),
+  status: z.enum(["active", "defeated"]),
+  timestamp: z.number().int(),
+});
+export type EliteEnforcer = z.infer<typeof EliteEnforcerSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -672,6 +682,7 @@ export const GameStateSchema = z.object({
   covertCells: z.record(z.string(), CovertCellSchema).optional(),
   propagandaCampaigns: z.record(z.string(), PropagandaCampaignSchema).optional(),
   saboteurs: z.record(z.string(), SaboteurSchema).optional(),
+  eliteEnforcers: z.record(z.string(), EliteEnforcerSchema).optional(),
 });
 
 
@@ -792,6 +803,10 @@ export const createInitialState = (options: {
     syndicateAlliances: {},
     syndicateAllianceVotes: {},
     factionWars: {},
+    covertCells: {},
+    propagandaCampaigns: {},
+    saboteurs: {},
+    eliteEnforcers: {},
   };
 };
 
@@ -1476,6 +1491,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     covertCells: rest.covertCells ? JSON.parse(JSON.stringify(rest.covertCells)) : undefined,
     propagandaCampaigns: rest.propagandaCampaigns ? JSON.parse(JSON.stringify(rest.propagandaCampaigns)) : undefined,
     saboteurs: rest.saboteurs ? JSON.parse(JSON.stringify(rest.saboteurs)) : undefined,
+    eliteEnforcers: rest.eliteEnforcers ? JSON.parse(JSON.stringify(rest.eliteEnforcers)) : undefined,
   };
   return clone;
 }

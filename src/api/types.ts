@@ -75,6 +75,8 @@ export type Action =
   | { type: "BROADCAST_PROPAGANDA"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "RECRUIT_SABOTEUR"; enforcerId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "LAUNCH_COUNTER_INTEL_SWEEP"; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "RECRUIT_ELITE_ENFORCER"; npcId: string; factionId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "LAUNCH_COUNTER_SABOTAGE"; syndicateId: string; cost?: number; timestamp: number }
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 

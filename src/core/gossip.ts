@@ -1110,6 +1110,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge eliteEnforcers using LWW (Last-Write-Wins)
+  const eliteEnforcers = { ...stateA.eliteEnforcers };
+  if (stateB.eliteEnforcers) {
+    for (const [id, entryB] of Object.entries(stateB.eliteEnforcers)) {
+      const entryA = eliteEnforcers[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        eliteEnforcers[id] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -1173,6 +1184,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     covertCells,
     propagandaCampaigns,
     saboteurs,
+    eliteEnforcers,
   };
 }
 
