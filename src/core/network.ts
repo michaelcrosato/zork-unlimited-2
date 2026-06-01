@@ -24,6 +24,22 @@ export interface RoutedPacket {
   type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack";
   payload: any;
   route: string[];
+  priority?: number;
+}
+
+export function getPriorityForType(type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack"): number {
+  switch (type) {
+    case "gossip":
+      return 3;
+    case "presence":
+      return 2;
+    case "heartbeat_ack":
+      return 1;
+    case "heartbeat":
+      return 0;
+    default:
+      return 0;
+  }
 }
 
 /**
@@ -472,6 +488,7 @@ export class MeshNode extends GossipNode {
         timestamp: this.network.currentTimeMs,
       },
       route: [this.nodeId],
+      priority: 0,
     };
 
     this.pendingHeartbeats.set(packetId, {
@@ -566,6 +583,11 @@ export class MeshNetwork {
   public maxLatencyMs = 80;
   public packetLossRate = 0.0;
 
+  // Bandwidth limit: max packets processed/delivered per tick (undefined/0 means unlimited)
+  public maxPacketsPerTick?: number;
+  // Controls if priority sorting is disabled (for benchmark/control comparisons)
+  public disablePriorityRouting = false;
+
   constructor() {}
 
   /**
@@ -628,6 +650,7 @@ export class MeshNetwork {
         type: "presence",
         payload: announcement,
         route: [senderNodeId],
+        priority: 2,
       };
 
       this.sendDirectPacket(neighborId, packet);
@@ -646,6 +669,7 @@ export class MeshNetwork {
     destinationId: string;
     type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack";
     payload: any;
+    priority?: number;
   }): void {
     const sourceNode = this.nodes.get(params.sourceId);
     if (!sourceNode) return;
@@ -671,6 +695,7 @@ export class MeshNetwork {
       type: params.type,
       payload: params.payload,
       route: [params.sourceId],
+      priority: params.priority !== undefined ? params.priority : getPriorityForType(params.type),
     };
 
     sourceNode.packetsSentCount++;
@@ -721,12 +746,36 @@ export class MeshNetwork {
 
     let deliveredCount = 0;
 
-    this.packetQueue.sort((a, b) => a.deliverAt - b.deliverAt);
+    // Sort queue first by deliverAt ascending, then by priority descending
+    this.packetQueue.sort((a, b) => {
+      if (a.deliverAt !== b.deliverAt) {
+        return a.deliverAt - b.deliverAt;
+      }
+      if (this.disablePriorityRouting) {
+        return 0;
+      }
+      const aPriority = a.packet.priority ?? 0;
+      const bPriority = b.packet.priority ?? 0;
+      return bPriority - aPriority;
+    });
 
     const pending = this.packetQueue.filter((pd) => pd.deliverAt <= this.currentTimeMs);
-    this.packetQueue = this.packetQueue.filter((pd) => pd.deliverAt > this.currentTimeMs);
+    const nonPending = this.packetQueue.filter((pd) => pd.deliverAt > this.currentTimeMs);
 
-    for (const pd of pending) {
+    let toDeliver: PacketDelivery[] = [];
+    let toDefer: PacketDelivery[] = [];
+
+    if (this.maxPacketsPerTick !== undefined && this.maxPacketsPerTick > 0) {
+      toDeliver = pending.slice(0, this.maxPacketsPerTick);
+      toDefer = pending.slice(this.maxPacketsPerTick);
+    } else {
+      toDeliver = pending;
+    }
+
+    // Reconstruct the remaining queue (deferred pending packets + future packets)
+    this.packetQueue = [...toDefer, ...nonPending];
+
+    for (const pd of toDeliver) {
       const targetNode = this.nodes.get(pd.nextHopId);
       if (targetNode) {
         targetNode.receivePacket(pd.packet);

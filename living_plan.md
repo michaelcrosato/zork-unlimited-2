@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Last Updated**: 2026-05-31
-* **Autonomous Cycle**: Completed Cycle #17 (Ready for Cycle #18)
-* **Build/Test Status**: 🟢 PASS (All 92 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Last Updated**: 2026-06-01
+* **Autonomous Cycle**: Completed Cycle #18 (Ready for Cycle #19)
+* **Build/Test Status**: 🟢 PASS (All 94 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -85,16 +85,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Broadcast updated topology presence on repair to resolve routing loops and propagate changes rapidly (`AF-17`).
 - [x] Expand unit and integration tests to assert message delivery via fallback paths after physical partition of primary routes (`AF-17`).
 
+### Phase 13: Congestion-Aware Priority Queue Routing (Completed)
+- [x] Add routing priority fields to `RoutedPacket` and implement priority-based packet queue sorting in `MeshNetwork` (`AF-18`).
+- [x] Design and implement bandwidth limiting via `maxPacketsPerTick` to simulate network congestion (`AF-18`).
+- [x] Benchmark and assert state convergence speed under high packet queue depth comparing priority vs. non-priority routing (`AF-18`).
+- [x] Write robust unit and integration tests to verify priority queue behavior and state convergence speed under congestion (`AF-18`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-18`
-* **Objective**: Design and implement a dynamic priority queue for network packet routing that prioritizes gossip state updates over heartbeats, optimizing overall state convergence speed.
-* **Why this matters**: In highly congested mesh network scenarios, state updates are crucial for consistency and should take precedence over diagnostic heartbeats to prevent state lag.
+**Task ID**: `AF-19`
+* **Objective**: Design and implement an automated topology pruning and garbage-collection mechanism for gossip nodes to clean up stale node information after a configurable inactivity threshold.
+* **Why this matters**: In large dynamic networks, offline nodes that leave without a graceful announcement would permanently occupy memory in link-state databases, leading to memory leaks and suboptimal routing calculations.
 * **Planned Actions**:
-  1. Add routing priority fields to `RoutedPacket` and implement priority-based packet queue sorting in `MeshNetwork`.
-  2. Benchmark and assert state convergence speed under high packet queue depth.
-  3. Add robust unit tests to verify priority routing behaviors.
+  1. Add a `lastSeen` timestamp to topology link-state records in `NetworkDiscovery`.
+  2. Implement an automated periodic pruning check in `MeshNetwork` or `MeshNode` that removes nodes that haven't refreshed their presence within a set inactivity window (e.g. 5000ms).
+  3. Write robust unit tests to verify stale node topology garbage collection and routing table recalculation.
 
 ---
 

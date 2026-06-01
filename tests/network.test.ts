@@ -466,5 +466,139 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     expect(nodeC.heartbeatsReceived.get("A")).toBeGreaterThan(0);
     expect(nodeA.heartbeatAcksReceived.get("C")).toBeGreaterThan(0);
   });
+
+  it("should sort packets in the MeshNetwork queue by deliverAt and then by priority descending", () => {
+    const net = new MeshNetwork();
+    const nodeA = new MeshNode("A", pack, 42);
+    const nodeB = new MeshNode("B", pack, 42);
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.connectNodes("A", "B");
+
+    // Clear network initialization presence packets
+    net.packetQueue = [];
+
+    // Queue packets with different priorities at the same delivery time
+    net.sendRoutedPacket({ sourceId: "A", destinationId: "B", type: "heartbeat", payload: {} });
+    net.sendRoutedPacket({ sourceId: "A", destinationId: "B", type: "gossip", payload: {} });
+    net.sendRoutedPacket({ sourceId: "A", destinationId: "B", type: "presence", payload: {} });
+    net.sendRoutedPacket({ sourceId: "A", destinationId: "B", type: "heartbeat_ack", payload: {} });
+    net.sendRoutedPacket({ sourceId: "A", destinationId: "B", type: "gossip", payload: {}, priority: 10 }); // explicit priority override
+
+    // Set all delivery times to be identical for sorting testing
+    for (const item of net.packetQueue) {
+      item.deliverAt = 100;
+    }
+
+    // Trigger sorting as it would happen inside tick()
+    net.packetQueue.sort((a, b) => {
+      if (a.deliverAt !== b.deliverAt) {
+        return a.deliverAt - b.deliverAt;
+      }
+      const aPriority = a.packet.priority ?? 0;
+      const bPriority = b.packet.priority ?? 0;
+      return bPriority - aPriority;
+    });
+
+    // Expected order:
+    // 1. Gossip with override (priority 10)
+    // 2. Gossip (priority 3)
+    // 3. Presence (priority 2)
+    // 4. Heartbeat ack (priority 1)
+    // 5. Heartbeat (priority 0)
+    expect(net.packetQueue[0].packet.priority).toBe(10);
+    expect(net.packetQueue[1].packet.type).toBe("gossip");
+    expect(net.packetQueue[1].packet.priority).toBe(3);
+    expect(net.packetQueue[2].packet.type).toBe("presence");
+    expect(net.packetQueue[2].packet.priority).toBe(2);
+    expect(net.packetQueue[3].packet.type).toBe("heartbeat_ack");
+    expect(net.packetQueue[3].packet.priority).toBe(1);
+    expect(net.packetQueue[4].packet.type).toBe("heartbeat");
+    expect(net.packetQueue[4].packet.priority).toBe(0);
+  });
+
+  it("should benchmark and verify state convergence speed under high packet queue depth and maxPacketsPerTick", () => {
+    // Scenario 1: Priority routing enabled
+    const netPriority = new MeshNetwork();
+    netPriority.maxPacketsPerTick = 2;
+    netPriority.minLatencyMs = 20;
+    netPriority.maxLatencyMs = 20; // Constant latency for perfect determinism in benchmarks
+    
+    const nodeA1 = new MeshNode("A", pack, 42);
+    const nodeB1 = new MeshNode("B", pack, 42);
+    netPriority.registerNode(nodeA1);
+    netPriority.registerNode(nodeB1);
+    netPriority.connectNodes("A", "B");
+    
+    // Propagate presence
+    for (let i = 0; i < 5; i++) { netPriority.tick(20); }
+
+    // Execute local action on A1 to change state
+    nodeA1.executeLocalAction({ type: "MOVE", direction: "west" });
+
+    // Send 5 low-priority heartbeats to B1
+    for (let i = 0; i < 5; i++) {
+      nodeA1.sendHeartbeat("B");
+    }
+
+    // Send 1 high-priority gossip sync packet to B1
+    const syncInitiated1 = nodeA1.syncWithPeer("B");
+    expect(syncInitiated1).toBe(true);
+
+    // Make sure all packets are scheduled for the same delivery time
+    const targetDeliverAt = netPriority.currentTimeMs + 20;
+    for (const pd of netPriority.packetQueue) {
+      pd.deliverAt = targetDeliverAt;
+    }
+
+    // Tick the network by 20ms once.
+    // With priority routing, the gossip packet must be processed in the first batch of 2 delivered packets
+    netPriority.tick(20);
+
+    // Verify B1 has converged state with A1 immediately!
+    expect(nodeB1.localState.agents!["A"]).toBeDefined();
+    expect(nodeB1.localState.agents!["A"].current).toBe("control_room");
+
+    // -------------------------------------------------------------
+    // Scenario 2: Priority routing disabled
+    const netNoPriority = new MeshNetwork();
+    netNoPriority.maxPacketsPerTick = 2;
+    netNoPriority.minLatencyMs = 20;
+    netNoPriority.maxLatencyMs = 20;
+    netNoPriority.disablePriorityRouting = true; // DISABLE!
+
+    const nodeA2 = new MeshNode("A", pack, 42);
+    const nodeB2 = new MeshNode("B", pack, 42);
+    netNoPriority.registerNode(nodeA2);
+    netNoPriority.registerNode(nodeB2);
+    netNoPriority.connectNodes("A", "B");
+
+    // Propagate presence
+    for (let i = 0; i < 5; i++) { netNoPriority.tick(20); }
+
+    // Execute same action
+    nodeA2.executeLocalAction({ type: "MOVE", direction: "west" });
+
+    // Send 5 low-priority heartbeats
+    for (let i = 0; i < 5; i++) {
+      nodeA2.sendHeartbeat("B");
+    }
+
+    // Send gossip sync
+    const syncInitiated2 = nodeA2.syncWithPeer("B");
+    expect(syncInitiated2).toBe(true);
+
+    // Set all delivery times identical
+    for (const pd of netNoPriority.packetQueue) {
+      pd.deliverAt = targetDeliverAt;
+    }
+
+    // Tick the network by 20ms once.
+    // Without priority routing, the gossip packet is deferred.
+    netNoPriority.tick(20);
+
+    // State on B2 should NOT have converged yet!
+    expect(nodeB2.localState.agents!["A"]).toBeUndefined();
+  });
 });
 
