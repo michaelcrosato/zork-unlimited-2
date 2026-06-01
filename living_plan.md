@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #46 (Ready for Cycle #47)
-* **Build/Test Status**: 🟢 PASS (All 203 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #47 (Ready for Cycle #48)
+* **Build/Test Status**: 🟢 PASS (All 208 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -270,14 +270,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 41: NPC Dialogue Tree Gating & Strategic Trade Incentives (Completed)
+- [x] Add alliance and enforcer heat condition checks (`alliance_is`, `enforcer_heat_gte`, `enforcer_heat_lte`) to dialogue and engine DSL condition system (`AF-47`).
+- [x] Wire faction reputation and area enforcer heat variables to merchant availability, blocking trades if heat exceeds the merchant's limit or if standing is poor (`AF-47`).
+- [x] Provide strategic 20% discounts on buying and 20% premium bonuses on selling contraband items for allied syndicate members (`AF-47`).
+- [x] Write comprehensive integration tests asserting dialogue gating, enforcer heat/reputation trade blocks, and syndicate pricing incentives (`AF-47`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-47`
-* **Objective**: NPC Dialogue Tree Gating & Strategic Trade Incentives.
-* **Why this matters**: Support gating trading options and dialogue paths dynamically based on syndicate alliances, cartel embargoes, and enforcer heat levels to enrich roleplaying depth and game feel.
+**Task ID**: `AF-48`
+* **Objective**: Syndicate Safehouses & Stash Networks.
+* **Why this matters**: Support buying, upgrading, and utilizing decentralized syndicate safehouses as secure item storage stashes and enforcer raid fallback points.
 * **Planned Actions**:
-  1. Add alliance and enforcer heat condition checks to dialogue DSL schemas.
-  2. Wire reputation and heat variables to merchant availability, blocking trades if heat is too high.
-  3. Provide strategic discounts on contraband for allied syndicate members.
+  1. Define Syndicate Safehouse and Stash state schemas.
+  2. Implement reducer actions to purchase and upgrade safehouse stash capacity.
+  3. Wire stash item deposit and retrieval mechanics.
   4. Write comprehensive integration tests.
 
 ---

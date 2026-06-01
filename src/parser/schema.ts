@@ -93,6 +93,7 @@ export const ParserNPCSchema = z.object({
   min_rep: z.number().optional(),
   faction: z.string().optional(),
   dynamic_pricing: z.boolean().optional(),
+  max_heat: z.number().optional(),
 });
 
 export type ParserNPC = z.infer<typeof ParserNPCSchema>;

@@ -279,6 +279,49 @@ export function calculateTradePrice(
       const pressure = heatVal + (activeEnforcers * 20);
       const pressureMultiplier = 1.0 + (pressure * 0.02);
       multiplier *= pressureMultiplier;
+
+      // Allied Syndicate Member contraband pricing discount/bonus
+      let isAlliedSyndicateMember = false;
+      if (state.syndicates && npc?.id) {
+        // 1. Check if they belong to the same syndicate
+        for (const syndicate of Object.values(state.syndicates)) {
+          if (syndicate.members.includes(traderId) && syndicate.members.includes(npc.id)) {
+            isAlliedSyndicateMember = true;
+            break;
+          }
+        }
+        // 2. Check if player belongs to a syndicate allied with NPC's faction/syndicate
+        if (!isAlliedSyndicateMember) {
+          const npcFaction = npc.faction;
+          if (npcFaction) {
+            const playerSyndicates = Object.values(state.syndicates).filter(s => s.members.includes(traderId));
+            for (const playerSynd of playerSyndicates) {
+              if (state.alliances?.[playerSynd.id]?.[npcFaction] === "allied" || 
+                  state.alliances?.[npcFaction]?.[playerSynd.id] === "allied") {
+                isAlliedSyndicateMember = true;
+                break;
+              }
+            }
+          }
+        }
+        // 3. Check direct faction alliances
+        if (!isAlliedSyndicateMember && npc.faction && state.alliances) {
+          for (const [otherFaction, rep] of Object.entries(state.factionRep || {})) {
+            if (rep > 0 && state.alliances[npc.faction]?.[otherFaction] === "allied") {
+              isAlliedSyndicateMember = true;
+              break;
+            }
+          }
+        }
+      }
+
+      if (isAlliedSyndicateMember) {
+        if (isBuy) {
+          multiplier *= 0.80; // 20% strategic discount for purchase
+        } else {
+          multiplier *= 1.20; // 20% strategic premium for selling
+        }
+      }
     }
   }
 
@@ -294,6 +337,7 @@ export function checkReputationTrade(
   npc: any,
   minRep?: number
 ): { allowed: boolean; reason?: string } {
+  // 1. NPC Reputation Check
   const rep = state.npcRep?.[npc.id] ?? 0;
   const threshold = minRep !== undefined ? minRep : (npc?.min_rep !== undefined ? npc.min_rep : undefined);
   
@@ -301,6 +345,29 @@ export function checkReputationTrade(
     return {
       allowed: false,
       reason: `The merchant refuses to trade with you due to your poor reputation (requires ${threshold}, you have ${rep}).`,
+    };
+  }
+
+  // 2. Faction Reputation Check
+  if (npc?.faction && (minRep !== undefined || npc?.min_rep !== undefined)) {
+    const factionRep = state.factionRep?.[npc.faction] ?? 0;
+    const minFactionRep = minRep !== undefined ? minRep : npc.min_rep;
+    if (factionRep < minFactionRep) {
+      return {
+        allowed: false,
+        reason: `The merchant refuses to trade with you due to your poor standing with their faction, ${npc.faction} (requires ${minFactionRep}, you have ${factionRep}).`,
+      };
+    }
+  }
+
+  // 3. Enforcer Heat Check
+  const currentRoomId = state.current;
+  const currentHeat = state.enforcementHeat?.[currentRoomId]?.heat ?? 0;
+  const maxHeat = npc?.max_heat !== undefined ? npc.max_heat : 50; // default limit is 50
+  if (currentHeat > maxHeat) {
+    return {
+      allowed: false,
+      reason: `The merchant is too spooked to trade due to high enforcement heat in the area (heat: ${currentHeat}, limit: ${maxHeat}).`,
     };
   }
 
