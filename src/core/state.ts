@@ -2750,6 +2750,22 @@ export const SweepPoolVolatilityHedgingProposalSchema = z.object({
 });
 export type SweepPoolVolatilityHedgingProposal = z.infer<typeof SweepPoolVolatilityHedgingProposalSchema>;
 
+export const SweepPoolWeatherForecastOracleProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  oracleReputationThreshold: z.number().nonnegative(),
+  forecastAccuracyFloor: z.number().nonnegative().max(100),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SweepPoolWeatherForecastOracleProposal = z.infer<typeof SweepPoolWeatherForecastOracleProposalSchema>;
+
+
 
 
 
@@ -3688,6 +3704,11 @@ export const GameStateSchema = z.object({
   sweepPoolVolatilityHedgingRatio: z.number().nonnegative().optional(),
   sweepPoolVolatilityHedgingReserveFloor: z.number().int().nonnegative().optional(),
   sweepPoolVolatilityHedgingPolicyAuthorized: z.boolean().optional(),
+  sweepPoolWeatherForecastOracleProposals: z.record(z.string(), SweepPoolWeatherForecastOracleProposalSchema).optional(),
+  sweepPoolWeatherForecastOracleAuthorized: z.boolean().optional(),
+  sweepPoolWeatherForecastOracleAccuracyFloor: z.number().optional(),
+  sweepPoolWeatherForecastOracleReputationThreshold: z.number().optional(),
+
 
 
 
@@ -4105,6 +4126,8 @@ export const createInitialState = (options: {
     sweepPoolRedistributionFeeGovernanceCapProposals: {},
     sweepPoolRedistributionFeeGovernanceCapVotes: {},
     sweepPoolVolatilityHedgingProposals: {},
+    sweepPoolWeatherForecastOracleProposals: {},
+
 
 
 
@@ -9100,8 +9123,52 @@ export function reconcileSweepPoolVolatilityHedging(state: GameState, pack: any)
   return newState;
 }
 
+export function reconcileSweepPoolWeatherForecastOracle(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sweepPoolWeatherForecastOracleProposals: state.sweepPoolWeatherForecastOracleProposals ? { ...state.sweepPoolWeatherForecastOracleProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sweepPoolWeatherForecastOracleProposals || {})) {
+    const proposal = newState.sweepPoolWeatherForecastOracleProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, oracleReputationThreshold, forecastAccuracyFloor } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sweepPoolWeatherForecastOracleProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      // Set GameState values!
+      newState.sweepPoolWeatherForecastOracleAuthorized = true;
+      newState.sweepPoolWeatherForecastOracleReputationThreshold = oracleReputationThreshold;
+      newState.sweepPoolWeatherForecastOracleAccuracyFloor = forecastAccuracyFloor;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Weather Forecast Oracle Resolved] Syndicate ${syndicateId} successfully authorized weather forecast oracle proposal ${proposalId} (Reputation Threshold: ${oracleReputationThreshold}, Accuracy Floor: ${forecastAccuracyFloor}%).`
+      );
+    }
+  }
+
+  return newState;
+}
 
 export function reconcileSweepPoolRankAdjust(state: GameState, pack: any): GameState {
+
   const newState = {
     ...state,
     sweepPoolRankAdjustProposals: state.sweepPoolRankAdjustProposals ? { ...state.sweepPoolRankAdjustProposals } : {},
