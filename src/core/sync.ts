@@ -52403,7 +52403,28 @@ export function multiAgentStep(
     const syndicate = state.syndicates?.[syndicateId];
     const targetGraceLiquidityProposal = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals?.[targetProposalId];
 
-    const proposalFee = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? 500;
+    let proposalFee = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? 500;
+
+    // Wire standing-gated fee waivers / exemptions / partial waivers based on active parameters
+    if (state.cdsCdoFeeExemptions?.[syndicateId] === true) {
+      proposalFee = 0;
+    } else {
+      let maxLoyaltyDiscount = 0;
+      if (state.factionLoyaltyRanks) {
+        for (const [rankId, rankObj] of Object.entries(state.factionLoyaltyRanks)) {
+          if (rankId.startsWith(`${syndicateId}-`)) {
+            if (rankObj.rank === "Platinum") maxLoyaltyDiscount = Math.max(maxLoyaltyDiscount, 1.0);
+            else if (rankObj.rank === "Gold") maxLoyaltyDiscount = Math.max(maxLoyaltyDiscount, 0.5);
+            else if (rankObj.rank === "Silver") maxLoyaltyDiscount = Math.max(maxLoyaltyDiscount, 0.25);
+            else if (rankObj.rank === "Bronze") maxLoyaltyDiscount = Math.max(maxLoyaltyDiscount, 0.1);
+          }
+        }
+      }
+
+      const partialWaiver = state.cdsCdoPartialFeeWaivers?.[syndicateId] ?? 0;
+      const effectiveWaiver = Math.max(maxLoyaltyDiscount, partialWaiver);
+      proposalFee = Math.max(0, Math.round(proposalFee * (1.0 - effectiveWaiver)));
+    }
 
     if (!proposalId) {
       rejectionReason = `Proposal ID is required.`;
@@ -52545,7 +52566,28 @@ export function multiAgentStep(
     const proposal = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals?.[proposalId];
     const syndicate = state.syndicates?.[syndicateId];
 
-    const voteFee = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100;
+    let voteFee = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100;
+
+    // Wire standing-gated fee waivers / exemptions / partial waivers based on active parameters
+    if (state.cdsCdoFeeExemptions?.[syndicateId] === true) {
+      voteFee = 0;
+    } else {
+      let maxLoyaltyDiscount = 0;
+      if (state.factionLoyaltyRanks) {
+        for (const [rankId, rankObj] of Object.entries(state.factionLoyaltyRanks)) {
+          if (rankId.startsWith(`${syndicateId}-`)) {
+            if (rankObj.rank === "Platinum") maxLoyaltyDiscount = Math.max(maxLoyaltyDiscount, 1.0);
+            else if (rankObj.rank === "Gold") maxLoyaltyDiscount = Math.max(maxLoyaltyDiscount, 0.5);
+            else if (rankObj.rank === "Silver") maxLoyaltyDiscount = Math.max(maxLoyaltyDiscount, 0.25);
+            else if (rankObj.rank === "Bronze") maxLoyaltyDiscount = Math.max(maxLoyaltyDiscount, 0.1);
+          }
+        }
+      }
+
+      const partialWaiver = state.cdsCdoPartialFeeWaivers?.[syndicateId] ?? 0;
+      const effectiveWaiver = Math.max(maxLoyaltyDiscount, partialWaiver);
+      voteFee = Math.max(0, Math.round(voteFee * (1.0 - effectiveWaiver)));
+    }
 
     if (!proposalId) {
       rejectionReason = `Proposal ID is required.`;

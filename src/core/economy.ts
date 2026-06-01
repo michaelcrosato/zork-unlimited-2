@@ -1158,6 +1158,59 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // AF-261: Syndicate SWF Sovereign Debt CDO Tranche Surcharge Grace Period Minimum Liquidity Threshold Adjustment Fee Dynamic Calibration
+  // Scale proposal and voting fees based on enforcer heat and active proposed count to prevent spamming.
+  {
+    let maxEnforcerHeat = 0;
+    if (newState.enforcementHeat) {
+      for (const entry of Object.values(newState.enforcementHeat)) {
+        if ((entry as any).heat > maxEnforcerHeat) {
+          maxEnforcerHeat = (entry as any).heat;
+        }
+      }
+    }
+
+    let activeProposedCount = 0;
+    if (newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals) {
+      for (const prop of Object.values(newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals)) {
+        if (prop.status === "proposed") {
+          activeProposedCount++;
+        }
+      }
+    }
+
+    // Dynamic scale: 1.0 + 25% per active proposed + maxEnforcerHeat%
+    const spamMultiplier = 1.0 + activeProposedCount * 0.25;
+    const heatMultiplier = 1.0 + (maxEnforcerHeat / 100);
+    const dynamicScale = spamMultiplier * heatMultiplier;
+
+    if (newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustBaseProposalFee === undefined) {
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustBaseProposalFee = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? 500;
+    }
+    if (newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustBaseVoteFee === undefined) {
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustBaseVoteFee = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100;
+    }
+
+    const baseProposalFee = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustBaseProposalFee;
+    const baseVoteFee = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustBaseVoteFee;
+
+    const originalProposalFee = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee;
+    const originalVoteFee = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee;
+
+    newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee = Math.round(baseProposalFee * dynamicScale);
+    newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee = Math.round(baseVoteFee * dynamicScale);
+
+    if (
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee !== originalProposalFee ||
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee !== originalVoteFee
+    ) {
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Surcharge Grace Liquidity Adjust Fee Calibration] Calibrated fees dynamically (Proposal Fee: ${newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee}, Vote Fee: ${newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee}) (Indicators - Active Proposals: ${activeProposedCount}, Max Heat: ${maxEnforcerHeat}).`
+      );
+    }
+  }
+
   // Wire grace ticks for surcharge panic override early cancellation grace period (AF-258/AF-259)
   if (newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals) {
     newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals = { ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals };

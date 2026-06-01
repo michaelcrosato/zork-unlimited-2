@@ -3,6 +3,7 @@ import { createInitialState } from "../src/core/state.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { mergeMonotonicStateFields } from "../src/core/gossip.js";
+import { tickEconomy } from "../src/core/economy.js";
 
 describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration (AF-261)", () => {
   const mockPack: ParserPack = ParserPackSchema.parse({
@@ -56,6 +57,18 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
           senior: {
             trancheId: "senior",
             totalValue: 5000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            totalValue: 3000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            totalValue: 2000,
             sharesOwned: {},
             timestamp: 1000,
           },
@@ -149,6 +162,18 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
           senior: {
             trancheId: "senior",
             totalValue: 5000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            totalValue: 3000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            totalValue: 2000,
             sharesOwned: {},
             timestamp: 1000,
           },
@@ -256,6 +281,18 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
             sharesOwned: {},
             timestamp: 1000,
           },
+          mezzanine: {
+            trancheId: "mezzanine",
+            totalValue: 3000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            totalValue: 2000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
         },
         fractionalizedVault: {
           balance: 0,
@@ -324,5 +361,185 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
     // Active fees must converge to the authorized proposal values!
     expect(mergedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee).toBe(650);
     expect(mergedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(150);
+  });
+
+  it("should validate dynamic fee calibration scaling in tickEconomy under spamming and heat (AF-261)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    state.sovereignDebtCDSCDOPools = {
+      cdo_1: {
+        cdoId: "cdo_1",
+        creatorSyndicateId: "alpha",
+        cdsIds: [],
+        totalNotional: 10000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            totalValue: 5000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            totalValue: 3000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            totalValue: 2000,
+            sharesOwned: {},
+            timestamp: 1000,
+          },
+        },
+        fractionalizedVault: {
+          balance: 0,
+          timestamp: 1000,
+        },
+        timestamp: 1000,
+      },
+    };
+
+    state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals = {
+      liq_1: {
+        proposalId: "liq_1",
+        syndicateId: "alpha",
+        cdoId: "cdo_1",
+        targetProposalId: "cancel_1",
+        minLiquidityThreshold: 5000,
+        status: "authorized",
+        proposerId: "player",
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Propose fee calibration proposal
+    const proposeCalibration = {
+      type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION",
+      proposalId: "cal_1",
+      syndicateId: "alpha",
+      cdoId: "cdo_1",
+      newProposalFee: 600,
+      newVoteFee: 150,
+      timestamp: 1001,
+    };
+
+    let res = multiAgentStep(state, { agentId: "player", action: proposeCalibration as any }, mockPack);
+    state = res.state;
+
+    const voteAlice = {
+      type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION",
+      proposalId: "cal_1",
+      syndicateId: "alpha",
+      vote: true,
+      timestamp: 1002,
+    };
+
+    res = multiAgentStep(state, { agentId: "alice", action: voteAlice as any }, mockPack);
+    state = res.state;
+
+    // Check base fees have been updated in state after authorization
+    expect(state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee).toBe(600);
+    expect(state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(150);
+    expect(state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustBaseProposalFee).toBe(600);
+    expect(state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustBaseVoteFee).toBe(150);
+
+    // Dynamic fee scaling in tickEconomy:
+    let ticked = tickEconomy(state, mockPack);
+    expect(ticked.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee).toBe(600);
+    expect(ticked.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(150);
+
+    // Let's add enforcer heat
+    ticked.enforcementHeat = {
+      clearing: { roomId: "clearing", heat: 40, timestamp: 1200 },
+    };
+
+    // Let's also add an active proposed liquidity adjust proposal to test the spam multiplier
+    ticked.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals = {
+      active_prop: {
+        proposalId: "active_prop",
+        syndicateId: "alpha",
+        cdoId: "cdo_1",
+        targetProposalId: "liq_1",
+        newMinLiquidityThreshold: 700,
+        status: "proposed",
+        proposerId: "player",
+        timestamp: 1200,
+      },
+    };
+
+    // Calculate expected dynamic scale:
+    // spamMultiplier = 1.0 + 1 * 0.25 = 1.25
+    // heatMultiplier = 1.0 + 40 / 100 = 1.4
+    // dynamicScale = 1.25 * 1.4 = 1.75
+    // expected proposal fee = Math.round(600 * 1.75) = 1050
+    // expected vote fee = Math.round(150 * 1.75) = 263
+    ticked = tickEconomy(ticked, mockPack);
+
+    expect(ticked.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee).toBe(1050);
+    expect(ticked.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(263);
+
+    // Test standing-gated fee waivers / exemptions / partial waivers:
+    // 1. Propose another adjust
+    ticked.syndicates!.alpha.warChest = 20000;
+    
+    // Propose with full fee exemption
+    ticked.cdsCdoFeeExemptions = {
+      alpha: true,
+    };
+    
+    res = multiAgentStep(ticked, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST",
+        proposalId: "test_exempt_prop",
+        syndicateId: "alpha",
+        cdoId: "cdo_1",
+        targetProposalId: "liq_1",
+        newMinLiquidityThreshold: 750,
+        timestamp: 1300,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    // Warchest should not be deducted because fee was fully waived!
+    expect(res.state.syndicates!.alpha.warChest).toBe(20000);
+
+    // 2. Try partial waivers: e.g. 50% waiver
+    ticked.cdsCdoFeeExemptions = {};
+    ticked.cdsCdoPartialFeeWaivers = {
+      alpha: 0.5,
+    };
+
+    res = multiAgentStep(ticked, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST",
+        proposalId: "test_partial_prop",
+        syndicateId: "alpha",
+        cdoId: "cdo_1",
+        targetProposalId: "liq_1",
+        newMinLiquidityThreshold: 750,
+        timestamp: 1300,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    // Warchest should be deducted by Math.round(1050 * (1 - 0.5)) = 525 gold!
+    expect(res.state.syndicates!.alpha.warChest).toBe(20000 - 525);
   });
 });
