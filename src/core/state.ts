@@ -1158,6 +1158,21 @@ export const RewardSlashingProposalSchema = z.object({
 });
 export type RewardSlashingProposal = z.infer<typeof RewardSlashingProposalSchema>;
 
+export const RehabCampaignProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  targetActor: z.string(),
+  factionId: z.string(),
+  goldCost: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  resolved: z.boolean().optional(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type RehabCampaignProposal = z.infer<typeof RehabCampaignProposalSchema>;
+
 
 
 export const LockedLiquidityEpochPoolSchema = z.object({
@@ -1531,6 +1546,7 @@ export const GameStateSchema = z.object({
   sponsorAuditProposals: z.record(z.string(), SponsorAuditProposalSchema).optional(),
   sponsorRevocationProposals: z.record(z.string(), SponsorRevocationProposalSchema).optional(),
   rewardSlashingProposals: z.record(z.string(), RewardSlashingProposalSchema).optional(),
+  rehabCampaignProposals: z.record(z.string(), RehabCampaignProposalSchema).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
 });
@@ -2521,6 +2537,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     factionSponsorPolicies: rest.factionSponsorPolicies ? JSON.parse(JSON.stringify(rest.factionSponsorPolicies)) : undefined,
     sponsorAuditProposals: rest.sponsorAuditProposals ? JSON.parse(JSON.stringify(rest.sponsorAuditProposals)) : undefined,
     sponsorRevocationProposals: rest.sponsorRevocationProposals ? JSON.parse(JSON.stringify(rest.sponsorRevocationProposals)) : undefined,
+    rewardSlashingProposals: rest.rewardSlashingProposals ? JSON.parse(JSON.stringify(rest.rewardSlashingProposals)) : undefined,
+    rehabCampaignProposals: rest.rehabCampaignProposals ? JSON.parse(JSON.stringify(rest.rehabCampaignProposals)) : undefined,
+    maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
+    slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
   };
   return clone;
 }
@@ -5596,6 +5616,74 @@ export function reconcileSponsorAuditsAndRevocations(state: GameState, pack: any
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Sponsor Revocation Resolved] Syndicate ${syndicateId} resolved sponsor revocation policy for vault ${vaultId}: sponsored by ${factionId} has been revoked.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileRehabCampaign(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    rehabCampaignProposals: state.rehabCampaignProposals ? { ...state.rehabCampaignProposals } : {},
+    maliciousActors: state.maliciousActors ? { ...state.maliciousActors } : {},
+    slashingRates: state.slashingRates ? { ...state.slashingRates } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+  };
+
+  // For any already resolved proposals, ensure targetActor is cleared from maliciousActors!
+  for (const proposal of Object.values(newState.rehabCampaignProposals || {})) {
+    if (proposal && proposal.resolved) {
+      if (newState.maliciousActors) {
+        delete newState.maliciousActors[proposal.targetActor];
+      }
+      if (newState.slashingRates) {
+        delete newState.slashingRates[proposal.targetActor];
+      }
+    }
+  }
+
+  for (const proposalId of Object.keys(newState.rehabCampaignProposals || {})) {
+    const proposal = newState.rehabCampaignProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, targetActor, factionId, goldCost } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.rehabCampaignProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      if (newState.maliciousActors) {
+        delete newState.maliciousActors[targetActor];
+      }
+      if (newState.slashingRates) {
+        delete newState.slashingRates[targetActor];
+      }
+
+      const proposingSyndicate = newState.syndicates?.[syndicateId];
+      if (proposingSyndicate) {
+        proposingSyndicate.warChest = Math.max(0, (proposingSyndicate.warChest ?? 0) - goldCost);
+      }
+
+      if (!newState.factionReservePools) newState.factionReservePools = {};
+      newState.factionReservePools[factionId] = (newState.factionReservePools[factionId] ?? 0) + goldCost;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Reputation Rehab Resolved] Syndicate ${syndicateId} resolved rehabilitation campaign proposal ${proposalId} for target ${targetActor}, paying ${goldCost} gold to faction ${factionId}.`
       );
     }
   }

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #117 (Ready for Cycle #118)
-* **Build/Test Status**: 🟢 PASS (All 511 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #118 (Ready for Cycle #119)
+* **Build/Test Status**: 🟢 PASS (All 515 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -700,17 +700,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire reward slashing to dynamic liquidity mining reward claims inside `reconcileClaimLiquidityRewards`, reducing payouts by consensual slashing rate if target syndicate or members are flagged as malicious (`AF-117`).
 - [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-117`).
 
+### Phase 96: Syndicate Bank Reputation Rehab Campaigns & Slashing Recovery (Completed)
+- [x] Define rehabilitation proposals and gold costs in GameState (`AF-118`).
+- [x] Implement `PROPOSE_REHAB_CAMPAIGN` and `VOTE_REHAB_CAMPAIGN` decentralized actions (`AF-118`).
+- [x] Wire successful rehabilitation consensus to remove target actors from `maliciousActors` list, clear slashing rates, and restore standard reward payouts (`AF-118`).
+- [x] Write comprehensive Vitest integration, unit, and P2P gossip mesh convergence tests (`AF-118`).
+
 ---
 
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-118`
-* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing Recovery & Reputation Rehab Campaigns.
-* **Why this matters**: Allow slashed malicious syndicates or members to propose and vote to purchase reputation rehabilitation campaigns, paying substantial gold into the faction reserve pool to clear their malicious flags and restore standard liquidity mining reward payouts.
+**Task ID**: `AF-119`
+* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance Pro-Rata Rehab Subsidies & Faction Loyalty Bonds.
+* **Why this matters**: Allow rehabilitated members or allied factions to propose and vote to establish pro-rata reputation rehab subsidies, where allied faction reserve pools sponsor up to 50% of the gold costs of rehabilitation campaigns for syndicates with highly positive faction standing. Add customizable loyalty bonds in GameState where syndicates lock gold for dynamic loyalty-based standing scaling and automatic tariff waivers.
 * **Planned Actions**:
-  1. Define rehabilitation proposals and gold costs in GameState.
-  2. Implement `PROPOSE_REHAB_CAMPAIGN` and `VOTE_REHAB_CAMPAIGN` decentralized actions.
-  3. Wire successful rehabilitation consensus to remove target actors from `maliciousActors` list and restore original reward payout rates.
+  1. Define pro-rata rehab subsidy proposals and faction loyalty bonds in GameState.
+  2. Implement `PROPOSE_REHAB_SUBSIDY` and `LOCK_LOYALTY_BOND` decentralized consensus actions.
+  3. Wire successful subsidy consensus to dynamically reduce gold deduction during `reconcileRehabCampaign` based on standing, pulling the subsidized share from the faction reserve pool.
   4. Write comprehensive Vitest integration and mesh convergence tests.
 
 ---
