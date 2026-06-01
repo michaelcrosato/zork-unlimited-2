@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #256 (Ready for Cycle #257)
-* **Build/Test Status**: 🟢 PASS (All 854 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #257 (Ready for Cycle #258)
+* **Build/Test Status**: 🟢 PASS (All 856 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1650,15 +1650,20 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the liquidity check in `tickEconomy` to instantly terminate the grace period and deactivate the panic override if the active pool's reserves drop below the authorized threshold (`AF-259`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-259`).
 
+### Phase 238: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Consensus Voting (Completed)
+- [x] Define surcharge panic override extension cancellation grace period minimum liquidity threshold adjustment proposal and voting schemas (`AF-260`).
+- [x] Wire dynamic consensus adjustment to update the authorized minimum liquidity threshold on active grace periods upon successful consensus (`AF-260`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-260`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-260`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Consensus Voting.
-* **Why this matters**: Introduce a consensus voting mechanism to allow syndicates to dynamically adjust the authorized minimum liquidity threshold on active grace periods as network or economic conditions evolve.
+**Task ID**: `AF-261`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration.
+* **Why this matters**: Establish a consensus voting mechanism for fee calibration to dynamically set, adjust, or waive proposing/voting fees when modifying the minimum liquidity threshold of active grace periods, preventing proposal spamming.
 * **Planned Actions**:
-  1. Define surcharge panic override extension cancellation grace period minimum liquidity threshold adjustment proposal and voting schemas.
-  2. Wire dynamic consensus adjustment to update the authorized minimum liquidity threshold on active grace periods upon successful consensus.
+  1. Define surcharge panic override extension cancellation grace period minimum liquidity threshold adjustment fee calibration proposal and voting schemas.
+  2. Wire dynamic consensus adjustments to the tick economy to scale proposal and voting fees based on active parameters.
   3. Write comprehensive Vitest unit and integration tests.
 
 ---
