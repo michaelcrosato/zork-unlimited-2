@@ -1207,14 +1207,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 170: Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility Floor Auto-Adjustment under Liquidity Depletion (Completed)
+- [x] Define auto-adjustment thresholds and scaling factors inside option pool and margin policy schemas inside GameState (`AF-192`).
+- [x] Implement state calculation logic in options rebalancing ticks inside the tick economy to dynamically scale the active volatility floor as pool liquidity declines (`AF-192`).
+- [x] Write comprehensive Vitest unit and integration tests verifying the floor auto-adjustments under simulated liquidity depletion (`AF-192`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-192`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility Floor Auto-Adjustment under Liquidity Depletion.
-* **Why this matters**: If option pool liquidity is severely depleted, enforcing only the static volatility floor is insufficient to prevent bankruptcy. Dynamically boosting the volatility floor based on the pool's remaining reserves relative to its liabilities stabilizes pricing and preserves solvency during liquidity shocks.
+**Task ID**: `AF-193`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility Floor Auto-Adjustment Consensus Voting.
+* **Why this matters**: Allowing the automated threshold and scaling parameters to be proposed and voted upon by syndicate members via decentralized consensus rather than using static hardcoded parameters. This ensures decentralized governance over risk defense metrics.
 * **Planned Actions**:
-  1. Define auto-adjustment thresholds and scaling factors in option pool and margin policy schemas inside GameState.
-  2. Implement state calculation logic in the tick economy to dynamically scale the active volatility floor as pool liquidity declines.
-  3. Write comprehensive Vitest unit and integration tests verifying the floor auto-adjustments under simulated liquidity depletion.
+  1. Define proposal and voting structures inside GameState schemas for adjusting `liquidityDepletionThreshold` and `floorScalingFactor`.
+  2. Implement `PROPOSE_VOLATILITY_FLOOR_AUTO_ADJUST` and `VOTE_VOLATILITY_FLOOR_AUTO_ADJUST` actions and consensus state transitions.
+  3. Wire dynamic consensus adjustments to the tick economy.
+  4. Write comprehensive Vitest unit and integration tests asserting consensus updates and mesh synchronization.
 
 ---
 

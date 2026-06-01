@@ -2246,6 +2246,8 @@ export const SWFReinsuranceOptionMarginPolicySchema = z.object({
   marginCallGracePeriod: z.number().int().nonnegative().optional(),
   gracePeriodVolatilityThreshold: z.number().nonnegative().optional(),
   gracePeriodExtension: z.number().int().nonnegative().optional(),
+  liquidityDepletionThreshold: z.number().nonnegative().optional(),
+  floorScalingFactor: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginPolicy = z.infer<typeof SWFReinsuranceOptionMarginPolicySchema>;
 
@@ -2378,6 +2380,7 @@ export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
   trancheId: z.enum(["senior", "mezzanine", "equity"]),
   balance: z.number().int().nonnegative(),
   timestamp: z.number().int(),
+  liabilities: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionVolatilityInsurancePool = z.infer<typeof SWFReinsuranceOptionVolatilityInsurancePoolSchema>;
 
@@ -2389,6 +2392,7 @@ export const SWFReinsuranceOptionCrossSyndicatePoolSchema = z.object({
   totalBalance: z.number().int().nonnegative(),
   timestamp: z.number().int(),
   accumulatedUnderwritingPremiums: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  liabilities: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionCrossSyndicatePool = z.infer<typeof SWFReinsuranceOptionCrossSyndicatePoolSchema>;
 

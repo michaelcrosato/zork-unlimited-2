@@ -752,7 +752,7 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
       );
     }
 
-    // Enforce consensus-voted dynamic volatility floor (AF-191)
+    // Enforce consensus-voted dynamic volatility floor (AF-191) with AF-192 auto-adjustment under liquidity depletion
     let volatilityFloor = 0.0;
     if (newState.swfReinsuranceOptionVolatilityFloorProposals) {
       for (const prop of Object.values(newState.swfReinsuranceOptionVolatilityFloorProposals)) {
@@ -764,6 +764,52 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
         }
       }
     }
+
+    let originalVolatilityFloor = volatilityFloor;
+    let autoAdjusted = false;
+    let boostLogMsg = "";
+
+    if (volatilityFloor > 0.0) {
+      // Find a matching margin policy to check for depletion thresholds and scaling factors
+      const marginPolicyKey = Object.keys(newState.swfReinsuranceOptionMarginPolicies || {}).find(policyKey => {
+        const p = newState.swfReinsuranceOptionMarginPolicies![policyKey];
+        return p.swfYieldCdoId === optionCdoId && p.trancheId === trancheId;
+      });
+      const marginPolicy = marginPolicyKey ? newState.swfReinsuranceOptionMarginPolicies![marginPolicyKey] : undefined;
+
+      if (marginPolicy && marginPolicy.liquidityDepletionThreshold !== undefined && marginPolicy.floorScalingFactor !== undefined) {
+        // Find the cross-syndicate pool or volatility insurance pool
+        const crossPool = Object.values(newState.swfReinsuranceOptionCrossSyndicatePools || {}).find((p: any) =>
+          p.swfYieldCdoId === optionCdoId && p.trancheId === trancheId
+        ) as any;
+        const volPool = Object.values(newState.swfReinsuranceOptionVolatilityInsurancePools || {}).find((vp: any) =>
+          vp.swfYieldCdoId === optionCdoId && vp.trancheId === trancheId
+        ) as any;
+
+        let reserves = 0;
+        let liabilities = 0;
+
+        if (crossPool) {
+          reserves = crossPool.totalBalance;
+          liabilities = crossPool.liabilities ?? 0;
+        } else if (volPool) {
+          reserves = volPool.balance;
+          liabilities = volPool.liabilities ?? 0;
+        }
+
+        if (liabilities > 0) {
+          const ratio = reserves / liabilities;
+          if (ratio < marginPolicy.liquidityDepletionThreshold) {
+            const depletionGap = marginPolicy.liquidityDepletionThreshold - ratio;
+            const multiplier = 1.0 + marginPolicy.floorScalingFactor * depletionGap;
+            volatilityFloor = volatilityFloor * multiplier;
+            autoAdjusted = true;
+            boostLogMsg = `[SWF Reinsurance Option Volatility Floor Auto-Boosted] Pool liquidity is depleted (Reserves: ${reserves}, Liabilities: ${liabilities}, Ratio: ${ratio.toFixed(4)} < Threshold: ${marginPolicy.liquidityDepletionThreshold}). Dynamically boosted volatility floor from ${originalVolatilityFloor.toFixed(2)} to ${volatilityFloor.toFixed(2)} using scaling factor ${marginPolicy.floorScalingFactor}.`;
+          }
+        }
+      }
+    }
+
     if (volatilityFloor > 0.0) {
       const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
       const avgVolatility = activeBonds.length > 0
@@ -774,8 +820,11 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
         const originalSpread = bidAskSpread;
         bidAskSpread = minSpread;
         if (!newState.journal) newState.journal = [];
+        if (autoAdjusted && boostLogMsg) {
+          newState.journal.push(boostLogMsg);
+        }
         newState.journal.push(
-          `[SWF Reinsurance Option Volatility Floor Enforced] Dynamic volatility floor enforced on ${key}. Raised bid-ask spread from ${originalSpread} to ${bidAskSpread} gold based on average volatility ${avgVolatility.toFixed(2)}% and floor parameter ${volatilityFloor}.`
+          `[SWF Reinsurance Option Volatility Floor Enforced] Dynamic volatility floor enforced on ${key}. Raised bid-ask spread from ${originalSpread} to ${bidAskSpread} gold based on average volatility ${avgVolatility.toFixed(2)}% and floor parameter ${volatilityFloor.toFixed(2)}.`
         );
       }
     }
