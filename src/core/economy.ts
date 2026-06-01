@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -858,10 +858,12 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   };
 
   // SWF Reinsurance Option Order Book Volume Tracking (AF-150) & Depths (AF-151)
-  const afterMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
+  let afterMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
+  afterMetrics = tickVolatilityInsuranceRebalancing(afterMetrics);
   newState.swfReinsuranceOptionOrderBookVolumes = afterMetrics.swfReinsuranceOptionOrderBookVolumes;
   newState.swfReinsuranceOptionOrderBookDepths = afterMetrics.swfReinsuranceOptionOrderBookDepths;
   newState.swfReinsuranceOptionVolatilityInsurancePools = afterMetrics.swfReinsuranceOptionVolatilityInsurancePools;
+  newState.swfMultiFundReinsurancePools = afterMetrics.swfMultiFundReinsurancePools;
   newState.journal = afterMetrics.journal;
 
   // Dynamic Volatility Index (VIX-style) calculation (AF-144)
@@ -7196,7 +7198,18 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         const volInsurancePolicy = newState.swfReinsuranceOptionVolatilityInsurancePolicies?.[policyKey];
         let deflectedAmount = 0;
         if (volInsurancePolicy) {
-          deflectedAmount = Math.round(finalPrice * volInsurancePolicy.deflectionRate);
+          let deflectionRate = volInsurancePolicy.deflectionRate;
+          const stressPolicy = newState.swfReinsuranceOptionStressTestPolicies?.[policyKey];
+          if (stressPolicy && volInsurancePolicy.stressVolatilityThreshold !== undefined && volInsurancePolicy.stressDeflectionMultiplier !== undefined) {
+            if (avgVolatility > volInsurancePolicy.stressVolatilityThreshold || stressPolicy.simulatedVolatilityShock > volInsurancePolicy.stressVolatilityThreshold) {
+              deflectionRate *= volInsurancePolicy.stressDeflectionMultiplier;
+              if (stressPolicy.reserveMultiplier !== undefined && stressPolicy.reserveMultiplier > 0) {
+                deflectionRate *= stressPolicy.reserveMultiplier;
+              }
+            }
+          }
+          deflectionRate = Math.min(1.0, deflectionRate);
+          deflectedAmount = Math.round(finalPrice * deflectionRate);
         }
 
         // Check buyer warChest
@@ -7547,5 +7560,68 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
   const rewardedState = distributeReinsuranceLiquidityMiningRewards(newState);
 
   return rewardedState;
+}
+
+export function tickVolatilityInsuranceRebalancing(state: GameState): GameState {
+  if (!state.swfReinsuranceOptionVolatilityInsurancePools) return state;
+
+  const newState = {
+    ...state,
+    swfReinsuranceOptionVolatilityInsurancePools: state.swfReinsuranceOptionVolatilityInsurancePools ? JSON.parse(JSON.stringify(state.swfReinsuranceOptionVolatilityInsurancePools)) : {},
+    swfMultiFundReinsurancePools: state.swfMultiFundReinsurancePools ? JSON.parse(JSON.stringify(state.swfMultiFundReinsurancePools)) : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  const poolEntries = Object.entries(newState.swfReinsuranceOptionVolatilityInsurancePools) as [string, SWFReinsuranceOptionVolatilityInsurancePool][];
+
+  for (const [policyKey, pool] of poolEntries) {
+    const volPolicy = newState.swfReinsuranceOptionVolatilityInsurancePolicies?.[policyKey];
+    if (!volPolicy || volPolicy.reallocationThreshold === undefined) continue;
+
+    if (pool.balance > volPolicy.reallocationThreshold) {
+      const excess = pool.balance - volPolicy.reallocationThreshold;
+      if (excess <= 0) continue;
+
+      // Find stress-tested reinsurance pools.
+      const [cdoId] = policyKey.split("_");
+      const cdo = newState.swfYieldCDOs?.[cdoId];
+      const creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
+
+      const multiFundPools = Object.values(newState.swfMultiFundReinsurancePools) as SWFMultiFundReinsurancePool[];
+
+      const candidatePools = multiFundPools.filter(
+        (p) => p.active && creatorSyndicateId && p.syndicateIds.includes(creatorSyndicateId)
+      );
+
+      // If no syndicate-specific pool is found, fallback to any active SWFMultiFundReinsurancePool
+      const targetPools = candidatePools.length > 0 
+        ? candidatePools 
+        : multiFundPools.filter((p) => p.active);
+
+      if (targetPools.length > 0) {
+        // Route excess equally among target pools
+        const amountPerPool = Math.floor(excess / targetPools.length);
+        if (amountPerPool > 0) {
+          let totalRouted = 0;
+          for (const targetPool of targetPools) {
+            const p = newState.swfMultiFundReinsurancePools[targetPool.id] as SWFMultiFundReinsurancePool;
+            if (p) {
+              p.totalReserve = (p.totalReserve ?? 0) + amountPerPool;
+              p.timestamp = newState.step;
+              totalRouted += amountPerPool;
+            }
+          }
+          pool.balance -= totalRouted;
+          pool.timestamp = newState.step;
+
+          newState.journal.push(
+            `[SWF Volatility Insurance Premium Reallocation] Routed excess premium of ${totalRouted} gold from Volatility Insurance Pool ${pool.id} (Threshold: ${volPolicy.reallocationThreshold} gold) to ${targetPools.length} stress-tested reinsurance pool(s).`
+          );
+        }
+      }
+    }
+  }
+
+  return newState;
 }
 

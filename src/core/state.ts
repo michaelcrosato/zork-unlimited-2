@@ -2254,6 +2254,9 @@ export const SWFReinsuranceOptionVolatilityInsurancePolicySchema = z.object({
   deflectionRate: z.number().nonnegative(),
   stabilizationThreshold: z.number().nonnegative(),
   drawdownMultiplier: z.number().nonnegative(),
+  stressVolatilityThreshold: z.number().nonnegative().optional(),
+  stressDeflectionMultiplier: z.number().nonnegative().optional(),
+  reallocationThreshold: z.number().int().nonnegative().optional(),
   timestamp: z.number().int(),
 });
 export type SWFReinsuranceOptionVolatilityInsurancePolicy = z.infer<typeof SWFReinsuranceOptionVolatilityInsurancePolicySchema>;
@@ -2264,6 +2267,9 @@ export const SWFReinsuranceOptionVolatilityInsuranceVoteSchema = z.object({
   deflectionRate: z.number().nonnegative(),
   stabilizationThreshold: z.number().nonnegative(),
   drawdownMultiplier: z.number().nonnegative(),
+  stressVolatilityThreshold: z.number().nonnegative().optional(),
+  stressDeflectionMultiplier: z.number().nonnegative().optional(),
+  reallocationThreshold: z.number().int().nonnegative().optional(),
   timestamp: z.number().int(),
 });
 export type SWFReinsuranceOptionVolatilityInsuranceVote = z.infer<typeof SWFReinsuranceOptionVolatilityInsuranceVoteSchema>;
@@ -12642,13 +12648,16 @@ export function reconcileSWFReinsuranceOptionVolatilityInsurance(state: GameStat
       deflectionRate: number;
       stabilizationThreshold: number;
       drawdownMultiplier: number;
+      stressVolatilityThreshold?: number;
+      stressDeflectionMultiplier?: number;
+      reallocationThreshold?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
       if (syndicate.members.includes(voterId)) {
-        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.deflectionRate}::${vote.stabilizationThreshold}::${vote.drawdownMultiplier}`;
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.deflectionRate}::${vote.stabilizationThreshold}::${vote.drawdownMultiplier}::${vote.stressVolatilityThreshold}::${vote.stressDeflectionMultiplier}::${vote.reallocationThreshold}`;
         if (!voteGroups[key]) {
           voteGroups[key] = {
             swfYieldCdoId: vote.swfYieldCdoId,
@@ -12656,6 +12665,9 @@ export function reconcileSWFReinsuranceOptionVolatilityInsurance(state: GameStat
             deflectionRate: vote.deflectionRate,
             stabilizationThreshold: vote.stabilizationThreshold,
             drawdownMultiplier: vote.drawdownMultiplier,
+            stressVolatilityThreshold: vote.stressVolatilityThreshold,
+            stressDeflectionMultiplier: vote.stressDeflectionMultiplier,
+            reallocationThreshold: vote.reallocationThreshold,
             voters: new Set<string>(),
             timestamps: [],
           };
@@ -12674,14 +12686,27 @@ export function reconcileSWFReinsuranceOptionVolatilityInsurance(state: GameStat
           deflectionRate: group.deflectionRate,
           stabilizationThreshold: group.stabilizationThreshold,
           drawdownMultiplier: group.drawdownMultiplier,
+          stressVolatilityThreshold: group.stressVolatilityThreshold,
+          stressDeflectionMultiplier: group.stressDeflectionMultiplier,
+          reallocationThreshold: group.reallocationThreshold,
           timestamp: Math.max(...group.timestamps, newState.step),
         };
 
         delete newState.adjustSWFReinsuranceOptionVolatilityInsuranceVotes[syndicateId];
 
         if (!newState.journal) newState.journal = [];
+        let extraStr = "";
+        if (group.stressVolatilityThreshold !== undefined) {
+          extraStr += `, Stress Vol Threshold: ${group.stressVolatilityThreshold}`;
+        }
+        if (group.stressDeflectionMultiplier !== undefined) {
+          extraStr += `, Stress Deflection Mult: ${group.stressDeflectionMultiplier}`;
+        }
+        if (group.reallocationThreshold !== undefined) {
+          extraStr += `, Reallocation Threshold: ${group.reallocationThreshold}`;
+        }
         newState.journal.push(
-          `[SWF Reinsurance Option Volatility Insurance Policy Adjusted] Syndicate ${syndicateId} adjusted volatility insurance policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Deflection Rate: ${group.deflectionRate.toFixed(4)}, Stabilization Threshold: ${group.stabilizationThreshold.toFixed(2)}, Drawdown Multiplier: ${group.drawdownMultiplier.toFixed(2)}).`
+          `[SWF Reinsurance Option Volatility Insurance Policy Adjusted] Syndicate ${syndicateId} adjusted volatility insurance policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Deflection Rate: ${group.deflectionRate.toFixed(4)}, Stabilization Threshold: ${group.stabilizationThreshold.toFixed(2)}, Drawdown Multiplier: ${group.drawdownMultiplier.toFixed(2)}${extraStr}).`
         );
       }
     }

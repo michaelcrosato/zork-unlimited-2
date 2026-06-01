@@ -33809,7 +33809,7 @@ export function multiAgentStep(
 
   // Handle ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_INSURANCE action (AF-172)
   if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_INSURANCE") {
-    const { syndicateId, swfYieldCdoId, trancheId, deflectionRate, stabilizationThreshold, drawdownMultiplier, timestamp } = action as any;
+    const { syndicateId, swfYieldCdoId, trancheId, deflectionRate, stabilizationThreshold, drawdownMultiplier, stressVolatilityThreshold, stressDeflectionMultiplier, reallocationThreshold, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -33829,6 +33829,12 @@ export function multiAgentStep(
       rejectionReason = `Stabilization threshold must be non-negative.`;
     } else if (drawdownMultiplier === undefined || drawdownMultiplier < 0) {
       rejectionReason = `Drawdown multiplier must be non-negative.`;
+    } else if (stressVolatilityThreshold !== undefined && stressVolatilityThreshold < 0) {
+      rejectionReason = `Stress volatility threshold must be non-negative.`;
+    } else if (stressDeflectionMultiplier !== undefined && stressDeflectionMultiplier < 0) {
+      rejectionReason = `Stress deflection multiplier must be non-negative.`;
+    } else if (reallocationThreshold !== undefined && reallocationThreshold < 0) {
+      rejectionReason = `Reallocation threshold must be non-negative.`;
     } else if (!syndicate) {
       rejectionReason = `Syndicate ${syndicateId} does not exist.`;
     } else if (!cdo) {
@@ -33853,6 +33859,9 @@ export function multiAgentStep(
         deflectionRate,
         stabilizationThreshold,
         drawdownMultiplier,
+        stressVolatilityThreshold,
+        stressDeflectionMultiplier,
+        reallocationThreshold,
         timestamp,
       };
       newState.adjustSWFReinsuranceOptionVolatilityInsuranceVotes = adjustSWFReinsuranceOptionVolatilityInsuranceVotes;
@@ -33864,8 +33873,18 @@ export function multiAgentStep(
       const isConsensusReached = newState.swfReinsuranceOptionVolatilityInsurancePolicies?.[policyKey]?.timestamp === Math.max(timestamp, newState.step);
 
       if (!newState.journal) newState.journal = [];
+      let extraStr = "";
+      if (stressVolatilityThreshold !== undefined) {
+        extraStr += `, Stress Vol Threshold: ${stressVolatilityThreshold}`;
+      }
+      if (stressDeflectionMultiplier !== undefined) {
+        extraStr += `, Stress Deflection Mult: ${stressDeflectionMultiplier}`;
+      }
+      if (reallocationThreshold !== undefined) {
+        extraStr += `, Reallocation Threshold: ${reallocationThreshold}`;
+      }
       newState.journal.push(
-        `[SWF Reinsurance Option Volatility Insurance Vote] Agent ${agentId} voted to adjust volatility insurance for CDO ${swfYieldCdoId} tranche ${trancheId} to Deflection Rate: ${deflectionRate.toFixed(4)}, Stabilization Threshold: ${stabilizationThreshold.toFixed(2)}, Drawdown Multiplier: ${drawdownMultiplier.toFixed(2)} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
+        `[SWF Reinsurance Option Volatility Insurance Vote] Agent ${agentId} voted to adjust volatility insurance for CDO ${swfYieldCdoId} tranche ${trancheId} to Deflection Rate: ${deflectionRate.toFixed(4)}, Stabilization Threshold: ${stabilizationThreshold.toFixed(2)}, Drawdown Multiplier: ${drawdownMultiplier.toFixed(2)}${extraStr} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
       );
 
       customEvents.push({
