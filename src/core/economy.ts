@@ -7737,6 +7737,183 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
     }
   }
 
+  // AF-231: Calculate Fair Market Value (FMV) and bid-ask spreads for active CDS CDO tranches, and execute automatic bid matching and arbitrage.
+  newState.cdsCdoTrancheListings = newState.cdsCdoTrancheListings ? { ...newState.cdsCdoTrancheListings } : {};
+  newState.cdsCdoTrancheBids = newState.cdsCdoTrancheBids ? { ...newState.cdsCdoTrancheBids } : {};
+  newState.cdsCdoTrancheMarketSpreads = newState.cdsCdoTrancheMarketSpreads ? { ...newState.cdsCdoTrancheMarketSpreads } : {};
+  newState.sovereignDebtCDSCDOPools = newState.sovereignDebtCDSCDOPools ? { ...newState.sovereignDebtCDSCDOPools } : {};
+  newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
+
+  for (const [cdoId, pool] of Object.entries(newState.sovereignDebtCDSCDOPools)) {
+    for (const trancheId of ["senior", "mezzanine", "equity"] as const) {
+      let multiplier = 0.90;
+      if (trancheId === "mezzanine") multiplier = 0.60;
+      else if (trancheId === "equity") multiplier = 0.30;
+
+      // Dynamic adjustment based on target syndicate default alerts of the underlying CDSs
+      let activeCount = 0;
+      let defaultCount = 0;
+      for (const cdsId of pool.cdsIds) {
+        const contract = newState.sovereignDebtCDSContracts?.[cdsId];
+        if (contract) {
+          if (contract.status === "settled") {
+            defaultCount++;
+          } else if (contract.status === "active") {
+            activeCount++;
+            // check if target is in default
+            const targetSyndicateId = contract.targetSyndicateId;
+            const hasAuthorizedDefault = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
+              (alert: any) => alert.targetSyndicateId === targetSyndicateId && alert.status === "authorized" && !alert.resolved
+            );
+            if (hasAuthorizedDefault) {
+              defaultCount++;
+            }
+          }
+        }
+      }
+
+      if (defaultCount > 0) {
+        const lossImpact = defaultCount / (activeCount + defaultCount || 1);
+        if (trancheId === "equity") {
+          multiplier = Math.max(0.05, multiplier - lossImpact * 0.5);
+        } else if (trancheId === "mezzanine") {
+          multiplier = Math.max(0.15, multiplier - lossImpact * 0.3);
+        } else {
+          multiplier = Math.max(0.50, multiplier - lossImpact * 0.1);
+        }
+      }
+
+      let lowestAsk = 0;
+      const activeTrancheListings: any[] = Object.values(newState.cdsCdoTrancheListings || {}).filter(
+        (l: any) => l.cdoId === cdoId && l.trancheId === trancheId && l.status === "active"
+      );
+      if (activeTrancheListings.length > 0) {
+        lowestAsk = Math.min(...activeTrancheListings.map((l: any) => l.askPrice));
+      }
+
+      let highestBid = 0;
+      const activeTrancheBids: any[] = Object.values(newState.cdsCdoTrancheBids || {}).filter(
+        (b: any) => b.cdoId === cdoId && b.trancheId === trancheId && b.status === "active"
+      );
+      if (activeTrancheBids.length > 0) {
+        highestBid = Math.max(...activeTrancheBids.map((b: any) => b.bidPrice));
+      }
+
+      const spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
+      const spreadId = `${cdoId}_${trancheId}`;
+
+      newState.cdsCdoTrancheMarketSpreads[spreadId] = {
+        spreadId,
+        cdoId,
+        trancheId,
+        highestBid,
+        lowestAsk,
+        spread,
+        fairValue: Math.round(100 * multiplier),
+        timestamp: newState.step,
+      };
+
+      // Automated Arbitrage Bot
+      for (const trancheListing of activeTrancheListings) {
+        const listingFairValue = Math.round(trancheListing.sharesAmount * multiplier);
+        if (trancheListing.askPrice < listingFairValue) {
+          const trancheArbSyndicate: any = Object.values(newState.syndicates || {}).find(
+            (synd: any) =>
+              synd.id !== trancheListing.sellerSyndicateId &&
+              (synd.warChest ?? 0) >= trancheListing.askPrice
+          );
+          if (trancheArbSyndicate) {
+            const bidId = `${cdoId}_${trancheId}_${trancheArbSyndicate.id}_${trancheListing.sharesAmount}_arb`;
+            newState.cdsCdoTrancheBids[bidId] = {
+              bidId,
+              cdoId,
+              trancheId,
+              bidderSyndicateId: trancheArbSyndicate.id,
+              sharesAmount: trancheListing.sharesAmount,
+              bidPrice: trancheListing.askPrice,
+              status: "active",
+              timestamp: newState.step,
+              votes: {},
+            };
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDS CDO Tranche Arbitrage Bot] Syndicate ${trancheArbSyndicate.id} arbitrage bot placed an active matching bid of ${trancheListing.askPrice} gold on undervalued CDO ${cdoId} tranche ${trancheId} (Fair Value: ${listingFairValue} gold for ${trancheListing.sharesAmount} shares).`
+            );
+            highestBid = trancheListing.askPrice;
+            newState.cdsCdoTrancheMarketSpreads[spreadId].highestBid = highestBid;
+            newState.cdsCdoTrancheMarketSpreads[spreadId].spread = lowestAsk - highestBid;
+            break;
+          }
+        }
+      }
+
+      // Automatic Bid Matching
+      for (const trancheListing of activeTrancheListings) {
+        if (trancheListing.status !== "active") continue;
+        const trancheMatchingBid: any = Object.values(newState.cdsCdoTrancheBids || {}).find(
+          (b: any) =>
+            b.cdoId === cdoId &&
+            b.trancheId === trancheId &&
+            b.sharesAmount === trancheListing.sharesAmount &&
+            b.status === "active" &&
+            b.bidPrice >= trancheListing.askPrice
+        );
+        if (trancheMatchingBid) {
+          const bidderSyndicateId = trancheMatchingBid.bidderSyndicateId;
+          const sellerSyndicateId = trancheListing.sellerSyndicateId;
+          const bidderSynd = newState.syndicates[bidderSyndicateId];
+          const sellerSynd = newState.syndicates[sellerSyndicateId];
+
+          if (bidderSynd && sellerSynd && (bidderSynd.warChest ?? 0) >= trancheListing.askPrice) {
+            const sellerShares = pool.tranches[trancheId].sharesOwned[sellerSyndicateId] ?? 0;
+            if (sellerShares >= trancheListing.sharesAmount) {
+              // Complete trade
+              newState.cdsCdoTrancheListings[trancheListing.listingId] = {
+                ...trancheListing,
+                status: "completed",
+              };
+              newState.cdsCdoTrancheBids[trancheMatchingBid.bidId] = {
+                ...trancheMatchingBid,
+                status: "accepted",
+              };
+
+              sellerSynd.warChest = (sellerSynd.warChest ?? 0) + trancheListing.askPrice;
+              bidderSynd.warChest = Math.max(0, (bidderSynd.warChest ?? 0) - trancheListing.askPrice);
+
+              pool.tranches[trancheId] = {
+                ...pool.tranches[trancheId],
+                sharesOwned: {
+                  ...pool.tranches[trancheId].sharesOwned,
+                  [sellerSyndicateId]: sellerShares - trancheListing.sharesAmount,
+                  [bidderSyndicateId]: (pool.tranches[trancheId].sharesOwned[bidderSyndicateId] ?? 0) + trancheListing.sharesAmount,
+                },
+                timestamp: newState.step,
+              };
+
+              // Terminate other active listings/bids for same syndicate if their remaining shares are insufficient
+              const updatedShares = pool.tranches[trancheId].sharesOwned[sellerSyndicateId];
+              for (const [lid, l] of Object.entries(newState.cdsCdoTrancheListings)) {
+                if (l.sellerSyndicateId === sellerSyndicateId && l.cdoId === cdoId && l.trancheId === trancheId && l.status === "active" && l.sharesAmount > updatedShares) {
+                  newState.cdsCdoTrancheListings[lid] = { ...l, status: "cancelled" };
+                }
+              }
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[CDS CDO Tranche Matched Trade] Automatic bid matching executed. Syndicate ${bidderSyndicateId} purchased ${trancheListing.sharesAmount} shares of CDO ${cdoId} ${trancheId} tranche from Syndicate ${sellerSyndicateId} for ${trancheListing.askPrice} gold.`
+              );
+            } else {
+              newState.cdsCdoTrancheListings[trancheListing.listingId] = {
+                ...trancheListing,
+                status: "cancelled",
+              };
+            }
+          }
+        }
+      }
+    }
+  }
+
   return newState;
 }
 

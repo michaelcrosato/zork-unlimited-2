@@ -3087,6 +3087,50 @@ export const SovereignDebtCDSMarketSpreadSchema = z.object({
 });
 export type SovereignDebtCDSMarketSpread = z.infer<typeof SovereignDebtCDSMarketSpreadSchema>;
 
+export const SovereignDebtCDSCDOTrancheListingSchema = z.object({
+  listingId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  sellerSyndicateId: z.string(),
+  sharesAmount: z.number().int().positive(),
+  askPrice: z.number(),
+  status: z.enum(["proposed", "active", "completed", "cancelled"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOTrancheListing = z.infer<typeof SovereignDebtCDSCDOTrancheListingSchema>;
+
+export const SovereignDebtCDSCDOTrancheBidSchema = z.object({
+  bidId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  bidderSyndicateId: z.string(),
+  sharesAmount: z.number().int().positive(),
+  bidPrice: z.number(),
+  status: z.enum(["proposed", "active", "accepted", "rejected", "withdrawn"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOTrancheBid = z.infer<typeof SovereignDebtCDSCDOTrancheBidSchema>;
+
+export const SovereignDebtCDSCDOTrancheMarketSpreadSchema = z.object({
+  spreadId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  highestBid: z.number(),
+  lowestAsk: z.number(),
+  spread: z.number(),
+  fairValue: z.number(),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSCDOTrancheMarketSpread = z.infer<typeof SovereignDebtCDSCDOTrancheMarketSpreadSchema>;
+
 
 
 
@@ -4075,6 +4119,9 @@ export const GameStateSchema = z.object({
   cdsBids: z.record(z.string(), SovereignDebtCDSBidSchema).optional(),
   cdsTransfers: z.record(z.string(), SovereignDebtCDSTransferSchema).optional(),
   cdsMarketSpreads: z.record(z.string(), SovereignDebtCDSMarketSpreadSchema).optional(),
+  cdsCdoTrancheListings: z.record(z.string(), SovereignDebtCDSCDOTrancheListingSchema).optional(),
+  cdsCdoTrancheBids: z.record(z.string(), SovereignDebtCDSCDOTrancheBidSchema).optional(),
+  cdsCdoTrancheMarketSpreads: z.record(z.string(), SovereignDebtCDSCDOTrancheMarketSpreadSchema).optional(),
 
 
 
@@ -4530,6 +4577,9 @@ export const createInitialState = (options: {
     cdsBids: {},
     cdsTransfers: {},
     cdsMarketSpreads: {},
+    cdsCdoTrancheListings: {},
+    cdsCdoTrancheBids: {},
+    cdsCdoTrancheMarketSpreads: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5711,6 +5761,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsBids: rest.cdsBids ? JSON.parse(JSON.stringify(rest.cdsBids)) : undefined,
     cdsTransfers: rest.cdsTransfers ? JSON.parse(JSON.stringify(rest.cdsTransfers)) : undefined,
     cdsMarketSpreads: rest.cdsMarketSpreads ? JSON.parse(JSON.stringify(rest.cdsMarketSpreads)) : undefined,
+    cdsCdoTrancheListings: rest.cdsCdoTrancheListings ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheListings)) : undefined,
+    cdsCdoTrancheBids: rest.cdsCdoTrancheBids ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheBids)) : undefined,
+    cdsCdoTrancheMarketSpreads: rest.cdsCdoTrancheMarketSpreads ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheMarketSpreads)) : undefined,
 
   };
   return clone;
@@ -17807,6 +17860,66 @@ export function reconcileSovereignDebtCDSCDOPools(state: GameState, pack: any): 
     ...state,
     sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
   };
+}
+
+export function reconcileSovereignDebtCDSCDOTranches(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoTrancheListings: state.cdsCdoTrancheListings ? { ...state.cdsCdoTrancheListings } : {},
+    cdsCdoTrancheBids: state.cdsCdoTrancheBids ? { ...state.cdsCdoTrancheBids } : {},
+  };
+
+  // Reconcile proposed listings
+  if (newState.cdsCdoTrancheListings) {
+    for (const [listingId, listing] of Object.entries(newState.cdsCdoTrancheListings)) {
+      if (listing.status !== "proposed") continue;
+      const sellerSyndicate = newState.syndicates[listing.sellerSyndicateId];
+      if (!sellerSyndicate) continue;
+      const votes = listing.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => sellerSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > sellerSyndicate.members.length / 2;
+      if (passed) {
+        newState.cdsCdoTrancheListings[listingId] = {
+          ...listing,
+          status: "active",
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDS CDO Tranche Listing Active] CDO ${listing.cdoId} tranche ${listing.trancheId} listed for sale by ${listing.sellerSyndicateId} at ask price ${listing.askPrice} gold.`
+        );
+      }
+    }
+  }
+
+  // Reconcile proposed bids
+  if (newState.cdsCdoTrancheBids) {
+    for (const [bidId, bid] of Object.entries(newState.cdsCdoTrancheBids)) {
+      if (bid.status !== "proposed") continue;
+      const bidderSyndicate = newState.syndicates[bid.bidderSyndicateId];
+      if (!bidderSyndicate) continue;
+      const votes = bid.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => bidderSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > bidderSyndicate.members.length / 2;
+      if (passed) {
+        newState.cdsCdoTrancheBids[bidId] = {
+          ...bid,
+          status: "active",
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDS CDO Tranche Bid Active] Syndicate ${bid.bidderSyndicateId} placed an active bid of ${bid.bidPrice} gold on CDO ${bid.cdoId} tranche ${bid.trancheId}.`
+        );
+      }
+    }
+  }
+
+  return newState;
 }
 
 

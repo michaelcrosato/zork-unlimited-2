@@ -257,7 +257,9 @@ export type Action =
   | { type: "BID_ON_CDS_CONTRACT"; cdsId: string; bidderSyndicateId: string; bidPrice: number; timestamp: number }
   | { type: "TRANSFER_CDS_OWNERSHIP"; cdsId: string; sellerSyndicateId: string; buyerSyndicateId: string; price: number; timestamp: number }
   | { type: "CREATE_CDS_CDO_POOL"; cdoId: string; creatorSyndicateId: string; cdsIds: string[]; timestamp: number }
-  | { type: "INVEST_IN_CDO_TRANCHE"; cdoId: string; investorSyndicateId: string; trancheId: string; amount: number; timestamp: number };
+  | { type: "INVEST_IN_CDO_TRANCHE"; cdoId: string; investorSyndicateId: string; trancheId: string; amount: number; timestamp: number }
+  | { type: "LIST_CDS_CDO_TRANCHE_FOR_SALE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; sellerSyndicateId: string; sharesAmount: number; askPrice: number; timestamp: number }
+  | { type: "BID_ON_CDS_CDO_TRANCHE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; bidderSyndicateId: string; sharesAmount: number; bidPrice: number; timestamp: number };
 
 
 
