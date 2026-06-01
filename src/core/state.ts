@@ -2682,6 +2682,10 @@ export const GameStateSchema = z.object({
     orderId: z.string(),
     timestamp: z.number().int(),
   }))).optional(),
+  swfLiquidityMiningRewards: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  claimReinsuranceLiquidityMiningRewardsVotes: z.record(z.string(), z.record(z.string(), z.object({
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -2977,6 +2981,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionOrderBookDepths: {},
     submitSWFReinsuranceOptionLimitOrderVotes: {},
     cancelSWFReinsuranceOptionLimitOrderVotes: {},
+    swfLiquidityMiningRewards: {},
+    claimReinsuranceLiquidityMiningRewardsVotes: {},
   };
 };
 
@@ -3855,6 +3861,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionOrderBookDepths: rest.swfReinsuranceOptionOrderBookDepths ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionOrderBookDepths)) : undefined,
     submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
+    swfLiquidityMiningRewards: rest.swfLiquidityMiningRewards ? JSON.parse(JSON.stringify(rest.swfLiquidityMiningRewards)) : undefined,
+    claimReinsuranceLiquidityMiningRewardsVotes: rest.claimReinsuranceLiquidityMiningRewardsVotes ? JSON.parse(JSON.stringify(rest.claimReinsuranceLiquidityMiningRewardsVotes)) : undefined,
   };
   return clone;
 }
@@ -11695,6 +11703,52 @@ export function reconcileCancelSWFReinsuranceOptionLimitOrders(state: GameState,
 
   return newState;
 }
+
+export function reconcileClaimReinsuranceLiquidityMiningRewards(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    claimReinsuranceLiquidityMiningRewardsVotes: state.claimReinsuranceLiquidityMiningRewardsVotes ? { ...state.claimReinsuranceLiquidityMiningRewardsVotes } : {},
+    swfLiquidityMiningRewards: state.swfLiquidityMiningRewards ? { ...state.swfLiquidityMiningRewards } : {},
+  };
+
+  if (!newState.claimReinsuranceLiquidityMiningRewardsVotes) return newState;
+
+  for (const syndicateId of Object.keys(newState.claimReinsuranceLiquidityMiningRewardsVotes)) {
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = newState.claimReinsuranceLiquidityMiningRewardsVotes[syndicateId] || {};
+
+    const yesVotes = Object.keys(votes).filter(memberId => syndicate.members.includes(memberId));
+
+    if (yesVotes.length > totalMembers / 2) {
+      // Majority consensus reached!
+      const rewards = newState.swfLiquidityMiningRewards?.[syndicateId] ?? 0;
+      if (rewards > 0) {
+        syndicate.warChest = (syndicate.warChest ?? 0) + rewards;
+        newState.swfLiquidityMiningRewards![syndicateId] = 0;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Liquidity Mining Rewards Claimed] Syndicate ${syndicateId} successfully claimed ${rewards} gold of accrued limit order book liquidity mining rewards.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Liquidity Mining Rewards Claimed Failed] Syndicate ${syndicateId} has no pending rewards to claim.`
+        );
+      }
+
+      // Clear votes
+      delete newState.claimReinsuranceLiquidityMiningRewardsVotes[syndicateId];
+    }
+  }
+
+  return newState;
+}
+
 
 
 

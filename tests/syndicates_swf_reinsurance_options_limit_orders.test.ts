@@ -653,5 +653,238 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
     expect(depthCancel?.spreadAdjustment).toBe(0.5);
     expect(depthCancel?.bidAskSpread).toBe(0);
   });
+
+  it("should support partial fills, multiple partial fills, dynamic liquidity mining rewards, and consensus reward claiming (AF-153)", () => {
+    let state = createInitialState({
+      seed: 55555,
+      start: "clearing",
+      varsInit: { gold: 20000 },
+      agentsInit: ["player", "alice", "bob", "carol"],
+    });
+
+    // Setup syndicates
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "carol"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Setup dummy CDO
+    state.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: {},
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.20,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Partial Fill: Alpha (Buy, size 1000, limitPrice 300) and Beta (Sell, size 400, limitPrice 100)
+    // Buy price per unit: 0.3. Sell price per unit: 0.25. Overlap exists!
+    const buyAction = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "buy_1000",
+      syndicateId: "alpha",
+      orderType: "buy",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 1000,
+      limitPrice: 300,
+      timestamp: 1001,
+    };
+
+    let res = multiAgentStep(state, { agentId: "player", action: buyAction as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "alice", action: buyAction as any }, mockPack);
+    state = res.state;
+
+    const sellAction = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "sell_400",
+      syndicateId: "beta",
+      orderType: "sell",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 400,
+      limitPrice: 100,
+      timestamp: 1002,
+    };
+
+    res = multiAgentStep(state, { agentId: "bob", action: sellAction as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "carol", action: sellAction as any }, mockPack);
+    state = res.state;
+
+    // Verify open order status
+    expect(state.swfReinsuranceOptionLimitOrders?.["buy_1000"]?.status).toBe("Open");
+    expect(state.swfReinsuranceOptionLimitOrders?.["sell_400"]?.status).toBe("Open");
+
+    // Match them via economy tick
+    // Maker is Buy (timestamp 1001), price per unit is 0.3.
+    // Matched size: 400.
+    // Gold paid: 0.3 * 400 = 120 gold.
+    state = tickEconomy(state, mockPack);
+
+    // Verify Sell order is fully Filled
+    expect(state.swfReinsuranceOptionLimitOrders?.["sell_400"]?.status).toBe("Filled");
+    expect(state.swfReinsuranceOptionLimitOrders?.["sell_400"]?.size).toBe(0);
+
+    // Verify Buy order is partially Filled and remains Open
+    const remainingBuy = state.swfReinsuranceOptionLimitOrders?.["buy_1000"];
+    expect(remainingBuy?.status).toBe("Open");
+    expect(remainingBuy?.size).toBe(600);
+    expect(remainingBuy?.limitPrice).toBe(180); // 300 * 600 / 1000 = 180
+
+    // Verify gold transfer: 120 gold
+    // Alpha: 10000 - 120 = 9880
+    expect(state.syndicates?.["alpha"]?.warChest).toBe(9880);
+    // Beta: 10000 + 120 = 10120
+    expect(state.syndicates?.["beta"]?.warChest).toBe(10120);
+
+    // Verify option contract created (size 400)
+    const optContract = state.swfReinsuranceOptionsContracts?.["opt_limit_1"];
+    expect(optContract).toBeDefined();
+    expect(optContract?.size).toBe(400);
+
+    // 2. Multiple Partial Fills: Submit another Sell order (Beta, size 600, limitPrice 150 -> 0.25 per unit)
+    // Matches the remaining 600 of buy_1000!
+    const sellAction2 = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "sell_600",
+      syndicateId: "beta",
+      orderType: "sell",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 600,
+      limitPrice: 150,
+      timestamp: 1003,
+    };
+
+    res = multiAgentStep(state, { agentId: "bob", action: sellAction2 as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "carol", action: sellAction2 as any }, mockPack);
+    state = res.state;
+
+    // Match them
+    state = tickEconomy(state, mockPack);
+
+    // Both orders are now fully Filled!
+    expect(state.swfReinsuranceOptionLimitOrders?.["buy_1000"]?.status).toBe("Filled");
+    expect(state.swfReinsuranceOptionLimitOrders?.["sell_600"]?.status).toBe("Filled");
+
+    // Gold paid: 0.3 * 600 = 180 gold.
+    // Alpha: 9880 - 180 = 9700
+    expect(state.syndicates?.["alpha"]?.warChest).toBe(9700);
+    // Beta: 10120 + 180 = 10300
+    expect(state.syndicates?.["beta"]?.warChest).toBe(10300);
+
+    // 3. Dynamic Liquidity Mining Rewards Accrual
+    // Let's setup a margin account and reputation multiplier for Alpha to boost their rewards
+    state.marginAccounts = {
+      alpha: {
+        syndicateId: "alpha",
+        collateral: 5000,
+        leveragedCDSIds: [],
+        leveragedSWFYieldCDOCDSIds: [],
+        leveragedTranchePositions: {},
+        swfLiquidityMiningMultiplier: 2.0, // 2x multiplier
+        timestamp: 1004,
+      },
+    };
+
+    // Alpha submits an order that remains open to accrue rewards
+    const buyAction2 = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "buy_reward",
+      syndicateId: "alpha",
+      orderType: "buy",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 500,
+      limitPrice: 150,
+      timestamp: 1005,
+    };
+
+    res = multiAgentStep(state, { agentId: "player", action: buyAction2 as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "alice", action: buyAction2 as any }, mockPack);
+    state = res.state;
+
+    // Tick economy to accrue reward
+    state = tickEconomy(state, mockPack);
+
+    // Verify pending rewards accrued for Alpha
+    const alphaPending = state.swfLiquidityMiningRewards?.["alpha"] ?? 0;
+    expect(alphaPending).toBeGreaterThan(0);
+
+    // 4. Consensus Reward Claiming
+    const claimAction = {
+      type: "CLAIM_REINSURANCE_LIQUIDITY_MINING_REWARDS",
+      syndicateId: "alpha",
+      timestamp: 1006,
+    };
+
+    // First vote (PENDING majority)
+    res = multiAgentStep(state, { agentId: "player", action: claimAction as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    expect(state.swfLiquidityMiningRewards?.["alpha"]).toBe(alphaPending); // not claimed yet
+
+    // Second vote (consensus reached)
+    res = multiAgentStep(state, { agentId: "alice", action: claimAction as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Pending rewards reset to 0
+    expect(state.swfLiquidityMiningRewards?.["alpha"]).toBe(0);
+
+    // Gold added to Alpha's warChest
+    expect(state.syndicates?.["alpha"]?.warChest).toBe(9700 + alphaPending);
+  });
 });
 

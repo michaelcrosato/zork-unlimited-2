@@ -5646,6 +5646,68 @@ export function getCounterfeitExchangeRate(
   return Math.max(0.1, Math.min(2.0, rate));
 }
 
+export function distributeReinsuranceLiquidityMiningRewards(state: GameState): GameState {
+  const newState = {
+    ...state,
+    swfLiquidityMiningRewards: state.swfLiquidityMiningRewards ? { ...state.swfLiquidityMiningRewards } : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  const allOpenOrders = Object.values(newState.swfReinsuranceOptionLimitOrders || {}).filter(
+    (o) => o.status === "Open" && o.size > 0
+  );
+
+  // Group open orders by CDO_Tranche key
+  const groupedOrders: Record<string, typeof allOpenOrders> = {};
+  for (const order of allOpenOrders) {
+    const key = `${order.swfYieldCdoId}_${order.trancheId}`;
+    if (!groupedOrders[key]) groupedOrders[key] = [];
+    groupedOrders[key].push(order);
+  }
+
+  for (const [key, orders] of Object.entries(groupedOrders)) {
+    const buyOrders = orders.filter((o) => o.orderType === "buy");
+    const sellOrders = orders.filter((o) => o.orderType === "sell");
+
+    const buyPrices = buyOrders.map((o) => o.limitPrice / o.size);
+    const sellPrices = sellOrders.map((o) => o.limitPrice / o.size);
+
+    const highestBuy = buyPrices.length > 0 ? Math.max(...buyPrices) : 0;
+    const lowestSell = sellPrices.length > 0 ? Math.min(...sellPrices) : 0;
+
+    let midMarketPrice: number | undefined;
+    if (highestBuy > 0 && lowestSell > 0) {
+      midMarketPrice = (highestBuy + lowestSell) / 2;
+    } else if (highestBuy > 0) {
+      midMarketPrice = highestBuy;
+    } else if (lowestSell > 0) {
+      midMarketPrice = lowestSell;
+    }
+
+    if (midMarketPrice === undefined) continue;
+
+    for (const order of orders) {
+      const orderPrice = order.limitPrice / order.size;
+      const closeness = 1 / (1 + Math.abs(orderPrice - midMarketPrice));
+      
+      // Calculate reward: size * closeness * 0.1
+      const baseReward = order.size * closeness * 0.1;
+      const multiplier = newState.marginAccounts?.[order.syndicateId]?.swfLiquidityMiningMultiplier ?? 1.0;
+      const tickReward = Math.floor(baseReward * multiplier);
+
+      if (tickReward > 0) {
+        newState.swfLiquidityMiningRewards![order.syndicateId] = (newState.swfLiquidityMiningRewards![order.syndicateId] ?? 0) + tickReward;
+        
+        newState.journal.push(
+          `[SWF Reinsurance Liquidity Mining Reward] Syndicate ${order.syndicateId} accrued ${tickReward} pending rewards for order ${order.id} (Price: ${orderPrice.toFixed(4)}, Mid: ${midMarketPrice.toFixed(4)}, Closeness: ${closeness.toFixed(4)}, Multiplier: ${multiplier.toFixed(2)}x).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
 export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameState {
   const newState = {
     ...state,
@@ -5661,23 +5723,27 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
   const buyOrders = openOrders.filter((o) => o.orderType === "buy");
   const sellOrders = openOrders.filter((o) => o.orderType === "sell");
 
-  // Sort buy orders descending by limit price (highest buy first), then by timestamp ascending (earlier first)
+  // Sort buy orders descending by limit price per unit (highest buy first), then by timestamp ascending (earlier first)
   buyOrders.sort((a, b) => {
-    if (b.limitPrice !== a.limitPrice) return b.limitPrice - a.limitPrice;
+    const priceA = a.limitPrice / a.size;
+    const priceB = b.limitPrice / b.size;
+    if (priceB !== priceA) return priceB - priceA;
     return a.timestamp - b.timestamp;
   });
 
-  // Sort sell orders ascending by limit price (lowest sell first), then by timestamp ascending (earlier first)
+  // Sort sell orders ascending by limit price per unit (lowest sell first), then by timestamp ascending (earlier first)
   sellOrders.sort((a, b) => {
-    if (a.limitPrice !== b.limitPrice) return a.limitPrice - b.limitPrice;
+    const priceA = a.limitPrice / a.size;
+    const priceB = b.limitPrice / b.size;
+    if (priceA !== priceB) return priceA - priceB;
     return a.timestamp - b.timestamp;
   });
 
   for (const buyOrder of buyOrders) {
-    if (buyOrder.status !== "Open") continue;
+    if (buyOrder.status !== "Open" || buyOrder.size <= 0) continue;
 
     for (const sellOrder of sellOrders) {
-      if (sellOrder.status !== "Open") continue;
+      if (sellOrder.status !== "Open" || sellOrder.size <= 0) continue;
 
       // Check if parameters match
       if (
@@ -5685,21 +5751,23 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         buyOrder.trancheId === sellOrder.trancheId &&
         buyOrder.optionType === sellOrder.optionType &&
         buyOrder.strikePremiumRate === sellOrder.strikePremiumRate &&
-        buyOrder.size === sellOrder.size &&
-        buyOrder.limitPrice >= sellOrder.limitPrice
+        (buyOrder.limitPrice * sellOrder.size >= sellOrder.limitPrice * buyOrder.size)
       ) {
         // Price overlap!
         // Execution price: earlier timestamp is maker price
-        const executionPrice =
-          buyOrder.timestamp <= sellOrder.timestamp
-            ? buyOrder.limitPrice
-            : sellOrder.limitPrice;
+        const matchedSize = Math.min(buyOrder.size, sellOrder.size);
+
+        const makerIsBuy = buyOrder.timestamp <= sellOrder.timestamp;
+        const executionPricePerUnit = makerIsBuy
+          ? (buyOrder.limitPrice / buyOrder.size)
+          : (sellOrder.limitPrice / sellOrder.size);
+
+        const executionPriceForMatch = Math.round(executionPricePerUnit * matchedSize);
 
         const buyer = newState.syndicates[buyOrder.syndicateId];
         const seller = newState.syndicates[sellOrder.syndicateId];
 
-        if (!buyer) continue;
-        if (!seller) continue;
+        if (!buyer || !seller) continue;
 
         // Calculate current book depth for this specific tranche in terms of open order sizes
         const openOrdersForTranche = Object.values(newState.swfReinsuranceOptionLimitOrders).filter(
@@ -5708,10 +5776,10 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         const depth = openOrdersForTranche.reduce((sum, o) => sum + o.size, 0);
 
         // Determine if it is a large order (threshold of 1000 contracts)
-        const isLargeOrder = buyOrder.size >= 1000;
+        const isLargeOrder = matchedSize >= 1000;
 
         // Calculate ratio of order size to total book depth
-        const ratio = isLargeOrder ? (buyOrder.size / (depth || 1)) : 0;
+        const ratio = isLargeOrder ? (matchedSize / (depth || 1)) : 0;
 
         // Define market impact factor: sliding scale from 0% to 20% price impact
         const priceImpact = ratio * 0.2;
@@ -5722,10 +5790,10 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
           volumeScale = Math.max(0.5, 1.0 - (ratio - 0.4) * 0.833);
         }
 
-        const executedSize = Math.round(buyOrder.size * volumeScale);
+        const executedSize = Math.round(matchedSize * volumeScale);
         
         // Base price scaled down by the volume scale factor, then marked up by price impact
-        const adjustedPrice = Math.round(executionPrice * volumeScale * (1 + priceImpact));
+        const adjustedPrice = Math.round(executionPriceForMatch * volumeScale * (1 + priceImpact));
 
         // Check buyer warChest
         if ((buyer.warChest ?? 0) < adjustedPrice) {
@@ -5742,13 +5810,36 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
             continue;
           }
 
-          // Transfer contract ownership
-          newState.swfReinsuranceOptionsContracts[sellOrder.contractId] = {
-            ...contract,
-            syndicateId: buyOrder.syndicateId, // new holder
-            size: executedSize, // scaled size!
-            timestamp: newState.step,
-          };
+          if (contract.size <= executedSize) {
+            // Transfer entire contract ownership
+            newState.swfReinsuranceOptionsContracts[sellOrder.contractId] = {
+              ...contract,
+              syndicateId: buyOrder.syndicateId, // new holder
+              size: executedSize, // scaled size!
+              timestamp: newState.step,
+            };
+          } else {
+            // Split the contract: reduce seller's contract size
+            newState.swfReinsuranceOptionsContracts[sellOrder.contractId] = {
+              ...contract,
+              size: contract.size - executedSize,
+              timestamp: newState.step,
+            };
+            // Create new contract for the buyer
+            const optionId = `opt_limit_${Object.keys(newState.swfReinsuranceOptionsContracts).length + 1}`;
+            newState.swfReinsuranceOptionsContracts[optionId] = {
+              id: optionId,
+              syndicateId: buyOrder.syndicateId, // buyer/holder
+              writerSyndicateId: contract.writerSyndicateId, // keep original writer!
+              swfYieldCdoId: buyOrder.swfYieldCdoId,
+              trancheId: buyOrder.trancheId,
+              optionType: buyOrder.optionType,
+              strikePremiumRate: buyOrder.strikePremiumRate,
+              size: executedSize, // scaled size!
+              timestamp: newState.step,
+              active: true,
+            };
+          }
         } else {
           // Write/create new option contract
           const optionId = `opt_limit_${Object.keys(newState.swfReinsuranceOptionsContracts).length + 1}`;
@@ -5773,25 +5864,44 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         newState.syndicates[buyOrder.syndicateId] = { ...buyer };
         newState.syndicates[sellOrder.syndicateId] = { ...seller };
 
-        // Mark orders filled
-        buyOrder.status = "Filled";
-        sellOrder.status = "Filled";
+        // Scale remaining order sizes
+        if (buyOrder.size <= matchedSize) {
+          buyOrder.status = "Filled";
+          buyOrder.size = 0;
+          buyOrder.limitPrice = 0;
+        } else {
+          const pricePerUnitBuy = buyOrder.limitPrice / buyOrder.size;
+          buyOrder.size -= matchedSize;
+          buyOrder.limitPrice = Math.max(1, Math.round(pricePerUnitBuy * buyOrder.size));
+        }
+
+        if (sellOrder.size <= matchedSize) {
+          sellOrder.status = "Filled";
+          sellOrder.size = 0;
+          sellOrder.limitPrice = 0;
+        } else {
+          const pricePerUnitSell = sellOrder.limitPrice / sellOrder.size;
+          sellOrder.size -= matchedSize;
+          sellOrder.limitPrice = Math.max(1, Math.round(pricePerUnitSell * sellOrder.size));
+        }
 
         newState.swfReinsuranceOptionLimitOrders[buyOrder.id] = { ...buyOrder };
         newState.swfReinsuranceOptionLimitOrders[sellOrder.id] = { ...sellOrder };
 
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
-          `[SWF Reinsurance Option Limit Match] Matched Buy Order ${buyOrder.id} (Syndicate ${buyOrder.syndicateId}) and Sell Order ${sellOrder.id} (Syndicate ${sellOrder.syndicateId}) at execution price ${adjustedPrice} gold (CDO: ${buyOrder.swfYieldCdoId}, Tranche: ${buyOrder.trancheId}, Strike: ${buyOrder.strikePremiumRate.toFixed(4)}, Original Size: ${buyOrder.size}, Executed Size: ${executedSize}, Contract: ${sellOrder.contractId ? sellOrder.contractId : "New"}).`
+          `[SWF Reinsurance Option Limit Match] Matched Buy Order ${buyOrder.id} (Syndicate ${buyOrder.syndicateId}) and Sell Order ${sellOrder.id} (Syndicate ${sellOrder.syndicateId}) at execution price ${adjustedPrice} gold (CDO: ${buyOrder.swfYieldCdoId}, Tranche: ${buyOrder.trancheId}, Strike: ${buyOrder.strikePremiumRate.toFixed(4)}, Original Size: ${buyOrder.size + matchedSize}, Executed Size: ${executedSize}, Contract: ${sellOrder.contractId ? sellOrder.contractId : "New"}).`
         );
 
         if (volumeScale < 1.0 || priceImpact > 0) {
           newState.journal.push(
-            `[SWF Reinsurance Option Market Impact] Large order matched (Size: ${buyOrder.size}, Tranche Depth: ${depth}). Volume scaled by ${(volumeScale * 100).toFixed(1)}% (Executed Size: ${executedSize}), Price adjusted by +${(priceImpact * 100).toFixed(1)}% (Base: ${Math.round(executionPrice * volumeScale)} gold, Adjusted: ${adjustedPrice} gold).`
+            `[SWF Reinsurance Option Market Impact] Large order matched (Size: ${matchedSize}, Tranche Depth: ${depth}). Volume scaled by ${(volumeScale * 100).toFixed(1)}% (Executed Size: ${executedSize}), Price adjusted by +${(priceImpact * 100).toFixed(1)}% (Base: ${Math.round(executionPriceForMatch * volumeScale)} gold, Adjusted: ${adjustedPrice} gold).`
           );
         }
 
-        break; // Match found for this buy order, move to next buy order
+        if (buyOrder.status === "Filled") {
+          break;
+        }
       }
     }
   }
@@ -5802,6 +5912,9 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
   newState.swfReinsuranceOptionOrderBookDepths = afterMatchMetrics.swfReinsuranceOptionOrderBookDepths;
   newState.journal = afterMatchMetrics.journal;
 
-  return newState;
+  // AF-153: Dynamic Liquidity Mining Reward distribution based on price closeness to mid-market price
+  const rewardedState = distributeReinsuranceLiquidityMiningRewards(newState);
+
+  return rewardedState;
 }
 

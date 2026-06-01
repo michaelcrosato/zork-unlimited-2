@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #152 (Ready for Cycle #153)
-* **Build/Test Status**: 🟢 PASS (All 623 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #153 (Ready for Cycle #154)
+* **Build/Test Status**: 🟢 PASS (All 624 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -919,14 +919,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 131: Syndicate SWF Reinsurance Options Order Book Matching Engine Partial Fills & Dynamic Liquidity Mining Rewards (Completed)
+- [x] Add support for partial limit order matching where residual unmatched order quantities remain open (`AF-153`).
+- [x] Implement dynamic liquidity mining reward distribution based on limit price closeness to the mid-market price (`AF-153`).
+- [x] Wire reward claims and log matching/mining events to the journal (`AF-153`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-153`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-153`
-* **Objective**: Syndicate SWF Reinsurance Options Order Book Matching Engine Partial Fills & Dynamic Liquidity Mining Rewards.
-* **Why this matters**: Introduce partial limit order fills within the matching engine, and implement a liquidity mining reward mechanism that distributes governance/mining bonuses to syndicates placing tight-spread limit orders.
+**Task ID**: `AF-154`
+* **Objective**: Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidies & Standing-Based Price Discounts.
+* **Why this matters**: Introduce dynamic transaction cost subsidies in order book trades, scaling with the syndicate's overall faction reputation/standing to further incentivize market maker liquidity.
 * **Planned Actions**:
-  1. Add support for partial limit order matching where residual unmatched order quantities remain open.
-  2. Implement dynamic liquidity mining reward distribution based on limit price closeness to the mid-market price.
-  3. Wire reward claims and log matching/mining events to the journal.
+  1. Implement dynamic transaction cost subsidies scaling with syndicate faction standing.
+  2. Support decentralized voting on transaction cost subsidies adjustments.
+  3. Wire dynamic subsidies calculations to the economy ticks and order matching engine.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---
