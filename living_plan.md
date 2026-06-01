@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #25 (Ready for Cycle #26)
-* **Build/Test Status**: 🟢 PASS (All 119 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #26 (Ready for Cycle #27)
+* **Build/Test Status**: 🟢 PASS (All 123 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -131,16 +131,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Integrate BUY/SELL parser command mapping and dynamic legal-actions generation (`AF-25`).
 - [x] Write comprehensive Vitest unit and pathfinder reachability validation tests (`AF-25`).
 
+### Phase 21: Enhanced Merchant Economy & Reputation (Completed)
+- [x] Add support for weather-based price multipliers (`climate_pricing`) for dynamic price fluctuation in extreme climates (`AF-26`).
+- [x] Implement merchant gold limits and automatic daily restocking timers with procedural item restock (`AF-26`).
+- [x] Implement dynamic player-NPC reputation tracking (`npcRep` in state and `change_reputation` effect) (`AF-26`).
+- [x] Wire dynamic price scaling and transaction success verification to NPC/effect reputation thresholds (`AF-26`).
+- [x] Write comprehensive unit tests asserting all reputation, weather climate_pricing, gold limits, and restocking logic (`AF-26`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-26`
-* **Objective**: Add support for dynamic merchant gold limits, price fluctuation based on local climate/weather (`climate_pricing`), and trading reputation variables (`npc_rep`) in parser packs.
-* **Why this matters**: Further enhancing the mechanical depth and economic realism by reacting to weather patterns and P2P mesh presence increases engine immersion and tactical depth.
+**Task ID**: `AF-27`
+* **Objective**: Design and implement cooperative P2P faction alliances and faction reputation dynamics (`faction_rep`) in decentralized packs.
+* **Why this matters**: Introducing faction-level alignments and mesh-synchronized player alliances expands multiplayer text adventures with tribal factions, territorial claiming, and complex cooperative goals.
 * **Planned Actions**:
-  1. Add weather-based price multipliers (`climate_pricing`) to adjust costs dynamically under extreme weather.
-  2. Implement merchant gold limits and automatic daily restocking timers.
-  3. Add trading reputation variables (`npc_rep`) modifying transaction success and prices.
+  1. Define faction structures (`factions`) and player-faction reputation variables (`faction_rep`).
+  2. Support faction-gated room exits and item interaction conditions.
+  3. Implement cooperative faction-reputation gossip synchronization across the P2P mesh.
+  4. Write comprehensive tests and mock playtests for faction interactions.
 
 ---
 

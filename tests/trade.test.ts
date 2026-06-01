@@ -240,3 +240,295 @@ describe("Procedural Merchant and Trading System (NPC_TRADE)", () => {
     expect(state.endingId).toBe("ending_victory");
   });
 });
+
+describe("Cycle 26 Economy Enhancements (AF-26)", () => {
+  const econPack = ParserPackSchema.parse({
+    meta: {
+      id: "econ_test_pack",
+      title: "Enhanced Economy Test",
+      start_room: "shop",
+      vars_init: {
+        gold: 100,
+      },
+      flags_init: [],
+    },
+    rooms: [
+      {
+        id: "shop",
+        name: "Shop Room",
+        description: "A cozy shop.",
+        objects: [],
+        npcs: ["merchant_tim"],
+        exits: [],
+      },
+    ],
+    objects: [
+      {
+        id: "winter_coat",
+        name: "winter coat",
+        description: "Keeps you warm.",
+        takeable: true,
+        cost: 20,
+        climate_pricing: {
+          storm: 2.0,
+        },
+      },
+      {
+        id: "rusty_sword",
+        name: "rusty sword",
+        description: "A rusty sword.",
+        takeable: true,
+        cost: 10,
+      },
+    ],
+    npcs: [
+      {
+        id: "merchant_tim",
+        name: "Merchant Tim",
+        description: "Tim the merchant.",
+        gold: 50,
+        gold_limit: 80,
+        restock_interval: 3,
+        possible_items: ["rusty_sword"],
+        climate_pricing: {
+          storm: 1.5,
+        },
+        min_rep: -5,
+        dialogue: {
+          root: "root_node",
+          nodes: [
+            {
+              id: "root_node",
+              npc_text: "Hello!",
+              topics: [
+                {
+                  id: "help_rep",
+                  prompt: "Do a good deed",
+                  goto: "root_node",
+                  effects: [
+                    {
+                      change_reputation: {
+                        npc_id: "merchant_tim",
+                        by: 5,
+                      },
+                    },
+                  ],
+                },
+                {
+                  id: "gossip_bad",
+                  prompt: "Insult him",
+                  goto: "root_node",
+                  effects: [
+                    {
+                      change_reputation: {
+                        npc_id: "merchant_tim",
+                        by: -10,
+                      },
+                    },
+                  ],
+                },
+                {
+                  id: "trade_rep_gated",
+                  prompt: "Secret Trade",
+                  goto: "root_node",
+                  effects: [
+                    {
+                      npc_trade: {
+                        npc_id: "merchant_tim",
+                        action: "buy",
+                        item: "rusty_sword",
+                        cost: 10,
+                        min_rep: 5,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+    win_conditions: [],
+    endings: [],
+  });
+
+  it("should apply weather climate_pricing and reputation pricing scales", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "shop",
+      varsInit: econPack.meta.vars_init,
+    });
+
+    // Stock the merchant first
+    state.merchantInventories = {
+      merchant_tim: ["winter_coat"],
+    };
+
+    // Under default weather (clear), base price is 20 gold
+    // Let's buy and check that it generates BUY option at 20 gold
+    const buyRes1 = step(state, { type: "BUY", item: "winter_coat", npc: "merchant_tim" }, econPack);
+    expect(buyRes1.ok).toBe(true);
+    expect(buyRes1.state.vars["gold"]).toBe(80); // 100 - 20 = 80
+    expect(buyRes1.state.merchantGold?.["merchant_tim"]).toBe(70); // Merchant starts with 50 + 20 = 70
+
+    // Reset state and test with storm weather
+    let stormState = createInitialState({
+      seed: 42,
+      start: "shop",
+      varsInit: econPack.meta.vars_init,
+    });
+    stormState.merchantInventories = {
+      merchant_tim: ["winter_coat"],
+    };
+    stormState.environment = {
+      weather: "storm",
+      temperature: "cold",
+      lastUpdatedStep: 0,
+    };
+
+    // Under storm weather:
+    // Merchant Tim has storm pricing multiplier 1.5x
+    // Winter Coat has storm pricing multiplier 2.0x
+    // Combined multiplier: 1.5 * 2.0 = 3.0x
+    // Winter Coat cost: 20 * 3.0 = 60 gold
+    const buyRes2 = step(stormState, { type: "BUY", item: "winter_coat", npc: "merchant_tim" }, econPack);
+    expect(buyRes2.ok).toBe(true);
+    expect(buyRes2.state.vars["gold"]).toBe(40); // 100 - 60 = 40
+    expect(buyRes2.state.merchantGold?.["merchant_tim"]).toBe(80); // 50 + 60 = 110, capped at gold_limit of 80!
+
+    // Reset and test reputation pricing scale
+    let repState = createInitialState({
+      seed: 42,
+      start: "shop",
+      varsInit: econPack.meta.vars_init,
+    });
+    repState.merchantInventories = {
+      merchant_tim: ["winter_coat"],
+    };
+    // Let's increase reputation to 5
+    repState.npcRep = {
+      merchant_tim: 5,
+    };
+
+    // With rep 5, we get a 10% discount: 1.0 - (5 * 0.02) = 0.9x
+    // Cost: 20 * 0.9 = 18 gold
+    const buyRes3 = step(repState, { type: "BUY", item: "winter_coat", npc: "merchant_tim" }, econPack);
+    expect(buyRes3.ok).toBe(true);
+    expect(buyRes3.state.vars["gold"]).toBe(82); // 100 - 18 = 82
+  });
+
+  it("should enforce merchant gold limits during selling", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "shop",
+      varsInit: econPack.meta.vars_init,
+    });
+
+    // Give player a winter_coat
+    state.inventory.push("winter_coat");
+    
+    // Merchant Tim starts with 50 gold in the pack
+    // Let's try to sell a custom expensive item (worth 60 gold)
+    // We modify cost of winter_coat temporarily to 60
+    const expensivePack = JSON.parse(JSON.stringify(econPack));
+    expensivePack.objects[0].cost = 60;
+
+    const sellRes1 = step(state, { type: "SELL", item: "winter_coat", npc: "merchant_tim" }, expensivePack);
+    expect(sellRes1.ok).toBe(false); // fails because merchant cannot afford 60 gold (only has 50)
+
+    // Now sell it at normal price (20 gold)
+    const sellRes2 = step(state, { type: "SELL", item: "winter_coat", npc: "merchant_tim" }, econPack);
+    expect(sellRes2.ok).toBe(true);
+    expect(sellRes2.state.vars["gold"]).toBe(120); // 100 + 20
+    expect(sellRes2.state.merchantGold?.["merchant_tim"]).toBe(30); // 50 - 20 = 30 gold left
+  });
+
+  it("should enforce minimum reputation gated checks", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "shop",
+      varsInit: econPack.meta.vars_init,
+    });
+    
+    state.merchantInventories = {
+      merchant_tim: ["winter_coat"],
+    };
+
+    // 1. Talk and insult Merchant Tim to drop reputation by -10 (reputation becomes -10)
+    let talkRes = step(state, { type: "TALK", npc: "merchant_tim" }, econPack);
+    expect(talkRes.ok).toBe(true);
+    
+    let insultRes = step(talkRes.state, { type: "ASK", npc: "merchant_tim", topic: "gossip_bad" }, econPack);
+    expect(insultRes.ok).toBe(true);
+    expect(insultRes.state.npcRep?.["merchant_tim"]).toBe(-10);
+
+    // End dialogue to resume normal room commands
+    let outOfDialogueState = {
+      ...insultRes.state,
+      flags: { ...insultRes.state.flags, in_dialogue_with_merchant_tim: false }
+    };
+    
+    // Attempting to buy when reputation (-10) is below Merchant Tim's min_rep (-5) should fail!
+    const buyFailed = step(outOfDialogueState, { type: "BUY", item: "winter_coat", npc: "merchant_tim" }, econPack);
+    expect(buyFailed.ok).toBe(false);
+    expect(buyFailed.rejectionReason).toContain("reputation");
+
+    // 2. Secret trade requires reputation of 5
+    let friendlyState = createInitialState({
+      seed: 42,
+      start: "shop",
+      varsInit: econPack.meta.vars_init,
+    });
+    // Add rusty_sword to merchant's stock
+    friendlyState.merchantInventories = {
+      merchant_tim: ["rusty_sword"],
+    };
+
+    // Try to trigger secret trade dialogue effect with 0 reputation (fails min_rep: 5)
+    let talkRes2 = step(friendlyState, { type: "TALK", npc: "merchant_tim" }, econPack);
+    let secretTradeRes1 = step(talkRes2.state, { type: "ASK", npc: "merchant_tim", topic: "trade_rep_gated" }, econPack);
+    expect(secretTradeRes1.ok).toBe(true);
+    expect(secretTradeRes1.state.inventory).not.toContain("rusty_sword"); // Trade was rejected internally in effect
+
+    // Now increase reputation to 5 and try again
+    let highRepState = friendlyState;
+    highRepState.npcRep = {
+      merchant_tim: 5,
+    };
+    let talkRes3 = step(highRepState, { type: "TALK", npc: "merchant_tim" }, econPack);
+    let secretTradeRes2 = step(talkRes3.state, { type: "ASK", npc: "merchant_tim", topic: "trade_rep_gated" }, econPack);
+    expect(secretTradeRes2.ok).toBe(true);
+    expect(secretTradeRes2.state.inventory).toContain("rusty_sword"); // Succeeded!
+  });
+
+  it("should trigger automatic daily restocking timers and procedurally stock items", () => {
+    let state = createInitialState({
+      seed: 12345, // Use fixed seed for deterministic choice
+      start: "shop",
+      varsInit: econPack.meta.vars_init,
+    });
+
+    // Make a few mock LOOK steps to advance the step counter
+    // Restock interval is 3 steps
+    expect(state.step).toBe(0);
+    expect(state.merchantInventories?.["merchant_tim"]).toBeUndefined();
+
+    // Step 1
+    state = step(state, { type: "LOOK" }, econPack).state;
+    expect(state.step).toBe(1);
+    expect(state.merchantInventories?.["merchant_tim"]).toBeUndefined();
+
+    // Step 2
+    state = step(state, { type: "LOOK" }, econPack).state;
+    expect(state.step).toBe(2);
+    expect(state.merchantInventories?.["merchant_tim"]).toBeUndefined();
+
+    // Step 3 -> Restock should trigger!
+    // Since possible_items is ["rusty_sword"], it must stock rusty_sword
+    state = step(state, { type: "LOOK" }, econPack).state;
+    expect(state.step).toBe(3);
+    expect(state.merchantInventories?.["merchant_tim"]).toContain("rusty_sword");
+    expect(state.merchantGold?.["merchant_tim"]).toBe(50); // reset to starting gold
+  });
+});

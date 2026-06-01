@@ -2,6 +2,7 @@ import { z } from "zod";
 import { GameState } from "./state.js";
 import { GameEvent } from "./events.js";
 import { PureRand } from "./rng.js";
+import { calculateTradePrice, checkReputationTrade, getMerchantGold } from "./economy.js";
 
 export const EffectSchema = z.union([
   z.object({ set_flag: z.string() }),
@@ -95,6 +96,13 @@ export const EffectSchema = z.union([
       cost: z.number().optional(),
       success_msg: z.string().optional(),
       fail_msg: z.string().optional(),
+      min_rep: z.number().optional(),
+    }),
+  }),
+  z.object({
+    change_reputation: z.object({
+      npc_id: z.string(),
+      by: z.number(),
     }),
   }),
 ]);
@@ -121,6 +129,9 @@ export function applyEffect(
     visited: { ...state.visited },
     merchantInventories: state.merchantInventories ? JSON.parse(JSON.stringify(state.merchantInventories)) : undefined,
     tradeHistory: state.tradeHistory ? [...state.tradeHistory] : undefined,
+    merchantGold: state.merchantGold ? { ...state.merchantGold } : undefined,
+    merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : undefined,
+    npcRep: state.npcRep ? { ...state.npcRep } : undefined,
   };
 
   if ("set_flag" in effect) {
@@ -467,7 +478,7 @@ export function applyEffect(
   }
 
   if ("npc_trade" in effect) {
-    const { npc_id, action, item, possible_items, cost, success_msg, fail_msg } = effect.npc_trade;
+    const { npc_id, action, item, possible_items, cost, success_msg, fail_msg, min_rep } = effect.npc_trade;
 
     if (!newState.merchantInventories) {
       newState.merchantInventories = {};
@@ -477,6 +488,17 @@ export function applyEffect(
     }
     if (!newState.tradeHistory) {
       newState.tradeHistory = [];
+    }
+
+    const npcPack = pack?.npcs?.find((n: any) => n.id === npc_id);
+
+    // Check Reputation requirement
+    const repCheck = checkReputationTrade(newState, npcPack, min_rep);
+    if (!repCheck.allowed) {
+      return {
+        state,
+        event: { type: "narration", text: fail_msg ?? repCheck.reason ?? "Trade not allowed." }
+      };
     }
 
     if (action === "stock") {
@@ -533,11 +555,9 @@ export function applyEffect(
         };
       }
 
-      let itemCost: number = cost ?? 10;
-      if (cost === undefined) {
-        const packObj = pack?.objects?.find((o: any) => o.id === item);
-        itemCost = packObj?.cost ?? 10;
-      }
+      const packObj = pack?.objects?.find((o: any) => o.id === item);
+      const baseCost = cost ?? packObj?.cost ?? 10;
+      const itemCost = calculateTradePrice(newState, npcPack, packObj, baseCost, true);
 
       const playerGold = newState.vars["gold"] ?? 0;
       if (playerGold < itemCost) {
@@ -547,7 +567,16 @@ export function applyEffect(
         };
       }
 
+      // Update Player Gold
       newState.vars["gold"] = playerGold - itemCost;
+      
+      // Update Merchant Gold
+      const mGold = getMerchantGold(newState, npcPack);
+      const maxGold = npcPack?.gold_limit;
+      newState.merchantGold = newState.merchantGold || {};
+      const nextMerchantGold = mGold + itemCost;
+      newState.merchantGold[npc_id] = maxGold !== undefined ? Math.min(nextMerchantGold, maxGold) : nextMerchantGold;
+
       if (!newState.inventory.includes(item)) {
         newState.inventory.push(item);
       }
@@ -598,13 +627,26 @@ export function applyEffect(
         };
       }
 
-      let itemPayout: number = cost ?? 10;
-      if (cost === undefined) {
-        itemPayout = packObj?.cost ?? 10;
+      const baseCost = cost ?? packObj?.cost ?? 10;
+      const itemPayout = calculateTradePrice(newState, npcPack, packObj, baseCost, false);
+
+      // Check Merchant Gold
+      const mGold = getMerchantGold(newState, npcPack);
+      if (mGold < itemPayout) {
+        return {
+          state,
+          event: { type: "narration", text: fail_msg ?? `The merchant does not have enough gold (has ${mGold} gold, requires ${itemPayout}).` }
+        };
       }
 
+      // Update Player Gold
       newState.inventory = newState.inventory.filter((i) => i !== item);
       newState.vars["gold"] = (newState.vars["gold"] ?? 0) + itemPayout;
+      
+      // Update Merchant Gold
+      newState.merchantGold = newState.merchantGold || {};
+      newState.merchantGold[npc_id] = Math.max(0, mGold - itemPayout);
+
       newState.merchantInventories[npc_id] = [...newState.merchantInventories[npc_id], item];
 
       const currentObj = newState.objectState[item] ?? {};
@@ -627,6 +669,18 @@ export function applyEffect(
         event: { type: "narration", text }
       };
     }
+  }
+
+  if ("change_reputation" in effect) {
+    const { npc_id, by } = effect.change_reputation;
+    newState.npcRep = newState.npcRep || {};
+    const currentRep = newState.npcRep[npc_id] ?? 0;
+    const finalRep = currentRep + by;
+    newState.npcRep[npc_id] = finalRep;
+    return {
+      state: newState,
+      event: { type: "state_change", effect: "change_reputation", variable: npc_id, value: finalRep }
+    };
   }
 
   throw new Error(`Unknown effect type: ${JSON.stringify(effect)}`);

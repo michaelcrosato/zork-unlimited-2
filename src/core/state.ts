@@ -94,6 +94,9 @@ export const GameStateSchema = z.object({
   // merchant and economy system
   merchantInventories: z.record(z.string(), z.array(z.string())).optional(),
   tradeHistory: z.array(TradeTransactionSchema).optional(),
+  merchantGold: z.record(z.string(), z.number()).optional(),
+  merchantLastRestock: z.record(z.string(), z.number()).optional(),
+  npcRep: z.record(z.string(), z.number()).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -150,6 +153,9 @@ export const createInitialState = (options: {
     cooperativeSyncLog: [],
     merchantInventories: {},
     tradeHistory: [],
+    merchantGold: {},
+    merchantLastRestock: {},
+    npcRep: {},
   };
 };
 

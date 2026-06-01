@@ -35,6 +35,7 @@ export const ParserObjectSchema = z.object({
   contents: z.array(z.string()).optional().default([]),
   interactions: z.array(ObjectInteractionSchema).optional().default([]),
   cost: z.number().optional(),
+  climate_pricing: z.record(z.string(), z.number()).optional(),
 });
 
 export type ParserObject = z.infer<typeof ParserObjectSchema>;
@@ -83,6 +84,12 @@ export const ParserNPCSchema = z.object({
   defense: z.number().optional(),
   gold: z.number().optional(),
   xp: z.number().optional(),
+  // Economy and Reputation
+  gold_limit: z.number().optional(),
+  restock_interval: z.number().optional(),
+  possible_items: z.array(z.string()).optional(),
+  climate_pricing: z.record(z.string(), z.number()).optional(),
+  min_rep: z.number().optional(),
 });
 
 export type ParserNPC = z.infer<typeof ParserNPCSchema>;

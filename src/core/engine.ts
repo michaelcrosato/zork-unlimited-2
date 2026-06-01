@@ -7,6 +7,7 @@ import { computeStateHashShort } from "./hash.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack, ParserRoom, ParserObject, ParserNPC } from "../parser/schema.js";
 import { PureRand } from "./rng.js";
+import { calculateTradePrice, checkReputationTrade, getMerchantGold, tickEconomy } from "./economy.js";
 
 /**
  * Pure engine step transition function.
@@ -40,6 +41,9 @@ export function step(
     cooperativeSyncLog: state.cooperativeSyncLog ? [...state.cooperativeSyncLog] : [],
     merchantInventories: state.merchantInventories ? JSON.parse(JSON.stringify(state.merchantInventories)) : undefined,
     tradeHistory: state.tradeHistory ? [...state.tradeHistory] : undefined,
+    merchantGold: state.merchantGold ? { ...state.merchantGold } : undefined,
+    merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : undefined,
+    npcRep: state.npcRep ? { ...state.npcRep } : undefined,
   };
 
   const events: GameEvent[] = [];
@@ -365,6 +369,7 @@ export function step(
         });
 
         newState.step += 1;
+        newState = tickEconomy(newState, pack);
         newState = tickEnvironment(newState, events, pack);
         return { state: newState, events, ok: true };
       }
@@ -907,8 +912,20 @@ export function step(
         };
       }
 
+      // Check reputation requirement
+      const repCheck = checkReputationTrade(newState, npc);
+      if (!repCheck.allowed) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: repCheck.reason ?? "Trade not allowed." }],
+          ok: false,
+          rejectionReason: repCheck.reason ?? "Trade not allowed.",
+        };
+      }
+
       const itemObj = findObjectInPack(action.item);
-      const itemCost = itemObj?.cost ?? 10;
+      const baseCost = itemObj?.cost ?? 10;
+      const itemCost = calculateTradePrice(newState, npc, itemObj, baseCost, true);
       const playerGold = newState.vars["gold"] ?? 0;
 
       if (playerGold < itemCost) {
@@ -920,7 +937,16 @@ export function step(
         };
       }
 
+      // Update Player Gold
       newState.vars["gold"] = playerGold - itemCost;
+      
+      // Update Merchant Gold
+      const mGold = getMerchantGold(newState, npc);
+      const maxGold = npc?.gold_limit;
+      newState.merchantGold = newState.merchantGold || {};
+      const nextMerchantGold = mGold + itemCost;
+      newState.merchantGold[npc.id] = maxGold !== undefined ? Math.min(nextMerchantGold, maxGold) : nextMerchantGold;
+
       if (!newState.inventory.includes(action.item)) {
         newState.inventory.push(action.item);
       }
@@ -991,10 +1017,38 @@ export function step(
         newState.tradeHistory = [];
       }
 
-      const itemPayout = itemObj?.cost ?? 10;
+      // Check reputation requirement
+      const repCheck = checkReputationTrade(newState, npc);
+      if (!repCheck.allowed) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: repCheck.reason ?? "Trade not allowed." }],
+          ok: false,
+          rejectionReason: repCheck.reason ?? "Trade not allowed.",
+        };
+      }
+
+      const baseCost = itemObj?.cost ?? 10;
+      const itemPayout = calculateTradePrice(newState, npc, itemObj, baseCost, false);
+
+      // Check Merchant Gold Limit
+      const mGold = getMerchantGold(newState, npc);
+      if (mGold < itemPayout) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `The merchant does not have enough gold (has ${mGold} gold, requires ${itemPayout}).` }],
+          ok: false,
+          rejectionReason: `The merchant does not have enough gold.`,
+        };
+      }
 
       newState.inventory = newState.inventory.filter((i) => i !== action.item);
       newState.vars["gold"] = (newState.vars["gold"] ?? 0) + itemPayout;
+      
+      // Update Merchant Gold
+      newState.merchantGold = newState.merchantGold || {};
+      newState.merchantGold[npc.id] = Math.max(0, mGold - itemPayout);
+
       newState.merchantInventories[npc.id] = [...newState.merchantInventories[npc.id], action.item];
 
       const currentObj = newState.objectState[action.item] ?? {};
@@ -1093,6 +1147,7 @@ export function step(
   }
 
   newState.step += 1;
+  newState = tickEconomy(newState, pack);
   newState = tickEnvironment(newState, events, pack);
   return {
     state: newState,
