@@ -778,4 +778,137 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     // Verify syndicate warchest grew
     expect(nodeA.localState.syndicates?.alpha?.warChest).toBeGreaterThan(1000);
   });
+
+  it("should dynamically recalculate and adapt split weights based on relative inverse latency under network congestion", () => {
+    const net = new MeshNetwork();
+    const nodeA = new MeshNode("A", mockPack, 42);
+    const nodeB = new MeshNode("B", mockPack, 42);
+    const nodeC = new MeshNode("C", mockPack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+
+    nodeA.directNeighbors.add("B");
+    nodeA.directNeighbors.add("C");
+    nodeB.directNeighbors.add("A");
+    nodeB.directNeighbors.add("C");
+    nodeC.directNeighbors.add("A");
+    nodeC.directNeighbors.add("B");
+
+    nodeA.announcePresence();
+    nodeB.announcePresence();
+    nodeC.announcePresence();
+
+    // Initialize state
+    
+    const syndicateObj = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["A", "B", "C"],
+        definedBy: "A",
+        timestamp: 1000,
+        warChest: 1000,
+      },
+    };
+    nodeA.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+    nodeB.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+    nodeC.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+
+    // Initialize CDO
+    const cdoObj = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
+        },
+        timestamp: 1000,
+      },
+    };
+    nodeA.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+    nodeB.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+    nodeC.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+
+    // Set up cross-mesh arbitrage policy
+    const policy = {
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      arbitrageSpreadThreshold: 10.0,
+      maxArbitrageVolume: 100,
+      timestamp: 1000,
+    };
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+    nodeB.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+    nodeC.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+
+    // Set up active cross-mesh arbitrage route with pathSplitWeights
+    const route = {
+      routeId: "route_A_B",
+      sourceNodeId: "A",
+      targetNodeId: "B",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      spreadDifference: 0,
+      timestamp: 1000,
+      pathSplitWeights: {
+        B: 0.5,
+        C: 0.5,
+      },
+    };
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: route };
+    nodeB.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...route } };
+    nodeC.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...route } };
+
+    // Propagate presence and calculate routing tables
+    for (let i = 0; i < 5; i++) {
+      net.tick(100);
+    }
+
+    // Now enable dynamic weight recalculation on node A
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes.route_A_B.enableDynamicWeightRecalculation = true;
+
+    // Setup order books AFTER network has finished ticking
+    nodeA.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 50 },
+    };
+    nodeB.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 10 },
+    };
+
+    // First Scenario:
+    // B has low latency (50ms) and C uses default multihop (2 hops * 50 = 100ms)
+    // Inverse B = 1/50 = 0.02, Inverse C = 1/100 = 0.01
+    // Sum = 0.03. B weight = 0.02/0.03 = 0.667, C weight = 0.01/0.03 = 0.333
+    nodeA.lastHeartbeatLatency.set("B", 50);
+
+    // Reconcile
+    nodeA.reconcileCrossMeshOptionArbitrage();
+
+    const routeAfterFirst = nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B;
+    expect(routeAfterFirst).toBeDefined();
+    expect(routeAfterFirst?.pathSplitWeights).toBeDefined();
+    expect(routeAfterFirst?.pathSplitWeights?.B).toBeCloseTo(0.667, 2);
+    expect(routeAfterFirst?.pathSplitWeights?.C).toBeCloseTo(0.333, 2);
+    expect(routeAfterFirst?.lastRecalculationStep).toBe(nodeA.localState.step);
+
+    // Second Scenario: Heavy network congestion on B
+    // Raise B's latency to 300ms, keep C at default 100ms
+    // Since 300ms > 100ms, it incurs a 2.0x penalty multiplier, making the perceived latency 600ms.
+    // Inverse B = 1/600 = 0.00167, Inverse C = 1/100 = 0.01
+    // Sum = 0.01167. B weight = 0.00167 / 0.01167 = 0.143, C weight = 0.01 / 0.01167 = 0.857
+    nodeA.localState.step = 43; // Advance step
+    nodeA.lastHeartbeatLatency.set("B", 300);
+
+    // Reconcile again
+    nodeA.reconcileCrossMeshOptionArbitrage();
+
+    const routeAfterSecond = nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B;
+    expect(routeAfterSecond?.pathSplitWeights?.B).toBeCloseTo(0.143, 2);
+    expect(routeAfterSecond?.pathSplitWeights?.C).toBeCloseTo(0.857, 2);
+    expect(routeAfterSecond?.lastRecalculationStep).toBe(43);
+  });
 });

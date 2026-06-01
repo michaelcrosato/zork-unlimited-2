@@ -283,6 +283,53 @@ export class MeshNode extends GossipNode {
 
       const nextHop = sourceNode.discovery.getNextHop(targetNodeId);
 
+      // Automated periodic split-weight balancing tick scaling weights by relative inverse latency of available hops
+      if (route.enableDynamicWeightRecalculation && route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0) {
+        const hopsLatencies: Record<string, number> = {};
+        let totalInverseLatency = 0;
+
+        for (const hopNodeId of Object.keys(route.pathSplitWeights)) {
+          const isDirect = hopNodeId === targetNodeId;
+          const hops = hopNodeId === sourceNodeId
+            ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
+            : getLinkWeight(sourceNodeId, hopNodeId) + getWeightedPathLength(sourceNode.discovery, hopNodeId, targetNodeId);
+
+          const rawLatency = (isDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hops * 50);
+
+          let currentPenalty = 1.0;
+          if (rawLatency > 100) {
+            currentPenalty = 2.0;
+          }
+
+          const latency = Math.max(rawLatency * currentPenalty, 1); // Avoid division by zero
+          hopsLatencies[hopNodeId] = latency;
+          totalInverseLatency += 1.0 / latency;
+        }
+
+        if (totalInverseLatency > 0) {
+          const newWeights: Record<string, number> = {};
+          for (const hopNodeId of Object.keys(route.pathSplitWeights)) {
+            const invLat = 1.0 / hopsLatencies[hopNodeId];
+            newWeights[hopNodeId] = Math.round((invLat / totalInverseLatency) * 1000) / 1000;
+          }
+
+          let weightsChanged = false;
+          for (const [hopNodeId, w] of Object.entries(newWeights)) {
+            if (route.pathSplitWeights[hopNodeId] !== w) {
+              weightsChanged = true;
+              break;
+            }
+          }
+
+          if (weightsChanged) {
+            route.pathSplitWeights = newWeights;
+            route.lastRecalculationStep = state.step;
+            route.timestamp = state.step;
+            changed = true;
+          }
+        }
+      }
+
       // Determine paths to use and their weights
       const paths = route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0
         ? { ...route.pathSplitWeights }

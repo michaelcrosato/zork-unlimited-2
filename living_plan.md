@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #178 (Ready for Cycle #179)
-* **Build/Test Status**: 🟢 PASS (All 682 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #179 (Ready for Cycle #180)
+* **Build/Test Status**: 🟢 PASS (All 683 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1117,14 +1117,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 158: Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Dynamic Path Re-weighting & Adaptive Split-Weight Recalculations (Completed)
+- [x] Define dynamic weight recalculation schemas inside options arbitrage routes (`AF-180`).
+- [x] Implement an automated periodic split-weight balancing tick scaling weights by relative inverse latency of available hops (`AF-180`).
+- [x] Write comprehensive unit and integration tests verifying dynamic adaptation of path splits under heavy network congestion (`AF-180`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-180`
-* **Objective**: Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Dynamic Path Re-weighting & Adaptive Split-Weight Recalculations.
-* **Why this matters**: Support dynamically recalculating path split weights on the fly based on active link-state latency fluctuations and network load telemetry to optimize throughput.
+**Task ID**: `AF-181`
+* **Objective**: Syndicate SWF Reinsurance Options Cross-Mesh Pathfinder Optimization & Route Pruning.
+* **Why this matters**: Support pruning options routing tables dynamically to drop inactive or highly degraded routes, reducing pathfinder complexity and network overhead.
 * **Planned Actions**:
-  1. Define dynamic weight recalculation schemas inside options arbitrage routes.
-  2. Implement an automated periodic split-weight balancing tick scaling weights by relative inverse latency of available hops.
-  3. Write comprehensive unit and integration tests verifying dynamic adaptation of path splits under heavy network congestion.
+  1. Define route pruning schemas and max latency constraints inside options arbitrage routes.
+  2. Implement an automated periodic route pruning tick removing routes whose latencies exceed a maximum threshold.
+  3. Write comprehensive unit and integration tests verifying route table cleanups under degraded and congested network links.
 
 ---
 
