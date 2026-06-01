@@ -208,7 +208,9 @@ export type Action =
   | { type: "VOTE_SWF_REINSURANCE_OPTION_PEER_LENDING"; requestId: string; syndicateId: string; vote: boolean; timestamp: number }
   | { type: "ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_POOL_REBALANCING"; syndicateId: string; poolId: string; riskSharingLimit: number; autoBalancingThreshold: number; yieldRebalancingMultiplier: number; timestamp: number }
   | { type: "PROPOSE_BREACH_REHAB"; proposalId: string; syndicateId: string; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; goldContribution: number; rehabSharesToRestore: number; timestamp: number }
-  | { type: "VOTE_BREACH_REHAB"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_BREACH_REHAB"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_COOPERATIVE_REHAB_SUBSIDY"; proposalId: string; syndicateId: string; targetSyndicateId: string; targetRehabProposalId: string; factionId: string; subsidyPercentage: number; timestamp: number }
+  | { type: "VOTE_COOPERATIVE_REHAB_SUBSIDY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

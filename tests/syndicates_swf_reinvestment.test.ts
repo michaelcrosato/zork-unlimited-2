@@ -925,5 +925,232 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(stepResult.ok).toBe(false);
     expect(stepResult.rejectionReason).toContain("Cannot restore more than 50% of slashed shares");
   });
+
+  it("should support cooperative rehab campaign subsidies from allied syndicates", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player", "bob", "charlie", "alice"],
+    });
+
+    // Configure two allied syndicates
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "charlie"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Establish mutual alliance between alpha and beta
+    state.syndicateAlliances = {
+      alpha: {
+        beta: "allied",
+      },
+      beta: {
+        alpha: "allied",
+      },
+    };
+
+    // Faction standing of beta/alpha with rangers is 80 (eligible for math.floor(80 * 0.5) = 40% maximum discount, capped by subsidyPercentage)
+    state.factionRep = {
+      rangers: 80,
+    };
+
+    // Initialize faction reserve pools
+    state.factionReservePools = {
+      rangers: 5000,
+    };
+
+    state.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 10000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 700,
+            ownership: { alpha: 700 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.10,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.18,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    state.slashedCDOTrancheShares = {
+      alpha: {
+        cdo_1: {
+          senior: 300,
+        },
+      },
+    };
+
+    state.creditRatings = {
+      alpha: 80,
+    };
+
+    // Propose rehabilitation: contribution of 1000 gold to restore 150 shares
+    const stepResult1 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_BREACH_REHAB",
+          proposalId: "rehab_prop_1",
+          syndicateId: "alpha",
+          cdoId: "cdo_1",
+          trancheId: "senior",
+          goldContribution: 1000,
+          rehabSharesToRestore: 150,
+          timestamp: 1010,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult1.ok).toBe(true);
+    state = stepResult1.state;
+
+    // Try to propose cooperative rehab subsidy from non-member, should fail
+    const invalidProposerResult = multiAgentStep(
+      state,
+      {
+        agentId: "player", // not a member of beta
+        action: {
+          type: "PROPOSE_COOPERATIVE_REHAB_SUBSIDY",
+          proposalId: "subsidy_prop_1",
+          syndicateId: "beta",
+          targetSyndicateId: "alpha",
+          targetRehabProposalId: "rehab_prop_1",
+          factionId: "rangers",
+          subsidyPercentage: 50,
+          timestamp: 1015,
+        } as any,
+      },
+      mockPack
+    );
+    expect(invalidProposerResult.ok).toBe(false);
+
+    // Propose cooperative rehab subsidy from bob (member of beta) to subsidize alpha's proposal
+    const stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "PROPOSE_COOPERATIVE_REHAB_SUBSIDY",
+          proposalId: "subsidy_prop_1",
+          syndicateId: "beta",
+          targetSyndicateId: "alpha",
+          targetRehabProposalId: "rehab_prop_1",
+          factionId: "rangers",
+          subsidyPercentage: 50,
+          timestamp: 1015,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    // Verify bob's proposal is created and has bob's auto-vote
+    let subProp = state.cooperativeRehabSubsidyProposals?.["subsidy_prop_1"];
+    expect(subProp).toBeDefined();
+    expect(subProp?.status).toBe("proposed");
+    expect(subProp?.votes?.["bob"]?.vote).toBe(true);
+    // Proposal fee deducted: 10000 - 200 = 9800
+    expect(state.syndicates?.beta?.warChest).toBe(9800);
+
+    // Vote on cooperative rehab subsidy by charlie (member of beta, costs 50 gold, authorizes it)
+    const stepResultSubsidyVote = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_COOPERATIVE_REHAB_SUBSIDY",
+          syndicateId: "beta",
+          proposalId: "subsidy_prop_1",
+          vote: true,
+          timestamp: 1018,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResultSubsidyVote.ok).toBe(true);
+    state = stepResultSubsidyVote.state;
+
+    // Verify cooperative subsidy is authorized now
+    subProp = state.cooperativeRehabSubsidyProposals?.["subsidy_prop_1"];
+    expect(subProp?.resolved).toBe(true);
+    expect(subProp?.status).toBe("authorized");
+    // Vote fee deducted from beta: 9800 - 50 = 9750
+    expect(state.syndicates?.beta?.warChest).toBe(9750);
+
+    // Vote to authorize the target rehab campaign in alpha (by alice, costs 50 gold and resolves it)
+    // Standing is 80, so standing * 0.5 = 40%. SubsidyPercentage is 50%, so applied is min(50%, 40%) = 40% discount!
+    // Gold contribution = 1000 gold. Discount = 40% of 1000 = 400 gold.
+    // Actual cost paid by alpha = 1000 - 400 = 600 gold.
+    // Alpha war chest: 9800 (after propose fee) - 50 (vote fee) - 600 (actual cost) = 9150 gold!
+    const stepResult3 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_BREACH_REHAB",
+          syndicateId: "alpha",
+          proposalId: "rehab_prop_1",
+          vote: true,
+          timestamp: 1020,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult3.ok).toBe(true);
+    state = stepResult3.state;
+
+    // Verify discount applied
+    expect(state.syndicates?.alpha?.warChest).toBe(9150);
+    // Verify faction reserve pool decreased: 5000 - 400 = 4600
+    expect(state.factionReservePools?.rangers).toBe(4600);
+    // Verify stability pool has the full contribution: 1000 gold
+    expect(state.swfStabilityPool).toBe(1000);
+
+    // Verify CDO ownership and rating recovered
+    expect(state.creditRatings?.alpha).toBe(105);
+    expect(state.slashedCDOTrancheShares?.alpha?.cdo_1?.senior).toBe(150);
+    expect(state.swfYieldCDOs?.cdo_1?.tranches?.senior?.ownership?.alpha).toBe(850);
+  });
 });
 

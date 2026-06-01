@@ -2610,6 +2610,24 @@ export const ReinvestmentBreachRehabProposalSchema = z.object({
 });
 export type ReinvestmentBreachRehabProposal = z.infer<typeof ReinvestmentBreachRehabProposalSchema>;
 
+export const CooperativeRehabSubsidyProposalSchema = z.object({
+  proposalId: z.string(),
+  proposingSyndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  targetRehabProposalId: z.string(),
+  factionId: z.string(),
+  subsidyPercentage: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+  resolved: z.boolean().optional(),
+  status: z.enum(["proposed", "authorized"]).optional(),
+});
+export type CooperativeRehabSubsidyProposal = z.infer<typeof CooperativeRehabSubsidyProposalSchema>;
+
+
 
 export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
   id: z.string(),
@@ -3517,6 +3535,7 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposalSchema).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVoteSchema)).optional(),
   reinvestmentBreachRehabProposals: z.record(z.string(), ReinvestmentBreachRehabProposalSchema).optional(),
+  cooperativeRehabSubsidyProposals: z.record(z.string(), CooperativeRehabSubsidyProposalSchema).optional(),
   slashedCDOTrancheShares: z.record(z.string(), z.record(z.string(), z.record(z.string(), z.number().int().nonnegative()))).optional(),
   swfStabilityPool: z.number().int().nonnegative().optional(),
 
@@ -3911,6 +3930,7 @@ export const createInitialState = (options: {
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes: {},
     reinvestmentBreachRehabProposals: {},
+    cooperativeRehabSubsidyProposals: {},
     slashedCDOTrancheShares: {},
     swfStabilityPool: 0,
 
@@ -5011,6 +5031,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes)) : undefined,
     reinvestmentBreachRehabProposals: rest.reinvestmentBreachRehabProposals ? JSON.parse(JSON.stringify(rest.reinvestmentBreachRehabProposals)) : undefined,
+    cooperativeRehabSubsidyProposals: rest.cooperativeRehabSubsidyProposals ? JSON.parse(JSON.stringify(rest.cooperativeRehabSubsidyProposals)) : undefined,
     slashedCDOTrancheShares: rest.slashedCDOTrancheShares ? JSON.parse(JSON.stringify(rest.slashedCDOTrancheShares)) : undefined,
     swfStabilityPool: rest.swfStabilityPool,
 
@@ -8725,15 +8746,56 @@ export function reconcileRehabCampaign(state: GameState, pack: any): GameState {
   return newState;
 }
 
+export function reconcileCooperativeRehabSubsidy(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cooperativeRehabSubsidyProposals: state.cooperativeRehabSubsidyProposals ? { ...state.cooperativeRehabSubsidyProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.cooperativeRehabSubsidyProposals || {})) {
+    const proposal = newState.cooperativeRehabSubsidyProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { proposingSyndicateId, targetSyndicateId, targetRehabProposalId, factionId, subsidyPercentage } = proposal;
+    const syndicate = newState.syndicates?.[proposingSyndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.cooperativeRehabSubsidyProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Cooperative Rehab Subsidy Resolved] Syndicate ${proposingSyndicateId} successfully authorized cooperative rehab subsidy proposal ${proposalId} to sponsor Syndicate ${targetSyndicateId} for rehab proposal ${targetRehabProposalId} at ${subsidyPercentage}% with faction ${factionId}.`
+      );
+    }
+  }
+
+  return newState;
+}
+
 export function reconcileReinvestmentBreachRehab(state: GameState, pack: any): GameState {
   const newState = {
     ...state,
     reinvestmentBreachRehabProposals: state.reinvestmentBreachRehabProposals ? { ...state.reinvestmentBreachRehabProposals } : {},
+    cooperativeRehabSubsidyProposals: state.cooperativeRehabSubsidyProposals ? { ...state.cooperativeRehabSubsidyProposals } : {},
     syndicates: state.syndicates ? { ...state.syndicates } : {},
     swfYieldCDOs: state.swfYieldCDOs ? { ...state.swfYieldCDOs } : {},
     slashedCDOTrancheShares: state.slashedCDOTrancheShares ? { ...state.slashedCDOTrancheShares } : {},
     creditRatings: state.creditRatings ? { ...state.creditRatings } : {},
     swfStabilityPool: state.swfStabilityPool ?? 0,
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
   };
 
   for (const proposalId of Object.keys(newState.reinvestmentBreachRehabProposals || {})) {
@@ -8758,8 +8820,57 @@ export function reconcileReinvestmentBreachRehab(state: GameState, pack: any): G
         status: "authorized",
       };
 
-      syndicate.warChest = Math.max(0, (syndicate.warChest ?? 0) - goldContribution);
-      newState.swfStabilityPool = (newState.swfStabilityPool ?? 0) + goldContribution;
+      // Calculate cooperative rehab subsidy discounts
+      let subsidizedShare = 0;
+      let appliedSubsidyPercentage = 0;
+      let factionIdUsed = "";
+
+      if (newState.cooperativeRehabSubsidyProposals) {
+        for (const subProp of Object.values(newState.cooperativeRehabSubsidyProposals)) {
+          if (
+            subProp.resolved &&
+            subProp.targetRehabProposalId === proposalId &&
+            subProp.targetSyndicateId === syndicateId
+          ) {
+            const sponsoringSyndicateId = subProp.proposingSyndicateId;
+            const factionId = subProp.factionId;
+            const subsidyPercentage = subProp.subsidyPercentage;
+
+            // Must be allied syndicates
+            const isAlliedSyndicates =
+              newState.syndicateAlliances?.[syndicateId]?.[sponsoringSyndicateId] === "allied" ||
+              newState.syndicateAlliances?.[sponsoringSyndicateId]?.[syndicateId] === "allied";
+
+            const standing = getSyndicateFactionStanding(newState, sponsoringSyndicateId, factionId);
+            const isFactionAllied = isFactionAlliedToSyndicate(newState, sponsoringSyndicateId, factionId) || standing >= 50;
+
+            if (isAlliedSyndicates && isFactionAllied && standing >= 50) {
+              const currentPercentage = Math.min(50, Math.min(subsidyPercentage, Math.floor(standing * 0.5)));
+              if (currentPercentage > appliedSubsidyPercentage) {
+                appliedSubsidyPercentage = currentPercentage;
+                factionIdUsed = factionId;
+              }
+            }
+          }
+        }
+      }
+
+      if (appliedSubsidyPercentage > 0 && factionIdUsed) {
+        const factionReserves = newState.factionReservePools?.[factionIdUsed] ?? 10000;
+        const potentialSubsidized = Math.floor(goldContribution * (appliedSubsidyPercentage / 100));
+        subsidizedShare = Math.min(factionReserves, potentialSubsidized);
+      }
+
+      const actualGoldCost = goldContribution - subsidizedShare;
+
+      syndicate.warChest = Math.max(0, (syndicate.warChest ?? 0) - actualGoldCost);
+      newState.swfStabilityPool = (newState.swfStabilityPool ?? 0) + actualGoldCost;
+
+      if (subsidizedShare > 0 && factionIdUsed) {
+        if (!newState.factionReservePools) newState.factionReservePools = {};
+        newState.factionReservePools[factionIdUsed] = Math.max(0, (newState.factionReservePools[factionIdUsed] ?? 10000) - subsidizedShare);
+        newState.swfStabilityPool = (newState.swfStabilityPool ?? 0) + subsidizedShare;
+      }
 
       const cdo = newState.swfYieldCDOs?.[cdoId];
       if (cdo && cdo.tranches) {
@@ -8794,9 +8905,15 @@ export function reconcileReinvestmentBreachRehab(state: GameState, pack: any): G
       newState.creditRatings[syndicateId] = Math.min(200, currentRating + 25);
 
       if (!newState.journal) newState.journal = [];
-      newState.journal.push(
-        `[Reinvestment Breach Rehab Resolved] Syndicate ${syndicateId} successfully authorized rehab proposal ${proposalId}. Restored ${rehabSharesToRestore} shares of CDO ${cdoId} tranche ${trancheId} and recovered credit rating to ${newState.creditRatings[syndicateId]} (contributed ${goldContribution} gold to stability pool).`
-      );
+      if (subsidizedShare > 0) {
+        newState.journal.push(
+          `[Reinvestment Breach Rehab Resolved] Syndicate ${syndicateId} successfully authorized rehab proposal ${proposalId}. Restored ${rehabSharesToRestore} shares of CDO ${cdoId} tranche ${trancheId} and recovered credit rating to ${newState.creditRatings[syndicateId]} (contributed ${actualGoldCost} gold (subsidized by ${subsidizedShare} gold) to stability pool).`
+        );
+      } else {
+        newState.journal.push(
+          `[Reinvestment Breach Rehab Resolved] Syndicate ${syndicateId} successfully authorized rehab proposal ${proposalId}. Restored ${rehabSharesToRestore} shares of CDO ${cdoId} tranche ${trancheId} and recovered credit rating to ${newState.creditRatings[syndicateId]} (contributed ${goldContribution} gold to stability pool).`
+        );
+      }
 
       if (!newState.auditLogs) newState.auditLogs = [];
       newState.auditLogs.push(
