@@ -7817,6 +7817,10 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         if (highestBid > 0 && highestBid < floor) {
           validHighestBid = 0;
         }
+        if ((pool.fractionalizedVault?.balance ?? 0) < floor) {
+          validLowestAsk = 0;
+          validHighestBid = 0;
+        }
       }
 
       // 3b. Enforce dynamic spread control policy
