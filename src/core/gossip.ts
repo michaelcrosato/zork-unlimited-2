@@ -1152,6 +1152,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge jointLoanProposals using LWW
+  const jointLoanProposals = { ...stateA.jointLoanProposals };
+  if (stateB.jointLoanProposals) {
+    for (const [key, entryB] of Object.entries(stateB.jointLoanProposals)) {
+      const entryA = jointLoanProposals[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        jointLoanProposals[key] = entryB;
+      }
+    }
+  }
+
+  // Merge jointLoans using LWW
+  const jointLoans = { ...stateA.jointLoans };
+  if (stateB.jointLoans) {
+    for (const [key, entryB] of Object.entries(stateB.jointLoans)) {
+      const entryA = jointLoans[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        jointLoans[key] = entryB;
+      }
+    }
+  }
+
   // Merge turfCheckpoints using LWW
   const turfCheckpoints = { ...stateA.turfCheckpoints };
   if (stateB.turfCheckpoints) {
@@ -1474,6 +1496,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     loanRefinancingVotes,
     creditRecoveries,
     debtSettlementVotes,
+    jointLoanProposals,
+    jointLoans,
   };
 }
 

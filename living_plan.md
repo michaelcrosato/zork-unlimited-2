@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #90 (Ready for Cycle #91)
-* **Build/Test Status**: 🟢 PASS (All 420 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #91 (Ready for Cycle #92)
+* **Build/Test Status**: 🟢 PASS (All 425 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -522,16 +522,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire automated collateral release logic when a settlement is agreed and paid (`AF-90`).
 - [x] Write comprehensive Vitest integration tests asserting consensus, automatic payment, default alert clearing, credit rating recovery, and Gossip mesh convergence (`AF-90`).
 
+### Phase 91: Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Collateral Pledges (Completed)
+- [x] Add joint-liability loan group schemas to state variables (`AF-91`).
+- [x] Implement `PROPOSE_JOINT_LOAN` decentralized consensus action with multi-agent approvals (`AF-91`).
+- [x] Wire dynamic collective limit calculations (with a 1.2x group bonus) and proportional gold distribution and payback repayment liability (`AF-91`).
+- [x] Implement automated collective default enforcer sweeps, credit rating drops, default alert broadcasts, and complete collateral liquidations in economy ticks (`AF-91`).
+- [x] Integrate LWW Gossip mesh state reconciliation and sync replication (`AF-91`).
+- [x] Write comprehensive Vitest integration tests asserting limit calculations, approvals, consensual funding, proportional payback/default, and Gossip mesh convergence (`AF-91`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-91`
-* **Objective**: Joint-Liability Loan Groups and Collective Collateral Pledges.
-* **Why this matters**: Support a new decentralized group lending mechanism where multiple agents can form a joint-liability loan group (`PROPOSE_JOINT_LOAN`), pooling their safehouses/outposts as collective collateral to unlock larger borrowing limits, with proportional repayment liability and automated collective default/liquidation ticks, replicated across the Gossip mesh.
+**Task ID**: `AF-92`
+* **Objective**: Joint-Liability Loan Group Refinancing and Collective Debt Restructuring.
+* **Why this matters**: Support collective renegotiation of group loans, where members can propose a joint restructuring of due steps or interest rates (`PROPOSE_JOINT_REFINANCING`), requiring consensual majority approval from all group members and the syndicate bank, propagating the restructured terms seamlessly across the Gossip mesh.
 * **Planned Actions**:
-  1. Add joint-liability loan group schemas to state variables.
-  2. Implement `PROPOSE_JOINT_LOAN` decentralized consensus action.
-  3. Wire dynamic loan limit calculation and proportional debt repayment / collective collateral release logic.
+  1. Add joint loan refinancing/restructuring proposal schemas.
+  2. Implement `PROPOSE_JOINT_REFINANCING` decentralized consensus action.
+  3. Wire restructured due dates and consensual rate modifications to active joint loans.
   4. Write comprehensive Vitest integration tests.
 
 ---

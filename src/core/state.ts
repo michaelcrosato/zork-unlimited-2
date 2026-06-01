@@ -800,6 +800,37 @@ export const CreditRecoverySchema = z.object({
 });
 export type CreditRecovery = z.infer<typeof CreditRecoverySchema>;
 
+export const JointLoanCollateralSchema = z.object({
+  agentId: z.string(),
+  collateralType: z.enum(["safehouse", "outpost"]),
+  collateralId: z.string(),
+});
+export type JointLoanCollateral = z.infer<typeof JointLoanCollateralSchema>;
+
+export const JointLoanProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  members: z.array(z.string()),
+  collaterals: z.array(JointLoanCollateralSchema),
+  amount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  approvals: z.record(z.string(), z.boolean()),
+});
+export type JointLoanProposal = z.infer<typeof JointLoanProposalSchema>;
+
+export const JointLoanSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  members: z.array(z.string()),
+  collaterals: z.array(JointLoanCollateralSchema),
+  amount: z.number().int().nonnegative(),
+  interestAccrued: z.number().int().nonnegative(),
+  borrowStep: z.number().int().nonnegative(),
+  dueStep: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  refinancedInterestRate: z.number().int().nonnegative().optional(),
+});
+export type JointLoan = z.infer<typeof JointLoanSchema>;
 
 export const GameStateSchema = z.object({
   // identity / determinism
@@ -963,6 +994,8 @@ export const GameStateSchema = z.object({
   loanRefinancingVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), LoanRefinancingVoteSchema))).optional(),
   creditRecoveries: z.record(z.string(), CreditRecoverySchema).optional(),
   debtSettlementVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), DebtSettlementVoteSchema))).optional(),
+  jointLoanProposals: z.record(z.string(), JointLoanProposalSchema).optional(),
+  jointLoans: z.record(z.string(), JointLoanSchema).optional(),
 });
 
 
@@ -2466,17 +2499,65 @@ export function reconcileBankInterestRates(state: GameState, pack: any): GameSta
 }
 
 export function isCollateralLocked(state: GameState, collateralType: "safehouse" | "outpost", collateralId: string): boolean {
-  if (!state.syndicateBanks) return false;
-  for (const bank of Object.values(state.syndicateBanks)) {
-    if (bank.loans) {
-      for (const loan of Object.values(bank.loans)) {
-        if (loan.collateralType === collateralType && loan.collateralId === collateralId) {
+  if (state.syndicateBanks) {
+    for (const bank of Object.values(state.syndicateBanks)) {
+      if (bank.loans) {
+        for (const loan of Object.values(bank.loans)) {
+          if (loan.collateralType === collateralType && loan.collateralId === collateralId) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  if (state.jointLoans) {
+    for (const loan of Object.values(state.jointLoans)) {
+      for (const col of loan.collaterals) {
+        if (col.collateralType === collateralType && col.collateralId === collateralId) {
+          return true;
+        }
+      }
+    }
+  }
+  if (state.jointLoanProposals) {
+    for (const proposal of Object.values(state.jointLoanProposals)) {
+      for (const col of proposal.collaterals) {
+        if (col.collateralType === collateralType && col.collateralId === collateralId) {
           return true;
         }
       }
     }
   }
   return false;
+}
+
+export function getCollateralValue(state: GameState, collateralType: "safehouse" | "outpost", collateralId: string): number {
+  if (collateralType === "safehouse") {
+    const safehouse = state.safehouses?.[collateralId];
+    if (safehouse) {
+      return (safehouse.level * 200) + ((safehouse.storageUpgradeLevel ?? 0) * 100);
+    }
+  } else if (collateralType === "outpost") {
+    const outpost = state.turfGuardOutposts?.[collateralId];
+    if (outpost) {
+      return (outpost.securityLevel * 150) + (Object.keys(outpost.turrets || {}).length * 100);
+    }
+  }
+  return 0;
+}
+
+export function getJointLoanLimit(
+  state: GameState,
+  syndicateId: string,
+  members: string[],
+  collaterals: { agentId: string; collateralType: "safehouse" | "outpost"; collateralId: string }[]
+): number {
+  let sumLimits = 0;
+  for (const col of collaterals) {
+    const colLimit = getSyndicateLoanLimit(state, syndicateId, col.agentId, col.collateralType, col.collateralId);
+    sumLimits += colLimit;
+  }
+  return Math.floor(sumLimits * 1.2);
 }
 
 export function getSyndicateLoanLimit(

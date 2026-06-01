@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -12146,6 +12146,455 @@ export function multiAgentStep(
         amount,
         remainingPrincipal: newLoan.amount,
         remainingInterest: newLoan.interestAccrued,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_JOINT_LOAN action (AF-91)
+  if ((action as any).type === "PROPOSE_JOINT_LOAN") {
+    const { groupId, syndicateId, members, collaterals, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+
+    if (!groupId) {
+      rejectionReason = `Group ID is required to propose joint loan.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to propose joint loan.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} is not established.`;
+    } else if (!members || !Array.isArray(members) || members.length === 0) {
+      rejectionReason = `Members list is required and must be a non-empty array.`;
+    } else if (!members.includes(agentId)) {
+      rejectionReason = `Sender agent ${agentId} must be a member of the proposed joint loan group.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Borrow amount must be a positive integer.`;
+    } else if (state.jointLoans?.[groupId]) {
+      rejectionReason = `Joint loan group ${groupId} already exists as an active loan.`;
+    } else {
+      // Validate members and collaterals if proposal doesn't exist
+      const existingProposal = state.jointLoanProposals?.[groupId];
+      if (!existingProposal) {
+        if (!collaterals || !Array.isArray(collaterals) || collaterals.length === 0) {
+          rejectionReason = `Collaterals list is required and must be a non-empty array to propose a new joint loan.`;
+        } else {
+          // Check that all members are in the syndicate and have no active default alerts
+          let membersValid = true;
+          for (const memberId of members) {
+            if (!syndicate.members.includes(memberId)) {
+              rejectionReason = `Member agent ${memberId} is not a member of syndicate ${syndicateId}.`;
+              membersValid = false;
+              break;
+            }
+            if (state.defaultAlerts && Object.values(state.defaultAlerts).some(a => a.agentId === memberId)) {
+              rejectionReason = `Member agent ${memberId} is blacklisted due to a mesh-wide debt default alert.`;
+              membersValid = false;
+              break;
+            }
+            // Check if member already has an active loan (individual or joint)
+            if (bank.loans?.[memberId]) {
+              rejectionReason = `Member agent ${memberId} already has an active individual loan.`;
+              membersValid = false;
+              break;
+            }
+          }
+
+          if (membersValid) {
+            // Check collaterals
+            let collateralsValid = true;
+            for (const col of collaterals) {
+              if (!col.agentId || !col.collateralType || !col.collateralId) {
+                rejectionReason = `Invalid collateral entry: agentId, collateralType, and collateralId are required.`;
+                collateralsValid = false;
+                break;
+              }
+              if (!members.includes(col.agentId)) {
+                rejectionReason = `Collateral owner ${col.agentId} is not a member of the joint loan group.`;
+                collateralsValid = false;
+                break;
+              }
+              if (col.collateralType === "safehouse") {
+                const safehouse = state.safehouses?.[col.collateralId];
+                if (!safehouse || (safehouse.syndicateId !== syndicateId && safehouse.ownerId !== col.agentId)) {
+                  rejectionReason = `Safehouse ${col.collateralId} does not exist or is not owned/controlled by syndicate ${syndicateId} or agent ${col.agentId}.`;
+                  collateralsValid = false;
+                  break;
+                }
+              } else if (col.collateralType === "outpost") {
+                const outpost = state.turfGuardOutposts?.[col.collateralId];
+                if (!outpost || outpost.syndicateId !== syndicateId) {
+                  rejectionReason = `Outpost ${col.collateralId} does not exist or is not controlled by syndicate ${syndicateId}.`;
+                  collateralsValid = false;
+                  break;
+                }
+              } else {
+                rejectionReason = `Invalid collateral type ${col.collateralType}.`;
+                collateralsValid = false;
+                break;
+              }
+
+              if (isCollateralLocked(state, col.collateralType, col.collateralId)) {
+                rejectionReason = `Collateral ${col.collateralId} is already locked in another active loan or proposal.`;
+                collateralsValid = false;
+                break;
+              }
+            }
+
+            if (collateralsValid) {
+              // Check joint loan limit
+              const limit = getJointLoanLimit(state, syndicateId, members, collaterals);
+              if (amount > limit) {
+                rejectionReason = `Requested joint loan amount ${amount} exceeds the collective collateral loan limit of ${limit} gold (with 1.2x group bonus).`;
+              } else {
+                ok = true;
+              }
+            }
+          }
+        }
+      } else {
+        // Proposal already exists! Check if sender is in members and hasn't approved yet
+        if (!existingProposal.members.includes(agentId)) {
+          rejectionReason = `Sender agent ${agentId} is not a member of the existing joint loan proposal ${groupId}.`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      if (!newState.jointLoanProposals) newState.jointLoanProposals = {};
+      const proposals = { ...newState.jointLoanProposals };
+
+      let proposal = proposals[groupId];
+      if (!proposal) {
+        // Create new proposal
+        proposal = {
+          id: groupId,
+          syndicateId,
+          members,
+          collaterals,
+          amount,
+          timestamp,
+          approvals: { [agentId]: true },
+        };
+      } else {
+        // Approve existing proposal
+        proposal = {
+          ...proposal,
+          approvals: {
+            ...proposal.approvals,
+            [agentId]: true,
+          },
+          timestamp,
+        };
+      }
+
+      // Check if all members have approved
+      const allApproved = proposal.members.every((m: string) => proposal.approvals[m] === true);
+
+      if (allApproved) {
+        // Fund the loan!
+        // Calculate collateral values for proportional distribution
+        let totalCollateralValue = 0;
+        const collateralValues: Record<string, number> = {};
+        for (const col of proposal.collaterals) {
+          const val = getCollateralValue(newState, col.collateralType, col.collateralId);
+          collateralValues[`${col.agentId}_${col.collateralId}`] = val;
+          totalCollateralValue += val;
+        }
+
+        // Calculate proportional liability / gold distribution
+        const proportions: Record<string, number> = {};
+        for (const mId of proposal.members) {
+          let agentCollateralValue = 0;
+          for (const col of proposal.collaterals) {
+            if (col.agentId === mId) {
+              agentCollateralValue += collateralValues[`${col.agentId}_${col.collateralId}`] ?? 0;
+            }
+          }
+          proportions[mId] = totalCollateralValue > 0 ? (agentCollateralValue / totalCollateralValue) : (1 / proposal.members.length);
+        }
+
+        // Distribute gold to members
+        let distributedSum = 0;
+        if (!newState.vars) newState.vars = {};
+        newState.vars = { ...newState.vars };
+
+        for (let i = 0; i < proposal.members.length; i++) {
+          const mId = proposal.members[i];
+          const goldKey = mId === "player" ? "gold" : `gold_${mId}`;
+          const currentGold = newState.vars[goldKey] ?? (mId === "player" ? 0 : 100);
+
+          let share = 0;
+          if (i === proposal.members.length - 1) {
+            share = amount - distributedSum;
+          } else {
+            share = Math.floor(amount * proportions[mId]);
+            distributedSum += share;
+          }
+
+          newState.vars[goldKey] = currentGold + share;
+        }
+
+        // Move to active joint loans
+        if (!newState.jointLoans) newState.jointLoans = {};
+        const jointLoans = { ...newState.jointLoans };
+
+        jointLoans[groupId] = {
+          id: groupId,
+          syndicateId,
+          members: proposal.members,
+          collaterals: proposal.collaterals,
+          amount,
+          interestAccrued: 0,
+          borrowStep: newState.step,
+          dueStep: newState.step + 15,
+          timestamp,
+        };
+
+        newState.jointLoans = jointLoans;
+        delete proposals[groupId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Joint loan group ${groupId} has been fully approved by members [${proposal.members.join(", ")}] and funded with ${amount} gold. Pledged collaterals locked.`);
+
+        customEvents.push({
+          type: "narration",
+          text: `🏦 Joint liability loan ${groupId} has been fully approved by all members and funded! ${amount} gold distributed.`,
+        } as any);
+
+        customEvents.push({
+          type: "joint_loan_funded" as any,
+          groupId,
+          syndicateId,
+          amount,
+          members: proposal.members,
+          timestamp,
+        });
+      } else {
+        // Save proposal back
+        proposals[groupId] = proposal;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} approved joint loan proposal ${groupId}. Approvals: ${Object.keys(proposal.approvals).length}/${proposal.members.length}.`);
+
+        customEvents.push({
+          type: "narration",
+          text: `🏦 Agent ${agentId} approved joint liability loan proposal ${groupId}. Approvals: ${Object.keys(proposal.approvals).length}/${proposal.members.length}.`,
+        } as any);
+      }
+
+      newState.jointLoanProposals = proposals;
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PAYBACK_JOINT_LOAN action (AF-91)
+  if ((action as any).type === "PAYBACK_JOINT_LOAN") {
+    const { groupId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const jointLoan = state.jointLoans?.[groupId];
+
+    if (!groupId) {
+      rejectionReason = `Group ID is required to payback joint loan.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Payback amount must be a positive integer.`;
+    } else if (!jointLoan) {
+      rejectionReason = `Joint loan group ${groupId} does not exist or has no active loan.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < amount) {
+        rejectionReason = `Insufficient gold to payback joint loan (requires ${amount}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && jointLoan) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold from agent
+      if (!newState.vars) newState.vars = {};
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - amount,
+      };
+
+      const newJointLoan = { ...jointLoan };
+      let finalAmount = jointLoan.amount;
+      let finalInterest = jointLoan.interestAccrued;
+
+      if (amount >= finalInterest) {
+        const left = amount - finalInterest;
+        finalInterest = 0;
+        finalAmount = Math.max(0, finalAmount - left);
+      } else {
+        finalInterest -= amount;
+      }
+
+      newJointLoan.amount = finalAmount;
+      newJointLoan.interestAccrued = finalInterest;
+      newJointLoan.timestamp = timestamp;
+
+      const jointLoans = { ...(state.jointLoans || {}) };
+
+      if (newJointLoan.amount === 0) {
+        delete jointLoans[groupId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Joint loan ${groupId} fully paid back! Pledged collaterals [${jointLoan.collaterals.map(c => c.collateralId).join(", ")}] are unlocked.`);
+        customEvents.push({
+          type: "narration",
+          text: `🏦 Joint loan ${groupId} has been fully paid back. Pledged collaterals are unlocked!`,
+        } as any);
+
+        // Increase credit rating for ALL members
+        if (!newState.creditRatings) newState.creditRatings = {};
+        newState.creditRatings = { ...newState.creditRatings };
+        for (const mId of jointLoan.members) {
+          const currentRating = newState.creditRatings[mId] ?? 100;
+          newState.creditRatings[mId] = Math.min(200, currentRating + 15);
+          newState.journal.push(`[Credit Score] Agent ${mId} credit rating increased by +15 (New Score: ${newState.creditRatings[mId]}).`);
+        }
+      } else {
+        jointLoans[groupId] = newJointLoan;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} partially paid back ${amount} gold to joint loan ${groupId}. Remaining principal: ${newJointLoan.amount}, interest: ${newJointLoan.interestAccrued}.`);
+        customEvents.push({
+          type: "narration",
+          text: `🏦 Agent ${agentId} partially paid back ${amount} gold to joint loan ${groupId}.`,
+        } as any);
+
+        // Increase credit rating for the payer
+        if (!newState.creditRatings) newState.creditRatings = {};
+        newState.creditRatings = { ...newState.creditRatings };
+        const currentRating = newState.creditRatings[agentId] ?? 100;
+        newState.creditRatings[agentId] = Math.min(200, currentRating + 5);
+        newState.journal.push(`[Credit Score] Agent ${agentId} credit rating increased by +5 (New Score: ${newState.creditRatings[agentId]}).`);
+      }
+
+      newState.jointLoans = jointLoans;
+
+      customEvents.push({
+        type: "joint_loan_paid_back" as any,
+        groupId,
+        fullyPaid: newJointLoan.amount === 0,
+        amount,
+        remainingPrincipal: newJointLoan.amount,
+        remainingInterest: newJointLoan.interestAccrued,
         timestamp,
       });
     }

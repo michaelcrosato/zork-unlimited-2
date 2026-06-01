@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -2108,6 +2108,154 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           };
         }
       }
+    }
+  }
+
+  // Periodic Joint-Liability Loan Groups Ticking & Debt-Recovery (AF-91)
+  if (newState.jointLoans && Object.keys(newState.jointLoans).length > 0) {
+    newState.jointLoans = { ...newState.jointLoans };
+    const jointLoans = { ...newState.jointLoans };
+    let jointLoansChanged = false;
+
+    for (const [groupId, jointLoan] of Object.entries(jointLoans)) {
+      const bank = newState.syndicateBanks?.[jointLoan.syndicateId];
+      // 1. Accrue loan interest
+      const baseRate = jointLoan.refinancedInterestRate !== undefined ? jointLoan.refinancedInterestRate : (bank?.interestRate ?? 5);
+      const loanRate = Math.max(0, baseRate);
+      const interest = Math.floor((jointLoan.amount * loanRate) / 100);
+
+      let updatedJointLoan = {
+        ...jointLoan,
+        interestAccrued: jointLoan.interestAccrued + interest,
+        timestamp: newState.step,
+      };
+      jointLoans[groupId] = updatedJointLoan;
+      jointLoansChanged = true;
+
+      // 2. Check for default / enforcer debt-recovery sweep
+      if (newState.step > updatedJointLoan.dueStep) {
+        // Debt-recovery sweep!
+        const totalDue = updatedJointLoan.amount + updatedJointLoan.interestAccrued;
+
+        // Calculate total collateral value
+        let totalCollateralValue = 0;
+        const collateralValues: Record<string, number> = {};
+        for (const col of updatedJointLoan.collaterals) {
+          const val = getCollateralValue(newState, col.collateralType, col.collateralId);
+          collateralValues[`${col.agentId}_${col.collateralId}`] = val;
+          totalCollateralValue += val;
+        }
+
+        // Proportional liability distribution
+        const members = updatedJointLoan.members;
+        const proportions: Record<string, number> = {};
+        for (const agentId of members) {
+          // Find collateral pledged by this agent
+          let agentCollateralValue = 0;
+          for (const col of updatedJointLoan.collaterals) {
+            if (col.agentId === agentId) {
+              agentCollateralValue += collateralValues[`${col.agentId}_${col.collateralId}`] ?? 0;
+            }
+          }
+          proportions[agentId] = totalCollateralValue > 0 ? (agentCollateralValue / totalCollateralValue) : (1 / members.length);
+        }
+
+        // Distribute total due
+        const dueShares: Record<string, number> = {};
+        let distributedSum = 0;
+        for (let i = 0; i < members.length; i++) {
+          const agentId = members[i];
+          if (i === members.length - 1) {
+            dueShares[agentId] = totalDue - distributedSum;
+          } else {
+            const share = Math.floor(totalDue * proportions[agentId]);
+            dueShares[agentId] = share;
+            distributedSum += share;
+          }
+        }
+
+        if (!newState.vars) newState.vars = {};
+        if (!newState.journal) newState.journal = [];
+
+        // Collect from each member
+        let totalCollected = 0;
+        for (const agentId of members) {
+          const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+          const agentGold = newState.vars[goldKey] ?? 0;
+          const shareDue = dueShares[agentId];
+
+          let collected = 0;
+          let remainingDue = shareDue;
+
+          if (agentGold >= shareDue) {
+            newState.vars[goldKey] = agentGold - shareDue;
+            collected = shareDue;
+            remainingDue = 0;
+          } else {
+            newState.vars[goldKey] = 0;
+            collected = agentGold;
+            remainingDue = shareDue - collected;
+          }
+          totalCollected += collected;
+
+          // Decrease credit rating
+          if (!newState.creditRatings) newState.creditRatings = {};
+          const currentRating = newState.creditRatings[agentId] ?? 100;
+          newState.creditRatings[agentId] = Math.max(0, currentRating - 50);
+
+          // Add default alert
+          if (!newState.defaultAlerts) newState.defaultAlerts = {};
+          const alertKey = `${agentId}_${updatedJointLoan.syndicateId}`;
+          newState.defaultAlerts[alertKey] = {
+            agentId,
+            syndicateId: updatedJointLoan.syndicateId,
+            defaultStep: newState.step,
+            timestamp: newState.step,
+          };
+
+          newState.journal.push(`[Credit Score] Agent ${agentId} credit rating decreased by -50 due to joint loan default (New Score: ${newState.creditRatings[agentId]}).`);
+          newState.journal.push(`[Gossip Mesh Alert] Broadcasted debt default alert for agent ${agentId} (Defaulted in joint loan ${groupId} at bank ${updatedJointLoan.syndicateId}). Blacklisted mesh-wide.`);
+          newState.journal.push(`[Debt Recovery] Joint Loan default: Enforcers swept agent ${agentId}'s gold, collecting ${collected} gold (Remaining due: ${remainingDue}).`);
+        }
+
+        // Liquidate ALL collaterals
+        for (const col of updatedJointLoan.collaterals) {
+          if (col.collateralType === "safehouse") {
+            if (newState.safehouses) {
+              newState.safehouses = { ...newState.safehouses };
+              delete newState.safehouses[col.collateralId];
+            }
+          } else if (col.collateralType === "outpost") {
+            if (newState.turfGuardOutposts) {
+              newState.turfGuardOutposts = { ...newState.turfGuardOutposts };
+              delete newState.turfGuardOutposts[col.collateralId];
+            }
+            if (newState.turfGuards) {
+              newState.turfGuards = { ...newState.turfGuards };
+              delete newState.turfGuards[col.collateralId];
+            }
+          }
+
+          // Increase enforcement heat in the collateral's room
+          if (newState.enforcementHeat) {
+            newState.enforcementHeat = { ...newState.enforcementHeat };
+            const currentHeat = newState.enforcementHeat[col.collateralId]?.heat ?? 0;
+            newState.enforcementHeat[col.collateralId] = {
+              roomId: col.collateralId,
+              heat: currentHeat + 15,
+              timestamp: newState.step,
+            };
+          }
+          newState.journal.push(`[Debt Recovery] Liquidated collateral ${col.collateralType} ${col.collateralId} for agent ${col.agentId}.`);
+        }
+
+        // Delete joint loan
+        delete jointLoans[groupId];
+      }
+    }
+
+    if (jointLoansChanged) {
+      newState.jointLoans = jointLoans;
     }
   }
 
