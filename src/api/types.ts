@@ -210,7 +210,11 @@ export type Action =
   | { type: "PROPOSE_BREACH_REHAB"; proposalId: string; syndicateId: string; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; goldContribution: number; rehabSharesToRestore: number; timestamp: number }
   | { type: "VOTE_BREACH_REHAB"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_COOPERATIVE_REHAB_SUBSIDY"; proposalId: string; syndicateId: string; targetSyndicateId: string; targetRehabProposalId: string; factionId: string; subsidyPercentage: number; timestamp: number }
-  | { type: "VOTE_COOPERATIVE_REHAB_SUBSIDY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_COOPERATIVE_REHAB_SUBSIDY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_SWEEP_POOL_REDISTRIBUTION"; proposalId: string; syndicateId: string; targetSyndicateId: string; redistributionThreshold: number; autoCompound: boolean; timestamp: number }
+  | { type: "VOTE_SWEEP_POOL_REDISTRIBUTION"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_SWEEP_POOL_RANK_ADJUST"; proposalId: string; syndicateId: string; targetSyndicateId: string; targetRank: number; timestamp: number }
+  | { type: "VOTE_SWEEP_POOL_RANK_ADJUST"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

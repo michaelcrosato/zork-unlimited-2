@@ -1653,5 +1653,207 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       );
     }
   });
+
+  it("should support proposing, voting, and authorizing sweep pool rank adjustments", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: [],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Establish alliance
+    state.syndicateAlliances = {
+      alpha: { beta: "allied" },
+      beta: { alpha: "allied" },
+    };
+
+    // Propose rank adjustment for beta to rank 5
+    const stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_SWEEP_POOL_RANK_ADJUST",
+          proposalId: "rank_adjust_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          targetRank: 5,
+          timestamp: 1005,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult.ok).toBe(true);
+    state = stepResult.state;
+
+    const prop = state.sweepPoolRankAdjustProposals?.["rank_adjust_1"];
+    expect(prop?.status).toBe("proposed");
+    expect(prop?.resolved).toBe(false);
+    expect(prop?.votes?.["player"]?.vote).toBe(true);
+    // Proposal fee deducted: 10000 - 200 = 9800
+    expect(state.syndicates?.alpha?.warChest).toBe(9800);
+
+    // Vote to authorize by alice (majority of alpha: members are player and alice, majority is > 1 which is 2)
+    const stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_SWEEP_POOL_RANK_ADJUST",
+          syndicateId: "alpha",
+          proposalId: "rank_adjust_1",
+          vote: true,
+          timestamp: 1020,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    // Verify authorized and resolved
+    const propAfter = state.sweepPoolRankAdjustProposals?.["rank_adjust_1"];
+    expect(propAfter?.status).toBe("authorized");
+    expect(propAfter?.resolved).toBe(true);
+    // GameState fields updated!
+    expect(state.syndicateMeshParticipationRanks?.beta).toBe(5);
+    // Vote fee deducted: 9800 - 50 = 9750
+    expect(state.syndicates?.alpha?.warChest).toBe(9750);
+  });
+
+  it("should dynamically scale participation ranks based on faction standing during sweep pool redistribution", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: [],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Set alliance
+    state.syndicateAlliances = {
+      alpha: { beta: "allied" },
+      beta: { alpha: "allied" },
+    };
+
+    // Set participation ranks: alpha = 1, beta = 1 (equal base ranks)
+    state.syndicateMeshParticipationRanks = {
+      alpha: 1,
+      beta: 1,
+    };
+
+    // Configure sweep pool and threshold
+    state.swfStakingSweepPool = 600;
+    state.sweepPoolRedistributionThreshold = 200;
+
+    // Authorized redistribution policy without auto-compound
+    state.sweepPoolRedistributionProposals = {
+      "redist_prop_1": {
+        proposalId: "redist_prop_1",
+        syndicateId: "alpha",
+        targetSyndicateId: "beta",
+        redistributionThreshold: 200,
+        autoCompound: false,
+        status: "authorized",
+        resolved: true,
+        timestamp: 1000,
+      },
+    };
+
+    // Corresponding authorized sweep policy
+    state.cooperativeStakingYieldSweepProposals = {
+      "sweep_prop_1": {
+        proposalId: "sweep_prop_1",
+        syndicateId: "alpha",
+        targetSyndicateId: "beta",
+        factionId: "rangers",
+        criticalThreshold: 50,
+        sweepPercentage: 75,
+        status: "authorized",
+        resolved: true,
+        timestamp: 1000,
+      },
+    };
+
+    // Faction reputation mesh-wide
+    state.factionRep = {
+      rangers: 50,
+    };
+
+    // Faction loyalty bonds to differentiate standings:
+    // alpha has no bond, so standing = 50.
+    // beta has bond with 10000 gold locked -> +100 standing -> standing = 150.
+    state.factionLoyaltyBonds = {
+      "beta-rangers": {
+        id: "beta-rangers",
+        syndicateId: "beta",
+        factionId: "rangers",
+        lockedGold: 10000,
+        timestamp: 1000,
+      },
+    };
+
+    // Standing calculations check:
+    // standing1 (alpha) = 50 + 0 = 50. scaledRank1 = 1 * 50 = 50.
+    // standing2 (beta) = 50 + 100 = 150. scaledRank2 = 1 * 150 = 150.
+    // Total scaled rank = 50 + 150 = 200.
+    // Proportional shares:
+    // alpha gets: 600 * (50 / 200) = 150 gold.
+    // beta gets: 600 * (150 / 200) = 450 gold.
+
+    // Tick economy
+    const afterState = tickEconomy(state, mockPack);
+
+    // Verify sweep pool is fully cleared
+    expect(afterState.swfStakingSweepPool).toBe(0);
+
+    // Proportional redistribution checks:
+    expect(afterState.syndicates?.alpha?.warChest).toBe(10150); // 10000 + 150
+    expect(afterState.syndicates?.beta?.warChest).toBe(10450); // 10000 + 450
+
+    expect(afterState.journal).toContain(
+      "[SWF Staking Sweep Redistribution] Redistributed 600 gold from sweep pool back to Syndicate alpha (150 gold) and Syndicate beta (450 gold) war chests."
+    );
+  });
 });
 

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #205 (Ready for Cycle #206)
-* **Build/Test Status**: 🟢 PASS (All 746 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #206 (Ready for Cycle #207)
+* **Build/Test Status**: 🟢 PASS (All 748 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1315,14 +1315,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 186: Syndicate SWF Sweep Pool Re-weighting Votes & Faction Reputation Standings-Gated Adjustment (Completed)
+- [x] Define a `PROPOSE_SWEEP_POOL_RANK_ADJUST` and `VOTE_SWEEP_POOL_RANK_ADJUST` consensus action in `sync.ts` and `types.ts` (`AF-208`).
+- [x] Implement dynamic standing-based scaling for participation ranks inside `tickEconomy` during sweep pool redistribution in `economy.ts` (`AF-208`).
+- [x] Write comprehensive Vitest integration tests inside `tests/syndicates_swf_reinvestment.test.ts` and ensure full engine compilation/autopilot validation (`AF-208`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-208`
-* **Objective**: Syndicate SWF Sweep Pool Re-weighting Votes & Faction Reputation Standings-Gated Adjustment.
-* **Why this matters**: Allow allied syndicates to adjust participation ranks dynamically via majority-consensus voting and wire faction reputation standing to scale ranks dynamically (rewarding high-standing syndicates with larger proportional sweep pool shares).
+**Task ID**: `AF-209`
+* **Objective**: Syndicate SWF Sweep Pool Re-weighting Vote Fee Calibration & Allied Mesh Treasury Reserve Stabilization.
+* **Why this matters**: Introduce calibration of the proposal and vote fees for `PROPOSE_SWEEP_POOL_RANK_ADJUST` based on treasury reserve levels and alliance count (making adjustments cheaper for large alliances with healthy reserves).
 * **Planned Actions**:
-  1. Define a `PROPOSE_SWEEP_POOL_RANK_ADJUST` and `VOTE_SWEEP_POOL_RANK_ADJUST` consensus action.
-  2. Implement dynamic standing-based scaling for participation ranks inside `tickEconomy` during sweep pool redistribution.
-  3. Write comprehensive Vitest integration tests and merge support.
+  1. Define dynamic fee scalars based on alliance count and total treasury reserves.
+  2. Implement propose/vote adjustment actions or scaling logic for the fees of `PROPOSE_SWEEP_POOL_RANK_ADJUST` and `VOTE_SWEEP_POOL_RANK_ADJUST`.
+  3. Wire fee deduction dynamically during multi-agent sync step.
+  4. Write comprehensive Vitest integration tests and merge support.
 
 ---
 

@@ -9,7 +9,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -38243,6 +38243,140 @@ export function multiAgentStep(
   }
 
 
+  // Handle PROPOSE_SWEEP_POOL_RANK_ADJUST action (AF-208)
+  if ((action as any).type === "PROPOSE_SWEEP_POOL_RANK_ADJUST") {
+    const { proposalId, syndicateId, targetSyndicateId, targetRank, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const targetSyndicate = state.syndicates?.[targetSyndicateId];
+
+    const isAlliedSyndicates =
+      state.syndicateAlliances?.[syndicateId]?.[targetSyndicateId] === "allied" ||
+      state.syndicateAlliances?.[targetSyndicateId]?.[syndicateId] === "allied";
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!targetSyndicateId) {
+      rejectionReason = `Target Syndicate ID is required.`;
+    } else if (targetRank === undefined || typeof targetRank !== "number" || targetRank < 0) {
+      rejectionReason = `Target rank must be a non-negative number.`;
+    } else if (!syndicate) {
+      rejectionReason = `Proposing Syndicate ${syndicateId} does not exist.`;
+    } else if (!targetSyndicate) {
+      rejectionReason = `Target Syndicate ${targetSyndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposing syndicate ${syndicateId}.`;
+    } else if (!isAlliedSyndicates) {
+      rejectionReason = `Syndicate ${syndicateId} is not allied to Syndicate ${targetSyndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < 200) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover proposal fee (200 gold).`;
+    } else if (state.sweepPoolRankAdjustProposals?.[proposalId]) {
+      rejectionReason = `Sweep pool rank adjust proposal ${proposalId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - 200);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      newState.sweepPoolRankAdjustProposals = newState.sweepPoolRankAdjustProposals ? { ...newState.sweepPoolRankAdjustProposals } : {};
+      newState.sweepPoolRankAdjustProposals[proposalId] = {
+        proposalId,
+        syndicateId,
+        targetSyndicateId,
+        targetRank,
+        status: "proposed",
+        resolved: false,
+        timestamp,
+        votes: {
+          [agentId]: { vote: true, timestamp },
+        },
+      };
+
+      newState = reconcileSweepPoolRankAdjust(newState, pack);
+
+      const propStatus = newState.sweepPoolRankAdjustProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Rank Adjust Proposed] Agent ${agentId} proposed sweep pool rank adjust proposal ${proposalId} setting Syndicate ${targetSyndicateId} rank to ${targetRank} (Status: ${propStatus.toUpperCase()}, Fee: 200 gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Sweep pool rank adjust proposal ${proposalId} created by ${agentId} to adjust Syndicate ${targetSyndicateId} rank to ${targetRank}.`,
+      } as any);
+
+      customEvents.push({
+        type: "sweep_pool_rank_adjust_proposed" as any,
+        proposalId,
+        agentId,
+        syndicateId,
+        targetSyndicateId,
+        targetRank,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+
   // Handle PROPOSE_SWEEP_POOL_REDISTRIBUTION action (AF-207)
   if ((action as any).type === "PROPOSE_SWEEP_POOL_REDISTRIBUTION") {
     const { proposalId, syndicateId, targetSyndicateId, redistributionThreshold, autoCompound, timestamp } = action as any;
@@ -38330,6 +38464,119 @@ export function multiAgentStep(
         targetSyndicateId,
         redistributionThreshold,
         autoCompound,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle VOTE_SWEEP_POOL_RANK_ADJUST action (AF-208)
+  if ((action as any).type === "VOTE_SWEEP_POOL_RANK_ADJUST") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposal = state.sweepPoolRankAdjustProposals?.[proposalId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (vote === undefined || typeof vote !== "boolean") {
+      rejectionReason = `Vote flag must be a boolean.`;
+    } else if (!proposal) {
+      rejectionReason = `Sweep pool rank adjust proposal ${proposalId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on this proposal.`;
+    } else if ((syndicate.warChest ?? 0) < 50) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover vote fee (50 gold).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && proposal && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - 50);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      newState.sweepPoolRankAdjustProposals = { ...newState.sweepPoolRankAdjustProposals };
+      const updatedProposal = { ...newState.sweepPoolRankAdjustProposals[proposalId] };
+      updatedProposal.votes = updatedProposal.votes ? { ...updatedProposal.votes } : {};
+      updatedProposal.votes[agentId] = { vote, timestamp };
+      newState.sweepPoolRankAdjustProposals[proposalId] = updatedProposal;
+
+      newState = reconcileSweepPoolRankAdjust(newState, pack);
+
+      const propStatus = newState.sweepPoolRankAdjustProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Rank Adjust Voted] Agent ${agentId} voted to ${vote ? "AUTHORIZE" : "DISPUTE"} sweep pool rank adjust proposal ${proposalId} (Status: ${propStatus.toUpperCase()}, Fee: 50 gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Sweep pool rank adjust vote cast by ${agentId} for proposal ${proposalId} (Vote: ${vote ? "Authorize" : "Dispute"}).`,
+      } as any);
+
+      customEvents.push({
+        type: "sweep_pool_rank_adjust_voted" as any,
+        proposalId,
+        agentId,
+        vote,
         timestamp,
       });
     }

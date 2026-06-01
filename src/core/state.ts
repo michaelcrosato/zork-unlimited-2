@@ -2660,6 +2660,21 @@ export const SweepPoolRedistributionProposalSchema = z.object({
 });
 export type SweepPoolRedistributionProposal = z.infer<typeof SweepPoolRedistributionProposalSchema>;
 
+export const SweepPoolRankAdjustProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  targetRank: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "authorized"]).optional(),
+  resolved: z.boolean().optional(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SweepPoolRankAdjustProposal = z.infer<typeof SweepPoolRankAdjustProposalSchema>;
+
 
 
 export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
@@ -3576,6 +3591,7 @@ export const GameStateSchema = z.object({
   sweepPoolRedistributionThreshold: z.number().int().nonnegative().optional(),
   syndicateMeshParticipationRanks: z.record(z.string(), z.number().int().nonnegative()).optional(),
   sweepPoolRedistributionProposals: z.record(z.string(), SweepPoolRedistributionProposalSchema).optional(),
+  sweepPoolRankAdjustProposals: z.record(z.string(), SweepPoolRankAdjustProposalSchema).optional(),
   sweepPoolAutoCompound: z.boolean().optional(),
 
 
@@ -3977,6 +3993,7 @@ export const createInitialState = (options: {
     sweepPoolRedistributionThreshold: 500,
     syndicateMeshParticipationRanks: {},
     sweepPoolRedistributionProposals: {},
+    sweepPoolRankAdjustProposals: {},
     sweepPoolAutoCompound: false,
 
 
@@ -8907,6 +8924,49 @@ export function reconcileSweepPoolRedistribution(state: GameState, pack: any): G
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Sweep Pool Redistribution Resolved] Syndicate ${syndicateId} successfully authorized sweep pool redistribution proposal ${proposalId} to pool with Syndicate ${targetSyndicateId} (Threshold: ${redistributionThreshold}, Auto-Compound: ${autoCompound ? "Enabled" : "Disabled"}).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSweepPoolRankAdjust(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sweepPoolRankAdjustProposals: state.sweepPoolRankAdjustProposals ? { ...state.sweepPoolRankAdjustProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    syndicateMeshParticipationRanks: state.syndicateMeshParticipationRanks ? { ...state.syndicateMeshParticipationRanks } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sweepPoolRankAdjustProposals || {})) {
+    const proposal = newState.sweepPoolRankAdjustProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, targetSyndicateId, targetRank } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sweepPoolRankAdjustProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      // Set/update the participation rank for the target syndicate
+      newState.syndicateMeshParticipationRanks[targetSyndicateId] = targetRank;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Rank Adjust Resolved] Syndicate ${syndicateId} successfully authorized sweep pool rank adjust proposal ${proposalId} setting Syndicate ${targetSyndicateId} rank to ${targetRank}.`
       );
     }
   }

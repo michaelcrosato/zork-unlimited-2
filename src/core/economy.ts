@@ -8681,9 +8681,13 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
           // Get participation ranks
           const rank1 = newState.syndicateMeshParticipationRanks?.[syndicateId] ?? 1;
           const rank2 = newState.syndicateMeshParticipationRanks?.[targetSyndicateId] ?? 1;
-          const totalRank = rank1 + rank2;
 
-          const share1 = Math.floor(sweepPoolAmount * (rank1 / totalRank));
+          // Wire faction reputation standing to scale ranks dynamically (AF-208)
+          const scaledRank1 = rank1 * Math.max(1, standing1);
+          const scaledRank2 = rank2 * Math.max(1, standing2);
+          const totalRank = scaledRank1 + scaledRank2;
+
+          const share1 = Math.floor(sweepPoolAmount * (scaledRank1 / totalRank));
           const share2 = sweepPoolAmount - share1;
 
           // Auto-compound or distribute
