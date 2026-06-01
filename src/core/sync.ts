@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool } from "./state.js";
 export interface MultiAgentAction {
@@ -31623,6 +31623,511 @@ export function multiAgentStep(
       } else {
         ok = true;
       }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LIST_REINSURANCE_FOR_SALE action (AF-146)
+  if ((action as any).type === "LIST_REINSURANCE_FOR_SALE") {
+    const { listingId, policyId, syndicateId, askPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const policy = state.swfYieldCDOTrancheReinsurancePolicies?.[policyId];
+
+    if (!listingId) {
+      rejectionReason = `Listing ID is required.`;
+    } else if (!policyId) {
+      rejectionReason = `Policy ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (askPrice === undefined || askPrice <= 0 || !Number.isInteger(askPrice)) {
+      rejectionReason = `Ask price must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot list reinsurance for sale.`;
+    } else if (!policy) {
+      rejectionReason = `Reinsurance policy ${policyId} does not exist.`;
+    } else if (!policy.active) {
+      rejectionReason = `Reinsurance policy ${policyId} is not active.`;
+    } else if (policy.syndicateId !== syndicateId) {
+      rejectionReason = `Reinsurance policy ${policyId} is not owned by syndicate ${syndicateId}.`;
+    } else if (state.swfYieldCDOTrancheReinsuranceListings?.[listingId]) {
+      rejectionReason = `Reinsurance listing ${listingId} already exists.`;
+    } else {
+      // Ensure the policy is not already listed in an Open listing
+      let alreadyListed = false;
+      for (const listing of Object.values(state.swfYieldCDOTrancheReinsuranceListings || {})) {
+        if (listing.policyId === policyId && listing.status === "Open") {
+          alreadyListed = true;
+          break;
+        }
+      }
+      if (alreadyListed) {
+        rejectionReason = `Reinsurance policy ${policyId} is already listed for sale.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && policy) {
+      const listSWFYieldCDOTrancheReinsuranceVotes = { ...(state.listSWFYieldCDOTrancheReinsuranceVotes || {}) };
+      if (!listSWFYieldCDOTrancheReinsuranceVotes[syndicateId]) {
+        listSWFYieldCDOTrancheReinsuranceVotes[syndicateId] = {};
+      }
+      listSWFYieldCDOTrancheReinsuranceVotes[syndicateId][agentId] = {
+        listingId,
+        policyId,
+        askPrice,
+        timestamp,
+      };
+      newState.listSWFYieldCDOTrancheReinsuranceVotes = listSWFYieldCDOTrancheReinsuranceVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFYieldCDOTrancheReinsuranceListings(newState, pack);
+
+      const isResolved = newState.swfYieldCDOTrancheReinsuranceListings?.[listingId]?.status === "Open";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance List Vote] Agent ${agentId} voted to list reinsurance policy ${policyId} for sale on listing ${listingId} at ask price ${askPrice} gold (Status: ${isResolved ? "OPEN" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance list vote cast by ${agentId} for Syndicate ${syndicateId} (Listing: ${listingId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_list_voted" as any,
+        syndicateId,
+        agentId,
+        listingId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PLACE_REINSURANCE_BID action (AF-146)
+  if ((action as any).type === "PLACE_REINSURANCE_BID") {
+    const { listingId, syndicateId, bidAmount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const listing = state.swfYieldCDOTrancheReinsuranceListings?.[listingId];
+
+    if (!listingId) {
+      rejectionReason = `Listing ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (bidAmount === undefined || bidAmount <= 0 || !Number.isInteger(bidAmount)) {
+      rejectionReason = `Bid amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to place a bid.`;
+    } else if (!listing) {
+      rejectionReason = `Reinsurance listing ${listingId} does not exist.`;
+    } else if (listing.status !== "Open") {
+      rejectionReason = `Reinsurance listing ${listingId} is not open.`;
+    } else if (listing.sellerSyndicateId === syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} is the seller of listing ${listingId} and cannot bid on it.`;
+    } else if ((syndicate.warChest ?? 0) < bidAmount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient war chest (${syndicate.warChest ?? 0} gold) to place bid of ${bidAmount} gold.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && listing) {
+      const placeSWFYieldCDOTrancheReinsuranceBidVotes = { ...(state.placeSWFYieldCDOTrancheReinsuranceBidVotes || {}) };
+      if (!placeSWFYieldCDOTrancheReinsuranceBidVotes[syndicateId]) {
+        placeSWFYieldCDOTrancheReinsuranceBidVotes[syndicateId] = {};
+      }
+      placeSWFYieldCDOTrancheReinsuranceBidVotes[syndicateId][agentId] = {
+        listingId,
+        bidAmount,
+        timestamp,
+      };
+      newState.placeSWFYieldCDOTrancheReinsuranceBidVotes = placeSWFYieldCDOTrancheReinsuranceBidVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFYieldCDOTrancheReinsuranceBids(newState, pack);
+
+      const isResolved = newState.swfYieldCDOTrancheReinsuranceListings?.[listingId]?.bids?.[syndicateId]?.bidAmount === bidAmount;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Bid Vote] Agent ${agentId} voted to place bid of ${bidAmount} gold on listing ${listingId} for Syndicate ${syndicateId} (Status: ${isResolved ? "PLACED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance bid vote cast by ${agentId} for Syndicate ${syndicateId} (Listing: ${listingId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_bid_voted" as any,
+        syndicateId,
+        agentId,
+        listingId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized EXECUTE_REINSURANCE_SALE action (AF-146)
+  if ((action as any).type === "EXECUTE_REINSURANCE_SALE") {
+    const { listingId, syndicateId, buyerSyndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const sellerSyndicate = state.syndicates?.[syndicateId];
+    const buyerSyndicate = buyerSyndicateId === "market_maker" ? { id: "market_maker", warChest: 99999999 } : state.syndicates?.[buyerSyndicateId];
+    const listing = state.swfYieldCDOTrancheReinsuranceListings?.[listingId];
+
+    let policy: any;
+    let finalPrice = 0;
+
+    if (!listingId) {
+      rejectionReason = `Listing ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer syndicate ID is required.`;
+    } else if (!listing) {
+      rejectionReason = `Reinsurance listing ${listingId} does not exist.`;
+    } else if (listing.status !== "Open") {
+      rejectionReason = `Reinsurance listing ${listingId} is not open.`;
+    } else if (listing.sellerSyndicateId !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} is not the seller of listing ${listingId}.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller syndicate ${syndicateId} does not exist.`;
+    } else if (!sellerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of seller syndicate ${syndicateId} and cannot vote to execute sale.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else {
+      policy = state.swfYieldCDOTrancheReinsurancePolicies?.[listing.policyId];
+      if (!policy) {
+        rejectionReason = `Reinsurance policy ${listing.policyId} associated with listing does not exist.`;
+      } else if (!policy.active) {
+        rejectionReason = `Reinsurance policy ${listing.policyId} is no longer active.`;
+      } else if (policy.syndicateId !== syndicateId) {
+        rejectionReason = `Reinsurance policy ${listing.policyId} is no longer owned by seller syndicate ${syndicateId}.`;
+      } else {
+        const bid = buyerSyndicateId === "market_maker"
+          ? (listing.bids?.["market_maker"] || { bidderSyndicateId: "market_maker", bidAmount: listing.askPrice })
+          : listing.bids?.[buyerSyndicateId];
+
+        if (!bid) {
+          rejectionReason = `Buyer syndicate ${buyerSyndicateId} has not placed a bid on listing ${listingId}.`;
+        } else {
+          finalPrice = bid.bidAmount;
+          if (buyerSyndicateId !== "market_maker" && (buyerSyndicate.warChest ?? 0) < finalPrice) {
+            rejectionReason = `Buyer syndicate ${buyerSyndicateId} has insufficient war chest (${buyerSyndicate.warChest ?? 0} gold) to cover execution price ${finalPrice} gold.`;
+          } else {
+            ok = true;
+          }
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && sellerSyndicate && buyerSyndicate && listing && policy) {
+      const executeSWFYieldCDOTrancheReinsuranceSaleVotes = { ...(state.executeSWFYieldCDOTrancheReinsuranceSaleVotes || {}) };
+      if (!executeSWFYieldCDOTrancheReinsuranceSaleVotes[syndicateId]) {
+        executeSWFYieldCDOTrancheReinsuranceSaleVotes[syndicateId] = {};
+      }
+      executeSWFYieldCDOTrancheReinsuranceSaleVotes[syndicateId][agentId] = {
+        listingId,
+        buyerSyndicateId,
+        timestamp,
+      };
+      newState.executeSWFYieldCDOTrancheReinsuranceSaleVotes = executeSWFYieldCDOTrancheReinsuranceSaleVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFYieldCDOTrancheReinsuranceSales(newState, pack);
+
+      const isResolved = newState.swfYieldCDOTrancheReinsuranceListings?.[listingId]?.status === "Completed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Execute Vote] Agent ${agentId} voted to execute sale of reinsurance policy ${listing.policyId} to syndicate ${buyerSyndicateId} on listing ${listingId} for ${finalPrice} gold (Status: ${isResolved ? "COMPLETED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance execute vote cast by ${agentId} for Syndicate ${syndicateId} (Listing: ${listingId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_execute_voted" as any,
+        syndicateId,
+        agentId,
+        listingId,
+        buyerSyndicateId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CANCEL_REINSURANCE_LISTING action (AF-146)
+  if ((action as any).type === "CANCEL_REINSURANCE_LISTING") {
+    const { listingId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const sellerSyndicate = state.syndicates?.[syndicateId];
+    const listing = state.swfYieldCDOTrancheReinsuranceListings?.[listingId];
+
+    if (!listingId) {
+      rejectionReason = `Listing ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!listing) {
+      rejectionReason = `Reinsurance listing ${listingId} does not exist.`;
+    } else if (listing.status !== "Open") {
+      rejectionReason = `Reinsurance listing ${listingId} is not open.`;
+    } else if (listing.sellerSyndicateId !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} is not the seller of listing ${listingId}.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller syndicate ${syndicateId} does not exist.`;
+    } else if (!sellerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of seller syndicate ${syndicateId} and cannot vote to cancel listing.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && sellerSyndicate && listing) {
+      const cancelSWFYieldCDOTrancheReinsuranceListingVotes = { ...(state.cancelSWFYieldCDOTrancheReinsuranceListingVotes || {}) };
+      if (!cancelSWFYieldCDOTrancheReinsuranceListingVotes[syndicateId]) {
+        cancelSWFYieldCDOTrancheReinsuranceListingVotes[syndicateId] = {};
+      }
+      cancelSWFYieldCDOTrancheReinsuranceListingVotes[syndicateId][agentId] = {
+        listingId,
+        timestamp,
+      };
+      newState.cancelSWFYieldCDOTrancheReinsuranceListingVotes = cancelSWFYieldCDOTrancheReinsuranceListingVotes;
+
+      // Reconcile votes
+      newState = reconcileCancelSWFYieldCDOTrancheReinsuranceListings(newState, pack);
+
+      const isResolved = newState.swfYieldCDOTrancheReinsuranceListings?.[listingId]?.status === "Cancelled";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Cancel Vote] Agent ${agentId} voted to cancel reinsurance listing ${listingId} for Syndicate ${syndicateId} (Status: ${isResolved ? "CANCELLED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance cancel vote cast by ${agentId} for Syndicate ${syndicateId} (Listing: ${listingId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_cancel_voted" as any,
+        syndicateId,
+        agentId,
+        listingId,
+        timestamp,
+      });
     }
 
     newState.step += 1;

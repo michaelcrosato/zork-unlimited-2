@@ -2009,6 +2009,21 @@ export const SWFYieldCDOTrancheReinsurancePolicySchema = z.object({
 });
 export type SWFYieldCDOTrancheReinsurancePolicy = z.infer<typeof SWFYieldCDOTrancheReinsurancePolicySchema>;
 
+export const SWFYieldCDOTrancheReinsuranceListingSchema = z.object({
+  id: z.string(),
+  policyId: z.string(),
+  sellerSyndicateId: z.string(),
+  askPrice: z.number().int().positive(),
+  status: z.enum(["Open", "Completed", "Cancelled"]),
+  timestamp: z.number().int(),
+  bids: z.record(z.string(), z.object({
+    bidderSyndicateId: z.string(),
+    bidAmount: z.number().int().positive(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFYieldCDOTrancheReinsuranceListing = z.infer<typeof SWFYieldCDOTrancheReinsuranceListingSchema>;
+
 export const SWFYieldCDOTrancheReinsuranceProposalSchema = z.object({
   id: z.string(),
   syndicateId: z.string(),
@@ -2491,6 +2506,27 @@ export const GameStateSchema = z.object({
 
   swfYieldCDOTrancheReinsurancePolicies: z.record(z.string(), SWFYieldCDOTrancheReinsurancePolicySchema).optional(),
   swfYieldCDOTrancheReinsuranceProposals: z.record(z.string(), SWFYieldCDOTrancheReinsuranceProposalSchema).optional(),
+  swfYieldCDOTrancheReinsuranceListings: z.record(z.string(), SWFYieldCDOTrancheReinsuranceListingSchema).optional(),
+  listSWFYieldCDOTrancheReinsuranceVotes: z.record(z.string(), z.record(z.string(), z.object({
+    listingId: z.string(),
+    policyId: z.string(),
+    askPrice: z.number().int().positive(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  placeSWFYieldCDOTrancheReinsuranceBidVotes: z.record(z.string(), z.record(z.string(), z.object({
+    listingId: z.string(),
+    bidAmount: z.number().int().positive(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  executeSWFYieldCDOTrancheReinsuranceSaleVotes: z.record(z.string(), z.record(z.string(), z.object({
+    listingId: z.string(),
+    buyerSyndicateId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  cancelSWFYieldCDOTrancheReinsuranceListingVotes: z.record(z.string(), z.record(z.string(), z.object({
+    listingId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
   swfYieldCDOTrancheRiskRatings: z.record(z.string(), SWFYieldCDOTrancheRiskRatingSchema).optional(),
   swfYieldCDORiskRatingModels: z.record(z.string(), SWFYieldCDORiskRatingModelSchema).optional(),
   swfYieldCDORiskRatingModelProposals: z.record(z.string(), SWFYieldCDORiskRatingModelProposalSchema).optional(),
@@ -2765,6 +2801,11 @@ export const createInitialState = (options: {
     configureVolatilityHedgedBufferVotes: {},
     swfYieldCDOTrancheReinsurancePolicies: {},
     swfYieldCDOTrancheReinsuranceProposals: {},
+    swfYieldCDOTrancheReinsuranceListings: {},
+    listSWFYieldCDOTrancheReinsuranceVotes: {},
+    placeSWFYieldCDOTrancheReinsuranceBidVotes: {},
+    executeSWFYieldCDOTrancheReinsuranceSaleVotes: {},
+    cancelSWFYieldCDOTrancheReinsuranceListingVotes: {},
     swfYieldCDOTrancheRiskRatings: {},
     swfYieldCDORiskRatingModels: {},
     swfYieldCDORiskRatingModelProposals: {},
@@ -3622,6 +3663,11 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfYieldCDOProposals: rest.swfYieldCDOProposals ? JSON.parse(JSON.stringify(rest.swfYieldCDOProposals)) : undefined,
     swfYieldCDOTrancheReinsurancePolicies: rest.swfYieldCDOTrancheReinsurancePolicies ? JSON.parse(JSON.stringify(rest.swfYieldCDOTrancheReinsurancePolicies)) : undefined,
     swfYieldCDOTrancheReinsuranceProposals: rest.swfYieldCDOTrancheReinsuranceProposals ? JSON.parse(JSON.stringify(rest.swfYieldCDOTrancheReinsuranceProposals)) : undefined,
+    swfYieldCDOTrancheReinsuranceListings: rest.swfYieldCDOTrancheReinsuranceListings ? JSON.parse(JSON.stringify(rest.swfYieldCDOTrancheReinsuranceListings)) : undefined,
+    listSWFYieldCDOTrancheReinsuranceVotes: rest.listSWFYieldCDOTrancheReinsuranceVotes ? JSON.parse(JSON.stringify(rest.listSWFYieldCDOTrancheReinsuranceVotes)) : undefined,
+    placeSWFYieldCDOTrancheReinsuranceBidVotes: rest.placeSWFYieldCDOTrancheReinsuranceBidVotes ? JSON.parse(JSON.stringify(rest.placeSWFYieldCDOTrancheReinsuranceBidVotes)) : undefined,
+    executeSWFYieldCDOTrancheReinsuranceSaleVotes: rest.executeSWFYieldCDOTrancheReinsuranceSaleVotes ? JSON.parse(JSON.stringify(rest.executeSWFYieldCDOTrancheReinsuranceSaleVotes)) : undefined,
+    cancelSWFYieldCDOTrancheReinsuranceListingVotes: rest.cancelSWFYieldCDOTrancheReinsuranceListingVotes ? JSON.parse(JSON.stringify(rest.cancelSWFYieldCDOTrancheReinsuranceListingVotes)) : undefined,
     swfYieldCDOTrancheRiskRatings: rest.swfYieldCDOTrancheRiskRatings ? JSON.parse(JSON.stringify(rest.swfYieldCDOTrancheRiskRatings)) : undefined,
     swfYieldCDORiskRatingModels: rest.swfYieldCDORiskRatingModels ? JSON.parse(JSON.stringify(rest.swfYieldCDORiskRatingModels)) : undefined,
     swfYieldCDORiskRatingModelProposals: rest.swfYieldCDORiskRatingModelProposals ? JSON.parse(JSON.stringify(rest.swfYieldCDORiskRatingModelProposals)) : undefined,
@@ -10486,6 +10532,295 @@ export function recalculateSWFYieldCDORiskRatings(state: GameState): GameState {
         defaultCorrelation,
         timestamp: newState.step,
       };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFYieldCDOTrancheReinsuranceListings(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    listSWFYieldCDOTrancheReinsuranceVotes: state.listSWFYieldCDOTrancheReinsuranceVotes ? { ...state.listSWFYieldCDOTrancheReinsuranceVotes } : {},
+    swfYieldCDOTrancheReinsuranceListings: state.swfYieldCDOTrancheReinsuranceListings ? { ...state.swfYieldCDOTrancheReinsuranceListings } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.listSWFYieldCDOTrancheReinsuranceVotes || {})) {
+    const votes = newState.listSWFYieldCDOTrancheReinsuranceVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by listingId
+    const votesByListing: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByListing[voteObj.listingId]) {
+        votesByListing[voteObj.listingId] = {};
+      }
+      votesByListing[voteObj.listingId][voterId] = voteObj;
+    }
+
+    for (const [listingId, listingVotes] of Object.entries(votesByListing)) {
+      // Find the vote parameter details from any of the votes (they should be identical for a given listingId)
+      const firstVote = Object.values(listingVotes)[0];
+      if (!firstVote) continue;
+
+      const { policyId, askPrice, timestamp } = firstVote;
+      const yesVotes = Object.entries(listingVotes)
+        .filter(([voterId, voteObj]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        // Majority reached! Open the listing.
+        newState.swfYieldCDOTrancheReinsuranceListings![listingId] = {
+          id: listingId,
+          policyId,
+          sellerSyndicateId: syndicateId,
+          askPrice,
+          status: "Open" as const,
+          timestamp,
+          bids: {},
+        };
+
+        // Clear votes
+        if (newState.listSWFYieldCDOTrancheReinsuranceVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.listSWFYieldCDOTrancheReinsuranceVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.listSWFYieldCDOTrancheReinsuranceVotes[syndicateId]).length === 0) {
+            delete newState.listSWFYieldCDOTrancheReinsuranceVotes[syndicateId];
+          }
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Listed] Syndicate ${syndicateId} successfully listed reinsurance policy ${policyId} for sale at ask price ${askPrice} gold.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFYieldCDOTrancheReinsuranceBids(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    placeSWFYieldCDOTrancheReinsuranceBidVotes: state.placeSWFYieldCDOTrancheReinsuranceBidVotes ? { ...state.placeSWFYieldCDOTrancheReinsuranceBidVotes } : {},
+    swfYieldCDOTrancheReinsuranceListings: state.swfYieldCDOTrancheReinsuranceListings ? { ...state.swfYieldCDOTrancheReinsuranceListings } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.placeSWFYieldCDOTrancheReinsuranceBidVotes || {})) {
+    const votes = newState.placeSWFYieldCDOTrancheReinsuranceBidVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by listingId
+    const votesByListing: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByListing[voteObj.listingId]) {
+        votesByListing[voteObj.listingId] = {};
+      }
+      votesByListing[voteObj.listingId][voterId] = voteObj;
+    }
+
+    for (const [listingId, listingVotes] of Object.entries(votesByListing)) {
+      const firstVote = Object.values(listingVotes)[0];
+      if (!firstVote) continue;
+
+      const { bidAmount, timestamp } = firstVote;
+      const yesVotes = Object.entries(listingVotes)
+        .filter(([voterId, voteObj]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        // Majority reached! Place the bid.
+        const listing = newState.swfYieldCDOTrancheReinsuranceListings![listingId];
+        if (listing && listing.status === "Open") {
+          const bids = listing.bids ? { ...listing.bids } : {};
+          bids[syndicateId] = {
+            bidderSyndicateId: syndicateId,
+            bidAmount,
+            timestamp,
+          };
+          listing.bids = bids;
+          newState.swfYieldCDOTrancheReinsuranceListings![listingId] = listing;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Bid Placed] Syndicate ${syndicateId} placed a bid of ${bidAmount} gold on listing ${listingId}.`
+          );
+        }
+
+        // Clear votes
+        if (newState.placeSWFYieldCDOTrancheReinsuranceBidVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.placeSWFYieldCDOTrancheReinsuranceBidVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.placeSWFYieldCDOTrancheReinsuranceBidVotes[syndicateId]).length === 0) {
+            delete newState.placeSWFYieldCDOTrancheReinsuranceBidVotes[syndicateId];
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFYieldCDOTrancheReinsuranceSales(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    executeSWFYieldCDOTrancheReinsuranceSaleVotes: state.executeSWFYieldCDOTrancheReinsuranceSaleVotes ? { ...state.executeSWFYieldCDOTrancheReinsuranceSaleVotes } : {},
+    swfYieldCDOTrancheReinsuranceListings: state.swfYieldCDOTrancheReinsuranceListings ? { ...state.swfYieldCDOTrancheReinsuranceListings } : {},
+    swfYieldCDOTrancheReinsurancePolicies: state.swfYieldCDOTrancheReinsurancePolicies ? { ...state.swfYieldCDOTrancheReinsurancePolicies } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.executeSWFYieldCDOTrancheReinsuranceSaleVotes || {})) {
+    const votes = newState.executeSWFYieldCDOTrancheReinsuranceSaleVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by listingId
+    const votesByListing: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByListing[voteObj.listingId]) {
+        votesByListing[voteObj.listingId] = {};
+      }
+      votesByListing[voteObj.listingId][voterId] = voteObj;
+    }
+
+    for (const [listingId, listingVotes] of Object.entries(votesByListing)) {
+      const firstVote = Object.values(listingVotes)[0];
+      if (!firstVote) continue;
+
+      const { buyerSyndicateId, timestamp } = firstVote;
+      const yesVotes = Object.entries(listingVotes)
+        .filter(([voterId, voteObj]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        // Majority reached! Execute the sale.
+        const listing = newState.swfYieldCDOTrancheReinsuranceListings![listingId];
+        if (listing && listing.status === "Open") {
+          const bid = buyerSyndicateId === "market_maker"
+            ? (listing.bids?.["market_maker"] || { bidderSyndicateId: "market_maker", bidAmount: listing.askPrice })
+            : listing.bids?.[buyerSyndicateId];
+
+          if (bid) {
+            const finalPrice = bid.bidAmount;
+            const policy = newState.swfYieldCDOTrancheReinsurancePolicies![listing.policyId];
+
+            if (policy && policy.active && policy.syndicateId === syndicateId) {
+              const buyerSyndicate = buyerSyndicateId === "market_maker"
+                ? { id: "market_maker", warChest: 99999999 }
+                : newState.syndicates[buyerSyndicateId];
+
+              if (buyerSyndicate && (buyerSyndicateId === "market_maker" || (buyerSyndicate.warChest ?? 0) >= finalPrice)) {
+                // Execute policy owner transfer
+                newState.swfYieldCDOTrancheReinsurancePolicies![listing.policyId] = {
+                  ...policy,
+                  syndicateId: buyerSyndicateId,
+                  timestamp,
+                };
+
+                // Transfer gold
+                syndicate.warChest = (syndicate.warChest ?? 0) + finalPrice;
+                if (buyerSyndicateId !== "market_maker" && newState.syndicates[buyerSyndicateId]) {
+                  newState.syndicates[buyerSyndicateId].warChest = (newState.syndicates[buyerSyndicateId].warChest ?? 0) - finalPrice;
+                }
+
+                // Close listing
+                listing.status = "Completed";
+                listing.timestamp = timestamp;
+                newState.swfYieldCDOTrancheReinsuranceListings![listingId] = listing;
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[SWF Reinsurance Sale Executed] Syndicate ${syndicateId} sold reinsurance policy ${listing.policyId} to syndicate ${buyerSyndicateId} for ${finalPrice} gold.`
+                );
+              }
+            }
+          }
+        }
+
+        // Clear votes
+        if (newState.executeSWFYieldCDOTrancheReinsuranceSaleVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.executeSWFYieldCDOTrancheReinsuranceSaleVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.executeSWFYieldCDOTrancheReinsuranceSaleVotes[syndicateId]).length === 0) {
+            delete newState.executeSWFYieldCDOTrancheReinsuranceSaleVotes[syndicateId];
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCancelSWFYieldCDOTrancheReinsuranceListings(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cancelSWFYieldCDOTrancheReinsuranceListingVotes: state.cancelSWFYieldCDOTrancheReinsuranceListingVotes ? { ...state.cancelSWFYieldCDOTrancheReinsuranceListingVotes } : {},
+    swfYieldCDOTrancheReinsuranceListings: state.swfYieldCDOTrancheReinsuranceListings ? { ...state.swfYieldCDOTrancheReinsuranceListings } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.cancelSWFYieldCDOTrancheReinsuranceListingVotes || {})) {
+    const votes = newState.cancelSWFYieldCDOTrancheReinsuranceListingVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by listingId
+    const votesByListing: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByListing[voteObj.listingId]) {
+        votesByListing[voteObj.listingId] = {};
+      }
+      votesByListing[voteObj.listingId][voterId] = voteObj;
+    }
+
+    for (const [listingId, listingVotes] of Object.entries(votesByListing)) {
+      const firstVote = Object.values(listingVotes)[0];
+      if (!firstVote) continue;
+
+      const { timestamp } = firstVote;
+      const yesVotes = Object.entries(listingVotes)
+        .filter(([voterId, voteObj]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        // Majority reached! Cancel listing.
+        const listing = newState.swfYieldCDOTrancheReinsuranceListings![listingId];
+        if (listing && listing.status === "Open" && listing.sellerSyndicateId === syndicateId) {
+          listing.status = "Cancelled";
+          listing.timestamp = timestamp;
+          newState.swfYieldCDOTrancheReinsuranceListings![listingId] = listing;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Listing Cancelled] Syndicate ${syndicateId} cancelled reinsurance listing ${listingId}.`
+          );
+        }
+
+        // Clear votes
+        if (newState.cancelSWFYieldCDOTrancheReinsuranceListingVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.cancelSWFYieldCDOTrancheReinsuranceListingVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.cancelSWFYieldCDOTrancheReinsuranceListingVotes[syndicateId]).length === 0) {
+            delete newState.cancelSWFYieldCDOTrancheReinsuranceListingVotes[syndicateId];
+          }
+        }
+      }
     }
   }
 

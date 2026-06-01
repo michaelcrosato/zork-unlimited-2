@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #145 (Ready for Cycle #146)
+* **Autonomous Cycle**: Completed Cycle #146 (Ready for Cycle #147)
 * **Build/Test Status**: 🟢 PASS (All 615 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
@@ -871,16 +871,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire reinsurance premium collections, default resolution payouts, and dynamic risk rating recalculations into the economy ticks (`AF-145`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-145`).
 
+### Phase 124: SWF Reinsurance Secondary Trading Market & Bid-Ask Auction Spreads (Completed)
+- [x] Define SWF Yield CDO CDS Tranche Reinsurance secondary market listing and bid-ask schemas in GameState (`AF-146`).
+- [x] Implement decentralized consensus actions to list reinsurance policies for sale, place bids, and execute transactions via majority voting (`AF-146`).
+- [x] Wire transaction settlements and ownership transfer of active reinsurance coverage into the ticks (`AF-146`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-146`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-146`
-* **Objective**: Syndicate SWF Yield CDO CDS Tranche Reinsurance Secondary Trading Market & Bid-Ask Auction Spreads.
-* **Why this matters**: Introduce decentralized secondary trading markets for active SWF reinsurance policies allowing syndicates to sell their reinsurance policies or bid/ask on active policies based on dynamic risk ratings and market arbitrage opportunities.
+**Task ID**: `AF-147`
+* **Objective**: Syndicate SWF Reinsurance Futures & Volatility-Hedged Reinsurance Premium Adjustments.
+* **Why this matters**: Introduce reinsurance futures contracts allowing syndicates to lock in future reinsurance premium rates, and design a volatility-hedged premium adjustment policy scaling future premium rates based on the CDO's dynamic risk ratings and market volatility trends.
 * **Planned Actions**:
-  1. Define SWF Yield CDO CDS Tranche Reinsurance secondary market listing and bid-ask schemas in GameState.
-  2. Implement decentralized consensus actions to list reinsurance policies for sale, place bids, and execute transactions via majority voting.
-  3. Wire transaction settlements and ownership transfer of active reinsurance coverage into the ticks.
+  1. Define SWF Reinsurance Futures contract and Volatility-Hedged Premium policy schemas in GameState.
+  2. Implement decentralized consensus actions to open/close reinsurance futures positions and vote on volatility reserve adjustments.
+  3. Wire dynamic premium adjustments scaling by volatility and auto-settlement of futures on epoch boundaries.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---
