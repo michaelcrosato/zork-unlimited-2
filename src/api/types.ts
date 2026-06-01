@@ -58,7 +58,10 @@ export type Action =
   | { type: "SABOTAGE_NETWORK"; syndicateId: string; targetSyndicateId: string; roomId: string; targetType: "espionage_network" | "wiretap"; reportId: string; timestamp: number }
   | { type: "FLIP_UNDERCOVER_AGENT"; syndicateId: string; agentId: string; timestamp: number }
   | { type: "APPOINT_RINGLEADER"; syndicateId: string; ringleaderId: string; timestamp: number }
-  | { type: "VOTE_CARTEL_GLOBAL_TAX"; cartelId: string; taxRate: number; timestamp: number };
+  | { type: "VOTE_CARTEL_GLOBAL_TAX"; cartelId: string; taxRate: number; timestamp: number }
+  | { type: "DEFINE_SMUGGLER_GUILD"; guildId: string; name: string; syndicateId: string; members: string[]; timestamp: number }
+  | { type: "VOTE_SMUGGLER_GUILD_CBA"; guildId: string; routeId: string; agreedToll: number; timestamp: number }
+  | { type: "POOL_BOUNTY_RESOURCES"; syndicateId: string; targetId: string; goldAmount: number; timestamp: number };
 
 
 

@@ -213,6 +213,29 @@ export const SmugglingInsuranceSchema = z.object({
 });
 export type SmugglingInsurance = z.infer<typeof SmugglingInsuranceSchema>;
 
+export const SmugglerGuildSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  syndicateId: z.string(),
+  members: z.array(z.string()),
+  definedBy: z.string(),
+  timestamp: z.number().int(),
+});
+export type SmugglerGuild = z.infer<typeof SmugglerGuildSchema>;
+
+export const SmugglerGuildCbaVoteSchema = z.object({
+  agreedToll: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SmugglerGuildCbaVote = z.infer<typeof SmugglerGuildCbaVoteSchema>;
+
+export const SmugglerGuildCbaSchema = z.object({
+  guildId: z.string(),
+  routeId: z.string(),
+  agreedToll: z.number().int().nonnegative(),
+});
+export type SmugglerGuildCba = z.infer<typeof SmugglerGuildCbaSchema>;
+
 export const ConvoyInsuranceSchema = z.object({
   convoyId: z.string(),
   syndicateId: z.string(),
@@ -548,6 +571,11 @@ export const GameStateSchema = z.object({
   guildPolicies: z.record(z.string(), GuildPolicySchema).optional(),
   collectiveBargainingAgreements: z.record(z.string(), CollectiveBargainingSchema).optional(),
 
+  smugglerGuilds: z.record(z.string(), SmugglerGuildSchema).optional(),
+  smugglerGuildMemberships: z.record(z.string(), z.array(z.string())).optional(),
+  smugglerGuildCbaVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), SmugglerGuildCbaVoteSchema))).optional(),
+  smugglerGuildCbas: z.record(z.string(), SmugglerGuildCbaSchema).optional(),
+
   // decentralized merchant cartels and price collusion (AF-39)
   cartels: z.record(z.string(), MerchantCartelSchema).optional(),
   cartelMemberships: z.record(z.string(), z.array(z.string())).optional(),
@@ -674,6 +702,10 @@ export const createInitialState = (options: {
     guildVotes: {},
     guildPolicies: {},
     collectiveBargainingAgreements: {},
+    smugglerGuilds: {},
+    smugglerGuildMemberships: {},
+    smugglerGuildCbaVotes: {},
+    smugglerGuildCbas: {},
     cartels: {},
     cartelMemberships: {},
     cartelVotes: {},
@@ -1244,6 +1276,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     guildVotes: rest.guildVotes ? JSON.parse(JSON.stringify(rest.guildVotes)) : undefined,
     guildPolicies: rest.guildPolicies ? JSON.parse(JSON.stringify(rest.guildPolicies)) : undefined,
     collectiveBargainingAgreements: rest.collectiveBargainingAgreements ? JSON.parse(JSON.stringify(rest.collectiveBargainingAgreements)) : undefined,
+    smugglerGuilds: rest.smugglerGuilds ? JSON.parse(JSON.stringify(rest.smugglerGuilds)) : undefined,
+    smugglerGuildMemberships: rest.smugglerGuildMemberships ? JSON.parse(JSON.stringify(rest.smugglerGuildMemberships)) : undefined,
+    smugglerGuildCbaVotes: rest.smugglerGuildCbaVotes ? JSON.parse(JSON.stringify(rest.smugglerGuildCbaVotes)) : undefined,
+    smugglerGuildCbas: rest.smugglerGuildCbas ? JSON.parse(JSON.stringify(rest.smugglerGuildCbas)) : undefined,
     cartels: rest.cartels ? JSON.parse(JSON.stringify(rest.cartels)) : undefined,
     cartelMemberships: rest.cartelMemberships ? JSON.parse(JSON.stringify(rest.cartelMemberships)) : undefined,
     cartelVotes: rest.cartelVotes ? JSON.parse(JSON.stringify(rest.cartelVotes)) : undefined,
@@ -1408,6 +1444,51 @@ export function reconcileCartelGlobalTaxes(state: GameState, pack: any): GameSta
     }
 
     newState.cartelGlobalTaxPolicy[cartelId] = consensusRate;
+  }
+
+  return newState;
+}
+
+export function reconcileSmugglerGuildCbas(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    smugglerGuildCbas: { ...(state.smugglerGuildCbas || {}) },
+  };
+
+  if (!newState.smugglerGuildCbaVotes) {
+    newState.smugglerGuildCbaVotes = {};
+  }
+
+  for (const [guildId, routeVotes] of Object.entries(newState.smugglerGuildCbaVotes)) {
+    const guild = newState.smugglerGuilds?.[guildId];
+    if (!guild) continue;
+
+    for (const [routeId, votes] of Object.entries(routeVotes)) {
+      const counts: Record<number, number> = {};
+      for (const vote of Object.values(votes)) {
+        counts[vote.agreedToll] = (counts[vote.agreedToll] ?? 0) + 1;
+      }
+
+      let maxCount = 0;
+      let consensusToll = 0;
+
+      // Tie-breaker: sort descending to keep it uniform with other voting systems
+      const uniqueTolls = Object.keys(counts).map(Number).sort((a, b) => b - a);
+      for (const toll of uniqueTolls) {
+        const count = counts[toll];
+        if (count > maxCount) {
+          maxCount = count;
+          consensusToll = toll;
+        }
+      }
+
+      const cbaKey = `${guildId}:${routeId}`;
+      newState.smugglerGuildCbas[cbaKey] = {
+        guildId,
+        routeId,
+        agreedToll: consensusToll,
+      };
+    }
   }
 
   return newState;

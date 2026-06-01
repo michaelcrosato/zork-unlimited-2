@@ -374,6 +374,16 @@ export function step(
               };
               combatLog += `\n💰 Bounty claimed! You earn an additional ${reward} gold for resolving the bounty on ${targetId}.`;
             }
+            if (newState.bounties?.[enemy.id]?.active) {
+              const reward = newState.bounties[enemy.id].amount;
+              newState.vars["gold"] = (newState.vars["gold"] ?? 0) + reward;
+              newState.bounties[enemy.id] = {
+                ...newState.bounties[enemy.id],
+                active: false,
+                timestamp: newState.step,
+              };
+              combatLog += `\n💰 Cooperative Bounty claimed! You earn an additional ${reward} gold for hunting down and defeating the enforcer ${enemy.id}.`;
+            }
           }
         }
 
@@ -614,9 +624,34 @@ export function step(
 
             if (isHostile && !isAllied) {
               hostileRouteFactionId = rFactionId;
-              const toll = state.tradeRoutePolicies?.[routeId] ?? route.taxShare ?? 5;
+              let toll = state.tradeRoutePolicies?.[routeId] ?? route.taxShare ?? 5;
               
-              if (rep <= -10) {
+              // Check for Smuggler Guild CBA override for this route
+              let hasCbaOverride = false;
+              let cbaToll = toll;
+              if (state.smugglerGuilds && state.smugglerGuildCbas) {
+                for (const guildId of Object.keys(state.smugglerGuilds)) {
+                  const guild = state.smugglerGuilds[guildId];
+                  const isMember = guild.members.includes(agentId) ||
+                    (state.smugglerGuildMemberships?.[agentId]?.includes(guildId)) ||
+                    guild.definedBy === agentId;
+                  
+                  if (isMember) {
+                    const cbaKey = `${guildId}:${routeId}`;
+                    const cba = state.smugglerGuildCbas[cbaKey];
+                    if (cba !== undefined) {
+                      hasCbaOverride = true;
+                      cbaToll = Math.min(cbaToll, cba.agreedToll);
+                    }
+                  }
+                }
+              }
+
+              if (hasCbaOverride) {
+                toll = cbaToll;
+              }
+
+              if (rep <= -10 && !hasCbaOverride) {
                 lockingRouteId = routeId;
               }
               if (toll > maxToll) {
@@ -2184,6 +2219,26 @@ export function tickSmugglingConvoys(
           }
         }
         toll += cartelTax * convoy.cargo;
+
+        // Check for Smuggler Guild CBA override for smuggling convoy crossing tolls!
+        let hasConvoyCbaOverride = false;
+        let convoyCbaToll = toll;
+        if (newState.smugglerGuilds && newState.smugglerGuildCbas) {
+          for (const guildId of Object.keys(newState.smugglerGuilds)) {
+            const guild = newState.smugglerGuilds[guildId];
+            if (guild.syndicateId === convoy.syndicateId) {
+              const cbaKey = `${guildId}:${convoy.routeId}`;
+              const cba = newState.smugglerGuildCbas[cbaKey];
+              if (cba !== undefined) {
+                hasConvoyCbaOverride = true;
+                convoyCbaToll = cba.agreedToll * convoy.cargo;
+              }
+            }
+          }
+        }
+        if (hasConvoyCbaOverride) {
+          toll = convoyCbaToll;
+        }
       }
 
       if (toll > 0) {
@@ -2409,7 +2464,7 @@ function tickEnvironment(
   return newState;
 }
 
-function tickEnforcers(
+export function tickEnforcers(
   state: GameState,
   events: GameEvent[],
   pack?: CYOAPack | ParserPack
@@ -2475,6 +2530,38 @@ function tickEnforcers(
 
   for (const [id, enforcer] of Object.entries(newState.enforcers ?? {})) {
     if (enforcer.status === "defeated") continue;
+
+    // Check for mesh-wide cooperative bounty hunting (AF-68)
+    if (newState.bounties?.[id]?.active) {
+      const { value: huntRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+      newState.seed = nextSeed;
+      if (huntRoll <= 15) { // 15% chance per tick to be hunted down and defeated by syndicate agents!
+        enforcer.status = "defeated";
+        enforcer.timestamp = newState.step;
+        
+        const bounty = newState.bounties[id];
+        const reward = bounty.amount;
+        newState.bounties[id] = {
+          ...bounty,
+          active: false,
+          timestamp: newState.step,
+        };
+        
+        // Distribute or award gold to the player or a random syndicate member agent!
+        const agentList = Object.keys(newState.agents || {});
+        const winningAgentId = agentList.length > 0 ? agentList[huntRoll % agentList.length] : "player";
+        
+        const goldKey = winningAgentId === "player" ? "gold" : `gold_${winningAgentId}`;
+        const currentGold = newState.vars[goldKey] ?? (winningAgentId === "player" ? 0 : 100);
+        newState.vars[goldKey] = currentGold + reward;
+        
+        events.push({
+          type: "narration",
+          text: `🎯 [Cooperative Bounty] Syndicate agents successfully hunted down and defeated enforcer ${enforcer.name} mesh-wide! Agent ${winningAgentId} claimed the ${reward} gold bounty.`
+        } as any);
+        continue;
+      }
+    }
 
     // 1. Smuggling Bounty Hunters (Pursuit Mechanism)
     if (enforcer.isBountyHunter) {

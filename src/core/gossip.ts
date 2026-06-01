@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -533,6 +533,61 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge smugglerGuilds using LWW (Last-Write-Wins)
+  const smugglerGuilds = { ...stateA.smugglerGuilds };
+  if (stateB.smugglerGuilds) {
+    for (const [guildId, guildB] of Object.entries(stateB.smugglerGuilds)) {
+      const guildA = smugglerGuilds[guildId];
+      if (!guildA) {
+        smugglerGuilds[guildId] = guildB;
+      } else {
+        if (guildB.timestamp > guildA.timestamp) {
+          smugglerGuilds[guildId] = guildB;
+        } else if (guildB.timestamp === guildA.timestamp) {
+          if (guildB.definedBy.localeCompare(guildA.definedBy) < 0) {
+            smugglerGuilds[guildId] = guildB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge smugglerGuildMemberships monotonically
+  const smugglerGuildMemberships = { ...stateA.smugglerGuildMemberships };
+  if (stateB.smugglerGuildMemberships) {
+    for (const [agentId, bGuilds] of Object.entries(stateB.smugglerGuildMemberships)) {
+      const aGuilds = smugglerGuildMemberships[agentId] || [];
+      smugglerGuildMemberships[agentId] = Array.from(new Set([...aGuilds, ...bGuilds]));
+    }
+  }
+
+  // Merge smugglerGuildCbaVotes using LWW (Last-Write-Wins)
+  const smugglerGuildCbaVotes = { ...stateA.smugglerGuildCbaVotes };
+  if (stateB.smugglerGuildCbaVotes) {
+    for (const [guildId, routeVotes] of Object.entries(stateB.smugglerGuildCbaVotes)) {
+      if (!smugglerGuildCbaVotes[guildId]) {
+        smugglerGuildCbaVotes[guildId] = { ...routeVotes };
+      } else {
+        smugglerGuildCbaVotes[guildId] = { ...smugglerGuildCbaVotes[guildId] };
+        for (const [routeId, bVotes] of Object.entries(routeVotes)) {
+          if (!smugglerGuildCbaVotes[guildId][routeId]) {
+            smugglerGuildCbaVotes[guildId][routeId] = { ...bVotes };
+          } else {
+            smugglerGuildCbaVotes[guildId][routeId] = { ...smugglerGuildCbaVotes[guildId][routeId] };
+            for (const [agentId, voteB] of Object.entries(bVotes)) {
+              const voteA = smugglerGuildCbaVotes[guildId][routeId][agentId];
+              if (!voteA || voteB.timestamp > voteA.timestamp) {
+                smugglerGuildCbaVotes[guildId][routeId][agentId] = voteB;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const smugglerGuildCbas = stateA.smugglerGuildCbas ? { ...stateA.smugglerGuildCbas } : {};
+
   // Merge merchantInventories and merchantGold using LWW (Last-Write-Wins)
   const merchantInventories = stateA.merchantInventories ? { ...stateA.merchantInventories } : {};
   const merchantGold = stateA.merchantGold ? { ...stateA.merchantGold } : {};
@@ -1059,6 +1114,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     wiretaps,
     cartelGlobalTaxVotes,
     cartelGlobalTaxPolicy,
+    smugglerGuilds,
+    smugglerGuildMemberships,
+    smugglerGuildCbaVotes,
+    smugglerGuildCbas,
   };
 }
 
@@ -1378,6 +1437,7 @@ export class GossipNode {
     convergedState = reconcileEspionageNetworks(convergedState, this.pack);
     convergedState = reconcileWiretaps(convergedState, this.pack);
     convergedState = reconcileCartelGlobalTaxes(convergedState, this.pack);
+    convergedState = reconcileSmugglerGuildCbas(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

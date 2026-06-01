@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -7352,6 +7352,324 @@ export function multiAgentStep(
       state: newState,
       events: ok
         ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEFINE_SMUGGLER_GUILD action (AF-68)
+  if ((action as any).type === "DEFINE_SMUGGLER_GUILD") {
+    const { guildId, name, syndicateId, members, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!guildId || typeof guildId !== "string") {
+      rejectionReason = `Proposed guild ID must be a non-empty string.`;
+    } else if (!name || typeof name !== "string") {
+      rejectionReason = `Proposed guild name must be a non-empty string.`;
+    } else if (!syndicateId || typeof syndicateId !== "string") {
+      rejectionReason = `Syndicate ID must be a non-empty string.`;
+    } else if (!syndicate) {
+      rejectionReason = `Crime syndicate ${syndicateId} does not exist in state.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of crime syndicate ${syndicateId}.`;
+    } else if (!Array.isArray(members) || members.some(m => typeof m !== "string")) {
+      rejectionReason = `Proposed guild members must be an array of NPC ID strings.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const smugglerGuilds = { ...(state.smugglerGuilds || {}) };
+      const existingGuild = smugglerGuilds[guildId];
+
+      if (!existingGuild || timestamp > existingGuild.timestamp ||
+        (timestamp === existingGuild.timestamp && agentId.localeCompare(existingGuild.definedBy) < 0)
+      ) {
+        smugglerGuilds[guildId] = {
+          id: guildId,
+          name,
+          syndicateId,
+          members,
+          definedBy: agentId,
+          timestamp,
+        };
+        newState.smugglerGuilds = smugglerGuilds;
+
+        // Automatically register creator as a member in memberships
+        const smugglerGuildMemberships = { ...(state.smugglerGuildMemberships || {}) };
+        if (!smugglerGuildMemberships[agentId]) {
+          smugglerGuildMemberships[agentId] = [];
+        } else {
+          smugglerGuildMemberships[agentId] = [...smugglerGuildMemberships[agentId]];
+        }
+        if (!smugglerGuildMemberships[agentId].includes(guildId)) {
+          smugglerGuildMemberships[agentId].push(guildId);
+        }
+        newState.smugglerGuildMemberships = smugglerGuildMemberships;
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "smuggler_guild_defined", guildId, name, syndicateId, definedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_SMUGGLER_GUILD_CBA action (AF-68)
+  if ((action as any).type === "VOTE_SMUGGLER_GUILD_CBA") {
+    const { guildId, routeId, agreedToll, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const guild = state.smugglerGuilds?.[guildId];
+    const isMember = guild?.members.includes(agentId) ||
+      (state.smugglerGuildMemberships?.[agentId]?.includes(guildId)) ||
+      guild?.definedBy === agentId || false;
+
+    if (!guildId) {
+      rejectionReason = `Smuggler guild ID is required.`;
+    } else if (!guild) {
+      rejectionReason = `Smuggler guild ${guildId} does not exist in state.`;
+    } else if (!isMember) {
+      rejectionReason = `Agent ${agentId} is not a member of smuggler guild ${guildId} and cannot vote on CBA.`;
+    } else if (agreedToll === undefined || agreedToll < 0 || !Number.isInteger(agreedToll)) {
+      rejectionReason = `Proposed agreed toll rate must be a non-negative integer.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const smugglerGuildCbaVotes = { ...(state.smugglerGuildCbaVotes || {}) };
+      if (!smugglerGuildCbaVotes[guildId]) {
+        smugglerGuildCbaVotes[guildId] = {};
+      } else {
+        smugglerGuildCbaVotes[guildId] = { ...smugglerGuildCbaVotes[guildId] };
+      }
+      if (!smugglerGuildCbaVotes[guildId][routeId]) {
+        smugglerGuildCbaVotes[guildId][routeId] = {};
+      } else {
+        smugglerGuildCbaVotes[guildId][routeId] = { ...smugglerGuildCbaVotes[guildId][routeId] };
+      }
+
+      const existingVote = smugglerGuildCbaVotes[guildId][routeId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        smugglerGuildCbaVotes[guildId][routeId][agentId] = {
+          agreedToll,
+          timestamp,
+        };
+        newState.smugglerGuildCbaVotes = smugglerGuildCbaVotes;
+        newState = reconcileSmugglerGuildCbas(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "smuggler_guild_cba_voted", guildId, routeId, agreedToll, voter: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized POOL_BOUNTY_RESOURCES action (AF-68)
+  if ((action as any).type === "POOL_BOUNTY_RESOURCES") {
+    const { syndicateId, targetId, goldAmount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const isMember = syndicate?.members.includes(agentId) || false;
+
+    const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+    const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist in state.`;
+    } else if (!isMember) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot pool resources.`;
+    } else if (!targetId || typeof targetId !== "string") {
+      rejectionReason = `Target ID must be a non-empty string.`;
+    } else if (goldAmount === undefined || goldAmount <= 0 || !Number.isInteger(goldAmount)) {
+      rejectionReason = `Gold amount to pool must be a positive integer.`;
+    } else if (currentGold < goldAmount) {
+      rejectionReason = `Agent ${agentId} has insufficient gold (${currentGold}) to pool ${goldAmount} gold.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      // Deduct gold
+      newState.vars[goldKey] = currentGold - goldAmount;
+
+      const bounties = { ...(state.bounties || {}) };
+      const existingBounty = bounties[targetId];
+
+      if (existingBounty) {
+        bounties[targetId] = {
+          targetId,
+          amount: existingBounty.amount + goldAmount,
+          timestamp,
+          active: true,
+        };
+      } else {
+        bounties[targetId] = {
+          targetId,
+          amount: goldAmount,
+          timestamp,
+          active: true,
+        };
+      }
+      newState.bounties = bounties;
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "bounty_resources_pooled", syndicateId, targetId, goldAmount, contributor: agentId } as any]
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,
