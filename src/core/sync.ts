@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -6,6 +6,7 @@ import { step, tickProductionLabs } from "./engine.js";
 import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
+import { PureRand } from "./rng.js";
 
 export interface MultiAgentAction {
   agentId: string;
@@ -3012,6 +3013,250 @@ export function multiAgentStep(
       state: newState,
       events: ok
         ? [{ type: "contraband_claimed", agentId, roomId, amount: existingLab!.storedContraband } as any, ...customEvents]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized WAGE_TURF_WAR action (AF-44)
+  if ((action as any).type === "WAGE_TURF_WAR") {
+    const { roomId, syndicateId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 100;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+    let battleOutcome: "attacker_won" | "defender_won" | undefined;
+    let attackerStrength = 0;
+    let defenderStrength = 0;
+    let targetSyndicateId: string | undefined;
+
+    const roomExists = "rooms" in pack
+      ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
+      : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to wage turf war (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      
+      // Deduct cost
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Attacker strength
+      const attackerDominance = syndicate.dominance ?? 50;
+      attackerStrength = attackerDominance;
+
+      // Lab bonus for attacker in the room if any
+      const existingLab = state.productionLabs?.[roomId];
+      if (existingLab && existingLab.syndicateId === syndicateId) {
+        attackerStrength += (existingLab.level * 10) + (existingLab.defense ?? 0);
+      }
+
+      // Roll PRNG for attacker using PureRand.nextInt static method
+      let currentSeed = state.seed + timestamp + state.step;
+      const attackRes = PureRand.nextInt(currentSeed, 1, 20);
+      const attackRoll = attackRes.value;
+      currentSeed = attackRes.nextSeed;
+      attackerStrength += attackRoll;
+
+      // Determine defender
+      targetSyndicateId = state.syndicateTurf?.[roomId];
+      if (targetSyndicateId && targetSyndicateId !== syndicateId) {
+        const defenderSyndicate = state.syndicates?.[targetSyndicateId];
+        const defenderDominance = defenderSyndicate?.dominance ?? 50;
+        defenderStrength = defenderDominance;
+
+        if (existingLab && existingLab.syndicateId === targetSyndicateId) {
+          defenderStrength += (existingLab.level * 10) + (existingLab.defense ?? 0);
+        }
+        
+        const defenseRes = PureRand.nextInt(currentSeed, 1, 20);
+        const defenseRoll = defenseRes.value;
+        currentSeed = defenseRes.nextSeed;
+        defenderStrength += defenseRoll;
+      } else {
+        // Neutral turf defense
+        const neutralRes = PureRand.nextInt(currentSeed, 1, 20);
+        defenderStrength = 30 + neutralRes.value;
+        currentSeed = neutralRes.nextSeed;
+      }
+
+      // Battle resolution
+      const syndicatesMap = { ...(newState.syndicates || {}) };
+      const turfClaims = { ...(newState.syndicateTurfClaims || {}) };
+
+      if (attackerStrength > defenderStrength) {
+        battleOutcome = "attacker_won";
+        
+        // Attacker gains dominance
+        const newAttackerDom = Math.min(150, (syndicate.dominance ?? 50) + 15);
+        syndicatesMap[syndicateId] = {
+          ...syndicate,
+          dominance: newAttackerDom,
+          timestamp,
+        };
+
+        // Defender loses dominance if any
+        if (targetSyndicateId && targetSyndicateId !== syndicateId && state.syndicates?.[targetSyndicateId]) {
+          const defSyndicate = state.syndicates[targetSyndicateId];
+          const newDefDom = Math.max(0, (defSyndicate.dominance ?? 50) - 15);
+          syndicatesMap[targetSyndicateId] = {
+            ...defSyndicate,
+            dominance: newDefDom,
+            timestamp,
+          };
+        }
+
+        // Claim turf
+        turfClaims[roomId] = {
+          roomId,
+          syndicateId,
+          timestamp,
+          dominance: newAttackerDom,
+        };
+
+        newState.syndicates = syndicatesMap;
+        newState.syndicateTurfClaims = turfClaims;
+        newState.syndicateTurf = {
+          ...(newState.syndicateTurf || {}),
+          [roomId]: syndicateId,
+        };
+
+        // Add to journal and announce event
+        newState.journal = [...(newState.journal || [])];
+        newState.journal.push(`[Syndicate] Turf war in ${roomId} won by ${syndicateId} (Strength: ${attackerStrength} vs Defender Strength: ${defenderStrength})!`);
+
+        customEvents.push({
+          type: "turf_war_won",
+          agentId,
+          roomId,
+          syndicateId,
+          targetSyndicateId,
+          attackerStrength,
+          defenderStrength,
+        });
+
+      } else {
+        battleOutcome = "defender_won";
+
+        // Attacker loses dominance
+        const newAttackerDom = Math.max(0, (syndicate.dominance ?? 50) - 10);
+        syndicatesMap[syndicateId] = {
+          ...syndicate,
+          dominance: newAttackerDom,
+          timestamp,
+        };
+
+        // Defender gains dominance if defender syndicate exists
+        if (targetSyndicateId && targetSyndicateId !== syndicateId && state.syndicates?.[targetSyndicateId]) {
+          const defSyndicate = state.syndicates[targetSyndicateId];
+          const newDefDom = Math.min(150, (defSyndicate.dominance ?? 50) + 10);
+          syndicatesMap[targetSyndicateId] = {
+            ...defSyndicate,
+            dominance: newDefDom,
+            timestamp,
+          };
+        }
+
+        newState.syndicates = syndicatesMap;
+
+        // Add to journal and announce event
+        newState.journal = [...(newState.journal || [])];
+        newState.journal.push(`[Syndicate] Turf war in ${roomId} repelled by defender (Defender Strength: ${defenderStrength} vs Attacker Strength: ${attackerStrength})!`);
+
+        customEvents.push({
+          type: "turf_war_repelled",
+          agentId,
+          roomId,
+          syndicateId,
+          targetSyndicateId,
+          attackerStrength,
+          defenderStrength,
+        });
+      }
+
+      // Also trigger a minor enforcement heat increase in the room due to the loud battle!
+      const existingHeat = newState.enforcementHeat?.[roomId]?.heat ?? 0;
+      const heatClaims = { ...(newState.enforcementHeat || {}) };
+      heatClaims[roomId] = {
+        roomId,
+        heat: existingHeat + 15,
+        timestamp,
+      };
+      newState.enforcementHeat = heatClaims;
+
+      // Reconcile syndicate turf
+      newState = reconcileSyndicateTurf(newState, pack);
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

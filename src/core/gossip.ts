@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -709,6 +709,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge syndicateTurfClaims using LWW (Last-Write-Wins)
+  const syndicateTurfClaims = { ...stateA.syndicateTurfClaims };
+  if (stateB.syndicateTurfClaims) {
+    for (const [roomId, entryB] of Object.entries(stateB.syndicateTurfClaims)) {
+      const entryA = syndicateTurfClaims[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        syndicateTurfClaims[roomId] = entryB;
+      }
+    }
+  }
+
+  // Merge enforcementHeat using LWW (Last-Write-Wins)
+  const enforcementHeat = { ...stateA.enforcementHeat };
+  if (stateB.enforcementHeat) {
+    for (const [roomId, entryB] of Object.entries(stateB.enforcementHeat)) {
+      const entryA = enforcementHeat[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        enforcementHeat[roomId] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -742,6 +764,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     bribes,
     syndicates,
     productionLabs,
+    syndicateTurfClaims,
+    enforcementHeat,
   };
 }
 
@@ -1044,6 +1068,9 @@ export class GossipNode {
 
     // Reconcile merchant cartel policies to ensure consensual cartel policies align perfectly across the mesh
     convergedState = reconcileCartelPolicies(convergedState, this.pack);
+
+    // Reconcile syndicate turf claims to ensure regional control aligns perfectly across the mesh
+    convergedState = reconcileSyndicateTurf(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

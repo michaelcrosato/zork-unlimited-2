@@ -4,6 +4,7 @@ import { step } from "../src/core/engine.js";
 import { GossipNode } from "../src/core/gossip.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { multiAgentStep } from "../src/core/sync.js";
+import { calculateTradePrice } from "../src/core/economy.js";
 
 describe("Decentralized Crime Syndicates and Contraband Labs (AF-43)", () => {
   const mockPack: ParserPack = ParserPackSchema.parse({
@@ -426,5 +427,130 @@ describe("Decentralized Crime Syndicates and Contraband Labs (AF-43)", () => {
     // Assert identical hashes
     expect(nodeA.localState.syndicates).toEqual(nodeB.localState.syndicates);
     expect(nodeA.localState.productionLabs).toEqual(nodeB.localState.productionLabs);
+  });
+
+  it("should support WAGE_TURF_WAR actions and calculate dynamic pricing correctly based on supply, dominance, and pressure", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "safehouse",
+      varsInit: { gold: 1000, gold_alice: 1000, gold_bob: 1000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    // 1. Create attacker and defender syndicates
+    state.syndicates = {
+      shadow_cartel: {
+        id: "shadow_cartel",
+        name: "Shadow Cartel",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 80,
+      },
+      syndicate_rivals: {
+        id: "syndicate_rivals",
+        name: "Syndicate Rivals",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        dominance: 40,
+      },
+    };
+
+    // 2. Set initial turf boundaries: rivals control hideout
+    state.syndicateTurfClaims = {
+      hideout: {
+        roomId: "hideout",
+        syndicateId: "syndicate_rivals",
+        timestamp: 1000,
+        dominance: 40,
+      },
+    };
+    state.syndicateTurf = {
+      hideout: "syndicate_rivals",
+    };
+
+    // 3. Player (shadow_cartel) wages turf war over hideout
+    const warRes = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "WAGE_TURF_WAR",
+          roomId: "hideout",
+          syndicateId: "shadow_cartel",
+          timestamp: 1050,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(warRes.ok).toBe(true);
+    state = warRes.state;
+
+    // Attacker (shadow_cartel) had 80 dominance vs defender 40 -> should win
+    expect(state.syndicateTurf?.["hideout"]).toBe("shadow_cartel");
+    expect(state.syndicates?.["shadow_cartel"].dominance).toBeGreaterThan(80); // increased from 80
+    expect(state.syndicates?.["syndicate_rivals"].dominance).toBeLessThan(40); // decreased from 40
+    expect(state.enforcementHeat?.["hideout"]?.heat).toBeGreaterThan(0); // battle generates heat!
+
+    // 4. Test dynamic price multipliers for contraband in the turf
+    const contrabandObj = {
+      id: "spice",
+      name: "Rare Spice",
+      cost: 100,
+      contraband: true,
+    };
+    const merchantNpc = {
+      id: "black_market_dealer",
+      name: "Black Market Dealer",
+    };
+
+    // Before lab production (supply = 0)
+    // Dynamic price calculation should reflect supplyFactor = 1.0 (no lab yet), dominanceFactor = 1.0 + (dominance - 50)*0.01, pressureFactor
+    const basePrice = 100;
+    const finalPrice = calculateTradePrice(state, merchantNpc, contrabandObj, basePrice, false);
+    expect(finalPrice).toBeGreaterThan(basePrice); // dominance + heat premium
+  });
+
+  it("should sync turf claims and enforcement heat across gossip nodes", () => {
+    const nodeA = new GossipNode("node_a", mockPack, 42);
+    const nodeB = new GossipNode("node_b", mockPack, 42);
+
+    nodeA.connect(nodeB);
+
+    nodeA.localState.vars["gold_node_a"] = 500;
+
+    // 1. Create syndicate via transaction on nodeA
+    const resA1 = nodeA.executeLocalAction({
+      type: "CREATE_SYNDICATE",
+      id: "shadow_cartel",
+      name: "Shadow Cartel",
+      members: ["node_a", "node_b"],
+      timestamp: 2000,
+    } as any);
+    expect(resA1.ok).toBe(true);
+
+    // 2. Wage turf war via transaction on nodeA
+    const resA2 = nodeA.executeLocalAction({
+      type: "WAGE_TURF_WAR",
+      roomId: "hideout",
+      syndicateId: "shadow_cartel",
+      timestamp: 3000,
+    } as any);
+    expect(resA2.ok).toBe(true);
+
+    // Run gossip state reconciliation
+    nodeA.gossip();
+    nodeB.gossip();
+
+    // Assert convergence on nodeB
+    expect(nodeB.localState.syndicates?.["shadow_cartel"]).toBeDefined();
+    expect(nodeB.localState.syndicateTurf?.["hideout"]).toBe("shadow_cartel");
+    expect(nodeB.localState.enforcementHeat?.["hideout"]?.heat).toBeGreaterThan(0);
+
+    // Assert identical hashes
+    expect(nodeA.localState.syndicateTurfClaims).toEqual(nodeB.localState.syndicateTurfClaims);
+    expect(nodeA.localState.enforcementHeat).toEqual(nodeB.localState.enforcementHeat);
   });
 });

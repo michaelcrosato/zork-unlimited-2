@@ -236,16 +236,49 @@ export function calculateTradePrice(
   }
 
   // 8. Regional Black Market Smuggling Payouts for Contraband (AF-40)
-  if (!isBuy && packObj) {
+  if (packObj) {
     const isPackContraband = packObj.contraband === true;
     const isBlacklisted = state.contrabandBlacklist?.[packObj.id]?.blacklisted === true;
     if (isPackContraband || isBlacklisted) {
-      let contrabandMultiplier = 1.2; // Default premium
-      const payoutEntry = state.blackMarketPayouts?.[state.current];
-      if (payoutEntry && payoutEntry.payout > 0) {
-        contrabandMultiplier = payoutEntry.payout / 100.0;
+      if (!isBuy) {
+        let contrabandMultiplier = 1.2; // Default premium
+        const payoutEntry = state.blackMarketPayouts?.[state.current];
+        if (payoutEntry && payoutEntry.payout > 0) {
+          contrabandMultiplier = payoutEntry.payout / 100.0;
+        }
+        multiplier *= contrabandMultiplier;
       }
-      multiplier *= contrabandMultiplier;
+
+      // Apply global market price multipliers for contraband based on regional supply, syndicate dominance, and enforcement pressure (AF-44)
+      const existingLab = state.productionLabs?.[state.current];
+      let supplyFactor = 1.0;
+      if (existingLab) {
+        const supply = existingLab.storedContraband;
+        if (supply === 0) {
+          supplyFactor = 1.5;
+        } else if (supply <= 5) {
+          supplyFactor = 1.2;
+        } else if (supply <= 10) {
+          supplyFactor = 1.0;
+        } else {
+          supplyFactor = Math.max(0.4, 1.0 - (supply - 10) * 0.03);
+        }
+      }
+      multiplier *= supplyFactor;
+
+      const controllingSyndicateId = state.syndicateTurf?.[state.current];
+      if (controllingSyndicateId) {
+        const dominance = state.syndicates?.[controllingSyndicateId]?.dominance ?? 50;
+        const dominanceMultiplier = 1.0 + (dominance - 50) * 0.01;
+        multiplier *= dominanceMultiplier;
+      }
+
+      const heatEntry = state.enforcementHeat?.[state.current];
+      const heatVal = heatEntry ? heatEntry.heat : 0;
+      const activeEnforcers = Object.values(state.enforcers || {}).filter(e => e.currentRoom === state.current && (e as any).status !== "defeated").length;
+      const pressure = heatVal + (activeEnforcers * 20);
+      const pressureMultiplier = 1.0 + (pressure * 0.02);
+      multiplier *= pressureMultiplier;
     }
   }
 

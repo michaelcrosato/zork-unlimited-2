@@ -1546,11 +1546,28 @@ export function tickProductionLabs(
   events: GameEvent[],
   pack?: CYOAPack | ParserPack
 ): GameState {
-  if (!state.productionLabs || Object.keys(state.productionLabs).length === 0) {
-    return state;
+  let newState = { ...state };
+
+  // Decay enforcement heat globally by 1 per step
+  const updatedHeat = { ...(newState.enforcementHeat || {}) };
+  let heatChanged = false;
+  for (const [roomId, entry] of Object.entries(updatedHeat)) {
+    if (entry.heat > 0) {
+      updatedHeat[roomId] = {
+        ...entry,
+        heat: Math.max(0, entry.heat - 1),
+      };
+      heatChanged = true;
+    }
   }
 
-  let newState = { ...state };
+  if (!state.productionLabs || Object.keys(state.productionLabs).length === 0) {
+    if (heatChanged) {
+      newState.enforcementHeat = updatedHeat;
+    }
+    return newState;
+  }
+
   const updatedLabs = { ...newState.productionLabs };
   let stateChanged = false;
   let currentSeed = newState.seed;
@@ -1577,6 +1594,15 @@ export function tickProductionLabs(
         } as any);
         if (!newState.journal) newState.journal = [];
         newState.journal.push(`[Syndicate] Lab in ${roomId} produced ${productionAmount} units.`);
+
+        // Increase enforcement heat in the room due to production activity
+        const oldHeat = updatedHeat[roomId]?.heat ?? 0;
+        updatedHeat[roomId] = {
+          roomId,
+          heat: oldHeat + productionAmount * 2,
+          timestamp: newState.step,
+        };
+        heatChanged = true;
       }
 
       // Check for an enforcement raid using deterministic Mulberry32
@@ -1594,6 +1620,15 @@ export function tickProductionLabs(
         currentSeed = nextSeed2;
 
         const defenseScore = (updatedLab.defense ?? 0) + updatedLab.level * 10;
+
+        // Increase enforcement heat in the room due to active raid
+        const oldHeat = updatedHeat[roomId]?.heat ?? 0;
+        updatedHeat[roomId] = {
+          roomId,
+          heat: oldHeat + 10,
+          timestamp: newState.step,
+        };
+        heatChanged = true;
 
         if (defenseScore >= raidStrength) {
           // Raid successfully defended!
@@ -1626,6 +1661,10 @@ export function tickProductionLabs(
   if (stateChanged) {
     newState.productionLabs = updatedLabs;
     newState.seed = currentSeed;
+  }
+
+  if (heatChanged) {
+    newState.enforcementHeat = updatedHeat;
   }
 
   return newState;

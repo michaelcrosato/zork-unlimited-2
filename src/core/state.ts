@@ -226,8 +226,24 @@ export const CrimeSyndicateSchema = z.object({
   members: z.array(z.string()),
   definedBy: z.string(),
   timestamp: z.number().int(),
+  dominance: z.number().int().nonnegative().optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
+
+export const SyndicateTurfClaimSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  timestamp: z.number().int(),
+  dominance: z.number().int(),
+});
+export type SyndicateTurfClaim = z.infer<typeof SyndicateTurfClaimSchema>;
+
+export const EnforcementHeatEntrySchema = z.object({
+  roomId: z.string(),
+  heat: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type EnforcementHeatEntry = z.infer<typeof EnforcementHeatEntrySchema>;
 
 export const ProductionLabSchema = z.object({
   id: z.string(),
@@ -333,6 +349,11 @@ export const GameStateSchema = z.object({
   // Decentralized Crime Syndicates and Contraband Production Labs (AF-43)
   syndicates: z.record(z.string(), CrimeSyndicateSchema).optional(),
   productionLabs: z.record(z.string(), ProductionLabSchema).optional(),
+
+  // Syndicate Turf Wars and Global Market Influences (AF-44)
+  syndicateTurfClaims: z.record(z.string(), SyndicateTurfClaimSchema).optional(),
+  syndicateTurf: z.record(z.string(), z.string()).optional(),
+  enforcementHeat: z.record(z.string(), EnforcementHeatEntrySchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -423,6 +444,9 @@ export const createInitialState = (options: {
     bribes: {},
     syndicates: {},
     productionLabs: {},
+    syndicateTurfClaims: {},
+    syndicateTurf: {},
+    enforcementHeat: {},
   };
 };
 
@@ -456,6 +480,21 @@ export function reconcileTerritories(state: GameState, pack: any): GameState {
 
   for (const [roomId, claim] of Object.entries(newState.territoryClaims || {})) {
     newState.territoryControl[roomId] = claim.factionId;
+  }
+
+  return newState;
+}
+
+export function reconcileSyndicateTurf(state: GameState, pack: any): GameState {
+  if (!state.syndicateTurfClaims) return state;
+
+  const newState = {
+    ...state,
+    syndicateTurf: { ...(state.syndicateTurf || {}) },
+  };
+
+  for (const [roomId, claim] of Object.entries(newState.syndicateTurfClaims || {})) {
+    newState.syndicateTurf[roomId] = claim.syndicateId;
   }
 
   return newState;

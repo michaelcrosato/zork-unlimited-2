@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #43 (Ready for Cycle #44)
-* **Build/Test Status**: 🟢 PASS (All 193 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #44 (Ready for Cycle #45)
+* **Build/Test Status**: 🟢 PASS (All 195 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -247,15 +247,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 38: Syndicate Turf Wars and Global Market Influences (Completed)
+- [x] Add turf war mechanics where syndicates can wage battles over room/territory control, adjusting syndicate dominance (`AF-44`).
+- [x] Implement global market price multipliers for contraband based on regional supply, syndicate dominance, and enforcement pressure (`AF-44`).
+- [x] Wire gossip synchronization of global contraband price fluctuations and syndicate turf boundaries (`AF-44`).
+- [x] Write comprehensive Vitest integration tests asserting turf wars, pricing spikes, and mesh convergence under pressure (`AF-44`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-44`
-* **Objective**: Syndicate Turf Wars and Global Market Influences.
-* **Why this matters**: Expand strategic operations by allowing syndicates to engage in turf wars to gain control of rooms/territories and introduce dynamic contraband market price fluctuations influenced by regional supply, syndicate dominance, and enforcement agency heat.
+**Task ID**: `AF-45`
+* **Objective**: Crime Syndicate Extortion and Protection Rackets.
+* **Why this matters**: Allow crime syndicates to collect protection gold from local merchants and levy extortion tolls on non-allied players/agents entering syndicate-controlled turf, deeply integrating the economy module with turf boundaries.
 * **Planned Actions**:
-  1. Add turf war mechanics where syndicates can wage battles over room/territory control, adjusting syndicate dominance.
-  2. Implement global market price multipliers for contraband based on regional supply, syndicate dominance, and enforcement pressure.
-  3. Wire gossip synchronization of global contraband price fluctuations and syndicate turf boundaries.
-  4. Write comprehensive Vitest integration tests asserting turf wars, pricing spikes, and mesh convergence under pressure.
+  1. Add a protection racket state schema for merchants.
+  2. Implement action reducers to establish protection contracts or extort target merchants.
+  3. Wire dynamic extortion tolls for traversing rooms controlled by hostile syndicates.
+  4. Write comprehensive integration tests for extortion, protection collection, and gossip synchronization.
 
 ---
 
