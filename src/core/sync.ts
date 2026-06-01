@@ -29370,6 +29370,590 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized PROPOSE_BOND_BORROW action (AF-140)
+  if ((action as any).type === "PROPOSE_BOND_BORROW") {
+    const { borrowId, borrowerSyndicateId, lenderSyndicateId, bondId, amount, collateralGold, borrowFeeRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const borrowerSyndicate = state.syndicates?.[borrowerSyndicateId];
+    const lenderSyndicate = state.syndicates?.[lenderSyndicateId];
+    const bond = state.cooperativeSovereigntyBondProposals?.[bondId];
+
+    if (!borrowId) {
+      rejectionReason = `Borrow ID is required.`;
+    } else if (!borrowerSyndicateId || !lenderSyndicateId || !bondId) {
+      rejectionReason = `Borrower, lender, and bond IDs are required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Amount must be a positive integer.`;
+    } else if (collateralGold === undefined || collateralGold < 0 || !Number.isInteger(collateralGold)) {
+      rejectionReason = `Collateral gold must be a non-negative integer.`;
+    } else if (borrowFeeRate === undefined || borrowFeeRate < 0) {
+      rejectionReason = `Borrow fee rate must be non-negative.`;
+    } else if (!borrowerSyndicate) {
+      rejectionReason = `Borrower syndicate ${borrowerSyndicateId} does not exist.`;
+    } else if (!borrowerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of borrower syndicate ${borrowerSyndicateId}.`;
+    } else if (!lenderSyndicate) {
+      rejectionReason = `Lender syndicate ${lenderSyndicateId} does not exist.`;
+    } else if (!bond) {
+      rejectionReason = `Bond ${bondId} does not exist.`;
+    } else if (bond.status !== "Active" || !bond.resolved) {
+      rejectionReason = `Bond ${bondId} is not active.`;
+    } else if (state.sovereignBondBorrowPositions?.[borrowId]) {
+      rejectionReason = `Borrow position ${borrowId} already exists.`;
+    } else if ((borrowerSyndicate.warChest ?? 0) < collateralGold) {
+      rejectionReason = `Borrower syndicate ${borrowerSyndicateId} has insufficient war chest (${borrowerSyndicate.warChest ?? 0} gold) to cover collateral of ${collateralGold} gold.`;
+    } else {
+      // Calculate available lender contribution
+      let totalLent = 0;
+      for (const pos of Object.values(state.sovereignBondBorrowPositions || {})) {
+        if (pos.bondId === bondId && pos.lenderSyndicateId === lenderSyndicateId && (pos.status === "Active" || pos.status === "ShortSold")) {
+          totalLent += pos.amount;
+        }
+      }
+      const availableLenderContribution = (bond.contributions[lenderSyndicateId] || 0) - totalLent;
+      if (availableLenderContribution < amount) {
+        rejectionReason = `Lender syndicate ${lenderSyndicateId} has insufficient available contribution in bond ${bondId} (${availableLenderContribution} < ${amount}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && borrowerSyndicate && lenderSyndicate && bond) {
+      const positions = { ...(state.sovereignBondBorrowPositions || {}) };
+      positions[borrowId] = {
+        id: borrowId,
+        borrowerSyndicateId,
+        lenderSyndicateId,
+        bondId,
+        amount,
+        collateralGold,
+        borrowFeeRate,
+        status: "Proposed" as const,
+        timestamp,
+        accumulatedBorrowFees: 0,
+      };
+      newState.sovereignBondBorrowPositions = positions;
+
+      // Lock collateral gold from borrower's war chest
+      const syndicates = { ...(state.syndicates || {}) };
+      const borrowerCopied = { ...syndicates[borrowerSyndicateId] };
+      borrowerCopied.warChest = (borrowerCopied.warChest ?? 0) - collateralGold;
+      syndicates[borrowerSyndicateId] = borrowerCopied;
+      newState.syndicates = syndicates;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Bond Borrow Proposed] Syndicate ${borrowerSyndicateId} proposed borrowing ${amount} of bond ${bondId} from ${lenderSyndicateId} with ${collateralGold} gold collateral.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📈 [Sovereign Bond Borrow Proposed] Syndicate ${borrowerSyndicateId} proposed borrowing ${amount} of bond ${bondId} from ${lenderSyndicateId} (Collateral: ${collateralGold} gold).`,
+      } as any);
+
+      customEvents.push({
+        type: "bond_borrow_proposed" as any,
+        borrowId,
+        borrowerSyndicateId,
+        lenderSyndicateId,
+        bondId,
+        amount,
+        collateralGold,
+        borrowFeeRate,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized APPROVE_BOND_LEND action (AF-140)
+  if ((action as any).type === "APPROVE_BOND_LEND") {
+    const { borrowId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const position = state.sovereignBondBorrowPositions?.[borrowId];
+    let lenderSyndicate: any;
+    let bond: any;
+
+    if (!borrowId) {
+      rejectionReason = `Borrow ID is required.`;
+    } else if (!position) {
+      rejectionReason = `Borrow position ${borrowId} does not exist.`;
+    } else if (position.status !== "Proposed") {
+      rejectionReason = `Borrow position ${borrowId} is not in Proposed status (current: ${position.status}).`;
+    } else {
+      lenderSyndicate = state.syndicates?.[position.lenderSyndicateId];
+      bond = state.cooperativeSovereigntyBondProposals?.[position.bondId];
+
+      if (!lenderSyndicate) {
+        rejectionReason = `Lender syndicate ${position.lenderSyndicateId} does not exist.`;
+      } else if (!lenderSyndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of lender syndicate ${position.lenderSyndicateId} and cannot approve lending.`;
+      } else if (!bond) {
+        rejectionReason = `Bond ${position.bondId} no longer exists.`;
+      } else if (bond.status !== "Active" || !bond.resolved) {
+        rejectionReason = `Bond ${position.bondId} is no longer active.`;
+      } else {
+        // Calculate available lender contribution to double check they still have enough to lend
+        let totalLent = 0;
+        for (const pos of Object.values(state.sovereignBondBorrowPositions || {})) {
+          if (pos.id !== borrowId && pos.bondId === position.bondId && pos.lenderSyndicateId === position.lenderSyndicateId && (pos.status === "Active" || pos.status === "ShortSold")) {
+            totalLent += pos.amount;
+          }
+        }
+        const availableLenderContribution = (bond.contributions[position.lenderSyndicateId] || 0) - totalLent;
+        if (availableLenderContribution < position.amount) {
+          rejectionReason = `Lender syndicate ${position.lenderSyndicateId} no longer has sufficient available contribution in bond ${position.bondId} (${availableLenderContribution} < ${position.amount}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && position) {
+      const positions = { ...(state.sovereignBondBorrowPositions || {}) };
+      positions[borrowId] = {
+        ...position,
+        status: "Active" as const,
+        timestamp,
+      };
+      newState.sovereignBondBorrowPositions = positions;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Bond Lend Approved] Lender syndicate ${position.lenderSyndicateId} approved borrowing request ${borrowId} for ${position.amount} of bond ${position.bondId}.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🤝 [Sovereign Bond Lend Approved] Lender syndicate ${position.lenderSyndicateId} approved borrow position ${borrowId} for ${position.amount} of bond ${position.bondId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "bond_lend_approved" as any,
+        borrowId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized SHORT_SELL_BOND action (AF-140)
+  if ((action as any).type === "SHORT_SELL_BOND") {
+    const { borrowId, buyerSyndicateId, salePrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const position = state.sovereignBondBorrowPositions?.[borrowId];
+    const buyerSyndicate = buyerSyndicateId === "market_maker" ? { id: "market_maker", warChest: 99999999 } : state.syndicates?.[buyerSyndicateId];
+    let borrowerSyndicate: any;
+    let bond: any;
+
+    if (!borrowId) {
+      rejectionReason = `Borrow ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer syndicate ID is required.`;
+    } else if (salePrice === undefined || salePrice <= 0 || !Number.isInteger(salePrice)) {
+      rejectionReason = `Sale price must be a positive integer.`;
+    } else if (!position) {
+      rejectionReason = `Borrow position ${borrowId} does not exist.`;
+    } else if (position.status !== "Active") {
+      rejectionReason = `Borrow position ${borrowId} is not in Active status (current: ${position.status}).`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else {
+      borrowerSyndicate = state.syndicates?.[position.borrowerSyndicateId];
+      bond = state.cooperativeSovereigntyBondProposals?.[position.bondId];
+
+      if (!borrowerSyndicate) {
+        rejectionReason = `Borrower syndicate ${position.borrowerSyndicateId} does not exist.`;
+      } else if (!borrowerSyndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of borrower syndicate ${position.borrowerSyndicateId} and cannot short sell.`;
+      } else if (!bond) {
+        rejectionReason = `Bond ${position.bondId} no longer exists.`;
+      } else if (bond.status !== "Active" || !bond.resolved) {
+        rejectionReason = `Bond ${position.bondId} is no longer active.`;
+      } else if ((bond.contributions[position.lenderSyndicateId] || 0) < position.amount) {
+        rejectionReason = `Lender syndicate ${position.lenderSyndicateId} has insufficient contribution in bond ${position.bondId} to be short-sold (${bond.contributions[position.lenderSyndicateId] || 0} < ${position.amount}).`;
+      } else if (buyerSyndicateId !== "market_maker" && (buyerSyndicate.warChest ?? 0) < salePrice) {
+        rejectionReason = `Buyer syndicate ${buyerSyndicateId} has insufficient war chest (${buyerSyndicate.warChest ?? 0} gold) to cover sale price of ${salePrice} gold.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && position && borrowerSyndicate && buyerSyndicate && bond) {
+      const positions = { ...(state.sovereignBondBorrowPositions || {}) };
+      positions[borrowId] = {
+        ...position,
+        status: "ShortSold" as const,
+        timestamp,
+      };
+      newState.sovereignBondBorrowPositions = positions;
+
+      const syndicates = { ...(state.syndicates || {}) };
+      // Credit salePrice to borrower's war chest
+      const borrowerCopied = { ...syndicates[position.borrowerSyndicateId] };
+      borrowerCopied.warChest = (borrowerCopied.warChest ?? 0) + salePrice;
+      syndicates[position.borrowerSyndicateId] = borrowerCopied;
+
+      // Debit salePrice from buyer's war chest
+      if (buyerSyndicateId !== "market_maker") {
+        const buyerCopied = { ...syndicates[buyerSyndicateId] };
+        buyerCopied.warChest = (buyerCopied.warChest ?? 0) - salePrice;
+        syndicates[buyerSyndicateId] = buyerCopied;
+      }
+      newState.syndicates = syndicates;
+
+      // Transfer bond contribution from lender to buyer
+      const bondsCopy = { ...(state.cooperativeSovereigntyBondProposals || {}) };
+      const currentBond = { ...bondsCopy[position.bondId] };
+      const contributions = { ...currentBond.contributions };
+
+      contributions[position.lenderSyndicateId] = (contributions[position.lenderSyndicateId] ?? 0) - position.amount;
+      if (contributions[position.lenderSyndicateId] <= 0) {
+        delete contributions[position.lenderSyndicateId];
+      }
+      contributions[buyerSyndicateId] = (contributions[buyerSyndicateId] ?? 0) + position.amount;
+
+      currentBond.contributions = contributions;
+      bondsCopy[position.bondId] = currentBond;
+      newState.cooperativeSovereigntyBondProposals = bondsCopy;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Bond Short Sold] Syndicate ${position.borrowerSyndicateId} short sold ${position.amount} share of bond ${position.bondId} to ${buyerSyndicateId} for ${salePrice} gold.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📉 [Sovereign Bond Short Sold] Syndicate ${position.borrowerSyndicateId} short sold ${position.amount} share of bond ${position.bondId} to ${buyerSyndicateId} for ${salePrice} gold!`,
+      } as any);
+
+      customEvents.push({
+        type: "bond_short_sold" as any,
+        borrowId,
+        buyerSyndicateId,
+        salePrice,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized COVER_SHORT_POSITION action (AF-140)
+  if ((action as any).type === "COVER_SHORT_POSITION") {
+    const { borrowId, sellerSyndicateId, buybackPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const position = state.sovereignBondBorrowPositions?.[borrowId];
+    const sellerSyndicate = sellerSyndicateId === "market_maker" ? { id: "market_maker", warChest: 99999999 } : state.syndicates?.[sellerSyndicateId];
+    let borrowerSyndicate: any;
+    let bond: any;
+
+    if (!borrowId) {
+      rejectionReason = `Borrow ID is required.`;
+    } else if (!position) {
+      rejectionReason = `Borrow position ${borrowId} does not exist.`;
+    } else if (position.status !== "Active" && position.status !== "ShortSold") {
+      rejectionReason = `Borrow position ${borrowId} is not in Active or ShortSold status (current: ${position.status}).`;
+    } else {
+      borrowerSyndicate = state.syndicates?.[position.borrowerSyndicateId];
+      bond = state.cooperativeSovereigntyBondProposals?.[position.bondId];
+
+      if (!borrowerSyndicate) {
+        rejectionReason = `Borrower syndicate ${position.borrowerSyndicateId} does not exist.`;
+      } else if (!borrowerSyndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of borrower syndicate ${position.borrowerSyndicateId} and cannot cover.`;
+      } else if (!bond) {
+        rejectionReason = `Bond ${position.bondId} no longer exists.`;
+      } else if (bond.status !== "Active" || !bond.resolved) {
+        rejectionReason = `Bond ${position.bondId} is no longer active.`;
+      } else if (position.status === "ShortSold") {
+        if (!sellerSyndicateId) {
+          rejectionReason = `Seller syndicate ID is required to cover a short-sold position.`;
+        } else if (buybackPrice === undefined || buybackPrice <= 0 || !Number.isInteger(buybackPrice)) {
+          rejectionReason = `Buyback price must be a positive integer.`;
+        } else if (!sellerSyndicate) {
+          rejectionReason = `Seller syndicate ${sellerSyndicateId} does not exist.`;
+        } else if (sellerSyndicateId !== "market_maker" && (bond.contributions[sellerSyndicateId] || 0) < position.amount) {
+          rejectionReason = `Seller syndicate ${sellerSyndicateId} has insufficient contribution in bond ${position.bondId} to cover buyback (${bond.contributions[sellerSyndicateId] || 0} < ${position.amount}).`;
+        } else if ((borrowerSyndicate.warChest ?? 0) < buybackPrice) {
+          rejectionReason = `Borrower syndicate ${position.borrowerSyndicateId} has insufficient war chest (${borrowerSyndicate.warChest ?? 0} gold) to cover buyback price of ${buybackPrice} gold.`;
+        } else {
+          ok = true;
+        }
+      } else {
+        // If it was only Active (borrowed but never sold), they can return it for free!
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && position && borrowerSyndicate && bond) {
+      const positions = { ...(state.sovereignBondBorrowPositions || {}) };
+      positions[borrowId] = {
+        ...position,
+        status: "Covered" as const,
+        timestamp,
+      };
+      newState.sovereignBondBorrowPositions = positions;
+
+      const syndicates = { ...(state.syndicates || {}) };
+      // Return the locked collateral to the borrower's war chest
+      const borrowerCopied = { ...syndicates[position.borrowerSyndicateId] };
+      borrowerCopied.warChest = (borrowerCopied.warChest ?? 0) + position.collateralGold;
+
+      if (position.status === "ShortSold" && sellerSyndicate) {
+        // Borrower pays buybackPrice
+        borrowerCopied.warChest -= buybackPrice;
+
+        // Seller receives buybackPrice
+        if (sellerSyndicateId !== "market_maker") {
+          const sellerCopied = { ...syndicates[sellerSyndicateId] };
+          sellerCopied.warChest = (sellerCopied.warChest ?? 0) + buybackPrice;
+          syndicates[sellerSyndicateId] = sellerCopied;
+        }
+
+        // Transfer contribution from Seller back to Lender!
+        const bondsCopy = { ...(state.cooperativeSovereigntyBondProposals || {}) };
+        const currentBond = { ...bondsCopy[position.bondId] };
+        const contributions = { ...currentBond.contributions };
+
+        if (sellerSyndicateId !== "market_maker") {
+          contributions[sellerSyndicateId] = (contributions[sellerSyndicateId] ?? 0) - position.amount;
+          if (contributions[sellerSyndicateId] <= 0) {
+            delete contributions[sellerSyndicateId];
+          }
+        }
+        contributions[position.lenderSyndicateId] = (contributions[position.lenderSyndicateId] ?? 0) + position.amount;
+
+        currentBond.contributions = contributions;
+        bondsCopy[position.bondId] = currentBond;
+        newState.cooperativeSovereigntyBondProposals = bondsCopy;
+      }
+
+      syndicates[position.borrowerSyndicateId] = borrowerCopied;
+      newState.syndicates = syndicates;
+
+      if (!newState.journal) newState.journal = [];
+      const msg = position.status === "ShortSold"
+        ? `[Sovereign Bond Cover Executed] Syndicate ${position.borrowerSyndicateId} covered short position ${borrowId} buying ${position.amount} share of bond ${position.bondId} from ${sellerSyndicateId} for ${buybackPrice} gold and returned to ${position.lenderSyndicateId}.`
+        : `[Sovereign Bond Borrow Returned] Syndicate ${position.borrowerSyndicateId} returned ${position.amount} borrowed share of bond ${position.bondId} to lender ${position.lenderSyndicateId}.`;
+
+      newState.journal.push(msg);
+
+      customEvents.push({
+        type: "narration",
+        text: `🎉 ${msg}`,
+      } as any);
+
+      customEvents.push({
+        type: "bond_cover_executed" as any,
+        borrowId,
+        sellerSyndicateId,
+        buybackPrice: position.status === "ShortSold" ? buybackPrice : 0,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

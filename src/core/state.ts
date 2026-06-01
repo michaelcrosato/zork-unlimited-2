@@ -1333,6 +1333,20 @@ export const SecondaryBondListingSchema = z.object({
 });
 export type SecondaryBondListing = z.infer<typeof SecondaryBondListingSchema>;
 
+export const SovereignBondBorrowPositionSchema = z.object({
+  id: z.string(),
+  borrowerSyndicateId: z.string(),
+  lenderSyndicateId: z.string(),
+  bondId: z.string(),
+  amount: z.number().int().positive(),
+  collateralGold: z.number().int().nonnegative(),
+  borrowFeeRate: z.number().nonnegative(),
+  status: z.enum(["Proposed", "Active", "ShortSold", "Covered", "Liquidated"]),
+  timestamp: z.number().int(),
+  accumulatedBorrowFees: z.number().int().nonnegative().default(0),
+});
+export type SovereignBondBorrowPosition = z.infer<typeof SovereignBondBorrowPositionSchema>;
+
 export const FactionCdoInsurancePoolProposalSchema = z.object({
   id: z.string(),
   syndicateId: z.string(),
@@ -2200,6 +2214,7 @@ export const GameStateSchema = z.object({
   cooperativeYieldCampaignProposals: z.record(z.string(), CooperativeYieldCampaignProposalSchema).optional(),
   cooperativeSovereigntyBondProposals: z.record(z.string(), CooperativeSovereigntyBondProposalSchema).optional(),
   secondaryBondListings: z.record(z.string(), SecondaryBondListingSchema).optional(),
+  sovereignBondBorrowPositions: z.record(z.string(), SovereignBondBorrowPositionSchema).optional(),
   factionCdoInsurancePoolProposals: z.record(z.string(), FactionCdoInsurancePoolProposalSchema).optional(),
   multiFactionCdoRiskRatings: z.record(z.string(), MultiFactionCdoRiskRatingSchema).optional(),
   multiFactionCdoRiskRatingProposals: z.record(z.string(), MultiFactionCdoRiskRatingProposalSchema).optional(),
@@ -2470,6 +2485,7 @@ export const createInitialState = (options: {
     cooperativeYieldCampaignProposals: {},
     cooperativeSovereigntyBondProposals: {},
     secondaryBondListings: {},
+    sovereignBondBorrowPositions: {},
     factionCdoInsurancePoolProposals: {},
     multiFactionCdoRiskRatings: {},
     multiFactionCdoRiskRatingProposals: {},
@@ -3311,6 +3327,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cooperativeYieldCampaignProposals: rest.cooperativeYieldCampaignProposals ? JSON.parse(JSON.stringify(rest.cooperativeYieldCampaignProposals)) : undefined,
     cooperativeSovereigntyBondProposals: rest.cooperativeSovereigntyBondProposals ? JSON.parse(JSON.stringify(rest.cooperativeSovereigntyBondProposals)) : undefined,
     secondaryBondListings: rest.secondaryBondListings ? JSON.parse(JSON.stringify(rest.secondaryBondListings)) : undefined,
+    sovereignBondBorrowPositions: rest.sovereignBondBorrowPositions ? JSON.parse(JSON.stringify(rest.sovereignBondBorrowPositions)) : undefined,
     factionCdoInsurancePoolProposals: rest.factionCdoInsurancePoolProposals ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePoolProposals)) : undefined,
     multiFactionCdoRiskRatings: rest.multiFactionCdoRiskRatings ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatings)) : undefined,
     multiFactionCdoRiskRatingProposals: rest.multiFactionCdoRiskRatingProposals ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatingProposals)) : undefined,
@@ -9187,6 +9204,25 @@ export function reconcileSWFStakingPolicies(state: GameState, pack: any): GameSt
   }
 
   return newState;
+}
+
+export function getBondPricePerShare(state: GameState, bondId: string): number {
+  let latestListing: any = null;
+  for (const listing of Object.values(state.secondaryBondListings || {})) {
+    if (listing.bondId === bondId && listing.status === "Completed") {
+      if (!latestListing || listing.timestamp > latestListing.timestamp) {
+        latestListing = listing;
+      }
+    }
+  }
+  if (latestListing) {
+    const bidsList = Object.values(latestListing.bids || {});
+    const finalPrice = bidsList.length > 0 
+      ? bidsList.reduce((max: number, b: any) => Math.max(max, b.bidAmount), latestListing.askPrice) 
+      : latestListing.askPrice;
+    return finalPrice / latestListing.amount;
+  }
+  return 1.0;
 }
 
 

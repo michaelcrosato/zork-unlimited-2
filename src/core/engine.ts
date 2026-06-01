@@ -1,4 +1,4 @@
-import { GameState, findRoom, getRoomExits, cloneMerchantInventories, getEnforcerDefundingRate } from "./state.js";
+import { GameState, findRoom, getRoomExits, cloneMerchantInventories, getEnforcerDefundingRate, getBondPricePerShare } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { GameEvent } from "./events.js";
 import { evaluateConditions } from "./conditions.js";
@@ -2586,6 +2586,154 @@ export function tickProductionLabs(
     newState.cooperativeSovereigntyBondProposals = updatedCoopBonds;
     newState.syndicates = updatedSyndicates;
     newState.factionReservePools = updatedFactionReserves;
+  }
+
+  // Periodic Sovereign Bond Borrowing & Short Selling Yield/Maintenance/Liquidation ticks (AF-140)
+  if (newState.sovereignBondBorrowPositions && Object.keys(newState.sovereignBondBorrowPositions).length > 0) {
+    const updatedPositions = { ...newState.sovereignBondBorrowPositions };
+    const syndicates = { ...(newState.syndicates || {}) };
+    let positionsChanged = false;
+
+    for (const [posId, pos] of Object.entries(updatedPositions)) {
+      if (pos.status === "Active" || pos.status === "ShortSold") {
+        const borrowerSyndicate = syndicates[pos.borrowerSyndicateId];
+        const lenderSyndicate = syndicates[pos.lenderSyndicateId];
+        const bond = newState.cooperativeSovereigntyBondProposals?.[pos.bondId];
+
+        if (!borrowerSyndicate || !lenderSyndicate || !bond) continue;
+
+        // 1. Calculate borrow fee
+        const borrowerMargin = newState.marginAccounts?.[pos.borrowerSyndicateId];
+        const leverageFactor = borrowerMargin?.swfLeverageFactor ?? 1.0;
+        const interestRate = bond.interestRate ?? 5;
+
+        const baseFee = pos.amount * (pos.borrowFeeRate / 100);
+        const scaledFee = Math.max(1, Math.floor(baseFee * leverageFactor * (1 + (interestRate / 100))));
+
+        // 2. Determine if borrower has enough funds for borrow fee + dividend (if ShortSold)
+        let dividendAmount = 0;
+        if (pos.status === "ShortSold") {
+          dividendAmount = Math.floor(pos.amount * (interestRate / 100));
+        }
+        const totalOwedThisTick = scaledFee + dividendAmount;
+
+        const borrowerTotalGold = (borrowerSyndicate.warChest ?? 0) + pos.collateralGold;
+
+        if (borrowerTotalGold < totalOwedThisTick) {
+          // LIQUIDATE DUE TO INSOLVENCY/DEFAULT
+          const confiscatedCollateral = pos.collateralGold;
+          const borrowerRemainingWarChest = borrowerSyndicate.warChest ?? 0;
+          const totalCompensation = confiscatedCollateral + borrowerRemainingWarChest;
+
+          borrowerSyndicate.warChest = 0;
+          lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + totalCompensation;
+
+          updatedPositions[posId] = {
+            ...pos,
+            collateralGold: 0,
+            status: "Liquidated" as const,
+          };
+          positionsChanged = true;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Sovereign Bond Liquidation] Forced liquidation of position ${posId} due to borrow fee/dividend default. Lender syndicate ${pos.lenderSyndicateId} compensated with ${totalCompensation} gold.`
+          );
+          events.push({
+            type: "narration",
+            text: `⚠️ [Sovereign Bond Liquidation] Forced liquidation of position ${posId} due to borrow fee/dividend default. Lender compensated with ${totalCompensation} gold.`,
+          } as any);
+
+          continue;
+        }
+
+        // Deduct fees and pay lender
+        let remainingOwed = totalOwedThisTick;
+        const warChestDeduction = Math.min(borrowerSyndicate.warChest ?? 0, remainingOwed);
+        borrowerSyndicate.warChest = (borrowerSyndicate.warChest ?? 0) - warChestDeduction;
+        remainingOwed -= warChestDeduction;
+
+        let collateralDeduction = 0;
+        if (remainingOwed > 0) {
+          collateralDeduction = remainingOwed;
+          pos.collateralGold -= collateralDeduction;
+        }
+
+        lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + totalOwedThisTick;
+
+        pos.accumulatedBorrowFees += scaledFee;
+        updatedPositions[posId] = {
+          ...pos,
+          collateralGold: pos.collateralGold,
+          accumulatedBorrowFees: pos.accumulatedBorrowFees,
+        };
+        positionsChanged = true;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Sovereign Bond Borrow Fee] Position ${posId} accrued ${scaledFee} gold borrow fee${dividendAmount > 0 ? ` and ${dividendAmount} gold dividend` : ''} paid to lender ${pos.lenderSyndicateId}.`
+        );
+
+        // 3. Margin call sweep / price change checks for ShortSold position
+        if (pos.status === "ShortSold") {
+          const pricePerShare = getBondPricePerShare(newState, pos.bondId);
+          const liabilityValue = Math.floor(pos.amount * pricePerShare);
+
+          const maintenanceMargin = Math.floor(liabilityValue * 1.2);
+          const targetMargin = Math.floor(liabilityValue * 1.5);
+
+          if (pos.collateralGold < maintenanceMargin) {
+            // Margin call triggered! Sweep from war chest.
+            const shortfall = targetMargin - pos.collateralGold;
+            if (shortfall > 0) {
+              const swept = Math.min(shortfall, borrowerSyndicate.warChest ?? 0);
+              if (swept > 0) {
+                pos.collateralGold += swept;
+                borrowerSyndicate.warChest = (borrowerSyndicate.warChest ?? 0) - swept;
+                newState.journal.push(
+                  `[Sovereign Bond Margin Sweep] Swept ${swept} gold from borrower syndicate ${pos.borrowerSyndicateId} war chest to support position ${posId} margin.`
+                );
+                events.push({
+                  type: "narration",
+                  text: `🔄 [Sovereign Bond Margin Sweep] Swept ${swept} gold from syndicate ${pos.borrowerSyndicateId} war chest to cover margin call on position ${posId}.`,
+                } as any);
+                updatedPositions[posId] = {
+                  ...pos,
+                  collateralGold: pos.collateralGold,
+                };
+              }
+            }
+
+            // Re-check margin after sweep
+            if (pos.collateralGold < maintenanceMargin) {
+              // Forced liquidation
+              const confiscatedCollateral = pos.collateralGold;
+              lenderSyndicate.warChest = (lenderSyndicate.warChest ?? 0) + confiscatedCollateral;
+
+              updatedPositions[posId] = {
+                ...pos,
+                collateralGold: 0,
+                status: "Liquidated" as const,
+              };
+              positionsChanged = true;
+
+              newState.journal.push(
+                `[Sovereign Bond Margin Liquidation] Forced liquidation of position ${posId} due to margin call failure. Lender syndicate ${pos.lenderSyndicateId} compensated with ${confiscatedCollateral} gold.`
+              );
+              events.push({
+                type: "narration",
+                text: `⚠️ [Sovereign Bond Margin Liquidation] Forced liquidation of position ${posId} due to margin call failure. Lender compensated with ${confiscatedCollateral} gold.`,
+              } as any);
+            }
+          }
+        }
+      }
+    }
+
+    if (positionsChanged) {
+      newState.sovereignBondBorrowPositions = updatedPositions;
+      newState.syndicates = syndicates;
+    }
   }
 
   // Periodic Sovereign Wealth Fund / Joint-Venture Portfolios yields and dividends (AF-128)

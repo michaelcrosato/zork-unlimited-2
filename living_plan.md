@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #139 (Ready for Cycle #140)
-* **Build/Test Status**: 🟢 PASS (All 606 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #140 (Ready for Cycle #141)
+* **Build/Test Status**: 🟢 PASS (All 607 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -835,16 +835,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire auction settlement and ownership transfer of the bond's remaining epoch yield payouts and tax exemptions (`AF-139`).
 - [x] Write robust unit and integration tests (`AF-139`).
 
+### Phase 118: Syndicate SWF Sovereign Bond Short Selling & Yield Borrowing Markets (Completed)
+- [x] Define sovereign bond borrowing and short-selling position schemas inside `GameState` (`AF-140`).
+- [x] Implement decentralized consensus actions to propose borrowing a bond share, approve/lend, short sell the borrowed share, and cover/buy back the short position (`AF-140`).
+- [x] Wire borrow fee accruals, margin call sweeps on price changes, and default/liquidation of short collateral (`AF-140`).
+- [x] Write comprehensive unit and integration tests (`AF-140`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-140`
-* **Objective**: Syndicate SWF Sovereign Bond Short Selling & Yield Borrowing Markets.
-* **Why this matters**: Support short-selling of sponsored sovereign bonds where syndicates can borrow active cooperative sovereign bond shares from other syndicates to sell them on the secondary market. The borrower pays borrow fees (scaled by sovereign wealth fund parameters and interest rates) and must provide margin collateral, creating complex credit market dynamics.
+**Task ID**: `AF-141`
+* **Objective**: Syndicate SWF Sovereign Bond Short Lending Pools & Arbitrage Routing.
+* **Why this matters**: Implement short-lending pools where multiple syndicates can deposit active cooperative sovereignty bond shares into shared lending pools. Other syndicates can borrow from these pools dynamically, and depositors receive pro-rata interest yields and reputation rewards, optimizing credit liquidity.
 * **Planned Actions**:
-  1. Define sovereign bond borrowing and short-selling position schemas inside `GameState`.
-  2. Implement decentralized consensus actions to propose borrowing a bond share, approve/lend, short sell the borrowed share, and cover/buy back the short position.
-  3. Wire borrow fee accruals, margin call sweeps on price changes, and default/liquidation of short collateral.
+  1. Define sovereign bond lending pool schemas inside `GameState`.
+  2. Implement decentralized consensus actions to establish a lending pool, deposit/withdraw bond shares, and borrow from the pool.
+  3. Wire pro-rata interest distribution and dynamic fee adjustment mechanisms into the economy ticks.
   4. Write robust unit and integration tests.
 
 ---

@@ -179,7 +179,11 @@ export type Action =
   | { type: "VOTE_CROSS_MESH_BRIDGE"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
   | { type: "LIST_BOND_FOR_SALE"; listingId: string; bondId: string; syndicateId: string; amount: number; askPrice: number; timestamp: number }
   | { type: "PLACE_BOND_BID"; listingId: string; syndicateId: string; bidAmount: number; timestamp: number }
-  | { type: "EXECUTE_BOND_SALE"; listingId: string; syndicateId: string; buyerSyndicateId: string; timestamp: number };
+  | { type: "EXECUTE_BOND_SALE"; listingId: string; syndicateId: string; buyerSyndicateId: string; timestamp: number }
+  | { type: "PROPOSE_BOND_BORROW"; borrowId: string; borrowerSyndicateId: string; lenderSyndicateId: string; bondId: string; amount: number; collateralGold: number; borrowFeeRate: number; timestamp: number }
+  | { type: "APPROVE_BOND_LEND"; borrowId: string; timestamp: number }
+  | { type: "SHORT_SELL_BOND"; borrowId: string; buyerSyndicateId: string; salePrice: number; timestamp: number }
+  | { type: "COVER_SHORT_POSITION"; borrowId: string; sellerSyndicateId: string; buybackPrice: number; timestamp: number };
 
 
 
