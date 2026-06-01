@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #221 (Ready for Cycle #222)
-* **Build/Test Status**: 🟢 PASS (All 774 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #222 (Ready for Cycle #223)
+* **Build/Test Status**: 🟢 PASS (All 775 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1423,15 +1423,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 202: Syndicate SWF Deflection Surcharge Alliance Liquidity Pool Yield-bearing Sweep-in & auto-refunding (Completed)
+- [x] Define proposal and voting schemas inside GameState schemas for alliance-pooled yield deflection auto-repayments (`AF-224`).
+- [x] Implement `PROPOSE_ALLIANCE_YIELD_AUTO_REPAY` and `VOTE_ALLIANCE_YIELD_AUTO_REPAY` actions and consensus state transitions (`AF-224`).
+- [x] Wire yield-based auto-repayments to the tick economy (`AF-224`).
+- [x] Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization (`AF-224`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-224`
-* **Objective**: Syndicate SWF Deflection Surcharge Alliance Liquidity Pool Yield-bearing Sweep-in & auto-refunding.
-* **Why this matters**: Support allocating interest or staking yield generated from the collective alliance war chests directly to the sweep pool to auto-repay outstanding deflection fees of allied members on a prorated basis during high-risk partitions.
+**Task ID**: `AF-225`
+* **Objective**: Syndicate SWF Yield Auto-Repay Grace Period Multiplier & Credit Rating Recovery.
+* **Why this matters**: Support scaling the rate of credit rating recovery for syndicates that have outstanding deflection fees automatically repaid by the SWF yield sweep, reducing grace period requirements during subsequent enforcer audits under partition.
 * **Planned Actions**:
-  1. Define proposal and voting schemas inside GameState schemas for alliance-pooled yield deflection auto-repayments.
-  2. Implement `PROPOSE_ALLIANCE_YIELD_AUTO_REPAY` and `VOTE_ALLIANCE_YIELD_AUTO_REPAY` actions and consensus state transitions.
-  3. Wire yield-based auto-repayments to the tick economy.
-  4. Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization.
+  1. Define grace period scaling properties inside `SWFAllianceYieldAutoRepayProposalSchema` or similar.
+  2. Update `tickAllianceYieldAutoRepay` to dynamically increase credit recovery speeds when repayment rates are set high.
+  3. Wire the rating multiplier to the enforcer raid audit step inside the economy ticks.
+  4. Write comprehensive Vitest integration tests asserting grace multiplier, credit rating recovery boost, and audit deflection updates.
 
 ---
 
