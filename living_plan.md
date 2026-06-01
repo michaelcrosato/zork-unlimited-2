@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #45 (Ready for Cycle #46)
-* **Build/Test Status**: 🟢 PASS (All 199 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #46 (Ready for Cycle #47)
+* **Build/Test Status**: 🟢 PASS (All 203 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -262,17 +262,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Distribute collected extortion and protection gold among syndicate members (`AF-45`).
 - [x] Write comprehensive unit and integration tests verifying extortion, tolls, passive income, and gossip syncing (`AF-45`).
 
+### Phase 40: Syndicate Bribery & Enforcer Raid Deflection (Completed)
+- [x] Add a bribery and deflection state schema to GameState (`AF-46`).
+- [x] Implement decentralized action reducers to bribe enforcers or purchase deflection policies (`AF-46`).
+- [x] Wire logic to lower enforcement heat dynamically and deflect enforcer raids based on regional active policies (`AF-46`).
+- [x] Write comprehensive integration tests verifying bribes, deflection mechanics, and gossip synchronization (`AF-46`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-46`
-* **Objective**: Syndicate Bribery and Enforcer Raid Deflection.
-* **Why this matters**: Allow syndicates to dynamically pay bribes or acquire enforcer raid deflection policies to dynamically lower regional enforcer heat and protect local contraband labs from automatic enforcer raids.
+**Task ID**: `AF-47`
+* **Objective**: NPC Dialogue Tree Gating & Strategic Trade Incentives.
+* **Why this matters**: Support gating trading options and dialogue paths dynamically based on syndicate alliances, cartel embargoes, and enforcer heat levels to enrich roleplaying depth and game feel.
 * **Planned Actions**:
-  1. Add a bribery and deflection state schema to GameState.
-  2. Implement decentralized action reducers to bribe enforcers or purchase deflection policies.
-  3. Wire logic to lower enforcement heat dynamically and deflect enforcer raids based on regional active policies.
-  4. Write comprehensive integration tests verifying bribes, deflection mechanics, and gossip synchronization.
+  1. Add alliance and enforcer heat condition checks to dialogue DSL schemas.
+  2. Wire reputation and heat variables to merchant availability, blocking trades if heat is too high.
+  3. Provide strategic discounts on contraband for allied syndicate members.
+  4. Write comprehensive integration tests.
 
 ---
 

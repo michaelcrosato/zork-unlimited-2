@@ -742,6 +742,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge syndicateBribes using LWW
+  const syndicateBribes = { ...stateA.syndicateBribes };
+  if (stateB.syndicateBribes) {
+    for (const [roomId, entryB] of Object.entries(stateB.syndicateBribes)) {
+      const entryA = syndicateBribes[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        syndicateBribes[roomId] = entryB;
+      }
+    }
+  }
+
+  // Merge deflectionPolicies using LWW
+  const deflectionPolicies = { ...stateA.deflectionPolicies };
+  if (stateB.deflectionPolicies) {
+    for (const [roomId, entryB] of Object.entries(stateB.deflectionPolicies)) {
+      const entryA = deflectionPolicies[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        deflectionPolicies[roomId] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -778,6 +800,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     syndicateTurfClaims,
     enforcementHeat,
     protectionRackets,
+    syndicateBribes,
+    deflectionPolicies,
   };
 }
 

@@ -3415,6 +3415,246 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized BRIBE_SYNDICATE_ENFORCERS action (AF-46)
+  if ((action as any).type === "BRIBE_SYNDICATE_ENFORCERS") {
+    const { roomId, syndicateId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Bribe amount must be a positive integer.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < amount) {
+        rejectionReason = `Insufficient gold to pay bribe of ${amount} (has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - amount,
+      };
+
+      // Lower regional enforcer heat
+      const updatedHeat = { ...(newState.enforcementHeat || {}) };
+      const oldHeat = updatedHeat[roomId]?.heat ?? 0;
+      const heatReduction = Math.floor(amount / 5);
+      updatedHeat[roomId] = {
+        roomId,
+        heat: Math.max(0, oldHeat - heatReduction),
+        timestamp,
+      };
+      newState.enforcementHeat = updatedHeat;
+
+      // Register bribe
+      const syndicateBribes = { ...(state.syndicateBribes || {}) };
+      syndicateBribes[roomId] = {
+        roomId,
+        syndicateId,
+        amount,
+        timestamp,
+        active: true,
+      };
+      newState.syndicateBribes = syndicateBribes;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Paid ${amount} gold bribe to enforcers in ${roomId} by agent ${agentId} of syndicate ${syndicateId}.`);
+      customEvents.push({
+        type: "syndicate_bribe_paid",
+        agentId,
+        roomId,
+        syndicateId,
+        amount,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PURCHASE_DEFLECTION_POLICY action (AF-46)
+  if ((action as any).type === "PURCHASE_DEFLECTION_POLICY") {
+    const { roomId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cost = 100;
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!state.productionLabs?.[roomId]) {
+      rejectionReason = `No contraband production lab exists in room ${roomId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to purchase deflection policy costing ${cost} (has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Register deflection policy
+      const deflectionPolicies = { ...(state.deflectionPolicies || {}) };
+      deflectionPolicies[roomId] = {
+        roomId,
+        syndicateId,
+        cost,
+        timestamp,
+        active: true,
+      };
+      newState.deflectionPolicies = deflectionPolicies;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Purchased enforcer deflection policy in ${roomId} for ${cost} gold by agent ${agentId} of syndicate ${syndicateId}.`);
+      customEvents.push({
+        type: "deflection_policy_purchased",
+        agentId,
+        roomId,
+        syndicateId,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

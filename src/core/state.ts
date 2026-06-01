@@ -220,6 +220,24 @@ export const BribeSchema = z.object({
 });
 export type Bribe = z.infer<typeof BribeSchema>;
 
+export const SyndicateBribeSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  amount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type SyndicateBribe = z.infer<typeof SyndicateBribeSchema>;
+
+export const DeflectionPolicySchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  cost: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type DeflectionPolicy = z.infer<typeof DeflectionPolicySchema>;
+
 export const CrimeSyndicateSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -364,6 +382,8 @@ export const GameStateSchema = z.object({
   syndicateTurf: z.record(z.string(), z.string()).optional(),
   enforcementHeat: z.record(z.string(), EnforcementHeatEntrySchema).optional(),
   protectionRackets: z.record(z.string(), ProtectionRacketSchema).optional(),
+  syndicateBribes: z.record(z.string(), SyndicateBribeSchema).optional(),
+  deflectionPolicies: z.record(z.string(), DeflectionPolicySchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -458,6 +478,8 @@ export const createInitialState = (options: {
     syndicateTurf: {},
     enforcementHeat: {},
     protectionRackets: {},
+    syndicateBribes: {},
+    deflectionPolicies: {},
   };
 };
 

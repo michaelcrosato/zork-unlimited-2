@@ -1599,14 +1599,34 @@ export function tickProductionLabs(
 ): GameState {
   let newState = { ...state };
 
-  // Decay enforcement heat globally by 1 per step
+  // Decay syndicate bribes by 10 per step, deactivating when <= 0
+  const updatedBribes = { ...(newState.syndicateBribes || {}) };
+  let bribesChanged = false;
+  for (const [roomId, bribe] of Object.entries(updatedBribes)) {
+    if (bribe.active) {
+      const newAmount = Math.max(0, bribe.amount - 10);
+      updatedBribes[roomId] = {
+        ...bribe,
+        amount: newAmount,
+        active: newAmount > 0,
+      };
+      bribesChanged = true;
+    }
+  }
+  if (bribesChanged) {
+    newState.syndicateBribes = updatedBribes;
+  }
+
+  // Decay enforcement heat globally by 1 per step (or 3 if there is an active bribe in the room)
   const updatedHeat = { ...(newState.enforcementHeat || {}) };
   let heatChanged = false;
   for (const [roomId, entry] of Object.entries(updatedHeat)) {
     if (entry.heat > 0) {
+      const activeBribe = newState.syndicateBribes?.[roomId]?.active;
+      const decayAmount = activeBribe ? 3 : 1;
       updatedHeat[roomId] = {
         ...entry,
-        heat: Math.max(0, entry.heat - 1),
+        heat: Math.max(0, entry.heat - decayAmount),
       };
       heatChanged = true;
     }
@@ -1647,10 +1667,13 @@ export function tickProductionLabs(
         newState.journal.push(`[Syndicate] Lab in ${roomId} produced ${productionAmount} units.`);
 
         // Increase enforcement heat in the room due to production activity
+        // (If there's an active bribe, the heat increase is halved)
         const oldHeat = updatedHeat[roomId]?.heat ?? 0;
+        const activeBribe = newState.syndicateBribes?.[roomId]?.active;
+        const heatInc = activeBribe ? Math.floor(productionAmount) : (productionAmount * 2);
         updatedHeat[roomId] = {
           roomId,
-          heat: oldHeat + productionAmount * 2,
+          heat: oldHeat + heatInc,
           timestamp: newState.step,
         };
         heatChanged = true;
@@ -1661,45 +1684,65 @@ export function tickProductionLabs(
       currentSeed = nextSeed;
 
       if (raidRoll <= 20) {
-        // Raid occurs!
-        events.push({
-          type: "narration",
-          text: `[Syndicate] Enforcement agents have tracked down and raided the contraband lab in ${roomId}!`,
-        } as any);
+        // Check if there is an active deflection policy in the room
+        const activeDeflection = newState.deflectionPolicies?.[roomId]?.active;
+        if (activeDeflection) {
+          // Raid deflected! Consume the policy.
+          const updatedDeflection = { ...(newState.deflectionPolicies || {}) };
+          updatedDeflection[roomId] = {
+            ...updatedDeflection[roomId],
+            active: false,
+            timestamp: newState.step,
+          };
+          newState.deflectionPolicies = updatedDeflection;
 
-        const { value: raidStrength, nextSeed: nextSeed2 } = PureRand.nextInt(currentSeed, 1, 50);
-        currentSeed = nextSeed2;
-
-        const defenseScore = (updatedLab.defense ?? 0) + updatedLab.level * 10;
-
-        // Increase enforcement heat in the room due to active raid
-        const oldHeat = updatedHeat[roomId]?.heat ?? 0;
-        updatedHeat[roomId] = {
-          roomId,
-          heat: oldHeat + 10,
-          timestamp: newState.step,
-        };
-        heatChanged = true;
-
-        if (defenseScore >= raidStrength) {
-          // Raid successfully defended!
           events.push({
             type: "narration",
-            text: `[Syndicate] Syndicate defenders successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`,
+            text: `[Syndicate] An enforcer raid on the lab in ${roomId} was successfully deflected by the active deflection policy!`,
           } as any);
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[Syndicate] Lab raid deflected in ${roomId} by active deflection policy.`);
         } else {
-          // Raid succeeded! Confiscate all stored contraband and damage the facility (downgrade level)
-          const confiscated = updatedLab.storedContraband;
-          updatedLab.storedContraband = 0;
-          const oldLevel = updatedLab.level;
-          updatedLab.level = Math.max(1, updatedLab.level - 1);
-          labChanged = true;
-          stateChanged = true;
-
+          // Raid occurs!
           events.push({
             type: "narration",
-            text: `[Syndicate] The raid succeeded! Enforcement agents confiscated ${confiscated} units of contraband and damaged the facility (Level: ${oldLevel} -> ${updatedLab.level})!`,
+            text: `[Syndicate] Enforcement agents have tracked down and raided the contraband lab in ${roomId}!`,
           } as any);
+
+          const { value: raidStrength, nextSeed: nextSeed2 } = PureRand.nextInt(currentSeed, 1, 50);
+          currentSeed = nextSeed2;
+
+          const defenseScore = (updatedLab.defense ?? 0) + updatedLab.level * 10;
+
+          // Increase enforcement heat in the room due to active raid
+          const oldHeat = updatedHeat[roomId]?.heat ?? 0;
+          updatedHeat[roomId] = {
+            roomId,
+            heat: oldHeat + 10,
+            timestamp: newState.step,
+          };
+          heatChanged = true;
+
+          if (defenseScore >= raidStrength) {
+            // Raid successfully defended!
+            events.push({
+              type: "narration",
+              text: `[Syndicate] Syndicate defenders successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`,
+            } as any);
+          } else {
+            // Raid succeeded! Confiscate all stored contraband and damage the facility (downgrade level)
+            const confiscated = updatedLab.storedContraband;
+            updatedLab.storedContraband = 0;
+            const oldLevel = updatedLab.level;
+            updatedLab.level = Math.max(1, updatedLab.level - 1);
+            labChanged = true;
+            stateChanged = true;
+
+            events.push({
+              type: "narration",
+              text: `[Syndicate] The raid succeeded! Enforcement agents confiscated ${confiscated} units of contraband and damaged the facility (Level: ${oldLevel} -> ${updatedLab.level})!`,
+            } as any);
+          }
         }
       }
     }
