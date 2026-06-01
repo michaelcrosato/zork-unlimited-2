@@ -7819,6 +7819,31 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         }
       }
 
+      // 3b. Enforce dynamic spread control policy
+      if (pool.yieldHedgingOptionMinSpread !== undefined || pool.yieldHedgingOptionMaxSpread !== undefined) {
+        let dropRate = 0;
+        if (newState.swfMultiFundReinsurancePools) {
+          for (const p of Object.values(newState.swfMultiFundReinsurancePools)) {
+            if (p.linkStateDropRate !== undefined) {
+              dropRate = Math.max(dropRate, p.linkStateDropRate);
+            }
+          }
+        }
+        const scale = 1.0 + dropRate;
+        const minSpread = (pool.yieldHedgingOptionMinSpread ?? 0) * scale;
+        const maxSpread = (pool.yieldHedgingOptionMaxSpread ?? Infinity) * scale;
+
+        if (lowestAsk > 0 && highestBid > 0) {
+          const spreadVal = lowestAsk - highestBid;
+          if (spreadVal > 0) {
+            if (spreadVal < minSpread || spreadVal > maxSpread) {
+              validLowestAsk = 0;
+              validHighestBid = 0;
+            }
+          }
+        }
+      }
+
       // 4. Options Arbitrage Bot
       if (validLowestAsk > 0 && validLowestAsk < fairValue && newState.cdsCdoYieldHedgingOptionListings) {
         const listing: any = Object.values(newState.cdsCdoYieldHedgingOptionListings).find(
@@ -7893,7 +7918,21 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
             };
 
             // Transfer gold with secondary fee deduction
-            const feePercent = pool.yieldHedgingOptionSecondaryFeePercent ?? 0;
+            let feePercent = pool.yieldHedgingOptionSecondaryFeePercent ?? 0;
+
+            const isSellerAllied = sellerSyndicateId === pool.creatorSyndicateId ||
+              (newState.syndicateAlliances?.[sellerSyndicateId]?.[pool.creatorSyndicateId] === "allied") ||
+              (newState.syndicateAlliances?.[pool.creatorSyndicateId]?.[sellerSyndicateId] === "allied");
+
+            if (isSellerAllied && newState.factionRep) {
+              for (const factionId of Object.keys(newState.factionRep)) {
+                if (getSyndicateFactionLoyaltyRank(newState as GameState, sellerSyndicateId, factionId) === "Platinum") {
+                  feePercent = 0;
+                  break;
+                }
+              }
+            }
+
             const feeAmount = Math.round(tradePrice * feePercent);
 
             sellerSynd.warChest = (sellerSynd.warChest ?? 0) + tradePrice - feeAmount;

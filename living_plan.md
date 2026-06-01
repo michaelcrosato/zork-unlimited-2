@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #241 (Ready for Cycle #242)
-* **Build/Test Status**: 🟢 PASS (All 832 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #242 (Ready for Cycle #243)
+* **Build/Test Status**: 🟢 PASS (All 833 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1575,16 +1575,20 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire secondary market fee scaling to partition rates and regional stability indexes (`AF-244`).
 - [x] Write comprehensive unit and integration tests inside `tests/syndicates_sovereign_debt_default_cds_cdo_yield_hedging_secondary_market_fees_adjustments.test.ts` (`AF-244`).
 
+### Phase 223: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Bid-Ask Dynamic Spread Controls and Faction Reputation Standing-Gated Fee Waivers (Completed)
+- [x] Define bid-ask dynamic spread control policy schemas and voting consensus in GameState (`AF-245`).
+- [x] Wire standing-gated fee waivers to waive transaction fees for Platinum-tier allied members (`AF-245`).
+- [x] Write comprehensive unit and integration tests inside `tests/syndicates_sovereign_debt_default_cds_cdo_yield_hedging_secondary_market_spread_controls.test.ts` (`AF-245`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-245`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Bid-Ask Dynamic Spread Controls and Faction Reputation Standing-Gated Fee Waivers.
-* **Why this matters**: Support decentralized voting and proposals to establish dynamic spread ranges and standing-gated fee waivers, providing strategic cost recovery options to allied mesh members under high partition stress.
+**Task ID**: `AF-246`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Liquidity-gated Bid-Ask Matching Restrictions.
+* **Why this matters**: Support preventing secondary market trades or dynamic mid-price matches when the total locked fractionalized vault balance drops below the dynamic liquidity floor under default stress.
 * **Planned Actions**:
-  1. Define bid-ask dynamic spread control policy schemas and voting consensus in GameState.
-  2. Wire standing-gated fee waivers to waive transaction fees for Platinum-tier allied members.
-  3. Write comprehensive unit and integration tests.
+  1. Wire checks inside `tickEconomy` dynamic bid-ask matching to block trading if total CDO fractionalized vault balance is below the liquidity floor.
+  2. Write comprehensive unit and integration tests.
 
 ---
 

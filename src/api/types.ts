@@ -280,13 +280,13 @@ export type Action =
   | { type: "BID_ON_CDO_YIELD_HEDGING_OPTION"; bidId: string; optionId: string; bidderSyndicateId: string; bidPrice: number; timestamp: number }
   | { type: "PROPOSE_CDO_YIELD_HEDGING_FEE_POLICY"; proposalId: string; cdoId: string; syndicateId: string; secondaryFeePercent: number; timestamp: number }
   | { type: "PROPOSE_CDO_YIELD_HEDGING_FEE_ADJUSTMENT_POLICY"; proposalId: string; cdoId: string; syndicateId: string; baseFeePercent: number; volatilityScale: number; partitionScale: number; volatilityThreshold: number; timestamp: number }
+  | { type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_POLICY"; proposalId: string; cdoId: string; syndicateId: string; minSpread: number; maxSpread: number; timestamp: number }
   | { type: "VOTE_CDO_YIELD_HEDGING_FEE_POLICY"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
-  | { type: "VOTE_CDO_YIELD_HEDGING_FEE_ADJUSTMENT_POLICY"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
+  | { type: "VOTE_CDO_YIELD_HEDGING_FEE_ADJUSTMENT_POLICY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "VOTE_CDO_YIELD_HEDGING_SPREAD_POLICY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "STAKE_CDO_YIELD_HEDGING_OPTION"; cdoId: string; amount: number; timestamp: number }
   | { type: "UNSTAKE_CDO_YIELD_HEDGING_OPTION"; cdoId: string; amount: number; timestamp: number }
   | { type: "TRANSFER_CDO_YIELD_HEDGING_OPTION"; optionId: string; sellerSyndicateId: string; buyerSyndicateId: string; price: number; timestamp: number };
-
-
 
 
 
