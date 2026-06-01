@@ -1674,5 +1674,194 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     expect(merged.jointLoanPenaltyWaiverVotes?.jgroup1?.player.reducedInterestRate).toBe(2);
     expect(merged.jointLoanPenaltyWaiverVotes?.jgroup1?.player.waivePenalty).toBe(true);
   });
+
+  it("should handle joint loan credit underwriting proposals, consensus pricing calculations, and default tracking (AF-99)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "bob", "alice"], // bob is bank, player & alice are group members
+        definedBy: "player",
+        dominance: 50,
+        timestamp: 1000,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        interestRate: 5,
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "clearing",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1,
+      },
+    };
+
+    // Initialize ratings: player is highly rated, alice is normal
+    state.creditRatings = {
+      player: 120,
+      alice: 100,
+    };
+
+    // 1. Propose underwriting for group 'jgroup1'
+    const action1 = {
+      type: "PROPOSE_JOINT_LOAN_CREDIT_UNDERWRITE",
+      groupId: "jgroup1",
+      syndicateId: "blood_fangs",
+      members: ["player", "alice"],
+      timestamp: 1010,
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
+    expect(res1.ok).toBe(true);
+    expect(res1.state.jointLoanUnderwrites?.jgroup1).toBeUndefined(); // no consensus yet
+    expect(res1.state.jointLoanUnderwriteVotes?.jgroup1?.player).toBeDefined();
+
+    // 1.5. Alice (group member) votes to establish group majority (2/2 members)
+    const actionAlice = {
+      type: "PROPOSE_JOINT_LOAN_CREDIT_UNDERWRITE",
+      groupId: "jgroup1",
+      syndicateId: "blood_fangs",
+      members: ["player", "alice"],
+      timestamp: 1015,
+    };
+    let res1_5 = multiAgentStep(res1.state, { agentId: "alice", action: actionAlice as any }, mockPack);
+    expect(res1_5.ok).toBe(true);
+
+    // Consensus reached!
+    const underwrite = res1_5.state.jointLoanUnderwrites?.jgroup1;
+    expect(underwrite).toBeDefined();
+    
+    // Average credit rating: (120 + 100)/2 = 110.
+    // Credit discount = Math.floor(10 / 10) = 1%. Base bank rate is 5%.
+    // Underwritten rate = 5 - 1 = 4%.
+    expect(underwrite?.baseInterestRate).toBe(4);
+
+    // Collateral multiplier bonus = (110 - 100)/500 = 0.02.
+    // Underwritten multiplier = 1.2 + 0.02 = 1.22.
+    expect(underwrite?.collateralMultiplier).toBeCloseTo(1.22, 5);
+
+    // 3. Propose and approve a loan using underwritten terms
+    const actionLoan = {
+      type: "PROPOSE_JOINT_LOAN",
+      groupId: "jgroup1",
+      syndicateId: "blood_fangs",
+      members: ["player", "alice"],
+      collaterals: [
+        { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+      ],
+      amount: 300, // Should use the underwritten multiplier 1.22
+      timestamp: 1030,
+    };
+
+    // First approve by player
+    let resLoan1 = multiAgentStep(res1_5.state, { agentId: "player", action: actionLoan as any }, mockPack);
+    // Then approve by alice to fund the loan
+    let resLoan2 = multiAgentStep(resLoan1.state, { agentId: "alice", action: actionLoan as any }, mockPack);
+    expect(resLoan2.ok).toBe(true);
+
+    const activeLoan = resLoan2.state.jointLoans?.jgroup1;
+    expect(activeLoan).toBeDefined();
+    expect(activeLoan?.amount).toBe(300);
+
+    // 4. Tick economy and verify interest rate (should accrue interest at underwritten 4% rate!)
+    let ticked = resLoan2.state;
+    ticked.step = 1;
+    ticked = tickEconomy(ticked, mockPack);
+    // Interest per tick should be: Math.floor(300 * 4 / 100) = 12 gold (rather than default 300 * 5 / 100 = 15 gold)
+    expect(ticked.jointLoans?.jgroup1?.interestAccrued).toBe(12);
+
+    // 5. Force default enforcer sweep and check groupDefaults incrementing
+    // Standard dueStep is 18. Advance step past dueStep to 20
+    ticked.step = 20;
+    ticked = tickEconomy(ticked, mockPack);
+    
+    // Loan should be liquidated
+    expect(ticked.jointLoans?.jgroup1).toBeUndefined();
+    // Default count for the group should be 1!
+    expect(ticked.groupDefaults?.jgroup1).toBe(1);
+
+    // 6. Propose a second underwrite for group 'jgroup1' (with default history!)
+    // Average credit rating is now decreased because of default!
+    // Player rating: 120 - 50 = 70. Alice rating: 100 - 50 = 50.
+    // Average credit rating: (70 + 50)/2 = 60.
+    // Credit premium = Math.floor((100 - 60) / 10) = 4%.
+    // Defaults premium = 1 default * 2% = 2%.
+    // Underwritten rate = 5 + 4 + 2 = 11%!
+    // Multiplier penalty = (100 - 60)/200 = 0.2.
+    // Defaults penalty = 1 default * 0.1 = 0.1.
+    // Underwritten multiplier = 1.2 - 0.2 - 0.1 = 0.9x.
+
+    const action3 = {
+      type: "PROPOSE_JOINT_LOAN_CREDIT_UNDERWRITE",
+      groupId: "jgroup1",
+      syndicateId: "blood_fangs",
+      members: ["player", "alice"],
+      timestamp: 1050,
+    };
+
+    let res3_1 = multiAgentStep(ticked, { agentId: "player", action: action3 as any }, mockPack);
+    let res3_1_5 = multiAgentStep(res3_1.state, { agentId: "alice", action: action3 as any }, mockPack);
+    expect(res3_1_5.ok).toBe(true);
+
+    const underwrite2 = res3_1_5.state.jointLoanUnderwrites?.jgroup1;
+    expect(underwrite2?.baseInterestRate).toBe(11);
+    expect(underwrite2?.collateralMultiplier).toBeCloseTo(0.9, 5);
+  });
+
+  it("should merge joint loan underwrites and group defaults across Gossip synchronization (AF-99)", () => {
+    let stateA = createInitialState({ seed: 123, start: "clearing" });
+    stateA.jointLoanUnderwrites = {
+      group1: {
+        groupId: "group1",
+        syndicateId: "sf1",
+        baseInterestRate: 4,
+        collateralMultiplier: 1.22,
+        timestamp: 2000,
+      },
+    };
+    stateA.groupDefaults = {
+      group1: 1,
+    };
+
+    let stateB = createInitialState({ seed: 123, start: "clearing" });
+    stateB.jointLoanUnderwrites = {
+      group1: {
+        groupId: "group1",
+        syndicateId: "sf1",
+        baseInterestRate: 5,
+        collateralMultiplier: 1.2,
+        timestamp: 1000, // older
+      },
+    };
+    stateB.groupDefaults = {
+      group1: 2, // higher default count
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.jointLoanUnderwrites?.group1?.timestamp).toBe(2000);
+    expect(merged.jointLoanUnderwrites?.group1?.baseInterestRate).toBe(4);
+    expect(merged.groupDefaults?.group1).toBe(2);
+  });
 });
 

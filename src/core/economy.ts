@@ -2120,7 +2120,12 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     for (const [groupId, jointLoan] of Object.entries(jointLoans)) {
       const bank = newState.syndicateBanks?.[jointLoan.syndicateId];
       // 1. Accrue loan interest
-      const baseRate = jointLoan.reducedInterestRate !== undefined ? jointLoan.reducedInterestRate : (jointLoan.refinancedInterestRate !== undefined ? jointLoan.refinancedInterestRate : (bank?.interestRate ?? 5));
+      const underwrittenRate = newState.jointLoanUnderwrites?.[groupId]?.baseInterestRate;
+      const baseRate = jointLoan.reducedInterestRate !== undefined 
+        ? jointLoan.reducedInterestRate 
+        : (jointLoan.refinancedInterestRate !== undefined 
+          ? jointLoan.refinancedInterestRate 
+          : (underwrittenRate !== undefined ? underwrittenRate : (bank?.interestRate ?? 5)));
       const loanRate = Math.max(0, baseRate);
       const interest = Math.floor((jointLoan.amount * loanRate) / 100);
 
@@ -2134,6 +2139,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
       // 2. Check for default / enforcer debt-recovery sweep
       if (newState.step > updatedJointLoan.dueStep + (updatedJointLoan.gracePeriodSteps ?? 0)) {
+        // Increment group defaults counter
+        if (!newState.groupDefaults) newState.groupDefaults = {};
+        newState.groupDefaults[groupId] = (newState.groupDefaults[groupId] ?? 0) + 1;
+
         // Debt-recovery sweep!
         const totalDue = updatedJointLoan.amount + updatedJointLoan.interestAccrued;
 
@@ -2258,6 +2267,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
         // Delete joint loan
         delete jointLoans[groupId];
+        if (newState.jointLoanUnderwrites) {
+          newState.jointLoanUnderwrites = { ...newState.jointLoanUnderwrites };
+          delete newState.jointLoanUnderwrites[groupId];
+        }
       }
     }
 

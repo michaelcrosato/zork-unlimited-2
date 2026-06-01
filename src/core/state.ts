@@ -828,6 +828,22 @@ export const JointLoanPenaltyWaiverVoteSchema = z.object({
 });
 export type JointLoanPenaltyWaiverVote = z.infer<typeof JointLoanPenaltyWaiverVoteSchema>;
 
+export const JointLoanUnderwriteSchema = z.object({
+  groupId: z.string(),
+  syndicateId: z.string(),
+  baseInterestRate: z.number().int().nonnegative(),
+  collateralMultiplier: z.number(),
+  timestamp: z.number().int(),
+});
+export type JointLoanUnderwrite = z.infer<typeof JointLoanUnderwriteSchema>;
+
+export const JointLoanUnderwriteVoteSchema = z.object({
+  syndicateId: z.string(),
+  members: z.array(z.string()),
+  timestamp: z.number().int(),
+});
+export type JointLoanUnderwriteVote = z.infer<typeof JointLoanUnderwriteVoteSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1051,6 +1067,9 @@ export const GameStateSchema = z.object({
   jointLoanCollateralSwapVotes: z.record(z.string(), z.record(z.string(), JointLoanCollateralSwapVoteSchema)).optional(),
   jointLoanGracePeriodVotes: z.record(z.string(), z.record(z.string(), JointLoanGracePeriodVoteSchema)).optional(),
   jointLoanPenaltyWaiverVotes: z.record(z.string(), z.record(z.string(), JointLoanPenaltyWaiverVoteSchema)).optional(),
+  jointLoanUnderwrites: z.record(z.string(), JointLoanUnderwriteSchema).optional(),
+  jointLoanUnderwriteVotes: z.record(z.string(), z.record(z.string(), JointLoanUnderwriteVoteSchema)).optional(),
+  groupDefaults: z.record(z.string(), z.number().int()).optional(),
 });
 
 
@@ -1200,6 +1219,9 @@ export const createInitialState = (options: {
     depositInsurance: {},
     creditRatings: {},
     defaultAlerts: {},
+    jointLoanUnderwrites: {},
+    jointLoanUnderwriteVotes: {},
+    groupDefaults: {},
   };
 };
 
@@ -1921,6 +1943,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     jointLoanCollateralSwapVotes: rest.jointLoanCollateralSwapVotes ? JSON.parse(JSON.stringify(rest.jointLoanCollateralSwapVotes)) : undefined,
     jointLoanGracePeriodVotes: rest.jointLoanGracePeriodVotes ? JSON.parse(JSON.stringify(rest.jointLoanGracePeriodVotes)) : undefined,
     jointLoanPenaltyWaiverVotes: rest.jointLoanPenaltyWaiverVotes ? JSON.parse(JSON.stringify(rest.jointLoanPenaltyWaiverVotes)) : undefined,
+    jointLoanUnderwrites: rest.jointLoanUnderwrites ? JSON.parse(JSON.stringify(rest.jointLoanUnderwrites)) : undefined,
+    jointLoanUnderwriteVotes: rest.jointLoanUnderwriteVotes ? JSON.parse(JSON.stringify(rest.jointLoanUnderwriteVotes)) : undefined,
+    groupDefaults: rest.groupDefaults ? { ...rest.groupDefaults } : undefined,
     creditRecoveries: rest.creditRecoveries ? JSON.parse(JSON.stringify(rest.creditRecoveries)) : undefined,
   };
   return clone;
@@ -2713,14 +2738,18 @@ export function getJointLoanLimit(
   state: GameState,
   syndicateId: string,
   members: string[],
-  collaterals: { agentId: string; collateralType: "safehouse" | "outpost"; collateralId: string }[]
+  collaterals: { agentId: string; collateralType: "safehouse" | "outpost"; collateralId: string }[],
+  groupId?: string
 ): number {
   let sumLimits = 0;
   for (const col of collaterals) {
     const colLimit = getSyndicateLoanLimit(state, syndicateId, col.agentId, col.collateralType, col.collateralId);
     sumLimits += colLimit;
   }
-  return Math.floor(sumLimits * 1.2);
+  const multiplier = (groupId && state.jointLoanUnderwrites?.[groupId])
+    ? state.jointLoanUnderwrites[groupId].collateralMultiplier
+    : 1.2;
+  return Math.floor(sumLimits * multiplier);
 }
 
 export function getSyndicateLoanLimit(
@@ -3459,6 +3488,102 @@ export function reconcileJointLoanPenaltyWaivers(state: GameState, pack: any): G
 
   return newState;
 }
+
+export function reconcileJointLoanUnderwrites(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    jointLoanUnderwrites: state.jointLoanUnderwrites ? { ...state.jointLoanUnderwrites } : {},
+  };
+
+  if (!newState.jointLoanUnderwriteVotes) {
+    newState.jointLoanUnderwriteVotes = {};
+    return newState;
+  }
+
+  const updatedUnderwrites = { ...newState.jointLoanUnderwrites };
+  let underwritesChanged = false;
+
+  for (const [groupId, votes] of Object.entries(newState.jointLoanUnderwriteVotes)) {
+    const firstVote = Object.values(votes)[0];
+    if (!firstVote) continue;
+    const { syndicateId, members } = firstVote;
+
+    const syndicate = newState.syndicates[syndicateId];
+    if (!syndicate) continue;
+
+    // Count votes
+    const groupVotes = new Set<string>();
+    const bankVotes = new Set<string>();
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (members.includes(voterId)) {
+        groupVotes.add(voterId);
+      }
+      if (syndicate.members.includes(voterId)) {
+        bankVotes.add(voterId);
+      }
+    }
+
+    const groupMajorityThreshold = members.length / 2;
+    const bankMajorityThreshold = syndicate.members.length / 2;
+
+    if (groupVotes.size > groupMajorityThreshold && bankVotes.size > bankMajorityThreshold) {
+      // Consensus reached!
+      const avgCreditRating = members.reduce((sum, mId) => sum + (state.creditRatings?.[mId] ?? 100), 0) / members.length;
+      const bank = state.syndicateBanks?.[syndicateId];
+      const baseBankRate = bank?.interestRate ?? 5;
+
+      let interestRateDiscount = 0;
+      let interestRateMarkup = 0;
+      let multiplierBonus = 0;
+      let multiplierPenalty = 0;
+
+      if (avgCreditRating > 100) {
+        interestRateDiscount = Math.floor((avgCreditRating - 100) / 10);
+        multiplierBonus = (avgCreditRating - 100) / 500;
+      } else if (avgCreditRating < 100) {
+        interestRateMarkup = Math.floor((100 - avgCreditRating) / 10);
+        multiplierPenalty = (100 - avgCreditRating) / 200;
+      }
+
+      const groupDefaultCount = state.groupDefaults?.[groupId] ?? 0;
+      const interestRateDefaultMarkup = groupDefaultCount * 2;
+      const multiplierDefaultPenalty = groupDefaultCount * 0.1;
+
+      const baseInterestRate = Math.max(1, baseBankRate - interestRateDiscount + interestRateMarkup + interestRateDefaultMarkup);
+      const collateralMultiplier = Math.max(0.5, 1.2 + multiplierBonus - multiplierPenalty - multiplierDefaultPenalty);
+
+      // Find the latest timestamp among all voters
+      const timestamps = Object.values(votes).map(v => v.timestamp);
+      const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : state.step;
+
+      updatedUnderwrites[groupId] = {
+        groupId,
+        syndicateId,
+        baseInterestRate,
+        collateralMultiplier,
+        timestamp: maxTimestamp,
+      };
+      underwritesChanged = true;
+
+      // Clear the votes
+      delete newState.jointLoanUnderwriteVotes[groupId];
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate Bank] Credit underwriting for joint loan group ${groupId} reached consensus. Base Rate: ${baseInterestRate}%, Collateral Multiplier: ${collateralMultiplier.toFixed(2)}x.`
+      );
+    }
+  }
+
+  if (underwritesChanged) {
+    newState.jointLoanUnderwrites = updatedUnderwrites;
+  }
+
+  return newState;
+}
+
 
 
 

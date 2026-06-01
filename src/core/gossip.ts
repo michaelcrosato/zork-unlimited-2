@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -1315,6 +1315,47 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge jointLoanUnderwrites using LWW
+  const jointLoanUnderwrites = { ...stateA.jointLoanUnderwrites };
+  if (stateB.jointLoanUnderwrites) {
+    for (const [key, entryB] of Object.entries(stateB.jointLoanUnderwrites)) {
+      const entryA = jointLoanUnderwrites[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        jointLoanUnderwrites[key] = entryB;
+      }
+    }
+  }
+
+  // Merge jointLoanUnderwriteVotes using LWW
+  const jointLoanUnderwriteVotes = { ...stateA.jointLoanUnderwriteVotes };
+  if (stateB.jointLoanUnderwriteVotes) {
+    for (const [groupId, bInner] of Object.entries(stateB.jointLoanUnderwriteVotes)) {
+      if (!jointLoanUnderwriteVotes[groupId]) {
+        jointLoanUnderwriteVotes[groupId] = { ...bInner };
+      } else {
+        const aInner = { ...jointLoanUnderwriteVotes[groupId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        jointLoanUnderwriteVotes[groupId] = aInner;
+      }
+    }
+  }
+
+  // Merge groupDefaults taking the max value (or LWW)
+  const groupDefaults = { ...stateA.groupDefaults };
+  if (stateB.groupDefaults) {
+    for (const [key, valB] of Object.entries(stateB.groupDefaults)) {
+      const valA = groupDefaults[key];
+      if (valA === undefined || valB > valA) {
+        groupDefaults[key] = valB;
+      }
+    }
+  }
+
   // Merge turfCheckpoints using LWW
   const turfCheckpoints = { ...stateA.turfCheckpoints };
   if (stateB.turfCheckpoints) {
@@ -1646,6 +1687,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     jointLoanCollateralSwapVotes,
     jointLoanGracePeriodVotes,
     jointLoanPenaltyWaiverVotes,
+    jointLoanUnderwrites,
+    jointLoanUnderwriteVotes,
+    groupDefaults,
   };
 }
 
@@ -1978,6 +2022,7 @@ export class GossipNode {
     convergedState = reconcileJointLoanCollateralSwaps(convergedState, this.pack);
     convergedState = reconcileJointLoanGracePeriods(convergedState, this.pack);
     convergedState = reconcileJointLoanPenaltyWaivers(convergedState, this.pack);
+    convergedState = reconcileJointLoanUnderwrites(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};
