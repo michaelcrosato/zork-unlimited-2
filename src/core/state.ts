@@ -1933,6 +1933,27 @@ export const JointLoanCollateralSubstitutionVoteSchema = z.object({
 });
 export type JointLoanCollateralSubstitutionVote = z.infer<typeof JointLoanCollateralSubstitutionVoteSchema>;
 
+export const SovereignBondFuturesPositionSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  bondId: z.string(),
+  side: z.enum(["long", "short"]),
+  entryPrice: z.number(),
+  size: z.number().int().positive(),
+  leverage: z.number().positive(),
+  marginCollateral: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type SovereignBondFuturesPosition = z.infer<typeof SovereignBondFuturesPositionSchema>;
+
+export const MarginLiquidationInsurancePolicySchema = z.object({
+  syndicateId: z.string(),
+  allocatedGold: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type MarginLiquidationInsurancePolicy = z.infer<typeof MarginLiquidationInsurancePolicySchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -2260,6 +2281,24 @@ export const GameStateSchema = z.object({
   crossMeshBridgeProposals: z.record(z.string(), CrossMeshBridgeProposalSchema).optional(),
   crossMeshBridgeLoans: z.record(z.string(), CrossMeshBridgeLoanSchema).optional(),
   sovereignWealthFunds: z.record(z.string(), SovereignWealthFundSchema).optional(),
+  sovereignBondFuturesPositions: z.record(z.string(), SovereignBondFuturesPositionSchema).optional(),
+  marginLiquidationInsurancePolicies: z.record(z.string(), MarginLiquidationInsurancePolicySchema).optional(),
+  openSovereignBondFuturesVotes: z.record(z.string(), z.record(z.string(), z.object({
+    bondId: z.string(),
+    side: z.enum(["long", "short"]),
+    size: z.number().int().positive(),
+    leverage: z.number().positive(),
+    marginCollateral: z.number().int().nonnegative(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  closeSovereignBondFuturesVotes: z.record(z.string(), z.record(z.string(), z.object({
+    positionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  marginLiquidationInsuranceVotes: z.record(z.string(), z.record(z.string(), z.object({
+    allocatedGold: z.number().int().nonnegative(),
+    timestamp: z.number().int(),
+  }))).optional(),
   jointVenturePortfolios: z.record(z.string(), JointVenturePortfolioSchema).optional(),
   sovereignWealthFundProposals: z.record(z.string(), SovereignWealthFundProposalSchema).optional(),
   jointVentureInvestmentProposals: z.record(z.string(), JointVentureInvestmentProposalSchema).optional(),
@@ -2531,6 +2570,11 @@ export const createInitialState = (options: {
     crossMeshBridgeProposals: {},
     crossMeshBridgeLoans: {},
     sovereignWealthFunds: {},
+    sovereignBondFuturesPositions: {},
+    marginLiquidationInsurancePolicies: {},
+    openSovereignBondFuturesVotes: {},
+    closeSovereignBondFuturesVotes: {},
+    marginLiquidationInsuranceVotes: {},
     jointVenturePortfolios: {},
     sovereignWealthFundProposals: {},
     jointVentureInvestmentProposals: {},
@@ -3377,6 +3421,11 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     crossMeshBridgeProposals: rest.crossMeshBridgeProposals ? JSON.parse(JSON.stringify(rest.crossMeshBridgeProposals)) : undefined,
     crossMeshBridgeLoans: rest.crossMeshBridgeLoans ? JSON.parse(JSON.stringify(rest.crossMeshBridgeLoans)) : undefined,
     sovereignWealthFunds: rest.sovereignWealthFunds ? JSON.parse(JSON.stringify(rest.sovereignWealthFunds)) : undefined,
+    sovereignBondFuturesPositions: rest.sovereignBondFuturesPositions ? JSON.parse(JSON.stringify(rest.sovereignBondFuturesPositions)) : undefined,
+    marginLiquidationInsurancePolicies: rest.marginLiquidationInsurancePolicies ? JSON.parse(JSON.stringify(rest.marginLiquidationInsurancePolicies)) : undefined,
+    openSovereignBondFuturesVotes: rest.openSovereignBondFuturesVotes ? JSON.parse(JSON.stringify(rest.openSovereignBondFuturesVotes)) : undefined,
+    closeSovereignBondFuturesVotes: rest.closeSovereignBondFuturesVotes ? JSON.parse(JSON.stringify(rest.closeSovereignBondFuturesVotes)) : undefined,
+    marginLiquidationInsuranceVotes: rest.marginLiquidationInsuranceVotes ? JSON.parse(JSON.stringify(rest.marginLiquidationInsuranceVotes)) : undefined,
     jointVenturePortfolios: rest.jointVenturePortfolios ? JSON.parse(JSON.stringify(rest.jointVenturePortfolios)) : undefined,
     sovereignWealthFundProposals: rest.sovereignWealthFundProposals ? JSON.parse(JSON.stringify(rest.sovereignWealthFundProposals)) : undefined,
     jointVentureInvestmentProposals: rest.jointVentureInvestmentProposals ? JSON.parse(JSON.stringify(rest.jointVentureInvestmentProposals)) : undefined,
@@ -9368,11 +9417,270 @@ export function getSyndicateAvailableBondShares(state: GameState, bondId: string
   return Math.max(0, totalContribution - totalActiveListed - totalLent - totalDepositedInPools);
 }
 
+export function getBondCurrentYield(state: GameState, bondId: string): number {
+  if (state.sovereignBondLendingPools) {
+    for (const pool of Object.values(state.sovereignBondLendingPools)) {
+      if (pool.bondId === bondId) {
+        return pool.borrowFeeRate;
+      }
+    }
+  }
+  const coopBond = state.cooperativeSovereigntyBondProposals?.[bondId];
+  if (coopBond) {
+    return coopBond.interestRate;
+  }
+  const debtBond = state.sovereignDebtProposals?.[bondId];
+  if (debtBond) {
+    return debtBond.interestRate ?? 5;
+  }
+  return 5;
+}
 
+export function reconcileSovereignBondFuturesPositions(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignBondFuturesPositions: state.sovereignBondFuturesPositions ? { ...state.sovereignBondFuturesPositions } : {},
+    openSovereignBondFuturesVotes: state.openSovereignBondFuturesVotes ? { ...state.openSovereignBondFuturesVotes } : {},
+    closeSovereignBondFuturesVotes: state.closeSovereignBondFuturesVotes ? { ...state.closeSovereignBondFuturesVotes } : {},
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+  };
 
+  // Reconcile OPEN votes
+  for (const syndicateId of Object.keys(newState.openSovereignBondFuturesVotes || {})) {
+    const votes = newState.openSovereignBondFuturesVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
 
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      bondId: string;
+      side: "long" | "short";
+      size: number;
+      leverage: number;
+      marginCollateral: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
 
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.bondId}::${vote.side}::${vote.size}::${vote.leverage}::${vote.marginCollateral}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            bondId: vote.bondId,
+            side: vote.side,
+            size: vote.size,
+            leverage: vote.leverage,
+            marginCollateral: vote.marginCollateral,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
 
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        // Consensus achieved to open position!
+        // Validate margin account exists and has enough collateral
+        const marginAccount = newState.marginAccounts?.[syndicateId];
+        if (marginAccount && marginAccount.collateral >= group.marginCollateral) {
+          // Deduct from margin account
+          marginAccount.collateral -= group.marginCollateral;
+          marginAccount.timestamp = Math.max(...group.timestamps, newState.step);
+
+          // Find current yield
+          const currentYield = getBondCurrentYield(newState, group.bondId);
+
+          // Create position
+          const id = `fut_${Object.keys(newState.sovereignBondFuturesPositions || {}).length + 1}`;
+          newState.sovereignBondFuturesPositions![id] = {
+            id,
+            syndicateId,
+            bondId: group.bondId,
+            side: group.side,
+            entryPrice: currentYield,
+            size: group.size,
+            leverage: group.leverage,
+            marginCollateral: group.marginCollateral,
+            timestamp: Math.max(...group.timestamps, newState.step),
+            active: true,
+          };
+
+          // Clean up votes
+          if (newState.openSovereignBondFuturesVotes) {
+            delete newState.openSovereignBondFuturesVotes[syndicateId];
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Sovereign Bond Futures Position Opened] Syndicate ${syndicateId} opened a leveraged ${group.side} futures position on bond ${group.bondId} with size ${group.size}, leverage ${group.leverage}x, and collateral of ${group.marginCollateral} gold at entry yield ${currentYield.toFixed(2)}%.`
+          );
+        }
+        break; // Process one open per tick for this syndicate
+      }
+    }
+  }
+
+  // Reconcile CLOSE votes
+  for (const syndicateId of Object.keys(newState.closeSovereignBondFuturesVotes || {})) {
+    const votes = newState.closeSovereignBondFuturesVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      positionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = vote.positionId;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            positionId: vote.positionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const position = newState.sovereignBondFuturesPositions?.[group.positionId];
+        if (position && position.active && position.syndicateId === syndicateId) {
+          // Final mark-to-market
+          const currentYield = getBondCurrentYield(newState, position.bondId);
+          const diff = currentYield - position.entryPrice;
+          const profit = Math.round((position.side === "long" ? 1 : -1) * diff * position.size * position.leverage);
+
+          const marginAccount = newState.marginAccounts?.[syndicateId];
+          if (marginAccount) {
+            // Return remaining margin collateral + final MTM profit
+            marginAccount.collateral = Math.max(0, marginAccount.collateral + position.marginCollateral + profit);
+            marginAccount.timestamp = Math.max(...group.timestamps, newState.step);
+          }
+
+          position.active = false;
+          position.entryPrice = currentYield;
+          position.timestamp = Math.max(...group.timestamps, newState.step);
+
+          // Clean up votes
+          if (newState.closeSovereignBondFuturesVotes) {
+            delete newState.closeSovereignBondFuturesVotes[syndicateId];
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Sovereign Bond Futures Position Closed] Syndicate ${syndicateId} closed futures position ${group.positionId} on bond ${position.bondId} at settlement yield ${currentYield.toFixed(2)}% (Final settlement profit/loss: ${profit} gold).`
+          );
+        }
+        break; // Process one close per tick for this syndicate
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileMarginLiquidationInsurancePolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginLiquidationInsurancePolicies: state.marginLiquidationInsurancePolicies ? { ...state.marginLiquidationInsurancePolicies } : {},
+    marginLiquidationInsuranceVotes: state.marginLiquidationInsuranceVotes ? { ...state.marginLiquidationInsuranceVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.marginLiquidationInsuranceVotes || {})) {
+    const votes = newState.marginLiquidationInsuranceVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      allocatedGold: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.allocatedGold}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            allocatedGold: vote.allocatedGold,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const currentPolicy = newState.marginLiquidationInsurancePolicies?.[syndicateId];
+        const currentAllocated = currentPolicy?.allocatedGold ?? 0;
+        const diff = group.allocatedGold - currentAllocated;
+
+        if (diff > 0) {
+          // Need to allocate more from warChest
+          if ((syndicate.warChest ?? 0) >= diff) {
+            syndicate.warChest = (syndicate.warChest ?? 0) - diff;
+            newState.marginLiquidationInsurancePolicies![syndicateId] = {
+              syndicateId,
+              allocatedGold: group.allocatedGold,
+              timestamp: Math.max(...group.timestamps, newState.step),
+            };
+
+            if (newState.marginLiquidationInsuranceVotes) {
+              delete newState.marginLiquidationInsuranceVotes[syndicateId];
+            }
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Margin Liquidation Insurance Policy Updated] Syndicate ${syndicateId} allocated additional ${diff} gold (Total: ${group.allocatedGold} gold) to margin liquidation insurance.`
+            );
+          }
+        } else if (diff < 0) {
+          // Return difference back to warChest
+          const refund = -diff;
+          syndicate.warChest = (syndicate.warChest ?? 0) + refund;
+          newState.marginLiquidationInsurancePolicies![syndicateId] = {
+            syndicateId,
+            allocatedGold: group.allocatedGold,
+            timestamp: Math.max(...group.timestamps, newState.step),
+          };
+
+          if (newState.marginLiquidationInsuranceVotes) {
+            delete newState.marginLiquidationInsuranceVotes[syndicateId];
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Margin Liquidation Insurance Policy Updated] Syndicate ${syndicateId} refunded ${refund} gold (Total: ${group.allocatedGold} gold) from margin liquidation insurance back to war chest.`
+          );
+        } else {
+          // Same value, just accept vote and clean up
+          if (newState.marginLiquidationInsuranceVotes) {
+            delete newState.marginLiquidationInsuranceVotes[syndicateId];
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  return newState;
+}
 
 
 

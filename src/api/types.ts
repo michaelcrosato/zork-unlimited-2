@@ -183,7 +183,10 @@ export type Action =
   | { type: "PROPOSE_BOND_BORROW"; borrowId: string; borrowerSyndicateId: string; lenderSyndicateId: string; bondId: string; amount: number; collateralGold: number; borrowFeeRate: number; timestamp: number }
   | { type: "APPROVE_BOND_LEND"; borrowId: string; timestamp: number }
   | { type: "SHORT_SELL_BOND"; borrowId: string; buyerSyndicateId: string; salePrice: number; timestamp: number }
-  | { type: "COVER_SHORT_POSITION"; borrowId: string; sellerSyndicateId: string; buybackPrice: number; timestamp: number };
+  | { type: "COVER_SHORT_POSITION"; borrowId: string; sellerSyndicateId: string; buybackPrice: number; timestamp: number }
+  | { type: "OPEN_SOVEREIGN_BOND_FUTURES_POSITION"; syndicateId: string; bondId: string; side: "long" | "short"; size: number; leverage: number; marginCollateral: number; timestamp: number }
+  | { type: "CLOSE_SOVEREIGN_BOND_FUTURES_POSITION"; syndicateId: string; positionId: string; timestamp: number }
+  | { type: "VOTE_MARGIN_LIQUIDATION_INSURANCE"; syndicateId: string; allocatedGold: number; timestamp: number };
 
 
 

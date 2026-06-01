@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -4215,11 +4215,57 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         marginAccount.swfGracePeriodExtensions = {};
       }
 
+      let hasActiveFutures = false;
+      if (newState.sovereignBondFuturesPositions) {
+        for (const pos of Object.values(newState.sovereignBondFuturesPositions)) {
+          if (pos.active && pos.syndicateId === syndicateId) {
+            hasActiveFutures = true;
+            break;
+          }
+        }
+      }
+
       if (marginAccount.collateral === 0 &&
           (!marginAccount.leveragedCDSIds || marginAccount.leveragedCDSIds.length === 0) &&
           (!marginAccount.leveragedSWFYieldCDOCDSIds || marginAccount.leveragedSWFYieldCDOCDSIds.length === 0) &&
-          (!marginAccount.leveragedTranchePositions || Object.keys(marginAccount.leveragedTranchePositions).length === 0)) {
+          (!marginAccount.leveragedTranchePositions || Object.keys(marginAccount.leveragedTranchePositions).length === 0) &&
+          !hasActiveFutures) {
         continue;
+      }
+
+      // Mark-to-market settlement for active sovereign bond futures positions (AF-143)
+      let sumFuturesMaintenanceRequirement = 0;
+      if (newState.sovereignBondFuturesPositions) {
+        newState.sovereignBondFuturesPositions = { ...newState.sovereignBondFuturesPositions };
+        for (const posId of Object.keys(newState.sovereignBondFuturesPositions)) {
+          const pos = newState.sovereignBondFuturesPositions[posId];
+          if (pos && pos.active && pos.syndicateId === syndicateId) {
+            // Calculate mark-to-market
+            const currentYield = getBondCurrentYield(newState, pos.bondId);
+            const diff = currentYield - pos.entryPrice;
+            const profit = Math.round((pos.side === "long" ? 1 : -1) * diff * pos.size * pos.leverage);
+
+            // Realize mark-to-market profit/loss
+            marginAccount.collateral = Math.max(0, marginAccount.collateral + profit);
+            
+            newState.sovereignBondFuturesPositions[posId] = {
+              ...pos,
+              entryPrice: currentYield,
+              timestamp: newState.step,
+            };
+
+            // Calculate maintenance requirement for this position
+            const futuresRequired = Math.round((pos.size * currentYield * 0.10) / pos.leverage);
+            sumFuturesMaintenanceRequirement += futuresRequired;
+
+            if (profit !== 0) {
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Sovereign Bond Futures Mark-to-Market] Syndicate ${syndicateId} position ${pos.id} (bond ${pos.bondId}) settled MTM. Current yield: ${currentYield.toFixed(2)}%, profit/loss: ${profit} gold.`
+              );
+            }
+          }
+        }
       }
 
       // Calculate Net Margin Value (Net Equity)
@@ -4309,7 +4355,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
       const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
       const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
-      let maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent;
+      let maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement;
 
       // AF-112: Preemptive Drawdown Loop to prevent margin call liquidations
       if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
@@ -4351,7 +4397,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
               const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
               const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
-              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent;
+              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement;
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!
@@ -4405,7 +4451,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
               const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
               const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
-              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent;
+              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement;
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!
@@ -4417,6 +4463,24 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             marginAccount.swfVaultAllocations = allocations;
             marginAccount.timestamp = newState.step;
           }
+        }
+      }
+
+      // Automated liquidation insurance payback (AF-143)
+      if (netEquity < maintenanceRequirement && newState.marginLiquidationInsurancePolicies?.[syndicateId]) {
+        const policy = newState.marginLiquidationInsurancePolicies[syndicateId];
+        if (policy.allocatedGold > 0) {
+          const deficit = maintenanceRequirement - netEquity;
+          const payback = Math.min(deficit, policy.allocatedGold);
+          
+          policy.allocatedGold -= payback;
+          marginAccount.collateral += payback;
+          netEquity += payback;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Margin Liquidation Insurance Payback] Covered ${payback} gold deficit from the liquidation insurance pool for Syndicate ${syndicateId} to prevent margin liquidation. Remaining pool: ${policy.allocatedGold} gold.`
+          );
         }
       }
 
@@ -4488,6 +4552,22 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
                 newState.journal.push(`[Margin Liquidation] Leveraged CDO ${pos.cdoId} tranche ${pos.trancheId} ownership (stake: ${currentStakeValue}) zeroed out.`);
               }
+            }
+          }
+        }
+
+        // Deactivate all active futures positions
+        if (newState.sovereignBondFuturesPositions) {
+          newState.sovereignBondFuturesPositions = { ...newState.sovereignBondFuturesPositions };
+          for (const posId of Object.keys(newState.sovereignBondFuturesPositions)) {
+            const pos = newState.sovereignBondFuturesPositions[posId];
+            if (pos && pos.active && pos.syndicateId === syndicateId) {
+              newState.sovereignBondFuturesPositions[posId] = {
+                ...pos,
+                active: false,
+                timestamp: newState.step,
+              };
+              newState.journal.push(`[Margin Liquidation] Leveraged futures position ${posId} has been deactivated.`);
             }
           }
         }

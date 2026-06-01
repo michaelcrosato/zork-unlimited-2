@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool } from "./state.js";
 export interface MultiAgentAction {
@@ -20407,7 +20407,6 @@ export function multiAgentStep(
         });
       }
     }
-
     newState.step += 1;
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
@@ -20454,6 +20453,195 @@ export function multiAgentStep(
       ok,
       rejectionReason,
     };
+  }
+
+  // Handle decentralized OPEN_SOVEREIGN_BOND_FUTURES_POSITION action (AF-143)
+  if ((action as any).type === "OPEN_SOVEREIGN_BOND_FUTURES_POSITION") {
+    const { syndicateId, bondId, side, size, leverage, marginCollateral, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to open sovereign bond futures position.`;
+    } else if (!bondId) {
+      rejectionReason = `Bond ID is required to open sovereign bond futures position.`;
+    } else if (!side || (side !== "long" && side !== "short")) {
+      rejectionReason = `Side must be long or short.`;
+    } else if (!size || !Number.isInteger(size) || size <= 0) {
+      rejectionReason = `Size must be a positive integer.`;
+    } else if (!leverage || typeof leverage !== "number" || leverage < 1) {
+      rejectionReason = `Leverage must be a number greater than or equal to 1.`;
+    } else if (marginCollateral === undefined || !Number.isInteger(marginCollateral) || marginCollateral < 0) {
+      rejectionReason = `Margin collateral must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on futures position.`;
+    } else if (marginAccount.collateral < marginCollateral) {
+      rejectionReason = `Insufficient margin account collateral (${marginAccount.collateral} < ${marginCollateral}) to open position.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const openSovereignBondFuturesVotes = { ...(state.openSovereignBondFuturesVotes || {}) };
+      if (!openSovereignBondFuturesVotes[syndicateId]) {
+        openSovereignBondFuturesVotes[syndicateId] = {};
+      } else {
+        openSovereignBondFuturesVotes[syndicateId] = { ...openSovereignBondFuturesVotes[syndicateId] };
+      }
+
+      openSovereignBondFuturesVotes[syndicateId][agentId] = {
+        bondId,
+        side,
+        size,
+        leverage,
+        marginCollateral,
+        timestamp,
+      };
+
+      newState.openSovereignBondFuturesVotes = openSovereignBondFuturesVotes;
+      newState = reconcileSovereignBondFuturesPositions(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
+  }
+
+  // Handle decentralized CLOSE_SOVEREIGN_BOND_FUTURES_POSITION action (AF-143)
+  if ((action as any).type === "CLOSE_SOVEREIGN_BOND_FUTURES_POSITION") {
+    const { syndicateId, positionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const position = state.sovereignBondFuturesPositions?.[positionId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to close sovereign bond futures position.`;
+    } else if (!positionId) {
+      rejectionReason = `Position ID is required to close sovereign bond futures position.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!position) {
+      rejectionReason = `Futures position ${positionId} does not exist.`;
+    } else if (!position.active) {
+      rejectionReason = `Futures position ${positionId} is already closed.`;
+    } else if (position.syndicateId !== syndicateId) {
+      rejectionReason = `Futures position ${positionId} does not belong to syndicate ${syndicateId}.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to close futures position.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && position) {
+      const closeSovereignBondFuturesVotes = { ...(state.closeSovereignBondFuturesVotes || {}) };
+      if (!closeSovereignBondFuturesVotes[syndicateId]) {
+        closeSovereignBondFuturesVotes[syndicateId] = {};
+      } else {
+        closeSovereignBondFuturesVotes[syndicateId] = { ...closeSovereignBondFuturesVotes[syndicateId] };
+      }
+
+      closeSovereignBondFuturesVotes[syndicateId][agentId] = {
+        positionId,
+        timestamp,
+      };
+
+      newState.closeSovereignBondFuturesVotes = closeSovereignBondFuturesVotes;
+      newState = reconcileSovereignBondFuturesPositions(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
+  }
+
+  // Handle decentralized VOTE_MARGIN_LIQUIDATION_INSURANCE action (AF-143)
+  if ((action as any).type === "VOTE_MARGIN_LIQUIDATION_INSURANCE") {
+    const { syndicateId, allocatedGold, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to vote on margin liquidation insurance.`;
+    } else if (allocatedGold === undefined || !Number.isInteger(allocatedGold) || allocatedGold < 0) {
+      rejectionReason = `Allocated gold must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on margin liquidation insurance.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const marginLiquidationInsuranceVotes = { ...(state.marginLiquidationInsuranceVotes || {}) };
+      if (!marginLiquidationInsuranceVotes[syndicateId]) {
+        marginLiquidationInsuranceVotes[syndicateId] = {};
+      } else {
+        marginLiquidationInsuranceVotes[syndicateId] = { ...marginLiquidationInsuranceVotes[syndicateId] };
+      }
+
+      marginLiquidationInsuranceVotes[syndicateId][agentId] = {
+        allocatedGold,
+        timestamp,
+      };
+
+      newState.marginLiquidationInsuranceVotes = marginLiquidationInsuranceVotes;
+      newState = reconcileMarginLiquidationInsurancePolicies(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
   }
 
   // Handle decentralized TRIGGER_SWF_BOND_ARBITRAGE action (AF-142)
