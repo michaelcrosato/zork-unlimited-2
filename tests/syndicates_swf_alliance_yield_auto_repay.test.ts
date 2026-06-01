@@ -422,4 +422,171 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     expect(auditState.enforcementHeat?.clearing?.heat).toBe(28);
     expect(auditState.journal.some(log => log.includes("[SWF Alliance Audit Deflection]"))).toBe(true);
   });
+
+  it("should assert grace period scaling, credit recovery boost, and audit deflection under varying repayment rates, multipliers, and credit ratings (AF-225)", () => {
+    // 1. Setup initial state
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 5000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 4000,
+      },
+    };
+
+    state.syndicateAlliances = {
+      alpha: { beta: "allied" },
+      beta: { alpha: "allied" },
+    };
+
+    state.outstandingDeflectionFees = {
+      alpha: 100,
+    };
+    state.swfStakingSweepPool = 500;
+
+    state.swfMultiFundReinsurancePools = {
+      pool_1: {
+        id: "pool_1",
+        syndicateIds: ["alpha", "beta"],
+        capitalAllocated: { alpha: 1000 },
+        totalReserve: 1000,
+        volatilityHedgeRatio: 0.5,
+        targetYieldRate: 0.08,
+        historicalVolatility: 15,
+        linkStateDropRate: 0.6,
+        volatilityShock: 0,
+        baseBridgeRatio: 0.5,
+        arbitrageRoutes: [],
+        timestamp: 1001,
+        active: true,
+      }
+    };
+
+    // Test Case A: Repayment Rate = 0.10, Recovery Multiplier = 2.0
+    // baseRecovery = 10, recoveryMultiplier = 2.0, repayRate = 0.10
+    // ratingBoost = Math.round(10 * 2.0 * (1.0 + 0.10 * 5)) = Math.round(20 * 1.5) = 30
+    // Let's assert this credit rating boost on a rating of 80 => 110
+    state.creditRatings = { alpha: 80 };
+    state.swfAllianceYieldAutoRepayRate = 0.10;
+    state.swfAllianceYieldAutoRepayPartitionThreshold = 0.4;
+    state.swfAllianceYieldAutoRepayGracePeriodMultiplier = 1.0;
+    state.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier = 2.0;
+    state.swfAllianceYieldAutoRepayProposals = {
+      repay_prop_3: {
+        proposalId: "repay_prop_3",
+        syndicateId: "alpha",
+        yieldRate: 0.10,
+        partitionThreshold: 0.4,
+        gracePeriodMultiplier: 1.0,
+        creditRatingRecoveryMultiplier: 2.0,
+        status: "authorized",
+        resolved: true,
+        proposerId: "player",
+        timestamp: 1000,
+      }
+    };
+
+    let tickedState = tickEconomy(state, mockPack);
+    expect(tickedState.creditRatings?.alpha).toBe(110); // 80 + 30
+
+    // Test Case B: Repayment Rate = 0.50, Recovery Multiplier = 1.0
+    // baseRecovery = 10, recoveryMultiplier = 1.0, repayRate = 0.50
+    // ratingBoost = Math.round(10 * 1.0 * (1.0 + 0.50 * 5)) = Math.round(10 * 3.5) = 35
+    // Let's assert this credit rating boost on a rating of 80 => 115
+    state.creditRatings = { alpha: 80 };
+    state.swfAllianceYieldAutoRepayRate = 0.50;
+    state.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier = 1.0;
+    state.swfAllianceYieldAutoRepayProposals.repay_prop_3 = {
+      proposalId: "repay_prop_3",
+      syndicateId: "alpha",
+      yieldRate: 0.50,
+      partitionThreshold: 0.4,
+      gracePeriodMultiplier: 1.0,
+      creditRatingRecoveryMultiplier: 1.0,
+      status: "authorized",
+      resolved: true,
+      proposerId: "player",
+      timestamp: 1000,
+    };
+
+    tickedState = tickEconomy(state, mockPack);
+    expect(tickedState.creditRatings?.alpha).toBe(115); // 80 + 35
+
+    // Test Case C: Grace Period Multiplier and Rating Multiplier check
+    // High credit rating = 180 (>= 100)
+    // ratingMultiplier = Math.max(0.1, 1.0 - (180 - 100) / 200) = 1.0 - 0.4 = 0.6
+    // Effective Grace Requirement with gracePeriodMultiplier = 1.0:
+    // Math.round(50 * 1.0 * 0.6) = 30.
+    // If credit rating is 80 (< 100):
+    // ratingMultiplier = 1.0 + (100 - 80) / 100 = 1.2
+    // Effective Grace Requirement with gracePeriodMultiplier = 1.5:
+    // Math.round(50 * 1.5 * 1.2) = 90.
+    // Let's verify these calculations using tickEconomy audit deflection check!
+    
+    // First, let's test high credit rating (180) which reduces requirement to 30.
+    // Credit rating is 180 >= 30, so deflection should succeed.
+    tickedState.creditRatings = { alpha: 180 };
+    tickedState.swfAllianceYieldAutoRepayRate = 0.1;
+    tickedState.swfAllianceYieldAutoRepayGracePeriodMultiplier = 1.0;
+    
+    tickedState.frontBusinesses = {
+      front_1: {
+        id: "front_1",
+        merchantId: "merchant_timmy",
+        roomId: "clearing",
+        syndicateId: "alpha",
+        level: 1,
+        dirtyGold: 100,
+        cleanGold: 50,
+        launderingCapacity: 500,
+        launderingRate: 50,
+        activeAudit: true,
+        timestamp: 1002,
+      }
+    };
+
+    tickedState.enforcementHeat = {
+      clearing: {
+        roomId: "clearing",
+        heat: 40,
+        timestamp: 1002,
+      }
+    };
+
+    tickedState.step = 5;
+    let auditState = tickEconomy(tickedState, mockPack);
+    expect(auditState.frontBusinesses?.front_1?.activeAudit).toBe(false); // Successfully deflected!
+
+    // Second, let's test low credit rating (80) with gracePeriodMultiplier = 1.5
+    // Requirement = Math.round(50 * 1.5 * 1.2) = 90.
+    // Since creditRating is 80 < 90, deflection should fail.
+    tickedState.creditRatings = { alpha: 80 };
+    tickedState.swfAllianceYieldAutoRepayGracePeriodMultiplier = 1.5;
+    tickedState.frontBusinesses!.front_1.activeAudit = true;
+    
+    // Let's stub/mock random number generation for audit resolution to fail defense
+    // (since defense score = 0, audit strength will definitely be higher).
+    let auditStateFailed = tickEconomy(tickedState, mockPack);
+    expect(auditStateFailed.frontBusinesses?.front_1?.activeAudit).toBe(false); // Finished audit tick
+    // Let's assert it failed rather than deflected by checking journal or confiscated gold
+    expect(auditStateFailed.journal.some(log => log.includes("[SWF Alliance Audit Deflection]"))).toBe(false);
+    expect(auditStateFailed.journal.some(log => log.includes("failed money laundering audit"))).toBe(true);
+  });
 });
