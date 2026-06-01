@@ -2247,7 +2247,44 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
           if (policy && policy.active) {
             const primarySyndId = updatedJointLoan.syndicateId;
-            const pool = newState.jointLoanInsurancePools?.[primarySyndId];
+            let pool = newState.jointLoanInsurancePools?.[primarySyndId];
+
+            // Perform Secondary Reserve Ratio Compliance Checks and Deductions first!
+            const reserve = newState.secondaryReserves?.[primarySyndId];
+            if (reserve && pool && pool.poolGold > 0) {
+              const reserveRatio = reserve.reserveRatio;
+              const targetReserve = Math.ceil(pool.poolGold * reserveRatio);
+              const currentReserveGold = reserve.reserveGold;
+              if (currentReserveGold < targetReserve) {
+                const deficit = targetReserve - currentReserveGold;
+                const deduction = Math.min(pool.poolGold, deficit);
+                if (deduction > 0) {
+                  // Deduct from primary pool
+                  const updatedPool = { ...pool };
+                  updatedPool.poolGold -= deduction;
+                  updatedPool.timestamp = newState.step;
+                  newState.jointLoanInsurancePools![primarySyndId] = updatedPool;
+
+                  // Add to secondary reserve
+                  const updatedReserve = {
+                    ...reserve,
+                    reserveGold: currentReserveGold + deduction,
+                    timestamp: newState.step,
+                  };
+                  if (!newState.secondaryReserves) {
+                    newState.secondaryReserves = {};
+                  }
+                  newState.secondaryReserves[primarySyndId] = updatedReserve;
+
+                  newState.journal.push(
+                    `[Secondary Reserve] Syndicate ${primarySyndId} completed ratio compliance check: deducted ${deduction} gold from primary pool to secondary reserve (Target: ${targetReserve}, New Reserve: ${updatedReserve.reserveGold}, Pool Gold: ${updatedPool.poolGold}).`
+                  );
+                }
+              }
+            }
+
+            // Get a fresh copy of the primary pool after potential compliance deductions!
+            pool = newState.jointLoanInsurancePools?.[primarySyndId];
             if (pool && pool.poolGold > 0) {
               const updatedPool = { ...pool };
               coveragePaid = Math.min(remainingDue, updatedPool.poolGold);
@@ -2436,6 +2473,66 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
                       newState.journal.push(
                         `[Reinsurance Collateral Claim] Claimed and liquidated partner syndicate ${partnerSyndId}'s secondary reinsurance collateral ${pledge.collateralType} ${pledge.collateralId} for ${colVal} gold (Covered: ${coverageVal} gold, Remaining due: ${remainingDue}).`
+                      );
+                    }
+                  }
+                }
+                if (remainingDue <= 0) break;
+              }
+            }
+
+            // Fallback Secondary Reserve Automated Bailout (AF-105)
+            if (remainingDue > 0 && newState.reinsuranceContracts) {
+              for (const [contractId, contract] of Object.entries(newState.reinsuranceContracts)) {
+                if (contract.active && (contract.syndicateIdA === primarySyndId || contract.syndicateIdB === primarySyndId)) {
+                  const partnerSyndId = contract.syndicateIdA === primarySyndId ? contract.syndicateIdB : contract.syndicateIdA;
+                  const partnerReserve = newState.secondaryReserves?.[partnerSyndId];
+
+                  if (partnerReserve && partnerReserve.reserveGold > 0) {
+                    const bailoutAmt = Math.min(remainingDue, partnerReserve.reserveGold);
+                    if (bailoutAmt > 0) {
+                      // Deduct from partner's secondary reserve
+                      const updatedPartnerReserve = {
+                        ...partnerReserve,
+                        reserveGold: partnerReserve.reserveGold - bailoutAmt,
+                        timestamp: newState.step,
+                      };
+                      if (!newState.secondaryReserves) {
+                        newState.secondaryReserves = {};
+                      }
+                      newState.secondaryReserves[partnerSyndId] = updatedPartnerReserve;
+
+                      // Add to primary syndicate's primary insurance pool and immediately spend to cover default
+                      const primaryPool = newState.jointLoanInsurancePools?.[primarySyndId];
+                      if (primaryPool) {
+                        const updatedPrimaryPool = {
+                          ...primaryPool,
+                          poolGold: primaryPool.poolGold + bailoutAmt - bailoutAmt,
+                          timestamp: newState.step,
+                        };
+                        newState.jointLoanInsurancePools![primarySyndId] = updatedPrimaryPool;
+                      }
+
+                      // Record the automated bailout
+                      const bailoutId = `${partnerSyndId}:${primarySyndId}:${newState.step}`;
+                      const newBailout = {
+                        id: bailoutId,
+                        sourceSyndicateId: partnerSyndId,
+                        targetSyndicateId: primarySyndId,
+                        bailoutAmount: bailoutAmt,
+                        timestamp: newState.step,
+                      };
+                      if (!newState.automatedBailouts) {
+                        newState.automatedBailouts = {};
+                      }
+                      newState.automatedBailouts[bailoutId] = newBailout;
+
+                      remainingDue -= bailoutAmt;
+                      collected += bailoutAmt;
+                      coveragePaid += bailoutAmt;
+
+                      newState.journal.push(
+                        `[Secondary Reserve Bailout] Automated secondary reserve bailout triggered: partner syndicate ${partnerSyndId} bailed out primary syndicate ${primarySyndId} with ${bailoutAmt} gold of secondary reserves (Target remaining due: ${remainingDue}).`
                       );
                     }
                   }

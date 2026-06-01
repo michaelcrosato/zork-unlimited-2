@@ -981,6 +981,29 @@ export const ReinsuranceLiquidityAuditSchema = z.object({
 });
 export type ReinsuranceLiquidityAudit = z.infer<typeof ReinsuranceLiquidityAuditSchema>;
 
+export const SecondaryReserveSchema = z.object({
+  syndicateId: z.string(),
+  reserveGold: z.number().int().nonnegative(),
+  reserveRatio: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SecondaryReserve = z.infer<typeof SecondaryReserveSchema>;
+
+export const ReserveRatioVoteSchema = z.object({
+  reserveRatio: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type ReserveRatioVote = z.infer<typeof ReserveRatioVoteSchema>;
+
+export const AutomatedBailoutSchema = z.object({
+  id: z.string(),
+  sourceSyndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  bailoutAmount: z.number().int().positive(),
+  timestamp: z.number().int(),
+});
+export type AutomatedBailout = z.infer<typeof AutomatedBailoutSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1225,6 +1248,9 @@ export const GameStateSchema = z.object({
   reinsuranceRiskRatingVotes: z.record(z.string(), z.record(z.string(), ReinsuranceRiskRatingVoteSchema)).optional(),
   reinsuranceLiquidityAudits: z.record(z.string(), ReinsuranceLiquidityAuditSchema).optional(),
   reinsuranceLiquidityAuditVotes: z.record(z.string(), z.record(z.string(), ReinsuranceLiquidityAuditVoteSchema)).optional(),
+  secondaryReserves: z.record(z.string(), SecondaryReserveSchema).optional(),
+  reserveRatioVotes: z.record(z.string(), z.record(z.string(), ReserveRatioVoteSchema)).optional(),
+  automatedBailouts: z.record(z.string(), AutomatedBailoutSchema).optional(),
 });
 
 
@@ -1395,6 +1421,9 @@ export const createInitialState = (options: {
     reinsuranceRiskRatingVotes: {},
     reinsuranceLiquidityAudits: {},
     reinsuranceLiquidityAuditVotes: {},
+    secondaryReserves: {},
+    reserveRatioVotes: {},
+    automatedBailouts: {},
   };
 };
 
@@ -2138,6 +2167,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     reinsuranceRiskRatingVotes: rest.reinsuranceRiskRatingVotes ? JSON.parse(JSON.stringify(rest.reinsuranceRiskRatingVotes)) : undefined,
     reinsuranceLiquidityAudits: rest.reinsuranceLiquidityAudits ? JSON.parse(JSON.stringify(rest.reinsuranceLiquidityAudits)) : undefined,
     reinsuranceLiquidityAuditVotes: rest.reinsuranceLiquidityAuditVotes ? JSON.parse(JSON.stringify(rest.reinsuranceLiquidityAuditVotes)) : undefined,
+    secondaryReserves: rest.secondaryReserves ? JSON.parse(JSON.stringify(rest.secondaryReserves)) : undefined,
+    reserveRatioVotes: rest.reserveRatioVotes ? JSON.parse(JSON.stringify(rest.reserveRatioVotes)) : undefined,
+    automatedBailouts: rest.automatedBailouts ? JSON.parse(JSON.stringify(rest.automatedBailouts)) : undefined,
   };
   return clone;
 }
@@ -4334,6 +4366,53 @@ export function reconcileReinsuranceLiquidityAudits(state: GameState, pack: any)
 
   return newState;
 }
+
+export function reconcileReserveRatios(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    secondaryReserves: state.secondaryReserves ? { ...state.secondaryReserves } : {},
+  };
+
+  if (!newState.reserveRatioVotes) {
+    newState.reserveRatioVotes = {};
+  }
+
+  for (const [syndicateId, votes] of Object.entries(newState.reserveRatioVotes)) {
+    const syndicate = state.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.reserveRatio] = (counts[vote.reserveRatio] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    // Default ratio is 0.20 if no consensus or existing
+    let consensusRatio = newState.secondaryReserves[syndicateId]?.reserveRatio ?? 0.20;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort ratios descending to prefer higher ratios.
+    const uniqueRatios = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const ratio of uniqueRatios) {
+      const count = counts[ratio];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRatio = ratio;
+      }
+    }
+
+    const currentReserve = newState.secondaryReserves[syndicateId];
+    newState.secondaryReserves[syndicateId] = {
+      syndicateId,
+      reserveGold: currentReserve?.reserveGold ?? 0,
+      reserveRatio: consensusRatio,
+      timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), currentReserve?.timestamp ?? 0),
+    };
+  }
+
+  return newState;
+}
+
 
 
 

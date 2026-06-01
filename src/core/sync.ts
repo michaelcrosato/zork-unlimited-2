@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -17036,6 +17036,257 @@ export function multiAgentStep(
         tunnelId,
         cargoCapacity,
         cost,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ADJUST_RESERVE_RATIO action (AF-105)
+  if ((action as any).type === "ADJUST_RESERVE_RATIO") {
+    const { syndicateId, reserveRatio, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to adjust reserve ratio.`;
+    } else if (reserveRatio === undefined || reserveRatio < 0 || typeof reserveRatio !== "number") {
+      rejectionReason = `Proposed reserve ratio must be a non-negative number.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const reserveRatioVotes = { ...(state.reserveRatioVotes || {}) };
+      if (!reserveRatioVotes[syndicateId]) {
+        reserveRatioVotes[syndicateId] = {};
+      } else {
+        reserveRatioVotes[syndicateId] = { ...reserveRatioVotes[syndicateId] };
+      }
+
+      const existingVote = reserveRatioVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        reserveRatioVotes[syndicateId][agentId] = {
+          reserveRatio,
+          timestamp,
+        };
+        newState.reserveRatioVotes = reserveRatioVotes;
+        newState = reconcileReserveRatios(newState, pack);
+
+        const newConsensusRatio = newState.secondaryReserves?.[syndicateId]?.reserveRatio ?? 0.20;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Syndicate] Agent ${agentId} voted for secondary reserve ratio ${reserveRatio} in syndicate ${syndicateId} (New consensus ratio: ${newConsensusRatio}).`
+        );
+
+        customEvents.push({
+          type: "reserve_ratio_adjusted" as any,
+          agentId,
+          syndicateId,
+          reserveRatio,
+          consensusRatio: newConsensusRatio,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized EXECUTE_AUTOMATED_BAILOUT action (AF-105)
+  if ((action as any).type === "EXECUTE_AUTOMATED_BAILOUT") {
+    const { sourceSyndicateId, targetSyndicateId, bailoutAmount, timestamp } = action as any;
+    const pairKey = [sourceSyndicateId || "", targetSyndicateId || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndSrc = state.syndicates?.[sourceSyndicateId];
+    const syndDst = state.syndicates?.[targetSyndicateId];
+    const contract = state.reinsuranceContracts?.[pairKey];
+    const srcReserve = state.secondaryReserves?.[sourceSyndicateId];
+    const dstPool = state.jointLoanInsurancePools?.[targetSyndicateId];
+
+    if (!sourceSyndicateId || !targetSyndicateId) {
+      rejectionReason = `Both sourceSyndicateId and targetSyndicateId are required to execute a bailout.`;
+    } else if (!syndSrc) {
+      rejectionReason = `Source syndicate ${sourceSyndicateId} does not exist.`;
+    } else if (!syndDst) {
+      rejectionReason = `Target syndicate ${targetSyndicateId} does not exist.`;
+    } else if (sourceSyndicateId === targetSyndicateId) {
+      rejectionReason = `Cannot execute a bailout to the same syndicate.`;
+    } else if (bailoutAmount === undefined || bailoutAmount <= 0 || !Number.isInteger(bailoutAmount)) {
+      rejectionReason = `Bailout amount must be a positive integer.`;
+    } else if (!syndSrc.members.includes(agentId) && !syndDst.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of either syndicate and cannot execute a bailout.`;
+    } else if (!contract || !contract.active) {
+      rejectionReason = `Active reinsurance contract does not exist between ${sourceSyndicateId} and ${targetSyndicateId}.`;
+    } else if (!srcReserve || srcReserve.reserveGold < bailoutAmount) {
+      rejectionReason = `Source syndicate ${sourceSyndicateId} has insufficient secondary reserves (has ${srcReserve?.reserveGold ?? 0}, requested ${bailoutAmount}).`;
+    } else if (!dstPool) {
+      rejectionReason = `Target syndicate ${targetSyndicateId}'s insurance pool is not established.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndSrc && syndDst && dstPool && srcReserve) {
+      // Deduct from source secondary reserve
+      const updatedSrcReserve = {
+        ...srcReserve,
+        reserveGold: srcReserve.reserveGold - bailoutAmount,
+        timestamp,
+      };
+      newState.secondaryReserves = {
+        ...(state.secondaryReserves || {}),
+        [sourceSyndicateId]: updatedSrcReserve,
+      };
+
+      // Add to target primary insurance pool
+      const updatedDstPool = {
+        ...dstPool,
+        poolGold: dstPool.poolGold + bailoutAmount,
+        timestamp,
+      };
+      newState.jointLoanInsurancePools = {
+        ...(state.jointLoanInsurancePools || {}),
+        [targetSyndicateId]: updatedDstPool,
+      };
+
+      // Record bailout
+      const bailoutId = `${sourceSyndicateId}:${targetSyndicateId}:${timestamp}`;
+      const newBailout = {
+        id: bailoutId,
+        sourceSyndicateId,
+        targetSyndicateId,
+        bailoutAmount,
+        timestamp,
+      };
+      newState.automatedBailouts = {
+        ...(state.automatedBailouts || {}),
+        [bailoutId]: newBailout,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Automated Bailout] Agent ${agentId} manually executed automated bailout of ${bailoutAmount} gold from ${sourceSyndicateId} secondary reserves to ${targetSyndicateId} insurance pool.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Automated bailout executed! ${sourceSyndicateId} transferred ${bailoutAmount} gold of secondary reserves to ${targetSyndicateId} insurance pool.`,
+      } as any);
+
+      customEvents.push({
+        type: "automated_bailout_executed" as any,
+        sourceSyndicateId,
+        targetSyndicateId,
+        bailoutAmount,
+        agentId,
         timestamp,
       });
     }

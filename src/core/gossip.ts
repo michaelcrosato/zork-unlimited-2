@@ -1844,6 +1844,47 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge secondaryReserves using LWW (Last-Write-Wins)
+  const secondaryReserves = { ...stateA.secondaryReserves };
+  if (stateB.secondaryReserves) {
+    for (const [key, reserveB] of Object.entries(stateB.secondaryReserves)) {
+      const reserveA = secondaryReserves[key];
+      if (!reserveA || reserveB.timestamp > reserveA.timestamp) {
+        secondaryReserves[key] = reserveB;
+      }
+    }
+  }
+
+  // Merge reserveRatioVotes using LWW (Last-Write-Wins)
+  const reserveRatioVotes = { ...stateA.reserveRatioVotes };
+  if (stateB.reserveRatioVotes) {
+    for (const [syndicateId, bInner] of Object.entries(stateB.reserveRatioVotes)) {
+      if (!reserveRatioVotes[syndicateId]) {
+        reserveRatioVotes[syndicateId] = { ...bInner };
+      } else {
+        const aInner = { ...reserveRatioVotes[syndicateId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        reserveRatioVotes[syndicateId] = aInner;
+      }
+    }
+  }
+
+  // Merge automatedBailouts using LWW (Last-Write-Wins)
+  const automatedBailouts = { ...stateA.automatedBailouts };
+  if (stateB.automatedBailouts) {
+    for (const [key, bailoutB] of Object.entries(stateB.automatedBailouts)) {
+      const bailoutA = automatedBailouts[key];
+      if (!bailoutA || bailoutB.timestamp > bailoutA.timestamp) {
+        automatedBailouts[key] = bailoutB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -1959,6 +2000,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     reinsuranceRiskRatingVotes,
     reinsuranceLiquidityAudits,
     reinsuranceLiquidityAuditVotes,
+    secondaryReserves,
+    reserveRatioVotes,
+    automatedBailouts,
   };
 }
 
