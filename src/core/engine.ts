@@ -2471,28 +2471,64 @@ export function tickProductionLabs(
         }
 
         if (yieldAmount > 0) {
-          // Distribute fractional dividends to syndicates
-          for (const [syndicateId, contribution] of Object.entries(fund.syndicates)) {
-            const syndicate = updatedSyndicates[syndicateId];
-            if (!syndicate) continue;
+          // 1. Calculate and distribute derivative yield dividends to token holders (AF-130)
+          let totalDerivativePaid = 0;
+          if (newState.swfYieldTokens) {
+            for (const [tokenId, token] of Object.entries(newState.swfYieldTokens)) {
+              if (token.portfolioId === portfolioId) {
+                for (const [syndicateId, sharesOwned] of Object.entries(token.syndicateShares)) {
+                  if (sharesOwned > 0) {
+                    const dividend = Math.floor(yieldAmount * (sharesOwned / token.totalShares));
+                    if (dividend > 0) {
+                      const syndicate = updatedSyndicates[syndicateId];
+                      if (syndicate) {
+                        syndicate.warChest = (syndicate.warChest ?? 0) + dividend;
+                        totalDerivativePaid += dividend;
 
-            const factionShare = contribution / totalContributed;
-            const dividend = Math.floor(yieldAmount * factionShare);
-
-            if (dividend > 0) {
-              syndicate.warChest = (syndicate.warChest ?? 0) + dividend;
-              
-              if (!newState.journal) newState.journal = [];
-              newState.journal.push(
-                `[JV Dividend Paid] Syndicate ${syndicateId} received fractional dividend of ${dividend} gold from joint-venture ${portfolioId} (${(factionShare * 100).toFixed(1)}% share).`
-              );
+                        if (!newState.journal) newState.journal = [];
+                        newState.journal.push(
+                          `[SWF Yield Token Dividend Paid] Syndicate ${syndicateId} received derivative dividend of ${dividend} gold for owning ${sharesOwned} shares of yield token ${tokenId} linked to portfolio ${portfolioId}.`
+                        );
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
 
-          events.push({
-            type: "narration",
-            text: `📈 [JV Investment Yield] Joint-venture portfolio ${portfolioId} (${portfolio.targetType} on ${portfolio.targetId}) generated ${yieldAmount} gold in yields, distributed to SWF ${portfolio.fundId} syndicates.`,
-          } as any);
+          if (totalDerivativePaid > 0) {
+            events.push({
+              type: "narration",
+              text: `📈 [SWF Yield Token Payout] Yield token holders received ${totalDerivativePaid} gold in derivative dividends from portfolio ${portfolioId}.`,
+            } as any);
+          }
+
+          // 2. Distribute remaining fractional dividends to original SWF syndicates
+          const remainingYield = Math.max(0, yieldAmount - totalDerivativePaid);
+          if (remainingYield > 0) {
+            for (const [syndicateId, contribution] of Object.entries(fund.syndicates)) {
+              const syndicate = updatedSyndicates[syndicateId];
+              if (!syndicate) continue;
+
+              const factionShare = contribution / totalContributed;
+              const dividend = Math.floor(remainingYield * factionShare);
+
+              if (dividend > 0) {
+                syndicate.warChest = (syndicate.warChest ?? 0) + dividend;
+                
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[JV Dividend Paid] Syndicate ${syndicateId} received fractional dividend of ${dividend} gold from joint-venture ${portfolioId} (${(factionShare * 100).toFixed(1)}% share).`
+                );
+              }
+            }
+
+            events.push({
+              type: "narration",
+              text: `📈 [JV Investment Yield] Joint-venture portfolio ${portfolioId} (${portfolio.targetType} on ${portfolio.targetId}) generated ${yieldAmount} gold in yields, distributed remaining ${remainingYield} gold to SWF ${portfolio.fundId} syndicates.`,
+            } as any);
+          }
 
           portfoliosChanged = true;
         }
@@ -2504,6 +2540,84 @@ export function tickProductionLabs(
       newState.sovereignWealthFunds = updatedFunds;
       newState.syndicates = updatedSyndicates;
       newState.factionReservePools = updatedFactionReserves;
+    }
+  }
+
+  // Automated SWF Multi-Fund Risk Pooling (AF-130)
+  if (newState.swfRiskPools && Object.keys(newState.swfRiskPools).length > 0) {
+    const updatedRiskPools = { ...newState.swfRiskPools };
+    const updatedFunds = newState.sovereignWealthFunds ? { ...newState.sovereignWealthFunds } : {};
+    let riskPoolsChanged = false;
+
+    for (const [poolId, riskPool] of Object.entries(updatedRiskPools)) {
+      if (riskPool.status === "Active" && riskPool.totalPooledReserves > 0) {
+        // Safety threshold for each participating fund: 50 gold
+        const safetyThreshold = 50;
+
+        for (const fundId of riskPool.fundIds) {
+          const fund = updatedFunds[fundId];
+          if (!fund) continue;
+
+          if (fund.totalReserves < safetyThreshold && riskPool.totalPooledReserves > 0) {
+            const deficit = safetyThreshold - fund.totalReserves;
+            const transferAmount = Math.min(deficit, riskPool.totalPooledReserves);
+
+            if (transferAmount > 0) {
+              const oldReserves = fund.totalReserves;
+              fund.totalReserves += transferAmount;
+              riskPool.totalPooledReserves -= transferAmount;
+
+              // Deduct proportionally from fund contributions in the risk pool
+              let totalContributions = 0;
+              for (const amt of Object.values(riskPool.fundContributions)) {
+                totalContributions += amt;
+              }
+
+              if (totalContributions > 0) {
+                const updatedContributions = { ...riskPool.fundContributions };
+                let remainingDeduction = transferAmount;
+                const sortedContributionKeys = Object.keys(updatedContributions).sort(
+                  (a, b) => updatedContributions[b] - updatedContributions[a]
+                );
+
+                for (const fId of sortedContributionKeys) {
+                  const contribution = updatedContributions[fId];
+                  const deduction = Math.floor(transferAmount * (contribution / totalContributions));
+                  const actualDeduction = Math.min(deduction, contribution, remainingDeduction);
+
+                  updatedContributions[fId] = contribution - actualDeduction;
+                  remainingDeduction -= actualDeduction;
+                }
+
+                // If there's still a remainder due to floor division, deduct from the highest contributor
+                if (remainingDeduction > 0 && sortedContributionKeys.length > 0) {
+                  const highestFId = sortedContributionKeys[0];
+                  updatedContributions[highestFId] = Math.max(0, updatedContributions[highestFId] - remainingDeduction);
+                }
+
+                riskPool.fundContributions = updatedContributions;
+              }
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Risk Pool Auto-Bailout] Risk pool ${poolId} automatically transferred ${transferAmount} gold to bail out SWF ${fundId} (reserves: ${oldReserves} -> ${fund.totalReserves}).`
+              );
+
+              events.push({
+                type: "narration",
+                text: `🛡️ [Risk Pool Auto-Bailout] SWF ${fundId} fell below safety threshold. Risk pool ${poolId} automatically transferred ${transferAmount} gold to restore its reserves.`,
+              } as any);
+
+              riskPoolsChanged = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (riskPoolsChanged) {
+      newState.swfRiskPools = updatedRiskPools;
+      newState.sovereignWealthFunds = updatedFunds;
     }
   }
 

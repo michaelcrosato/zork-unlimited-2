@@ -1545,6 +1545,60 @@ export const JointVentureAssetLiquidationProposalSchema = z.object({
 });
 export type JointVentureAssetLiquidationProposal = z.infer<typeof JointVentureAssetLiquidationProposalSchema>;
 
+export const SWFYieldTokenSchema = z.object({
+  id: z.string(),
+  portfolioId: z.string(),
+  issuerFundId: z.string(),
+  totalShares: z.number().int().positive(),
+  syndicateShares: z.record(z.string(), z.number().int().nonnegative()),
+  pricePerShare: z.number().int().positive(),
+  timestamp: z.number().int(),
+});
+export type SWFYieldToken = z.infer<typeof SWFYieldTokenSchema>;
+
+export const SWFYieldTokenProposalSchema = z.object({
+  id: z.string(),
+  portfolioId: z.string(),
+  fundId: z.string(),
+  proposerSyndicateId: z.string(),
+  totalShares: z.number().int().positive(),
+  pricePerShare: z.number().int().positive(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFYieldTokenProposal = z.infer<typeof SWFYieldTokenProposalSchema>;
+
+export const SWFRiskPoolSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  fundIds: z.array(z.string()),
+  totalPooledReserves: z.number().int().nonnegative(),
+  fundContributions: z.record(z.string(), z.number().int().nonnegative()),
+  status: z.enum(["Active", "Closed"]),
+  timestamp: z.number().int(),
+});
+export type SWFRiskPool = z.infer<typeof SWFRiskPoolSchema>;
+
+export const SWFRiskPoolProposalSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  fundIds: z.array(z.string()),
+  contributions: z.record(z.string(), z.number().int().nonnegative()),
+  proposerSyndicateId: z.string(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFRiskPoolProposal = z.infer<typeof SWFRiskPoolProposalSchema>;
+
+
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
   totalLocked: z.number().int().nonnegative(),
@@ -1949,6 +2003,10 @@ export const GameStateSchema = z.object({
   jointVentureInvestmentProposals: z.record(z.string(), JointVentureInvestmentProposalSchema).optional(),
   jointVenturePortfolioSwapProposals: z.record(z.string(), JointVenturePortfolioSwapProposalSchema).optional(),
   jointVentureAssetLiquidationProposals: z.record(z.string(), JointVentureAssetLiquidationProposalSchema).optional(),
+  swfYieldTokens: z.record(z.string(), SWFYieldTokenSchema).optional(),
+  swfYieldTokenProposals: z.record(z.string(), SWFYieldTokenProposalSchema).optional(),
+  swfRiskPools: z.record(z.string(), SWFRiskPoolSchema).optional(),
+  swfRiskPoolProposals: z.record(z.string(), SWFRiskPoolProposalSchema).optional(),
 });
 
 
@@ -2176,6 +2234,10 @@ export const createInitialState = (options: {
     jointVentureInvestmentProposals: {},
     jointVenturePortfolioSwapProposals: {},
     jointVentureAssetLiquidationProposals: {},
+    swfYieldTokens: {},
+    swfYieldTokenProposals: {},
+    swfRiskPools: {},
+    swfRiskPoolProposals: {},
   };
 };
 
@@ -2995,6 +3057,12 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     jointVenturePortfolios: rest.jointVenturePortfolios ? JSON.parse(JSON.stringify(rest.jointVenturePortfolios)) : undefined,
     sovereignWealthFundProposals: rest.sovereignWealthFundProposals ? JSON.parse(JSON.stringify(rest.sovereignWealthFundProposals)) : undefined,
     jointVentureInvestmentProposals: rest.jointVentureInvestmentProposals ? JSON.parse(JSON.stringify(rest.jointVentureInvestmentProposals)) : undefined,
+    jointVenturePortfolioSwapProposals: rest.jointVenturePortfolioSwapProposals ? JSON.parse(JSON.stringify(rest.jointVenturePortfolioSwapProposals)) : undefined,
+    jointVentureAssetLiquidationProposals: rest.jointVentureAssetLiquidationProposals ? JSON.parse(JSON.stringify(rest.jointVentureAssetLiquidationProposals)) : undefined,
+    swfYieldTokens: rest.swfYieldTokens ? JSON.parse(JSON.stringify(rest.swfYieldTokens)) : undefined,
+    swfYieldTokenProposals: rest.swfYieldTokenProposals ? JSON.parse(JSON.stringify(rest.swfYieldTokenProposals)) : undefined,
+    swfRiskPools: rest.swfRiskPools ? JSON.parse(JSON.stringify(rest.swfRiskPools)) : undefined,
+    swfRiskPoolProposals: rest.swfRiskPoolProposals ? JSON.parse(JSON.stringify(rest.swfRiskPoolProposals)) : undefined,
   };
   return clone;
 }
@@ -7402,6 +7470,209 @@ export function reconcileJointVentureAssetLiquidations(state: GameState, pack: a
       newState.journal.push(
         `[JV Asset Liquidated] Joint-venture portfolio ${portfolioId} partially liquidated ${liquidateAmount} gold returned to SWF ${portfolio.fundId} reserves.`
       );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileMintSWFYieldTokens(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfYieldTokenProposals: state.swfYieldTokenProposals ? { ...state.swfYieldTokenProposals } : {},
+    swfYieldTokens: state.swfYieldTokens ? { ...state.swfYieldTokens } : {},
+    sovereignWealthFunds: state.sovereignWealthFunds ? { ...state.sovereignWealthFunds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    jointVenturePortfolios: state.jointVenturePortfolios ? { ...state.jointVenturePortfolios } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.swfYieldTokenProposals || {})) {
+    const proposal = newState.swfYieldTokenProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { fundId, portfolioId, totalShares, pricePerShare, timestamp } = proposal;
+    const fund = newState.sovereignWealthFunds?.[fundId];
+    const portfolio = newState.jointVenturePortfolios?.[portfolioId];
+    if (!fund || !portfolio || portfolio.status !== "Active") continue;
+
+    // Check consensus: requires majority approval from each participating syndicate in the SWF!
+    const participatingSyndicateIds = Object.keys(fund.syndicates);
+    if (participatingSyndicateIds.length === 0) continue;
+
+    let allSyndicatesApproved = true;
+    const votes = proposal.votes || {};
+
+    for (const syndicateId of participatingSyndicateIds) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) {
+        allSyndicatesApproved = false;
+        break;
+      }
+      const members = syndicate.members;
+      const yesVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length <= members.length / 2) {
+        allSyndicatesApproved = false;
+        break;
+      }
+    }
+
+    if (allSyndicatesApproved) {
+      // Proportional distribution of minted yield shares
+      let totalContributed = 0;
+      for (const amt of Object.values(fund.syndicates)) {
+        totalContributed += amt;
+      }
+
+      const syndicateShares: Record<string, number> = {};
+      if (totalContributed > 0) {
+        let remainingShares = totalShares;
+        const sortedSyndicates = Object.keys(fund.syndicates).sort(
+          (a, b) => fund.syndicates[b] - fund.syndicates[a]
+        );
+
+        for (const syndicateId of sortedSyndicates) {
+          const contribution = fund.syndicates[syndicateId];
+          const shares = Math.floor(totalShares * (contribution / totalContributed));
+          const actualShares = Math.min(shares, remainingShares);
+          syndicateShares[syndicateId] = actualShares;
+          remainingShares -= actualShares;
+        }
+
+        // Remainder to the highest contributor
+        if (remainingShares > 0 && sortedSyndicates.length > 0) {
+          const highestSyndicate = sortedSyndicates[0];
+          syndicateShares[highestSyndicate] = (syndicateShares[highestSyndicate] ?? 0) + remainingShares;
+        }
+      }
+
+      // Resolve proposal
+      newState.swfYieldTokenProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      // Mint token
+      newState.swfYieldTokens[proposalId] = {
+        id: proposalId,
+        portfolioId,
+        issuerFundId: fundId,
+        totalShares,
+        syndicateShares,
+        pricePerShare,
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Yield Token Minted] Sovereign wealth fund ${fundId} minted ${totalShares} yield-sharing derivative shares for portfolio ${portfolioId} under token ID ${proposalId}.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFRiskPools(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfRiskPoolProposals: state.swfRiskPoolProposals ? { ...state.swfRiskPoolProposals } : {},
+    swfRiskPools: state.swfRiskPools ? { ...state.swfRiskPools } : {},
+    sovereignWealthFunds: state.sovereignWealthFunds ? { ...state.sovereignWealthFunds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.swfRiskPoolProposals || {})) {
+    const proposal = newState.swfRiskPoolProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { name, fundIds, contributions, timestamp } = proposal;
+
+    // Check consensus: requires majority approval from each participating syndicate across all involved SWFs!
+    let allSyndicatesApproved = true;
+    const votes = proposal.votes || {};
+
+    for (const fundId of fundIds) {
+      const fund = newState.sovereignWealthFunds?.[fundId];
+      if (!fund) {
+        allSyndicatesApproved = false;
+        break;
+      }
+
+      const participatingSyndicateIds = Object.keys(fund.syndicates);
+      for (const syndicateId of participatingSyndicateIds) {
+        const syndicate = newState.syndicates?.[syndicateId];
+        if (!syndicate) {
+          allSyndicatesApproved = false;
+          break;
+        }
+        const members = syndicate.members;
+        const yesVotes = Object.entries(votes)
+          .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+          .map(([voterId]) => voterId);
+
+        if (yesVotes.length <= members.length / 2) {
+          allSyndicatesApproved = false;
+          break;
+        }
+      }
+      if (!allSyndicatesApproved) break;
+    }
+
+    if (allSyndicatesApproved) {
+      // Validate that all funds have enough reserves
+      let allFundsHaveReserves = true;
+      for (const fundId of fundIds) {
+        const contribution = contributions[fundId] ?? 0;
+        const fund = newState.sovereignWealthFunds?.[fundId];
+        if (!fund || fund.totalReserves < contribution) {
+          allFundsHaveReserves = false;
+          break;
+        }
+      }
+
+      if (allFundsHaveReserves) {
+        let totalPooledReserves = 0;
+
+        // Deduct contributions from each SWF
+        for (const fundId of fundIds) {
+          const contribution = contributions[fundId] ?? 0;
+          const fund = newState.sovereignWealthFunds?.[fundId];
+          if (fund) {
+            fund.totalReserves -= contribution;
+            totalPooledReserves += contribution;
+          }
+        }
+
+        // Resolve proposal
+        newState.swfRiskPoolProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        // Create Risk Pool
+        newState.swfRiskPools[proposalId] = {
+          id: proposalId,
+          name,
+          fundIds,
+          totalPooledReserves,
+          fundContributions: { ...contributions },
+          status: "Active" as const,
+          timestamp,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Risk Pool Established] Established SWF multi-fund risk pool ${proposalId} with funds ${fundIds.join(", ")} holding a combined total of ${totalPooledReserves} gold.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Risk Pool Resolution Failed] SWFs have insufficient reserves to establish risk pool ${proposalId}.`
+        );
+      }
     }
   }
 

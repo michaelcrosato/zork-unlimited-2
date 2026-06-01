@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -25013,6 +25013,696 @@ export function multiAgentStep(
 
         customEvents.push({
           type: "jv_asset_liquidation_voted" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          vote,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_MINT_SWF_YIELD_TOKEN action (AF-130)
+  if ((action as any).type === "PROPOSE_MINT_SWF_YIELD_TOKEN") {
+    const { proposalId, portfolioId, fundId, proposerSyndicateId, totalShares, pricePerShare, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[proposerSyndicateId];
+    const fund = state.sovereignWealthFunds?.[fundId];
+    const portfolio = state.jointVenturePortfolios?.[portfolioId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required to propose minting SWF yield tokens.`;
+    } else if (!portfolioId) {
+      rejectionReason = `Portfolio ID is required.`;
+    } else if (!fundId) {
+      rejectionReason = `Fund ID is required.`;
+    } else if (!proposerSyndicateId) {
+      rejectionReason = `Proposer Syndicate ID is required.`;
+    } else if (totalShares === undefined || totalShares <= 0 || !Number.isInteger(totalShares)) {
+      rejectionReason = `Total shares must be a positive integer.`;
+    } else if (pricePerShare === undefined || pricePerShare <= 0 || !Number.isInteger(pricePerShare)) {
+      rejectionReason = `Price per share must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Proposer Syndicate ${proposerSyndicateId} does not exist.`;
+    } else if (!fund) {
+      rejectionReason = `Sovereign Wealth Fund ${fundId} does not exist.`;
+    } else if (!portfolio) {
+      rejectionReason = `Joint-Venture Portfolio ${portfolioId} does not exist.`;
+    } else if (portfolio.status !== "Active") {
+      rejectionReason = `Joint-Venture Portfolio ${portfolioId} is not Active.`;
+    } else if (portfolio.fundId !== fundId) {
+      rejectionReason = `Joint-Venture Portfolio ${portfolioId} is not owned by SWF ${fundId}.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposer syndicate ${proposerSyndicateId} and cannot propose minting SWF yield tokens.`;
+    } else if (!fund.syndicates[proposerSyndicateId]) {
+      rejectionReason = `Syndicate ${proposerSyndicateId} is not a participant in SWF ${fundId} and cannot propose minting yield tokens.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && fund && portfolio) {
+      const proposals = { ...(state.swfYieldTokenProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          portfolioId,
+          fundId,
+          proposerSyndicateId,
+          totalShares,
+          pricePerShare,
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.swfYieldTokenProposals = proposals;
+        newState = reconcileMintSWFYieldTokens(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Yield Token Proposed] Agent ${agentId} proposed minting ${totalShares} yield-sharing derivative shares for portfolio ${portfolioId} at ${pricePerShare} gold per share.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Yield Token proposed by ${agentId}: Proposes minting ${totalShares} yield shares for portfolio ${portfolioId} owned by SWF ${fundId} at ${pricePerShare} gold per share.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_yield_token_proposed" as any,
+          proposalId,
+          portfolioId,
+          fundId,
+          proposerSyndicateId,
+          totalShares,
+          pricePerShare,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_MINT_SWF_YIELD_TOKEN action (AF-130)
+  if ((action as any).type === "VOTE_MINT_SWF_YIELD_TOKEN") {
+    const { proposalId, syndicateId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.swfYieldTokenProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `SWF Yield Token proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on SWF yield token proposal.`;
+    } else {
+      // Must be a participating syndicate of the proposal's SWF
+      const fund = state.sovereignWealthFunds?.[proposal.fundId];
+      if (!fund || !fund.syndicates[syndicateId]) {
+        rejectionReason = `Syndicate ${syndicateId} is not a participant in SWF ${proposal.fundId} and cannot vote on its proposals.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.swfYieldTokenProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.swfYieldTokenProposals = proposalsCopy;
+        newState = reconcileMintSWFYieldTokens(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Yield Token Voted] Agent ${agentId} in syndicate ${syndicateId} voted ${vote ? "YES" : "NO"} on SWF yield token proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Vote cast by ${agentId} in syndicate ${syndicateId} on SWF yield token proposal ${proposalId}: ${vote ? "YES" : "NO"}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_yield_token_voted" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          vote,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized TRADE_SWF_YIELD_DERIVATIVE action (AF-130)
+  if ((action as any).type === "TRADE_SWF_YIELD_DERIVATIVE") {
+    const { tokenId, sellerSyndicateId, buyerSyndicateId, shares, goldPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const token = state.swfYieldTokens?.[tokenId];
+    const sellerSyndicate = state.syndicates?.[sellerSyndicateId];
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+    const sellerShares = token?.syndicateShares?.[sellerSyndicateId] ?? 0;
+
+    if (!tokenId) {
+      rejectionReason = `Token ID is required to trade SWF yield derivative.`;
+    } else if (!sellerSyndicateId) {
+      rejectionReason = `Seller Syndicate ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (shares === undefined || shares <= 0 || !Number.isInteger(shares)) {
+      rejectionReason = `Trade shares must be a positive integer.`;
+    } else if (goldPrice === undefined || goldPrice < 0 || !Number.isInteger(goldPrice)) {
+      rejectionReason = `Gold price must be a non-negative integer.`;
+    } else if (!token) {
+      rejectionReason = `Yield token ${tokenId} does not exist.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller syndicate ${sellerSyndicateId} does not exist.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (!sellerSyndicate.members.includes(agentId) && !buyerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} must be a member of the buyer or seller syndicate to trade.`;
+    } else if (sellerShares < shares) {
+      rejectionReason = `Seller syndicate ${sellerSyndicateId} has insufficient owned shares in SWF yield token ${tokenId} (has ${sellerShares}, requested ${shares}).`;
+    } else if (goldPrice > 0 && (buyerSyndicate.warChest ?? 0) < goldPrice) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} has insufficient gold in its war chest to pay price of ${goldPrice} (has ${buyerSyndicate.warChest ?? 0}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && token && sellerSyndicate && buyerSyndicate) {
+      newState.swfYieldTokens = { ...state.swfYieldTokens };
+      const updatedToken = {
+        ...token,
+        syndicateShares: {
+          ...token.syndicateShares,
+          [sellerSyndicateId]: sellerShares - shares,
+          [buyerSyndicateId]: (token.syndicateShares[buyerSyndicateId] ?? 0) + shares,
+        },
+        timestamp,
+      };
+      newState.swfYieldTokens[tokenId] = updatedToken;
+
+      newState.syndicates = state.syndicates ? { ...state.syndicates } : {};
+      newState.syndicates[sellerSyndicateId] = {
+        ...sellerSyndicate,
+        warChest: (sellerSyndicate.warChest ?? 0) + goldPrice,
+      };
+      newState.syndicates[buyerSyndicateId] = {
+        ...buyerSyndicate,
+        warChest: (buyerSyndicate.warChest ?? 0) - goldPrice,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Yield Derivative Traded] Syndicate ${buyerSyndicateId} purchased ${shares} shares of yield token ${tokenId} from Syndicate ${sellerSyndicateId} for ${goldPrice} gold.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📈 [SWF Yield Derivative Traded] Syndicate ${buyerSyndicateId} bought ${shares} shares of SWF Yield Token ${tokenId} from Syndicate ${sellerSyndicateId} for ${goldPrice} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_yield_derivative_traded" as any,
+        tokenId,
+        sellerSyndicateId,
+        buyerSyndicateId,
+        shares,
+        goldPrice,
+        agentId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_SWF_RISK_POOL action (AF-130)
+  if ((action as any).type === "PROPOSE_SWF_RISK_POOL") {
+    const { proposalId, name, fundIds, contributions, proposerSyndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[proposerSyndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required to propose SWF risk pool.`;
+    } else if (!name) {
+      rejectionReason = `Risk pool name is required.`;
+    } else if (!fundIds || !Array.isArray(fundIds) || fundIds.length === 0) {
+      rejectionReason = `Fund IDs must be a non-empty array.`;
+    } else if (!contributions) {
+      rejectionReason = `Contributions record is required.`;
+    } else if (!proposerSyndicateId) {
+      rejectionReason = `Proposer Syndicate ID is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Proposer Syndicate ${proposerSyndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposer syndicate ${proposerSyndicateId} and cannot propose risk pool.`;
+    } else {
+      // Validate all funds exist and have sufficient reserves
+      let allExist = true;
+      let allHaveReserves = true;
+      for (const fundId of fundIds) {
+        const fund = state.sovereignWealthFunds?.[fundId];
+        if (!fund) {
+          allExist = false;
+          break;
+        }
+        const contribution = contributions[fundId];
+        if (contribution === undefined || contribution < 0 || !Number.isInteger(contribution)) {
+          allHaveReserves = false;
+          break;
+        }
+        if (fund.totalReserves < contribution) {
+          allHaveReserves = false;
+          break;
+        }
+      }
+
+      if (!allExist) {
+        rejectionReason = `One or more Sovereign Wealth Funds in fundIds do not exist.`;
+      } else if (!allHaveReserves) {
+        rejectionReason = `One or more Sovereign Wealth Funds have insufficient reserves to cover the proposed risk pool contributions.`;
+      } else {
+        // Proposer syndicate must be a participant in at least one of the funds
+        let isParticipant = false;
+        for (const fundId of fundIds) {
+          const fund = state.sovereignWealthFunds?.[fundId];
+          if (fund && fund.syndicates[proposerSyndicateId] !== undefined) {
+            isParticipant = true;
+            break;
+          }
+        }
+
+        if (!isParticipant) {
+          rejectionReason = `Proposer Syndicate ${proposerSyndicateId} is not a participant in any of the involved SWFs.`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const proposals = { ...(state.swfRiskPoolProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          name,
+          fundIds,
+          contributions: { ...contributions },
+          proposerSyndicateId,
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.swfRiskPoolProposals = proposals;
+        newState = reconcileSWFRiskPools(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Risk Pool Proposed] Agent ${agentId} proposed establishing SWF multi-fund risk pool ${proposalId} (${name}) with funds ${fundIds.join(", ")}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Risk Pool proposed by ${agentId}: Proposes establishing multi-fund risk pool ${proposalId} (${name}) with funds ${fundIds.join(", ")}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_risk_pool_proposed" as any,
+          proposalId,
+          name,
+          fundIds,
+          contributions,
+          proposerSyndicateId,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_SWF_RISK_POOL action (AF-130)
+  if ((action as any).type === "VOTE_SWF_RISK_POOL") {
+    const { proposalId, syndicateId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.swfRiskPoolProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `SWF Risk Pool proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on SWF risk pool proposal.`;
+    } else {
+      // Must be a participant in at least one of the involved SWFs
+      let isParticipant = false;
+      for (const fundId of proposal.fundIds) {
+        const fund = state.sovereignWealthFunds?.[fundId];
+        if (fund && fund.syndicates[syndicateId] !== undefined) {
+          isParticipant = true;
+          break;
+        }
+      }
+
+      if (!isParticipant) {
+        rejectionReason = `Syndicate ${syndicateId} is not a participant in any SWFs of the risk pool proposal and cannot vote.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.swfRiskPoolProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.swfRiskPoolProposals = proposalsCopy;
+        newState = reconcileSWFRiskPools(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Risk Pool Voted] Agent ${agentId} in syndicate ${syndicateId} voted ${vote ? "YES" : "NO"} on SWF risk pool proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Vote cast by ${agentId} in syndicate ${syndicateId} on SWF risk pool proposal ${proposalId}: ${vote ? "YES" : "NO"}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_risk_pool_voted" as any,
           proposalId,
           syndicateId,
           agentId,

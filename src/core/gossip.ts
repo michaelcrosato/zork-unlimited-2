@@ -2617,6 +2617,106 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  const sovereignWealthFunds = { ...stateA.sovereignWealthFunds };
+  if (stateB.sovereignWealthFunds) {
+    for (const [key, valB] of Object.entries(stateB.sovereignWealthFunds)) {
+      const valA = sovereignWealthFunds[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        sovereignWealthFunds[key] = valB;
+      }
+    }
+  }
+
+  const sovereignWealthFundProposals = { ...stateA.sovereignWealthFundProposals };
+  if (stateB.sovereignWealthFundProposals) {
+    for (const [key, valB] of Object.entries(stateB.sovereignWealthFundProposals)) {
+      const valA = sovereignWealthFundProposals[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        sovereignWealthFundProposals[key] = valB;
+      }
+    }
+  }
+
+  const jointVenturePortfolios = { ...stateA.jointVenturePortfolios };
+  if (stateB.jointVenturePortfolios) {
+    for (const [key, valB] of Object.entries(stateB.jointVenturePortfolios)) {
+      const valA = jointVenturePortfolios[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        jointVenturePortfolios[key] = valB;
+      }
+    }
+  }
+
+  const jointVentureInvestmentProposals = { ...stateA.jointVentureInvestmentProposals };
+  if (stateB.jointVentureInvestmentProposals) {
+    for (const [key, valB] of Object.entries(stateB.jointVentureInvestmentProposals)) {
+      const valA = jointVentureInvestmentProposals[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        jointVentureInvestmentProposals[key] = valB;
+      }
+    }
+  }
+
+  const jointVenturePortfolioSwapProposals = { ...stateA.jointVenturePortfolioSwapProposals };
+  if (stateB.jointVenturePortfolioSwapProposals) {
+    for (const [key, valB] of Object.entries(stateB.jointVenturePortfolioSwapProposals)) {
+      const valA = jointVenturePortfolioSwapProposals[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        jointVenturePortfolioSwapProposals[key] = valB;
+      }
+    }
+  }
+
+  const jointVentureAssetLiquidationProposals = { ...stateA.jointVentureAssetLiquidationProposals };
+  if (stateB.jointVentureAssetLiquidationProposals) {
+    for (const [key, valB] of Object.entries(stateB.jointVentureAssetLiquidationProposals)) {
+      const valA = jointVentureAssetLiquidationProposals[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        jointVentureAssetLiquidationProposals[key] = valB;
+      }
+    }
+  }
+
+  const swfYieldTokens = { ...stateA.swfYieldTokens };
+  if (stateB.swfYieldTokens) {
+    for (const [key, valB] of Object.entries(stateB.swfYieldTokens)) {
+      const valA = swfYieldTokens[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        swfYieldTokens[key] = valB;
+      }
+    }
+  }
+
+  const swfYieldTokenProposals = { ...stateA.swfYieldTokenProposals };
+  if (stateB.swfYieldTokenProposals) {
+    for (const [key, valB] of Object.entries(stateB.swfYieldTokenProposals)) {
+      const valA = swfYieldTokenProposals[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        swfYieldTokenProposals[key] = valB;
+      }
+    }
+  }
+
+  const swfRiskPools = { ...stateA.swfRiskPools };
+  if (stateB.swfRiskPools) {
+    for (const [key, valB] of Object.entries(stateB.swfRiskPools)) {
+      const valA = swfRiskPools[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        swfRiskPools[key] = valB;
+      }
+    }
+  }
+
+  const swfRiskPoolProposals = { ...stateA.swfRiskPoolProposals };
+  if (stateB.swfRiskPoolProposals) {
+    for (const [key, valB] of Object.entries(stateB.swfRiskPoolProposals)) {
+      const valA = swfRiskPoolProposals[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        swfRiskPoolProposals[key] = valB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -2777,6 +2877,16 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     stabilizationTransferVotes,
     crossMeshBridgeProposals,
     crossMeshBridgeLoans,
+    sovereignWealthFunds,
+    sovereignWealthFundProposals,
+    jointVenturePortfolios,
+    jointVentureInvestmentProposals,
+    jointVenturePortfolioSwapProposals,
+    jointVentureAssetLiquidationProposals,
+    swfYieldTokens,
+    swfYieldTokenProposals,
+    swfRiskPools,
+    swfRiskPoolProposals,
   };
 }
 
