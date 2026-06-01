@@ -3019,6 +3019,9 @@ export const SovereignDebtCDSCDOTrancheSchema = z.object({
   autocallCoupon: z.number().int().nonnegative().optional(),
   autocallPaid: z.record(z.string(), z.boolean()).optional(),
   marginCallActive: z.record(z.string(), z.boolean()).optional(),
+  leverageRatio: z.record(z.string(), z.number()).optional(),
+  liquidityBuffer: z.record(z.string(), z.number()).optional(),
+  deleveragingThreshold: z.record(z.string(), z.number()).optional(),
 });
 export type SovereignDebtCDSCDOTranche = z.infer<typeof SovereignDebtCDSCDOTrancheSchema>;
 
@@ -3152,6 +3155,22 @@ export const SovereignDebtCDSCDOTrancheMarginAdjustmentSchema = z.object({
   })).optional(),
 });
 export type SovereignDebtCDSCDOTrancheMarginAdjustment = z.infer<typeof SovereignDebtCDSCDOTrancheMarginAdjustmentSchema>;
+
+export const SovereignDebtCDSCDOTrancheLeverageAdjustmentSchema = z.object({
+  adjustmentId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  syndicateId: z.string(),
+  leverageRatio: z.number(),
+  deleveragingThreshold: z.number(),
+  status: z.enum(["proposed", "approved", "rejected"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOTrancheLeverageAdjustment = z.infer<typeof SovereignDebtCDSCDOTrancheLeverageAdjustmentSchema>;
 
 export const SovereignDebtCDSCDOAutocallTriggerSchema = z.object({
   triggerId: z.string(),
@@ -4159,6 +4178,7 @@ export const GameStateSchema = z.object({
   cdsCdoTrancheBids: z.record(z.string(), SovereignDebtCDSCDOTrancheBidSchema).optional(),
   cdsCdoTrancheMarketSpreads: z.record(z.string(), SovereignDebtCDSCDOTrancheMarketSpreadSchema).optional(),
   cdsCdoTrancheMarginAdjustments: z.record(z.string(), SovereignDebtCDSCDOTrancheMarginAdjustmentSchema).optional(),
+  cdsCdoTrancheLeverageAdjustments: z.record(z.string(), SovereignDebtCDSCDOTrancheLeverageAdjustmentSchema).optional(),
   cdsCdoAutocallTriggers: z.record(z.string(), SovereignDebtCDSCDOAutocallTriggerSchema).optional(),
 
 
@@ -4619,6 +4639,7 @@ export const createInitialState = (options: {
     cdsCdoTrancheBids: {},
     cdsCdoTrancheMarketSpreads: {},
     cdsCdoTrancheMarginAdjustments: {},
+    cdsCdoTrancheLeverageAdjustments: {},
     cdsCdoAutocallTriggers: {},
 
     weatherForecastOracleHistory: {},
@@ -5805,6 +5826,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoTrancheBids: rest.cdsCdoTrancheBids ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheBids)) : undefined,
     cdsCdoTrancheMarketSpreads: rest.cdsCdoTrancheMarketSpreads ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheMarketSpreads)) : undefined,
     cdsCdoTrancheMarginAdjustments: rest.cdsCdoTrancheMarginAdjustments ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheMarginAdjustments)) : undefined,
+    cdsCdoTrancheLeverageAdjustments: rest.cdsCdoTrancheLeverageAdjustments ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheLeverageAdjustments)) : undefined,
     cdsCdoAutocallTriggers: rest.cdsCdoAutocallTriggers ? JSON.parse(JSON.stringify(rest.cdsCdoAutocallTriggers)) : undefined,
 
   };
@@ -18119,6 +18141,62 @@ export function reconcileSovereignDebtCDSCDOAutocallTriggers(state: GameState, p
             } else {
               trig.status = "rejected";
             }
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoTrancheLeverageAdjustments: state.cdsCdoTrancheLeverageAdjustments ? { ...state.cdsCdoTrancheLeverageAdjustments } : {},
+  };
+
+  if (newState.cdsCdoTrancheLeverageAdjustments) {
+    for (const [adjId, adj] of Object.entries(newState.cdsCdoTrancheLeverageAdjustments)) {
+      if (adj.status !== "proposed") continue;
+      const syndicate = newState.syndicates[adj.syndicateId];
+      if (!syndicate) continue;
+      const votes = adj.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > syndicate.members.length / 2;
+      if (passed) {
+        // Apply adjustment
+        const pool = newState.sovereignDebtCDSCDOPools[adj.cdoId];
+        if (pool) {
+          const tranche = pool.tranches[adj.trancheId];
+          if (tranche) {
+            // Update leverage ratio and deleveraging threshold
+            const updatedTranche = {
+              ...tranche,
+              leverageRatio: {
+                ...(tranche.leverageRatio || {}),
+                [adj.syndicateId]: adj.leverageRatio,
+              },
+              deleveragingThreshold: {
+                ...(tranche.deleveragingThreshold || {}),
+                [adj.syndicateId]: adj.deleveragingThreshold,
+              },
+              timestamp: adj.timestamp,
+            };
+
+            pool.tranches[adj.trancheId] = updatedTranche;
+            pool.timestamp = adj.timestamp;
+            newState.sovereignDebtCDSCDOPools[adj.cdoId] = pool;
+
+            adj.status = "approved";
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDS CDO Tranche Leverage Adjustment Approved] Syndicate ${adj.syndicateId} adjusted leverage to ${adj.leverageRatio} (threshold: ${adj.deleveragingThreshold}) in CDO ${adj.cdoId} tranche ${adj.trancheId}.`
+            );
           }
         }
       }

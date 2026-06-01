@@ -1495,14 +1495,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 211: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Leverage Arbitrage & Dynamic Liquidity Buffer Auto-Drawdown (Completed)
+- [x] Define dynamic liquidity buffers and deleveraging threshold properties in GameState schemas (`AF-233`).
+- [x] Implement `ADJUST_CDS_CDO_TRANCHE_LEVERAGE` decentralized action (`AF-233`).
+- [x] Wire tick economy to dynamically calculate liquidity cushion and trigger auto-deleveraging or sweep drawdowns to clear margin calls before liquidation (`AF-233`).
+- [x] Write comprehensive Vitest integration tests asserting leverage updates, buffer calculations, and auto-deleveraging behavior under defaults (`AF-233`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-233`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Leverage Arbitrage & Dynamic Liquidity Buffer Auto-Drawdown.
-* **Why this matters**: Further enhance syndicate portfolio risk optimization under leverage by calculating dynamic liquidity buffers and executing automated deleveraging sweeps during defaults to prevent catastrophic margin liquidations mesh-wide.
+**Task ID**: `AF-234`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Cross-Tranche Hedging & Portfolio Stress Rebalancing.
+* **Why this matters**: Introduce cross-tranche portfolio hedging policies, allowing syndicates to allocate a portion of their equity tranche yield payments to dynamically hedge senior/mezzanine margin exposures under extreme defaults, minimizing overall collateral requirements.
 * **Planned Actions**:
-  1. Define dynamic liquidity buffers and deleveraging threshold properties in GameState schemas.
-  2. Implement `ADJUST_CDS_CDO_TRANCHE_LEVERAGE` decentralized action.
-  3. Wire tick economy to dynamically calculate liquidity cushion and trigger auto-deleveraging or sweep drawdowns to clear margin calls before liquidation.
+  1. Define cross-tranche yield hedging allocation schemas and properties in GameState schemas.
+  2. Implement `SET_CDS_CDO_CROSS_TRANCHE_HEDGING` decentralized consensus action.
+  3. Wire the economy tick to automatically transfer designated equity yield payouts into the senior/mezzanine margin collateral accounts before margin requirement calculations to deflect margin calls dynamically.
   4. Write comprehensive Vitest integration tests.
 
 ---

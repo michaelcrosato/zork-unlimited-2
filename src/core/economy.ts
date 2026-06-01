@@ -7946,6 +7946,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         // Margin Maintenance Call & Liquidation (Only if marginCollateral is explicitly initialized/tracked on this tranche)
         if (tranche.marginCollateral !== undefined) {
           if (tranche.marginCallActive === undefined) tranche.marginCallActive = {};
+          if (tranche.liquidityBuffer === undefined) tranche.liquidityBuffer = {};
 
           const scaling = trancheId === "senior" ? 1.0 : trancheId === "mezzanine" ? 0.6 : 0.2;
           const defaultRatio = totalDefaults / (pool.totalNotional || 1);
@@ -7963,37 +7964,94 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
             const syndicateMaintenanceThreshold = Math.floor(tranche.maintenanceThreshold * (shares / trancheTotal));
             const currentCollateral = tranche.marginCollateral[syndicateId] ?? 0;
 
-            if (syndicateMarginReq > 0 && currentCollateral < syndicateMaintenanceThreshold) {
-              const drawdownAmount = syndicateMarginReq - currentCollateral;
-              if ((synd.warChest ?? 0) >= drawdownAmount) {
-                synd.warChest = (synd.warChest ?? 0) - drawdownAmount;
-                tranche.marginCollateral[syndicateId] = syndicateMarginReq;
-                tranche.marginCallActive[syndicateId] = false;
+            const leverage = tranche.leverageRatio?.[syndicateId] ?? 1.0;
+            const threshold = tranche.deleveragingThreshold?.[syndicateId] ?? 0;
 
-                if (!newState.journal) newState.journal = [];
-                newState.journal.push(
-                  `[CDS CDO Margin Drawdown] Automated capital drawdown of ${drawdownAmount} gold from Syndicate ${syndicateId} war chest to cover CDO ${cdoId} tranche ${trancheId} margin requirement.`
-                );
-              } else {
-                if (!tranche.marginCallActive[syndicateId]) {
-                  tranche.marginCallActive[syndicateId] = true;
+            const effectiveMarginReq = Math.floor(syndicateMarginReq * leverage);
+            const effectiveMaintenanceThreshold = Math.floor(syndicateMaintenanceThreshold * leverage);
+            const liquidityCushion = currentCollateral - effectiveMaintenanceThreshold;
+
+            tranche.liquidityBuffer[syndicateId] = liquidityCushion;
+
+            if (syndicateMarginReq > 0 && (currentCollateral < effectiveMaintenanceThreshold || liquidityCushion < threshold)) {
+              const drawdownAmount = effectiveMarginReq - currentCollateral;
+              if (drawdownAmount > 0) {
+                if ((synd.warChest ?? 0) >= drawdownAmount) {
+                  synd.warChest = (synd.warChest ?? 0) - drawdownAmount;
+                  tranche.marginCollateral[syndicateId] = effectiveMarginReq;
+                  tranche.marginCallActive[syndicateId] = false;
+                  tranche.liquidityBuffer[syndicateId] = effectiveMarginReq - effectiveMaintenanceThreshold;
+
                   if (!newState.journal) newState.journal = [];
                   newState.journal.push(
-                    `[CDS CDO Margin Call Initiated] Syndicate ${syndicateId} is in margin call on CDO ${cdoId} tranche ${trancheId} (Collateral: ${currentCollateral}, Required: ${syndicateMarginReq}).`
+                    `[CDS CDO Margin Drawdown] Automated capital drawdown of ${drawdownAmount} gold from Syndicate ${syndicateId} war chest to cover CDO ${cdoId} tranche ${trancheId} leveraged margin requirement.`
                   );
                 } else {
-                  const liquidatedShares = Math.min(shares, Math.max(1, Math.floor(shares * 0.2)));
-                  tranche.sharesOwned[syndicateId] = shares - liquidatedShares;
-                  tranche.totalValue = Math.max(0, tranche.totalValue - liquidatedShares);
-                  tranche.marginCallActive[syndicateId] = false;
+                  const partialDrawdown = synd.warChest ?? 0;
+                  let updatedCollateral = currentCollateral;
+                  if (partialDrawdown > 0) {
+                    synd.warChest = 0;
+                    updatedCollateral += partialDrawdown;
+                    tranche.marginCollateral[syndicateId] = updatedCollateral;
+                    tranche.liquidityBuffer[syndicateId] = updatedCollateral - effectiveMaintenanceThreshold;
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[CDS CDO Margin Drawdown] Automated partial capital drawdown of ${partialDrawdown} gold from Syndicate ${syndicateId} war chest to cover CDO ${cdoId} tranche ${trancheId} leveraged margin requirement.`
+                    );
+                  }
 
-                  if (!newState.journal) newState.journal = [];
-                  newState.journal.push(
-                    `[CDS CDO Margin Liquidation] Syndicate ${syndicateId} failed margin call. Liquidated ${liquidatedShares} shares of CDO ${cdoId} tranche ${trancheId}.`
-                  );
+                  // If still below threshold, trigger auto-deleveraging
+                  if (leverage > 1.0 && updatedCollateral < effectiveMaintenanceThreshold) {
+                    const newLeverageRatio = Math.max(1.0, Number((updatedCollateral / (syndicateMaintenanceThreshold || 1)).toFixed(4)));
+                    if (newLeverageRatio < leverage) {
+                      if (tranche.leverageRatio === undefined) tranche.leverageRatio = {};
+                      tranche.leverageRatio[syndicateId] = newLeverageRatio;
+
+                      const newEffectiveMaintenanceThreshold = Math.floor(syndicateMaintenanceThreshold * newLeverageRatio);
+                      tranche.liquidityBuffer[syndicateId] = updatedCollateral - newEffectiveMaintenanceThreshold;
+
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[CDS CDO Auto-Deleveraging] Syndicate ${syndicateId} auto-deleveraged CDO ${cdoId} tranche ${trancheId} from leverage ${leverage} to ${newLeverageRatio} to avoid liquidation (New maintenance threshold: ${newEffectiveMaintenanceThreshold}).`
+                      );
+
+                      if (updatedCollateral >= newEffectiveMaintenanceThreshold) {
+                        tranche.marginCallActive[syndicateId] = false;
+                        continue;
+                      }
+                    }
+                  }
+
+                  // If still below required margin, initiate/fail margin call
+                  const finalLeverage = tranche.leverageRatio?.[syndicateId] ?? leverage;
+                  const finalMaintenanceThreshold = Math.floor(syndicateMaintenanceThreshold * finalLeverage);
+
+                  if (updatedCollateral < finalMaintenanceThreshold) {
+                    if (!tranche.marginCallActive[syndicateId]) {
+                      tranche.marginCallActive[syndicateId] = true;
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[CDS CDO Margin Call Initiated] Syndicate ${syndicateId} is in margin call on CDO ${cdoId} tranche ${trancheId} (Collateral: ${updatedCollateral}, Required: ${finalMaintenanceThreshold}).`
+                      );
+                    } else {
+                      const liquidatedShares = Math.min(shares, Math.max(1, Math.floor(shares * 0.2)));
+                      tranche.sharesOwned[syndicateId] = shares - liquidatedShares;
+                      tranche.totalValue = Math.max(0, tranche.totalValue - liquidatedShares);
+                      tranche.marginCallActive[syndicateId] = false;
+
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[CDS CDO Margin Liquidation] Syndicate ${syndicateId} failed margin call. Liquidated ${liquidatedShares} shares of CDO ${cdoId} tranche ${trancheId}.`
+                      );
+                    }
+                  } else {
+                    tranche.marginCallActive[syndicateId] = false;
+                  }
                 }
+              } else {
+                tranche.marginCallActive[syndicateId] = false;
               }
-            } else if (syndicateMarginReq > 0 && currentCollateral >= syndicateMaintenanceThreshold) {
+            } else if (syndicateMarginReq > 0 && currentCollateral >= effectiveMaintenanceThreshold) {
               tranche.marginCallActive[syndicateId] = false;
             }
           }
