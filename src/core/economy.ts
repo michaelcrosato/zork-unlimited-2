@@ -2099,6 +2099,47 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         // Money Laundering Audit (AF-61)
         let activeAudit = front.activeAudit ?? false;
         if (activeAudit) {
+          // AF-225: Partition grace period check
+          let dropRate = 0;
+          if (newState.swfMultiFundReinsurancePools) {
+            for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+              if (pool.linkStateDropRate !== undefined) {
+                dropRate = Math.max(dropRate, pool.linkStateDropRate);
+              }
+            }
+          }
+          const partitionThreshold = newState.swfAllianceYieldAutoRepayPartitionThreshold ?? 0.5;
+          const underPartition = dropRate >= partitionThreshold;
+
+          if (newState.swfAllianceYieldAutoRepayRate && underPartition) {
+            const gracePeriodMultiplier = newState.swfAllianceYieldAutoRepayGracePeriodMultiplier ?? 1.0;
+            const creditRating = newState.creditRatings?.[front.syndicateId] ?? 100;
+            
+            // ratingMultiplier: higher credit rating => smaller multiplier (reduces requirements)
+            const ratingMultiplier = creditRating >= 100 
+              ? Math.max(0.1, 1.0 - (creditRating - 100) / 200) 
+              : 1.0 + (100 - creditRating) / 100;
+            
+            const baseGraceRequirement = 50;
+            const effectiveGraceRequirement = Math.round(baseGraceRequirement * gracePeriodMultiplier * ratingMultiplier);
+            
+            if (creditRating >= effectiveGraceRequirement) {
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[SWF Alliance Audit Deflection] Enforcer audit deflected at front business ${front.id} under partition due to high credit rating and active yield repayment grace period (Credit Rating: ${creditRating} >= Effective Grace Requirement: ${effectiveGraceRequirement}, Grace Multiplier: ${gracePeriodMultiplier.toFixed(2)}, Rating Multiplier: ${ratingMultiplier.toFixed(2)}).`
+              );
+              activeAudit = false;
+              if (newState.enforcementHeat?.[front.roomId]) {
+                newState.enforcementHeat[front.roomId] = {
+                  ...newState.enforcementHeat[front.roomId],
+                  heat: Math.max(0, newState.enforcementHeat[front.roomId].heat - 10),
+                };
+              }
+            }
+          }
+        }
+
+        if (activeAudit) {
           // Resolve the audit!
           const outpost = newState.turfGuardOutposts?.[front.roomId];
           const guardsCount = newState.turfGuards?.[front.roomId]?.count ?? 0;
@@ -9379,6 +9420,19 @@ export function tickAllianceYieldAutoRepay(state: GameState): GameState {
           
           newState.journal.push(
             `[SWF Alliance Yield Repayment] Auto-repaid ${repaidAmount} gold outstanding deflection fee for Syndicate ${sId} from SWF sweep pool (Remaining Outstanding Fee: ${outstandingDeflectionFees[sId]} gold).`
+          );
+
+          if (!newState.creditRatings) {
+            newState.creditRatings = {};
+          }
+          newState.creditRatings = { ...newState.creditRatings };
+          const currentRating = newState.creditRatings[sId] ?? 100;
+          const recoveryMultiplier = newState.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier ?? 1.0;
+          const baseRecovery = 10;
+          const ratingBoost = Math.round(baseRecovery * recoveryMultiplier * (1.0 + repayRate * 5));
+          newState.creditRatings[sId] = Math.min(200, currentRating + ratingBoost);
+          newState.journal.push(
+            `[SWF Alliance Yield Credit Recovery] Recovered credit rating score for Syndicate ${sId} by +${ratingBoost} to ${newState.creditRatings[sId]} (Multiplier: ${recoveryMultiplier.toFixed(2)}, Repayment Rate: ${(repayRate * 100).toFixed(1)}%).`
           );
 
           // Restore slashed CDO shares: 10 gold repaid = 1 CDO share restored

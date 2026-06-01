@@ -2912,6 +2912,8 @@ export const SWFAllianceYieldAutoRepayProposalSchema = z.object({
   syndicateId: z.string(),
   yieldRate: z.number(),
   partitionThreshold: z.number(),
+  gracePeriodMultiplier: z.number().optional(),
+  creditRatingRecoveryMultiplier: z.number().optional(),
   status: z.enum(["proposed", "authorized", "disputed"]).optional(),
   resolved: z.boolean().optional(),
   proposerId: z.string(),
@@ -3899,6 +3901,8 @@ export const GameStateSchema = z.object({
   swfAllianceLiquiditySubsidyProposals: z.record(z.string(), SWFAllianceLiquiditySubsidyProposalSchema).optional(),
   swfAllianceYieldAutoRepayRate: z.number().optional(),
   swfAllianceYieldAutoRepayPartitionThreshold: z.number().optional(),
+  swfAllianceYieldAutoRepayGracePeriodMultiplier: z.number().optional(),
+  swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier: z.number().optional(),
   swfAllianceYieldAutoRepayProposals: z.record(z.string(), SWFAllianceYieldAutoRepayProposalSchema).optional(),
   outstandingDeflectionFees: z.record(z.string(), z.number().int().nonnegative()).optional(),
 
@@ -4339,6 +4343,8 @@ export const createInitialState = (options: {
     swfAllianceLiquiditySubsidyProposals: {},
     swfAllianceYieldAutoRepayRate: 0,
     swfAllianceYieldAutoRepayPartitionThreshold: 0,
+    swfAllianceYieldAutoRepayGracePeriodMultiplier: 1.0,
+    swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier: 1.0,
     swfAllianceYieldAutoRepayProposals: {},
     outstandingDeflectionFees: {},
     weatherForecastOracleHistory: {},
@@ -5506,6 +5512,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfAllianceLiquiditySubsidyProposals: rest.swfAllianceLiquiditySubsidyProposals ? JSON.parse(JSON.stringify(rest.swfAllianceLiquiditySubsidyProposals)) : undefined,
     swfAllianceYieldAutoRepayRate: rest.swfAllianceYieldAutoRepayRate,
     swfAllianceYieldAutoRepayPartitionThreshold: rest.swfAllianceYieldAutoRepayPartitionThreshold,
+    swfAllianceYieldAutoRepayGracePeriodMultiplier: rest.swfAllianceYieldAutoRepayGracePeriodMultiplier,
+    swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier: rest.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier,
     swfAllianceYieldAutoRepayProposals: rest.swfAllianceYieldAutoRepayProposals ? JSON.parse(JSON.stringify(rest.swfAllianceYieldAutoRepayProposals)) : undefined,
     outstandingDeflectionFees: rest.outstandingDeflectionFees ? JSON.parse(JSON.stringify(rest.outstandingDeflectionFees)) : undefined,
   };
@@ -17156,10 +17164,12 @@ export function reconcileSWFAllianceYieldAutoRepayProposals(state: GameState, pa
 
       newState.swfAllianceYieldAutoRepayRate = proposal.yieldRate;
       newState.swfAllianceYieldAutoRepayPartitionThreshold = proposal.partitionThreshold;
+      newState.swfAllianceYieldAutoRepayGracePeriodMultiplier = proposal.gracePeriodMultiplier ?? 1.0;
+      newState.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier = proposal.creditRatingRecoveryMultiplier ?? 1.0;
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
-        `[SWF Alliance Yield Auto-Repay Resolved] Syndicate ${proposal.syndicateId} authorized alliance yield auto-repay proposal ${proposalId} (Yield Rate: ${proposal.yieldRate}, Partition Threshold: ${proposal.partitionThreshold}).`
+        `[SWF Alliance Yield Auto-Repay Resolved] Syndicate ${proposal.syndicateId} authorized alliance yield auto-repay proposal ${proposalId} (Yield Rate: ${proposal.yieldRate}, Partition Threshold: ${proposal.partitionThreshold}, Grace Period Multiplier: ${proposal.gracePeriodMultiplier ?? 1.0}, Credit Rating Recovery Multiplier: ${proposal.creditRatingRecoveryMultiplier ?? 1.0}).`
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.swfAllianceYieldAutoRepayProposals[proposalId] = {

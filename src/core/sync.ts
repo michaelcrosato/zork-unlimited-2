@@ -42379,7 +42379,7 @@ export function multiAgentStep(
 
   // Handle PROPOSE_ALLIANCE_YIELD_AUTO_REPAY action (AF-224)
   if ((action as any).type === "PROPOSE_ALLIANCE_YIELD_AUTO_REPAY") {
-    const { proposalId, syndicateId, yieldRate, partitionThreshold, timestamp } = action as any;
+    const { proposalId, syndicateId, yieldRate, partitionThreshold, gracePeriodMultiplier, creditRatingRecoveryMultiplier, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -42416,6 +42416,10 @@ export function multiAgentStep(
       rejectionReason = `Yield rate must be a number between 0 and 1.0.`;
     } else if (partitionThreshold === undefined || typeof partitionThreshold !== "number" || partitionThreshold < 0 || partitionThreshold > 1.0) {
       rejectionReason = `Partition threshold must be a number between 0 and 1.0.`;
+    } else if (gracePeriodMultiplier !== undefined && (typeof gracePeriodMultiplier !== "number" || gracePeriodMultiplier < 0)) {
+      rejectionReason = `Grace period multiplier must be a positive number.`;
+    } else if (creditRatingRecoveryMultiplier !== undefined && (typeof creditRatingRecoveryMultiplier !== "number" || creditRatingRecoveryMultiplier < 0)) {
+      rejectionReason = `Credit rating recovery multiplier must be a positive number.`;
     } else if (!syndicate) {
       rejectionReason = `Proposing Syndicate ${syndicateId} does not exist.`;
     } else if (!syndicate.members.includes(agentId)) {
@@ -42460,6 +42464,8 @@ export function multiAgentStep(
         syndicateId,
         yieldRate,
         partitionThreshold,
+        gracePeriodMultiplier,
+        creditRatingRecoveryMultiplier,
         status: "proposed",
         resolved: false,
         proposerId: agentId,

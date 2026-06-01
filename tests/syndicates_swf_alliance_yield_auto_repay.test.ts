@@ -276,4 +276,150 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     expect(partitionTickedState.journal.some(log => log.includes("[SWF Alliance Yield Repayment]"))).toBe(true);
     expect(partitionTickedState.journal.some(log => log.includes("[SWF Alliance Yield CDO Restore]"))).toBe(true);
   });
+
+  it("should support gracePeriodMultiplier and creditRatingRecoveryMultiplier optional fields, dynamically boost credit ratings and deflect audits under partition", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 5000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 4000,
+      },
+    };
+
+    state.syndicateAlliances = {
+      alpha: { beta: "allied" },
+      beta: { alpha: "allied" },
+    };
+
+    state.creditRatings = {
+      alpha: 80,
+    };
+
+    const proposeAction = {
+      type: "PROPOSE_ALLIANCE_YIELD_AUTO_REPAY",
+      proposalId: "repay_prop_2",
+      syndicateId: "alpha",
+      yieldRate: 0.15,
+      partitionThreshold: 0.4,
+      gracePeriodMultiplier: 0.5,
+      creditRatingRecoveryMultiplier: 1.5,
+      timestamp: 1001,
+    };
+
+    let res = multiAgentStep(state, { agentId: "player", action: proposeAction as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    const prop = state.swfAllianceYieldAutoRepayProposals?.["repay_prop_2"];
+    expect(prop).toBeDefined();
+    expect(prop?.gracePeriodMultiplier).toBe(0.5);
+    expect(prop?.creditRatingRecoveryMultiplier).toBe(1.5);
+
+    const voteAction = {
+      type: "VOTE_ALLIANCE_YIELD_AUTO_REPAY",
+      syndicateId: "alpha",
+      proposalId: "repay_prop_2",
+      vote: true,
+      timestamp: 1002,
+    };
+
+    res = multiAgentStep(state, { agentId: "alice", action: voteAction as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    expect(state.swfAllianceYieldAutoRepayGracePeriodMultiplier).toBe(0.5);
+    expect(state.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier).toBe(1.5);
+
+    state.outstandingDeflectionFees = {
+      alpha: 100,
+    };
+    state.swfStakingSweepPool = 500;
+
+    state.swfMultiFundReinsurancePools = {
+      pool_1: {
+        id: "pool_1",
+        syndicateIds: ["alpha", "beta"],
+        capitalAllocated: { alpha: 1000 },
+        totalReserve: 1000,
+        volatilityHedgeRatio: 0.5,
+        targetYieldRate: 0.08,
+        historicalVolatility: 15,
+        linkStateDropRate: 0.6,
+        volatilityShock: 0,
+        baseBridgeRatio: 0.5,
+        arbitrageRoutes: [],
+        timestamp: 1001,
+        active: true,
+      }
+    };
+
+    let tickedState = tickEconomy(state, mockPack);
+
+    expect(tickedState.outstandingDeflectionFees?.alpha).toBe(0);
+
+    // baseRecovery = 10, recoveryMultiplier = 1.5, repayRate = 0.15
+    // ratingBoost = Math.round(10 * 1.5 * (1.0 + 0.15 * 5)) = Math.round(15 * 1.75) = 26
+    // New score = 80 + 26 = 106
+    expect(tickedState.creditRatings?.alpha).toBe(106);
+
+    expect(tickedState.journal.some(log => log.includes("[SWF Alliance Yield Credit Recovery]"))).toBe(true);
+
+    tickedState.frontBusinesses = {
+      front_1: {
+        id: "front_1",
+        merchantId: "merchant_timmy",
+        roomId: "clearing",
+        syndicateId: "alpha",
+        level: 1,
+        dirtyGold: 100,
+        cleanGold: 50,
+        launderingCapacity: 500,
+        launderingRate: 50,
+        activeAudit: true,
+        timestamp: 1002,
+      }
+    };
+
+    tickedState.enforcementHeat = {
+      clearing: {
+        roomId: "clearing",
+        heat: 40,
+        timestamp: 1002,
+      }
+    };
+
+    // Ensure linkStateDropRate partition remains active in tickedState
+    if (tickedState.swfMultiFundReinsurancePools && tickedState.swfMultiFundReinsurancePools.pool_1) {
+      tickedState.swfMultiFundReinsurancePools.pool_1.linkStateDropRate = 0.6;
+    }
+
+    // Force step to be 5 (which is a multiple of 5)
+    // and triggers the money laundering audit resolution tick!
+    tickedState.step = 5;
+
+    let auditState = tickEconomy(tickedState, mockPack);
+
+    const front = auditState.frontBusinesses?.front_1;
+    expect(front?.activeAudit).toBe(false);
+    expect(auditState.enforcementHeat?.clearing?.heat).toBe(28);
+    expect(auditState.journal.some(log => log.includes("[SWF Alliance Audit Deflection]"))).toBe(true);
+  });
 });
