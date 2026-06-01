@@ -130,6 +130,9 @@ export type Action =
   | { type: "TRADE_CDO_TRANCHE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; sellerSyndicateId: string; buyerSyndicateId: string; amount: number; goldPrice: number; timestamp: number; marginEnabled?: boolean; borrowedAmount?: number }
   | { type: "BUY_CREDIT_DEFAULT_SWAP"; cdsId: string; buyerSyndicateId: string; writerSyndicateId: string; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; notionalValue: number; premiumRate: number; timestamp: number; marginEnabled?: boolean }
   | { type: "WRITE_CREDIT_DEFAULT_SWAP"; cdsId: string; writerSyndicateId: string; buyerSyndicateId: string; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; notionalValue: number; premiumRate: number; timestamp: number; marginEnabled?: boolean }
+  | { type: "BUY_SWF_YIELD_CDO_CDS"; cdsId: string; buyerSyndicateId: string; writerSyndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; notionalValue: number; premiumRate: number; timestamp: number; marginEnabled?: boolean }
+  | { type: "WRITE_SWF_YIELD_CDO_CDS"; cdsId: string; writerSyndicateId: string; buyerSyndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; notionalValue: number; premiumRate: number; timestamp: number; marginEnabled?: boolean }
+  | { type: "ADJUST_SWF_YIELD_CDO_CDS_MARGIN"; syndicateId: string; amount: number; timestamp: number }
   | { type: "OPEN_CDS_MARGIN_ACCOUNT"; syndicateId: string; initialDeposit: number; timestamp: number }
   | { type: "DEPOSIT_MARGIN_COLLATERAL"; syndicateId: string; amount: number; timestamp: number }
   | { type: "AUTHORIZE_MARGIN_REHYPOTHECATION"; syndicateId: string; vaultId: string; percentage: number; timestamp: number }

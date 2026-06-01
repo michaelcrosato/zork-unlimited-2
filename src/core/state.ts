@@ -1639,6 +1639,46 @@ export const SWFYieldCDOPackageProposalSchema = z.object({
 });
 export type SWFYieldCDOPackageProposal = z.infer<typeof SWFYieldCDOPackageProposalSchema>;
 
+export const SWFYieldCDOCDSSchema = z.object({
+  id: z.string(),
+  buyerSyndicateId: z.string(),
+  writerSyndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  notionalValue: z.number().int().positive(),
+  premiumRate: z.number(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+  marginEnabled: z.boolean().optional(),
+});
+export type SWFYieldCDOCDS = z.infer<typeof SWFYieldCDOCDSSchema>;
+
+export const SWFYieldCDOCDSTradeProposalSchema = z.object({
+  id: z.string(),
+  cdsId: z.string(),
+  proposerSyndicateId: z.string(),
+  counterpartySyndicateId: z.string(),
+  role: z.enum(["buyer", "writer"]),
+  goldPrice: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type SWFYieldCDOCDSTradeProposal = z.infer<typeof SWFYieldCDOCDSTradeProposalSchema>;
+
+export const SWFYieldCDOCDSVoteSchema = z.object({
+  cdsId: z.string(),
+  buyerSyndicateId: z.string(),
+  writerSyndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  notionalValue: z.number().int().positive(),
+  premiumRate: z.number(),
+  side: z.enum(["buyer", "writer"]),
+  timestamp: z.number().int(),
+  marginEnabled: z.boolean().optional(),
+});
+export type SWFYieldCDOCDSVote = z.infer<typeof SWFYieldCDOCDSVoteSchema>;
+
 
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
@@ -1653,6 +1693,7 @@ export const MarginAccountSchema = z.object({
   syndicateId: z.string(),
   collateral: z.number().int().nonnegative(),
   leveragedCDSIds: z.array(z.string()).optional(),
+  leveragedSWFYieldCDOCDSIds: z.array(z.string()).optional(),
   leveragedTranchePositions: z.record(z.string(), LeveragedTranchePositionSchema).optional(),
   timestamp: z.number().int(),
   rehypothecationAuthorized: z.boolean().optional(),
@@ -1967,6 +2008,9 @@ export const GameStateSchema = z.object({
   creditDefaultSwaps: z.record(z.string(), CreditDefaultSwapSchema).optional(),
   creditDefaultSwapVotes: z.record(z.string(), z.record(z.string(), CDSVoteSchema)).optional(),
   creditDefaultSwapTrades: z.record(z.string(), CDSTradeProposalSchema).optional(),
+  swfYieldCDOCDSs: z.record(z.string(), SWFYieldCDOCDSSchema).optional(),
+  swfYieldCDOCDSVotes: z.record(z.string(), z.record(z.string(), SWFYieldCDOCDSVoteSchema)).optional(),
+  swfYieldCDOCDSTrades: z.record(z.string(), SWFYieldCDOCDSTradeProposalSchema).optional(),
   marginAccounts: z.record(z.string(), MarginAccountSchema).optional(),
   marginRehypothecationVotes: z.record(z.string(), z.record(z.string(), z.object({
     vaultId: z.string(),
@@ -2228,6 +2272,9 @@ export const createInitialState = (options: {
     creditDefaultSwaps: {},
     creditDefaultSwapVotes: {},
     creditDefaultSwapTrades: {},
+    swfYieldCDOCDSs: {},
+    swfYieldCDOCDSVotes: {},
+    swfYieldCDOCDSTrades: {},
     marginAccounts: {},
     marginRehypothecationVotes: {},
     marginRehypothecationRevokeVotes: {},
@@ -3054,6 +3101,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     creditDefaultSwaps: rest.creditDefaultSwaps ? JSON.parse(JSON.stringify(rest.creditDefaultSwaps)) : undefined,
     creditDefaultSwapVotes: rest.creditDefaultSwapVotes ? JSON.parse(JSON.stringify(rest.creditDefaultSwapVotes)) : undefined,
     creditDefaultSwapTrades: rest.creditDefaultSwapTrades ? JSON.parse(JSON.stringify(rest.creditDefaultSwapTrades)) : undefined,
+    swfYieldCDOCDSs: rest.swfYieldCDOCDSs ? JSON.parse(JSON.stringify(rest.swfYieldCDOCDSs)) : undefined,
+    swfYieldCDOCDSVotes: rest.swfYieldCDOCDSVotes ? JSON.parse(JSON.stringify(rest.swfYieldCDOCDSVotes)) : undefined,
+    swfYieldCDOCDSTrades: rest.swfYieldCDOCDSTrades ? JSON.parse(JSON.stringify(rest.swfYieldCDOCDSTrades)) : undefined,
     marginAccounts: rest.marginAccounts ? JSON.parse(JSON.stringify(rest.marginAccounts)) : undefined,
     marginRehypothecationVotes: rest.marginRehypothecationVotes ? JSON.parse(JSON.stringify(rest.marginRehypothecationVotes)) : undefined,
     marginRehypothecationRevokeVotes: rest.marginRehypothecationRevokeVotes ? JSON.parse(JSON.stringify(rest.marginRehypothecationRevokeVotes)) : undefined,
@@ -6058,6 +6108,70 @@ export function reconcileCreditDefaultSwaps(state: GameState, pack: any): GameSt
               newState.marginAccounts[latestWriterVote.writerSyndicateId] = {
                 ...marginAccount,
                 leveragedCDSIds: Array.from(new Set([...(marginAccount.leveragedCDSIds || []), cdsId])),
+                timestamp: latestTimestamp,
+              };
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFYieldCDOCDSs(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfYieldCDOCDSs: state.swfYieldCDOCDSs ? { ...state.swfYieldCDOCDSs } : {},
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+  };
+
+  if (!newState.swfYieldCDOCDSVotes) {
+    newState.swfYieldCDOCDSVotes = {};
+  }
+
+  for (const [cdsId, votes] of Object.entries(newState.swfYieldCDOCDSVotes)) {
+    const buyerVotes = Object.values(votes).filter(v => v.side === "buyer");
+    const writerVotes = Object.values(votes).filter(v => v.side === "writer");
+
+    if (buyerVotes.length > 0 && writerVotes.length > 0) {
+      const latestBuyerVote = buyerVotes.reduce((latest, current) => current.timestamp > latest.timestamp ? current : latest, buyerVotes[0]);
+      const latestWriterVote = writerVotes.reduce((latest, current) => current.timestamp > latest.timestamp ? current : latest, writerVotes[0]);
+
+      if (
+        latestBuyerVote.buyerSyndicateId === latestWriterVote.buyerSyndicateId &&
+        latestBuyerVote.writerSyndicateId === latestWriterVote.writerSyndicateId &&
+        latestBuyerVote.swfYieldCdoId === latestWriterVote.swfYieldCdoId &&
+        latestBuyerVote.trancheId === latestWriterVote.trancheId &&
+        latestBuyerVote.notionalValue === latestWriterVote.notionalValue &&
+        latestBuyerVote.premiumRate === latestWriterVote.premiumRate &&
+        (latestBuyerVote.marginEnabled || false) === (latestWriterVote.marginEnabled || false)
+      ) {
+        const latestTimestamp = Math.max(latestBuyerVote.timestamp, latestWriterVote.timestamp);
+        const existingCds = newState.swfYieldCDOCDSs[cdsId];
+        const marginEnabled = latestBuyerVote.marginEnabled || false;
+
+        if (!existingCds || latestTimestamp > existingCds.timestamp) {
+          newState.swfYieldCDOCDSs[cdsId] = {
+            id: cdsId,
+            buyerSyndicateId: latestBuyerVote.buyerSyndicateId,
+            writerSyndicateId: latestWriterVote.writerSyndicateId,
+            swfYieldCdoId: latestBuyerVote.swfYieldCdoId,
+            trancheId: latestBuyerVote.trancheId,
+            notionalValue: latestBuyerVote.notionalValue,
+            premiumRate: latestBuyerVote.premiumRate,
+            timestamp: latestTimestamp,
+            active: true,
+            marginEnabled: marginEnabled,
+          };
+
+          if (marginEnabled) {
+            const marginAccount = newState.marginAccounts[latestWriterVote.writerSyndicateId];
+            if (marginAccount) {
+              newState.marginAccounts[latestWriterVote.writerSyndicateId] = {
+                ...marginAccount,
+                leveragedSWFYieldCDOCDSIds: Array.from(new Set([...(marginAccount.leveragedSWFYieldCDOCDSIds || []), cdsId])),
                 timestamp: latestTimestamp,
               };
             }

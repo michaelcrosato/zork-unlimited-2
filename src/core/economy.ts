@@ -3438,6 +3438,44 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           newState.journal.push(
             `[SWF Yield CDO Write-Down] CDO ${cdoId} tranche ${tranche.trancheId} written down by -${loss} shares due to asset defaults.`
           );
+
+          // Automatic SWF Yield CDO CDS settlement resolution
+          if (newState.swfYieldCDOCDSs) {
+            newState.swfYieldCDOCDSs = { ...newState.swfYieldCDOCDSs };
+            for (const [cdsId, cds] of Object.entries(newState.swfYieldCDOCDSs)) {
+              if (cds.active && cds.swfYieldCdoId === cdoId && cds.trancheId === tranche.trancheId) {
+                const updatedCds = { ...cds };
+                const payout = Math.min(updatedCds.notionalValue, oldTotal > 0 ? Math.round(loss * (updatedCds.notionalValue / oldTotal)) : 0);
+                if (payout > 0) {
+                  if (!newState.syndicates) newState.syndicates = {};
+                  const writerSyndicate = newState.syndicates[updatedCds.writerSyndicateId];
+                  const buyerSyndicate = newState.syndicates[updatedCds.buyerSyndicateId];
+                  if (writerSyndicate && buyerSyndicate) {
+                    const actualPaid = Math.min(payout, writerSyndicate.warChest ?? 0);
+                    
+                    newState.syndicates[updatedCds.writerSyndicateId] = {
+                      ...writerSyndicate,
+                      warChest: Math.max(0, (writerSyndicate.warChest ?? 0) - actualPaid),
+                    };
+                    newState.syndicates[updatedCds.buyerSyndicateId] = {
+                      ...buyerSyndicate,
+                      warChest: (buyerSyndicate.warChest ?? 0) + actualPaid,
+                    };
+
+                    newState.journal.push(`[SWF Yield CDO CDS Payout] CDS ${cdsId} triggered: writer Syndicate ${updatedCds.writerSyndicateId} paid ${actualPaid} gold to buyer Syndicate ${updatedCds.buyerSyndicateId} compensating for tranche ${updatedCds.trancheId} write-down of -${loss} shares.`);
+                    
+                    updatedCds.notionalValue = Math.max(0, updatedCds.notionalValue - payout);
+                    if (updatedCds.notionalValue <= 0) {
+                      updatedCds.active = false;
+                      newState.journal.push(`[SWF Yield CDO CDS Settled] CDS ${cdsId} fully settled and deactivated.`);
+                    }
+                    updatedCds.timestamp = newState.step;
+                    newState.swfYieldCDOCDSs[cdsId] = updatedCds;
+                  }
+                }
+              }
+            }
+          }
         }
       }
 
@@ -3480,6 +3518,43 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       }
     }
   }
+
+  // Periodic SWF Yield CDO CDS Premium Deductions
+  if (newState.swfYieldCDOCDSs && Object.keys(newState.swfYieldCDOCDSs).length > 0) {
+    newState.swfYieldCDOCDSs = { ...newState.swfYieldCDOCDSs };
+    for (const [cdsId, cds] of Object.entries(newState.swfYieldCDOCDSs)) {
+      if (cds.active) {
+        const updatedCds = { ...cds };
+        const premium = Math.max(1, Math.floor(updatedCds.notionalValue * updatedCds.premiumRate));
+        if (!newState.syndicates) newState.syndicates = {};
+        const buyerSyndicate = newState.syndicates[updatedCds.buyerSyndicateId];
+        const writerSyndicate = newState.syndicates[updatedCds.writerSyndicateId];
+        if (buyerSyndicate && writerSyndicate) {
+          const actualPaid = Math.min(premium, buyerSyndicate.warChest ?? 0);
+          
+          newState.syndicates[updatedCds.buyerSyndicateId] = {
+            ...buyerSyndicate,
+            warChest: Math.max(0, (buyerSyndicate.warChest ?? 0) - actualPaid),
+          };
+          newState.syndicates[updatedCds.writerSyndicateId] = {
+            ...writerSyndicate,
+            warChest: (writerSyndicate.warChest ?? 0) + actualPaid,
+          };
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[SWF Yield CDO CDS Premium] Syndicate ${updatedCds.buyerSyndicateId} paid ${actualPaid} gold premium to Syndicate ${updatedCds.writerSyndicateId} for SWF Yield CDO CDS ${cdsId}.`);
+          
+          if (actualPaid < premium) {
+            updatedCds.active = false;
+            newState.journal.push(`[SWF Yield CDO CDS Terminated] CDS ${cdsId} terminated due to insufficient premium payment from Syndicate ${updatedCds.buyerSyndicateId}.`);
+          }
+          updatedCds.timestamp = newState.step;
+          newState.swfYieldCDOCDSs[cdsId] = updatedCds;
+        }
+      }
+    }
+  }
+
   // Automatic Margin Health Evaluation and Collateral Call Liquidations
   if (newState.marginAccounts && Object.keys(newState.marginAccounts).length > 0) {
     newState.marginAccounts = { ...newState.marginAccounts };
@@ -3732,6 +3807,19 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       }
       marginAccount.leveragedCDSIds = stillActiveCDSIds;
 
+      let sumSwfCdsNotional = 0;
+      const activeSwfCDSIds = marginAccount.leveragedSWFYieldCDOCDSIds || [];
+      const stillActiveSwfCDSIds: string[] = [];
+
+      for (const cdsId of activeSwfCDSIds) {
+        const cds = newState.swfYieldCDOCDSs?.[cdsId];
+        if (cds && cds.active) {
+          sumSwfCdsNotional += cds.notionalValue;
+          stillActiveSwfCDSIds.push(cdsId);
+        }
+      }
+      marginAccount.leveragedSWFYieldCDOCDSIds = stillActiveSwfCDSIds;
+
       let rehypothecationPremium = 0;
       if (marginAccount.rebalancingEnabled) {
         const vaults = getSecondaryReserveVaults(newState);
@@ -3753,7 +3841,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
-      let maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium);
+      let maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium);
 
       // AF-112: Preemptive Drawdown Loop to prevent margin call liquidations
       if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
@@ -3791,7 +3879,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                   tempPremium += Math.round(amt * (0.10 + vault.sweepRisk));
                 }
               }
-              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + tempPremium);
+              maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + tempPremium);
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!
@@ -3826,6 +3914,23 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           }
         }
         marginAccount.leveragedCDSIds = [];
+
+        // Deactivate all leveraged written SWF Yield CDO CDS contracts
+        if (newState.swfYieldCDOCDSs) {
+          newState.swfYieldCDOCDSs = { ...newState.swfYieldCDOCDSs };
+          for (const cdsId of stillActiveSwfCDSIds) {
+            const cds = newState.swfYieldCDOCDSs[cdsId];
+            if (cds) {
+              newState.swfYieldCDOCDSs[cdsId] = {
+                ...cds,
+                active: false,
+                timestamp: newState.step,
+              };
+              newState.journal.push(`[Margin Liquidation] Leveraged written SWF Yield CDO CDS ${cdsId} has been deactivated.`);
+            }
+          }
+        }
+        marginAccount.leveragedSWFYieldCDOCDSIds = [];
 
         // Liquidate all leveraged CDO tranche positions
         if (newState.cdos) {

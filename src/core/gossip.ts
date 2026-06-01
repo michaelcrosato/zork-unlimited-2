@@ -1907,6 +1907,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfYieldCDOCDSs using LWW (Last-Write-Wins)
+  const swfYieldCDOCDSs = { ...stateA.swfYieldCDOCDSs };
+  if (stateB.swfYieldCDOCDSs) {
+    for (const [key, cdsB] of Object.entries(stateB.swfYieldCDOCDSs)) {
+      const cdsA = swfYieldCDOCDSs[key];
+      if (!cdsA || cdsB.timestamp > cdsA.timestamp) {
+        swfYieldCDOCDSs[key] = cdsB;
+      }
+    }
+  }
+
   // Merge marginAccounts using LWW (Last-Write-Wins)
   const marginAccounts = { ...stateA.marginAccounts };
   if (stateB.marginAccounts) {
@@ -2576,6 +2587,36 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfYieldCDOCDSVotes using LWW (Last-Write-Wins)
+  const swfYieldCDOCDSVotes = { ...stateA.swfYieldCDOCDSVotes };
+  if (stateB.swfYieldCDOCDSVotes) {
+    for (const [cdsId, bInner] of Object.entries(stateB.swfYieldCDOCDSVotes)) {
+      if (!swfYieldCDOCDSVotes[cdsId]) {
+        swfYieldCDOCDSVotes[cdsId] = { ...bInner };
+      } else {
+        const aInner = { ...swfYieldCDOCDSVotes[cdsId] };
+        for (const [agentId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[agentId] = voteB;
+          }
+        }
+        swfYieldCDOCDSVotes[cdsId] = aInner;
+      }
+    }
+  }
+
+  // Merge swfYieldCDOCDSTrades using LWW (Last-Write-Wins)
+  const swfYieldCDOCDSTrades = { ...stateA.swfYieldCDOCDSTrades };
+  if (stateB.swfYieldCDOCDSTrades) {
+    for (const [key, tradeB] of Object.entries(stateB.swfYieldCDOCDSTrades)) {
+      const tradeA = swfYieldCDOCDSTrades[key];
+      if (!tradeA || tradeB.timestamp > tradeA.timestamp) {
+        swfYieldCDOCDSTrades[key] = tradeB;
+      }
+    }
+  }
+
   // Merge reserveRatioVotes using LWW (Last-Write-Wins)
   const reserveRatioVotes = { ...stateA.reserveRatioVotes };
   if (stateB.reserveRatioVotes) {
@@ -2861,6 +2902,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     creditDefaultSwaps,
     creditDefaultSwapVotes,
     creditDefaultSwapTrades,
+    swfYieldCDOCDSs,
+    swfYieldCDOCDSVotes,
+    swfYieldCDOCDSTrades,
     marginAccounts,
     marginRehypothecationVotes,
     marginRehypothecationRevokeVotes,

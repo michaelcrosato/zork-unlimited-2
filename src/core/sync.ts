@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -18261,6 +18261,469 @@ export function multiAgentStep(
           timestamp,
         });
       }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BUY_SWF_YIELD_CDO_CDS action (AF-132)
+  if ((action as any).type === "BUY_SWF_YIELD_CDO_CDS") {
+    const { cdsId, buyerSyndicateId, writerSyndicateId, swfYieldCdoId, trancheId, notionalValue, premiumRate, timestamp, marginEnabled } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+    const writerSyndicate = state.syndicates?.[writerSyndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+    const tranche = cdo?.tranches?.[trancheId as "senior" | "mezzanine" | "equity"];
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required to buy SWF Yield CDO CDS.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (!writerSyndicateId) {
+      rejectionReason = `Writer Syndicate ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `SWF Yield CDO ID is required.`;
+    } else if (!trancheId) {
+      rejectionReason = `Tranche ID is required.`;
+    } else if (notionalValue === undefined || notionalValue <= 0 || !Number.isInteger(notionalValue)) {
+      rejectionReason = `Notional value must be a positive integer.`;
+    } else if (premiumRate === undefined || premiumRate <= 0) {
+      rejectionReason = `Premium rate must be a positive number.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (!writerSyndicate) {
+      rejectionReason = `Writer syndicate ${writerSyndicateId} does not exist.`;
+    } else if (buyerSyndicateId === writerSyndicateId) {
+      rejectionReason = `Buyer and writer syndicates must be different.`;
+    } else if (!buyerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of buyer syndicate ${buyerSyndicateId}.`;
+    } else if (!cdo) {
+      rejectionReason = `SWF Yield CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist in SWF Yield CDO ${swfYieldCdoId}.`;
+    } else if (marginEnabled && (!state.marginAccounts || !state.marginAccounts[writerSyndicateId])) {
+      rejectionReason = `Writer syndicate ${writerSyndicateId} does not have a margin account opened.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      const swfYieldCDOCDSVotes = { ...(state.swfYieldCDOCDSVotes || {}) };
+      if (!swfYieldCDOCDSVotes[cdsId]) {
+        swfYieldCDOCDSVotes[cdsId] = {};
+      } else {
+        swfYieldCDOCDSVotes[cdsId] = { ...swfYieldCDOCDSVotes[cdsId] };
+      }
+
+      const existingVote = swfYieldCDOCDSVotes[cdsId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        swfYieldCDOCDSVotes[cdsId][agentId] = {
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          swfYieldCdoId,
+          trancheId,
+          notionalValue,
+          premiumRate,
+          side: "buyer",
+          timestamp,
+          marginEnabled: marginEnabled || false,
+        };
+        newState.swfYieldCDOCDSVotes = swfYieldCDOCDSVotes;
+        newState = reconcileSWFYieldCDOCDSs(newState, pack);
+
+        const activeCds = newState.swfYieldCDOCDSs?.[cdsId]?.active ?? false;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Yield CDO CDS Buy Vote] Agent ${agentId} voted to BUY SWF Yield CDO CDS ${cdsId} from Syndicate ${writerSyndicateId} on SWF Yield CDO ${swfYieldCdoId} tranche ${trancheId} with notional ${notionalValue} (Status: ${activeCds ? "ACTIVE" : "PENDING"}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🛡️ SWF Yield CDO CDS buy vote cast by ${agentId} for ${cdsId} (Notional: ${notionalValue}, Active: ${activeCds}).`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_yield_cdo_cds_bought" as any,
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          swfYieldCdoId,
+          trancheId,
+          notionalValue,
+          premiumRate,
+          active: activeCds,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized WRITE_SWF_YIELD_CDO_CDS action (AF-132)
+  if ((action as any).type === "WRITE_SWF_YIELD_CDO_CDS") {
+    const { cdsId, writerSyndicateId, buyerSyndicateId, swfYieldCdoId, trancheId, notionalValue, premiumRate, timestamp, marginEnabled } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+    const writerSyndicate = state.syndicates?.[writerSyndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+    const tranche = cdo?.tranches?.[trancheId as "senior" | "mezzanine" | "equity"];
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required to write SWF Yield CDO CDS.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (!writerSyndicateId) {
+      rejectionReason = `Writer Syndicate ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `SWF Yield CDO ID is required.`;
+    } else if (!trancheId) {
+      rejectionReason = `Tranche ID is required.`;
+    } else if (notionalValue === undefined || notionalValue <= 0 || !Number.isInteger(notionalValue)) {
+      rejectionReason = `Notional value must be a positive integer.`;
+    } else if (premiumRate === undefined || premiumRate <= 0) {
+      rejectionReason = `Premium rate must be a positive number.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (!writerSyndicate) {
+      rejectionReason = `Writer syndicate ${writerSyndicateId} does not exist.`;
+    } else if (buyerSyndicateId === writerSyndicateId) {
+      rejectionReason = `Buyer and writer syndicates must be different.`;
+    } else if (!writerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of writer syndicate ${writerSyndicateId}.`;
+    } else if (!cdo) {
+      rejectionReason = `SWF Yield CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist in SWF Yield CDO ${swfYieldCdoId}.`;
+    } else if (marginEnabled && (!state.marginAccounts || !state.marginAccounts[writerSyndicateId])) {
+      rejectionReason = `Writer syndicate ${writerSyndicateId} does not have a margin account opened.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      const swfYieldCDOCDSVotes = { ...(state.swfYieldCDOCDSVotes || {}) };
+      if (!swfYieldCDOCDSVotes[cdsId]) {
+        swfYieldCDOCDSVotes[cdsId] = {};
+      } else {
+        swfYieldCDOCDSVotes[cdsId] = { ...swfYieldCDOCDSVotes[cdsId] };
+      }
+
+      const existingVote = swfYieldCDOCDSVotes[cdsId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        swfYieldCDOCDSVotes[cdsId][agentId] = {
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          swfYieldCdoId,
+          trancheId,
+          notionalValue,
+          premiumRate,
+          side: "writer",
+          timestamp,
+          marginEnabled: marginEnabled || false,
+        };
+        newState.swfYieldCDOCDSVotes = swfYieldCDOCDSVotes;
+        newState = reconcileSWFYieldCDOCDSs(newState, pack);
+
+        const activeCds = newState.swfYieldCDOCDSs?.[cdsId]?.active ?? false;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Yield CDO CDS Write Vote] Agent ${agentId} voted to WRITE SWF Yield CDO CDS ${cdsId} to Syndicate ${buyerSyndicateId} on SWF Yield CDO ${swfYieldCdoId} tranche ${trancheId} with notional ${notionalValue} (Status: ${activeCds ? "ACTIVE" : "PENDING"}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🛡️ SWF Yield CDO CDS write vote cast by ${agentId} for ${cdsId} (Notional: ${notionalValue}, Active: ${activeCds}).`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_yield_cdo_cds_written" as any,
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          swfYieldCdoId,
+          trancheId,
+          notionalValue,
+          premiumRate,
+          active: activeCds,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ADJUST_SWF_YIELD_CDO_CDS_MARGIN action (AF-132)
+  if ((action as any).type === "ADJUST_SWF_YIELD_CDO_CDS_MARGIN") {
+    const { syndicateId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to adjust margin.`;
+    } else if (amount === undefined || amount === 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Adjustment amount must be a non-zero integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (amount > 0 && (syndicate.warChest ?? 0) < amount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient gold in its war chest to deposit collateral of ${amount} (has ${syndicate.warChest ?? 0}).`;
+    } else if (amount < 0 && marginAccount.collateral < Math.abs(amount)) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient collateral to withdraw ${Math.abs(amount)} (has ${marginAccount.collateral}).`;
+    } else {
+      // If withdrawing, check that it doesn't violate maintenance margin requirements!
+      if (amount < 0) {
+        const potentialCollateral = marginAccount.collateral + amount; // amount is negative
+
+        let sumCurrentStakeValue = 0;
+        let sumBorrowedAmount = 0;
+        const leveragedTranches = marginAccount.leveragedTranchePositions || {};
+        for (const [posKey, pos] of Object.entries(leveragedTranches)) {
+          const cdo = state.cdos?.[pos.cdoId];
+          const tranche = cdo?.tranches?.[pos.trancheId];
+          const currentStakeValue = tranche?.ownership?.[syndicateId] ?? 0;
+          sumCurrentStakeValue += currentStakeValue;
+          sumBorrowedAmount += pos.borrowedAmount;
+        }
+
+        const potentialNetEquity = potentialCollateral + (sumCurrentStakeValue - sumBorrowedAmount);
+
+        let sumCdsNotional = 0;
+        const activeCDSIds = marginAccount.leveragedCDSIds || [];
+        for (const cdsId of activeCDSIds) {
+          const cds = state.creditDefaultSwaps?.[cdsId];
+          if (cds && cds.active) {
+            sumCdsNotional += cds.notionalValue;
+          }
+        }
+
+        let sumSwfCdsNotional = 0;
+        const activeSwfCDSIds = marginAccount.leveragedSWFYieldCDOCDSIds || [];
+        for (const cdsId of activeSwfCDSIds) {
+          const cds = state.swfYieldCDOCDSs?.[cdsId];
+          if (cds && cds.active) {
+            sumSwfCdsNotional += cds.notionalValue;
+          }
+        }
+
+        let rehypothecationPremium = 0;
+        if (marginAccount.rehypothecationAuthorized && marginAccount.rehypothecationVaultId && marginAccount.rehypothecationPercentage !== undefined) {
+          const vaults = getSecondaryReserveVaults(state);
+          const vault = vaults[marginAccount.rehypothecationVaultId];
+          if (vault) {
+            const rehypothecatedAmount = Math.floor(potentialCollateral * (marginAccount.rehypothecationPercentage / 100));
+            rehypothecationPremium = Math.round(rehypothecatedAmount * (0.10 + vault.sweepRisk));
+          }
+        }
+
+        const maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium);
+
+        if (potentialNetEquity < maintenanceRequirement) {
+          rejectionReason = `Withdrawal of ${Math.abs(amount)} would violate maintenance margin requirement (Net Equity ${potentialNetEquity} < Required ${maintenanceRequirement}).`;
+        } else {
+          ok = true;
+        }
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      newState.syndicates = { ...state.syndicates };
+      newState.syndicates[syndicateId] = {
+        ...syndicate,
+        warChest: (syndicate.warChest ?? 0) - amount, // handles negative amount as addition to war chest
+      } as any;
+
+      newState.marginAccounts = { ...state.marginAccounts };
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        collateral: marginAccount.collateral + amount,
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Margin Adjustment] Syndicate ${syndicateId} adjusted margin by ${amount} gold (New collateral: ${marginAccount.collateral + amount}, New war chest: ${(syndicate.warChest ?? 0) - amount}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Margin adjusted by ${amount} gold for Syndicate ${syndicateId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "margin_adjusted" as any,
+        syndicateId,
+        amount,
+        timestamp,
+      });
     }
 
     newState.step += 1;
