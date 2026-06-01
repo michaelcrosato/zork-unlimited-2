@@ -731,6 +731,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge protectionRackets using LWW (Last-Write-Wins) (AF-45)
+  const protectionRackets = { ...stateA.protectionRackets };
+  if (stateB.protectionRackets) {
+    for (const [merchantId, entryB] of Object.entries(stateB.protectionRackets)) {
+      const entryA = protectionRackets[merchantId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        protectionRackets[merchantId] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -766,6 +777,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     productionLabs,
     syndicateTurfClaims,
     enforcementHeat,
+    protectionRackets,
   };
 }
 

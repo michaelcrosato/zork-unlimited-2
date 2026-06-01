@@ -16,7 +16,8 @@ import { calculateTradePrice, checkReputationTrade, getMerchantGold, tickEconomy
 export function step(
   state: GameState,
   action: Action,
-  pack: CYOAPack | ParserPack
+  pack: CYOAPack | ParserPack,
+  agentId: string = "player"
 ): StepResult {
   // If the game has already ended, reject all actions
   if (state.ended) {
@@ -529,6 +530,22 @@ export function step(
         calculatedTax = tax;
       }
 
+      // Pre-calculate Syndicate Extortion Toll (AF-45)
+      let calculatedExtortionToll = 0;
+      const controllingSyndicateId = state.syndicateTurf?.[destRoomId];
+      let syndicateName = "";
+      if (controllingSyndicateId) {
+        const syndicate = state.syndicates?.[controllingSyndicateId];
+        if (syndicate) {
+          syndicateName = syndicate.name;
+          const isMember = syndicate.members.includes(agentId);
+          if (!isMember) {
+            const dominance = syndicate.dominance ?? 50;
+            calculatedExtortionToll = Math.floor(15 * (dominance / 50));
+          }
+        }
+      }
+
       // Pre-calculate Trade Route locking and tolls
       let maxToll = 0;
       let lockingRouteId: string | null = null;
@@ -717,6 +734,40 @@ export function step(
           events.push({
             type: "narration",
             text: `Paid ${maxToll} gold toll to cross hostile trade route ${tollingRouteId} (${hostileRouteFactionId} faction).`,
+          });
+        }
+
+        if (calculatedExtortionToll > 0 && controllingSyndicateId) {
+          const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+          const currentGold = newState.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+          if (currentGold < calculatedExtortionToll) {
+            return {
+              state,
+              events: [{ type: "rejected", reason: `You cannot enter ${exit.to} without paying a syndicate extortion toll of ${calculatedExtortionToll} gold (you have ${currentGold}).` }],
+              ok: false,
+              rejectionReason: `You cannot afford the syndicate extortion toll of ${calculatedExtortionToll} gold to enter this turf.`,
+            };
+          }
+          // Deduct from agent
+          newState.vars[goldKey] = currentGold - calculatedExtortionToll;
+
+          // Distribute among syndicate members
+          const syndicate = state.syndicates?.[controllingSyndicateId];
+          const members = syndicate?.members ?? [];
+          const memberShare = members.length > 0 ? Math.floor(calculatedExtortionToll / members.length) : 0;
+          if (memberShare > 0) {
+            for (const member of members) {
+              const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+              newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + memberShare;
+            }
+          }
+
+          newState.vars["totalExtortionGoldCollected"] = (newState.vars["totalExtortionGoldCollected"] ?? 0) + calculatedExtortionToll;
+
+          newState.journal.push(`[Syndicate] Extorted ${calculatedExtortionToll} gold from ${agentId} entering turf ${destRoomId}. Distributed ${memberShare} gold to each member.`);
+          events.push({
+            type: "narration",
+            text: `Paid ${calculatedExtortionToll} gold in syndicate extortion toll to enter ${destRoomId} (controlled by ${syndicateName}).`,
           });
         }
       }

@@ -440,6 +440,46 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // 5. Periodic passive protection racket collections (AF-45)
+  if (newState.step > 0 && newState.step % 5 === 0 && newState.protectionRackets) {
+    for (const [merchantId, racket] of Object.entries(newState.protectionRackets)) {
+      if (racket.active) {
+        const syndicate = newState.syndicates?.[racket.syndicateId];
+        if (syndicate) {
+          // Find which room the merchant NPC is currently in
+          const merchantRoom = pack.rooms.find((r: any) => r.npcs?.includes(merchantId));
+          if (merchantRoom) {
+            const turfSyndicateId = newState.syndicateTurf?.[merchantRoom.id];
+            // Only collect if the syndicate currently controls the merchant's room turf!
+            if (turfSyndicateId === racket.syndicateId) {
+              const currentGold = newState.merchantGold?.[merchantId] ?? 100;
+              const protectionFee = Math.min(racket.cost, currentGold);
+              if (protectionFee > 0) {
+                // Deduct from merchant
+                if (!newState.merchantGold) newState.merchantGold = {};
+                newState.merchantGold[merchantId] = currentGold - protectionFee;
+
+                // Distribute among syndicate members
+                const members = syndicate.members ?? [];
+                const share = members.length > 0 ? Math.floor(protectionFee / members.length) : 0;
+                if (share > 0) {
+                  if (!newState.vars) newState.vars = {};
+                  for (const member of members) {
+                    const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                    newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+                  }
+                }
+
+                newState.vars["totalExtortionGoldCollected"] = (newState.vars["totalExtortionGoldCollected"] ?? 0) + protectionFee;
+                newState.journal.push(`[Syndicate] Collected passive protection fee of ${protectionFee} gold from merchant ${merchantId} on turf ${merchantRoom.id} (Distributed ${share} gold to each member).`);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   return newState;
 }
 

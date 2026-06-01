@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #44 (Ready for Cycle #45)
-* **Build/Test Status**: 🟢 PASS (All 195 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #45 (Ready for Cycle #46)
+* **Build/Test Status**: 🟢 PASS (All 199 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -255,15 +255,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 39: Crime Syndicate Extortion and Protection Rackets (Completed)
+- [x] Define protection racket schemas (`protectionRackets` inside GameState) (`AF-45`).
+- [x] Implement decentralized action reducer `DEMAND_PROTECTION` to extort merchants (`AF-45`).
+- [x] Levy dynamic extortion tolls inside move traversals for non-allied turf entries (`AF-45`).
+- [x] Distribute collected extortion and protection gold among syndicate members (`AF-45`).
+- [x] Write comprehensive unit and integration tests verifying extortion, tolls, passive income, and gossip syncing (`AF-45`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-45`
-* **Objective**: Crime Syndicate Extortion and Protection Rackets.
-* **Why this matters**: Allow crime syndicates to collect protection gold from local merchants and levy extortion tolls on non-allied players/agents entering syndicate-controlled turf, deeply integrating the economy module with turf boundaries.
+**Task ID**: `AF-46`
+* **Objective**: Syndicate Bribery and Enforcer Raid Deflection.
+* **Why this matters**: Allow syndicates to dynamically pay bribes or acquire enforcer raid deflection policies to dynamically lower regional enforcer heat and protect local contraband labs from automatic enforcer raids.
 * **Planned Actions**:
-  1. Add a protection racket state schema for merchants.
-  2. Implement action reducers to establish protection contracts or extort target merchants.
-  3. Wire dynamic extortion tolls for traversing rooms controlled by hostile syndicates.
-  4. Write comprehensive integration tests for extortion, protection collection, and gossip synchronization.
+  1. Add a bribery and deflection state schema to GameState.
+  2. Implement decentralized action reducers to bribe enforcers or purchase deflection policies.
+  3. Wire logic to lower enforcement heat dynamically and deflect enforcer raids based on regional active policies.
+  4. Write comprehensive integration tests verifying bribes, deflection mechanics, and gossip synchronization.
 
 ---
 

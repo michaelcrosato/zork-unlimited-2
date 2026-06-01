@@ -7,6 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
+import { getMerchantGold } from "./economy.js";
 
 export interface MultiAgentAction {
   agentId: string;
@@ -3263,6 +3264,157 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized DEMAND_PROTECTION action (AF-45)
+  if ((action as any).type === "DEMAND_PROTECTION") {
+    const { merchantId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    if (!("rooms" in pack) || !("npcs" in pack)) {
+      rejectionReason = `Protection rackets are only supported in parser games.`;
+    } else {
+      const parserPack = pack as ParserPack;
+      const syndicate = state.syndicates?.[syndicateId];
+      const merchant = parserPack.npcs?.find((n: any) => n.id === merchantId);
+
+      // Find where agent is currently located
+      const agentCurrent = state.agents?.[agentId]?.current ?? state.current;
+
+      if (!merchantId) {
+        rejectionReason = `Merchant ID is required.`;
+      } else if (!syndicateId) {
+        rejectionReason = `Syndicate ID is required.`;
+      } else if (!syndicate) {
+        rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+      } else if (!syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+      } else if (!merchant) {
+        rejectionReason = `Merchant NPC ${merchantId} does not exist.`;
+      } else {
+        // Check if merchant is in the same room as the agent
+        const room = parserPack.rooms?.find((r: any) => r.id === agentCurrent);
+        if (!room || !room.npcs?.includes(merchantId)) {
+          rejectionReason = `Merchant ${merchantId} is not in room ${agentCurrent}.`;
+        } else {
+          const existingRacket = state.protectionRackets?.[merchantId];
+          if (existingRacket && existingRacket.active && existingRacket.syndicateId === syndicateId) {
+            rejectionReason = `Syndicate ${syndicateId} already has an active protection contract with merchant ${merchantId}.`;
+          } else {
+            ok = true;
+          }
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && "npcs" in pack) {
+      const parserPack = pack as ParserPack;
+      const merchant = parserPack.npcs?.find((n: any) => n.id === merchantId);
+      if (merchant) {
+        const syndicate = state.syndicates?.[syndicateId];
+        const protectionRackets = { ...(state.protectionRackets || {}) };
+
+        // Determine initial protection extortion fee
+        // e.g. Extort 50 gold from the merchant. If the merchant has less, take what they have.
+        const merchantGold = getMerchantGold(state, merchant);
+        const extortedGold = Math.min(50, merchantGold);
+
+        // Deduct from merchant's gold
+        if (newState.merchantGold) {
+          newState.merchantGold = {
+            ...newState.merchantGold,
+            [merchantId]: merchantGold - extortedGold,
+          };
+        } else {
+          newState.merchantGold = { [merchantId]: merchantGold - extortedGold };
+        }
+
+        // Distribute extorted gold to syndicate members
+        const members = syndicate?.members ?? [];
+        const memberShare = members.length > 0 ? Math.floor(extortedGold / members.length) : 0;
+        if (memberShare > 0) {
+          newState.vars = { ...newState.vars };
+          for (const member of members) {
+            const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+            newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + memberShare;
+          }
+        }
+
+        // Track total extortion telemetry
+        newState.vars["totalExtortionGoldCollected"] = (newState.vars["totalExtortionGoldCollected"] ?? 0) + extortedGold;
+
+        // Register / update the protection racket contract
+        protectionRackets[merchantId] = {
+          merchantId,
+          syndicateId,
+          cost: 15, // Recurring protection fee
+          timestamp,
+          active: true,
+        };
+        newState.protectionRackets = protectionRackets;
+
+        newState.journal.push(`[Syndicate] Protection racket established with merchant ${merchantId} by ${agentId}. Extorted ${extortedGold} gold (Distributed ${memberShare} gold to each member).`);
+        customEvents.push({
+          type: "protection_established",
+          agentId,
+          merchantId,
+          syndicateId,
+          extortedGold,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {
@@ -3284,7 +3436,7 @@ export function multiAgentStep(
   };
 
   // Delegate to the deterministic engine step transition
-  const stepResult = step(localState, action, pack);
+  const stepResult = step(localState, action, pack, agentId);
 
   let newState: GameState;
   if (stepResult.ok) {

@@ -260,6 +260,15 @@ export const ProductionLabSchema = z.object({
 });
 export type ProductionLab = z.infer<typeof ProductionLabSchema>;
 
+export const ProtectionRacketSchema = z.object({
+  merchantId: z.string(),
+  syndicateId: z.string(),
+  cost: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type ProtectionRacket = z.infer<typeof ProtectionRacketSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -354,6 +363,7 @@ export const GameStateSchema = z.object({
   syndicateTurfClaims: z.record(z.string(), SyndicateTurfClaimSchema).optional(),
   syndicateTurf: z.record(z.string(), z.string()).optional(),
   enforcementHeat: z.record(z.string(), EnforcementHeatEntrySchema).optional(),
+  protectionRackets: z.record(z.string(), ProtectionRacketSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -447,6 +457,7 @@ export const createInitialState = (options: {
     syndicateTurfClaims: {},
     syndicateTurf: {},
     enforcementHeat: {},
+    protectionRackets: {},
   };
 };
 
