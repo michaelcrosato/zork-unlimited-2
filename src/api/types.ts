@@ -29,7 +29,9 @@ export type Action =
   | { type: "PROPOSE_ALLIANCE"; factionA: string; factionB: string; targetState?: "allied" | "hostile" | "neutral"; timestamp: number }
   | { type: "DISSOLVE_ALLIANCE"; factionA: string; factionB: string; timestamp: number }
   | { type: "CLAIM_TERRITORY"; roomId: string; factionId: string; timestamp: number }
-  | { type: "ASSIST_CONQUEST"; roomId: string; factionId: string; assistingFactionId: string; timestamp: number };
+  | { type: "ASSIST_CONQUEST"; roomId: string; factionId: string; assistingFactionId: string; timestamp: number }
+  | { type: "DEFINE_TRADE_ROUTE"; routeId: string; factionId: string; rooms: string[]; taxShare: number; timestamp: number }
+  | { type: "VOTE_TRADE_ROUTE_TAX"; routeId: string; taxShare: number; timestamp: number };
 
 
 

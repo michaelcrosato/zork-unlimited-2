@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, findRoom, getRoomExits } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -610,6 +610,228 @@ export function multiAgentStep(
               reason: rejectionReason || "Failed alliance vote.",
             } as any,
           ],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEFINE_TRADE_ROUTE action
+  if ((action as any).type === "DEFINE_TRADE_ROUTE") {
+    const { routeId, factionId, rooms, taxShare, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const isValidFaction = (pack as any).factions?.some((f: any) => f.id === factionId);
+    if (!isValidFaction) {
+      rejectionReason = `Faction ${factionId} is not a valid faction in the content pack.`;
+    } else if (taxShare < 0 || !Number.isInteger(taxShare)) {
+      rejectionReason = `Proposed tax share ${taxShare} must be a non-negative integer.`;
+    } else if (!Array.isArray(rooms) || rooms.length === 0) {
+      rejectionReason = `Rooms list must be a non-empty array of valid room IDs.`;
+    } else {
+      // Validate all rooms exist
+      let allRoomsValid = true;
+      for (const roomId of rooms) {
+        if (!findRoom(state, pack, roomId)) {
+          allRoomsValid = false;
+          rejectionReason = `Room ${roomId} in trade route is not a valid room.`;
+          break;
+        }
+      }
+
+      if (allRoomsValid) {
+        // Validate adjacency/connectedness of rooms
+        let isConnected = true;
+        for (let i = 0; i < rooms.length - 1; i++) {
+          const room = findRoom(state, pack, rooms[i]);
+          const exits = getRoomExits(state, room);
+          if (!exits.some(e => e.to === rooms[i+1])) {
+            isConnected = false;
+            rejectionReason = `Trade route is disconnected: no path from ${rooms[i]} to ${rooms[i+1]}.`;
+            break;
+          }
+        }
+        if (isConnected) {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const tradeRoutes = { ...(state.tradeRoutes || {}) };
+      const existingRoute = tradeRoutes[routeId];
+
+      if (!existingRoute || timestamp > existingRoute.timestamp ||
+        (timestamp === existingRoute.timestamp && agentId.localeCompare(existingRoute.definedBy) < 0)
+      ) {
+        tradeRoutes[routeId] = {
+          id: routeId,
+          factionId,
+          rooms,
+          definedBy: agentId,
+          taxShare,
+          timestamp,
+        };
+        newState.tradeRoutes = tradeRoutes;
+
+        // Also initialize/record the definer's vote on tax share
+        const tradeRouteVotes = { ...(state.tradeRouteVotes || {}) };
+        if (!tradeRouteVotes[routeId]) {
+          tradeRouteVotes[routeId] = {};
+        } else {
+          tradeRouteVotes[routeId] = { ...tradeRouteVotes[routeId] };
+        }
+        tradeRouteVotes[routeId][agentId] = {
+          taxShare,
+          timestamp,
+        };
+        newState.tradeRouteVotes = tradeRouteVotes;
+
+        newState = reconcileTradeRoutes(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "trade_route_defined", routeId, factionId, rooms, definedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_TRADE_ROUTE_TAX action
+  if ((action as any).type === "VOTE_TRADE_ROUTE_TAX") {
+    const { routeId, taxShare, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const existingRoute = state.tradeRoutes?.[routeId];
+    if (!existingRoute) {
+      rejectionReason = `Trade route ${routeId} does not exist in state.`;
+    } else if (taxShare < 0 || !Number.isInteger(taxShare)) {
+      rejectionReason = `Proposed tax share ${taxShare} must be a non-negative integer.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const tradeRouteVotes = { ...(state.tradeRouteVotes || {}) };
+      if (!tradeRouteVotes[routeId]) {
+        tradeRouteVotes[routeId] = {};
+      } else {
+        tradeRouteVotes[routeId] = { ...tradeRouteVotes[routeId] };
+      }
+
+      const existingVote = tradeRouteVotes[routeId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        tradeRouteVotes[routeId][agentId] = {
+          taxShare,
+          timestamp,
+        };
+        newState.tradeRouteVotes = tradeRouteVotes;
+        newState = reconcileTradeRoutes(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "trade_route_tax_voted", routeId, taxShare, votedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,
     };

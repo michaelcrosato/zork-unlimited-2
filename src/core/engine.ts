@@ -515,6 +515,86 @@ export function step(
         }
       }
 
+      // 🌀 AF-34: Faction Trade Route Locks and Tolls
+      if (state.tradeRoutes) {
+        let maxToll = 0;
+        let lockingRouteId: string | null = null;
+        let tollingRouteId: string | null = null;
+        let hostileRouteFactionId: string | null = null;
+
+        for (const [routeId, route] of Object.entries(state.tradeRoutes)) {
+          if (route.rooms.includes(destRoomId)) {
+            const factionId = route.factionId;
+            const rep = state.factionRep?.[factionId] ?? 0;
+
+            // Check if faction is hostile
+            let isHostile = rep < 0;
+            if (!isHostile && state.alliances && state.factionRep) {
+              for (const [otherFactionId, otherRep] of Object.entries(state.factionRep)) {
+                if (otherFactionId !== factionId && otherRep >= 10) {
+                  if (state.alliances[factionId]?.[otherFactionId] === "hostile") {
+                    isHostile = true;
+                    break;
+                  }
+                }
+              }
+            }
+
+            // Allied factions pay no tolls
+            let isAllied = rep >= 10;
+            if (!isAllied && state.alliances && state.factionRep) {
+              for (const [otherFactionId, otherRep] of Object.entries(state.factionRep)) {
+                if (otherFactionId !== factionId && otherRep >= 10) {
+                  if (state.alliances[factionId]?.[otherFactionId] === "allied") {
+                    isAllied = true;
+                    break;
+                  }
+                }
+              }
+            }
+
+            if (isHostile && !isAllied) {
+              hostileRouteFactionId = factionId;
+              const toll = state.tradeRoutePolicies?.[routeId] ?? route.taxShare ?? 5;
+              
+              if (rep <= -10) {
+                lockingRouteId = routeId;
+              }
+              if (toll > maxToll) {
+                maxToll = toll;
+                tollingRouteId = routeId;
+              }
+            }
+          }
+        }
+
+        if (lockingRouteId) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `Hostile trade route ${lockingRouteId} is locked to you due to extreme hostility.` }],
+            ok: false,
+            rejectionReason: `Hostile trade route ${lockingRouteId} is locked to you due to extreme hostility.`,
+          };
+        }
+
+        if (maxToll > 0) {
+          const currentGold = newState.vars["gold"] ?? state.vars["gold"] ?? 0;
+          if (currentGold < maxToll) {
+            return {
+              state,
+              events: [{ type: "rejected", reason: `You cannot cross trade route ${tollingRouteId} without paying a toll of ${maxToll} gold (you have ${currentGold}).` }],
+              ok: false,
+              rejectionReason: `You cannot afford the trade route toll of ${maxToll} gold to cross this trade route.`,
+            };
+          }
+          newState.vars["gold"] = currentGold - maxToll;
+          events.push({
+            type: "narration",
+            text: `Paid ${maxToll} gold toll to cross hostile trade route ${tollingRouteId} (${hostileRouteFactionId} faction).`,
+          });
+        }
+      }
+
       newState.current = exit.to;
       newState.visited[exit.to] = true;
       events.push({

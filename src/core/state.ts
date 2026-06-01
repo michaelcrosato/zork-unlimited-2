@@ -82,6 +82,22 @@ export const TradeTransactionSchema = z.object({
 
 export type TradeTransaction = z.infer<typeof TradeTransactionSchema>;
 
+export const TradeRouteSchema = z.object({
+  id: z.string(),
+  factionId: z.string(),
+  rooms: z.array(z.string()),
+  definedBy: z.string(),
+  taxShare: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type TradeRoute = z.infer<typeof TradeRouteSchema>;
+
+export const TradeRouteVoteSchema = z.object({
+  taxShare: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type TradeRouteVote = z.infer<typeof TradeRouteVoteSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -131,6 +147,11 @@ export const GameStateSchema = z.object({
   taxVotes: z.record(z.string(), z.record(z.string(), TaxVoteSchema)).optional(),
   alliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
   allianceVotes: z.record(z.string(), z.record(z.string(), AllianceVoteSchema)).optional(),
+  
+  // decentralized trade routes and tolls
+  tradeRoutes: z.record(z.string(), TradeRouteSchema).optional(),
+  tradeRouteVotes: z.record(z.string(), z.record(z.string(), TradeRouteVoteSchema)).optional(),
+  tradeRoutePolicies: z.record(z.string(), z.number()).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -200,6 +221,9 @@ export const createInitialState = (options: {
     taxVotes: {},
     alliances: {},
     allianceVotes: {},
+    tradeRoutes: {},
+    tradeRouteVotes: {},
+    tradeRoutePolicies: {},
   };
 };
 
@@ -417,6 +441,42 @@ export function reconcileAlliances(state: GameState, pack: any): GameState {
       newState.alliances[factionB] = {};
     }
     newState.alliances[factionB][factionA] = consensusState;
+  }
+
+  return newState;
+}
+
+export function reconcileTradeRoutes(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    tradeRoutePolicies: { ...(state.tradeRoutePolicies || {}) },
+  };
+
+  if (!newState.tradeRouteVotes) {
+    newState.tradeRouteVotes = {};
+  }
+
+  for (const [routeId, votes] of Object.entries(newState.tradeRouteVotes)) {
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.taxShare] = (counts[vote.taxShare] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    let consensusRate = 0;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort rates descending to prefer higher rates.
+    const uniqueRates = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = counts[rate];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    newState.tradeRoutePolicies[routeId] = consensusRate;
   }
 
   return newState;
