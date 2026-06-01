@@ -4838,6 +4838,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
             const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
             const stressPolicy = newState.swfReinsuranceOptionStressTestPolicies?.[policyKey];
+            const marginPolicy = newState.swfReinsuranceOptionMarginPolicies?.[policyKey];
 
             let volatilityToUse = avgVolatility;
             let shockScale = 1.0;
@@ -4849,8 +4850,49 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               flatShock = Math.round(stressPolicy.simulatedLiquidityShock);
             }
 
-            let optRequired = Math.round(opt.size * spotRate * (volatilityToUse / 10.0) * 10);
+            // Calculate linkStateDropRate for this specific option
+            let poolLinkStateDropRate = 0.0;
+            if (newState.swfMultiFundReinsurancePools) {
+              const cdo = newState.swfYieldCDOs?.[opt.swfYieldCdoId];
+              const creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
+              for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+                if (pool.linkStateDropRate !== undefined) {
+                  if (creatorSyndicateId && pool.syndicateIds.includes(creatorSyndicateId)) {
+                    poolLinkStateDropRate = Math.max(poolLinkStateDropRate, pool.linkStateDropRate);
+                  }
+                }
+              }
+            }
+            let optLinkStateDropRate = poolLinkStateDropRate;
+            if (optLinkStateDropRate === 0.0 && newState.swfMultiFundReinsurancePools) {
+              for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+                if (pool.linkStateDropRate !== undefined) {
+                  optLinkStateDropRate = Math.max(optLinkStateDropRate, pool.linkStateDropRate);
+                }
+              }
+            }
+
+            let effectiveSize = opt.size;
+            let deleveragingActive = false;
+            const autoDeleveragingThreshold = marginPolicy?.autoDeleveragingThreshold ?? 0.3;
+            const marginDeflectionFactor = marginPolicy?.marginDeflectionFactor ?? 0.5;
+
+            if (optLinkStateDropRate >= autoDeleveragingThreshold) {
+              deleveragingActive = true;
+              effectiveSize = Math.round(opt.size * (1.0 - marginDeflectionFactor));
+            }
+
+            let optRequired = Math.round(effectiveSize * spotRate * (volatilityToUse / 10.0) * 10);
             optRequired = Math.round(optRequired * shockScale) + flatShock;
+
+            if (deleveragingActive) {
+              optRequired = Math.round(optRequired * (1.0 - marginDeflectionFactor));
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[SWF Reinsurance Option Auto-Deleveraging] Syndicate ${syndicateId} option on CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId} auto-deleveraged: Size marked down from ${opt.size} to ${effectiveSize} and margin requirement reduced by ${(marginDeflectionFactor * 100).toFixed(0)}% due to severe network degradation (Link-state drop rate: ${optLinkStateDropRate.toFixed(2)} >= Threshold: ${autoDeleveragingThreshold.toFixed(2)}).`
+              );
+            }
 
             sumOptionsMaintenanceRequirement += optRequired;
           }
@@ -5581,7 +5623,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           }
         }
 
-        // Deactivate and penalize all written option contracts of this syndicate (AF-156)
+        // Deactivate and penalize all written option contracts of this syndicate (AF-156/AF-170)
         if (newState.swfReinsuranceOptionsContracts) {
           newState.swfReinsuranceOptionsContracts = { ...newState.swfReinsuranceOptionsContracts };
           newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
@@ -5591,7 +5633,38 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
               const policy = newState.swfReinsuranceOptionMarginPolicies?.[policyKey];
               const pRate = policy ? policy.penaltyRate : 0.15;
-              const penalty = Math.floor(opt.size * spotRate * pRate * 100);
+
+              // Calculate linkStateDropRate for this specific option
+              let poolLinkStateDropRate = 0.0;
+              if (newState.swfMultiFundReinsurancePools) {
+                const cdo = newState.swfYieldCDOs?.[opt.swfYieldCdoId];
+                const creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
+                for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+                  if (pool.linkStateDropRate !== undefined) {
+                    if (creatorSyndicateId && pool.syndicateIds.includes(creatorSyndicateId)) {
+                      poolLinkStateDropRate = Math.max(poolLinkStateDropRate, pool.linkStateDropRate);
+                    }
+                  }
+                }
+              }
+              let optLinkStateDropRate = poolLinkStateDropRate;
+              if (optLinkStateDropRate === 0.0 && newState.swfMultiFundReinsurancePools) {
+                for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+                  if (pool.linkStateDropRate !== undefined) {
+                    optLinkStateDropRate = Math.max(optLinkStateDropRate, pool.linkStateDropRate);
+                  }
+                }
+              }
+
+              let effectiveSize = opt.size;
+              const autoDeleveragingThreshold = policy?.autoDeleveragingThreshold ?? 0.3;
+              const marginDeflectionFactor = policy?.marginDeflectionFactor ?? 0.5;
+
+              if (optLinkStateDropRate >= autoDeleveragingThreshold) {
+                effectiveSize = Math.round(opt.size * (1.0 - marginDeflectionFactor));
+              }
+
+              const penalty = Math.floor(effectiveSize * spotRate * pRate * 100);
 
               // Charge writer's collateral
               netEquity -= penalty;

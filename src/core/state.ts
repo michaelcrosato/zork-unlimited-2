@@ -2225,6 +2225,8 @@ export const SWFReinsuranceOptionMarginPolicySchema = z.object({
   liquidationThreshold: z.number().nonnegative(),
   penaltyRate: z.number().nonnegative(),
   timestamp: z.number().int(),
+  autoDeleveragingThreshold: z.number().nonnegative().optional(),
+  marginDeflectionFactor: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginPolicy = z.infer<typeof SWFReinsuranceOptionMarginPolicySchema>;
 
@@ -2234,6 +2236,8 @@ export const SWFReinsuranceOptionMarginVoteSchema = z.object({
   liquidationThreshold: z.number().nonnegative(),
   penaltyRate: z.number().nonnegative(),
   timestamp: z.number().int(),
+  autoDeleveragingThreshold: z.number().nonnegative().optional(),
+  marginDeflectionFactor: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginVote = z.infer<typeof SWFReinsuranceOptionMarginVoteSchema>;
 
@@ -12514,19 +12518,23 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
       trancheId: "senior" | "mezzanine" | "equity";
       liquidationThreshold: number;
       penaltyRate: number;
+      autoDeleveragingThreshold?: number;
+      marginDeflectionFactor?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
       if (syndicate.members.includes(voterId)) {
-        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}`;
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}`;
         if (!voteGroups[key]) {
           voteGroups[key] = {
             swfYieldCdoId: vote.swfYieldCdoId,
             trancheId: vote.trancheId,
             liquidationThreshold: vote.liquidationThreshold,
             penaltyRate: vote.penaltyRate,
+            autoDeleveragingThreshold: vote.autoDeleveragingThreshold,
+            marginDeflectionFactor: vote.marginDeflectionFactor,
             voters: new Set<string>(),
             timestamps: [],
           };
@@ -12544,6 +12552,8 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
           trancheId: group.trancheId,
           liquidationThreshold: group.liquidationThreshold,
           penaltyRate: group.penaltyRate,
+          autoDeleveragingThreshold: group.autoDeleveragingThreshold,
+          marginDeflectionFactor: group.marginDeflectionFactor,
           timestamp: Math.max(...group.timestamps, newState.step),
         };
 
@@ -12551,7 +12561,7 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
 
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
-          `[SWF Reinsurance Option Margin Policy Adjusted] Syndicate ${syndicateId} adjusted margin policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Liquidation Threshold: ${group.liquidationThreshold.toFixed(4)}, Penalty Rate: ${group.penaltyRate.toFixed(4)}).`
+          `[SWF Reinsurance Option Margin Policy Adjusted] Syndicate ${syndicateId} adjusted margin policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Liquidation Threshold: ${group.liquidationThreshold.toFixed(4)}, Penalty Rate: ${group.penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(group.autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(group.marginDeflectionFactor ?? 0.5).toFixed(2)}).`
         );
       }
     }
