@@ -54,6 +54,13 @@ export const TerritoryClaimSchema = z.object({
 
 export type TerritoryClaim = z.infer<typeof TerritoryClaimSchema>;
 
+export const TaxVoteSchema = z.object({
+  rate: z.number(),
+  timestamp: z.number().int(),
+});
+
+export type TaxVote = z.infer<typeof TaxVoteSchema>;
+
 export const TradeTransactionSchema = z.object({
   step: z.number().int().nonnegative(),
   npcId: z.string(),
@@ -108,6 +115,8 @@ export const GameStateSchema = z.object({
   factionRep: z.record(z.string(), z.number()).optional(),
   territoryClaims: z.record(z.string(), TerritoryClaimSchema).optional(),
   territoryControl: z.record(z.string(), z.string()).optional(),
+  taxPolicy: z.record(z.string(), z.number()).optional(),
+  taxVotes: z.record(z.string(), z.record(z.string(), TaxVoteSchema)).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -172,6 +181,8 @@ export const createInitialState = (options: {
     factionRep: options.factionRepInit ?? {},
     territoryClaims: {},
     territoryControl: options.territoryControlInit ?? {},
+    taxPolicy: {},
+    taxVotes: {},
   };
 };
 
@@ -205,6 +216,40 @@ export function reconcileTerritories(state: GameState, pack: any): GameState {
 
   for (const [roomId, claim] of Object.entries(newState.territoryClaims || {})) {
     newState.territoryControl[roomId] = claim.factionId;
+  }
+
+  return newState;
+}
+
+export function reconcileTaxPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    taxPolicy: { ...(state.taxPolicy || {}) },
+  };
+
+  if (!newState.taxVotes) {
+    newState.taxVotes = {};
+  }
+
+  for (const [factionId, votes] of Object.entries(newState.taxVotes)) {
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.rate] = (counts[vote.rate] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    let consensusRate = 0;
+
+    const uniqueRates = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = counts[rate];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    newState.taxPolicy[factionId] = consensusRate;
   }
 
   return newState;

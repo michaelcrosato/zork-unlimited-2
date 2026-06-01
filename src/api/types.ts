@@ -24,7 +24,8 @@ export type Action =
   // Hero's Quest RPG (Stage 4)
   | { type: "FIGHT"; npc: string }
   | { type: "CAST"; spell: string; target: string }
-  | { type: "FLEE" };
+  | { type: "FLEE" }
+  | { type: "VOTE_TAX_RATE"; factionId: string; rate: number; timestamp: number };
 
 export type StepResult = {
   state: GameState;

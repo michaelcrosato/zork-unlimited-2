@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -373,6 +373,89 @@ export function multiAgentStep(
       state: newState,
       events: ok 
         ? [{ type: "territory_claimed", roomId, factionId, claimedBy: agentId } as any] 
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_TAX_RATE action
+  if ((action as any).type === "VOTE_TAX_RATE") {
+    const { factionId, rate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const isValidFaction = (pack as any).factions?.some((f: any) => f.id === factionId);
+    if (!isValidFaction) {
+      rejectionReason = `Faction ${factionId} is not a valid faction in the content pack.`;
+    } else if (rate < 0 || !Number.isInteger(rate)) {
+      rejectionReason = `Proposed rate ${rate} must be a non-negative integer.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const taxVotes = { ...(state.taxVotes || {}) };
+      if (!taxVotes[factionId]) {
+        taxVotes[factionId] = {};
+      } else {
+        taxVotes[factionId] = { ...taxVotes[factionId] };
+      }
+      
+      const existingVote = taxVotes[factionId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        taxVotes[factionId][agentId] = {
+          rate,
+          timestamp,
+        };
+        newState.taxVotes = taxVotes;
+        newState = reconcileTaxPolicies(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "tax_policy_voted", factionId, rate, votedBy: agentId } as any]
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

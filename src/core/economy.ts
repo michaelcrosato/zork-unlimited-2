@@ -112,7 +112,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       for (const [roomId, factionId] of Object.entries(newState.territoryControl)) {
         const rep = newState.factionRep?.[factionId] ?? 0;
         if (rep > 0) {
-          const roomTax = Math.max(1, Math.floor(rep / 10));
+          let roomTax = Math.max(1, Math.floor(rep / 10));
+          const rateMultiplier = newState.taxPolicy?.[factionId];
+          if (rateMultiplier !== undefined) {
+            roomTax = roomTax * rateMultiplier;
+          }
           totalTaxGold += roomTax;
         }
       }
@@ -167,7 +171,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       const rep = newState.factionRep?.[factionId] ?? 0;
       if (rep > 0) {
         // Gain 1 gold per positive rep faction territory, plus bonus for higher rep
-        const roomTax = Math.max(1, Math.floor(rep / 10));
+        let roomTax = Math.max(1, Math.floor(rep / 10));
+        const rateMultiplier = newState.taxPolicy?.[factionId];
+        if (rateMultiplier !== undefined) {
+          roomTax = roomTax * rateMultiplier;
+        }
         totalTaxGold += roomTax;
       }
     }

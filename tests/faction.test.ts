@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState, getFactionRepInit, getTerritoryControlInit } from "../src/core/state.js";
+import { createInitialState, getFactionRepInit, getTerritoryControlInit, reconcileTaxPolicies } from "../src/core/state.js";
 import { evaluateCondition } from "../src/core/conditions.js";
 import { applyEffect } from "../src/core/effects.js";
 import { step } from "../src/core/engine.js";
@@ -8,6 +8,7 @@ import { ParserPack } from "../src/parser/schema.js";
 import { computeStateHash } from "../src/core/hash.js";
 import { DecentralizedDungeonExpedition } from "../src/core/expedition.js";
 import { tickEconomy } from "../src/core/economy.js";
+import { multiAgentStep } from "../src/core/sync.js";
 
 describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
   const mockPack: ParserPack = {
@@ -579,5 +580,220 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
     state = tickEconomy(state, customPack);
     expect(state.vars["gold"]).toBe(14); // 12 + 2 tax
     expect(state.vars["totalTaxesCollected"]).toBe(4); // Tracks total accumulated taxes (2 + 2)
+  });
+
+  it("should validate and apply VOTE_TAX_RATE decentralized actions", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      factionRepInit: { rangers: 10 },
+    });
+
+    // 1. Try to vote on a non-existent faction
+    const resFail1 = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_TAX_RATE",
+        factionId: "unknown_faction",
+        rate: 3,
+        timestamp: 100,
+      } as any,
+    }, mockPack);
+    expect(resFail1.ok).toBe(false);
+    expect(resFail1.rejectionReason).toContain("is not a valid faction");
+
+    // 2. Try to vote with invalid rate
+    const resFail2 = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_TAX_RATE",
+        factionId: "rangers",
+        rate: -1,
+        timestamp: 100,
+      } as any,
+    }, mockPack);
+    expect(resFail2.ok).toBe(false);
+    expect(resFail2.rejectionReason).toContain("must be a non-negative integer");
+
+    // 3. Valid vote
+    const node = new GossipNode("alice", mockPack, 42);
+    const resA = node.executeLocalAction({
+      type: "VOTE_TAX_RATE",
+      factionId: "rangers",
+      rate: 3,
+      timestamp: 100,
+    } as any);
+    expect(resA.ok).toBe(true);
+    expect(node.localState.taxVotes?.rangers?.alice).toEqual({
+      rate: 3,
+      timestamp: 100,
+    });
+    expect(node.localState.taxPolicy?.rangers).toBe(3);
+
+    // 4. Older vote should be ignored (noop)
+    const resA2 = node.executeLocalAction({
+      type: "VOTE_TAX_RATE",
+      factionId: "rangers",
+      rate: 5,
+      timestamp: 50, // older
+    } as any);
+    expect(resA2.ok).toBe(true);
+    expect(node.localState.taxVotes?.rangers?.alice?.rate).toBe(3);
+
+    // 5. Newer vote should overwrite
+    const resA3 = node.executeLocalAction({
+      type: "VOTE_TAX_RATE",
+      factionId: "rangers",
+      rate: 4,
+      timestamp: 200, // newer
+    } as any);
+    expect(resA3.ok).toBe(true);
+    expect(node.localState.taxVotes?.rangers?.alice?.rate).toBe(4);
+    expect(node.localState.taxPolicy?.rangers).toBe(4);
+  });
+
+  it("should determine consensual taxPolicy using voting majorities and deterministic tie-breaking", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      factionRepInit: { rangers: 10 },
+    });
+
+    state.taxVotes = {
+      rangers: {
+        alice: { rate: 3, timestamp: 100 },
+        bob: { rate: 3, timestamp: 100 },
+        charlie: { rate: 5, timestamp: 100 },
+      },
+    };
+
+    // 1. Majority vote: 3 has 2 votes, 5 has 1 vote. Rate 3 should win.
+    const reconciled = reconcileTaxPolicies(state, mockPack);
+    expect(reconciled.taxPolicy?.rangers).toBe(3);
+
+    // 2. Tie-breaking: alice votes 3, bob votes 5. Frequency tie (1 vs 1).
+    // Our descending order tie-breaker ensures higher rate (5) wins.
+    state.taxVotes = {
+      rangers: {
+        alice: { rate: 3, timestamp: 100 },
+        bob: { rate: 5, timestamp: 100 },
+      },
+    };
+    const reconciledTie = reconcileTaxPolicies(state, mockPack);
+    expect(reconciledTie.taxPolicy?.rangers).toBe(5);
+  });
+
+  it("should synchronize tax rate votes and converge on consensual tax policy across P2P gossip mesh", () => {
+    const nodeA = new GossipNode("alice", mockPack, 42);
+    const nodeB = new GossipNode("bob", mockPack, 42);
+    nodeA.connect(nodeB);
+
+    // Alice votes 3 for rangers at t = 100
+    nodeA.executeLocalAction({
+      type: "VOTE_TAX_RATE",
+      factionId: "rangers",
+      rate: 3,
+      timestamp: 100,
+    } as any);
+
+    // Bob votes 5 for rangers at t = 200
+    nodeB.executeLocalAction({
+      type: "VOTE_TAX_RATE",
+      factionId: "rangers",
+      rate: 5,
+      timestamp: 200,
+    } as any);
+
+    // Exchange gossip
+    nodeA.gossip();
+    nodeB.gossip();
+    nodeA.gossip(); // complete convergence
+
+    // Both should have merged votes: alice (3), bob (5).
+    // Frequency tie (1 and 1). Tie-breaker selects 5.
+    expect(nodeA.localState.taxVotes?.rangers?.alice?.rate).toBe(3);
+    expect(nodeA.localState.taxVotes?.rangers?.bob?.rate).toBe(5);
+    expect(nodeB.localState.taxVotes?.rangers?.alice?.rate).toBe(3);
+    expect(nodeB.localState.taxVotes?.rangers?.bob?.rate).toBe(5);
+
+    expect(nodeA.localState.taxPolicy?.rangers).toBe(5);
+    expect(nodeB.localState.taxPolicy?.rangers).toBe(5);
+
+    expect(computeStateHash(nodeA.localState)).toBe(computeStateHash(nodeB.localState));
+  });
+
+  it("should scale travel tax and periodic passive tax collections dynamically by consensual taxPolicy rate", () => {
+    const customPack: ParserPack = {
+      ...mockPack,
+      rooms: [
+        {
+          id: "clearing",
+          name: "Sunlit Clearing",
+          description: "A lovely open space.",
+          objects: [],
+          npcs: [],
+          faction: "rangers", // Controlled by rangers
+          exits: [
+            {
+              direction: "north",
+              to: "ranger_outpost",
+              conditions: [],
+            },
+          ],
+        },
+        {
+          id: "ranger_outpost",
+          name: "Ranger Outpost",
+          description: "A fortified shelter.",
+          objects: [],
+          npcs: [],
+          faction: "rangers",
+          exits: [],
+        },
+      ],
+    };
+
+    // Case A: Default travel tax with neutral rep (rep = 0 => tax = 2)
+    // Dynamic multiplier set to 3. Expected travel tax = 2 * 3 = 6 gold.
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      varsInit: { gold: 5 },
+      factionRepInit: { rangers: 0 },
+      territoryControlInit: { ranger_outpost: "rangers" },
+    });
+    // Alice votes 3 for rangers, giving taxPolicy rate multiplier = 3
+    state.taxVotes = { rangers: { alice: { rate: 3, timestamp: 100 } } };
+    state = reconcileTaxPolicies(state, customPack);
+    expect(state.taxPolicy?.rangers).toBe(3);
+
+    // Player only has 5 gold, but scaled tax is 6. Traversal should fail.
+    let res = step(state, { type: "MOVE", direction: "north" }, customPack);
+    expect(res.ok).toBe(false);
+    expect(res.rejectionReason).toContain("faction tax");
+
+    // Give player 10 gold. Traversal succeeds and deducts 6 gold.
+    state.vars["gold"] = 10;
+    res = step(state, { type: "MOVE", direction: "north" }, customPack);
+    expect(res.ok).toBe(true);
+    expect(res.state.vars["gold"]).toBe(4); // 10 - 6 = 4 gold left
+
+    // Case B: Passive tax collection
+    // Positive rep = 20 gives base passive tax = Math.max(1, 20/10) = 2.
+    // Dynamic multiplier = 4. Expected periodic passive tax = 2 * 4 = 8 gold.
+    let passiveState = createInitialState({
+      seed: 42,
+      start: "clearing",
+      varsInit: { gold: 10 },
+      factionRepInit: { rangers: 20 },
+      territoryControlInit: { clearing: "rangers" },
+    });
+    passiveState.taxVotes = { rangers: { alice: { rate: 4, timestamp: 100 } } };
+    passiveState = reconcileTaxPolicies(passiveState, customPack);
+
+    passiveState.step = 5; // triggers periodic tax collection
+    passiveState = tickEconomy(passiveState, customPack);
+    expect(passiveState.vars["gold"]).toBe(18); // 10 + 8 = 18 gold
+    expect(passiveState.vars["totalTaxesCollected"]).toBe(8);
   });
 });

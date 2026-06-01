@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #30 (Ready for Cycle #31)
-* **Build/Test Status**: 🟢 PASS (All 136 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #31 (Ready for Cycle #32)
+* **Build/Test Status**: 🟢 PASS (All 140 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -160,16 +160,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement state-based telemetry tracking of the player's total accumulated taxes (`totalTaxesCollected` in state variables) (`AF-30`).
 - [x] Write comprehensive unit and integration tests asserting faction claim narration and tax telemetry tracking (`AF-30`).
 
+### Phase 26: Dynamic Faction Tax Adjustment & Vote Arbitration (Completed)
+- [x] Add `taxPolicy` and `taxVotes` to faction state and support `VOTE_TAX_RATE` decentralized action (`AF-31`).
+- [x] Implement a deterministic tie-breaking majority consensus arbitration rule using sorted unique rates and vector clocks (`AF-31`).
+- [x] Scale travel tax and periodic passive tax collections dynamically by consensual taxPolicy rate (`AF-31`).
+- [x] Write comprehensive unit tests for voting transactions, mesh convergence, and dynamic tax collection price scaling (`AF-31`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-31`
-* **Objective**: Implement dynamic faction tax rate adjustment and mesh-wide tax policy vote arbitration.
-* **Why this matters**: Letting players or alliance nodes dynamically vote on faction tax rates and arbitrate tax policies mesh-wide via consensus makes the decentralized faction control system deep, strategic, and highly interactive.
+**Task ID**: `AF-32`
+* **Objective**: Implement dynamic decentralized faction alliances and mesh-wide alliance formation/dissolution voting.
+* **Why this matters**: Allowing factions to dynamically form defensive and economic alliances or dissolve alliances mesh-wide via consensus-based voting takes the faction dynamics and mesh network strategy to a highly immersive, multi-agent political scale.
 * **Planned Actions**:
-  1. Add `taxPolicy` to faction state and support a `VOTE_TAX_RATE` decentralized action that proposes a rate.
-  2. Implement an arbitration and consensus rule that resolves tax rate votes across the mesh deterministically using vector clocks and voting majorities.
-  3. Write comprehensive unit tests for voting transactions, mesh convergence, and dynamic tax collection price scaling.
+  1. Add `alliances` state to track faction-faction relationships (neutral, allied, hostile).
+  2. Implement `PROPOSE_ALLIANCE` and `DISSOLVE_ALLIANCE` decentralized actions and consensus voting logic.
+  3. Wire alliance state to scale tax policies (e.g. allied factions pay no travel tax or reduced tax, while hostile factions pay double tax!).
+  4. Write comprehensive unit tests for alliance proposal, voting, mesh-wide synchronization, and strategic pricing effects.
 
 ---
 

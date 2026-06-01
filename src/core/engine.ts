@@ -468,6 +468,11 @@ export function step(
           tax = 2;
         }
 
+        const rateMultiplier = state.taxPolicy?.[factionId];
+        if (rateMultiplier !== undefined) {
+          tax = tax * rateMultiplier;
+        }
+
         if (tax > 0) {
           const playerGold = state.vars["gold"] ?? 0;
           if (playerGold < tax) {

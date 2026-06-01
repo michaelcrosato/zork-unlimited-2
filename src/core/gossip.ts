@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -322,12 +322,31 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge tax votes using LWW (Last-Write-Wins)
+  const taxVotes = { ...stateA.taxVotes };
+  if (stateB.taxVotes) {
+    for (const [factionId, bVotes] of Object.entries(stateB.taxVotes)) {
+      if (!taxVotes[factionId]) {
+        taxVotes[factionId] = { ...bVotes };
+      } else {
+        taxVotes[factionId] = { ...taxVotes[factionId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = taxVotes[factionId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            taxVotes[factionId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
     journal,
     lootClaims,
     territoryClaims,
+    taxVotes,
   };
 }
 
@@ -612,6 +631,9 @@ export class GossipNode {
 
     // Reconcile territory claims to ensure regional control aligns perfectly with merged claims
     convergedState = reconcileTerritories(convergedState, this.pack);
+
+    // Reconcile tax policies to ensure consensual tax rates align perfectly across the mesh
+    convergedState = reconcileTaxPolicies(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};
