@@ -46,6 +46,16 @@ export const LootClaimSchema = z.object({
 
 export type LootClaim = z.infer<typeof LootClaimSchema>;
 
+export const TradeTransactionSchema = z.object({
+  step: z.number().int().nonnegative(),
+  npcId: z.string(),
+  action: z.enum(["buy", "sell", "stock"]),
+  item: z.string(),
+  gold: z.number().int(),
+});
+
+export type TradeTransaction = z.infer<typeof TradeTransactionSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -80,6 +90,10 @@ export const GameStateSchema = z.object({
   vectorClock: z.record(z.string(), z.number()).optional(),
   lootClaims: z.record(z.string(), LootClaimSchema).optional(),
   cooperativeSyncLog: z.array(z.string()).optional(),
+
+  // merchant and economy system
+  merchantInventories: z.record(z.string(), z.array(z.string())).optional(),
+  tradeHistory: z.array(TradeTransactionSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -134,6 +148,8 @@ export const createInitialState = (options: {
     vectorClock: options.agentsInit ? Object.fromEntries(options.agentsInit.map((id) => [id, 0])) : {},
     lootClaims: {},
     cooperativeSyncLog: [],
+    merchantInventories: {},
+    tradeHistory: [],
   };
 };
 

@@ -34,6 +34,7 @@ export const ParserObjectSchema = z.object({
   key_id: z.string().optional(),
   contents: z.array(z.string()).optional().default([]),
   interactions: z.array(ObjectInteractionSchema).optional().default([]),
+  cost: z.number().optional(),
 });
 
 export type ParserObject = z.infer<typeof ParserObjectSchema>;

@@ -86,6 +86,17 @@ export const EffectSchema = z.union([
       success_msg: z.string().optional(),
     }),
   }),
+  z.object({
+    npc_trade: z.object({
+      npc_id: z.string(),
+      action: z.enum(["buy", "sell", "stock"]),
+      item: z.string().optional(),
+      possible_items: z.array(z.string()).optional(),
+      cost: z.number().optional(),
+      success_msg: z.string().optional(),
+      fail_msg: z.string().optional(),
+    }),
+  }),
 ]);
 
 export type Effect = z.infer<typeof EffectSchema>;
@@ -108,6 +119,8 @@ export function applyEffect(
     objectState: { ...state.objectState },
     journal: [...state.journal],
     visited: { ...state.visited },
+    merchantInventories: state.merchantInventories ? JSON.parse(JSON.stringify(state.merchantInventories)) : undefined,
+    tradeHistory: state.tradeHistory ? [...state.tradeHistory] : undefined,
   };
 
   if ("set_flag" in effect) {
@@ -451,6 +464,169 @@ export function applyEffect(
       state: newState,
       event: { type: "narration", text }
     };
+  }
+
+  if ("npc_trade" in effect) {
+    const { npc_id, action, item, possible_items, cost, success_msg, fail_msg } = effect.npc_trade;
+
+    if (!newState.merchantInventories) {
+      newState.merchantInventories = {};
+    }
+    if (!newState.merchantInventories[npc_id]) {
+      newState.merchantInventories[npc_id] = [];
+    }
+    if (!newState.tradeHistory) {
+      newState.tradeHistory = [];
+    }
+
+    if (action === "stock") {
+      let stockedItem = item;
+      if (!stockedItem && possible_items && possible_items.length > 0) {
+        const { value, nextSeed } = PureRand.choose(newState.seed, possible_items);
+        newState.seed = nextSeed;
+        stockedItem = value;
+      }
+
+      if (stockedItem) {
+        newState.merchantInventories[npc_id] = [...newState.merchantInventories[npc_id], stockedItem];
+        newState.tradeHistory.push({
+          step: newState.step,
+          npcId: npc_id,
+          action: "stock",
+          item: stockedItem,
+          gold: 0,
+        });
+
+        const currentObj = newState.objectState[stockedItem] ?? {};
+        newState.objectState[stockedItem] = {
+          ...currentObj,
+          takenBy: "world",
+        };
+
+        const text = success_msg ?? `The merchant stocks: ${stockedItem}.`;
+        return {
+          state: newState,
+          event: { type: "narration", text }
+        };
+      } else {
+        const text = fail_msg ?? `No item was stocked.`;
+        return {
+          state: newState,
+          event: { type: "narration", text }
+        };
+      }
+    }
+
+    if (action === "buy") {
+      if (!item) {
+        return {
+          state,
+          event: { type: "narration", text: "No item specified to buy." }
+        };
+      }
+      
+      const isStocked = newState.merchantInventories[npc_id].includes(item);
+      if (!isStocked) {
+        return {
+          state,
+          event: { type: "narration", text: fail_msg ?? `The merchant does not have ${item} in stock.` }
+        };
+      }
+
+      let itemCost: number = cost ?? 10;
+      if (cost === undefined) {
+        const packObj = pack?.objects?.find((o: any) => o.id === item);
+        itemCost = packObj?.cost ?? 10;
+      }
+
+      const playerGold = newState.vars["gold"] ?? 0;
+      if (playerGold < itemCost) {
+        return {
+          state,
+          event: { type: "narration", text: fail_msg ?? `You don't have enough gold (requires ${itemCost} gold, you have ${playerGold}).` }
+        };
+      }
+
+      newState.vars["gold"] = playerGold - itemCost;
+      if (!newState.inventory.includes(item)) {
+        newState.inventory.push(item);
+      }
+      newState.merchantInventories[npc_id] = newState.merchantInventories[npc_id].filter((i: string) => i !== item);
+      
+      const currentObj = newState.objectState[item] ?? {};
+      newState.objectState[item] = {
+        ...currentObj,
+        takenBy: "player",
+      };
+
+      newState.tradeHistory.push({
+        step: newState.step,
+        npcId: npc_id,
+        action: "buy",
+        item,
+        gold: itemCost,
+      });
+
+      const text = success_msg ?? `You bought the ${item} for ${itemCost} gold.`;
+      return {
+        state: newState,
+        event: { type: "narration", text }
+      };
+    }
+
+    if (action === "sell") {
+      if (!item) {
+        return {
+          state,
+          event: { type: "narration", text: "No item specified to sell." }
+        };
+      }
+
+      const hasItem = newState.inventory.includes(item);
+      if (!hasItem) {
+        return {
+          state,
+          event: { type: "narration", text: fail_msg ?? `You don't have a ${item} to sell.` }
+        };
+      }
+
+      const packObj = pack?.objects?.find((o: any) => o.id === item);
+      if (packObj?.quest_critical) {
+        return {
+          state,
+          event: { type: "narration", text: fail_msg ?? `You cannot sell quest critical item ${item}.` }
+        };
+      }
+
+      let itemPayout: number = cost ?? 10;
+      if (cost === undefined) {
+        itemPayout = packObj?.cost ?? 10;
+      }
+
+      newState.inventory = newState.inventory.filter((i) => i !== item);
+      newState.vars["gold"] = (newState.vars["gold"] ?? 0) + itemPayout;
+      newState.merchantInventories[npc_id] = [...newState.merchantInventories[npc_id], item];
+
+      const currentObj = newState.objectState[item] ?? {};
+      newState.objectState[item] = {
+        ...currentObj,
+        takenBy: "world",
+      };
+
+      newState.tradeHistory.push({
+        step: newState.step,
+        npcId: npc_id,
+        action: "sell",
+        item,
+        gold: itemPayout,
+      });
+
+      const text = success_msg ?? `You sold the ${item} for ${itemPayout} gold.`;
+      return {
+        state: newState,
+        event: { type: "narration", text }
+      };
+    }
   }
 
   throw new Error(`Unknown effect type: ${JSON.stringify(effect)}`);

@@ -19,6 +19,8 @@ export type Action =
   | { type: "READ"; target: string }
   | { type: "INSPECT"; target: string }
   | { type: "INVENTORY" }
+  | { type: "BUY"; item: string; npc: string }
+  | { type: "SELL"; item: string; npc: string }
   // Hero's Quest RPG (Stage 4)
   | { type: "FIGHT"; npc: string }
   | { type: "CAST"; spell: string; target: string }

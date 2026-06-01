@@ -38,6 +38,8 @@ export function step(
     visited: { ...state.visited },
     questStage: { ...state.questStage },
     cooperativeSyncLog: state.cooperativeSyncLog ? [...state.cooperativeSyncLog] : [],
+    merchantInventories: state.merchantInventories ? JSON.parse(JSON.stringify(state.merchantInventories)) : undefined,
+    tradeHistory: state.tradeHistory ? [...state.tradeHistory] : undefined,
   };
 
   const events: GameEvent[] = [];
@@ -870,6 +872,152 @@ export function step(
       events.push({
         type: "narration",
         text: `You offer the ${itemObj?.name ?? action.item} to ${npc.name}, but they decline.`,
+      });
+      break;
+    }
+
+    case "BUY": {
+      const npc = parserPack.npcs.find((n) => n.id === action.npc);
+      if (!npc || !currentRoom.npcs?.includes(action.npc)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `NPC '${action.npc}' is not here.` }],
+          ok: false,
+          rejectionReason: `You don't see them here.`,
+        };
+      }
+
+      if (!newState.merchantInventories) {
+        newState.merchantInventories = {};
+      }
+      if (!newState.merchantInventories[npc.id]) {
+        newState.merchantInventories[npc.id] = [];
+      }
+      if (!newState.tradeHistory) {
+        newState.tradeHistory = [];
+      }
+
+      const isStocked = newState.merchantInventories[npc.id].includes(action.item);
+      if (!isStocked) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `The merchant does not have that item in stock.` }],
+          ok: false,
+          rejectionReason: `They don't have that in stock.`,
+        };
+      }
+
+      const itemObj = findObjectInPack(action.item);
+      const itemCost = itemObj?.cost ?? 10;
+      const playerGold = newState.vars["gold"] ?? 0;
+
+      if (playerGold < itemCost) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You don't have enough gold (requires ${itemCost} gold, you have ${playerGold}).` }],
+          ok: false,
+          rejectionReason: `You don't have enough gold.`,
+        };
+      }
+
+      newState.vars["gold"] = playerGold - itemCost;
+      if (!newState.inventory.includes(action.item)) {
+        newState.inventory.push(action.item);
+      }
+      newState.merchantInventories[npc.id] = newState.merchantInventories[npc.id].filter((i) => i !== action.item);
+
+      const currentObj = newState.objectState[action.item] ?? {};
+      newState.objectState[action.item] = {
+        ...currentObj,
+        takenBy: "player",
+      };
+
+      newState.tradeHistory.push({
+        step: newState.step,
+        npcId: npc.id,
+        action: "buy",
+        item: action.item,
+        gold: itemCost,
+      });
+
+      events.push({
+        type: "take",
+        item: action.item,
+      });
+      events.push({
+        type: "narration",
+        text: `You buy the ${itemObj?.name ?? action.item} from ${npc.name} for ${itemCost} gold.`,
+      });
+      break;
+    }
+
+    case "SELL": {
+      const npc = parserPack.npcs.find((n) => n.id === action.npc);
+      if (!npc || !currentRoom.npcs?.includes(action.npc)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `NPC '${action.npc}' is not here.` }],
+          ok: false,
+          rejectionReason: `You don't see them here.`,
+        };
+      }
+
+      if (!state.inventory.includes(action.item)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You don't have '${action.item}' in your inventory.` }],
+          ok: false,
+          rejectionReason: `You don't have that.`,
+        };
+      }
+
+      const itemObj = findObjectInPack(action.item);
+      if (itemObj?.quest_critical) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You cannot sell quest critical items.` }],
+          ok: false,
+          rejectionReason: `You can't sell that.`,
+        };
+      }
+
+      if (!newState.merchantInventories) {
+        newState.merchantInventories = {};
+      }
+      if (!newState.merchantInventories[npc.id]) {
+        newState.merchantInventories[npc.id] = [];
+      }
+      if (!newState.tradeHistory) {
+        newState.tradeHistory = [];
+      }
+
+      const itemPayout = itemObj?.cost ?? 10;
+
+      newState.inventory = newState.inventory.filter((i) => i !== action.item);
+      newState.vars["gold"] = (newState.vars["gold"] ?? 0) + itemPayout;
+      newState.merchantInventories[npc.id] = [...newState.merchantInventories[npc.id], action.item];
+
+      const currentObj = newState.objectState[action.item] ?? {};
+      newState.objectState[action.item] = {
+        ...currentObj,
+        takenBy: "world",
+      };
+
+      newState.tradeHistory.push({
+        step: newState.step,
+        npcId: npc.id,
+        action: "sell",
+        item: action.item,
+        gold: itemPayout,
+      });
+
+      events.push({
+        type: "drop",
+        item: action.item,
+      });
+      events.push({
+        type: "narration",
+        text: `You sell the ${itemObj?.name ?? action.item} to ${npc.name} for ${itemPayout} gold.`,
       });
       break;
     }

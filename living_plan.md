@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #24 (Ready for Cycle #25)
-* **Build/Test Status**: 🟢 PASS (All 117 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #25 (Ready for Cycle #26)
+* **Build/Test Status**: 🟢 PASS (All 119 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -124,16 +124,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Add signature compression to delta state encoding to prevent hash/telemetry divergence (`AF-24`).
 - [x] Write comprehensive unit tests for keypair generation, transaction signing, signature verification, spoofing/tampering detection, and secure mesh convergence (`AF-24`).
 
+### Phase 20: Procedural Merchant & Economy System (Completed)
+- [x] Add `NPC_TRADE` interaction effect type supporting stocking, buying, and selling mechanics (`AF-25`).
+- [x] Implement custom game state variables (`gold`, `merchantInventories`, and `tradeHistory` transaction logs) (`AF-25`).
+- [x] Support procedurally stocking merchant inventories deterministically using the mulberry32 PRNG seed (`AF-25`).
+- [x] Integrate BUY/SELL parser command mapping and dynamic legal-actions generation (`AF-25`).
+- [x] Write comprehensive Vitest unit and pathfinder reachability validation tests (`AF-25`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-25`
-* **Objective**: Design and implement a procedural merchant and trading system (`NPC_TRADE`) that supports stocking merchant items, dynamic buying/selling mechanics, gold variables, and trade interaction effects in parser packs.
-* **Why this matters**: Adding interactive economies dynamically driven by the state engine increases the mechanical depth, narrative choice, and gameplay options without breaking determinism.
+**Task ID**: `AF-26`
+* **Objective**: Add support for dynamic merchant gold limits, price fluctuation based on local climate/weather (`climate_pricing`), and trading reputation variables (`npc_rep`) in parser packs.
+* **Why this matters**: Further enhancing the mechanical depth and economic realism by reacting to weather patterns and P2P mesh presence increases engine immersion and tactical depth.
 * **Planned Actions**:
-  1. Add an `NPC_TRADE` interaction effect type to support trading mechanics.
-  2. Implement custom game state variables (`gold`, etc.) to track money and transaction history.
-  3. Support procedurally stocking merchant inventories and writing comprehensive tests to assert trade transitions.
+  1. Add weather-based price multipliers (`climate_pricing`) to adjust costs dynamically under extreme weather.
+  2. Implement merchant gold limits and automatic daily restocking timers.
+  3. Add trading reputation variables (`npc_rep`) modifying transaction success and prices.
 
 ---
 

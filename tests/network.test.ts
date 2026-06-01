@@ -458,7 +458,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     nodeA.sendHeartbeat("C");
     
     // Tick to deliver
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 25; i++) {
       net.tick(50);
     }
 

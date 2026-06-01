@@ -38,6 +38,9 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
       ended: state.ended,
       endingId: state.endingId,
     };
+    if (state.merchantInventories) {
+      clean.merchantInventories = state.merchantInventories;
+    }
     if (hasWeather && state.environment) {
       clean.environment = {
         weather: state.environment.weather,
