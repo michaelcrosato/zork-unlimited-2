@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #151 (Ready for Cycle #152)
-* **Build/Test Status**: 🟢 PASS (All 622 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #152 (Ready for Cycle #153)
+* **Build/Test Status**: 🟢 PASS (All 623 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -911,14 +911,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 130: Syndicate SWF Reinsurance Options Order Book Order Matching Engine Optimization & Market Impact Scaling (Completed)
+- [x] Define market impact factor logic based on limit order size relative to current book depth (`AF-152`).
+- [x] Implement executed volume scaling inside the matching tick (`AF-152`).
+- [x] Log market impact execution events to the journal (`AF-152`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-152`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-152`
-* **Objective**: Syndicate SWF Reinsurance Options Order Book Order Matching Engine Optimization & Market Impact Scaling.
-* **Why this matters**: Introduce limit order matching engine optimizations that handle large orders with sliding scale price impact adjustments based on order book depth, scaling down large executed order volumes dynamically to prevent market manipulation.
+**Task ID**: `AF-153`
+* **Objective**: Syndicate SWF Reinsurance Options Order Book Matching Engine Partial Fills & Dynamic Liquidity Mining Rewards.
+* **Why this matters**: Introduce partial limit order fills within the matching engine, and implement a liquidity mining reward mechanism that distributes governance/mining bonuses to syndicates placing tight-spread limit orders.
 * **Planned Actions**:
-  1. Define market impact factor logic based on limit order size relative to current book depth.
-  2. Implement executed volume scaling inside the matching tick.
-  3. Log market impact execution events to the journal.
+  1. Add support for partial limit order matching where residual unmatched order quantities remain open.
+  2. Implement dynamic liquidity mining reward distribution based on limit price closeness to the mid-market price.
+  3. Wire reward claims and log matching/mining events to the journal.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---

@@ -5701,8 +5701,34 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         if (!buyer) continue;
         if (!seller) continue;
 
+        // Calculate current book depth for this specific tranche in terms of open order sizes
+        const openOrdersForTranche = Object.values(newState.swfReinsuranceOptionLimitOrders).filter(
+          (o) => o.status === "Open" && o.swfYieldCdoId === buyOrder.swfYieldCdoId && o.trancheId === buyOrder.trancheId
+        );
+        const depth = openOrdersForTranche.reduce((sum, o) => sum + o.size, 0);
+
+        // Determine if it is a large order (threshold of 1000 contracts)
+        const isLargeOrder = buyOrder.size >= 1000;
+
+        // Calculate ratio of order size to total book depth
+        const ratio = isLargeOrder ? (buyOrder.size / (depth || 1)) : 0;
+
+        // Define market impact factor: sliding scale from 0% to 20% price impact
+        const priceImpact = ratio * 0.2;
+
+        // Define volume scaling: if ratio is > 40%, scale volume down dynamically (sliding scale down to 50%)
+        let volumeScale = 1.0;
+        if (isLargeOrder && ratio > 0.4) {
+          volumeScale = Math.max(0.5, 1.0 - (ratio - 0.4) * 0.833);
+        }
+
+        const executedSize = Math.round(buyOrder.size * volumeScale);
+        
+        // Base price scaled down by the volume scale factor, then marked up by price impact
+        const adjustedPrice = Math.round(executionPrice * volumeScale * (1 + priceImpact));
+
         // Check buyer warChest
-        if ((buyer.warChest ?? 0) < executionPrice) {
+        if ((buyer.warChest ?? 0) < adjustedPrice) {
           continue; // Buyer doesn't have enough gold, skip this match
         }
 
@@ -5720,6 +5746,7 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
           newState.swfReinsuranceOptionsContracts[sellOrder.contractId] = {
             ...contract,
             syndicateId: buyOrder.syndicateId, // new holder
+            size: executedSize, // scaled size!
             timestamp: newState.step,
           };
         } else {
@@ -5733,15 +5760,15 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
             trancheId: buyOrder.trancheId,
             optionType: buyOrder.optionType,
             strikePremiumRate: buyOrder.strikePremiumRate,
-            size: buyOrder.size,
+            size: executedSize, // scaled size!
             timestamp: newState.step,
             active: true,
           };
         }
 
-        // Transfer gold
-        buyer.warChest = (buyer.warChest ?? 0) - executionPrice;
-        seller.warChest = (seller.warChest ?? 0) + executionPrice;
+        // Transfer gold using adjusted price
+        buyer.warChest = (buyer.warChest ?? 0) - adjustedPrice;
+        seller.warChest = (seller.warChest ?? 0) + adjustedPrice;
 
         newState.syndicates[buyOrder.syndicateId] = { ...buyer };
         newState.syndicates[sellOrder.syndicateId] = { ...seller };
@@ -5755,8 +5782,14 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
 
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
-          `[SWF Reinsurance Option Limit Match] Matched Buy Order ${buyOrder.id} (Syndicate ${buyOrder.syndicateId}) and Sell Order ${sellOrder.id} (Syndicate ${sellOrder.syndicateId}) at execution price ${executionPrice} gold (CDO: ${buyOrder.swfYieldCdoId}, Tranche: ${buyOrder.trancheId}, Strike: ${buyOrder.strikePremiumRate.toFixed(4)}, Size: ${buyOrder.size}, Contract: ${sellOrder.contractId ? sellOrder.contractId : "New"}).`
+          `[SWF Reinsurance Option Limit Match] Matched Buy Order ${buyOrder.id} (Syndicate ${buyOrder.syndicateId}) and Sell Order ${sellOrder.id} (Syndicate ${sellOrder.syndicateId}) at execution price ${adjustedPrice} gold (CDO: ${buyOrder.swfYieldCdoId}, Tranche: ${buyOrder.trancheId}, Strike: ${buyOrder.strikePremiumRate.toFixed(4)}, Original Size: ${buyOrder.size}, Executed Size: ${executedSize}, Contract: ${sellOrder.contractId ? sellOrder.contractId : "New"}).`
         );
+
+        if (volumeScale < 1.0 || priceImpact > 0) {
+          newState.journal.push(
+            `[SWF Reinsurance Option Market Impact] Large order matched (Size: ${buyOrder.size}, Tranche Depth: ${depth}). Volume scaled by ${(volumeScale * 100).toFixed(1)}% (Executed Size: ${executedSize}), Price adjusted by +${(priceImpact * 100).toFixed(1)}% (Base: ${Math.round(executionPrice * volumeScale)} gold, Adjusted: ${adjustedPrice} gold).`
+          );
+        }
 
         break; // Match found for this buy order, move to next buy order
       }
