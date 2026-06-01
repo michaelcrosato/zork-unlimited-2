@@ -1158,6 +1158,41 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Wire grace ticks for surcharge panic override early cancellation grace period (AF-258)
+  if (newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals) {
+    newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals = { ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals };
+    for (const [cancelId, cancelProp] of Object.entries(newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals)) {
+      if (cancelProp.status === "authorized" && cancelProp.remainingGraceSteps !== undefined) {
+        if (cancelProp.remainingGraceSteps > 0) {
+          const newRemaining = cancelProp.remainingGraceSteps - 1;
+          newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals[cancelId] = {
+            ...cancelProp,
+            remainingGraceSteps: newRemaining,
+          };
+          
+          const targetOverride = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.[cancelProp.targetProposalId];
+          if (targetOverride) {
+            newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals = {
+              ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals,
+              [cancelProp.targetProposalId]: {
+                ...targetOverride,
+                cooldownEndStep: newRemaining > 0 ? newState.step + newRemaining : undefined,
+                panicOverrideActive: newRemaining > 0 ? targetOverride.panicOverrideActive : false,
+                timestamp: newState.step,
+              }
+            };
+            if (newRemaining === 0) {
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[CDO Yield-Hedging Option Surcharge Panic Override Extension Cancellation Grace Ended] Grace period ended for cancellation ${cancelId}. Panic override ${cancelProp.targetProposalId} has been terminated early.`
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
 
   // SWF Reinsurance Option Order Book Volume Tracking (AF-150) & Depths (AF-151)
   let afterMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
@@ -8052,7 +8087,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               (alert: any) => targetSyndicates.includes(alert.targetSyndicateId) && alert.status === "authorized" && !alert.resolved
             );
 
-            // Surcharge Cooldown & Panic Override check (AF-255, AF-257)
+            // Surcharge Cooldown & Panic Override check (AF-255, AF-257, AF-258)
             const surchargeProposals = (newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals;
             const surchargeCancellations = (newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals;
             if (surchargeProposals && surchargeCancellations) {
@@ -8060,31 +8095,59 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
                 if (cancelProp && cancelProp.status === "authorized" && surchargeProposals[cancelProp.targetProposalId]) {
                   const target = surchargeProposals[cancelProp.targetProposalId];
                   if (target && target.panicOverrideActive) {
-                    target.panicOverrideActive = false;
-                    target.cooldownEndStep = undefined;
+                    if (cancelProp.remainingGraceSteps === undefined) {
+                      target.panicOverrideActive = false;
+                      target.cooldownEndStep = undefined;
+                    }
                   }
                 }
               }
             }
 
-            const isPanicOverrideActive = Object.values((newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals || {}).some(
-              (prop: any) => {
-                if (prop.cdoId !== cdoId || prop.status !== "authorized" || !prop.panicOverrideActive || prop.cooldownEndStep === undefined || newState.step > prop.cooldownEndStep) {
-                  return false;
-                }
-                const hasCancellation = Object.values((newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals || {}).some(
-                  (cancel: any) => cancel.targetProposalId === prop.proposalId && cancel.status === "authorized"
-                );
-                return !hasCancellation;
-              }
+            let overrideMultiplier = 1.0;
+            const activeSurchargeOverrides = Object.values((newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals || {}).filter(
+              (prop: any) => prop.cdoId === cdoId && prop.status === "authorized" && prop.panicOverrideActive && prop.cooldownEndStep !== undefined && newState.step <= prop.cooldownEndStep
             );
 
-            if (alertActive && pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts && !isPanicOverrideActive) {
+            if (activeSurchargeOverrides.length > 0) {
+              let minMultiplier = 1.0;
+              let hasFullyRestricted = false;
+              for (const prop of activeSurchargeOverrides) {
+                const cancellations = Object.values((newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals || {}).filter(
+                  (cancel: any) => cancel.targetProposalId === prop.proposalId && cancel.status === "authorized"
+                );
+                if (cancellations.length === 0) {
+                  hasFullyRestricted = true;
+                  break;
+                }
+                let maxPropMultiplier = 0.0;
+                for (const cancel of cancellations) {
+                  if (cancel.remainingGraceSteps !== undefined) {
+                    if (cancel.remainingGraceSteps > 0 && cancel.graceDuration && cancel.graceDuration > 0) {
+                      const m = 1 - (cancel.remainingGraceSteps / cancel.graceDuration);
+                      if (m > maxPropMultiplier) {
+                        maxPropMultiplier = m;
+                      }
+                    } else if (cancel.remainingGraceSteps === 0) {
+                      maxPropMultiplier = 1.0;
+                    }
+                  } else {
+                    maxPropMultiplier = 1.0;
+                  }
+                }
+                if (maxPropMultiplier < minMultiplier) {
+                  minMultiplier = maxPropMultiplier;
+                }
+              }
+              overrideMultiplier = hasFullyRestricted ? 0.0 : minMultiplier;
+            }
+
+            if (alertActive && pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts && overrideMultiplier > 0) {
               for (const [factionId, discount] of Object.entries(pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts)) {
                 const standing = getSyndicateFactionStanding(newState as GameState, sellerSyndicateId, factionId);
                 const isAllied = isFactionAlliedToSyndicate(newState as GameState, sellerSyndicateId, factionId) || standing >= 50;
                 if (isAllied) {
-                  mmDiscount += discount;
+                  mmDiscount += discount * overrideMultiplier;
                 }
               }
             }

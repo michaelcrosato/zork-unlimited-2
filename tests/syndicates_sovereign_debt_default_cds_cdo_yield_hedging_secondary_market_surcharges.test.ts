@@ -1255,5 +1255,190 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(tradeLog).toBeDefined();
     expect(tradeLog).toContain("Discounted");
   });
+
+  it("should propose, authorize and process surcharge panic override extension cancellation grace period and linear decay (AF-258)", () => {
+    let state = setupState();
+
+    const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
+    pool.yieldHedgingOptionMarketMakerSurchargeRate = 0.10;
+    pool.yieldHedgingOptionMarketMakerBufferThresholdPercent = 0.20;
+    pool.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
+    pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts = { alpha_faction: 0.10 };
+
+    state.factionRep = {
+      alpha: 100,
+    };
+
+    // Setup active option contract
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        coverageAmount: 1000,
+        premiumPaid: 100,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: state.step + 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Setup listings and bids for trading
+    state.cdsCdoYieldHedgingOptionListings = {
+      listing_1: {
+        listingId: "listing_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 500,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_1: {
+        bidId: "bid_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 500,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    // Alpha syndicate has member "player" (repreputation with alpha_faction is allied/above threshold)
+    // Put pool into critical liquidity stress
+    pool.fractionalizedVault.balance = 600; 
+
+    // 1. Propose and authorize a surcharge panic override proposal
+    let res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+        proposalId: "surcharge_panic_override_test",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        panicOverrideActive: true,
+        cooldownDuration: 10,
+        timestamp: 1200,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+        proposalId: "surcharge_panic_override_test",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1250,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Verify panic override is active and freeze discount adjustments
+    const prop = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    expect(prop).toBeDefined();
+    expect(prop!.panicOverrideActive).toBe(true);
+
+    // 2. Propose a cancellation proposal
+    res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
+        proposalId: "cancel_prop_1",
+        targetProposalId: "surcharge_panic_override_test",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        timestamp: 1270,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // 3. Propose a grace period proposal targeting the cancellation proposal with graceDuration = 5 steps
+    res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE",
+        proposalId: "grace_prop_1",
+        targetProposalId: "cancel_prop_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        graceDuration: 5,
+        timestamp: 1280,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Vote to authorize the grace proposal
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE",
+        proposalId: "grace_prop_1",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1290,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Verify remainingGraceSteps and graceDuration are registered on the cancellation proposal
+    const cancelProp = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
+    expect(cancelProp!.remainingGraceSteps).toBe(5);
+    expect(cancelProp!.graceDuration).toBe(5);
+
+    // Vote to authorize the cancellation proposal itself
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
+        proposalId: "cancel_prop_1",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1300,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Since cancellation is authorized but has a grace period of 5, the override is NOT instantly deactivated.
+    // Instead, target override's cooldownEndStep is updated to step + 5
+    const overrideProp = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    expect(overrideProp!.panicOverrideActive).toBe(true);
+    expect(overrideProp!.cooldownEndStep).toBe(10);
+
+    // 4. Verify linear decay of the override restrictions during economy ticks!
+    // Since grace has 5 remaining steps, restriction decays:
+    // overrideMultiplier = 1 - (remainingGraceSteps / graceDuration) = 1 - (5 / 5) = 0.
+    // At this first step, discount is scaled by 0, so discount applied is 0% of alpha_faction discount.
+    // Let's tick the economy once.
+    let tickedState = tickEconomy(state, mockPack);
+    // At the end of tickEconomy, remainingGraceSteps was decremented from 5 to 4.
+    // Next tick will use remainingGraceSteps = 4, so overrideMultiplier = 1 - (4 / 5) = 0.20 (20% discount applied).
+    const updatedCancel = tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
+    expect(updatedCancel!.remainingGraceSteps).toBe(4);
+
+    const updatedOverride = tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    expect(updatedOverride!.cooldownEndStep).toBe(tickedState.step + 4);
+
+    // After 4 more ticks, remaining grace steps will reach 0 and the override will terminate.
+    for (let i = 0; i < 4; i++) {
+      tickedState = tickEconomy(tickedState, mockPack);
+    }
+    const finalCancel = tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
+    expect(finalCancel!.remainingGraceSteps).toBe(0);
+
+    const finalOverride = tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    expect(finalOverride!.panicOverrideActive).toBe(false);
+    expect(finalOverride!.cooldownEndStep).toBeUndefined();
+  });
 });
 

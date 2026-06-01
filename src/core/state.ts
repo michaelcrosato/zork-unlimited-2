@@ -3486,6 +3486,8 @@ export const SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensio
   status: z.enum(["proposed", "disputed", "authorized"]),
   proposerId: z.string(),
   timestamp: z.number().int(),
+  remainingGraceSteps: z.number().int().nonnegative().optional(),
+  graceDuration: z.number().int().nonnegative().optional(),
 });
 export type SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposal = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposalSchema>;
 
@@ -3495,6 +3497,25 @@ export const SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensio
   timestamp: z.number().int(),
 });
 export type SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationVote = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationVoteSchema>;
+
+export const SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposalSchema = z.object({
+  proposalId: z.string(),
+  cdoId: z.string(),
+  syndicateId: z.string(),
+  targetProposalId: z.string(),
+  graceDuration: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposal = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposalSchema>;
+
+export const SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVote = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVoteSchema>;
 
 export const SovereignDebtCDSCDOYieldHedgingOptionListingSchema = z.object({
   listingId: z.string(),
@@ -4562,6 +4583,8 @@ export const GameStateSchema = z.object({
   cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionVotes: z.record(z.string(), z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionVoteSchema)).optional(),
   cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposalSchema).optional(),
   cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationVotes: z.record(z.string(), z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationVoteSchema)).optional(),
+  cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposalSchema).optional(),
+  cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes: z.record(z.string(), z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVoteSchema)).optional(),
   cdsCdoYieldHedgingOptionListings: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionListingSchema).optional(),
   cdsCdoYieldHedgingOptionBids: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionBidSchema).optional(),
   cdsCdoYieldHedgingOptionTransfers: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionTransferSchema).optional(),
@@ -5050,6 +5073,8 @@ export const createInitialState = (options: {
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionVotes: {},
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals: {},
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationVotes: {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals: {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes: {},
     cdsCdoYieldHedgingOptionListings: {},
     cdsCdoYieldHedgingOptionBids: {},
     cdsCdoYieldHedgingOptionTransfers: {},
@@ -6264,6 +6289,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionVotes: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionVotes ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionVotes)) : undefined,
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals)) : undefined,
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationVotes: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationVotes ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationVotes)) : undefined,
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals)) : undefined,
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes)) : undefined,
     cdsCdoYieldHedgingOptionListings: rest.cdsCdoYieldHedgingOptionListings ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionListings)) : undefined,
     cdsCdoYieldHedgingOptionBids: rest.cdsCdoYieldHedgingOptionBids ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionBids)) : undefined,
     cdsCdoYieldHedgingOptionTransfers: rest.cdsCdoYieldHedgingOptionTransfers ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionTransfers)) : undefined,
@@ -19528,16 +19555,104 @@ export function reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtension
     if (newlyAuthorized) {
       const targetProposal = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals[proposal.targetProposalId];
       if (targetProposal && targetProposal.status === "authorized") {
-        newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals[proposal.targetProposalId] = {
-          ...targetProposal,
-          cooldownEndStep: undefined, // Terminate early by clearing cooldownEndStep
-          panicOverrideActive: false, // Make it explicitly inactive
-          timestamp: Math.max(targetProposal.timestamp, newState.step),
-        };
+        if (proposal.remainingGraceSteps !== undefined) {
+          newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals[proposal.targetProposalId] = {
+            ...targetProposal,
+            cooldownEndStep: newState.step + proposal.remainingGraceSteps,
+            timestamp: Math.max(targetProposal.timestamp, newState.step),
+          };
+        } else {
+          newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals[proposal.targetProposalId] = {
+            ...targetProposal,
+            cooldownEndStep: undefined, // Terminate early by clearing cooldownEndStep
+            panicOverrideActive: false, // Make it explicitly inactive
+            timestamp: Math.max(targetProposal.timestamp, newState.step),
+          };
+        }
       }
     }
 
     newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals[proposalId] = {
+      ...proposal,
+      status,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
+  }
+
+  return newState;
+}
+
+export function reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraces(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals: state.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals ? { ...state.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals } : {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals: state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals ? { ...state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals } : {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals: state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals ? { ...state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals } : {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes: state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes ? { ...state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+
+    let newlyAuthorized = false;
+    if (authorizeVoters.size > totalMembers / 2) {
+      if (status !== "authorized") {
+        newlyAuthorized = true;
+      }
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+
+    if (newlyAuthorized) {
+      const targetCancelProp = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals[proposal.targetProposalId];
+      if (targetCancelProp) {
+        newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals[proposal.targetProposalId] = {
+          ...targetCancelProp,
+          remainingGraceSteps: proposal.graceDuration,
+          graceDuration: proposal.graceDuration,
+        };
+
+        if (targetCancelProp.status === "authorized") {
+          const overrideProp = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals[targetCancelProp.targetProposalId];
+          if (overrideProp) {
+            newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals[targetCancelProp.targetProposalId] = {
+              ...overrideProp,
+              cooldownEndStep: newState.step + proposal.graceDuration,
+              timestamp: Math.max(overrideProp.timestamp, newState.step),
+            };
+          }
+        }
+      }
+    }
+
+    newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals[proposalId] = {
       ...proposal,
       status,
       timestamp: Math.max(maxTimestamp, newState.step),

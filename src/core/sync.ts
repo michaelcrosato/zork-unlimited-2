@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy, getCDSCDOYieldHedgingPremium } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers, reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments, reconcileSovereignDebtCDSCDOCrossTrancheHedging, reconcileSovereignDebtCDSCDOHedgingReserveFloorAndCap, reconcileCDSCDOLiquidityInjections, reconcileCDSCDOCoinvestments, reconcileCDSCDOCoinvestmentYieldShares, reconcileCDSCDOCoinvestmentYieldReinvestments, reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals, reconcileCDSCDOYieldHedgingOptionPolicyProposals, reconcileCDSCDOYieldHedgingOptionContracts, reconcileCDSCDOYieldHedgingOptionFeePolicyProposals, reconcileCDSCDOYieldHedgingOptionFeeAdjustmentPolicyProposals, reconcileCDSCDOYieldHedgingOptionSpreadPolicyProposals, reconcileCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposals, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrides, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensions, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellations, distributeOptionFeeDividends } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers, reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments, reconcileSovereignDebtCDSCDOCrossTrancheHedging, reconcileSovereignDebtCDSCDOHedgingReserveFloorAndCap, reconcileCDSCDOLiquidityInjections, reconcileCDSCDOCoinvestments, reconcileCDSCDOCoinvestmentYieldShares, reconcileCDSCDOCoinvestmentYieldReinvestments, reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals, reconcileCDSCDOYieldHedgingOptionPolicyProposals, reconcileCDSCDOYieldHedgingOptionContracts, reconcileCDSCDOYieldHedgingOptionFeePolicyProposals, reconcileCDSCDOYieldHedgingOptionFeeAdjustmentPolicyProposals, reconcileCDSCDOYieldHedgingOptionSpreadPolicyProposals, reconcileCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposals, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrides, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensions, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellations, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraces, distributeOptionFeeDividends } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -51850,6 +51850,251 @@ export function multiAgentStep(
         syndicateId,
         agentId,
         vote,
+        status: propStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashBefore = computeStateHash(state);
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE action (AF-258)
+  if ((action as any).type === "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE") {
+    const { proposalId, targetProposalId, cdoId, syndicateId, graceDuration, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignDebtCDSCDOPools?.[cdoId];
+    const syndicate = state.syndicates?.[syndicateId];
+    const targetProposal = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.[targetProposalId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!targetProposalId) {
+      rejectionReason = `Target proposal ID is required.`;
+    } else if (!cdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (graceDuration === undefined || typeof graceDuration !== "number" || graceDuration < 0) {
+      rejectionReason = `Grace duration must be a non-negative integer.`;
+    } else if (!pool) {
+      rejectionReason = `CDO pool ${cdoId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!targetProposal) {
+      rejectionReason = `Target cancellation proposal ${targetProposalId} does not exist.`;
+    } else if (state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals?.[proposalId]) {
+      rejectionReason = `Proposal ${proposalId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals ? { ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals } : {};
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals[proposalId] = {
+        proposalId,
+        cdoId,
+        syndicateId,
+        targetProposalId,
+        graceDuration,
+        status: "proposed",
+        proposerId: agentId,
+        timestamp,
+      };
+
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes ? { ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes } : {};
+      if (!newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes[proposalId]) {
+        newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes[proposalId] = {};
+      }
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes[proposalId][agentId] = {
+        proposalId,
+        vote: true,
+        timestamp,
+      };
+
+      newState = reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraces(newState, pack);
+
+      const propStatus = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Yield-Hedging Option Surcharge Panic Override Extension Cancellation Grace Proposed] Agent ${agentId} proposed surcharge panic override extension cancellation grace ${proposalId} for Syndicate ${syndicateId} (Target Proposal: ${targetProposalId}, CDO: ${cdoId}, Grace Duration: ${graceDuration}) (Status: ${propStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ CDO Yield-Hedging Option surcharge panic override extension cancellation grace proposal ${proposalId} created by ${agentId} for Syndicate ${syndicateId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "propose_cdo_yield_hedging_surcharge_panic_override_extension_cancellation_grace" as any,
+        proposalId,
+        targetProposalId,
+        cdoId,
+        syndicateId,
+        graceDuration,
+        agentId,
+        status: propStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashBefore = computeStateHash(state);
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE action (AF-258)
+  if ((action as any).type === "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposal = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals?.[proposalId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (vote === undefined || typeof vote !== "boolean") {
+      rejectionReason = `Vote flag must be a boolean.`;
+    } else if (!proposal) {
+      rejectionReason = `CDO Yield-Hedging Option surcharge panic override extension cancellation grace proposal ${proposalId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on this proposal.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && proposal && syndicate) {
+      newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes = {
+        ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes,
+        [proposalId]: {
+          ...(newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes?.[proposalId] || {}),
+          [agentId]: { vote, timestamp },
+        },
+      };
+
+      newState = reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraces(newState, pack);
+
+      const propStatus = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Yield-Hedging Option Surcharge Panic Override Extension Cancellation Grace Vote] Agent ${agentId} voted ${vote ? "FOR" : "AGAINST"} surcharge panic override extension cancellation grace proposal ${proposalId} (Status: ${propStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Agent ${agentId} voted ${vote ? "FOR" : "AGAINST"} CDO surcharge panic override extension cancellation grace proposal ${proposalId} (Status: ${propStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "vote_cdo_yield_hedging_surcharge_panic_override_extension_cancellation_grace" as any,
+        proposalId,
+        syndicateId,
+        vote,
+        agentId,
         status: propStatus,
         timestamp,
       });
