@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #28 (Ready for Cycle #29)
-* **Build/Test Status**: 🟢 PASS (All 132 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #29 (Ready for Cycle #30)
+* **Build/Test Status**: 🟢 PASS (All 134 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -150,16 +150,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Support territory-based exit traversal constraints and faction tax mechanics (`AF-28`).
 - [x] Write comprehensive unit and integration tests simulating P2P gossip mesh territory conquest convergence (`AF-28`).
 
+### Phase 24: Faction Conquest Rewards & Territory Pricing (Completed)
+- [x] Design and implement faction conquest rewards, control dynamic pricing, and territory presence discounts/markups (`AF-29`).
+- [x] Implement periodic passive tax gold generation in state for controlled faction territories (`AF-29`).
+- [x] Write comprehensive unit and playtest tests asserting presence discounts, passive taxes, and control bonuses (`AF-29`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-29`
-* **Objective**: Design and implement faction conquest rewards, control dynamic pricing, and territory presence bonuses.
-* **Why this matters**: Syncing faction territorial control to gameplay incentives like trade discounts in controlled territories, localized passive gold income (taxes), or custom reputation-boosting shrines deepens the strategic gameplay mesh.
+**Task ID**: `AF-30`
+* **Objective**: Introduce faction conquest narration announcements and territory tax telemetry.
+* **Why this matters**: Narrating to players when territories shift hands or when tax income is collected from allied factions makes the decentralized world feel alive and reactive.
 * **Planned Actions**:
-  1. Add dynamic trade discounts / price modifiers for player purchases based on territory control faction.
-  2. Implement periodic passive tax gold generation in state for controlled faction territories.
-  3. Write comprehensive unit and playtest tests asserting presence discounts, passive taxes, and control bonuses.
+  1. Add customizable dynamic narration triggers for when a territory's controlling faction changes during mesh gossip convergence.
+  2. Implement state-based telemetry tracking of the player's total accumulated taxes (`totalTaxesCollected` in state variables).
+  3. Write comprehensive unit and integration tests asserting faction claim narration and tax telemetry tracking.
 
 ---
 

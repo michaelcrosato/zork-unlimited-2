@@ -532,3 +532,187 @@ describe("Cycle 26 Economy Enhancements (AF-26)", () => {
     expect(state.merchantGold?.["merchant_tim"]).toBe(50); // reset to starting gold
   });
 });
+
+describe("Cycle 29 Faction Conquest Rewards & Territory Pricing (AF-29)", () => {
+  const factionPack = ParserPackSchema.parse({
+    meta: {
+      id: "faction_econ_pack",
+      title: "Faction Economy Test Pack",
+      start_room: "market",
+      vars_init: {
+        gold: 100,
+      },
+      flags_init: [],
+    },
+    rooms: [
+      {
+        id: "market",
+        name: "Market Square",
+        description: "A bustling market.",
+        objects: [],
+        npcs: ["merchant_timmy"],
+        exits: [],
+        faction: "rangers", // initially controlled by rangers
+      },
+    ],
+    objects: [
+      {
+        id: "healing_potion",
+        name: "healing potion",
+        description: "Restores health.",
+        takeable: true,
+        cost: 20,
+      },
+      {
+        id: "rusty_dagger",
+        name: "rusty dagger",
+        description: "A rusty dagger.",
+        takeable: true,
+        cost: 10,
+      },
+    ],
+    npcs: [
+      {
+        id: "merchant_timmy",
+        name: "Merchant Timmy",
+        description: "A friendly merchant.",
+        gold: 100,
+        gold_limit: 200,
+        possible_items: ["healing_potion"],
+        dialogue: {
+          root: "root_node",
+          nodes: [
+            {
+              id: "root_node",
+              npc_text: "Hello, traveler!",
+              topics: [
+                {
+                  id: "goodbye",
+                  prompt: "Goodbye",
+                  end: true,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ],
+    factions: [
+      {
+        id: "rangers",
+        name: "Rangers",
+        description: "Forest rangers.",
+        initial_rep: 10,
+      },
+    ],
+    win_conditions: [],
+    endings: [],
+  });
+
+  it("should apply dynamic price discounts or markups on buy/sell based on territory control faction reputation", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "market",
+      varsInit: factionPack.meta.vars_init,
+      factionRepInit: { rangers: 10 }, // 10 reputation
+      territoryControlInit: { market: "rangers" },
+    });
+
+    state.merchantInventories = {
+      merchant_timmy: ["healing_potion"],
+    };
+
+    // Base cost of healing potion is 20 gold.
+    // 1. With rangers rep = 10 (positive rep):
+    // rep factor = 1.0 (since npc rep = 0)
+    // faction buy factor = Math.max(0.5, Math.min(1.5, 1.0 - 10 * 0.02)) = 1.0 - 0.2 = 0.8
+    // final cost should be 20 * 0.8 = 16 gold (a 20% discount!)
+    const buyRes1 = step(state, { type: "BUY", item: "healing_potion", npc: "merchant_timmy" }, factionPack);
+    expect(buyRes1.ok).toBe(true);
+    expect(buyRes1.state.vars["gold"]).toBe(84); // 100 - 16 = 84
+
+    // 2. With negative rangers reputation = -10:
+    // faction buy factor = Math.max(0.5, Math.min(1.5, 1.0 - (-10) * 0.02)) = 1.0 + 0.2 = 1.2
+    // final cost should be 20 * 1.2 = 24 gold (a 20% markup!)
+    let badRepState = createInitialState({
+      seed: 42,
+      start: "market",
+      varsInit: factionPack.meta.vars_init,
+      factionRepInit: { rangers: -10 },
+      territoryControlInit: { market: "rangers" },
+    });
+    badRepState.merchantInventories = {
+      merchant_timmy: ["healing_potion"],
+    };
+    const buyRes2 = step(badRepState, { type: "BUY", item: "healing_potion", npc: "merchant_timmy" }, factionPack);
+    expect(buyRes2.ok).toBe(true);
+    expect(buyRes2.state.vars["gold"]).toBe(76); // 100 - 24 = 76
+
+    // 3. Selling with positive reputation (rangers = 10):
+    // Base cost of rusty dagger is 10 gold.
+    // faction sell factor = Math.max(0.5, Math.min(1.5, 1.0 + 10 * 0.02)) = 1.0 + 0.2 = 1.2
+    // final payout should be 10 * 1.2 = 12 gold (a 20% bonus!)
+    let sellState1 = createInitialState({
+      seed: 42,
+      start: "market",
+      varsInit: factionPack.meta.vars_init,
+      factionRepInit: { rangers: 10 },
+      territoryControlInit: { market: "rangers" },
+    });
+    sellState1.inventory = ["rusty_dagger"];
+    const sellRes1 = step(sellState1, { type: "SELL", item: "rusty_dagger", npc: "merchant_timmy" }, factionPack);
+    expect(sellRes1.ok).toBe(true);
+    expect(sellRes1.state.vars["gold"]).toBe(112); // 100 + 12 = 112
+
+    // 4. Selling with negative reputation (rangers = -10):
+    // faction sell factor = Math.max(0.5, Math.min(1.5, 1.0 + (-10) * 0.02)) = 1.0 - 0.2 = 0.8
+    // final payout should be 10 * 0.8 = 8 gold (a 20% penalty!)
+    let sellState2 = createInitialState({
+      seed: 42,
+      start: "market",
+      varsInit: factionPack.meta.vars_init,
+      factionRepInit: { rangers: -10 },
+      territoryControlInit: { market: "rangers" },
+    });
+    sellState2.inventory = ["rusty_dagger"];
+    const sellRes2 = step(sellState2, { type: "SELL", item: "rusty_dagger", npc: "merchant_timmy" }, factionPack);
+    expect(sellRes2.ok).toBe(true);
+    expect(sellRes2.state.vars["gold"]).toBe(108); // 100 + 8 = 108
+  });
+
+  it("should periodically generate passive tax gold for rooms controlled by allied factions", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "market",
+      varsInit: { gold: 10 },
+      factionRepInit: { rangers: 15 }, // positive reputation: 15
+      territoryControlInit: { market: "rangers" }, // 1 room controlled
+    });
+
+    expect(state.step).toBe(0);
+    expect(state.vars["gold"]).toBe(10);
+
+    // Step 1 to 4 -> no tax should be generated yet
+    for (let i = 1; i <= 4; i++) {
+      state = step(state, { type: "LOOK" }, factionPack).state;
+      expect(state.step).toBe(i);
+      expect(state.vars["gold"]).toBe(10);
+    }
+
+    // Step 5 -> tax triggers!
+    // roomTax = Math.max(1, Math.floor(15 / 10)) = 1
+    // Total gold: 10 + 1 = 11
+    state = step(state, { type: "LOOK" }, factionPack).state;
+    expect(state.step).toBe(5);
+    expect(state.vars["gold"]).toBe(11);
+    expect(state.journal).toContain("Collected 1 gold in taxes from allied faction territories.");
+
+    // Advance to step 10 -> tax triggers again!
+    for (let i = 6; i <= 9; i++) {
+      state = step(state, { type: "LOOK" }, factionPack).state;
+    }
+    state = step(state, { type: "LOOK" }, factionPack).state;
+    expect(state.step).toBe(10);
+    expect(state.vars["gold"]).toBe(12);
+  });
+});
