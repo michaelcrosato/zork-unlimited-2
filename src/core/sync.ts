@@ -9,7 +9,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -37475,6 +37475,264 @@ export function multiAgentStep(
       rejectionReason,
     };
   }
+
+  // Handle PROPOSE_BREACH_REHAB action (AF-204)
+
+  if ((action as any).type === "PROPOSE_BREACH_REHAB") {
+    const { proposalId, syndicateId, cdoId, trancheId, goldContribution, rehabSharesToRestore, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[cdoId];
+    const tranche = cdo?.tranches?.[trancheId as "senior" | "mezzanine" | "equity"];
+    const slashed = state.slashedCDOTrancheShares?.[syndicateId]?.[cdoId]?.[trancheId] ?? 0;
+
+    const maxRestorable = Math.floor(slashed * 0.5);
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!cdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID is required.`;
+    } else if (goldContribution === undefined || typeof goldContribution !== "number" || goldContribution < 0) {
+      rejectionReason = `Valid gold contribution is required.`;
+    } else if (rehabSharesToRestore === undefined || typeof rehabSharesToRestore !== "number" || rehabSharesToRestore <= 0) {
+      rejectionReason = `Valid rehabilitation shares to restore greater than 0 is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${cdoId} does not exist.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist on CDO ${cdoId}.`;
+    } else if ((syndicate.warChest ?? 0) < 200 + goldContribution) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover proposal fee and contribution.`;
+    } else if (rehabSharesToRestore > maxRestorable) {
+      rejectionReason = `Cannot restore more than 50% of slashed shares (${maxRestorable} shares, slashed: ${slashed}).`;
+    } else if (state.reinvestmentBreachRehabProposals?.[proposalId]) {
+      rejectionReason = `Proposal ${proposalId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - 200);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      newState.reinvestmentBreachRehabProposals = newState.reinvestmentBreachRehabProposals ? { ...newState.reinvestmentBreachRehabProposals } : {};
+      newState.reinvestmentBreachRehabProposals[proposalId] = {
+        proposalId,
+        syndicateId,
+        cdoId,
+        trancheId,
+        goldContribution,
+        rehabSharesToRestore,
+        status: "proposed",
+        proposerId: agentId,
+        timestamp,
+        votes: {
+          [agentId]: { vote: true, timestamp },
+        },
+      };
+
+      newState = reconcileReinvestmentBreachRehab(newState, pack);
+
+      const propStatus = newState.reinvestmentBreachRehabProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Reinvestment Breach Rehab Proposed] Agent ${agentId} proposed rehabilitation for Syndicate ${syndicateId} on CDO ${cdoId} tranche ${trancheId} (Restoring: ${rehabSharesToRestore} shares, Contributed: ${goldContribution} gold, Fee: 200 gold) (Status: ${propStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Reinvestment breach rehabilitation proposal ${proposalId} created by ${agentId} for Syndicate ${syndicateId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "reinvestment_breach_rehab_proposed" as any,
+        proposalId,
+        agentId,
+        syndicateId,
+        cdoId,
+        trancheId,
+        goldContribution,
+        rehabSharesToRestore,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle VOTE_BREACH_REHAB action (AF-204)
+  if ((action as any).type === "VOTE_BREACH_REHAB") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposal = state.reinvestmentBreachRehabProposals?.[proposalId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (vote === undefined || typeof vote !== "boolean") {
+      rejectionReason = `Vote flag must be a boolean.`;
+    } else if (!proposal) {
+      rejectionReason = `Proposal ${proposalId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on this proposal.`;
+    } else if ((syndicate.warChest ?? 0) < 50) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover vote fee (50 gold).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && proposal && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - 50);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      newState.reinvestmentBreachRehabProposals = { ...newState.reinvestmentBreachRehabProposals };
+      const updatedProposal = { ...newState.reinvestmentBreachRehabProposals[proposalId] };
+      updatedProposal.votes = updatedProposal.votes ? { ...updatedProposal.votes } : {};
+      updatedProposal.votes[agentId] = { vote, timestamp };
+      newState.reinvestmentBreachRehabProposals[proposalId] = updatedProposal;
+
+      newState = reconcileReinvestmentBreachRehab(newState, pack);
+
+      const propStatus = newState.reinvestmentBreachRehabProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Reinvestment Breach Rehab Voted] Agent ${agentId} voted to ${vote ? "AUTHORIZE" : "DISPUTE"} rehabilitation proposal ${proposalId} (Status: ${propStatus.toUpperCase()}, Fee: 50 gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Reinvestment breach rehabilitation vote cast by ${agentId} for proposal ${proposalId} (Vote: ${vote ? "Authorize" : "Dispute"}).`,
+      } as any);
+
+      customEvents.push({
+        type: "reinvestment_breach_rehab_voted" as any,
+        proposalId,
+        agentId,
+        vote,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
 
   // Handle VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP action (AF-202)
   if ((action as any).type === "VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP") {

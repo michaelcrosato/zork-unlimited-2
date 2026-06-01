@@ -206,8 +206,10 @@ export type Action =
   | { type: "CONTRIBUTE_SWF_REINSURANCE_OPTION_CROSS_SYNDICATE_POOL"; poolId: string; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; amount: number; timestamp: number }
   | { type: "REQUEST_SWF_REINSURANCE_OPTION_PEER_LENDING"; requestId: string; borrowerSyndicateId: string; lenderSyndicateId?: string; poolId?: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; amount: number; interestRate: number; termSteps: number; timestamp: number }
   | { type: "VOTE_SWF_REINSURANCE_OPTION_PEER_LENDING"; requestId: string; syndicateId: string; vote: boolean; timestamp: number }
-  | { type: "PAYBACK_SWF_REINSURANCE_OPTION_PEER_LENDING"; requestId: string; amount: number; timestamp: number }
-  | { type: "ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_POOL_REBALANCING"; syndicateId: string; poolId: string; riskSharingLimit: number; autoBalancingThreshold: number; yieldRebalancingMultiplier: number; timestamp: number };
+  | { type: "ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_POOL_REBALANCING"; syndicateId: string; poolId: string; riskSharingLimit: number; autoBalancingThreshold: number; yieldRebalancingMultiplier: number; timestamp: number }
+  | { type: "PROPOSE_BREACH_REHAB"; proposalId: string; syndicateId: string; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; goldContribution: number; rehabSharesToRestore: number; timestamp: number }
+  | { type: "VOTE_BREACH_REHAB"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+
 
 
 

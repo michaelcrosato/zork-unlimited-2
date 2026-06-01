@@ -2592,6 +2592,24 @@ export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellati
 });
 export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVoteSchema>;
 
+export const ReinvestmentBreachRehabProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  goldContribution: z.number().int().nonnegative(),
+  rehabSharesToRestore: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+  resolved: z.boolean().optional(),
+});
+export type ReinvestmentBreachRehabProposal = z.infer<typeof ReinvestmentBreachRehabProposalSchema>;
+
 
 export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
   id: z.string(),
@@ -3498,6 +3516,9 @@ export const GameStateSchema = z.object({
   auditLogs: z.array(z.string()).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposalSchema).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVoteSchema)).optional(),
+  reinvestmentBreachRehabProposals: z.record(z.string(), ReinvestmentBreachRehabProposalSchema).optional(),
+  slashedCDOTrancheShares: z.record(z.string(), z.record(z.string(), z.record(z.string(), z.number().int().nonnegative()))).optional(),
+  swfStabilityPool: z.number().int().nonnegative().optional(),
 
 
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
@@ -3889,6 +3910,9 @@ export const createInitialState = (options: {
     auditLogs: [],
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes: {},
+    reinvestmentBreachRehabProposals: {},
+    slashedCDOTrancheShares: {},
+    swfStabilityPool: 0,
 
 
     swfReinsuranceOptionPremiumContributions: {},
@@ -4986,6 +5010,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     auditLogs: rest.auditLogs ? [...rest.auditLogs] : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes)) : undefined,
+    reinvestmentBreachRehabProposals: rest.reinvestmentBreachRehabProposals ? JSON.parse(JSON.stringify(rest.reinvestmentBreachRehabProposals)) : undefined,
+    slashedCDOTrancheShares: rest.slashedCDOTrancheShares ? JSON.parse(JSON.stringify(rest.slashedCDOTrancheShares)) : undefined,
+    swfStabilityPool: rest.swfStabilityPool,
 
 
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
@@ -8698,7 +8725,91 @@ export function reconcileRehabCampaign(state: GameState, pack: any): GameState {
   return newState;
 }
 
+export function reconcileReinvestmentBreachRehab(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    reinvestmentBreachRehabProposals: state.reinvestmentBreachRehabProposals ? { ...state.reinvestmentBreachRehabProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    swfYieldCDOs: state.swfYieldCDOs ? { ...state.swfYieldCDOs } : {},
+    slashedCDOTrancheShares: state.slashedCDOTrancheShares ? { ...state.slashedCDOTrancheShares } : {},
+    creditRatings: state.creditRatings ? { ...state.creditRatings } : {},
+    swfStabilityPool: state.swfStabilityPool ?? 0,
+  };
+
+  for (const proposalId of Object.keys(newState.reinvestmentBreachRehabProposals || {})) {
+    const proposal = newState.reinvestmentBreachRehabProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, cdoId, trancheId, goldContribution, rehabSharesToRestore } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.reinvestmentBreachRehabProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      syndicate.warChest = Math.max(0, (syndicate.warChest ?? 0) - goldContribution);
+      newState.swfStabilityPool = (newState.swfStabilityPool ?? 0) + goldContribution;
+
+      const cdo = newState.swfYieldCDOs?.[cdoId];
+      if (cdo && cdo.tranches) {
+        const tranche = cdo.tranches[trancheId];
+        if (tranche) {
+          const updatedTranche = {
+            ...tranche,
+            ownership: { ...tranche.ownership },
+          };
+          const ownedShares = updatedTranche.ownership[syndicateId] ?? 0;
+          updatedTranche.ownership[syndicateId] = ownedShares + rehabSharesToRestore;
+          updatedTranche.totalShares = (updatedTranche.totalShares ?? 0) + rehabSharesToRestore;
+          updatedTranche.timestamp = newState.step;
+
+          newState.swfYieldCDOs[cdoId] = {
+            ...cdo,
+            tranches: {
+              ...cdo.tranches,
+              [trancheId]: updatedTranche,
+            },
+            timestamp: newState.step,
+          };
+        }
+      }
+
+      if (newState.slashedCDOTrancheShares?.[syndicateId]?.[cdoId]?.[trancheId]) {
+        const slashed = newState.slashedCDOTrancheShares[syndicateId][cdoId][trancheId];
+        newState.slashedCDOTrancheShares[syndicateId][cdoId][trancheId] = Math.max(0, slashed - rehabSharesToRestore);
+      }
+
+      const currentRating = newState.creditRatings[syndicateId] ?? 100;
+      newState.creditRatings[syndicateId] = Math.min(200, currentRating + 25);
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Reinvestment Breach Rehab Resolved] Syndicate ${syndicateId} successfully authorized rehab proposal ${proposalId}. Restored ${rehabSharesToRestore} shares of CDO ${cdoId} tranche ${trancheId} and recovered credit rating to ${newState.creditRatings[syndicateId]} (contributed ${goldContribution} gold to stability pool).`
+      );
+
+      if (!newState.auditLogs) newState.auditLogs = [];
+      newState.auditLogs.push(
+        `[Reinvestment Breach Rehab Resolved] Syndicate ${syndicateId} restored ${rehabSharesToRestore} slashed CDO shares from ${cdoId} tranche ${trancheId}. SWF Stability Pool balance: ${newState.swfStabilityPool} gold.`
+      );
+    }
+  }
+
+  return newState;
+}
+
 export function reconcileRewardSlashing(state: GameState, pack: any): GameState {
+
   const newState = {
     ...state,
     rewardSlashingProposals: state.rewardSlashingProposals ? { ...state.rewardSlashingProposals } : {},

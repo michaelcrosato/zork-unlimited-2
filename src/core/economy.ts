@@ -8517,6 +8517,19 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
                   newState.journal.push(
                     `[REINVESTMENT_GOVERNANCE_CAP_BREACH_SLASH] Syndicate ${sId} has consistently breached the reinvestment cap (Breach Count: ${breachCount}). Slashed ${slashedShares} shares from CDO ${policy.swfYieldCdoId} tranche ${policy.trancheId} at an effective slashing rate of ${(effectiveSlashingRate * 100).toFixed(1)}%.`
                   );
+
+                  newState.slashedCDOTrancheShares = newState.slashedCDOTrancheShares ? { ...newState.slashedCDOTrancheShares } : {};
+                  if (!newState.slashedCDOTrancheShares[sId]) {
+                    newState.slashedCDOTrancheShares[sId] = {};
+                  }
+                  newState.slashedCDOTrancheShares[sId] = { ...newState.slashedCDOTrancheShares[sId] };
+                  if (!newState.slashedCDOTrancheShares[sId][policy.swfYieldCdoId]) {
+                    newState.slashedCDOTrancheShares[sId][policy.swfYieldCdoId] = {};
+                  }
+                  newState.slashedCDOTrancheShares[sId][policy.swfYieldCdoId] = { ...newState.slashedCDOTrancheShares[sId][policy.swfYieldCdoId] };
+                  const prevSlashed = newState.slashedCDOTrancheShares[sId][policy.swfYieldCdoId][policy.trancheId] ?? 0;
+                  newState.slashedCDOTrancheShares[sId][policy.swfYieldCdoId][policy.trancheId] = prevSlashed + slashedShares;
+
                 }
               }
             }

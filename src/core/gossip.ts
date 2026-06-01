@@ -2460,7 +2460,40 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge reinvestmentBreachRehabProposals using LWW (Last-Write-Wins)
+  const reinvestmentBreachRehabProposals = { ...stateA.reinvestmentBreachRehabProposals };
+  if (stateB.reinvestmentBreachRehabProposals) {
+    for (const [propId, propB] of Object.entries(stateB.reinvestmentBreachRehabProposals)) {
+      const propA = reinvestmentBreachRehabProposals[propId];
+      if (!propA) {
+        reinvestmentBreachRehabProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          reinvestmentBreachRehabProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          reinvestmentBreachRehabProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
   // Merge rehabSubsidyProposals using LWW (Last-Write-Wins)
+
   const rehabSubsidyProposals = { ...stateA.rehabSubsidyProposals };
   if (stateB.rehabSubsidyProposals) {
     for (const [propId, propB] of Object.entries(stateB.rehabSubsidyProposals)) {
@@ -3690,6 +3723,30 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge slashedCDOTrancheShares using Max (AF-204)
+  const slashedCDOTrancheShares = { ...stateA.slashedCDOTrancheShares };
+  if (stateB.slashedCDOTrancheShares) {
+    for (const [syndId, cdoRecordB] of Object.entries(stateB.slashedCDOTrancheShares)) {
+      if (!slashedCDOTrancheShares[syndId]) {
+        slashedCDOTrancheShares[syndId] = {};
+      }
+      slashedCDOTrancheShares[syndId] = { ...slashedCDOTrancheShares[syndId] };
+      for (const [cdoId, trancheRecordB] of Object.entries(cdoRecordB)) {
+        if (!slashedCDOTrancheShares[syndId][cdoId]) {
+          slashedCDOTrancheShares[syndId][cdoId] = {};
+        }
+        slashedCDOTrancheShares[syndId][cdoId] = { ...slashedCDOTrancheShares[syndId][cdoId] };
+        for (const [trancheId, countB] of Object.entries(trancheRecordB)) {
+          const countA = slashedCDOTrancheShares[syndId][cdoId][trancheId] ?? 0;
+          slashedCDOTrancheShares[syndId][cdoId][trancheId] = Math.max(countA, countB);
+        }
+      }
+    }
+  }
+
+  // Merge swfStabilityPool using Max (AF-204)
+  const swfStabilityPool = Math.max(stateA.swfStabilityPool ?? 0, stateB.swfStabilityPool ?? 0);
+
   // Merge auditLogs
   const auditLogs = [...(stateA.auditLogs || [])];
   if (stateB.auditLogs) {
@@ -3751,6 +3808,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     breachSlashingRates,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes,
+    reinvestmentBreachRehabProposals,
+    slashedCDOTrancheShares,
+    swfStabilityPool,
+
 
     swfReinsuranceOptionPremiumContributions,
     swfReinsuranceOptionCrossMeshArbitrageRoutes,

@@ -1,8 +1,9 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #201 (Ready for Cycle #202)
-* **Build/Test Status**: 🟢 PASS (All 739 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #202 (Ready for Cycle #203)
+* **Build/Test Status**: 🟢 PASS (All 741 Vitest tests passing, 0 errors/0 warnings on content validation)
+
 
 ---
 
@@ -1282,19 +1283,26 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the economy tick to slice a percentage of the syndicate's CDO tranche ownership when a cap breach occurs (`AF-203`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-203`).
 
+### Phase 182: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation and Credit Recovery (Completed)
+- [x] Define `reinvestmentBreachRehab` proposal and `slashedCDOTrancheShares` / `swfStabilityPool` state trackers inside GameState (`AF-204`).
+- [x] Implement decentralized `PROPOSE_BREACH_REHAB` and `VOTE_BREACH_REHAB` actions costing 200 gold and 50 gold respectively from the syndicate war chest (`AF-204`).
+- [x] Wire the reconciliation logic `reconcileReinvestmentBreachRehab` to restore up to 50% of slashed CDO shares and recover credit rating score by +25 upon successful consensus (`AF-204`).
+- [x] Write comprehensive Vitest unit and integration tests inside `tests/syndicates_swf_reinvestment.test.ts` (`AF-204`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-204`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation and Credit Recovery.
-* **Why this matters**: Allow penalized syndicates that have had their CDO tranche shares slashed due to cap breaches to perform rehabilitation tasks (e.g., contributing gold to a SWF stability pool) to gradually restore a fraction of their slashed shares and recover their credit rating score.
+**Task ID**: `AF-205`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation Campaign Subsidies and Cooperative Mesh-Wide Staking.
+* **Why this matters**: Allow allied syndicates to sponsor or subsidize each other's rehabilitation campaigns across the P2P Gossip mesh, dynamically scaling down the required gold contribution using faction reserve funds.
 * **Planned Actions**:
-  1. Define a `reinvestmentBreachRehab` proposal and state trackers in the GameState.
-  2. Implement decentralized `PROPOSE_BREACH_REHAB` and `VOTE_BREACH_REHAB` actions costing gold.
-  3. Wire the reconciliation logic to restore up to 50% of slashed CDO shares upon successful consensus.
-  4. Write comprehensive Vitest unit and integration tests.
+  1. Define a cooperative rehab subsidy proposal schema in the GameState.
+  2. Implement `PROPOSE_COOPERATIVE_REHAB_SUBSIDY` and `VOTE_COOPERATIVE_REHAB_SUBSIDY` decentralized actions.
+  3. Wire the reconciliation logic to discount the gold contribution fee based on alliance standing and faction reserve availability.
+  4. Write comprehensive Vitest integration tests and merge support.
 
 ---
+
 
 ## ⚠️ Risks & Mitigation
 
