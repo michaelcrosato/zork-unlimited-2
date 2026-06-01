@@ -3009,6 +3009,133 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       }
     }
   }
+  // Automatic Margin Health Evaluation and Collateral Call Liquidations
+  if (newState.marginAccounts && Object.keys(newState.marginAccounts).length > 0) {
+    newState.marginAccounts = { ...newState.marginAccounts };
+    for (const [syndicateId, marginAccount] of Object.entries(newState.marginAccounts)) {
+      if (marginAccount.collateral === 0 && (!marginAccount.leveragedCDSIds || marginAccount.leveragedCDSIds.length === 0) && (!marginAccount.leveragedTranchePositions || Object.keys(marginAccount.leveragedTranchePositions).length === 0)) {
+        continue;
+      }
+
+      // Calculate Net Margin Value (Net Equity)
+      let sumCurrentStakeValue = 0;
+      let sumBorrowedAmount = 0;
+
+      const leveragedTranches = marginAccount.leveragedTranchePositions || {};
+      for (const [posKey, pos] of Object.entries(leveragedTranches)) {
+        const cdo = newState.cdos?.[pos.cdoId];
+        const tranche = cdo?.tranches?.[pos.trancheId];
+        const currentStakeValue = tranche?.ownership?.[syndicateId] ?? 0;
+        sumCurrentStakeValue += currentStakeValue;
+        sumBorrowedAmount += pos.borrowedAmount;
+      }
+
+      const netEquity = marginAccount.collateral + (sumCurrentStakeValue - sumBorrowedAmount);
+
+      // Calculate Maintenance Margin Requirement
+      let sumCdsNotional = 0;
+      const activeCDSIds = marginAccount.leveragedCDSIds || [];
+      const stillActiveCDSIds: string[] = [];
+
+      for (const cdsId of activeCDSIds) {
+        const cds = newState.creditDefaultSwaps?.[cdsId];
+        if (cds && cds.active) {
+          sumCdsNotional += cds.notionalValue;
+          stillActiveCDSIds.push(cdsId);
+        }
+      }
+      marginAccount.leveragedCDSIds = stillActiveCDSIds;
+
+      const maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount));
+
+      // If netEquity < maintenanceRequirement, trigger a MARGIN CALL!
+      if (netEquity < maintenanceRequirement) {
+        newState.journal.push(`[Margin Call] Syndicate ${syndicateId} margin balance fell below maintenance threshold! Net Equity: ${netEquity}, Required: ${maintenanceRequirement}. Triggering automatic liquidation.`);
+
+        // Deactivate all leveraged written CDS contracts
+        if (newState.creditDefaultSwaps) {
+          newState.creditDefaultSwaps = { ...newState.creditDefaultSwaps };
+          for (const cdsId of stillActiveCDSIds) {
+            const cds = newState.creditDefaultSwaps[cdsId];
+            if (cds) {
+              newState.creditDefaultSwaps[cdsId] = {
+                ...cds,
+                active: false,
+                timestamp: newState.step,
+              };
+              newState.journal.push(`[Margin Liquidation] Leveraged written CDS ${cdsId} has been deactivated.`);
+            }
+          }
+        }
+        marginAccount.leveragedCDSIds = [];
+
+        // Liquidate all leveraged CDO tranche positions
+        if (newState.cdos) {
+          newState.cdos = { ...newState.cdos };
+          for (const [posKey, pos] of Object.entries(leveragedTranches)) {
+            const cdo = newState.cdos[pos.cdoId];
+            if (cdo) {
+              const tranche = cdo.tranches[pos.trancheId];
+              if (tranche) {
+                const currentStakeValue = tranche.ownership[syndicateId] ?? 0;
+
+                const updatedTranche = {
+                  ...tranche,
+                  ownership: {
+                    ...tranche.ownership,
+                    [syndicateId]: 0,
+                  },
+                  timestamp: newState.step,
+                };
+
+                newState.cdos[pos.cdoId] = {
+                  ...cdo,
+                  tranches: {
+                    ...cdo.tranches,
+                    [pos.trancheId]: updatedTranche,
+                  },
+                  timestamp: newState.step,
+                };
+
+                newState.journal.push(`[Margin Liquidation] Leveraged CDO ${pos.cdoId} tranche ${pos.trancheId} ownership (stake: ${currentStakeValue}) zeroed out.`);
+              }
+            }
+          }
+        }
+
+        let finalCollateral = netEquity;
+        const syndicate = newState.syndicates?.[syndicateId];
+        if (syndicate) {
+          newState.syndicates = { ...newState.syndicates };
+          if (finalCollateral > 0) {
+            newState.syndicates[syndicateId] = {
+              ...syndicate,
+              warChest: (syndicate.warChest ?? 0) + finalCollateral,
+            };
+            newState.journal.push(`[Margin Liquidation] Returned excess collateral of ${finalCollateral} gold to Syndicate ${syndicateId} war chest.`);
+            finalCollateral = 0;
+          } else if (finalCollateral < 0) {
+            const deficit = -finalCollateral;
+            const warChest = syndicate.warChest ?? 0;
+            const swept = Math.min(deficit, warChest);
+            newState.syndicates[syndicateId] = {
+              ...syndicate,
+              warChest: warChest - swept,
+            };
+            newState.journal.push(`[Margin Liquidation] Swept ${swept} gold from Syndicate ${syndicateId} war chest to cover margin deficit of ${deficit} gold.`);
+            finalCollateral = finalCollateral + swept;
+          }
+        }
+
+        newState.marginAccounts[syndicateId] = {
+          ...marginAccount,
+          collateral: Math.max(0, finalCollateral),
+          leveragedTranchePositions: {},
+          timestamp: newState.step,
+        };
+      }
+    }
+  }
 
   return newState;
 }

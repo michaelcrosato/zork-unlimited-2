@@ -17807,7 +17807,7 @@ export function multiAgentStep(
 
   // Handle decentralized TRADE_CDO_TRANCHE action (AF-107)
   if ((action as any).type === "TRADE_CDO_TRANCHE") {
-    const { cdoId, trancheId, sellerSyndicateId, buyerSyndicateId, amount, goldPrice, timestamp } = action as any;
+    const { cdoId, trancheId, sellerSyndicateId, buyerSyndicateId, amount, goldPrice, timestamp, marginEnabled, borrowedAmount } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -17842,7 +17842,13 @@ export function multiAgentStep(
       rejectionReason = `Tranche ${trancheId} does not exist in CDO ${cdoId}.`;
     } else if (sellerOwnership < amount) {
       rejectionReason = `Seller syndicate ${sellerSyndicateId} has insufficient owned stake in CDO ${cdoId} tranche ${trancheId} (has ${sellerOwnership}, requested ${amount}).`;
-    } else if (goldPrice > 0 && (buyerSyndicate.warChest ?? 0) < goldPrice) {
+    } else if (marginEnabled && (!state.marginAccounts || !state.marginAccounts[buyerSyndicateId])) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not have a margin account.`;
+    } else if (marginEnabled && (borrowedAmount === undefined || borrowedAmount <= 0 || borrowedAmount > goldPrice || !Number.isInteger(borrowedAmount))) {
+      rejectionReason = `Borrowed amount must be a positive integer less than or equal to gold price.`;
+    } else if (marginEnabled && (buyerSyndicate.warChest ?? 0) < (goldPrice - borrowedAmount)) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} has insufficient gold in its war chest to cover down payment of ${goldPrice - borrowedAmount} (has ${buyerSyndicate.warChest ?? 0}).`;
+    } else if (!marginEnabled && goldPrice > 0 && (buyerSyndicate.warChest ?? 0) < goldPrice) {
       rejectionReason = `Buyer syndicate ${buyerSyndicateId} has insufficient gold in its war chest to pay price of ${goldPrice} (has ${buyerSyndicate.warChest ?? 0}).`;
     } else {
       ok = true;
@@ -17876,10 +17882,36 @@ export function multiAgentStep(
 
       if (goldPrice > 0) {
         newState.syndicates = state.syndicates ? { ...state.syndicates } : {};
-        newState.syndicates[buyerSyndicateId] = {
-          ...buyer,
-          warChest: (buyer.warChest ?? 0) - goldPrice,
-        } as any;
+        if (marginEnabled && borrowedAmount !== undefined) {
+          const downPayment = goldPrice - borrowedAmount;
+          newState.syndicates[buyerSyndicateId] = {
+            ...buyer,
+            warChest: (buyer.warChest ?? 0) - downPayment,
+          } as any;
+
+          newState.marginAccounts = { ...state.marginAccounts };
+          const marginAccount = { ...newState.marginAccounts[buyerSyndicateId]! };
+          const leveragedTranches = { ...(marginAccount.leveragedTranchePositions || {}) };
+          const posKey = `${cdoId}_${trancheId}`;
+          const existingPos = leveragedTranches[posKey];
+
+          leveragedTranches[posKey] = {
+            cdoId,
+            trancheId,
+            borrowedAmount: (existingPos?.borrowedAmount ?? 0) + borrowedAmount,
+            purchasedStake: (existingPos?.purchasedStake ?? 0) + amount,
+            timestamp,
+          };
+          marginAccount.leveragedTranchePositions = leveragedTranches;
+          marginAccount.timestamp = timestamp;
+          newState.marginAccounts[buyerSyndicateId] = marginAccount;
+        } else {
+          newState.syndicates[buyerSyndicateId] = {
+            ...buyer,
+            warChest: (buyer.warChest ?? 0) - goldPrice,
+          } as any;
+        }
+
         newState.syndicates[sellerSyndicateId] = {
           ...seller,
           warChest: (seller.warChest ?? 0) + goldPrice,
@@ -17960,7 +17992,7 @@ export function multiAgentStep(
 
   // Handle decentralized BUY_CREDIT_DEFAULT_SWAP action (AF-108)
   if ((action as any).type === "BUY_CREDIT_DEFAULT_SWAP") {
-    const { cdsId, buyerSyndicateId, writerSyndicateId, cdoId, trancheId, notionalValue, premiumRate, timestamp } = action as any;
+    const { cdsId, buyerSyndicateId, writerSyndicateId, cdoId, trancheId, notionalValue, premiumRate, timestamp, marginEnabled } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -17996,6 +18028,8 @@ export function multiAgentStep(
       rejectionReason = `CDO ${cdoId} does not exist.`;
     } else if (!tranche) {
       rejectionReason = `Tranche ${trancheId} does not exist in CDO ${cdoId}.`;
+    } else if (marginEnabled && (!state.marginAccounts || !state.marginAccounts[writerSyndicateId])) {
+      rejectionReason = `Writer syndicate ${writerSyndicateId} does not have a margin account opened.`;
     } else {
       ok = true;
     }
@@ -18023,6 +18057,7 @@ export function multiAgentStep(
           premiumRate,
           side: "buyer",
           timestamp,
+          marginEnabled: marginEnabled || false,
         };
         newState.creditDefaultSwapVotes = creditDefaultSwapVotes;
         newState = reconcileCreditDefaultSwaps(newState, pack);
@@ -18105,7 +18140,7 @@ export function multiAgentStep(
 
   // Handle decentralized WRITE_CREDIT_DEFAULT_SWAP action (AF-108)
   if ((action as any).type === "WRITE_CREDIT_DEFAULT_SWAP") {
-    const { cdsId, writerSyndicateId, buyerSyndicateId, cdoId, trancheId, notionalValue, premiumRate, timestamp } = action as any;
+    const { cdsId, writerSyndicateId, buyerSyndicateId, cdoId, trancheId, notionalValue, premiumRate, timestamp, marginEnabled } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -18141,6 +18176,8 @@ export function multiAgentStep(
       rejectionReason = `CDO ${cdoId} does not exist.`;
     } else if (!tranche) {
       rejectionReason = `Tranche ${trancheId} does not exist in CDO ${cdoId}.`;
+    } else if (marginEnabled && (!state.marginAccounts || !state.marginAccounts[writerSyndicateId])) {
+      rejectionReason = `Writer syndicate ${writerSyndicateId} does not have a margin account opened.`;
     } else {
       ok = true;
     }
@@ -18168,6 +18205,7 @@ export function multiAgentStep(
           premiumRate,
           side: "writer",
           timestamp,
+          marginEnabled: marginEnabled || false,
         };
         newState.creditDefaultSwapVotes = creditDefaultSwapVotes;
         newState = reconcileCreditDefaultSwaps(newState, pack);
@@ -18196,6 +18234,227 @@ export function multiAgentStep(
           timestamp,
         });
       }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized OPEN_CDS_MARGIN_ACCOUNT action
+  if ((action as any).type === "OPEN_CDS_MARGIN_ACCOUNT") {
+    const { syndicateId, initialDeposit, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to open margin account.`;
+    } else if (initialDeposit === undefined || initialDeposit < 0 || !Number.isInteger(initialDeposit)) {
+      rejectionReason = `Initial deposit must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < initialDeposit) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient gold in its war chest to open margin account with deposit of ${initialDeposit} (has ${syndicate.warChest ?? 0}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      newState.syndicates = { ...state.syndicates };
+      newState.syndicates[syndicateId] = {
+        ...syndicate,
+        warChest: (syndicate.warChest ?? 0) - initialDeposit,
+      } as any;
+
+      newState.marginAccounts = { ...(state.marginAccounts || {}) };
+      newState.marginAccounts[syndicateId] = {
+        syndicateId,
+        collateral: initialDeposit,
+        leveragedCDSIds: [],
+        leveragedTranchePositions: {},
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Margin Account Open] Syndicate ${syndicateId} opened a margin account with initial deposit of ${initialDeposit} gold.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Margin account opened for Syndicate ${syndicateId} (Deposit: ${initialDeposit} gold).`,
+      } as any);
+
+      customEvents.push({
+        type: "margin_account_opened" as any,
+        syndicateId,
+        initialDeposit,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEPOSIT_MARGIN_COLLATERAL action
+  if ((action as any).type === "DEPOSIT_MARGIN_COLLATERAL") {
+    const { syndicateId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to deposit margin collateral.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Collateral amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < amount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient gold in its war chest to deposit collateral of ${amount} (has ${syndicate.warChest ?? 0}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      newState.syndicates = { ...state.syndicates };
+      newState.syndicates[syndicateId] = {
+        ...syndicate,
+        warChest: (syndicate.warChest ?? 0) - amount,
+      } as any;
+
+      newState.marginAccounts = { ...state.marginAccounts };
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        collateral: marginAccount.collateral + amount,
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Margin Collateral Deposit] Syndicate ${syndicateId} deposited ${amount} gold as margin collateral.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Collateral of ${amount} gold deposited to margin account of Syndicate ${syndicateId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "margin_collateral_deposited" as any,
+        syndicateId,
+        amount,
+        timestamp,
+      });
     }
 
     newState.step += 1;

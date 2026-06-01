@@ -1061,8 +1061,27 @@ export const CreditDefaultSwapSchema = z.object({
   premiumRate: z.number(),
   timestamp: z.number().int(),
   active: z.boolean(),
+  marginEnabled: z.boolean().optional(),
 });
 export type CreditDefaultSwap = z.infer<typeof CreditDefaultSwapSchema>;
+
+export const LeveragedTranchePositionSchema = z.object({
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  borrowedAmount: z.number().int().nonnegative(),
+  purchasedStake: z.number().int().positive(),
+  timestamp: z.number().int(),
+});
+export type LeveragedTranchePosition = z.infer<typeof LeveragedTranchePositionSchema>;
+
+export const MarginAccountSchema = z.object({
+  syndicateId: z.string(),
+  collateral: z.number().int().nonnegative(),
+  leveragedCDSIds: z.array(z.string()).optional(),
+  leveragedTranchePositions: z.record(z.string(), LeveragedTranchePositionSchema).optional(),
+  timestamp: z.number().int(),
+});
+export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
 export const CDSTradeProposalSchema = z.object({
   id: z.string(),
@@ -1086,6 +1105,7 @@ export const CDSVoteSchema = z.object({
   premiumRate: z.number(),
   side: z.enum(["buyer", "writer"]),
   timestamp: z.number().int(),
+  marginEnabled: z.boolean().optional(),
 });
 export type CDSVote = z.infer<typeof CDSVoteSchema>;
 
@@ -1360,6 +1380,7 @@ export const GameStateSchema = z.object({
   creditDefaultSwaps: z.record(z.string(), CreditDefaultSwapSchema).optional(),
   creditDefaultSwapVotes: z.record(z.string(), z.record(z.string(), CDSVoteSchema)).optional(),
   creditDefaultSwapTrades: z.record(z.string(), CDSTradeProposalSchema).optional(),
+  marginAccounts: z.record(z.string(), MarginAccountSchema).optional(),
 });
 
 
@@ -1538,6 +1559,7 @@ export const createInitialState = (options: {
     creditDefaultSwaps: {},
     creditDefaultSwapVotes: {},
     creditDefaultSwapTrades: {},
+    marginAccounts: {},
   };
 };
 
@@ -2309,6 +2331,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     creditDefaultSwaps: rest.creditDefaultSwaps ? JSON.parse(JSON.stringify(rest.creditDefaultSwaps)) : undefined,
     creditDefaultSwapVotes: rest.creditDefaultSwapVotes ? JSON.parse(JSON.stringify(rest.creditDefaultSwapVotes)) : undefined,
     creditDefaultSwapTrades: rest.creditDefaultSwapTrades ? JSON.parse(JSON.stringify(rest.creditDefaultSwapTrades)) : undefined,
+    marginAccounts: rest.marginAccounts ? JSON.parse(JSON.stringify(rest.marginAccounts)) : undefined,
   };
   return clone;
 }
@@ -4556,6 +4579,7 @@ export function reconcileCreditDefaultSwaps(state: GameState, pack: any): GameSt
   const newState = {
     ...state,
     creditDefaultSwaps: state.creditDefaultSwaps ? { ...state.creditDefaultSwaps } : {},
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
   };
 
   if (!newState.creditDefaultSwapVotes) {
@@ -4576,10 +4600,13 @@ export function reconcileCreditDefaultSwaps(state: GameState, pack: any): GameSt
         latestBuyerVote.cdoId === latestWriterVote.cdoId &&
         latestBuyerVote.trancheId === latestWriterVote.trancheId &&
         latestBuyerVote.notionalValue === latestWriterVote.notionalValue &&
-        latestBuyerVote.premiumRate === latestWriterVote.premiumRate
+        latestBuyerVote.premiumRate === latestWriterVote.premiumRate &&
+        (latestBuyerVote.marginEnabled || false) === (latestWriterVote.marginEnabled || false)
       ) {
         const latestTimestamp = Math.max(latestBuyerVote.timestamp, latestWriterVote.timestamp);
         const existingCds = newState.creditDefaultSwaps[cdsId];
+        const marginEnabled = latestBuyerVote.marginEnabled || false;
+
         if (!existingCds || latestTimestamp > existingCds.timestamp) {
           newState.creditDefaultSwaps[cdsId] = {
             id: cdsId,
@@ -4591,7 +4618,19 @@ export function reconcileCreditDefaultSwaps(state: GameState, pack: any): GameSt
             premiumRate: latestBuyerVote.premiumRate,
             timestamp: latestTimestamp,
             active: true,
+            marginEnabled: marginEnabled,
           };
+
+          if (marginEnabled) {
+            const marginAccount = newState.marginAccounts[latestWriterVote.writerSyndicateId];
+            if (marginAccount) {
+              newState.marginAccounts[latestWriterVote.writerSyndicateId] = {
+                ...marginAccount,
+                leveragedCDSIds: Array.from(new Set([...(marginAccount.leveragedCDSIds || []), cdsId])),
+                timestamp: latestTimestamp,
+              };
+            }
+          }
         }
       }
     }

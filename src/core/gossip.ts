@@ -1907,6 +1907,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge marginAccounts using LWW (Last-Write-Wins)
+  const marginAccounts = { ...stateA.marginAccounts };
+  if (stateB.marginAccounts) {
+    for (const [key, maB] of Object.entries(stateB.marginAccounts)) {
+      const maA = marginAccounts[key];
+      if (!maA || maB.timestamp > maA.timestamp) {
+        marginAccounts[key] = maB;
+      }
+    }
+  }
+
   // Merge creditDefaultSwapVotes using LWW (Last-Write-Wins)
   const creditDefaultSwapVotes = { ...stateA.creditDefaultSwapVotes };
   if (stateB.creditDefaultSwapVotes) {
@@ -2091,6 +2102,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     creditDefaultSwaps,
     creditDefaultSwapVotes,
     creditDefaultSwapTrades,
+    marginAccounts,
   };
 }
 
