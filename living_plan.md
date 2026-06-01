@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #119 (Ready for Cycle #120)
-* **Build/Test Status**: 🟢 PASS (All 519 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #120 (Ready for Cycle #121)
+* **Build/Test Status**: 🟢 PASS (All 529 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -712,17 +712,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire successful subsidy consensus to dynamically reduce gold deduction during `reconcileRehabCampaign` based on standing, pulling the subsidized share from the faction reserve pool (`AF-119`).
 - [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-119`).
 
+### Phase 98: Syndicate Bank Multi-Tiered Dynamic Faction Loyalty Ranks & Standing-Gated Vault Access (Completed)
+- [x] Define structured multi-tiered faction loyalty ranks (Bronze, Silver, Gold, Platinum) and vault thresholds in state (`AF-120`).
+- [x] Implement `CLAIM_LOYALTY_RANK` and `VOTE_LOYALTY_RANK` decentralized consensus actions (`AF-120`).
+- [x] Wire reached loyalty ranks to restrict access to premium bank vaults for borrowing, depositing, and withdrawing (`AF-120`).
+- [x] Implement dynamic interest rate discounts (Bronze: 1%, Silver: 2%, Gold: 3%, Platinum: 5%) for individual and joint bank loans (`AF-120`).
+- [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-120`).
+
 ---
 
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-120`
-* **Objective**: Syndicate Bank Multi-Tiered Dynamic Faction Loyalty Ranks & Standing-Gated Vault Access.
-* **Why this matters**: Introduce structured multi-tiered faction loyalty ranks (Bronze, Silver, Gold, Platinum) computed dynamically based on the faction loyalty bonds locked gold. Wire these ranks to restrict/gate access to premium syndicate bank vaults and lower loan interest rates dynamically based on reached loyalty tiers.
+**Task ID**: `AF-121`
+* **Objective**: Syndicate Bank Faction-Sponsored Loyalty-Based CDO Insurance Pools & Leverage Collateral Mining Boosters.
+* **Why this matters**: Further integrate faction loyalty ranks to unlock cooperative, multi-syndicate yield boosting campaigns on rehypothecated bank margin collateral. Wire higher loyalty ranks to dynamically increase reward yield multipliers and provide premium default insurance shielding across cooperative factions.
 * **Planned Actions**:
-  1. Define loyalty ranks, vault thresholds, and dynamic interest discounts in GameState.
-  2. Implement `CLAIM_LOYALTY_RANK` decentralized consensus actions or automatic rank updates.
-  3. Wire dynamic ranks to block bank borrowing/depositing if the syndicate's loyalty rank is too low.
+  1. Define faction-sponsored loyalty-based CDO insurance pools and mining boosters in state.
+  2. Implement decentralized consensus actions to establish cooperative yield campaigns and sponsor loyalties.
+  3. Wire dynamic loyalty ranks to boost CDO interest yields and mitigate default collateral liquidations.
   4. Write comprehensive Vitest integration and mesh convergence tests.
 
 ---

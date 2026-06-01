@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -2194,6 +2194,49 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge claimLoyaltyRankProposals using LWW (Last-Write-Wins)
+  const claimLoyaltyRankProposals = { ...stateA.claimLoyaltyRankProposals };
+  if (stateB.claimLoyaltyRankProposals) {
+    for (const [propId, propB] of Object.entries(stateB.claimLoyaltyRankProposals)) {
+      const propA = claimLoyaltyRankProposals[propId];
+      if (!propA) {
+        claimLoyaltyRankProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...propA.votes };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          claimLoyaltyRankProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          claimLoyaltyRankProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
+  // Merge factionLoyaltyRanks using LWW (Last-Write-Wins)
+  const factionLoyaltyRanks = { ...stateA.factionLoyaltyRanks };
+  if (stateB.factionLoyaltyRanks) {
+    for (const [rankId, rankB] of Object.entries(stateB.factionLoyaltyRanks)) {
+      const rankA = factionLoyaltyRanks[rankId];
+      if (!rankA || rankB.timestamp > rankA.timestamp) {
+        factionLoyaltyRanks[rankId] = { ...rankB };
+      }
+    }
+  }
+
   // Merge maliciousActors using boolean OR union
   const maliciousActors = { ...stateA.maliciousActors };
   if (stateB.maliciousActors) {
@@ -2408,6 +2451,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     rehabCampaignProposals,
     rehabSubsidyProposals,
     factionLoyaltyBonds,
+    claimLoyaltyRankProposals,
+    factionLoyaltyRanks,
     maliciousActors,
     slashingRates,
   };
@@ -2744,6 +2789,7 @@ export class GossipNode {
     convergedState = reconcileJointLoanPenaltyWaivers(convergedState, this.pack);
     convergedState = reconcileJointLoanUnderwrites(convergedState, this.pack);
     convergedState = reconcileRehabCampaign(convergedState, this.pack);
+    convergedState = reconcileClaimLoyaltyRanks(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

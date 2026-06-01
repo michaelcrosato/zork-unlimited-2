@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors, reconcileSponsorAuditsAndRevocations, reconcileRewardSlashing, reconcileRehabCampaign, reconcileRehabSubsidy, getSyndicateFactionStanding, isFactionAlliedToSyndicate } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors, reconcileSponsorAuditsAndRevocations, reconcileRewardSlashing, reconcileRehabCampaign, reconcileRehabSubsidy, getSyndicateFactionStanding, isFactionAlliedToSyndicate, getSyndicateFactionLoyaltyRank, getRequiredRankForVaultLevel, isRankAtLeast, reconcileClaimLoyaltyRanks } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -11297,10 +11297,19 @@ export function multiAgentStep(
       const bank = state.syndicateBanks?.[syndicateId];
       const bankCap = getSyndicateBankCapacity(state, syndicateId);
       const totalBalances = bank ? Object.values(bank.balances as Record<string, number>).reduce((a, b) => a + b, 0) : 0;
+
+      // Access dynamic loyalty rank based on the controlling faction of current room
+      const currentRoomId = state.agents?.[agentId]?.current;
+      const factionId = currentRoomId ? state.territoryControl?.[currentRoomId] : undefined;
+      const rank = factionId ? getSyndicateFactionLoyaltyRank(state, syndicateId, factionId) : "None";
+      const requiredRank = getRequiredRankForVaultLevel(bank?.vaultUpgradeLevel ?? 0);
+
       if (currentGold < amount) {
         rejectionReason = `Insufficient gold to deposit ${amount} into syndicate bank (requires ${amount}, has ${currentGold}).`;
       } else if (totalBalances + amount > bankCap) {
         rejectionReason = `Syndicate bank deposit capacity exceeded (requires capacity for ${totalBalances + amount}, capacity is ${bankCap}).`;
+      } else if (!isRankAtLeast(rank, requiredRank)) {
+        rejectionReason = `Syndicate's loyalty rank (${rank}) with faction (${factionId}) is too low to access the premium bank vault (requires ${requiredRank}).`;
       } else {
         ok = true;
       }
@@ -11422,7 +11431,17 @@ export function multiAgentStep(
     } else if (currentBalance < amount) {
       rejectionReason = `Insufficient balance to withdraw ${amount} from syndicate bank (has ${currentBalance}).`;
     } else {
-      ok = true;
+      // Access dynamic loyalty rank based on the controlling faction of current room
+      const currentRoomId = state.agents?.[agentId]?.current;
+      const factionId = currentRoomId ? state.territoryControl?.[currentRoomId] : undefined;
+      const rank = factionId ? getSyndicateFactionLoyaltyRank(state, syndicateId, factionId) : "None";
+      const requiredRank = getRequiredRankForVaultLevel(bank?.vaultUpgradeLevel ?? 0);
+
+      if (!isRankAtLeast(rank, requiredRank)) {
+        rejectionReason = `Syndicate's loyalty rank (${rank}) with faction (${factionId}) is too low to access the premium bank vault (requires ${requiredRank}).`;
+      } else {
+        ok = true;
+      }
     }
 
     let newState = { ...state };
@@ -11932,8 +11951,16 @@ export function multiAgentStep(
         } else {
           // Check borrowing limit
           const limit = getSyndicateLoanLimit(state, syndicateId, agentId, collateralType, collateralId);
+
+          // Gate access to premium vaults based on faction loyalty rank of the collateral's room
+          const factionId = state.territoryControl?.[collateralId];
+          const rank = factionId ? getSyndicateFactionLoyaltyRank(state, syndicateId, factionId) : "None";
+          const requiredRank = getRequiredRankForVaultLevel(bank?.vaultUpgradeLevel ?? 0);
+
           if (amount > limit) {
             rejectionReason = `Requested borrow amount ${amount} exceeds the collateral loan limit of ${limit} gold.`;
+          } else if (!isRankAtLeast(rank, requiredRank)) {
+            rejectionReason = `Syndicate's loyalty rank (${rank}) with faction (${factionId}) is too low to access the premium bank vault (requires ${requiredRank}).`;
           } else {
             ok = true;
           }
@@ -21027,6 +21054,257 @@ export function multiAgentStep(
         totalLocked: newLocked,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CLAIM_LOYALTY_RANK action (AF-120)
+  if ((action as any).type === "CLAIM_LOYALTY_RANK") {
+    const { proposalId, syndicateId, factionId, rank, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bondId = `${syndicateId}-${factionId}`;
+    const bond = state.factionLoyaltyBonds?.[bondId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required to claim loyalty rank.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required.`;
+    } else if (!rank || !["None", "Bronze", "Silver", "Gold", "Platinum"].includes(rank)) {
+      rejectionReason = `Invalid loyalty rank ${rank}.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot claim loyalty rank.`;
+    } else if (!bond) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a loyalty bond for faction ${factionId}.`;
+    } else {
+      // Validate gold locked for rank
+      const lockedGold = bond.lockedGold;
+      let requiredGold = 0;
+      if (rank === "Bronze") requiredGold = 1000;
+      else if (rank === "Silver") requiredGold = 3000;
+      else if (rank === "Gold") requiredGold = 5000;
+      else if (rank === "Platinum") requiredGold = 10000;
+
+      if (lockedGold < requiredGold) {
+        rejectionReason = `Locked gold in loyalty bond is insufficient for rank ${rank} (requires ${requiredGold}, has ${lockedGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const proposals = { ...(state.claimLoyaltyRankProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          syndicateId,
+          factionId,
+          rank,
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.claimLoyaltyRankProposals = proposals;
+        newState = reconcileClaimLoyaltyRanks(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction Loyalty Rank Proposed] Agent ${agentId} proposed claim loyalty rank ${proposalId} of ${rank} with faction ${factionId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Faction loyalty rank proposal created by ${agentId} for faction ${factionId} to rank ${rank}.`,
+        } as any);
+
+        customEvents.push({
+          type: "loyalty_rank_proposed" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          factionId,
+          rank,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_LOYALTY_RANK action (AF-120)
+  if ((action as any).type === "VOTE_LOYALTY_RANK") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.claimLoyaltyRankProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `Claim loyalty rank proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on loyalty rank proposal.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.claimLoyaltyRankProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.claimLoyaltyRankProposals = proposalsCopy;
+        newState = reconcileClaimLoyaltyRanks(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction Loyalty Rank Voted] Agent ${agentId} voted ${vote ? "FOR" : "AGAINST"} claim loyalty rank proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Faction loyalty rank vote cast by ${agentId} for proposal ${proposalId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "loyalty_rank_voted" as any,
+          syndicateId,
+          proposalId,
+          agentId,
+          vote,
+          timestamp,
+        });
+      }
     }
 
     newState.step += 1;

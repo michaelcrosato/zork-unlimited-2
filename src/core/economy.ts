@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -2159,8 +2159,17 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
         for (const [agentId, loan] of Object.entries(loans)) {
           // 1. Accrue loan interest
+          const factionId = newState.territoryControl?.[loan.collateralId];
+          let discount = 0;
+          if (factionId) {
+            const loyaltyRank = getSyndicateFactionLoyaltyRank(newState, syndicateId, factionId);
+            if (loyaltyRank === "Bronze") discount = 1;
+            else if (loyaltyRank === "Silver") discount = 2;
+            else if (loyaltyRank === "Gold") discount = 3;
+            else if (loyaltyRank === "Platinum") discount = 5;
+          }
           const baseRate = loan.refinancedInterestRate !== undefined ? loan.refinancedInterestRate : (bank.interestRate ?? 5);
-          const loanRate = Math.max(0, baseRate);
+          const loanRate = Math.max(0, baseRate - discount);
           const interest = Math.floor((loan.amount * loanRate) / 100);
 
           let updatedLoan = {
@@ -2271,7 +2280,25 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         : (jointLoan.refinancedInterestRate !== undefined 
           ? jointLoan.refinancedInterestRate 
           : (underwrittenRate !== undefined ? underwrittenRate : (bank?.interestRate ?? 5)));
-      const loanRate = Math.max(0, baseRate);
+      let jointFactionId: string | undefined;
+      if (jointLoan.collaterals && jointLoan.collaterals.length > 0) {
+        for (const col of jointLoan.collaterals) {
+          const fId = newState.territoryControl?.[col.collateralId];
+          if (fId) {
+            jointFactionId = fId;
+            break;
+          }
+        }
+      }
+      let jointDiscount = 0;
+      if (jointFactionId) {
+        const loyaltyRank = getSyndicateFactionLoyaltyRank(newState, jointLoan.syndicateId, jointFactionId);
+        if (loyaltyRank === "Bronze") jointDiscount = 1;
+        else if (loyaltyRank === "Silver") jointDiscount = 2;
+        else if (loyaltyRank === "Gold") jointDiscount = 3;
+        else if (loyaltyRank === "Platinum") jointDiscount = 5;
+      }
+      const loanRate = Math.max(0, baseRate - jointDiscount);
       
       let subsidyRate = 0;
       if (newState.interestSubsidies && newState.syndicateAlliances) {

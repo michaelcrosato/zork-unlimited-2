@@ -154,7 +154,9 @@ export type Action =
   | { type: "VOTE_REHAB_CAMPAIGN"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_REHAB_SUBSIDY"; proposalId: string; syndicateId: string; factionId: string; subsidyPercentage: number; timestamp: number }
   | { type: "VOTE_REHAB_SUBSIDY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
-  | { type: "LOCK_LOYALTY_BOND"; syndicateId: string; factionId: string; amount: number; timestamp: number };
+  | { type: "LOCK_LOYALTY_BOND"; syndicateId: string; factionId: string; amount: number; timestamp: number }
+  | { type: "CLAIM_LOYALTY_RANK"; proposalId: string; syndicateId: string; factionId: string; rank: "Bronze" | "Silver" | "Gold" | "Platinum"; timestamp: number }
+  | { type: "VOTE_LOYALTY_RANK"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

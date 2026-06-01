@@ -1196,6 +1196,29 @@ export const FactionLoyaltyBondSchema = z.object({
 });
 export type FactionLoyaltyBond = z.infer<typeof FactionLoyaltyBondSchema>;
 
+export const ClaimLoyaltyRankProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  factionId: z.string(),
+  rank: z.enum(["None", "Bronze", "Silver", "Gold", "Platinum"]),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type ClaimLoyaltyRankProposal = z.infer<typeof ClaimLoyaltyRankProposalSchema>;
+
+export const FactionLoyaltyRankSchema = z.object({
+  syndicateId: z.string(),
+  factionId: z.string(),
+  rank: z.enum(["None", "Bronze", "Silver", "Gold", "Platinum"]),
+  timestamp: z.number().int(),
+});
+export type FactionLoyaltyRank = z.infer<typeof FactionLoyaltyRankSchema>;
+
+
 
 
 export const LockedLiquidityEpochPoolSchema = z.object({
@@ -1572,6 +1595,8 @@ export const GameStateSchema = z.object({
   rehabCampaignProposals: z.record(z.string(), RehabCampaignProposalSchema).optional(),
   rehabSubsidyProposals: z.record(z.string(), RehabSubsidyProposalSchema).optional(),
   factionLoyaltyBonds: z.record(z.string(), FactionLoyaltyBondSchema).optional(),
+  claimLoyaltyRankProposals: z.record(z.string(), ClaimLoyaltyRankProposalSchema).optional(),
+  factionLoyaltyRanks: z.record(z.string(), FactionLoyaltyRankSchema).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
 });
@@ -2566,6 +2591,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     rehabCampaignProposals: rest.rehabCampaignProposals ? JSON.parse(JSON.stringify(rest.rehabCampaignProposals)) : undefined,
     rehabSubsidyProposals: rest.rehabSubsidyProposals ? JSON.parse(JSON.stringify(rest.rehabSubsidyProposals)) : undefined,
     factionLoyaltyBonds: rest.factionLoyaltyBonds ? JSON.parse(JSON.stringify(rest.factionLoyaltyBonds)) : undefined,
+    claimLoyaltyRankProposals: rest.claimLoyaltyRankProposals ? JSON.parse(JSON.stringify(rest.claimLoyaltyRankProposals)) : undefined,
+    factionLoyaltyRanks: rest.factionLoyaltyRanks ? JSON.parse(JSON.stringify(rest.factionLoyaltyRanks)) : undefined,
     maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
     slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
   };
@@ -5848,6 +5875,92 @@ export function reconcileRewardSlashing(state: GameState, pack: any): GameState 
 
   return newState;
 }
+
+export function getSyndicateFactionLoyaltyRank(state: GameState, syndicateId: string, factionId: string): "None" | "Bronze" | "Silver" | "Gold" | "Platinum" {
+  if (state.factionLoyaltyRanks) {
+    const rankId = `${syndicateId}-${factionId}`;
+    const rankObj = state.factionLoyaltyRanks[rankId];
+    if (rankObj) {
+      return rankObj.rank;
+    }
+  }
+
+  if (state.factionLoyaltyBonds) {
+    const bondId = `${syndicateId}-${factionId}`;
+    const bond = state.factionLoyaltyBonds[bondId];
+    if (bond) {
+      const gold = bond.lockedGold;
+      if (gold >= 10000) return "Platinum";
+      if (gold >= 5000) return "Gold";
+      if (gold >= 3000) return "Silver";
+      if (gold >= 1000) return "Bronze";
+    }
+  }
+
+  return "None";
+}
+
+export function getRequiredRankForVaultLevel(level: number): "None" | "Bronze" | "Silver" | "Gold" | "Platinum" {
+  if (level <= 0) return "None";
+  if (level === 1) return "Bronze";
+  if (level === 2) return "Silver";
+  if (level === 3) return "Gold";
+  return "Platinum";
+}
+
+const RANK_ORDER = ["None", "Bronze", "Silver", "Gold", "Platinum"];
+export function isRankAtLeast(rank: string, requiredRank: string): boolean {
+  const index = RANK_ORDER.indexOf(rank);
+  const reqIndex = RANK_ORDER.indexOf(requiredRank);
+  return index >= reqIndex;
+}
+
+export function reconcileClaimLoyaltyRanks(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    claimLoyaltyRankProposals: state.claimLoyaltyRankProposals ? { ...state.claimLoyaltyRankProposals } : {},
+    factionLoyaltyRanks: state.factionLoyaltyRanks ? { ...state.factionLoyaltyRanks } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.claimLoyaltyRankProposals || {})) {
+    const proposal = newState.claimLoyaltyRankProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, factionId, rank } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.claimLoyaltyRankProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      newState.factionLoyaltyRanks[`${syndicateId}-${factionId}`] = {
+        syndicateId,
+        factionId,
+        rank,
+        timestamp: proposal.timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Faction Loyalty Rank Resolved] Syndicate ${syndicateId} resolved claim loyalty rank proposal ${proposalId} for faction ${factionId} to rank ${rank}.`
+      );
+    }
+  }
+
+  return newState;
+}
+
 
 
 
