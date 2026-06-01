@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileSWFMarginRehypothecations, reconcileSWFMarginRebalancingPolicies, reconcileSWFYieldArbitragePolicies, reconcileSWFStakingPolicies, reconcileSWFRebalancingAdvisors, reconcileSWFAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors, reconcileSponsorAuditsAndRevocations, reconcileRewardSlashing, reconcileRehabCampaign, reconcileRehabSubsidy, getSyndicateFactionStanding, isFactionAlliedToSyndicate, getSyndicateFactionLoyaltyRank, getRequiredRankForVaultLevel, isRankAtLeast, reconcileClaimLoyaltyRanks, reconcileCooperativeYieldCampaigns, reconcileCooperativeSWFStakingCampaigns, reconcileFactionCdoInsurancePools, reconcileMultiFactionCdoRiskRatings, reconcileSWFReinsuranceOptionPenaltyWaivers, reconcileSWFReinsuranceOptionPenaltyRefunds, reconcileSWFReinsuranceOptionSpreadAdjustments, reconcileSWFReinsuranceOptionVolatilityFloors, reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrides, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensions, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellations, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileSWFMarginRehypothecations, reconcileSWFMarginRebalancingPolicies, reconcileSWFYieldArbitragePolicies, reconcileSWFStakingPolicies, reconcileSWFRebalancingAdvisors, reconcileSWFAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors, reconcileSponsorAuditsAndRevocations, reconcileRewardSlashing, reconcileRehabCampaign, reconcileRehabSubsidy, getSyndicateFactionStanding, isFactionAlliedToSyndicate, getSyndicateFactionLoyaltyRank, getRequiredRankForVaultLevel, isRankAtLeast, reconcileClaimLoyaltyRanks, reconcileCooperativeYieldCampaigns, reconcileCooperativeSWFStakingCampaigns, reconcileFactionCdoInsurancePools, reconcileMultiFactionCdoRiskRatings, reconcileSWFReinsuranceOptionPenaltyWaivers, reconcileSWFReinsuranceOptionPenaltyRefunds, reconcileSWFReinsuranceOptionSpreadAdjustments, reconcileSWFReinsuranceOptionVolatilityFloors, reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrides, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensions, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellations, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -36366,6 +36366,8 @@ export function multiAgentStep(
     const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
     const targetGraceLiquidityProposal = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals?.[targetProposalId];
 
+    const proposalFee = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? 500;
+
     if (!proposalId) {
       rejectionReason = `Proposal ID is required.`;
     } else if (!syndicateId) {
@@ -36388,6 +36390,8 @@ export function multiAgentStep(
       rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
     } else if (state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals?.[proposalId]) {
       rejectionReason = `Proposal ${proposalId} already exists.`;
+    } else if ((syndicate.warChest ?? 0) < proposalFee) {
+      rejectionReason = `Insufficient gold in syndicate war chest to propose liquidity adjustment (requires ${proposalFee}, has ${syndicate.warChest ?? 0}).`;
     } else {
       ok = true;
     }
@@ -36396,6 +36400,12 @@ export function multiAgentStep(
     let customEvents: any[] = [];
 
     if (ok && syndicate) {
+      newState.syndicates = { ...newState.syndicates };
+      newState.syndicates[syndicateId] = {
+        ...syndicate,
+        warChest: (syndicate.warChest ?? 0) - proposalFee,
+      };
+
       newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals ? { ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals } : {};
       newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId] = {
         proposalId,
@@ -36502,6 +36512,8 @@ export function multiAgentStep(
     const proposal = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals?.[proposalId];
     const syndicate = proposal ? state.syndicates?.[proposal.syndicateId] : undefined;
 
+    const voteFee = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100;
+
     if (!proposalId) {
       rejectionReason = `Proposal ID is required.`;
     } else if (vote === undefined || typeof vote !== "boolean") {
@@ -36512,6 +36524,8 @@ export function multiAgentStep(
       rejectionReason = `Syndicate does not exist for the proposal.`;
     } else if (!syndicate.members.includes(agentId)) {
       rejectionReason = `Agent ${agentId} is not a member of syndicate ${proposal.syndicateId} and cannot vote on this proposal.`;
+    } else if ((syndicate.warChest ?? 0) < voteFee) {
+      rejectionReason = `Insufficient gold in syndicate war chest to vote on liquidity adjustment (requires ${voteFee}, has ${syndicate.warChest ?? 0}).`;
     } else {
       ok = true;
     }
@@ -36519,7 +36533,13 @@ export function multiAgentStep(
     let newState = { ...state };
     let customEvents: any[] = [];
 
-    if (ok && proposal) {
+    if (ok && proposal && syndicate) {
+      newState.syndicates = { ...newState.syndicates };
+      newState.syndicates[proposal.syndicateId] = {
+        ...syndicate,
+        warChest: (syndicate.warChest ?? 0) - voteFee,
+      };
+
       newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes ? { ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes } : {};
       if (!newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId]) {
         newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] = {};
@@ -36546,6 +36566,248 @@ export function multiAgentStep(
 
       customEvents.push({
         type: "vote_volatility_floor_panic_override_extension_cancellation_grace_liquidity_adjust" as any,
+        proposalId,
+        agentId,
+        vote,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+
+  // Handle PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION action (AF-200)
+  if ((action as any).type === "PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION") {
+    const { proposalId, syndicateId, swfYieldCdoId, trancheId, newProposalFee, newVoteFee, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (newProposalFee === undefined || typeof newProposalFee !== "number" || newProposalFee < 0) {
+      rejectionReason = `Valid non-negative proposal fee is required.`;
+    } else if (newVoteFee === undefined || typeof newVoteFee !== "number" || newVoteFee < 0) {
+      rejectionReason = `Valid non-negative vote fee is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals?.[proposalId]) {
+      rejectionReason = `Proposal ${proposalId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals ? { ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals } : {};
+      newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[proposalId] = {
+        proposalId,
+        syndicateId,
+        swfYieldCdoId,
+        trancheId,
+        newProposalFee,
+        newVoteFee,
+        status: "proposed",
+        proposerId: agentId,
+        timestamp,
+      };
+
+      newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes ? { ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes } : {};
+      if (!newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId]) {
+        newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId] = {};
+      }
+      newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId][agentId] = {
+        proposalId,
+        vote: true,
+        timestamp,
+      };
+
+      newState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations(newState, pack);
+
+      const propStatus = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Option Volatility Floor Panic Override Extension Cancellation Grace Liquidity Adjust Fee Calibration Proposed] Agent ${agentId} proposed fee calibration proposal ${proposalId} for Syndicate ${syndicateId} (New Proposal Fee: ${newProposalFee}, New Vote Fee: ${newVoteFee}) (Status: ${propStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance Option pricing volatility floor panic override extension cancellation grace liquidity adjustment fee calibration proposal ${proposalId} created by ${agentId} for Syndicate ${syndicateId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "propose_volatility_floor_panic_override_extension_cancellation_grace_liquidity_adjust_fee_calibration" as any,
+        proposalId,
+        syndicateId,
+        agentId,
+        swfYieldCdoId,
+        trancheId,
+        newProposalFee,
+        newVoteFee,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION action (AF-200)
+  if ((action as any).type === "VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION") {
+    const { proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposal = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals?.[proposalId];
+    const syndicate = proposal ? state.syndicates?.[proposal.syndicateId] : undefined;
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined || typeof vote !== "boolean") {
+      rejectionReason = `Vote flag must be a boolean.`;
+    } else if (!proposal) {
+      rejectionReason = `Proposal ${proposalId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate does not exist for the proposal.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${proposal.syndicateId} and cannot vote on this proposal.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && proposal) {
+      newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes ? { ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes } : {};
+      if (!newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId]) {
+        newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId] = {};
+      }
+      newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId][agentId] = {
+        proposalId,
+        vote,
+        timestamp,
+      };
+
+      newState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations(newState, pack);
+
+      const propStatus = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Option Volatility Floor Panic Override Extension Cancellation Grace Liquidity Adjust Fee Calibration Voted] Agent ${agentId} voted to ${vote ? "AUTHORIZE" : "DISPUTE"} fee calibration proposal ${proposalId} (Status: ${propStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance Option pricing volatility floor panic override extension cancellation grace liquidity adjustment fee calibration vote cast by ${agentId} for proposal ${proposalId} (Vote: ${vote ? "Authorize" : "Dispute"}).`,
+      } as any);
+
+      customEvents.push({
+        type: "vote_volatility_floor_panic_override_extension_cancellation_grace_liquidity_adjust_fee_calibration" as any,
         proposalId,
         agentId,
         vote,

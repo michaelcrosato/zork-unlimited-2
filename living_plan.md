@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #197 (Ready for Cycle #198)
-* **Build/Test Status**: 🟢 PASS (All 729 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #198 (Ready for Cycle #199)
+* **Build/Test Status**: 🟢 PASS (All 732 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1256,15 +1256,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 178: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration (Completed)
+- [x] Define fee structures and calibration voting variables in GameState (`AF-200`).
+- [x] Implement propose/vote adjustment fee calibration actions (`AF-200`).
+- [x] Wire calibration to scale proposal costs dynamically in the multi-agent execution step (`AF-200`).
+- [x] Write robust unit, integration, and P2P mesh convergence tests (`AF-200`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-200`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration.
-* **Why this matters**: Introduce a consensus-driven fee structure for proposing or voting on minimum liquidity threshold adjustments to prevent spamming and incentivize optimal threshold configurations.
+**Task ID**: `AF-201`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment.
+* **Why this matters**: Automatically reinvest the accumulated adjustment and voting proposal fees back into the corresponding CDO tranche's yield pool on epoch boundaries to maximize syndicate capital efficiency.
 * **Planned Actions**:
-  1. Define fee structures and calibration voting variables in GameState.
-  2. Implement propose/vote adjustment fee calibration actions.
-  3. Wire calibration to scale proposal costs dynamically in the multi-agent execution step.
-  4. Write robust unit, integration, and P2P mesh convergence tests.
+  1. Define accumulated fee reinvestment pools and auto-reinvest threshold parameters in underwriting margins inside GameState.
+  2. Implement consensus voting to propose or vote on auto-reinvestment thresholds.
+  3. Wire the tick economy boundary checks to automatically convert the accumulated fee gold into yield pool CDO reinvestments.
+  4. Write comprehensive Vitest unit and integration tests asserting all these features.
 
 ---
 
