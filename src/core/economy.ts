@@ -1158,34 +1158,81 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
-  // Wire grace ticks for surcharge panic override early cancellation grace period (AF-258)
+  // Wire grace ticks for surcharge panic override early cancellation grace period (AF-258/AF-259)
   if (newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals) {
     newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals = { ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals };
     for (const [cancelId, cancelProp] of Object.entries(newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals)) {
       if (cancelProp.status === "authorized" && cancelProp.remainingGraceSteps !== undefined) {
         if (cancelProp.remainingGraceSteps > 0) {
-          const newRemaining = cancelProp.remainingGraceSteps - 1;
-          newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals[cancelId] = {
-            ...cancelProp,
-            remainingGraceSteps: newRemaining,
-          };
-          
-          const targetOverride = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.[cancelProp.targetProposalId];
-          if (targetOverride) {
-            newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals = {
-              ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals,
-              [cancelProp.targetProposalId]: {
-                ...targetOverride,
-                cooldownEndStep: newRemaining > 0 ? newState.step + newRemaining : undefined,
-                panicOverrideActive: newRemaining > 0 ? targetOverride.panicOverrideActive : false,
-                timestamp: newState.step,
+          // Fetch pool reserves (CDO fractionalized vault balance)
+          const optionCdoId = cancelProp.cdoId;
+          const pool = newState.sovereignDebtCDSCDOPools?.[optionCdoId];
+          const reserves = pool ? pool.fractionalizedVault.balance : 0;
+
+          // Check for active minimum liquidity threshold
+          let activeThreshold: number | undefined;
+          if (newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals) {
+            for (const liqProp of Object.values(newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals)) {
+              if (liqProp.status === "authorized") {
+                if (liqProp.targetProposalId === cancelId) {
+                  activeThreshold = liqProp.minLiquidityThreshold;
+                  break;
+                }
+                const graceProp = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals?.[liqProp.targetProposalId];
+                if (graceProp && graceProp.targetProposalId === cancelId) {
+                  activeThreshold = liqProp.minLiquidityThreshold;
+                  break;
+                }
               }
+            }
+          }
+
+          if (activeThreshold !== undefined && reserves < activeThreshold) {
+            // Instantly cancel/terminate grace period!
+            newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals[cancelId] = {
+              ...cancelProp,
+              remainingGraceSteps: 0,
             };
-            if (newRemaining === 0) {
-              if (!newState.journal) newState.journal = [];
-              newState.journal.push(
-                `[CDO Yield-Hedging Option Surcharge Panic Override Extension Cancellation Grace Ended] Grace period ended for cancellation ${cancelId}. Panic override ${cancelProp.targetProposalId} has been terminated early.`
-              );
+            const targetOverride = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.[cancelProp.targetProposalId];
+            if (targetOverride) {
+              newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals = {
+                ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals,
+                [cancelProp.targetProposalId]: {
+                  ...targetOverride,
+                  cooldownEndStep: undefined,
+                  panicOverrideActive: false,
+                  timestamp: newState.step,
+                }
+              };
+            }
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDO Yield-Hedging Option Surcharge Panic Override Extension Cancellation Grace Terminated] Grace period cancelled early for cancellation ${cancelId} due to liquidity depletion (Reserves: ${reserves} < Threshold: ${activeThreshold}).`
+            );
+          } else {
+            const newRemaining = cancelProp.remainingGraceSteps - 1;
+            newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals[cancelId] = {
+              ...cancelProp,
+              remainingGraceSteps: newRemaining,
+            };
+            
+            const targetOverride = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.[cancelProp.targetProposalId];
+            if (targetOverride) {
+              newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals = {
+                ...newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals,
+                [cancelProp.targetProposalId]: {
+                  ...targetOverride,
+                  cooldownEndStep: newRemaining > 0 ? newState.step + newRemaining : undefined,
+                  panicOverrideActive: newRemaining > 0 ? targetOverride.panicOverrideActive : false,
+                  timestamp: newState.step,
+                }
+              };
+              if (newRemaining === 0) {
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[CDO Yield-Hedging Option Surcharge Panic Override Extension Cancellation Grace Ended] Grace period ended for cancellation ${cancelId}. Panic override ${cancelProp.targetProposalId} has been terminated early.`
+                );
+              }
             }
           }
         }

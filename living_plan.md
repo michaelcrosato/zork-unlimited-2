@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #255 (Ready for Cycle #256)
-* **Build/Test Status**: 🟢 PASS (All 852 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #256 (Ready for Cycle #257)
+* **Build/Test Status**: 🟢 PASS (All 854 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1645,15 +1645,20 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the cooldown check in `tickEconomy` to process the remaining grace steps and apply a linear decay of the override restrictions (`AF-258`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-258`).
 
+### Phase 237: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Enforcement (Completed)
+- [x] Define surcharge panic override extension cancellation grace period minimum liquidity threshold proposal and voting schemas (`AF-259`).
+- [x] Wire the liquidity check in `tickEconomy` to instantly terminate the grace period and deactivate the panic override if the active pool's reserves drop below the authorized threshold (`AF-259`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-259`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-259`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Enforcement.
-* **Why this matters**: Establish a minimum liquidity threshold enforcement mechanism that instantly terminates the cancellation grace period and panic override if the CDO fractionalized vault balance drops below the threshold under defaults stress.
+**Task ID**: `AF-260`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Consensus Voting.
+* **Why this matters**: Introduce a consensus voting mechanism to allow syndicates to dynamically adjust the authorized minimum liquidity threshold on active grace periods as network or economic conditions evolve.
 * **Planned Actions**:
-  1. Define surcharge panic override extension cancellation grace period minimum liquidity threshold proposal and voting schemas.
-  2. Wire the liquidity check in `tickEconomy` to instantly terminate the grace period and deactivate the panic override if the active pool's reserves drop below the authorized threshold.
+  1. Define surcharge panic override extension cancellation grace period minimum liquidity threshold adjustment proposal and voting schemas.
+  2. Wire dynamic consensus adjustment to update the authorized minimum liquidity threshold on active grace periods upon successful consensus.
   3. Write comprehensive Vitest unit and integration tests.
 
 ---
