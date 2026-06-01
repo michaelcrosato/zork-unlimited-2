@@ -4928,8 +4928,9 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           if (opt.active && opt.writerSyndicateId === syndicateId) {
             const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
             const deltaPolicy = newState.swfReinsuranceOptionDeltaHedgingPolicies?.[policyKey];
+            const stressDeltaPolicy = newState.swfReinsuranceOptionStressTestDeltaHedgingPolicies?.[policyKey];
 
-            if (deltaPolicy) {
+            if (deltaPolicy || stressDeltaPolicy) {
               const spotRate = getCDOTrancheReinsurancePremiumRate(newState, opt.swfYieldCdoId, opt.trancheId);
               let delta = 0.5;
               if (opt.optionType === "call") {
@@ -4938,8 +4939,87 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 delta = 1.0 / (1.0 + Math.exp(-(opt.strikePremiumRate - spotRate) * 50.0));
               }
 
-              const targetDelta = deltaPolicy.targetDelta;
-              const tolerance = deltaPolicy.rebalancingPriceTolerance;
+              let targetDelta = deltaPolicy ? deltaPolicy.targetDelta : 0.5;
+              let tolerance = deltaPolicy ? deltaPolicy.rebalancingPriceTolerance : 0.05;
+
+              // Stress-Test-Aware Delta Hedging & Capital Reallocation Optimization (AF-160)
+              if (stressDeltaPolicy) {
+                const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
+                const avgVolatility = activeBonds.length > 0
+                  ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+                  : 15.0;
+
+                const stressPolicy = newState.swfReinsuranceOptionStressTestPolicies?.[policyKey];
+                const stressVolatility = avgVolatility + (stressPolicy ? stressPolicy.simulatedVolatilityShock : 0.0);
+
+                if (stressVolatility >= stressDeltaPolicy.stressVolatilityThreshold) {
+                  targetDelta = stressDeltaPolicy.stressDeltaTarget;
+
+                  // Perform capital reallocation
+                  const limit = stressDeltaPolicy.safetyCapitalReallocationLimit;
+                  let reallocatedAmount = 0;
+
+                  // 1. Shift from capital insurance pool
+                  if (newState.marginLiquidationInsurancePolicies?.[syndicateId]) {
+                    const policy = newState.marginLiquidationInsurancePolicies[syndicateId];
+                    if (policy.allocatedGold > 0) {
+                      const shift = Math.min(policy.allocatedGold, limit - reallocatedAmount);
+                      if (shift > 0) {
+                        policy.allocatedGold -= shift;
+                        policy.timestamp = newState.step;
+                        reallocatedAmount += shift;
+                      }
+                    }
+                  }
+
+                  // 2. Shift from secondaryReserves
+                  if (reallocatedAmount < limit && newState.secondaryReserves?.[syndicateId]) {
+                    const reserve = newState.secondaryReserves[syndicateId];
+                    if (reserve.reserveGold > 0) {
+                      const shift = Math.min(reserve.reserveGold, limit - reallocatedAmount);
+                      if (shift > 0) {
+                        reserve.reserveGold -= shift;
+                        reserve.timestamp = newState.step;
+                        reallocatedAmount += shift;
+                      }
+                    }
+                  }
+
+                  // 3. Shift from secondaryReserveInvestments
+                  if (reallocatedAmount < limit && newState.secondaryReserveInvestments?.[syndicateId]) {
+                    const vaultInvestments = newState.secondaryReserveInvestments[syndicateId];
+                    for (const [vaultId, investment] of Object.entries(vaultInvestments)) {
+                      if (reallocatedAmount >= limit) break;
+                      if (investment.investedGold > 0) {
+                        const shift = Math.min(investment.investedGold, limit - reallocatedAmount);
+                        if (shift > 0) {
+                          investment.investedGold -= shift;
+                          investment.timestamp = newState.step;
+                          reallocatedAmount += shift;
+                        }
+                      }
+                    }
+                  }
+
+                  if (reallocatedAmount > 0) {
+                    const syndicate = newState.syndicates?.[syndicateId];
+                    if (syndicate) {
+                      syndicate.warChest = (syndicate.warChest ?? 0) + reallocatedAmount;
+                    }
+                    const marginAccount = newState.marginAccounts?.[syndicateId];
+                    if (marginAccount) {
+                      marginAccount.collateral = (marginAccount.collateral ?? 0) + reallocatedAmount;
+                      marginAccount.timestamp = newState.step;
+                    }
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[Stress-Test-Aware Delta Hedging Reallocation] Syndicate ${syndicateId} reallocated ${reallocatedAmount} gold of safety capital from secondary vaults/insurance pools to warChest and margin collateral due to options delta portfolio volatility stress (Stress Volatility: ${stressVolatility.toFixed(2)}% >= Threshold: ${stressDeltaPolicy.stressVolatilityThreshold.toFixed(2)}%).`
+                    );
+                  }
+                }
+              }
+
               const targetHolding = Math.floor(delta * opt.size);
               const cdo = newState.swfYieldCDOs?.[opt.swfYieldCdoId];
               const tranche = cdo?.tranches?.[opt.trancheId];

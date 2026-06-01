@@ -2222,6 +2222,26 @@ export const SWFReinsuranceOptionDeltaHedgingVoteSchema = z.object({
 });
 export type SWFReinsuranceOptionDeltaHedgingVote = z.infer<typeof SWFReinsuranceOptionDeltaHedgingVoteSchema>;
 
+export const SWFReinsuranceOptionStressTestDeltaHedgingPolicySchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  stressDeltaTarget: z.number().nonnegative(),
+  stressVolatilityThreshold: z.number().nonnegative(),
+  safetyCapitalReallocationLimit: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionStressTestDeltaHedgingPolicy = z.infer<typeof SWFReinsuranceOptionStressTestDeltaHedgingPolicySchema>;
+
+export const SWFReinsuranceOptionStressTestDeltaHedgingVoteSchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  stressDeltaTarget: z.number().nonnegative(),
+  stressVolatilityThreshold: z.number().nonnegative(),
+  safetyCapitalReallocationLimit: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionStressTestDeltaHedgingVote = z.infer<typeof SWFReinsuranceOptionStressTestDeltaHedgingVoteSchema>;
+
 export const VolatilityHedgedPremiumPolicySchema = z.object({
   swfYieldCdoId: z.string(),
   volatilityReserve: z.number().int().nonnegative(),
@@ -2787,6 +2807,8 @@ export const GameStateSchema = z.object({
   adjustSWFReinsuranceOptionHedgingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionHedgingVoteSchema)).optional(),
   swfReinsuranceOptionDeltaHedgingPolicies: z.record(z.string(), SWFReinsuranceOptionDeltaHedgingPolicySchema).optional(),
   adjustSWFReinsuranceOptionDeltaHedgingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionDeltaHedgingVoteSchema)).optional(),
+  swfReinsuranceOptionStressTestDeltaHedgingPolicies: z.record(z.string(), SWFReinsuranceOptionStressTestDeltaHedgingPolicySchema).optional(),
+  adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionStressTestDeltaHedgingVoteSchema)).optional(),
   submitSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
     orderId: z.string(),
     orderType: z.enum(["buy", "sell"]),
@@ -3112,6 +3134,8 @@ export const createInitialState = (options: {
     adjustSWFReinsuranceOptionHedgingVotes: {},
     swfReinsuranceOptionDeltaHedgingPolicies: {},
     adjustSWFReinsuranceOptionDeltaHedgingVotes: {},
+    swfReinsuranceOptionStressTestDeltaHedgingPolicies: {},
+    adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes: {},
     submitSWFReinsuranceOptionLimitOrderVotes: {},
     cancelSWFReinsuranceOptionLimitOrderVotes: {},
     swfLiquidityMiningRewards: {},
@@ -4004,6 +4028,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     adjustSWFReinsuranceOptionHedgingVotes: rest.adjustSWFReinsuranceOptionHedgingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionHedgingVotes)) : undefined,
     swfReinsuranceOptionDeltaHedgingPolicies: rest.swfReinsuranceOptionDeltaHedgingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionDeltaHedgingPolicies)) : undefined,
     adjustSWFReinsuranceOptionDeltaHedgingVotes: rest.adjustSWFReinsuranceOptionDeltaHedgingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionDeltaHedgingVotes)) : undefined,
+    swfReinsuranceOptionStressTestDeltaHedgingPolicies: rest.swfReinsuranceOptionStressTestDeltaHedgingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionStressTestDeltaHedgingPolicies)) : undefined,
+    adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes: rest.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes)) : undefined,
     submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     swfLiquidityMiningRewards: rest.swfLiquidityMiningRewards ? JSON.parse(JSON.stringify(rest.swfLiquidityMiningRewards)) : undefined,
@@ -12279,6 +12305,74 @@ export function reconcileSWFReinsuranceOptionDeltaHedging(state: GameState, pack
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[SWF Reinsurance Option Delta Hedging Adjusted] Syndicate ${syndicateId} adjusted delta hedging policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Target Delta: ${group.targetDelta.toFixed(2)}, Rebalancing Price Tolerance: ${group.rebalancingPriceTolerance.toFixed(4)}).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionStressTestDeltaHedging(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionStressTestDeltaHedgingPolicies: state.swfReinsuranceOptionStressTestDeltaHedgingPolicies ? { ...state.swfReinsuranceOptionStressTestDeltaHedgingPolicies } : {},
+    adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes: state.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes ? { ...state.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes || {})) {
+    const votes = newState.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      swfYieldCdoId: string;
+      trancheId: "senior" | "mezzanine" | "equity";
+      stressDeltaTarget: number;
+      stressVolatilityThreshold: number;
+      safetyCapitalReallocationLimit: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.stressDeltaTarget}::${vote.stressVolatilityThreshold}::${vote.safetyCapitalReallocationLimit}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            swfYieldCdoId: vote.swfYieldCdoId,
+            trancheId: vote.trancheId,
+            stressDeltaTarget: vote.stressDeltaTarget,
+            stressVolatilityThreshold: vote.stressVolatilityThreshold,
+            safetyCapitalReallocationLimit: vote.safetyCapitalReallocationLimit,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const policyKey = `${group.swfYieldCdoId}_${group.trancheId}`;
+        newState.swfReinsuranceOptionStressTestDeltaHedgingPolicies![policyKey] = {
+          swfYieldCdoId: group.swfYieldCdoId,
+          trancheId: group.trancheId,
+          stressDeltaTarget: group.stressDeltaTarget,
+          stressVolatilityThreshold: group.stressVolatilityThreshold,
+          safetyCapitalReallocationLimit: group.safetyCapitalReallocationLimit,
+          timestamp: Math.max(...group.timestamps, newState.step),
+        };
+
+        delete newState.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes[syndicateId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Stress Test Delta Hedging Adjusted] Syndicate ${syndicateId} adjusted stress-test-aware delta hedging policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Stress Delta Target: ${group.stressDeltaTarget.toFixed(2)}, Stress Volatility Threshold: ${group.stressVolatilityThreshold.toFixed(2)}%, Safety Capital Limit: ${group.safetyCapitalReallocationLimit} gold).`
         );
       }
     }

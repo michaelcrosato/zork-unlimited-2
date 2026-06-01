@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #159 (Ready for Cycle #160)
-* **Build/Test Status**: 🟢 PASS (All 639 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #160 (Ready for Cycle #161)
+* **Build/Test Status**: 🟢 PASS (All 641 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -969,16 +969,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire automated delta-hedging yield token rebalancing transactions and spot rate arbitrage profits to economy ticks (`AF-159`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-159`).
 
+### Phase 138: Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta Hedging & Capital Reallocation Optimization (Completed)
+- [x] Define stress-test-aware delta-hedging targets and safety reserve reallocation metrics inside GameState (`AF-160`).
+- [x] Implement decentralized consensus voting to configure safety capital reallocation thresholds (`AF-160`).
+- [x] Wire automated stress-test-aware delta hedging and capital reallocations into economy ticks (`AF-160`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-160`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-160`
-* **Objective**: Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta Hedging & Capital Reallocation Optimization.
-* **Why this matters**: Further optimize the dynamic delta-hedging algorithms to be stress-test-aware, dynamically allocating and shifting safety capital/reserves from secondary vaults or capital insurance pools based on options delta portfolio volatility stress.
+**Task ID**: `AF-161`
+* **Objective**: Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Liquidity Matching.
+* **Why this matters**: Introduce dynamic cross-hedging where a syndicate can hedge option risks using highly correlated assets (like sovereign bonds or other CDO tranches) when the underlying asset has low liquidity, matching buy/sell orders in real-time.
 * **Planned Actions**:
-  1. Define stress-test-aware delta-hedging targets and safety reserve reallocation metrics in GameState.
-  2. Implement decentralized consensus voting to configure safety capital reallocation thresholds.
-  3. Wire automated stress-test-aware delta hedging and capital reallocations into economy ticks.
+  1. Define cross-hedging correlations and asset weight allocation metrics in GameState.
+  2. Implement decentralized consensus voting to establish cross-hedging asset pairs and weight configurations.
+  3. Wire automated cross-hedging executions and liquidity pool matching on economy ticks.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---
