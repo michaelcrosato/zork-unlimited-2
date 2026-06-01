@@ -7797,25 +7797,43 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               newState.outstandingDeflectionFees = newState.outstandingDeflectionFees ? { ...newState.outstandingDeflectionFees } : {};
               newState.factionRep = newState.factionRep ? { ...newState.factionRep } : {};
 
+              const t1Threshold = pool.tier1ReinvestmentThreshold ?? 50;
+              const t1Mult = pool.tier1Multiplier ?? 1.2;
+              const t2Threshold = pool.tier2ReinvestmentThreshold ?? 80;
+              const t2Mult = pool.tier2Multiplier ?? 1.5;
+              const slashThreshold = pool.reinvestmentSlashingThreshold ?? 10;
+              const slashPenalty = pool.reinvestmentSlashingPenalty ?? 0.1;
+
+              const reinvestShare = proposal.yieldReinvestmentShare ?? 0;
+              let multiplier = 1.0;
+              if (reinvestShare > t2Threshold) {
+                multiplier = t2Mult;
+              } else if (reinvestShare > t1Threshold) {
+                multiplier = t1Mult;
+              }
+
               for (const sId of lockedSyndicates) {
                 const contribution = contributions[sId] ?? 0;
                 const ratio = contribution / totalLocked;
 
                 // 1. Proportional reputation boost (+20 max base)
-                const repBoost = Math.round(20 * ratio);
+                const baseRepBoost = Math.round(20 * ratio);
+                const repBoost = Math.round(baseRepBoost * multiplier);
                 const oldRep = newState.factionRep[sId] ?? 0;
                 newState.factionRep[sId] = oldRep + repBoost;
 
                 // 2. Set partial deflection fee waiver rate
-                newState.cdsCdoPartialFeeWaivers[sId] = ratio;
+                const waiver = Math.min(1.0, ratio * multiplier);
+                newState.cdsCdoPartialFeeWaivers[sId] = waiver;
 
                 // 3. Partially waive (reduce) outstanding deflection fees
                 const oldOutstanding = newState.outstandingDeflectionFees[sId] ?? 0;
-                newState.outstandingDeflectionFees[sId] = Math.max(0, oldOutstanding - Math.round(oldOutstanding * ratio));
+                const feeReductionRatio = Math.min(1.0, ratio * multiplier);
+                newState.outstandingDeflectionFees[sId] = Math.max(0, oldOutstanding - Math.round(oldOutstanding * feeReductionRatio));
 
                 if (!newState.journal) newState.journal = [];
                 newState.journal.push(
-                  `[CDO Co-investment Restored] Syndicate ${sId} contributed ${contribution} gold (${(ratio * 100).toFixed(0)}% of total co-investment pool). Restored CDO ${cdoId} liquidity above reserve floor of ${pool.reserveFloor}. Granted +${repBoost} reputation and ${(ratio * 100).toFixed(0)}% deflection fee waiver.`
+                  `[CDO Co-investment Restored] Syndicate ${sId} contributed ${contribution} gold (${(ratio * 100).toFixed(0)}% of total co-investment pool). Restored CDO ${cdoId} liquidity above reserve floor of ${pool.reserveFloor}. Granted +${repBoost} reputation (Boost multiplier: ${multiplier}x) and ${(waiver * 100).toFixed(0)}% deflection fee waiver.`
                 );
               }
             }
