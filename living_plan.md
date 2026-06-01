@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #207 (Ready for Cycle #208)
-* **Build/Test Status**: 🟢 PASS (All 748 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #208 (Ready for Cycle #209)
+* **Build/Test Status**: 🟢 PASS (All 753 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1330,14 +1330,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 188: Syndicate SWF Sweep Pool Re-weighting Governance Cap & Dynamic Surplus Redistribution (Completed)
+- [x] Define proposal and voting structures inside GameState schemas for rank adjust and redistribution fee governance caps (`AF-210`).
+- [x] Wire logic in sync step to clamp dynamic proposal/vote fees at the authorized caps (`AF-210`).
+- [x] Route any fee surpluses above the base cost to the alliance's shared sweep pool (`swfStakingSweepPool`) to stabilize the mesh treasury (`AF-210`).
+- [x] Write comprehensive Vitest integration tests inside `tests/syndicates_swf_reinvestment.test.ts` and ensure full engine compilation/autopilot validation (`AF-210`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-210`
-* **Objective**: Syndicate SWF Sweep Pool Re-weighting Governance Cap & Dynamic Surplus Redistribution.
-* **Why this matters**: Introduce a governance cap for rank adjust and sweep pool redistribution transaction fees, and route any fee surpluses above the base cost to the alliance's shared sweep pool to stabilize the mesh treasury.
+**Task ID**: `AF-211`
+* **Objective**: Syndicate SWF Sweep Pool Yield Re-investment Automation Volatility Hedging and Dynamic Portfolio Calibration.
+* **Why this matters**: Create a volatility hedging policy that uses reserves from the sweep pool to automatically hedge CDO yields during extreme weather/market volatility events, reducing slashing risks and maintaining treasury reserves above a critical liquidity floor.
 * **Planned Actions**:
-  1. Propose and vote on sweep pool rank adjust fee governance caps.
-  2. Wire logic in sync step to route fee surpluses to `swfStakingSweepPool`.
-  3. Write integration tests and run autopilot validation.
+  1. Define a `PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY` and `VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY` action schema.
+  2. Implement an automated hedging transaction in the economy tick that uses sweep pool gold to purchase volatility insurance options when regional weather volatility indexes spike.
+  3. Write Vitest integration tests in `tests/syndicates_swf_reinvestment.test.ts` verifying policy authorization, automated hedging triggers, and reserve balance protections.
 
 ---
 
