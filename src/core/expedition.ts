@@ -1,5 +1,5 @@
 import { GossipNode, getTransactionId } from "./gossip.js";
-import { GameState, Transaction, reconcileLootClaims } from "./state.js";
+import { GameState, Transaction, reconcileLootClaims, reconcileTerritories } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { computeStateHash, canonicalStringify } from "./hash.js";
 
@@ -93,6 +93,31 @@ export class DecentralizedDungeonExpedition {
     } as any as Action;
 
     // 2. Execute local action using the GossipNode's standard pipeline
+    return node.executeLocalAction(claimAction);
+  }
+
+  /**
+   * Issues a lock-free territory claim transaction on a specific peer node.
+   * Leverages Last-Write-Wins (LWW) CRDT logic to ensure absolute, deterministic convergence.
+   */
+  public claimTerritoryOn(
+    peerId: string,
+    roomId: string,
+    factionId: string,
+    timestamp = Date.now()
+  ): StepResult {
+    const node = this.peers.get(peerId);
+    if (!node) {
+      throw new Error(`Peer '${peerId}' not found in the expedition.`);
+    }
+
+    const claimAction = {
+      type: "CLAIM_TERRITORY",
+      roomId,
+      factionId,
+      timestamp,
+    } as any as Action;
+
     return node.executeLocalAction(claimAction);
   }
 

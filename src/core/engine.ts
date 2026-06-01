@@ -456,6 +456,37 @@ export function step(
         };
       }
 
+      // Territory-based exit traversal constraints & faction tax mechanics
+      const destRoomId = exit.to;
+      const factionId = state.territoryControl?.[destRoomId];
+      if (factionId) {
+        const rep = state.factionRep?.[factionId] ?? 0;
+        let tax = 0;
+        if (rep < 0) {
+          tax = 10;
+        } else if (rep < 10) {
+          tax = 2;
+        }
+
+        if (tax > 0) {
+          const playerGold = state.vars["gold"] ?? 0;
+          if (playerGold < tax) {
+            return {
+              state,
+              events: [{ type: "rejected", reason: `You cannot enter ${exit.to} without paying a faction tax of ${tax} gold (you have ${playerGold}).` }],
+              ok: false,
+              rejectionReason: `You cannot afford the faction tax of ${tax} gold to enter this territory.`,
+            };
+          }
+          // Deduct gold
+          newState.vars["gold"] = playerGold - tax;
+          events.push({
+            type: "narration",
+            text: `Paid ${tax} gold in faction tax to enter ${factionId} territory.`,
+          });
+        }
+      }
+
       newState.current = exit.to;
       newState.visited[exit.to] = true;
       events.push({

@@ -46,6 +46,14 @@ export const LootClaimSchema = z.object({
 
 export type LootClaim = z.infer<typeof LootClaimSchema>;
 
+export const TerritoryClaimSchema = z.object({
+  claimedBy: z.string(),
+  factionId: z.string(),
+  timestamp: z.number().int(),
+});
+
+export type TerritoryClaim = z.infer<typeof TerritoryClaimSchema>;
+
 export const TradeTransactionSchema = z.object({
   step: z.number().int().nonnegative(),
   npcId: z.string(),
@@ -98,6 +106,8 @@ export const GameStateSchema = z.object({
   merchantLastRestock: z.record(z.string(), z.number()).optional(),
   npcRep: z.record(z.string(), z.number()).optional(),
   factionRep: z.record(z.string(), z.number()).optional(),
+  territoryClaims: z.record(z.string(), TerritoryClaimSchema).optional(),
+  territoryControl: z.record(z.string(), z.string()).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -109,6 +119,7 @@ export const createInitialState = (options: {
   flagsInit?: string[];
   agentsInit?: string[];
   factionRepInit?: Record<string, number>;
+  territoryControlInit?: Record<string, string>;
 }): GameState => {
   const flags: Record<string, boolean> = {};
   if (options.flagsInit) {
@@ -159,6 +170,8 @@ export const createInitialState = (options: {
     merchantLastRestock: {},
     npcRep: {},
     factionRep: options.factionRepInit ?? {},
+    territoryClaims: {},
+    territoryControl: options.territoryControlInit ?? {},
   };
 };
 
@@ -169,6 +182,32 @@ export function getFactionRepInit(pack: any): Record<string, number> | undefined
     init[f.id] = f.initial_rep ?? 0;
   }
   return init;
+}
+
+export function getTerritoryControlInit(pack: any): Record<string, string> | undefined {
+  if (!pack || !pack.rooms) return undefined;
+  const init: Record<string, string> = {};
+  for (const r of pack.rooms) {
+    if (r.faction) {
+      init[r.id] = r.faction;
+    }
+  }
+  return init;
+}
+
+export function reconcileTerritories(state: GameState, pack: any): GameState {
+  if (!state.territoryClaims) return state;
+
+  const newState = {
+    ...state,
+    territoryControl: { ...(state.territoryControl || {}) },
+  };
+
+  for (const [roomId, claim] of Object.entries(newState.territoryClaims || {})) {
+    newState.territoryControl[roomId] = claim.factionId;
+  }
+
+  return newState;
 }
 
 export function reconcileLootClaims(state: GameState, pack: any): GameState {

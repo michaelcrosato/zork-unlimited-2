@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #27 (Ready for Cycle #28)
-* **Build/Test Status**: 🟢 PASS (All 128 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #28 (Ready for Cycle #29)
+* **Build/Test Status**: 🟢 PASS (All 132 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -144,17 +144,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement cooperative faction-reputation gossip synchronization across the P2P mesh (`AF-27`).
 - [x] Write comprehensive unit and integration tests simulating P2P gossip mesh faction reputation convergence (`AF-27`).
 
+### Phase 23: Decentralized Faction Territories & Conquest Goals (Completed)
+- [x] Define faction territory schemas and track regional control in the decentralized state (`AF-28`).
+- [x] Implement gossip-based dynamic territory claim resolution and conflict arbitration using LWW CRDT (`AF-28`).
+- [x] Support territory-based exit traversal constraints and faction tax mechanics (`AF-28`).
+- [x] Write comprehensive unit and integration tests simulating P2P gossip mesh territory conquest convergence (`AF-28`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-28`
-* **Objective**: Design and implement decentralized faction territories and cooperative mesh-wide faction conquest goals.
-* **Why this matters**: Adding territorial control and mesh-synchronized sector claiming expands cooperative gameplay with dynamic frontlines, regional faction bonuses, and global P2P win conditions.
+**Task ID**: `AF-29`
+* **Objective**: Design and implement faction conquest rewards, control dynamic pricing, and territory presence bonuses.
+* **Why this matters**: Syncing faction territorial control to gameplay incentives like trade discounts in controlled territories, localized passive gold income (taxes), or custom reputation-boosting shrines deepens the strategic gameplay mesh.
 * **Planned Actions**:
-  1. Define faction territory schemas and track regional control in the decentralized state.
-  2. Implement gossip-based dynamic territory claim resolution and conflict arbitration.
-  3. Support territory-based exit traversal constraints and faction tax mechanics.
-  4. Write comprehensive tests and playtest simulations of mesh-wide territory conquest.
+  1. Add dynamic trade discounts / price modifiers for player purchases based on territory control faction.
+  2. Implement periodic passive tax gold generation in state for controlled faction territories.
+  3. Write comprehensive unit and playtest tests asserting presence discounts, passive taxes, and control bonuses.
 
 ---
 

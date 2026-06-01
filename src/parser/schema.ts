@@ -102,6 +102,7 @@ export const ParserRoomSchema = z.object({
   npcs: z.array(z.string()).optional().default([]), // NPC IDs in this room
   exits: z.array(ParserExitSchema).default([]),
   weather_pool: z.array(z.string()).optional(),
+  faction: z.string().optional(),
 });
 
 export type ParserRoom = z.infer<typeof ParserRoomSchema>;

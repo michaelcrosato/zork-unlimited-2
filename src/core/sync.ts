@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -297,6 +297,83 @@ export function multiAgentStep(
     return {
       state: newState,
       events: ok ? [{ type: "take", item: itemId }] : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CLAIM_TERRITORY action
+  if ((action as any).type === "CLAIM_TERRITORY") {
+    const { roomId, factionId, timestamp } = action as any;
+
+    const existingClaim = state.territoryClaims?.[roomId];
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    if (
+      !existingClaim ||
+      timestamp > existingClaim.timestamp ||
+      (timestamp === existingClaim.timestamp && agentId.localeCompare(existingClaim.claimedBy) < 0)
+    ) {
+      ok = true;
+    } else {
+      rejectionReason = `Territory ${roomId} already claimed by ${existingClaim.claimedBy} for faction ${existingClaim.factionId} with a newer/equal timestamp.`;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const territoryClaims = {
+        ...(state.territoryClaims || {}),
+        [roomId]: {
+          claimedBy: agentId,
+          factionId,
+          timestamp,
+        },
+      };
+      newState.territoryClaims = territoryClaims;
+      newState = reconcileTerritories(newState, pack);
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    return {
+      state: newState,
+      events: ok 
+        ? [{ type: "territory_claimed", roomId, factionId, claimedBy: agentId } as any] 
+        : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,
     };

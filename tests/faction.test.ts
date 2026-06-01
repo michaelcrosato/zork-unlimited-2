@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState, getFactionRepInit } from "../src/core/state.js";
+import { createInitialState, getFactionRepInit, getTerritoryControlInit } from "../src/core/state.js";
 import { evaluateCondition } from "../src/core/conditions.js";
 import { applyEffect } from "../src/core/effects.js";
 import { step } from "../src/core/engine.js";
 import { GossipNode } from "../src/core/gossip.js";
 import { ParserPack } from "../src/parser/schema.js";
 import { computeStateHash } from "../src/core/hash.js";
+import { DecentralizedDungeonExpedition } from "../src/core/expedition.js";
 
 describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
   const mockPack: ParserPack = {
@@ -261,5 +262,215 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
     const hashA = computeStateHash(nodeA.localState);
     const hashB = computeStateHash(nodeB.localState);
     expect(hashA).toBe(hashB);
+  });
+
+  it("should initialize room/territory control and apply traversal constraints/taxes", () => {
+    // 1. Initial configuration
+    const customPack: ParserPack = {
+      ...mockPack,
+      rooms: [
+        {
+          id: "clearing",
+          name: "Sunlit Clearing",
+          description: "A lovely open space.",
+          objects: [],
+          npcs: [],
+          exits: [
+            {
+              direction: "north",
+              to: "ranger_outpost",
+              conditions: [],
+            },
+          ],
+        },
+        {
+          id: "ranger_outpost",
+          name: "Ranger Outpost",
+          description: "A fortified shelter for the Forest Rangers.",
+          objects: [],
+          npcs: [],
+          faction: "rangers", // Controlled by rangers!
+          exits: [
+            {
+              direction: "south",
+              to: "clearing",
+              conditions: [],
+            },
+          ],
+        },
+      ],
+    };
+
+    const territoryControlInit = getTerritoryControlInit(customPack);
+    expect(territoryControlInit).toEqual({
+      ranger_outpost: "rangers",
+    });
+
+    // 2. Play with different reputation & gold levels
+    // Case A: Neutral reputation (10 > rep >= 0), tax = 2. No gold.
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      varsInit: { gold: 0 },
+      factionRepInit: { rangers: 0 }, // Neutral
+      territoryControlInit,
+    });
+
+    expect(state.territoryControl?.ranger_outpost).toBe("rangers");
+
+    // Traversal should fail due to insufficient gold for tax
+    let res = step(state, { type: "MOVE", direction: "north" }, customPack);
+    expect(res.ok).toBe(false);
+    expect(res.rejectionReason).toContain("faction tax");
+
+    // Case B: Neutral reputation, has 5 gold. Tax = 2.
+    state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      varsInit: { gold: 5 },
+      factionRepInit: { rangers: 0 }, // Neutral
+      territoryControlInit,
+    });
+
+    res = step(state, { type: "MOVE", direction: "north" }, customPack);
+    expect(res.ok).toBe(true);
+    expect(res.state.vars["gold"]).toBe(3); // 5 - 2 = 3 gold left
+    expect(res.events.some(e => e.type === "narration" && e.text.includes("Paid 2 gold"))).toBe(true);
+
+    // Case C: Friendly reputation (rep >= 10), tax = 0. No gold needed.
+    state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      varsInit: { gold: 0 },
+      factionRepInit: { rangers: 10 }, // Friendly
+      territoryControlInit,
+    });
+
+    res = step(state, { type: "MOVE", direction: "north" }, customPack);
+    expect(res.ok).toBe(true);
+    expect(res.state.vars["gold"]).toBe(0); // No tax paid
+
+    // Case D: Hostile reputation (rep < 0), tax = 10. Has 5 gold => fails. Has 12 gold => succeeds.
+    state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      varsInit: { gold: 5 },
+      factionRepInit: { rangers: -5 }, // Hostile
+      territoryControlInit,
+    });
+
+    res = step(state, { type: "MOVE", direction: "north" }, customPack);
+    expect(res.ok).toBe(false); // Can't afford 10 gold tax
+
+    state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      varsInit: { gold: 12 },
+      factionRepInit: { rangers: -5 }, // Hostile
+      territoryControlInit,
+    });
+
+    res = step(state, { type: "MOVE", direction: "north" }, customPack);
+    expect(res.ok).toBe(true);
+    expect(res.state.vars["gold"]).toBe(2); // 12 - 10 = 2 gold left
+    expect(res.events.some(e => e.type === "narration" && e.text.includes("Paid 10 gold"))).toBe(true);
+  });
+
+  it("should resolve territory claims and arbitrate conflicts using LWW in P2P gossip mesh", () => {
+    // 1. Set up connected nodes
+    const nodeA = new GossipNode("alice", mockPack, 42);
+    const nodeB = new GossipNode("bob", mockPack, 42);
+    nodeA.connect(nodeB);
+
+    // 2. Alice claims clearing for Rangers at t = 100
+    const resA = nodeA.executeLocalAction({
+      type: "CLAIM_TERRITORY",
+      roomId: "clearing",
+      factionId: "rangers",
+      timestamp: 100,
+    } as any);
+    expect(resA.ok).toBe(true);
+    expect(nodeA.localState.territoryControl?.clearing).toBe("rangers");
+
+    // Bob has not heard yet
+    expect(nodeB.localState.territoryControl?.clearing).toBeUndefined();
+
+    // Bob claims clearing for Shadow Guild at t = 200 (later timestamp, should win)
+    const resB = nodeB.executeLocalAction({
+      type: "CLAIM_TERRITORY",
+      roomId: "clearing",
+      factionId: "shadow_guild",
+      timestamp: 200,
+    } as any);
+    expect(resB.ok).toBe(true);
+    expect(nodeB.localState.territoryControl?.clearing).toBe("shadow_guild");
+
+    // Alice gossips to Bob (Alice's earlier claim is received by Bob, but Bob's t=200 claim wins)
+    nodeA.gossip();
+    expect(nodeB.localState.territoryControl?.clearing).toBe("shadow_guild");
+
+    // Bob gossips to Alice (Bob's t=200 claim is received by Alice and overwrites Alice's claim)
+    nodeB.gossip();
+    expect(nodeA.localState.territoryControl?.clearing).toBe("shadow_guild");
+
+    // Assert convergence
+    expect(computeStateHash(nodeA.localState)).toBe(computeStateHash(nodeB.localState));
+  });
+
+  it("should arbitrate tie-breaks by agent ID lexicographical comparison for identical claim timestamps", () => {
+    const nodeA = new GossipNode("alice", mockPack, 42);
+    const nodeB = new GossipNode("bob", mockPack, 42);
+    nodeA.connect(nodeB);
+
+    // Identical timestamp = 100
+    // Alice claims for rangers
+    nodeA.executeLocalAction({
+      type: "CLAIM_TERRITORY",
+      roomId: "clearing",
+      factionId: "rangers",
+      timestamp: 100,
+    } as any);
+
+    // Bob claims for shadow_guild
+    nodeB.executeLocalAction({
+      type: "CLAIM_TERRITORY",
+      roomId: "clearing",
+      factionId: "shadow_guild",
+      timestamp: 100,
+    } as any);
+
+    // Alice has name "alice", Bob has name "bob".
+    // "alice" < "bob" lexicographically, so "alice"'s claim must win the tie-break!
+    nodeA.gossip();
+    nodeB.gossip();
+    nodeA.gossip(); // Ensure full propagation
+
+    expect(nodeA.localState.territoryControl?.clearing).toBe("rangers");
+    expect(nodeB.localState.territoryControl?.clearing).toBe("rangers");
+    expect(computeStateHash(nodeA.localState)).toBe(computeStateHash(nodeB.localState));
+  });
+
+  it("should simulate a mesh-wide territory conquest expedition with dynamic claims and convergence", () => {
+    const expedition = new DecentralizedDungeonExpedition(mockPack, 42);
+    const alice = expedition.spawnPeer("alice");
+    const bob = expedition.spawnPeer("bob");
+    const charlie = expedition.spawnPeer("charlie");
+
+    // 1. Initial states of control are empty
+    expect(alice.localState.territoryControl?.clearing).toBeUndefined();
+
+    // 2. Charlie claims clearing for Rangers at t = 10
+    expedition.claimTerritoryOn("charlie", "clearing", "rangers", 10);
+    // 3. Bob claims clearing for Shadow Guild at t = 20 (wins)
+    expedition.claimTerritoryOn("bob", "clearing", "shadow_guild", 20);
+
+    // 4. Synchronize network
+    expedition.synchronizeNetwork();
+
+    // 5. Assert all nodes converged on Shadow Guild control for clearing room
+    expedition.assertNetworkConvergence();
+    expect(alice.localState.territoryControl?.clearing).toBe("shadow_guild");
+    expect(bob.localState.territoryControl?.clearing).toBe("shadow_guild");
+    expect(charlie.localState.territoryControl?.clearing).toBe("shadow_guild");
   });
 });

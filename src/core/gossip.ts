@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -303,11 +303,31 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge territory claims using LWW (Last-Write-Wins)
+  const territoryClaims = { ...stateA.territoryClaims };
+  if (stateB.territoryClaims) {
+    for (const [roomId, claimB] of Object.entries(stateB.territoryClaims)) {
+      const claimA = territoryClaims[roomId];
+      if (!claimA) {
+        territoryClaims[roomId] = claimB;
+      } else {
+        if (claimB.timestamp > claimA.timestamp) {
+          territoryClaims[roomId] = claimB;
+        } else if (claimB.timestamp === claimA.timestamp) {
+          if (claimB.claimedBy.localeCompare(claimA.claimedBy) < 0) {
+            territoryClaims[roomId] = claimB;
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
     journal,
     lootClaims,
+    territoryClaims,
   };
 }
 
@@ -331,6 +351,7 @@ export function reconstructState(
     varsInit: pack.meta?.vars_init || {},
     agentsInit: sortedAgentIds.length > 0 ? sortedAgentIds : undefined,
     factionRepInit: getFactionRepInit(pack),
+    territoryControlInit: getTerritoryControlInit(pack),
   });
 
   // Replay all transactions in order (omitting sequence/hash constraints to allow resolution)
@@ -588,6 +609,9 @@ export class GossipNode {
 
     // Reconcile loot claims to ensure chest contents and inventories align perfectly with merged claims
     convergedState = reconcileLootClaims(convergedState, this.pack);
+
+    // Reconcile territory claims to ensure regional control aligns perfectly with merged claims
+    convergedState = reconcileTerritories(convergedState, this.pack);
 
     // 7. Recalculate transaction counts to update vector clocks self-healingly
     const agentCounts: Record<string, number> = {};
