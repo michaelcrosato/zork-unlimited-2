@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #42 (Ready for Cycle #43)
-* **Build/Test Status**: 🟢 PASS (All 187 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #43 (Ready for Cycle #44)
+* **Build/Test Status**: 🟢 PASS (All 193 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -238,16 +238,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 37: Decentralized Crime Syndicates and Contraband Labs (Completed)
+- [x] Define Crime Syndicate and Contraband Production Lab state schemas and variables in GameState (`AF-43`).
+- [x] Implement decentralized transaction action reducers to build, upgrade, defend labs, and claim contraband (`AF-43`).
+- [x] Wire periodic passive contraband generation and Mulberry32-seeded enforcement raids inside standard ticks (`AF-43`).
+- [x] Add P2P gossip sync and Merkle-LWW reconciliation convergence for syndicate and lab states (`AF-43`).
+- [x] Write robust Vitest integration tests for syndicate creation, building, passive production, raids/defenses, claims, and mesh convergence (`AF-43`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-43`
-* **Objective**: Design and Implement Decentralized Crime Syndicates and Contraband Production Labs.
-* **Why this matters**: Expand smuggling and cartel operations by allowing agents to establish hidden contraband production facilities in remote rooms, producing illegal goods over time, and defending them from enforcement raids.
+**Task ID**: `AF-44`
+* **Objective**: Syndicate Turf Wars and Global Market Influences.
+* **Why this matters**: Expand strategic operations by allowing syndicates to engage in turf wars to gain control of rooms/territories and introduce dynamic contraband market price fluctuations influenced by regional supply, syndicate dominance, and enforcement agency heat.
 * **Planned Actions**:
-  1. Define production facility and drug lab schemas, capacities, and tick timers in state.
-  2. Implement decentralized actions to build or upgrade facilities.
-  3. Wire periodic passive contraband generation inside standard ticks using mulberry32.
-  4. Add gossip synchronization of syndicate structures, lab control, and production status.
-  5. Write robust Vitest integration tests verifying syndicates, production ticks, raids, and mesh convergence.
+  1. Add turf war mechanics where syndicates can wage battles over room/territory control, adjusting syndicate dominance.
+  2. Implement global market price multipliers for contraband based on regional supply, syndicate dominance, and enforcement pressure.
+  3. Wire gossip synchronization of global contraband price fluctuations and syndicate turf boundaries.
+  4. Write comprehensive Vitest integration tests asserting turf wars, pricing spikes, and mesh convergence under pressure.
 
 ---
 

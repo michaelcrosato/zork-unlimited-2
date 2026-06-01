@@ -220,6 +220,30 @@ export const BribeSchema = z.object({
 });
 export type Bribe = z.infer<typeof BribeSchema>;
 
+export const CrimeSyndicateSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  members: z.array(z.string()),
+  definedBy: z.string(),
+  timestamp: z.number().int(),
+});
+export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
+
+export const ProductionLabSchema = z.object({
+  id: z.string(),
+  roomId: z.string(),
+  ownerId: z.string(),
+  syndicateId: z.string(),
+  level: z.number().int().positive(),
+  capacity: z.number().int().nonnegative(),
+  storedContraband: z.number().int().nonnegative(),
+  lastProducedStep: z.number().int().nonnegative(),
+  cooldownSteps: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  defense: z.number().int().nonnegative().optional(),
+});
+export type ProductionLab = z.infer<typeof ProductionLabSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -305,6 +329,10 @@ export const GameStateSchema = z.object({
   // Cartel Smuggling Insurance and Bribe Mechanics (AF-42)
   smugglingInsurance: z.record(z.string(), SmugglingInsuranceSchema).optional(),
   bribes: z.record(z.string(), BribeSchema).optional(),
+
+  // Decentralized Crime Syndicates and Contraband Production Labs (AF-43)
+  syndicates: z.record(z.string(), CrimeSyndicateSchema).optional(),
+  productionLabs: z.record(z.string(), ProductionLabSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -393,6 +421,8 @@ export const createInitialState = (options: {
     enforcers: {},
     smugglingInsurance: {},
     bribes: {},
+    syndicates: {},
+    productionLabs: {},
   };
 };
 

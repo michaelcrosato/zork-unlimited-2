@@ -687,6 +687,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge syndicates using LWW (Last-Write-Wins)
+  const syndicates = { ...stateA.syndicates };
+  if (stateB.syndicates) {
+    for (const [id, entryB] of Object.entries(stateB.syndicates)) {
+      const entryA = syndicates[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        syndicates[id] = entryB;
+      }
+    }
+  }
+
+  // Merge productionLabs using LWW (Last-Write-Wins)
+  const productionLabs = { ...stateA.productionLabs };
+  if (stateB.productionLabs) {
+    for (const [roomId, entryB] of Object.entries(stateB.productionLabs)) {
+      const entryA = productionLabs[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        productionLabs[roomId] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -718,6 +740,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     enforcers,
     smugglingInsurance,
     bribes,
+    syndicates,
+    productionLabs,
   };
 }
 

@@ -1538,6 +1538,100 @@ function getWeatherForStep(
 }
 
 /**
+ * Ticks the production status of all contraband production labs.
+ * Triggers enforcement raids using pure mulberry32 PRNG.
+ */
+export function tickProductionLabs(
+  state: GameState,
+  events: GameEvent[],
+  pack?: CYOAPack | ParserPack
+): GameState {
+  if (!state.productionLabs || Object.keys(state.productionLabs).length === 0) {
+    return state;
+  }
+
+  let newState = { ...state };
+  const updatedLabs = { ...newState.productionLabs };
+  let stateChanged = false;
+  let currentSeed = newState.seed;
+
+  for (const [roomId, lab] of Object.entries(updatedLabs)) {
+    const updatedLab = { ...lab };
+    let labChanged = false;
+
+    // Check if the cooldown interval has passed since the last production step
+    if (newState.step - updatedLab.lastProducedStep >= updatedLab.cooldownSteps) {
+      // Periodic production
+      const productionAmount = updatedLab.level;
+      const newStored = Math.min(updatedLab.capacity, updatedLab.storedContraband + productionAmount);
+
+      if (newStored !== updatedLab.storedContraband) {
+        updatedLab.storedContraband = newStored;
+        updatedLab.lastProducedStep = newState.step;
+        labChanged = true;
+        stateChanged = true;
+
+        events.push({
+          type: "narration",
+          text: `[Syndicate] Contraband production lab in ${roomId} produced ${productionAmount} units. Stored: ${newStored}/${updatedLab.capacity}.`,
+        } as any);
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate] Lab in ${roomId} produced ${productionAmount} units.`);
+      }
+
+      // Check for an enforcement raid using deterministic Mulberry32
+      const { value: raidRoll, nextSeed } = PureRand.nextInt(currentSeed, 1, 100);
+      currentSeed = nextSeed;
+
+      if (raidRoll <= 20) {
+        // Raid occurs!
+        events.push({
+          type: "narration",
+          text: `[Syndicate] Enforcement agents have tracked down and raided the contraband lab in ${roomId}!`,
+        } as any);
+
+        const { value: raidStrength, nextSeed: nextSeed2 } = PureRand.nextInt(currentSeed, 1, 50);
+        currentSeed = nextSeed2;
+
+        const defenseScore = (updatedLab.defense ?? 0) + updatedLab.level * 10;
+
+        if (defenseScore >= raidStrength) {
+          // Raid successfully defended!
+          events.push({
+            type: "narration",
+            text: `[Syndicate] Syndicate defenders successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`,
+          } as any);
+        } else {
+          // Raid succeeded! Confiscate all stored contraband and damage the facility (downgrade level)
+          const confiscated = updatedLab.storedContraband;
+          updatedLab.storedContraband = 0;
+          const oldLevel = updatedLab.level;
+          updatedLab.level = Math.max(1, updatedLab.level - 1);
+          labChanged = true;
+          stateChanged = true;
+
+          events.push({
+            type: "narration",
+            text: `[Syndicate] The raid succeeded! Enforcement agents confiscated ${confiscated} units of contraband and damaged the facility (Level: ${oldLevel} -> ${updatedLab.level})!`,
+          } as any);
+        }
+      }
+    }
+
+    if (labChanged) {
+      updatedLabs[roomId] = updatedLab;
+    }
+  }
+
+  if (stateChanged) {
+    newState.productionLabs = updatedLabs;
+    newState.seed = currentSeed;
+  }
+
+  return newState;
+}
+
+/**
  * Ticks the environment state, handling weather shifts and room-restricted weather pools.
  * 
  * ### Architectural Rationale:
@@ -1556,8 +1650,10 @@ function tickEnvironment(
   events: GameEvent[],
   pack?: CYOAPack | ParserPack
 ): GameState {
-  if (!state.environment) {
-    state.environment = {
+  let newState = tickProductionLabs(state, events, pack);
+
+  if (!newState.environment) {
+    newState.environment = {
       weather: "clear",
       temperature: "mild",
       lastUpdatedStep: 0,
@@ -1568,42 +1664,42 @@ function tickEnvironment(
   let weatherPool: string[] | undefined = undefined;
   if (pack) {
     if ("scenes" in pack) {
-      const scene = (pack as CYOAPack).scenes.find((s) => s.id === state.current);
+      const scene = (pack as CYOAPack).scenes.find((s) => s.id === newState.current);
       if (scene) {
         weatherPool = scene.weather_pool;
       }
     } else {
-      const room = findRoom(state, pack as ParserPack, state.current);
+      const room = findRoom(newState, pack as ParserPack, newState.current);
       if (room) {
         weatherPool = room.weather_pool;
       }
     }
   }
 
-  const interval = Math.floor(state.step / 5);
-  const lastInterval = Math.floor(state.environment.lastUpdatedStep / 5);
+  const interval = Math.floor(newState.step / 5);
+  const lastInterval = Math.floor(newState.environment.lastUpdatedStep / 5);
 
-  const isWeatherAllowed = !weatherPool || weatherPool.length === 0 || weatherPool.includes(state.environment.weather);
-  const intervalChanged = state.step > 0 && interval !== lastInterval;
+  const isWeatherAllowed = !weatherPool || weatherPool.length === 0 || weatherPool.includes(newState.environment.weather);
+  const intervalChanged = newState.step > 0 && interval !== lastInterval;
 
   // We tick if the 5-step interval has changed OR if the current weather is not allowed in this room
   if (intervalChanged || !isWeatherAllowed) {
-    const { weather: nextWeather, temperature: nextTemp } = getWeatherForStep(state.seed, state.step, weatherPool);
+    const { weather: nextWeather, temperature: nextTemp } = getWeatherForStep(newState.seed, newState.step, weatherPool);
 
-    const oldWeather = state.environment.weather;
-    const oldTemp = state.environment.temperature;
+    const oldWeather = newState.environment.weather;
+    const oldTemp = newState.environment.temperature;
 
     const updatedState = {
-      ...state,
-      flags: { ...state.flags },
-      vars: { ...state.vars },
-      inventory: [...state.inventory],
-      objectState: { ...state.objectState },
-      journal: [...state.journal],
+      ...newState,
+      flags: { ...newState.flags },
+      vars: { ...newState.vars },
+      inventory: [...newState.inventory],
+      objectState: { ...newState.objectState },
+      journal: [...newState.journal],
       environment: {
         weather: nextWeather,
         temperature: nextTemp,
-        lastUpdatedStep: state.step,
+        lastUpdatedStep: newState.step,
       },
     };
 
@@ -1636,7 +1732,7 @@ function tickEnvironment(
     return updatedState;
   }
 
-  return state;
+  return newState;
 }
 
 function tickEnforcers(
