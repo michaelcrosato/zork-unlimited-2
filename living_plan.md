@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #113 (Ready for Cycle #114)
-* **Build/Test Status**: 🟢 PASS (All 494 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #114 (Ready for Cycle #115)
+* **Build/Test Status**: 🟢 PASS (All 498 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -673,15 +673,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 92: Syndicate Bank Leverage Liquidity Mining Incentives & Yield Boosting Campaigns (Completed)
+- [x] Define locked liquidity epoch pools and yield boost multiplier schemas in GameState (`AF-114`).
+- [x] Implement `LOCK_REHYPOTHECATED_COLLATERAL` and `CLAIM_LIQUIDITY_MINING_REWARDS` consensus actions (`AF-114`).
+- [x] Wire passive yield boost scaling and reputation accrual inside `tickEconomy` under rehypothecation ticks (`AF-114`).
+- [x] Write comprehensive Vitest integration and P2P mesh convergence tests (`AF-114`).
+
+---
+
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-114`
-* **Objective**: Syndicate Bank Leverage Liquidity Mining Incentives & Yield Boosting Campaigns.
-* **Why this matters**: Allow syndicates to lock margin rehypothecation positions for fixed-term epochs to earn leverage liquidity mining bonuses (boosted yields and reputation multipliers) distributed from joint faction reserve pools, increasing capital utilization and group cooperation.
+**Task ID**: `AF-115`
+* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsoring Votes.
+* **Why this matters**: Allow syndicates to propose and vote on which faction sponsors a vault's liquidity mining rewards and adjust the reward rate or minimum lock terms, enabling cooperative governance and dynamic interest rate/reputation adjustments in P2P mesh environments.
 * **Planned Actions**:
-  1. Define locked liquidity epoch pools and yield boost multiplier schemas in GameState.
-  2. Implement `LOCK_REHYPOTHECATED_COLLATERAL` and `CLAIM_LIQUIDITY_MINING_REWARDS` consensus actions.
-  3. Wire passive yield boost scaling and reputation accrual inside `tickEconomy` under rehypothecation ticks.
+  1. Define faction sponsoring proposals and voting state schemas in GameState.
+  2. Implement `PROPOSE_FACTION_SPONSOR` and `VOTE_FACTION_SPONSOR` decentralized actions.
+  3. Wire majority-consensus faction sponsoring resolution and reward adjustments inside tickEconomy.
   4. Write comprehensive Vitest integration and P2P mesh convergence tests.
 
 ---

@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -19201,6 +19201,254 @@ export function multiAgentStep(
           syndicateId,
           agentId,
           threshold,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LOCK_REHYPOTHECATED_COLLATERAL action (AF-114)
+  if ((action as any).type === "LOCK_REHYPOTHECATED_COLLATERAL") {
+    const { syndicateId, vaultId, amount, durationEpochs, factionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+    const vaults = getSecondaryReserveVaults(state);
+    const vault = vaults[vaultId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to lock rehypothecated collateral.`;
+    } else if (!vaultId) {
+      rejectionReason = `Vault ID is required to lock rehypothecated collateral.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Lock amount must be a positive integer.`;
+    } else if (durationEpochs === undefined || durationEpochs <= 0 || !Number.isInteger(durationEpochs)) {
+      rejectionReason = `Lock duration must be a positive integer of epochs.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required to lock rehypothecated collateral.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on locking collateral.`;
+    } else if (!vault) {
+      rejectionReason = `Vault ${vaultId} does not exist.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const lockedCollateralVotes = { ...(state.lockedCollateralVotes || {}) };
+      if (!lockedCollateralVotes[syndicateId]) {
+        lockedCollateralVotes[syndicateId] = {};
+      } else {
+        lockedCollateralVotes[syndicateId] = { ...lockedCollateralVotes[syndicateId] };
+      }
+
+      const existingVote = lockedCollateralVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        lockedCollateralVotes[syndicateId][agentId] = {
+          vaultId,
+          amount,
+          durationEpochs,
+          factionId,
+          timestamp,
+        };
+        newState.lockedCollateralVotes = lockedCollateralVotes;
+        newState = reconcileLockedCollateral(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Locked Collateral Vote] Agent ${agentId} voted to lock ${amount} gold in vault ${vaultId} for ${durationEpochs} epochs with faction ${factionId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Locked collateral vote cast by ${agentId} for Syndicate ${syndicateId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "locked_collateral_voted" as any,
+          syndicateId,
+          agentId,
+          vaultId,
+          amount,
+          durationEpochs,
+          factionId,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CLAIM_LIQUIDITY_MINING_REWARDS action (AF-114)
+  if ((action as any).type === "CLAIM_LIQUIDITY_MINING_REWARDS") {
+    const { syndicateId, positionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to claim liquidity mining rewards.`;
+    } else if (!positionId) {
+      rejectionReason = `Position ID is required to claim rewards.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on claiming rewards.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const claimLiquidityRewardsVotes = { ...(state.claimLiquidityRewardsVotes || {}) };
+      if (!claimLiquidityRewardsVotes[syndicateId]) {
+        claimLiquidityRewardsVotes[syndicateId] = {};
+      } else {
+        claimLiquidityRewardsVotes[syndicateId] = { ...claimLiquidityRewardsVotes[syndicateId] };
+      }
+
+      const existingVote = claimLiquidityRewardsVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        claimLiquidityRewardsVotes[syndicateId][agentId] = {
+          positionId,
+          timestamp,
+        };
+        newState.claimLiquidityRewardsVotes = claimLiquidityRewardsVotes;
+        newState = reconcileClaimLiquidityRewards(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Claim Rewards Vote] Agent ${agentId} voted to claim rewards for position ${positionId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Claim rewards vote cast by ${agentId} for Syndicate ${syndicateId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "claim_rewards_voted" as any,
+          syndicateId,
+          agentId,
+          positionId,
           timestamp,
         });
       } else {

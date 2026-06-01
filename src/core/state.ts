@@ -1074,6 +1074,29 @@ export const LeveragedTranchePositionSchema = z.object({
 });
 export type LeveragedTranchePosition = z.infer<typeof LeveragedTranchePositionSchema>;
 
+export const LockedLiquidityPositionSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  vaultId: z.string(),
+  amount: z.number().int().positive(),
+  startEpoch: z.number().int().nonnegative(),
+  durationEpochs: z.number().int().positive(),
+  endEpoch: z.number().int().positive(),
+  factionId: z.string(),
+  claimed: z.boolean().optional(),
+  timestamp: z.number().int(),
+});
+export type LockedLiquidityPosition = z.infer<typeof LockedLiquidityPositionSchema>;
+
+export const LockedLiquidityEpochPoolSchema = z.object({
+  epoch: z.number().int().nonnegative(),
+  totalLocked: z.number().int().nonnegative(),
+  rewardPool: z.number().int().nonnegative(),
+  factionId: z.string(),
+  claimedSyndicates: z.array(z.string()).optional(),
+});
+export type LockedLiquidityEpochPool = z.infer<typeof LockedLiquidityEpochPoolSchema>;
+
 export const MarginAccountSchema = z.object({
   syndicateId: z.string(),
   collateral: z.number().int().nonnegative(),
@@ -1091,6 +1114,7 @@ export const MarginAccountSchema = z.object({
   vaultAllocations: z.record(z.string(), z.number().int().nonnegative()).optional(),
   advisorEnabled: z.boolean().optional(),
   advisorSafetyThreshold: z.number().nonnegative().optional(),
+  lockedPositions: z.array(LockedLiquidityPositionSchema).optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -1415,6 +1439,21 @@ export const GameStateSchema = z.object({
     threshold: z.number().nonnegative(),
     timestamp: z.number().int(),
   }))).optional(),
+  lockedLiquidityPositions: z.record(z.string(), z.array(LockedLiquidityPositionSchema)).optional(),
+  lockedLiquidityEpochPools: z.record(z.string(), LockedLiquidityEpochPoolSchema).optional(),
+  factionReservePools: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  yieldBoostMultipliers: z.record(z.string(), z.number()).optional(),
+  lockedCollateralVotes: z.record(z.string(), z.record(z.string(), z.object({
+    vaultId: z.string(),
+    amount: z.number().int().positive(),
+    durationEpochs: z.number().int().positive(),
+    factionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  claimLiquidityRewardsVotes: z.record(z.string(), z.record(z.string(), z.object({
+    positionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -1599,6 +1638,19 @@ export const createInitialState = (options: {
     marginRebalancingPolicyVotes: {},
     rebalancingAdvisorVotes: {},
     advisorSafetyThresholdVotes: {},
+    lockedLiquidityPositions: {},
+    lockedLiquidityEpochPools: {},
+    factionReservePools: {
+      rangers: 10000,
+      shadow_guild: 10000,
+    },
+    yieldBoostMultipliers: {
+      "2": 1.2,
+      "5": 1.5,
+      "10": 2.0,
+    },
+    lockedCollateralVotes: {},
+    claimLiquidityRewardsVotes: {},
   };
 };
 
@@ -2376,6 +2428,12 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     marginRebalancingPolicyVotes: rest.marginRebalancingPolicyVotes ? JSON.parse(JSON.stringify(rest.marginRebalancingPolicyVotes)) : undefined,
     rebalancingAdvisorVotes: rest.rebalancingAdvisorVotes ? JSON.parse(JSON.stringify(rest.rebalancingAdvisorVotes)) : undefined,
     advisorSafetyThresholdVotes: rest.advisorSafetyThresholdVotes ? JSON.parse(JSON.stringify(rest.advisorSafetyThresholdVotes)) : undefined,
+    lockedLiquidityPositions: rest.lockedLiquidityPositions ? JSON.parse(JSON.stringify(rest.lockedLiquidityPositions)) : undefined,
+    lockedLiquidityEpochPools: rest.lockedLiquidityEpochPools ? JSON.parse(JSON.stringify(rest.lockedLiquidityEpochPools)) : undefined,
+    factionReservePools: rest.factionReservePools ? JSON.parse(JSON.stringify(rest.factionReservePools)) : undefined,
+    yieldBoostMultipliers: rest.yieldBoostMultipliers ? JSON.parse(JSON.stringify(rest.yieldBoostMultipliers)) : undefined,
+    lockedCollateralVotes: rest.lockedCollateralVotes ? JSON.parse(JSON.stringify(rest.lockedCollateralVotes)) : undefined,
+    claimLiquidityRewardsVotes: rest.claimLiquidityRewardsVotes ? JSON.parse(JSON.stringify(rest.claimLiquidityRewardsVotes)) : undefined,
   };
   return clone;
 }
@@ -2988,6 +3046,284 @@ export function reconcileAdvisorSafetyThresholds(state: GameState, pack: any): G
       newState.journal.push(
         `[Advisor Safety Threshold Policy] Advisor safety threshold for Syndicate ${syndicateId} set by consensus majority (Threshold: ${fullyApprovedCombination.threshold}%).`
       );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileLockedCollateral(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    lockedCollateralVotes: state.lockedCollateralVotes ? { ...state.lockedCollateralVotes } : {},
+    lockedLiquidityPositions: state.lockedLiquidityPositions ? { ...state.lockedLiquidityPositions } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.lockedCollateralVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      vaultId: string;
+      amount: number;
+      durationEpochs: number;
+      factionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.vaultId}::${vote.amount}::${vote.durationEpochs}::${vote.factionId}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            vaultId: vote.vaultId,
+            amount: vote.amount,
+            durationEpochs: vote.durationEpochs,
+            factionId: vote.factionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      const { vaultId, amount, durationEpochs, factionId } = fullyApprovedCombination;
+      
+      // Calculate current rehypothecated amount in this vault
+      let totalRehypothecated = 0;
+      if (marginAccount.rebalancingEnabled) {
+        totalRehypothecated = marginAccount.vaultAllocations?.[vaultId] ?? 0;
+      } else if (marginAccount.rehypothecationAuthorized && marginAccount.rehypothecationVaultId === vaultId) {
+        totalRehypothecated = Math.floor(marginAccount.collateral * ((marginAccount.rehypothecationPercentage ?? 0) / 100));
+      }
+
+      // Calculate already locked amount in this vault
+      const currentEpoch = Math.floor(newState.step / 5);
+      const existingPositions = newState.lockedLiquidityPositions?.[syndicateId] ?? [];
+      const activeLocked = existingPositions
+        .filter(p => p.vaultId === vaultId && currentEpoch < p.endEpoch && !p.claimed)
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      const unlockedRehypothecated = totalRehypothecated - activeLocked;
+
+      if (amount <= unlockedRehypothecated) {
+        // Success! Create new position
+        const startEpoch = currentEpoch;
+        const endEpoch = startEpoch + durationEpochs;
+        const positionId = `lock_${syndicateId}_${vaultId}_${newState.step}`;
+
+        const newPosition: LockedLiquidityPosition = {
+          id: positionId,
+          syndicateId,
+          vaultId,
+          amount,
+          startEpoch,
+          durationEpochs,
+          endEpoch,
+          factionId,
+          claimed: false,
+          timestamp: newState.step,
+        };
+
+        // Add to global positions
+        if (!newState.lockedLiquidityPositions) newState.lockedLiquidityPositions = {};
+        newState.lockedLiquidityPositions[syndicateId] = [
+          ...existingPositions,
+          newPosition,
+        ];
+
+        // Also add to marginAccount.lockedPositions
+        newState.marginAccounts[syndicateId] = {
+          ...marginAccount,
+          lockedPositions: [
+            ...(marginAccount.lockedPositions ?? []),
+            newPosition,
+          ],
+          timestamp: newState.step,
+        };
+
+        // Initialize faction reserve pool if not already
+        if (!newState.factionReservePools) newState.factionReservePools = {};
+        if (newState.factionReservePools[factionId] === undefined) {
+          newState.factionReservePools[factionId] = 10000; // default 10k reserve
+        }
+
+        // Clear votes
+        if (newState.lockedCollateralVotes) {
+          delete newState.lockedCollateralVotes[syndicateId];
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Locked Liquidity] Syndicate ${syndicateId} locked ${amount} gold of rehypothecated collateral in vault ${vaultId} for ${durationEpochs} epochs with faction ${factionId}.`
+        );
+      } else {
+        // Failed due to insufficient unlocked rehypothecated collateral
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Locked Liquidity Failed] Syndicate ${syndicateId} failed to lock ${amount} gold in vault ${vaultId} (Insufficient unlocked rehypothecated collateral: ${unlockedRehypothecated} < ${amount}).`
+        );
+        // Clear votes anyway to prevent spamming
+        if (newState.lockedCollateralVotes) {
+          delete newState.lockedCollateralVotes[syndicateId];
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileClaimLiquidityRewards(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    claimLiquidityRewardsVotes: state.claimLiquidityRewardsVotes ? { ...state.claimLiquidityRewardsVotes } : {},
+    lockedLiquidityPositions: state.lockedLiquidityPositions ? { ...state.lockedLiquidityPositions } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+    factionRep: state.factionRep ? { ...state.factionRep } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.claimLiquidityRewardsVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      positionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = vote.positionId;
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            positionId: vote.positionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      const { positionId } = fullyApprovedCombination;
+
+      // Find the position
+      const positions = newState.lockedLiquidityPositions?.[syndicateId] || [];
+      const posIndex = positions.findIndex(p => p.id === positionId);
+      const position = posIndex !== -1 ? positions[posIndex] : undefined;
+
+      const currentEpoch = Math.floor(newState.step / 5);
+
+      if (position && !position.claimed && currentEpoch >= position.endEpoch) {
+        // Calculate reward
+        const duration = position.durationEpochs;
+        const amount = position.amount;
+        const factionId = position.factionId;
+
+        // Reward formula: 5% of amount per epoch
+        const rewardBase = Math.floor(amount * 0.05 * duration);
+        const factionReserves = newState.factionReservePools?.[factionId] ?? 10000;
+        const rewardPaid = Math.min(factionReserves, rewardBase);
+
+        // Deduct from faction reserves
+        if (!newState.factionReservePools) newState.factionReservePools = {};
+        newState.factionReservePools[factionId] = factionReserves - rewardPaid;
+
+        // Pay to syndicate war chest
+        syndicate.warChest = (syndicate.warChest ?? 0) + rewardPaid;
+
+        // Faction reputation multiplier reward
+        const reputationBonus = 5 * duration;
+        if (!newState.factionRep) newState.factionRep = {};
+        newState.factionRep[factionId] = (newState.factionRep[factionId] ?? 0) + reputationBonus;
+
+        // Mark position as claimed in both GameState and marginAccount
+        const updatedPosition = {
+          ...position,
+          claimed: true,
+          timestamp: newState.step,
+        };
+
+        // Update in global positions
+        positions[posIndex] = updatedPosition;
+        newState.lockedLiquidityPositions[syndicateId] = [...positions];
+
+        // Update in marginAccount.lockedPositions
+        if (marginAccount.lockedPositions) {
+          const maPosIndex = marginAccount.lockedPositions.findIndex(p => p.id === positionId);
+          if (maPosIndex !== -1) {
+            marginAccount.lockedPositions[maPosIndex] = updatedPosition;
+          }
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Claim Liquidity Rewards] Syndicate ${syndicateId} claimed rewards for position ${positionId}. Earned ${rewardPaid} gold and +${reputationBonus} reputation with ${factionId}.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        if (!position) {
+          newState.journal.push(`[Claim Liquidity Rewards Failed] Position ${positionId} not found.`);
+        } else if (position.claimed) {
+          newState.journal.push(`[Claim Liquidity Rewards Failed] Position ${positionId} already claimed.`);
+        } else {
+          newState.journal.push(`[Claim Liquidity Rewards Failed] Position ${positionId} has not matured yet (Current epoch: ${currentEpoch} < End epoch: ${position.endEpoch}).`);
+        }
+      }
+
+      // Clear votes
+      if (newState.claimLiquidityRewardsVotes) {
+        delete newState.claimLiquidityRewardsVotes[syndicateId];
+      }
     }
   }
 

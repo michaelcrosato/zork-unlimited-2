@@ -3130,7 +3130,43 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 // Earn yield!
                 let interest = 0;
                 if (vault.interestRate > 0) {
-                  interest = Math.max(1, Math.floor(allocatedAmount * vault.interestRate));
+                  // Calculate active locks in this vault for AF-114
+                  const currentEpoch = Math.floor(newState.step / 5);
+                  const activeLocks = (marginAccount.lockedPositions ?? [])
+                    .filter(p => p.vaultId === vaultId && currentEpoch < p.endEpoch && !p.claimed);
+
+                  const totalLocked = activeLocks.reduce((sum, p) => sum + p.amount, 0);
+
+                  if (totalLocked > 0 && allocatedAmount > 0) {
+                    let lockedInterestSum = 0;
+                    for (const lock of activeLocks) {
+                      // Proportional share of allocatedAmount if allocatedAmount is less than totalLocked
+                      const shareFraction = lock.amount / totalLocked;
+                      const lockAllocated = Math.min(lock.amount, Math.floor(allocatedAmount * shareFraction));
+                      
+                      const yieldMultiplier = 1.0 + (lock.durationEpochs * 0.1);
+                      const lockInterest = Math.floor(lockAllocated * vault.interestRate * yieldMultiplier);
+                      lockedInterestSum += lockInterest;
+
+                      // Passive reputation accrual with reputation multiplier (e.g. 1.0 + durationEpochs * 0.1)
+                      const repMultiplier = 1.0 + (lock.durationEpochs * 0.1);
+                      const baseRepAccrual = 1;
+                      const repAccrued = Math.max(1, Math.round(baseRepAccrual * repMultiplier));
+                      
+                      if (!newState.factionRep) newState.factionRep = {};
+                      newState.factionRep[lock.factionId] = (newState.factionRep[lock.factionId] ?? 0) + repAccrued;
+                      
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[Liquidity Mining Rep] Syndicate ${syndicateId} accrued +${repAccrued} faction reputation with ${lock.factionId} from active lock in vault ${vaultId}.`
+                      );
+                    }
+                    const unlockedAmount = Math.max(0, allocatedAmount - totalLocked);
+                    const unlockedInterest = Math.floor(unlockedAmount * vault.interestRate);
+                    interest = Math.max(1, lockedInterestSum + unlockedInterest);
+                  } else {
+                    interest = Math.max(1, Math.floor(allocatedAmount * vault.interestRate));
+                  }
                 }
                 if (interest > 0) {
                   const yieldReturned = Math.floor(interest * 0.80);
@@ -3179,7 +3215,41 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 // Earn yield!
                 let interest = 0;
                 if (vault.interestRate > 0) {
-                  interest = Math.max(1, Math.floor(rehypothecatedAmount * vault.interestRate));
+                  const vaultId = marginAccount.rehypothecationVaultId;
+                  const currentEpoch = Math.floor(newState.step / 5);
+                  const activeLocks = (marginAccount.lockedPositions ?? [])
+                    .filter(p => p.vaultId === vaultId && currentEpoch < p.endEpoch && !p.claimed);
+
+                  const totalLocked = activeLocks.reduce((sum, p) => sum + p.amount, 0);
+
+                  if (totalLocked > 0 && rehypothecatedAmount > 0) {
+                    let lockedInterestSum = 0;
+                    for (const lock of activeLocks) {
+                      const shareFraction = lock.amount / totalLocked;
+                      const lockAllocated = Math.min(lock.amount, Math.floor(rehypothecatedAmount * shareFraction));
+                      
+                      const yieldMultiplier = 1.0 + (lock.durationEpochs * 0.1);
+                      const lockInterest = Math.floor(lockAllocated * vault.interestRate * yieldMultiplier);
+                      lockedInterestSum += lockInterest;
+
+                      const repMultiplier = 1.0 + (lock.durationEpochs * 0.1);
+                      const baseRepAccrual = 1;
+                      const repAccrued = Math.max(1, Math.round(baseRepAccrual * repMultiplier));
+                      
+                      if (!newState.factionRep) newState.factionRep = {};
+                      newState.factionRep[lock.factionId] = (newState.factionRep[lock.factionId] ?? 0) + repAccrued;
+                      
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[Liquidity Mining Rep] Syndicate ${syndicateId} accrued +${repAccrued} faction reputation with ${lock.factionId} from active lock in vault ${vaultId}.`
+                      );
+                    }
+                    const unlockedAmount = Math.max(0, rehypothecatedAmount - totalLocked);
+                    const unlockedInterest = Math.floor(unlockedAmount * vault.interestRate);
+                    interest = Math.max(1, lockedInterestSum + unlockedInterest);
+                  } else {
+                    interest = Math.max(1, Math.floor(rehypothecatedAmount * vault.interestRate));
+                  }
                 }
                 if (interest > 0) {
                   const yieldReturned = Math.floor(interest * 0.80);
