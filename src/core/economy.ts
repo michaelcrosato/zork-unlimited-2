@@ -3873,6 +3873,63 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Periodic Cross-Mesh Bridge Loan Ticking & Repayments (AF-127)
+  if (newState.crossMeshBridgeLoans) {
+    newState.crossMeshBridgeLoans = { ...newState.crossMeshBridgeLoans };
+    newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
+    
+    for (const [loanId, loan] of Object.entries(newState.crossMeshBridgeLoans)) {
+      if (loan.status === "Active") {
+        const borrower = newState.syndicates[loan.borrowerSyndicateId];
+        const lender = newState.syndicates[loan.lenderSyndicateId];
+        
+        if (!borrower || !lender) continue;
+
+        // 1. Accrue loan interest
+        const interest = Math.floor(loan.principal * (loan.interestRate / 100));
+        let updatedLoan = {
+          ...loan,
+          remainingRepayment: loan.remainingRepayment + interest,
+          timestamp: newState.step,
+        };
+
+        // 2. Automatic reserve repayment from borrower warChest to lender warChest
+        const borrowerGold = borrower.warChest ?? 0;
+        if (borrowerGold > 0 && updatedLoan.remainingRepayment > 0) {
+          const payment = Math.min(borrowerGold, updatedLoan.remainingRepayment);
+          borrower.warChest = borrowerGold - payment;
+          lender.warChest = (lender.warChest ?? 0) + payment;
+          updatedLoan.remainingRepayment -= payment;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Bridge Repayment] Borrower Syndicate ${loan.borrowerSyndicateId} automatically paid ${payment} gold back to Lender Syndicate ${loan.lenderSyndicateId} from its warChest for bridge loan ${loanId}. Remaining due: ${updatedLoan.remainingRepayment}.`
+          );
+        }
+
+        // 3. Check repayment status
+        if (updatedLoan.remainingRepayment <= 0) {
+          updatedLoan.status = "Repaid";
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Bridge Repaid] Bridge loan ${loanId} has been fully repaid by Syndicate ${loan.borrowerSyndicateId} to Syndicate ${loan.lenderSyndicateId}.`
+          );
+        } else if (newState.step > updatedLoan.dueStep) {
+          // Default!
+          updatedLoan.status = "Defaulted";
+          // Dominance penalty
+          borrower.dominance = Math.max(0, (borrower.dominance ?? 0) - 10);
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Bridge Defaulted] Bridge loan ${loanId} went into default as Borrower Syndicate ${loan.borrowerSyndicateId} failed to repay the remaining ${updatedLoan.remainingRepayment} gold by step ${updatedLoan.dueStep}! Borrower dominance reduced by 10.`
+          );
+        }
+
+        newState.crossMeshBridgeLoans[loanId] = updatedLoan;
+      }
+    }
+  }
+
   return newState;
 }
 

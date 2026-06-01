@@ -1433,6 +1433,37 @@ export const StabilizationTransferVoteSchema = z.object({
 });
 export type StabilizationTransferVote = z.infer<typeof StabilizationTransferVoteSchema>;
 
+export const CrossMeshBridgeProposalSchema = z.object({
+  id: z.string(),
+  borrowerSyndicateId: z.string(),
+  lenderSyndicateId: z.string(),
+  amount: z.number().int().positive(),
+  interestRate: z.number().nonnegative(),
+  termSteps: z.number().int().positive(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type CrossMeshBridgeProposal = z.infer<typeof CrossMeshBridgeProposalSchema>;
+
+export const CrossMeshBridgeLoanSchema = z.object({
+  id: z.string(),
+  borrowerSyndicateId: z.string(),
+  lenderSyndicateId: z.string(),
+  principal: z.number().int().positive(),
+  interestRate: z.number().nonnegative(),
+  termSteps: z.number().int().positive(),
+  startStep: z.number().int().nonnegative(),
+  dueStep: z.number().int().nonnegative(),
+  remainingRepayment: z.number().int().nonnegative(),
+  status: z.enum(["Active", "Repaid", "Defaulted"]),
+  timestamp: z.number().int(),
+});
+export type CrossMeshBridgeLoan = z.infer<typeof CrossMeshBridgeLoanSchema>;
+
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
   totalLocked: z.number().int().nonnegative(),
@@ -1829,6 +1860,8 @@ export const GameStateSchema = z.object({
   antiDeficitStabilizationVotes: z.record(z.string(), z.record(z.string(), AntiDeficitStabilizationVoteSchema)).optional(),
   liquidityPoolAuditVotes: z.record(z.string(), z.record(z.string(), LiquidityPoolAuditVoteSchema)).optional(),
   stabilizationTransferVotes: z.record(z.string(), z.record(z.string(), StabilizationTransferVoteSchema)).optional(),
+  crossMeshBridgeProposals: z.record(z.string(), CrossMeshBridgeProposalSchema).optional(),
+  crossMeshBridgeLoans: z.record(z.string(), CrossMeshBridgeLoanSchema).optional(),
 });
 
 
@@ -2048,6 +2081,8 @@ export const createInitialState = (options: {
     antiDeficitStabilizationVotes: {},
     liquidityPoolAuditVotes: {},
     stabilizationTransferVotes: {},
+    crossMeshBridgeProposals: {},
+    crossMeshBridgeLoans: {},
   };
 };
 
@@ -2861,6 +2896,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     antiDeficitStabilizationVotes: rest.antiDeficitStabilizationVotes ? JSON.parse(JSON.stringify(rest.antiDeficitStabilizationVotes)) : undefined,
     liquidityPoolAuditVotes: rest.liquidityPoolAuditVotes ? JSON.parse(JSON.stringify(rest.liquidityPoolAuditVotes)) : undefined,
     stabilizationTransferVotes: rest.stabilizationTransferVotes ? JSON.parse(JSON.stringify(rest.stabilizationTransferVotes)) : undefined,
+    crossMeshBridgeProposals: rest.crossMeshBridgeProposals ? JSON.parse(JSON.stringify(rest.crossMeshBridgeProposals)) : undefined,
+    crossMeshBridgeLoans: rest.crossMeshBridgeLoans ? JSON.parse(JSON.stringify(rest.crossMeshBridgeLoans)) : undefined,
   };
   return clone;
 }
@@ -6866,6 +6903,83 @@ export function reconcileAntiDeficitStabilizationPolicies(state: GameState, pack
         }
 
         delete newState.stabilizationTransferVotes[transferId];
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCrossMeshBridges(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    crossMeshBridgeProposals: state.crossMeshBridgeProposals ? { ...state.crossMeshBridgeProposals } : {},
+    crossMeshBridgeLoans: state.crossMeshBridgeLoans ? { ...state.crossMeshBridgeLoans } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.crossMeshBridgeProposals || {})) {
+    const proposal = newState.crossMeshBridgeProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { borrowerSyndicateId, lenderSyndicateId, amount, interestRate, termSteps, timestamp } = proposal;
+    const borrower = newState.syndicates?.[borrowerSyndicateId];
+    const lender = newState.syndicates?.[lenderSyndicateId];
+    if (!borrower || !lender) continue;
+
+    const borrowerMembers = borrower.members;
+    const lenderMembers = lender.members;
+    const votes = proposal.votes || {};
+
+    const borrowerTrueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => borrowerMembers.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const lenderTrueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => lenderMembers.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    // Double majority approval check
+    if (borrowerTrueVotes.length > borrowerMembers.length / 2 && lenderTrueVotes.length > lenderMembers.length / 2) {
+      const lenderGold = lender.warChest ?? 0;
+      if (lenderGold >= amount) {
+        // Resolve proposal
+        newState.crossMeshBridgeProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        // Transfer funds lender -> borrower
+        lender.warChest = lenderGold - amount;
+        borrower.warChest = (borrower.warChest ?? 0) + amount;
+
+        // Establish active bridge loan
+        const totalRepayment = amount + Math.floor(amount * (interestRate / 100));
+        
+        if (!newState.crossMeshBridgeLoans) newState.crossMeshBridgeLoans = {};
+        newState.crossMeshBridgeLoans[proposalId] = {
+          id: proposalId,
+          borrowerSyndicateId,
+          lenderSyndicateId,
+          principal: amount,
+          interestRate,
+          termSteps,
+          startStep: newState.step,
+          dueStep: newState.step + termSteps,
+          remainingRepayment: totalRepayment,
+          status: "Active" as const,
+          timestamp,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Bridge Loan Resolved] Cross-mesh bridge loan ${proposalId} has been successfully established. Transferred ${amount} gold from Syndicate ${lenderSyndicateId} warChest to Syndicate ${borrowerSyndicateId} warChest.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Bridge Loan Resolution Failed] Lender Syndicate ${lenderSyndicateId} has insufficient reserves (${lenderGold} < ${amount}) to resolve proposal ${proposalId}.`
+        );
       }
     }
   }

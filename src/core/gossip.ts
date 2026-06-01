@@ -2393,6 +2393,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge crossMeshBridgeProposals using LWW (Last-Write-Wins)
+  const crossMeshBridgeProposals = { ...stateA.crossMeshBridgeProposals };
+  if (stateB.crossMeshBridgeProposals) {
+    for (const [propId, propB] of Object.entries(stateB.crossMeshBridgeProposals)) {
+      const propA = crossMeshBridgeProposals[propId];
+      if (!propA || propB.timestamp > propA.timestamp) {
+        crossMeshBridgeProposals[propId] = { ...propB };
+      }
+    }
+  }
+
+  // Merge crossMeshBridgeLoans using LWW (Last-Write-Wins)
+  const crossMeshBridgeLoans = { ...stateA.crossMeshBridgeLoans };
+  if (stateB.crossMeshBridgeLoans) {
+    for (const [loanId, loanB] of Object.entries(stateB.crossMeshBridgeLoans)) {
+      const loanA = crossMeshBridgeLoans[loanId];
+      if (!loanA || loanB.timestamp > loanA.timestamp) {
+        crossMeshBridgeLoans[loanId] = { ...loanB };
+      }
+    }
+  }
+
   // Merge reserveSweepPolicies using LWW (Last-Write-Wins)
   const reserveSweepPolicies = { ...stateA.reserveSweepPolicies };
   if (stateB.reserveSweepPolicies) {
@@ -2753,6 +2775,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     antiDeficitStabilizationVotes,
     liquidityPoolAuditVotes,
     stabilizationTransferVotes,
+    crossMeshBridgeProposals,
+    crossMeshBridgeLoans,
   };
 }
 

@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -23741,6 +23741,258 @@ export function multiAgentStep(
           factionId,
           amount,
           executed,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_CROSS_MESH_BRIDGE action (AF-127)
+  if ((action as any).type === "PROPOSE_CROSS_MESH_BRIDGE") {
+    const { proposalId, borrowerSyndicateId, lenderSyndicateId, amount, interestRate, termSteps, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const borrowerSyndicate = state.syndicates?.[borrowerSyndicateId];
+    const lenderSyndicate = state.syndicates?.[lenderSyndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required to propose a cross-mesh bridge.`;
+    } else if (!borrowerSyndicateId) {
+      rejectionReason = `Borrower Syndicate ID is required.`;
+    } else if (!lenderSyndicateId) {
+      rejectionReason = `Lender Syndicate ID is required.`;
+    } else if (borrowerSyndicateId === lenderSyndicateId) {
+      rejectionReason = `Borrower and Lender Syndicates cannot be the same.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Amount must be a positive integer.`;
+    } else if (interestRate === undefined || interestRate < 0) {
+      rejectionReason = `Interest rate must be non-negative.`;
+    } else if (termSteps === undefined || termSteps <= 0 || !Number.isInteger(termSteps)) {
+      rejectionReason = `Term steps must be a positive integer.`;
+    } else if (!borrowerSyndicate) {
+      rejectionReason = `Borrower Syndicate ${borrowerSyndicateId} does not exist.`;
+    } else if (!lenderSyndicate) {
+      rejectionReason = `Lender Syndicate ${lenderSyndicateId} does not exist.`;
+    } else if (!borrowerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of borrower syndicate ${borrowerSyndicateId} and cannot propose a bridge loan.`;
+    } else if ((lenderSyndicate.warChest ?? 0) < amount) {
+      rejectionReason = `Lender Syndicate ${lenderSyndicateId} has insufficient reserves in its warChest (requires ${amount}, has ${lenderSyndicate.warChest ?? 0}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && borrowerSyndicate && lenderSyndicate) {
+      const proposals = { ...(state.crossMeshBridgeProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          borrowerSyndicateId,
+          lenderSyndicateId,
+          amount,
+          interestRate,
+          termSteps,
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.crossMeshBridgeProposals = proposals;
+        newState = reconcileCrossMeshBridges(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Bridge Proposed] Agent ${agentId} proposed cross-mesh bridge loan ${proposalId} from lender syndicate ${lenderSyndicateId} to borrower syndicate ${borrowerSyndicateId} for ${amount} gold at ${interestRate}% for ${termSteps} steps.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Cross-mesh bridge loan proposed by ${agentId}: ${borrowerSyndicateId} requests ${amount} gold from ${lenderSyndicateId} (rate: ${interestRate}%, term: ${termSteps} steps).`,
+        } as any);
+
+        customEvents.push({
+          type: "cross_mesh_bridge_proposed" as any,
+          proposalId,
+          borrowerSyndicateId,
+          lenderSyndicateId,
+          amount,
+          interestRate,
+          termSteps,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_CROSS_MESH_BRIDGE action (AF-127)
+  if ((action as any).type === "VOTE_CROSS_MESH_BRIDGE") {
+    const { proposalId, syndicateId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.crossMeshBridgeProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `Cross-mesh bridge proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on cross-mesh bridge proposal.`;
+    } else if (proposal.borrowerSyndicateId !== syndicateId && proposal.lenderSyndicateId !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} is not involved in proposal ${proposalId} and cannot vote on it.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.crossMeshBridgeProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.crossMeshBridgeProposals = proposalsCopy;
+        newState = reconcileCrossMeshBridges(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Bridge Voted] Agent ${agentId} in syndicate ${syndicateId} voted ${vote ? "YES" : "NO"} on cross-mesh bridge proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Vote cast by ${agentId} in syndicate ${syndicateId} on cross-mesh bridge proposal ${proposalId}: ${vote ? "YES" : "NO"}.`,
+        } as any);
+
+        customEvents.push({
+          type: "cross_mesh_bridge_voted" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          vote,
+          timestamp,
         });
       }
     }

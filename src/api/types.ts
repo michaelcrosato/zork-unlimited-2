@@ -163,7 +163,9 @@ export type Action =
   | { type: "VOTE_FACTION_CDO_INSURANCE_POOL"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "VOTE_MULTI_FACTION_CDO_RISK_RATING"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_SOVEREIGN_BOND"; proposalId: string; syndicateId: string; factionId: string; faceValue: number; interestRate: number; termEpochs: number; timestamp: number }
-  | { type: "VOTE_SOVEREIGN_BOND"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_SOVEREIGN_BOND"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_CROSS_MESH_BRIDGE"; proposalId: string; borrowerSyndicateId: string; lenderSyndicateId: string; amount: number; interestRate: number; termSteps: number; timestamp: number }
+  | { type: "VOTE_CROSS_MESH_BRIDGE"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number };
 
 
 
