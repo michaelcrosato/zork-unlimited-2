@@ -264,7 +264,8 @@ export type Action =
   | { type: "TRIGGER_CDO_AUTOCALL"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; syndicateId: string; timestamp: number }
   | { type: "ADJUST_CDS_CDO_TRANCHE_LEVERAGE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; syndicateId: string; leverageRatio: number; deleveragingThreshold: number; timestamp: number }
   | { type: "SET_CDS_CDO_CROSS_TRANCHE_HEDGING"; proposalId: string; cdoId: string; syndicateId: string; targetTrancheId: "senior" | "mezzanine"; allocationPercent: number; timestamp: number }
-  | { type: "SET_CDS_CDO_HEDGING_RESERVE_FLOOR_AND_CAP"; proposalId: string; cdoId: string; syndicateId: string; reserveFloor: number; governanceCap: number; timestamp: number };
+  | { type: "SET_CDS_CDO_HEDGING_RESERVE_FLOOR_AND_CAP"; proposalId: string; cdoId: string; syndicateId: string; reserveFloor: number; governanceCap: number; timestamp: number }
+  | { type: "LIQUIDITY_INJECTION_PROPOSAL"; proposalId: string; cdoId: string; syndicateId: string; amount: number; timestamp: number };
 
 
 

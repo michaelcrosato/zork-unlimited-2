@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers, reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments, reconcileSovereignDebtCDSCDOCrossTrancheHedging, reconcileSovereignDebtCDSCDOHedgingReserveFloorAndCap } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers, reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments, reconcileSovereignDebtCDSCDOCrossTrancheHedging, reconcileSovereignDebtCDSCDOHedgingReserveFloorAndCap, reconcileCDSCDOLiquidityInjections } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -48225,6 +48225,138 @@ export function multiAgentStep(
         syndicateId,
         reserveFloor,
         governanceCap,
+        status: propStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle LIQUIDITY_INJECTION_PROPOSAL action (AF-236)
+  if ((action as any).type === "LIQUIDITY_INJECTION_PROPOSAL") {
+    const { proposalId, cdoId, syndicateId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignDebtCDSCDOPools?.[cdoId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!cdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (amount === undefined || typeof amount !== "number" || amount <= 0) {
+      rejectionReason = `Valid injection amount (positive integer) is required.`;
+    } else if (!pool) {
+      rejectionReason = `CDO pool ${cdoId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (pool.reserveFloor === undefined || pool.fractionalizedVault.balance >= pool.reserveFloor) {
+      rejectionReason = `CDO pool ${cdoId} is not stressed (balance ${pool.fractionalizedVault.balance} is not below reserve floor ${pool.reserveFloor}).`;
+    } else if ((syndicate.warChest ?? 0) < amount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient funds in war chest (${syndicate.warChest ?? 0} < ${amount}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsCdoLiquidityInjectionProposals = newState.cdsCdoLiquidityInjectionProposals ? { ...newState.cdsCdoLiquidityInjectionProposals } : {};
+      const existingProp = newState.cdsCdoLiquidityInjectionProposals[proposalId];
+
+      if (!existingProp || existingProp.status !== "proposed") {
+        newState.cdsCdoLiquidityInjectionProposals[proposalId] = {
+          proposalId,
+          cdoId,
+          syndicateId,
+          amount,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsCdoLiquidityInjectionProposals[proposalId] = {
+        ...newState.cdsCdoLiquidityInjectionProposals[proposalId],
+        votes: newState.cdsCdoLiquidityInjectionProposals[proposalId].votes ? { ...newState.cdsCdoLiquidityInjectionProposals[proposalId].votes } : {},
+      };
+
+      newState.cdsCdoLiquidityInjectionProposals[proposalId].votes = {
+        ...newState.cdsCdoLiquidityInjectionProposals[proposalId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileCDSCDOLiquidityInjections(newState, pack);
+
+      const propStatus = newState.cdsCdoLiquidityInjectionProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Liquidity Injection Proposal Vote] Agent ${agentId} voted to inject ${amount} gold from Syndicate ${syndicateId} war chest into CDO ${cdoId} (Status: ${propStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Agent ${agentId} voted to inject ${amount} gold into CDO ${cdoId} from Syndicate ${syndicateId} (Status: ${propStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "liquidity_injection_proposal" as any,
+        proposalId,
+        cdoId,
+        syndicateId,
+        amount,
         status: propStatus,
         timestamp,
       });

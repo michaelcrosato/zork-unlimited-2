@@ -7241,6 +7241,10 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
     sovereignDebtCDSContracts: state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {},
     sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
     syndicates: state.syndicates ? { ...state.syndicates } : {},
+    factionRep: state.factionRep ? { ...state.factionRep } : {},
+    outstandingDeflectionFees: state.outstandingDeflectionFees ? { ...state.outstandingDeflectionFees } : {},
+    cdsCdoLiquidityInjectionProposals: state.cdsCdoLiquidityInjectionProposals ? JSON.parse(JSON.stringify(state.cdsCdoLiquidityInjectionProposals)) : {},
+    cdsCdoFeeExemptions: state.cdsCdoFeeExemptions ? { ...state.cdsCdoFeeExemptions } : {},
     journal: state.journal ? [...state.journal] : [],
   };
 
@@ -7745,6 +7749,31 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
   newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
 
   for (const [cdoId, pool] of Object.entries(newState.sovereignDebtCDSCDOPools)) {
+    // Process approved liquidity injections for this pool
+    if (newState.cdsCdoLiquidityInjectionProposals) {
+      for (const [propId, prop] of Object.entries(newState.cdsCdoLiquidityInjectionProposals)) {
+        const proposal = prop as any;
+        if (proposal.cdoId === cdoId && proposal.status === "approved") {
+          if (pool.reserveFloor !== undefined && pool.fractionalizedVault.balance >= pool.reserveFloor) {
+            proposal.status = "executed";
+
+            // 1. Grant reputation boost (+20)
+            const oldRep = newState.factionRep[proposal.syndicateId] ?? 0;
+            newState.factionRep[proposal.syndicateId] = oldRep + 20;
+
+            // 2. Grant deflection fee exemption & clear outstanding deflection fees
+            newState.cdsCdoFeeExemptions[proposal.syndicateId] = true;
+            newState.outstandingDeflectionFees[proposal.syndicateId] = 0;
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDO Liquidity Injection Restored] Syndicate ${proposal.syndicateId} restored CDO ${cdoId} liquidity above reserve floor of ${pool.reserveFloor} with injection of ${proposal.amount} gold. Granted +20 reputation and deflection fee exemption.`
+            );
+          }
+        }
+      }
+    }
+
     // Pre-pass: Process equity tranche autocallable yield payouts and apply cross-tranche hedging before any margin requirements are calculated.
     const equityTranche = pool.tranches["equity"];
     if (equityTranche && equityTranche.autocallTriggerLevel !== undefined && equityTranche.autocallCoupon !== undefined) {
@@ -8182,6 +8211,14 @@ export function tickSovereignDebtDefaultAlerts(state: GameState): GameState {
       if (isWaiverActive) {
         newState.journal.push(
           `[Sovereign Debt Default Alert Penalty Deferred] Syndicate ${targetSyndicateId} bypasses reputation penalty due to authorized default penalty waiver (Alert ID: ${alert.proposalId}).`
+        );
+        continue;
+      }
+
+      const isFeeExempt = newState.cdsCdoFeeExemptions?.[targetSyndicateId] === true;
+      if (isFeeExempt) {
+        newState.journal.push(
+          `[Sovereign Debt Default Alert Penalty Deferred] Syndicate ${targetSyndicateId} bypasses reputation penalty due to active CDO liquidity injection fee exemption.`
         );
         continue;
       }

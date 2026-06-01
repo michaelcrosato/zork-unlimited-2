@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #232 (Ready for Cycle #233)
-* **Build/Test Status**: 🟢 PASS (All 806 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #233 (Ready for Cycle #234)
+* **Build/Test Status**: 🟢 PASS (All 809 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1511,14 +1511,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 214: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Reserve Floor Breach Liquidity Injection Proposals (Completed)
+- [x] Define `LIQUIDITY_INJECTION_PROPOSAL` schema and state structures in GameState (`AF-236`).
+- [x] Implement the consensus voting action to propose and execute war chest to CDO fractionalized vault liquidity injections (`AF-236`).
+- [x] Wire the economy tick to grant reputation increases and fee waivers to syndicates contributing to restore pool liquidity above the floor (`AF-236`).
+- [x] Write comprehensive Vitest integration tests (`AF-236`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-236`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Reserve Floor Breach Liquidity Injection Proposals.
-* **Why this matters**: Introduce a decentralized cooperative action allowing syndicates to propose and vote to inject liquidity from their war chests directly into a stressed CDO fractionalized vault when its balance drops below the reserve floor, triggering dynamic reputation boosts and fee exemptions to incentivize cooperative mesh defense.
+**Task ID**: `AF-237`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Multi-Syndicate Liquidity Injection Co-Investment Pools.
+* **Why this matters**: Introduce a shared co-investment proposal allowing multiple syndicates to jointly contribute dynamic fractional gold amounts from their war chests into a stressed CDO pool, scaling the reputation boosts and fee waivers proportionally to incentivize broad cooperative network defense.
 * **Planned Actions**:
-  1. Define `LIQUIDITY_INJECTION_PROPOSAL` schema and state structures in GameState.
-  2. Implement the consensus voting action to propose and execute war chest to CDO fractionalized vault liquidity injections.
-  3. Wire the economy tick to grant reputation increases and fee waivers to syndicates contributing to restore pool liquidity above the floor.
+  1. Define co-investment pool schemas and multi-syndicate contribution states in GameState.
+  2. Implement decentralized co-investment join and lock action allowing other syndicates to pledge war chest gold.
+  3. Wire the economy tick to calculate and allocate proportional reputation increases and partial deflection fee waivers to all participating syndicates.
   4. Write comprehensive Vitest integration tests.
 
 ---

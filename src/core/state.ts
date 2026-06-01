@@ -3218,6 +3218,20 @@ export const SovereignDebtCDSCDOHedgingReserveFloorAndCapProposalSchema = z.obje
 });
 export type SovereignDebtCDSCDOHedgingReserveFloorAndCapProposal = z.infer<typeof SovereignDebtCDSCDOHedgingReserveFloorAndCapProposalSchema>;
 
+export const SovereignDebtCDSCDOLiquidityInjectionProposalSchema = z.object({
+  proposalId: z.string(),
+  cdoId: z.string(),
+  syndicateId: z.string(),
+  amount: z.number().int().positive(),
+  status: z.enum(["proposed", "approved", "rejected", "executed"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOLiquidityInjectionProposal = z.infer<typeof SovereignDebtCDSCDOLiquidityInjectionProposalSchema>;
+
 
 
 
@@ -4214,6 +4228,8 @@ export const GameStateSchema = z.object({
   cdsCdoAutocallTriggers: z.record(z.string(), SovereignDebtCDSCDOAutocallTriggerSchema).optional(),
   cdsCdoCrossTrancheHedging: z.record(z.string(), SovereignDebtCDSCDOCrossTrancheHedgingSchema).optional(),
   cdsCdoHedgingReserveFloorAndCapProposals: z.record(z.string(), SovereignDebtCDSCDOHedgingReserveFloorAndCapProposalSchema).optional(),
+  cdsCdoLiquidityInjectionProposals: z.record(z.string(), SovereignDebtCDSCDOLiquidityInjectionProposalSchema).optional(),
+  cdsCdoFeeExemptions: z.record(z.string(), z.boolean()).optional(),
 
 
 
@@ -4677,6 +4693,8 @@ export const createInitialState = (options: {
     cdsCdoAutocallTriggers: {},
     cdsCdoCrossTrancheHedging: {},
     cdsCdoHedgingReserveFloorAndCapProposals: {},
+    cdsCdoLiquidityInjectionProposals: {},
+    cdsCdoFeeExemptions: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5866,6 +5884,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoAutocallTriggers: rest.cdsCdoAutocallTriggers ? JSON.parse(JSON.stringify(rest.cdsCdoAutocallTriggers)) : undefined,
     cdsCdoCrossTrancheHedging: rest.cdsCdoCrossTrancheHedging ? JSON.parse(JSON.stringify(rest.cdsCdoCrossTrancheHedging)) : undefined,
     cdsCdoHedgingReserveFloorAndCapProposals: rest.cdsCdoHedgingReserveFloorAndCapProposals ? JSON.parse(JSON.stringify(rest.cdsCdoHedgingReserveFloorAndCapProposals)) : undefined,
+    cdsCdoLiquidityInjectionProposals: rest.cdsCdoLiquidityInjectionProposals ? JSON.parse(JSON.stringify(rest.cdsCdoLiquidityInjectionProposals)) : undefined,
+    cdsCdoFeeExemptions: rest.cdsCdoFeeExemptions ? JSON.parse(JSON.stringify(rest.cdsCdoFeeExemptions)) : undefined,
 
   };
   return clone;
@@ -18310,6 +18330,47 @@ export function reconcileSovereignDebtCDSCDOHedgingReserveFloorAndCap(state: Gam
         newState.journal.push(
           `[CDS CDO Hedging Reserve Floor & Cap Approved] Syndicate ${proposal.syndicateId} approved reserve floor of ${proposal.reserveFloor} and governance cap of ${proposal.governanceCap}% for CDO ${proposal.cdoId}.`
         );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCDSCDOLiquidityInjections(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoLiquidityInjectionProposals: state.cdsCdoLiquidityInjectionProposals ? { ...state.cdsCdoLiquidityInjectionProposals } : {},
+  };
+
+  if (newState.cdsCdoLiquidityInjectionProposals) {
+    for (const [proposalId, proposal] of Object.entries(newState.cdsCdoLiquidityInjectionProposals)) {
+      if (proposal.status !== "proposed") continue;
+      const syndicate = newState.syndicates[proposal.syndicateId];
+      if (!syndicate) continue;
+      const votes = proposal.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > syndicate.members.length / 2;
+      if (passed) {
+        const pool = newState.sovereignDebtCDSCDOPools[proposal.cdoId];
+        if (pool && (syndicate.warChest ?? 0) >= proposal.amount) {
+          proposal.status = "approved";
+          syndicate.warChest = (syndicate.warChest ?? 0) - proposal.amount;
+          pool.fractionalizedVault = {
+            ...pool.fractionalizedVault,
+            balance: pool.fractionalizedVault.balance + proposal.amount,
+          };
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[CDO Liquidity Injection Approved] Syndicate ${proposal.syndicateId} approved liquidity injection of ${proposal.amount} gold into CDO ${proposal.cdoId}.`
+          );
+        } else {
+          proposal.status = "rejected";
+        }
       }
     }
   }
