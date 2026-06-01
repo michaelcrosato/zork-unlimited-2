@@ -3013,6 +3013,58 @@ export const SovereignDebtCDSPortfolioSchema = z.object({
 });
 export type SovereignDebtCDSPortfolio = z.infer<typeof SovereignDebtCDSPortfolioSchema>;
 
+export const SovereignDebtCDSListingSchema = z.object({
+  cdsId: z.string(),
+  sellerSyndicateId: z.string(),
+  askPrice: z.number(),
+  status: z.enum(["proposed", "active", "completed", "cancelled"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSListing = z.infer<typeof SovereignDebtCDSListingSchema>;
+
+export const SovereignDebtCDSBidSchema = z.object({
+  bidId: z.string(),
+  cdsId: z.string(),
+  bidderSyndicateId: z.string(),
+  bidPrice: z.number(),
+  status: z.enum(["proposed", "active", "accepted", "rejected", "withdrawn"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSBid = z.infer<typeof SovereignDebtCDSBidSchema>;
+
+export const SovereignDebtCDSTransferSchema = z.object({
+  cdsId: z.string(),
+  sellerSyndicateId: z.string(),
+  buyerSyndicateId: z.string(),
+  price: z.number(),
+  status: z.enum(["proposed", "completed", "rejected"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSTransfer = z.infer<typeof SovereignDebtCDSTransferSchema>;
+
+export const SovereignDebtCDSMarketSpreadSchema = z.object({
+  cdsId: z.string(),
+  highestBid: z.number(),
+  lowestAsk: z.number(),
+  spread: z.number(),
+  fairValue: z.number(),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSMarketSpread = z.infer<typeof SovereignDebtCDSMarketSpreadSchema>;
+
+
 
 
 
@@ -3995,6 +4047,10 @@ export const GameStateSchema = z.object({
   sovereignDebtDefaultPenaltyWaivers: z.record(z.string(), SovereignDebtDefaultPenaltyWaiverProposalSchema).optional(),
   sovereignDebtCDSContracts: z.record(z.string(), SovereignDebtCDSContractSchema).optional(),
   sovereignDebtCDSPortfolios: z.record(z.string(), SovereignDebtCDSPortfolioSchema).optional(),
+  cdsListings: z.record(z.string(), SovereignDebtCDSListingSchema).optional(),
+  cdsBids: z.record(z.string(), SovereignDebtCDSBidSchema).optional(),
+  cdsTransfers: z.record(z.string(), SovereignDebtCDSTransferSchema).optional(),
+  cdsMarketSpreads: z.record(z.string(), SovereignDebtCDSMarketSpreadSchema).optional(),
 
 
 
@@ -4445,6 +4501,10 @@ export const createInitialState = (options: {
     sovereignDebtDefaultPenaltyWaivers: {},
     sovereignDebtCDSContracts: {},
     sovereignDebtCDSPortfolios: {},
+    cdsListings: {},
+    cdsBids: {},
+    cdsTransfers: {},
+    cdsMarketSpreads: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5621,6 +5681,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     sovereignDebtDefaultPenaltyWaivers: rest.sovereignDebtDefaultPenaltyWaivers ? JSON.parse(JSON.stringify(rest.sovereignDebtDefaultPenaltyWaivers)) : undefined,
     sovereignDebtCDSContracts: rest.sovereignDebtCDSContracts ? JSON.parse(JSON.stringify(rest.sovereignDebtCDSContracts)) : undefined,
     sovereignDebtCDSPortfolios: rest.sovereignDebtCDSPortfolios ? JSON.parse(JSON.stringify(rest.sovereignDebtCDSPortfolios)) : undefined,
+    cdsListings: rest.cdsListings ? JSON.parse(JSON.stringify(rest.cdsListings)) : undefined,
+    cdsBids: rest.cdsBids ? JSON.parse(JSON.stringify(rest.cdsBids)) : undefined,
+    cdsTransfers: rest.cdsTransfers ? JSON.parse(JSON.stringify(rest.cdsTransfers)) : undefined,
+    cdsMarketSpreads: rest.cdsMarketSpreads ? JSON.parse(JSON.stringify(rest.cdsMarketSpreads)) : undefined,
 
   };
   return clone;
@@ -17496,6 +17560,9 @@ export function reconcileSovereignDebtCDSContracts(state: GameState, pack: any):
     sovereignDebtCDSContracts: state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {},
     sovereignDebtCDSPortfolios: state.sovereignDebtCDSPortfolios ? { ...state.sovereignDebtCDSPortfolios } : {},
     syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsListings: state.cdsListings ? { ...state.cdsListings } : {},
+    cdsBids: state.cdsBids ? { ...state.cdsBids } : {},
+    cdsTransfers: state.cdsTransfers ? { ...state.cdsTransfers } : {},
   };
 
   for (const [cdsId, contract] of Object.entries(newState.sovereignDebtCDSContracts)) {
@@ -17561,6 +17628,148 @@ export function reconcileSovereignDebtCDSContracts(state: GameState, pack: any):
       newState.journal.push(
         `[Sovereign Debt CDS Activated] CDS contract ${cdsId} activated (Buyer: ${contract.buyerSyndicateId}, Writer: ${contract.writerSyndicateId}, Target: ${contract.targetSyndicateId}, Notional: ${contract.notionalValue} gold).`
       );
+    }
+  }
+
+  // Reconcile proposed listings
+  if (newState.cdsListings) {
+    for (const [listingId, listing] of Object.entries(newState.cdsListings)) {
+      if (listing.status !== "proposed") continue;
+      const sellerSyndicate = newState.syndicates[listing.sellerSyndicateId];
+      if (!sellerSyndicate) continue;
+      const votes = listing.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => sellerSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > sellerSyndicate.members.length / 2;
+      if (passed) {
+        newState.cdsListings[listingId] = {
+          ...listing,
+          status: "active",
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Sovereign Debt CDS Listing Active] CDS contract ${listing.cdsId} listed for sale by ${listing.sellerSyndicateId} at ask price ${listing.askPrice} gold.`
+        );
+      }
+    }
+  }
+
+  // Reconcile proposed bids
+  if (newState.cdsBids) {
+    for (const [bidId, bid] of Object.entries(newState.cdsBids)) {
+      if (bid.status !== "proposed") continue;
+      const bidderSyndicate = newState.syndicates[bid.bidderSyndicateId];
+      if (!bidderSyndicate) continue;
+      const votes = bid.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => bidderSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > bidderSyndicate.members.length / 2;
+      if (passed) {
+        newState.cdsBids[bidId] = {
+          ...bid,
+          status: "active",
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Sovereign Debt CDS Bid Active] Syndicate ${bid.bidderSyndicateId} placed an active bid of ${bid.bidPrice} gold on CDS ${bid.cdsId}.`
+        );
+      }
+    }
+  }
+
+  // Reconcile proposed transfers
+  if (newState.cdsTransfers) {
+    for (const [transferId, transfer] of Object.entries(newState.cdsTransfers)) {
+      if (transfer.status !== "proposed") continue;
+      const sellerSyndicate = newState.syndicates[transfer.sellerSyndicateId];
+      const buyerSyndicate = newState.syndicates[transfer.buyerSyndicateId];
+      if (!sellerSyndicate || !buyerSyndicate) continue;
+
+      const votes = transfer.votes || {};
+      const sellerTrueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => sellerSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const sellerPassed = sellerTrueVotes.length > sellerSyndicate.members.length / 2;
+
+      const buyerTrueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => buyerSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const buyerPassed = buyerTrueVotes.length > buyerSyndicate.members.length / 2;
+
+      if (sellerPassed && buyerPassed) {
+        const cdsId = transfer.cdsId;
+        const contract = newState.sovereignDebtCDSContracts[cdsId];
+        if (contract) {
+          newState.cdsTransfers[transferId] = {
+            ...transfer,
+            status: "completed",
+          };
+
+          newState.sovereignDebtCDSContracts[cdsId] = {
+            ...contract,
+            buyerSyndicateId: transfer.buyerSyndicateId,
+          };
+
+          // Perform balance transfer
+          const updatedSeller = {
+            ...sellerSyndicate,
+            warChest: (sellerSyndicate.warChest ?? 0) + transfer.price,
+          };
+          const updatedBuyer = {
+            ...buyerSyndicate,
+            warChest: Math.max(0, (buyerSyndicate.warChest ?? 0) - transfer.price),
+          };
+          newState.syndicates[transfer.sellerSyndicateId] = updatedSeller;
+          newState.syndicates[transfer.buyerSyndicateId] = updatedBuyer;
+
+          // Update portfolios
+          const sellerPort = newState.sovereignDebtCDSPortfolios[transfer.sellerSyndicateId];
+          if (sellerPort) {
+            newState.sovereignDebtCDSPortfolios[transfer.sellerSyndicateId] = {
+              ...sellerPort,
+              purchasedCDSIds: sellerPort.purchasedCDSIds.filter(id => id !== cdsId),
+            };
+          }
+          const buyerPort = newState.sovereignDebtCDSPortfolios[transfer.buyerSyndicateId] || {
+            syndicateId: transfer.buyerSyndicateId,
+            purchasedCDSIds: [],
+            writtenCDSIds: [],
+          };
+          newState.sovereignDebtCDSPortfolios[transfer.buyerSyndicateId] = {
+            ...buyerPort,
+            purchasedCDSIds: buyerPort.purchasedCDSIds.includes(cdsId)
+              ? buyerPort.purchasedCDSIds
+              : [...buyerPort.purchasedCDSIds, cdsId],
+          };
+
+          // Deactivate listings and bids
+          if (newState.cdsListings) {
+            for (const [lid, listing] of Object.entries(newState.cdsListings)) {
+              if (listing.cdsId === cdsId && listing.status === "active") {
+                newState.cdsListings[lid] = { ...listing, status: "completed" };
+              }
+            }
+          }
+          if (newState.cdsBids) {
+            for (const [bidId, b] of Object.entries(newState.cdsBids)) {
+              if (b.cdsId === cdsId && b.status === "active") {
+                if (b.bidderSyndicateId === transfer.buyerSyndicateId && b.bidPrice === transfer.price) {
+                  newState.cdsBids[bidId] = { ...b, status: "accepted" };
+                } else {
+                  newState.cdsBids[bidId] = { ...b, status: "rejected" };
+                }
+              }
+            }
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Sovereign Debt CDS Transferred] Ownership of CDS ${cdsId} transferred from ${transfer.sellerSyndicateId} to ${transfer.buyerSyndicateId} at price ${transfer.price} gold.`
+          );
+        }
+      }
     }
   }
 

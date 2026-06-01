@@ -252,7 +252,10 @@ export type Action =
   | { type: "PROPOSE_DEFAULT_PENALTY_WAIVER"; proposalId: string; syndicateId: string; targetSyndicateId: string; alertProposalId: string; timestamp: number }
   | { type: "VOTE_DEFAULT_PENALTY_WAIVER"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PURCHASE_CDS_CONTRACT"; cdsId: string; buyerSyndicateId: string; writerSyndicateId: string; targetSyndicateId: string; notionalValue: number; timestamp: number }
-  | { type: "SETTLE_CDS_CLAIMS"; cdsId: string; buyerSyndicateId: string; timestamp: number };
+  | { type: "SETTLE_CDS_CLAIMS"; cdsId: string; buyerSyndicateId: string; timestamp: number }
+  | { type: "LIST_CDS_FOR_SALE"; cdsId: string; sellerSyndicateId: string; askPrice: number; timestamp: number }
+  | { type: "BID_ON_CDS_CONTRACT"; cdsId: string; bidderSyndicateId: string; bidPrice: number; timestamp: number }
+  | { type: "TRANSFER_CDS_OWNERSHIP"; cdsId: string; sellerSyndicateId: string; buyerSyndicateId: string; price: number; timestamp: number };
 
 
 

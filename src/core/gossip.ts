@@ -3983,6 +3983,50 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge cdsListings using LWW
+  const cdsListings = { ...stateA.cdsListings };
+  if (stateB.cdsListings) {
+    for (const [id, valB] of Object.entries(stateB.cdsListings)) {
+      const valA = cdsListings[id];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        cdsListings[id] = valB;
+      }
+    }
+  }
+
+  // Merge cdsBids using LWW
+  const cdsBids = { ...stateA.cdsBids };
+  if (stateB.cdsBids) {
+    for (const [id, valB] of Object.entries(stateB.cdsBids)) {
+      const valA = cdsBids[id];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        cdsBids[id] = valB;
+      }
+    }
+  }
+
+  // Merge cdsTransfers using LWW
+  const cdsTransfers = { ...stateA.cdsTransfers };
+  if (stateB.cdsTransfers) {
+    for (const [id, valB] of Object.entries(stateB.cdsTransfers)) {
+      const valA = cdsTransfers[id];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        cdsTransfers[id] = valB;
+      }
+    }
+  }
+
+  // Merge cdsMarketSpreads using LWW
+  const cdsMarketSpreads = { ...stateA.cdsMarketSpreads };
+  if (stateB.cdsMarketSpreads) {
+    for (const [id, valB] of Object.entries(stateB.cdsMarketSpreads)) {
+      const valA = cdsMarketSpreads[id];
+      if (!valA || (valB as any).timestamp > (valA as any).timestamp) {
+        cdsMarketSpreads[id] = valB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -3992,6 +4036,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     sovereignDebtDefaultPenaltyWaivers,
     sovereignDebtCDSContracts,
     sovereignDebtCDSPortfolios,
+    cdsListings,
+    cdsBids,
+    cdsTransfers,
+    cdsMarketSpreads,
     swfReinsuranceOptionOrderBookDepths,
     swfReinsuranceOptionPenaltyWaiverProposals,
     swfReinsuranceOptionPenaltyWaiverVotes,

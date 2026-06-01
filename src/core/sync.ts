@@ -44213,6 +44213,414 @@ export function multiAgentStep(
   }
 
 
+  // Handle LIST_CDS_FOR_SALE action (AF-229)
+  if ((action as any).type === "LIST_CDS_FOR_SALE") {
+    const { cdsId, sellerSyndicateId, askPrice, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const contract = state.sovereignDebtCDSContracts?.[cdsId];
+    const sellerSyndicate = state.syndicates?.[sellerSyndicateId];
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required.`;
+    } else if (!sellerSyndicateId) {
+      rejectionReason = `Seller Syndicate ID is required.`;
+    } else if (askPrice === undefined || typeof askPrice !== "number" || askPrice <= 0) {
+      rejectionReason = `Ask price must be a positive number.`;
+    } else if (!contract) {
+      rejectionReason = `CDS contract ${cdsId} does not exist.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller Syndicate ${sellerSyndicateId} does not exist.`;
+    } else if (contract.buyerSyndicateId !== sellerSyndicateId) {
+      rejectionReason = `Syndicate ${sellerSyndicateId} is not the current buyer/owner of CDS contract ${cdsId}.`;
+    } else if (contract.status !== "active") {
+      rejectionReason = `CDS contract ${cdsId} is not active (current status: ${contract.status}).`;
+    } else if (!sellerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of seller syndicate ${sellerSyndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsListings = newState.cdsListings ? { ...newState.cdsListings } : {};
+      const listingId = cdsId;
+      const existingListing = newState.cdsListings[listingId];
+
+      if (!existingListing || existingListing.status !== "proposed") {
+        newState.cdsListings[listingId] = {
+          cdsId,
+          sellerSyndicateId,
+          askPrice,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsListings[listingId] = {
+        ...newState.cdsListings[listingId],
+        votes: newState.cdsListings[listingId].votes ? { ...newState.cdsListings[listingId].votes } : {},
+      };
+
+      newState.cdsListings[listingId].votes = {
+        ...newState.cdsListings[listingId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileSovereignDebtCDSContracts(newState, pack);
+
+      const listingStatus = newState.cdsListings?.[listingId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt CDS Listing Vote] Agent ${agentId} voted to list CDS ${cdsId} (Status: ${listingStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🛡️ Agent ${agentId} voted to list CDS contract ${cdsId} for sale by ${sellerSyndicateId} at ${askPrice} gold (Status: ${listingStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "list_cds_for_sale" as any,
+        cdsId,
+        agentId,
+        sellerSyndicateId,
+        askPrice,
+        status: listingStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle BID_ON_CDS_CONTRACT action (AF-229)
+  if ((action as any).type === "BID_ON_CDS_CONTRACT") {
+    const { cdsId, bidderSyndicateId, bidPrice, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const contract = state.sovereignDebtCDSContracts?.[cdsId];
+    const bidderSyndicate = state.syndicates?.[bidderSyndicateId];
+    const listing = state.cdsListings?.[cdsId];
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required.`;
+    } else if (!bidderSyndicateId) {
+      rejectionReason = `Bidder Syndicate ID is required.`;
+    } else if (bidPrice === undefined || typeof bidPrice !== "number" || bidPrice <= 0) {
+      rejectionReason = `Bid price must be a positive number.`;
+    } else if (!contract) {
+      rejectionReason = `CDS contract ${cdsId} does not exist.`;
+    } else if (!bidderSyndicate) {
+      rejectionReason = `Bidder Syndicate ${bidderSyndicateId} does not exist.`;
+    } else if (contract.buyerSyndicateId === bidderSyndicateId) {
+      rejectionReason = `Bidder Syndicate ${bidderSyndicateId} already owns CDS contract ${cdsId}.`;
+    } else if (contract.status !== "active") {
+      rejectionReason = `CDS contract ${cdsId} is not active (current status: ${contract.status}).`;
+    } else if (!listing || listing.status !== "active") {
+      rejectionReason = `No active listing found for CDS contract ${cdsId}.`;
+    } else if (!bidderSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of bidder syndicate ${bidderSyndicateId}.`;
+    } else if ((bidderSyndicate.warChest ?? 0) < bidPrice) {
+      rejectionReason = `Bidder Syndicate ${bidderSyndicateId} has insufficient war chest (${bidderSyndicate.warChest ?? 0} gold) for bid of ${bidPrice} gold.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsBids = newState.cdsBids ? { ...newState.cdsBids } : {};
+      const bidId = `${cdsId}_${bidderSyndicateId}`;
+      const existingBid = newState.cdsBids[bidId];
+
+      if (!existingBid || existingBid.status !== "proposed") {
+        newState.cdsBids[bidId] = {
+          bidId,
+          cdsId,
+          bidderSyndicateId,
+          bidPrice,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsBids[bidId] = {
+        ...newState.cdsBids[bidId],
+        votes: newState.cdsBids[bidId].votes ? { ...newState.cdsBids[bidId].votes } : {},
+      };
+
+      newState.cdsBids[bidId].votes = {
+        ...newState.cdsBids[bidId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileSovereignDebtCDSContracts(newState, pack);
+
+      const bidStatus = newState.cdsBids?.[bidId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt CDS Bid Vote] Agent ${agentId} voted to place bid on CDS ${cdsId} (Status: ${bidStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🛡️ Agent ${agentId} voted to bid ${bidPrice} gold on CDS contract ${cdsId} for ${bidderSyndicateId} (Status: ${bidStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "bid_on_cds_contract" as any,
+        cdsId,
+        agentId,
+        bidderSyndicateId,
+        bidPrice,
+        status: bidStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle TRANSFER_CDS_OWNERSHIP action (AF-229)
+  if ((action as any).type === "TRANSFER_CDS_OWNERSHIP") {
+    const { cdsId, sellerSyndicateId, buyerSyndicateId, price, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const contract = state.sovereignDebtCDSContracts?.[cdsId];
+    const sellerSyndicate = state.syndicates?.[sellerSyndicateId];
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required.`;
+    } else if (!sellerSyndicateId) {
+      rejectionReason = `Seller Syndicate ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (price === undefined || typeof price !== "number" || price <= 0) {
+      rejectionReason = `Price must be a positive number.`;
+    } else if (!contract) {
+      rejectionReason = `CDS contract ${cdsId} does not exist.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller Syndicate ${sellerSyndicateId} does not exist.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer Syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (contract.buyerSyndicateId !== sellerSyndicateId) {
+      rejectionReason = `Syndicate ${sellerSyndicateId} is not the current buyer/owner of CDS contract ${cdsId}.`;
+    } else if (contract.status !== "active") {
+      rejectionReason = `CDS contract ${cdsId} is not active (current status: ${contract.status}).`;
+    } else if ((buyerSyndicate.warChest ?? 0) < price) {
+      rejectionReason = `Buyer Syndicate ${buyerSyndicateId} has insufficient war chest (${buyerSyndicate.warChest ?? 0} gold) for transfer price of ${price} gold.`;
+    } else {
+      const isSellerMember = sellerSyndicate.members.includes(agentId);
+      const isBuyerMember = buyerSyndicate.members.includes(agentId);
+
+      if (!isSellerMember && !isBuyerMember) {
+        rejectionReason = `Agent ${agentId} is not a member of either seller syndicate ${sellerSyndicateId} or buyer syndicate ${buyerSyndicateId}.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsTransfers = newState.cdsTransfers ? { ...newState.cdsTransfers } : {};
+      const transferId = `${cdsId}_${sellerSyndicateId}_${buyerSyndicateId}`;
+      const existingTransfer = newState.cdsTransfers[transferId];
+
+      if (!existingTransfer || existingTransfer.status !== "proposed") {
+        newState.cdsTransfers[transferId] = {
+          cdsId,
+          sellerSyndicateId,
+          buyerSyndicateId,
+          price,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsTransfers[transferId] = {
+        ...newState.cdsTransfers[transferId],
+        votes: newState.cdsTransfers[transferId].votes ? { ...newState.cdsTransfers[transferId].votes } : {},
+      };
+
+      newState.cdsTransfers[transferId].votes = {
+        ...newState.cdsTransfers[transferId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileSovereignDebtCDSContracts(newState, pack);
+
+      const transferStatus = newState.cdsTransfers?.[transferId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt CDS Transfer Vote] Agent ${agentId} voted to transfer CDS ${cdsId} (Status: ${transferStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🛡️ Agent ${agentId} voted to transfer CDS contract ${cdsId} from ${sellerSyndicateId} to ${buyerSyndicateId} at ${price} gold (Status: ${transferStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "transfer_cds_ownership" as any,
+        cdsId,
+        agentId,
+        sellerSyndicateId,
+        buyerSyndicateId,
+        price,
+        status: transferStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+
   // Handle VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP action (AF-202)
   if ((action as any).type === "VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP") {
     const { proposalId, vote, timestamp } = action as any;

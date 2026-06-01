@@ -7370,6 +7370,208 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
     }
   }
 
+  // 1. Calculate Fair Market Value (FMV) and bid-ask spreads for all active CDS contracts
+  newState.cdsMarketSpreads = newState.cdsMarketSpreads ? { ...newState.cdsMarketSpreads } : {};
+  
+  for (const [cdsId, contract] of Object.entries(newState.sovereignDebtCDSContracts)) {
+    if (contract.status !== "active") continue;
+    const { targetSyndicateId, notionalValue } = contract;
+
+    const hasAuthorizedDefault = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
+      (alert: any) => alert.targetSyndicateId === targetSyndicateId && alert.status === "authorized" && !alert.resolved
+    );
+
+    let fairValue = 0;
+    if (hasAuthorizedDefault) {
+      fairValue = Math.round(notionalValue * 0.90);
+    } else {
+      const outstandingFees = newState.outstandingDeflectionFees?.[targetSyndicateId] ?? 0;
+      let enforcerHeat = 0;
+      let hasAsset = false;
+      if (newState.safehouses) {
+        for (const sh of Object.values(newState.safehouses)) {
+          if (sh.syndicateId === targetSyndicateId) {
+            hasAsset = true;
+            const h = newState.enforcementHeat?.[sh.roomId]?.heat ?? 0;
+            if (h > enforcerHeat) enforcerHeat = h;
+          }
+        }
+      }
+      if (newState.turfGuardOutposts) {
+        for (const op of Object.values(newState.turfGuardOutposts)) {
+          if ((op as any).syndicateId === targetSyndicateId) {
+            hasAsset = true;
+            const h = newState.enforcementHeat?.[(op as any).roomId]?.heat ?? 0;
+            if (h > enforcerHeat) enforcerHeat = h;
+          }
+        }
+      }
+      if (!hasAsset && newState.enforcementHeat) {
+        for (const entry of Object.values(newState.enforcementHeat)) {
+          if (entry.heat > enforcerHeat) enforcerHeat = entry.heat;
+        }
+      }
+
+      const baseRisk = 0.10;
+      const feeRisk = (outstandingFees / 1000) * 0.40;
+      const heatRisk = (enforcerHeat / 100) * 0.30;
+      const riskRatio = Math.min(0.85, baseRisk + feeRisk + heatRisk);
+      fairValue = Math.round(notionalValue * riskRatio);
+    }
+
+    let lowestAsk = 0;
+    if (newState.cdsListings) {
+      const activeListings = Object.values(newState.cdsListings).filter(
+        (listing: any) => listing.cdsId === cdsId && listing.status === "active"
+      );
+      if (activeListings.length > 0) {
+        lowestAsk = Math.min(...activeListings.map((l: any) => l.askPrice));
+      }
+    }
+
+    let highestBid = 0;
+    if (newState.cdsBids) {
+      const activeBids = Object.values(newState.cdsBids).filter(
+        (bid: any) => bid.cdsId === cdsId && bid.status === "active"
+      );
+      if (activeBids.length > 0) {
+        highestBid = Math.max(...activeBids.map((b: any) => b.bidPrice));
+      }
+    }
+
+    const spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
+
+    newState.cdsMarketSpreads[cdsId] = {
+      cdsId,
+      highestBid,
+      lowestAsk,
+      spread,
+      fairValue,
+      timestamp: newState.step,
+    };
+
+    // 2. Automated Arbitrage Bot Logic
+    if (lowestAsk > 0 && lowestAsk < fairValue && newState.cdsListings) {
+      const listing = Object.values(newState.cdsListings).find(
+        (l: any) => l.cdsId === cdsId && l.status === "active" && l.askPrice === lowestAsk
+      );
+      if (listing) {
+        const sellerSyndicateId = listing.sellerSyndicateId;
+        const writerSyndicateId = contract.writerSyndicateId;
+
+        const arbSyndicate = Object.values(newState.syndicates).find(
+          (synd: any) =>
+            synd.id !== sellerSyndicateId &&
+            synd.id !== writerSyndicateId &&
+            synd.id !== targetSyndicateId &&
+            (synd.warChest ?? 0) >= lowestAsk
+        );
+
+        if (arbSyndicate) {
+          if (!newState.cdsBids) newState.cdsBids = {};
+          const bidId = `${cdsId}_${arbSyndicate.id}_arb`;
+          newState.cdsBids[bidId] = {
+            bidId,
+            cdsId,
+            bidderSyndicateId: arbSyndicate.id,
+            bidPrice: lowestAsk,
+            status: "active",
+            timestamp: newState.step,
+            votes: {},
+          };
+          newState.journal.push(
+            `[Sovereign Debt CDS Arbitrage Bot] Syndicate ${arbSyndicate.id} arbitrage bot placed an active matching bid of ${lowestAsk} gold on undervalued CDS ${cdsId} (Fair Value: ${fairValue} gold).`
+          );
+          highestBid = lowestAsk;
+          newState.cdsMarketSpreads[cdsId].highestBid = highestBid;
+          newState.cdsMarketSpreads[cdsId].spread = lowestAsk - highestBid;
+        }
+      }
+    }
+
+    // 3. Automatic Bid Matching
+    if (lowestAsk > 0 && highestBid > 0 && highestBid >= lowestAsk && newState.cdsListings && newState.cdsBids) {
+      const matchingListing = Object.values(newState.cdsListings).find(
+        (l: any) => l.cdsId === cdsId && l.status === "active" && l.askPrice === lowestAsk
+      );
+      const matchingBid = Object.values(newState.cdsBids).find(
+        (b: any) => b.cdsId === cdsId && b.status === "active" && b.bidPrice === highestBid
+      );
+
+      if (matchingListing && matchingBid) {
+        const sellerSyndicateId = matchingListing.sellerSyndicateId;
+        const bidderSyndicateId = matchingBid.bidderSyndicateId;
+
+        const sellerSynd = newState.syndicates[sellerSyndicateId];
+        const bidderSynd = newState.syndicates[bidderSyndicateId];
+
+        if (sellerSynd && bidderSynd && (bidderSynd.warChest ?? 0) >= lowestAsk) {
+          newState.cdsListings[matchingListing.cdsId] = {
+            ...matchingListing,
+            status: "completed",
+          };
+          newState.cdsBids[matchingBid.bidId] = {
+            ...matchingBid,
+            status: "accepted",
+          };
+
+          newState.sovereignDebtCDSContracts[cdsId] = {
+            ...contract,
+            buyerSyndicateId: bidderSyndicateId,
+          };
+
+          const updatedSeller = {
+            ...sellerSynd,
+            warChest: (sellerSynd.warChest ?? 0) + lowestAsk,
+          };
+          const updatedBidder = {
+            ...bidderSynd,
+            warChest: Math.max(0, (bidderSynd.warChest ?? 0) - lowestAsk),
+          };
+          newState.syndicates[sellerSyndicateId] = updatedSeller;
+          newState.syndicates[bidderSyndicateId] = updatedBidder;
+          if (!newState.sovereignDebtCDSPortfolios) {
+            newState.sovereignDebtCDSPortfolios = {};
+          }
+
+          const sellerPort = newState.sovereignDebtCDSPortfolios[sellerSyndicateId];
+          if (sellerPort) {
+            newState.sovereignDebtCDSPortfolios[sellerSyndicateId] = {
+              ...sellerPort,
+              purchasedCDSIds: sellerPort.purchasedCDSIds.filter((id: string) => id !== cdsId),
+            };
+          }
+          const buyerPort = newState.sovereignDebtCDSPortfolios[bidderSyndicateId] || {
+            syndicateId: bidderSyndicateId,
+            purchasedCDSIds: [],
+            writtenCDSIds: [],
+          };
+          newState.sovereignDebtCDSPortfolios[bidderSyndicateId] = {
+            ...buyerPort,
+            purchasedCDSIds: buyerPort.purchasedCDSIds.includes(cdsId)
+              ? buyerPort.purchasedCDSIds
+              : [...buyerPort.purchasedCDSIds, cdsId],
+          };
+
+          for (const [lid, listing] of Object.entries(newState.cdsListings)) {
+            if (listing.cdsId === cdsId && listing.status === "active") {
+              newState.cdsListings[lid] = { ...listing, status: "completed" };
+            }
+          }
+          for (const [bid, b] of Object.entries(newState.cdsBids)) {
+            if (b.cdsId === cdsId && b.status === "active") {
+              newState.cdsBids[bid] = { ...b, status: "rejected" };
+            }
+          }
+
+          newState.journal.push(
+            `[Sovereign Debt CDS Matched Trade] Automatic bid matching executed for CDS ${cdsId}. Syndicate ${bidderSyndicateId} purchased the contract from Syndicate ${sellerSyndicateId} for ${lowestAsk} gold.`
+          );
+        }
+      }
+    }
+  }
+
   return newState;
 }
 
