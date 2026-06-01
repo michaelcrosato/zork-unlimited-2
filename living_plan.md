@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #56 (Ready for Cycle #57)
-* **Build/Test Status**: 🟢 PASS (All 252 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #57 (Ready for Cycle #58)
+* **Build/Test Status**: 🟢 PASS (All 257 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -334,17 +334,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire automatic defense outposts to automatically recruit local Turf Guards and dynamically intercept enforcer sweeps (`AF-56`).
 - [x] Write comprehensive integration and P2P mesh convergence tests (`AF-56`).
 
+### Phase 51: Tactical Defense Turrets (Completed)
+- [x] Define Turf Guard Defense Outpost Turret schemas and tactical properties in GameState (`AF-57`).
+- [x] Implement `CONSTRUCT_TURRET` decentralized consensus action with custom gold costs (`AF-57`).
+- [x] Wire tactical turrets to automatically strike down enforcer forces during sweeps, lowering sweep damage, deflecting lab raids, and collecting dynamic security premiums (`AF-57`).
+- [x] Write comprehensive integration and P2P mesh convergence tests (`AF-57`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-57`
-* **Objective**: Crime Syndicate Turf Guard Heavy Armored Defense Outposts & Tactical Defense Turrets.
-* **Why this matters**: Further expand the Syndicate regional control defense mechanisms by supporting tactical automated Defense Turrets inside established Outposts, providing syndicates with automated defensive options that strike down enforcers and protect front businesses from high-heat enforcer sweeps under a mulberry32-seeded combat simulation.
+**Task ID**: `AF-58`
+* **Objective**: Crime Syndicate Black Market Cargo Fleets & Contraband Smuggling Convoy Networks.
+* **Why this matters**: Further expand the Syndicate global market mechanics by supporting tactical caravan/fleet operations, allowing syndicates to mobilize collective contraband across regional routes under dynamic faction tax adjustments, enforcer sweeps, and pirate/ambush threat factors.
 * **Planned Actions**:
-  1. Define Turf Guard Defense Outpost Turret schemas and tactical properties in GameState.
-  2. Implement `CONSTRUCT_TURRET` decentralized consensus action with custom gold costs.
-  3. Wire tactical turrets to automatically strike down enforcer forces during sweeps, lowering sweep damage, deflecting lab raids, and collecting dynamic security premiums.
-  4. Write comprehensive integration and mesh convergence tests.
+  1. Define Crime Syndicate Smuggling Cargo Fleet / Convoy state schemas in GameState.
+  2. Implement `ORGANIZE_CONVOY` decentralized consensus action costing gold and cargo resources.
+  3. Wire smuggling convoy transport ticks across trade routes, calculating ambush risks, faction toll deductions, and payout distributions.
+  4. Write comprehensive unit, integration, and P2P mesh convergence tests.
 
 ---
 

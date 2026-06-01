@@ -472,17 +472,6 @@ describe("Syndicate Turf Guard Heavy Armored Defense Outposts & Tactical Defense
 
     nodeA.connect(nodeB);
 
-    const claim = {
-      roomId: "market",
-      syndicateId: "shadow_cartel",
-      timestamp: 1000,
-      dominance: 50,
-    };
-    nodeA.localState.syndicateTurfClaims = { market: claim };
-    nodeB.localState.syndicateTurfClaims = { market: claim };
-    nodeA.localState.syndicateTurf = { market: "shadow_cartel" };
-    nodeB.localState.syndicateTurf = { market: "shadow_cartel" };
-
     // Node A creates syndicate (registered in transaction history for convergence)
     const createSynRes = nodeA.executeLocalAction({
       type: "CREATE_SYNDICATE",
@@ -492,6 +481,16 @@ describe("Syndicate Turf Guard Heavy Armored Defense Outposts & Tactical Defense
       timestamp: 1000,
     } as any);
     expect(createSynRes.ok).toBe(true);
+
+    // Node A claims the turf in market using the proper action instead of manual assignment!
+    const resWar = nodeA.executeLocalAction({
+      type: "WAGE_TURF_WAR",
+      roomId: "market",
+      syndicateId: "shadow_cartel",
+      cost: 100,
+      timestamp: 1002,
+    } as any);
+    expect(resWar.ok).toBe(true);
 
     // Node A establishes outpost
     const outpostRes = nodeA.executeLocalAction({
