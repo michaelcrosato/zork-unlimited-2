@@ -7,6 +7,7 @@ import { GossipNode } from "../src/core/gossip.js";
 import { ParserPack } from "../src/parser/schema.js";
 import { computeStateHash } from "../src/core/hash.js";
 import { DecentralizedDungeonExpedition } from "../src/core/expedition.js";
+import { tickEconomy } from "../src/core/economy.js";
 
 describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
   const mockPack: ParserPack = {
@@ -472,5 +473,111 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
     expect(alice.localState.territoryControl?.clearing).toBe("shadow_guild");
     expect(bob.localState.territoryControl?.clearing).toBe("shadow_guild");
     expect(charlie.localState.territoryControl?.clearing).toBe("shadow_guild");
+  });
+
+  it("should trigger customizable dynamic narration events when a territory's controlling faction changes during mesh gossip convergence", () => {
+    const customPack: ParserPack = {
+      ...mockPack,
+      network_templates: {
+        arrival: "Welcome {peerId}",
+        departure: "Goodbye {peerId}",
+        sync: "Sync with {peerId}",
+        territory_conquest: "[ANNOUNCEMENT] {roomId} has been captured by the glorious {newFaction}! (Previously held by: {oldFaction})",
+      },
+    };
+
+    const nodeA = new GossipNode("alice", customPack, 42);
+    const nodeB = new GossipNode("bob", customPack, 42);
+    nodeA.connect(nodeB);
+
+    // 1. Alice claims clearing room for rangers at t = 100
+    nodeA.executeLocalAction({
+      type: "CLAIM_TERRITORY",
+      roomId: "clearing",
+      factionId: "rangers",
+      timestamp: 100,
+    } as any);
+
+    expect(nodeA.localState.territoryControl?.clearing).toBe("rangers");
+
+    // Bob has not processed this claim yet
+    expect(nodeB.localState.territoryControl?.clearing).toBeUndefined();
+    expect(nodeB.localState.journal).not.toContain("[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)");
+
+    // 2. Alice gossips to Bob. Bob should receive the claim and trigger the custom narration
+    nodeA.gossip();
+
+    expect(nodeB.localState.territoryControl?.clearing).toBe("rangers");
+    const journalStr = JSON.stringify(nodeB.localState.journal);
+    expect(journalStr).toContain("[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)");
+    expect(nodeB.localState.cooperativeSyncLog).toContain("[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)");
+
+    // 3. Bob now claims clearing room for shadow_guild at t = 200 (overriding rangers)
+    nodeB.executeLocalAction({
+      type: "CLAIM_TERRITORY",
+      roomId: "clearing",
+      factionId: "shadow_guild",
+      timestamp: 200,
+    } as any);
+
+    expect(nodeB.localState.territoryControl?.clearing).toBe("shadow_guild");
+
+    // 4. Bob gossips back to Alice. Alice should converge and trigger the conquest announcement shifting from rangers to shadow_guild
+    nodeB.gossip();
+
+    expect(nodeA.localState.territoryControl?.clearing).toBe("shadow_guild");
+    const aliceJournalStr = JSON.stringify(nodeA.localState.journal);
+    expect(aliceJournalStr).toContain("[ANNOUNCEMENT] clearing has been captured by the glorious shadow_guild! (Previously held by: rangers)");
+    expect(nodeA.localState.cooperativeSyncLog).toContain("[ANNOUNCEMENT] clearing has been captured by the glorious shadow_guild! (Previously held by: rangers)");
+  });
+
+  it("should track the player's total accumulated taxes (totalTaxesCollected) in state variables", () => {
+    const customPack: ParserPack = {
+      ...mockPack,
+      rooms: [
+        {
+          id: "clearing",
+          name: "Sunlit Clearing",
+          description: "A lovely open space.",
+          objects: [],
+          npcs: [],
+          faction: "rangers", // Controlled by rangers
+          exits: [],
+        },
+      ],
+    };
+
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      varsInit: { gold: 10 },
+      factionRepInit: { rangers: 20 }, // 20 rep gives Math.max(1, 20/10) = 2 tax per tick
+      territoryControlInit: { clearing: "rangers" },
+    });
+
+    expect(state.vars["gold"]).toBe(10);
+    expect(state.vars["totalTaxesCollected"]).toBeUndefined();
+
+    // Step 1 to 4: no tax collection yet (ticks every 5 steps)
+    for (let i = 0; i < 4; i++) {
+      state.step++;
+      state = applyEffect(state, { narrate: "waiting..." }).state;
+    }
+    // We tick economy manually or via step. Since we don't have NPCs, let's call tickEconomy directly.
+    state = tickEconomy(state, customPack);
+    expect(state.vars["gold"]).toBe(10);
+    expect(state.vars["totalTaxesCollected"]).toBeUndefined();
+
+    // Step 5: Tax collection triggers!
+    state.step = 5;
+    state = tickEconomy(state, customPack);
+    expect(state.vars["gold"]).toBe(12); // 10 + 2 tax
+    expect(state.vars["totalTaxesCollected"]).toBe(2); // Tracks total taxes collected
+
+    // Step 10: Tax collection triggers again!
+    state.step = 10;
+    state = tickEconomy(state, customPack);
+    expect(state.vars["gold"]).toBe(14); // 12 + 2 tax
+    expect(state.vars["totalTaxesCollected"]).toBe(4); // Tracks total accumulated taxes (2 + 2)
   });
 });

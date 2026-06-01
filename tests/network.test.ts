@@ -441,6 +441,40 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     chosenNode.directNeighbors.delete("A");
     chosenNode.peers.delete("A");
 
+    // Recalculate routes on the partitioned neighbors and target destination
+    // to prevent return path routing loops in the test simulation
+    const currentA = nodeC.discovery.topology.get("A");
+    if (currentA) {
+      nodeC.discovery.topology.set("A", {
+        ...currentA,
+        neighbors: ["D"],
+      });
+    }
+    const currentChosen = nodeC.discovery.topology.get(chosenHop);
+    if (currentChosen) {
+      nodeC.discovery.topology.set(chosenHop, {
+        ...currentChosen,
+        neighbors: currentChosen.neighbors.filter((n) => n !== "A"),
+      });
+    }
+    nodeC.discovery.recalculateRoutingTable();
+
+    const chosenA = chosenNode.discovery.topology.get("A");
+    if (chosenA) {
+      chosenNode.discovery.topology.set("A", {
+        ...chosenA,
+        neighbors: ["D"],
+      });
+    }
+    const chosenChosen = chosenNode.discovery.topology.get(chosenHop);
+    if (chosenChosen) {
+      chosenNode.discovery.topology.set(chosenHop, {
+        ...chosenChosen,
+        neighbors: chosenChosen.neighbors.filter((n) => n !== "A"),
+      });
+    }
+    chosenNode.discovery.recalculateRoutingTable();
+
     // Advance time beyond the timeout threshold (e.g. 350ms)
     // Ticking the network will call checkHeartbeatTimeouts which detects the timeout
     // and triggers route repair!

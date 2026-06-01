@@ -119,6 +119,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       if (totalTaxGold > 0) {
         const currentGold = newState.vars["gold"] ?? 0;
         newState.vars["gold"] = currentGold + totalTaxGold;
+        newState.vars["totalTaxesCollected"] = (newState.vars["totalTaxesCollected"] ?? 0) + totalTaxGold;
         newState.journal.push(`Collected ${totalTaxGold} gold in taxes from allied faction territories.`);
       }
     }
@@ -173,6 +174,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     if (totalTaxGold > 0) {
       const currentGold = newState.vars["gold"] ?? 0;
       newState.vars["gold"] = currentGold + totalTaxGold;
+      newState.vars["totalTaxesCollected"] = (newState.vars["totalTaxesCollected"] ?? 0) + totalTaxGold;
       newState.journal.push(`Collected ${totalTaxGold} gold in taxes from allied faction territories.`);
     }
   }

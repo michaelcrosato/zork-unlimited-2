@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #29 (Ready for Cycle #30)
-* **Build/Test Status**: 🟢 PASS (All 134 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #30 (Ready for Cycle #31)
+* **Build/Test Status**: 🟢 PASS (All 136 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -155,16 +155,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement periodic passive tax gold generation in state for controlled faction territories (`AF-29`).
 - [x] Write comprehensive unit and playtest tests asserting presence discounts, passive taxes, and control bonuses (`AF-29`).
 
+### Phase 25: Faction Conquest Narration & Tax Telemetry (Completed)
+- [x] Add customizable dynamic narration triggers for when a territory's controlling faction changes during mesh gossip convergence (`AF-30`).
+- [x] Implement state-based telemetry tracking of the player's total accumulated taxes (`totalTaxesCollected` in state variables) (`AF-30`).
+- [x] Write comprehensive unit and integration tests asserting faction claim narration and tax telemetry tracking (`AF-30`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-30`
-* **Objective**: Introduce faction conquest narration announcements and territory tax telemetry.
-* **Why this matters**: Narrating to players when territories shift hands or when tax income is collected from allied factions makes the decentralized world feel alive and reactive.
+**Task ID**: `AF-31`
+* **Objective**: Implement dynamic faction tax rate adjustment and mesh-wide tax policy vote arbitration.
+* **Why this matters**: Letting players or alliance nodes dynamically vote on faction tax rates and arbitrate tax policies mesh-wide via consensus makes the decentralized faction control system deep, strategic, and highly interactive.
 * **Planned Actions**:
-  1. Add customizable dynamic narration triggers for when a territory's controlling faction changes during mesh gossip convergence.
-  2. Implement state-based telemetry tracking of the player's total accumulated taxes (`totalTaxesCollected` in state variables).
-  3. Write comprehensive unit and integration tests asserting faction claim narration and tax telemetry tracking.
+  1. Add `taxPolicy` to faction state and support a `VOTE_TAX_RATE` decentralized action that proposes a rate.
+  2. Implement an arbitration and consensus rule that resolves tax rate votes across the mesh deterministically using vector clocks and voting majorities.
+  3. Write comprehensive unit tests for voting transactions, mesh convergence, and dynamic tax collection price scaling.
 
 ---
 

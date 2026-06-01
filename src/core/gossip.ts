@@ -613,6 +613,43 @@ export class GossipNode {
     // Reconcile territory claims to ensure regional control aligns perfectly with merged claims
     convergedState = reconcileTerritories(convergedState, this.pack);
 
+    // Detect territory control changes during gossip convergence
+    const oldControl = this.localState.territoryControl || {};
+    const newControl = convergedState.territoryControl || {};
+    for (const [roomId, newFactionId] of Object.entries(newControl)) {
+      const oldFactionId = oldControl[roomId];
+      if (newFactionId !== oldFactionId) {
+        let template = "";
+        if (this.pack && this.pack.network_templates) {
+          template = this.pack.network_templates.territory_conquest || "";
+        }
+        if (!template) {
+          template = "Control of territory {roomId} has shifted from {oldFactionId} to {factionId}!";
+        }
+        const oldFactionStr = oldFactionId || "none";
+        const formattedText = template
+          .replace(/{roomId}/g, roomId)
+          .replace(/{factionId}/g, newFactionId)
+          .replace(/{oldFactionId}/g, oldFactionStr)
+          .replace(/{oldFaction}/g, oldFactionStr)
+          .replace(/{newFaction}/g, newFactionId);
+
+        if (!convergedState.journal) {
+          convergedState.journal = [];
+        }
+        if (!convergedState.journal.includes(formattedText)) {
+          convergedState.journal.push(formattedText);
+        }
+
+        if (!convergedState.cooperativeSyncLog) {
+          convergedState.cooperativeSyncLog = [];
+        }
+        if (!convergedState.cooperativeSyncLog.includes(formattedText)) {
+          convergedState.cooperativeSyncLog.push(formattedText);
+        }
+      }
+    }
+
     // 7. Recalculate transaction counts to update vector clocks self-healingly
     const agentCounts: Record<string, number> = {};
     for (const tx of mergedTxs) {
