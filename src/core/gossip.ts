@@ -1885,6 +1885,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge cdos using LWW (Last-Write-Wins)
+  const cdos = { ...stateA.cdos };
+  if (stateB.cdos) {
+    for (const [key, cdoB] of Object.entries(stateB.cdos)) {
+      const cdoA = cdos[key];
+      if (!cdoA || cdoB.timestamp > cdoA.timestamp) {
+        cdos[key] = cdoB;
+      }
+    }
+  }
+
   // Merge reserveRatioVotes using LWW (Last-Write-Wins)
   const reserveRatioVotes = { ...stateA.reserveRatioVotes };
   if (stateB.reserveRatioVotes) {
@@ -2035,6 +2046,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     automatedBailouts,
     secondaryReserveVaults,
     secondaryReserveInvestments,
+    cdos,
   };
 }
 

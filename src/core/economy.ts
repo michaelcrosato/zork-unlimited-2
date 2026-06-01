@@ -2721,6 +2721,222 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     newState.secondaryReserveInvestments = updatedInvestments;
   }
 
+  // Periodic CDO Tranche Interest Distributions & Pro-Rata Default Write-Downs (AF-107)
+  if (newState.cdos && Object.keys(newState.cdos).length > 0) {
+    newState.cdos = { ...newState.cdos };
+    for (const [cdoId, cdo] of Object.entries(newState.cdos)) {
+      const updatedCdo = {
+        ...cdo,
+        assets: [...cdo.assets],
+        tranches: {
+          senior: { ...cdo.tranches.senior, ownership: { ...cdo.tranches.senior.ownership } },
+          mezzanine: { ...cdo.tranches.mezzanine, ownership: { ...cdo.tranches.mezzanine.ownership } },
+          equity: { ...cdo.tranches.equity, ownership: { ...cdo.tranches.equity.ownership } },
+        },
+        timestamp: newState.step,
+      };
+
+      let cashflowCollected = 0;
+      let totalWriteDown = 0;
+      const remainingAssets: any[] = [];
+
+      for (const asset of updatedCdo.assets) {
+        if (asset.type === "loan") {
+          const loan = asset.originalLoan;
+          if (loan) {
+            const loanRate = loan.refinancedInterestRate !== undefined ? loan.refinancedInterestRate : 5;
+            const interest = Math.floor((loan.amount * loanRate) / 100);
+
+            const updatedLoan = {
+              ...loan,
+              interestAccrued: loan.interestAccrued + interest,
+              timestamp: newState.step,
+            };
+            asset.originalLoan = updatedLoan;
+            asset.value = updatedLoan.amount + updatedLoan.interestAccrued;
+            cashflowCollected += interest;
+
+            if (newState.step > updatedLoan.dueStep) {
+              const agentId = updatedLoan.agentId;
+              const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+              const agentGold = newState.vars[goldKey] ?? 0;
+              const totalDue = updatedLoan.amount + updatedLoan.interestAccrued;
+
+              let collected = 0;
+              let remainingDue = totalDue;
+
+              if (agentGold >= totalDue) {
+                newState.vars[goldKey] = agentGold - totalDue;
+                collected = totalDue;
+                remainingDue = 0;
+              } else {
+                newState.vars[goldKey] = 0;
+                collected = agentGold;
+                remainingDue = totalDue - collected;
+              }
+
+              if (updatedLoan.collateralType === "safehouse") {
+                if (newState.safehouses) {
+                  newState.safehouses = { ...newState.safehouses };
+                  delete newState.safehouses[updatedLoan.collateralId];
+                }
+              } else if (updatedLoan.collateralType === "outpost") {
+                if (newState.turfGuardOutposts) {
+                  newState.turfGuardOutposts = { ...newState.turfGuardOutposts };
+                  delete newState.turfGuardOutposts[updatedLoan.collateralId];
+                }
+                if (newState.turfGuards) {
+                  newState.turfGuards = { ...newState.turfGuards };
+                  delete newState.turfGuards[updatedLoan.collateralId];
+                }
+              }
+
+              if (newState.enforcementHeat) {
+                newState.enforcementHeat = { ...newState.enforcementHeat };
+                const currentHeat = newState.enforcementHeat[updatedLoan.collateralId]?.heat ?? 0;
+                newState.enforcementHeat[updatedLoan.collateralId] = {
+                  roomId: updatedLoan.collateralId,
+                  heat: currentHeat + 15,
+                  timestamp: newState.step,
+                };
+              }
+
+              if (!newState.creditRatings) newState.creditRatings = {};
+              const currentRating = newState.creditRatings[agentId] ?? 100;
+              newState.creditRatings[agentId] = Math.max(0, currentRating - 50);
+
+              if (!newState.defaultAlerts) newState.defaultAlerts = {};
+              const alertKey = `${agentId}_${cdo.creatorSyndicateId}`;
+              newState.defaultAlerts[alertKey] = {
+                agentId,
+                syndicateId: cdo.creatorSyndicateId,
+                defaultStep: newState.step,
+                timestamp: newState.step,
+              };
+
+              newState.journal.push(`[CDO Asset Default] Packaged loan for agent ${agentId} inside CDO ${cdoId} defaulted. Collected ${collected} gold, remaining due ${remainingDue} written off.`);
+
+              cashflowCollected += collected;
+              totalWriteDown += remainingDue;
+            } else {
+              remainingAssets.push(asset);
+            }
+          }
+        } else if (asset.type === "investment") {
+          const vaults = getSecondaryReserveVaults(newState);
+          const vault = vaults[asset.assetId];
+          if (vault) {
+            let interest = 0;
+            if (vault.interestRate > 0) {
+              interest = Math.max(1, Math.floor(asset.value * vault.interestRate));
+            }
+
+            const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+            newState.seed = nextSeed;
+
+            const riskPercentage = Math.round(vault.sweepRisk * 100);
+            if (riskPercentage > 0 && sweepRoll <= riskPercentage) {
+              const lostGold = asset.value;
+              totalWriteDown += lostGold;
+              newState.journal.push(`[CDO Asset Sweep] Regulators swept vault ${vault.name} inside CDO ${cdoId}! Liquidated ${lostGold} gold investment.`);
+            } else {
+              asset.value += interest;
+              cashflowCollected += interest;
+              if (asset.originalInvestment) {
+                asset.originalInvestment.investedGold += interest;
+                asset.originalInvestment.timestamp = newState.step;
+              }
+              remainingAssets.push(asset);
+            }
+          } else {
+            remainingAssets.push(asset);
+          }
+        }
+      }
+
+      updatedCdo.assets = remainingAssets;
+
+      const S_target = Math.max(1, Math.floor(updatedCdo.tranches.senior.totalValue * updatedCdo.tranches.senior.interestRate));
+      const M_target = Math.max(1, Math.floor(updatedCdo.tranches.mezzanine.totalValue * updatedCdo.tranches.mezzanine.interestRate));
+      const E_target = Math.max(1, Math.floor(updatedCdo.tranches.equity.totalValue * updatedCdo.tranches.equity.interestRate));
+
+      let remainingCashflow = cashflowCollected;
+      const S_payout = updatedCdo.tranches.senior.totalValue > 0 ? Math.min(remainingCashflow, S_target) : 0;
+      remainingCashflow -= S_payout;
+
+      const M_payout = updatedCdo.tranches.mezzanine.totalValue > 0 ? Math.min(remainingCashflow, M_target) : 0;
+      remainingCashflow -= M_payout;
+
+      const E_payout = updatedCdo.tranches.equity.totalValue > 0 ? remainingCashflow : 0;
+
+      const payouts = [
+        { tranche: updatedCdo.tranches.senior, payout: S_payout },
+        { tranche: updatedCdo.tranches.mezzanine, payout: M_payout },
+        { tranche: updatedCdo.tranches.equity, payout: E_payout },
+      ];
+
+      for (const { tranche, payout } of payouts) {
+        if (payout > 0 && tranche.totalValue > 0) {
+          if (!newState.syndicates) newState.syndicates = {};
+          for (const [syndicateId, ownedValue] of Object.entries(tranche.ownership)) {
+            if (ownedValue > 0) {
+              const syndicate = newState.syndicates[syndicateId];
+              if (syndicate) {
+                const share = Math.floor(payout * (ownedValue / tranche.totalValue));
+                if (share > 0) {
+                  newState.syndicates[syndicateId] = {
+                    ...syndicate,
+                    warChest: (syndicate.warChest ?? 0) + share,
+                  };
+                  newState.journal.push(`[CDO Yield Payout] Syndicate ${syndicateId} earned ${share} gold payout from CDO ${cdoId} tranche ${tranche.trancheId}.`);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (totalWriteDown > 0) {
+        let remainingLoss = totalWriteDown;
+
+        const E_loss = Math.min(remainingLoss, updatedCdo.tranches.equity.totalValue);
+        remainingLoss -= E_loss;
+
+        const M_loss = Math.min(remainingLoss, updatedCdo.tranches.mezzanine.totalValue);
+        remainingLoss -= M_loss;
+
+        const S_loss = Math.min(remainingLoss, updatedCdo.tranches.senior.totalValue);
+        remainingLoss -= S_loss;
+
+        const losses = [
+          { tranche: updatedCdo.tranches.senior, loss: S_loss },
+          { tranche: updatedCdo.tranches.mezzanine, loss: M_loss },
+          { tranche: updatedCdo.tranches.equity, loss: E_loss },
+        ];
+
+        for (const { tranche, loss } of losses) {
+          if (loss > 0) {
+            const oldTotal = tranche.totalValue;
+            const newTotal = Math.max(0, oldTotal - loss);
+            tranche.totalValue = newTotal;
+
+            for (const [syndicateId, ownedValue] of Object.entries(tranche.ownership)) {
+              if (oldTotal > 0) {
+                tranche.ownership[syndicateId] = Math.max(0, Math.round(ownedValue * (newTotal / oldTotal)));
+              } else {
+                tranche.ownership[syndicateId] = 0;
+              }
+            }
+            newState.journal.push(`[CDO Write-Down] CDO ${cdoId} tranche ${tranche.trancheId} written down by -${loss} gold due to defaults (New value: ${newTotal}).`);
+          }
+        }
+      }
+
+      updatedCdo.totalValue = updatedCdo.tranches.senior.totalValue + updatedCdo.tranches.mezzanine.totalValue + updatedCdo.tranches.equity.totalValue;
+      newState.cdos[cdoId] = updatedCdo;
+    }
+  }
+
   return newState;
 }
 

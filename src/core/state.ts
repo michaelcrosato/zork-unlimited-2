@@ -1021,6 +1021,36 @@ export const SecondaryReserveInvestmentSchema = z.object({
 });
 export type SecondaryReserveInvestment = z.infer<typeof SecondaryReserveInvestmentSchema>;
 
+export const CDOTrancheSchema = z.object({
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  interestRate: z.number(),
+  sweepRiskExposure: z.number(),
+  totalValue: z.number().int().nonnegative(),
+  ownership: z.record(z.string(), z.number().int().nonnegative()),
+  timestamp: z.number().int(),
+});
+export type CDOTranche = z.infer<typeof CDOTrancheSchema>;
+
+export const CDOAssetSchema = z.object({
+  type: z.enum(["loan", "investment"]),
+  syndicateId: z.string(),
+  assetId: z.string(),
+  value: z.number().int().positive(),
+  originalLoan: SyndicateLoanSchema.optional(),
+  originalInvestment: SecondaryReserveInvestmentSchema.optional(),
+});
+export type CDOAsset = z.infer<typeof CDOAssetSchema>;
+
+export const CDOSchema = z.object({
+  id: z.string(),
+  creatorSyndicateId: z.string(),
+  assets: z.array(CDOAssetSchema),
+  totalValue: z.number().int().positive(),
+  tranches: z.record(z.enum(["senior", "mezzanine", "equity"]), CDOTrancheSchema),
+  timestamp: z.number().int(),
+});
+export type CDO = z.infer<typeof CDOSchema>;
+
 export const DEFAULT_SECONDARY_RESERVE_VAULTS: Record<string, { name: string; interestRate: number; sweepRisk: number }> = {
   safe_savings: {
     name: "Safe Savings Vault",
@@ -1288,6 +1318,7 @@ export const GameStateSchema = z.object({
   automatedBailouts: z.record(z.string(), AutomatedBailoutSchema).optional(),
   secondaryReserveVaults: z.record(z.string(), SecondaryReserveVaultSchema).optional(),
   secondaryReserveInvestments: z.record(z.string(), z.record(z.string(), SecondaryReserveInvestmentSchema)).optional(),
+  cdos: z.record(z.string(), CDOSchema).optional(),
 });
 
 
@@ -2230,6 +2261,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     automatedBailouts: rest.automatedBailouts ? JSON.parse(JSON.stringify(rest.automatedBailouts)) : undefined,
     secondaryReserveVaults: rest.secondaryReserveVaults ? JSON.parse(JSON.stringify(rest.secondaryReserveVaults)) : undefined,
     secondaryReserveInvestments: rest.secondaryReserveInvestments ? JSON.parse(JSON.stringify(rest.secondaryReserveInvestments)) : undefined,
+    cdos: rest.cdos ? JSON.parse(JSON.stringify(rest.cdos)) : undefined,
   };
   return clone;
 }

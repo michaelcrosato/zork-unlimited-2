@@ -17598,6 +17598,366 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized PACKAGE_LOAN_CDO action (AF-107)
+  if ((action as any).type === "PACKAGE_LOAN_CDO") {
+    const { cdoId, creatorSyndicateId, assets, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const creatorSyndicate = state.syndicates?.[creatorSyndicateId];
+
+    if (!cdoId) {
+      rejectionReason = `CDO ID is required to package loans into CDO.`;
+    } else if (!creatorSyndicateId) {
+      rejectionReason = `Creator Syndicate ID is required.`;
+    } else if (!creatorSyndicate) {
+      rejectionReason = `Syndicate ${creatorSyndicateId} does not exist.`;
+    } else if (!creatorSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${creatorSyndicateId} and cannot package CDO.`;
+    } else if (!assets || !Array.isArray(assets) || assets.length === 0) {
+      rejectionReason = `Asset pool list is required and cannot be empty.`;
+    } else if (state.cdos?.[cdoId]) {
+      rejectionReason = `CDO with ID ${cdoId} already exists.`;
+    } else {
+      // Validate all assets
+      let assetsValid = true;
+      for (const asset of assets) {
+        if (!asset.type || !asset.syndicateId || !asset.assetId) {
+          rejectionReason = `Invalid asset schema. Each asset must contain type, syndicateId, and assetId.`;
+          assetsValid = false;
+          break;
+        }
+
+        if (asset.syndicateId !== creatorSyndicateId) {
+          rejectionReason = `Syndicate ${creatorSyndicateId} cannot package asset owned by syndicate ${asset.syndicateId}.`;
+          assetsValid = false;
+          break;
+        }
+
+        if (asset.type === "loan") {
+          const bank = state.syndicateBanks?.[creatorSyndicateId];
+          const loan = bank?.loans?.[asset.assetId];
+          if (!loan) {
+            rejectionReason = `Loan for agent ${asset.assetId} does not exist in syndicate bank ${creatorSyndicateId}.`;
+            assetsValid = false;
+            break;
+          }
+        } else if (asset.type === "investment") {
+          const investment = state.secondaryReserveInvestments?.[creatorSyndicateId]?.[asset.assetId];
+          if (!investment || investment.investedGold <= 0) {
+            rejectionReason = `Reserve investment in vault ${asset.assetId} does not exist or has no gold for syndicate ${creatorSyndicateId}.`;
+            assetsValid = false;
+            break;
+          }
+        } else {
+          rejectionReason = `Invalid asset type ${asset.type}. Must be loan or investment.`;
+          assetsValid = false;
+          break;
+        }
+      }
+
+      if (assetsValid) {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && creatorSyndicate) {
+      const validatedAssets: any[] = [];
+      let totalValue = 0;
+
+      newState.syndicateBanks = state.syndicateBanks ? { ...state.syndicateBanks } : {};
+      newState.secondaryReserveInvestments = state.secondaryReserveInvestments ? { ...state.secondaryReserveInvestments } : {};
+
+      if (newState.syndicateBanks[creatorSyndicateId]) {
+        newState.syndicateBanks[creatorSyndicateId] = {
+          ...newState.syndicateBanks[creatorSyndicateId],
+          loans: newState.syndicateBanks[creatorSyndicateId].loans ? { ...newState.syndicateBanks[creatorSyndicateId].loans } : {},
+        };
+      }
+      if (newState.secondaryReserveInvestments[creatorSyndicateId]) {
+        newState.secondaryReserveInvestments[creatorSyndicateId] = {
+          ...newState.secondaryReserveInvestments[creatorSyndicateId],
+        };
+      }
+
+      for (const asset of assets) {
+        if (asset.type === "loan") {
+          const loan = state.syndicateBanks![creatorSyndicateId].loans![asset.assetId];
+          const loanVal = loan.amount + loan.interestAccrued;
+          totalValue += loanVal;
+
+          validatedAssets.push({
+            type: "loan",
+            syndicateId: creatorSyndicateId,
+            assetId: asset.assetId,
+            value: loanVal,
+            originalLoan: { ...loan },
+          });
+
+          delete newState.syndicateBanks[creatorSyndicateId].loans![asset.assetId];
+        } else if (asset.type === "investment") {
+          const investment = state.secondaryReserveInvestments![creatorSyndicateId][asset.assetId];
+          const investVal = investment.investedGold;
+          totalValue += investVal;
+
+          validatedAssets.push({
+            type: "investment",
+            syndicateId: creatorSyndicateId,
+            assetId: asset.assetId,
+            value: investVal,
+            originalInvestment: { ...investment },
+          });
+
+          delete newState.secondaryReserveInvestments[creatorSyndicateId][asset.assetId];
+        }
+      }
+
+      const S = Math.floor(totalValue * 0.50);
+      const M = Math.floor(totalValue * 0.30);
+      const E = totalValue - S - M;
+
+      newState.cdos = {
+        ...(state.cdos || {}),
+        [cdoId]: {
+          id: cdoId,
+          creatorSyndicateId,
+          assets: validatedAssets,
+          totalValue,
+          tranches: {
+            senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: S, ownership: { [creatorSyndicateId]: S }, timestamp },
+            mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: M, ownership: { [creatorSyndicateId]: M }, timestamp },
+            equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: E, ownership: { [creatorSyndicateId]: E }, timestamp },
+          },
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Package] Syndicate ${creatorSyndicateId} packaged ${assets.length} assets into CDO ${cdoId} with total value ${totalValue} gold (Senior: ${S}, Mezzanine: ${M}, Equity: ${E}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📦 CDO packaged! Syndicate ${creatorSyndicateId} created Collateralized Debt Obligation ${cdoId} valuing ${totalValue} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "cdo_packaged" as any,
+        cdoId,
+        creatorSyndicateId,
+        totalValue,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized TRADE_CDO_TRANCHE action (AF-107)
+  if ((action as any).type === "TRADE_CDO_TRANCHE") {
+    const { cdoId, trancheId, sellerSyndicateId, buyerSyndicateId, amount, goldPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const cdo = state.cdos?.[cdoId];
+    const sellerSyndicate = state.syndicates?.[sellerSyndicateId];
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+    const tranche = cdo?.tranches?.[trancheId as "senior" | "mezzanine" | "equity"];
+    const sellerOwnership = tranche?.ownership?.[sellerSyndicateId] ?? 0;
+
+    if (!cdoId) {
+      rejectionReason = `CDO ID is required to trade CDO tranche.`;
+    } else if (!trancheId) {
+      rejectionReason = `Tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (!sellerSyndicateId) {
+      rejectionReason = `Seller Syndicate ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Trade stake amount must be a positive integer.`;
+    } else if (goldPrice === undefined || goldPrice < 0 || !Number.isInteger(goldPrice)) {
+      rejectionReason = `Gold price must be a non-negative integer.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${cdoId} does not exist.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller syndicate ${sellerSyndicateId} does not exist.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (!sellerSyndicate.members.includes(agentId) && !buyerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} must be a member of the buyer or seller syndicate to trade.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist in CDO ${cdoId}.`;
+    } else if (sellerOwnership < amount) {
+      rejectionReason = `Seller syndicate ${sellerSyndicateId} has insufficient owned stake in CDO ${cdoId} tranche ${trancheId} (has ${sellerOwnership}, requested ${amount}).`;
+    } else if (goldPrice > 0 && (buyerSyndicate.warChest ?? 0) < goldPrice) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} has insufficient gold in its war chest to pay price of ${goldPrice} (has ${buyerSyndicate.warChest ?? 0}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && cdo && tranche) {
+      const seller = state.syndicates![sellerSyndicateId];
+      const buyer = state.syndicates![buyerSyndicateId];
+
+      newState.cdos = { ...state.cdos };
+      const updatedCdo = {
+        ...cdo,
+        tranches: {
+          ...cdo.tranches,
+          [trancheId as "senior" | "mezzanine" | "equity"]: {
+            ...tranche,
+            ownership: {
+              ...tranche.ownership,
+              [sellerSyndicateId]: sellerOwnership - amount,
+              [buyerSyndicateId]: (tranche.ownership?.[buyerSyndicateId] ?? 0) + amount,
+            },
+            timestamp,
+          },
+        },
+        timestamp,
+      };
+      newState.cdos[cdoId] = updatedCdo;
+
+      if (goldPrice > 0) {
+        newState.syndicates = state.syndicates ? { ...state.syndicates } : {};
+        newState.syndicates[buyerSyndicateId] = {
+          ...buyer,
+          warChest: (buyer.warChest ?? 0) - goldPrice,
+        } as any;
+        newState.syndicates[sellerSyndicateId] = {
+          ...seller,
+          warChest: (seller.warChest ?? 0) + goldPrice,
+        } as any;
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Tranche Trade] Syndicate ${sellerSyndicateId} traded ${amount} stake of CDO ${cdoId} tranche ${trancheId} to Syndicate ${buyerSyndicateId} for ${goldPrice} gold.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🤝 CDO tranche traded! ${sellerSyndicateId} sold ${amount} stake of ${cdoId} (${trancheId}) to ${buyerSyndicateId} for ${goldPrice} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "cdo_tranche_traded" as any,
+        cdoId,
+        trancheId,
+        sellerSyndicateId,
+        buyerSyndicateId,
+        amount,
+        goldPrice,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {
