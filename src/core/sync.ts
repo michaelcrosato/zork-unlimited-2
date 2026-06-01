@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -14474,6 +14474,287 @@ export function multiAgentStep(
         premiumCost,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_REINSURANCE_POOL action (AF-101)
+  if ((action as any).type === "PROPOSE_REINSURANCE_POOL") {
+    const { syndicateIdA, syndicateIdB, maxLiquidityLimit, targetState, timestamp } = action as any;
+    const votedState = targetState !== false; // Defaults to true if undefined
+    const pairKey = [syndicateIdA || "", syndicateIdB || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndA = state.syndicates?.[syndicateIdA];
+    const syndB = state.syndicates?.[syndicateIdB];
+
+    if (!syndicateIdA || !syndicateIdB) {
+      rejectionReason = `Both syndicateIdA and syndicateIdB are required to propose a reinsurance pool.`;
+    } else if (!syndA) {
+      rejectionReason = `Syndicate ${syndicateIdA} does not exist.`;
+    } else if (!syndB) {
+      rejectionReason = `Syndicate ${syndicateIdB} does not exist.`;
+    } else if (syndicateIdA === syndicateIdB) {
+      rejectionReason = `Cannot form reinsurance contract with the same syndicate.`;
+    } else if (maxLiquidityLimit === undefined || maxLiquidityLimit <= 0 || !Number.isInteger(maxLiquidityLimit)) {
+      rejectionReason = `Max liquidity limit must be a positive integer.`;
+    } else if (!syndA.members.includes(agentId) && !syndB.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of either syndicate A or B.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const reinsuranceVotes = { ...(state.reinsuranceVotes || {}) };
+      if (!reinsuranceVotes[pairKey]) {
+        reinsuranceVotes[pairKey] = {};
+      } else {
+        reinsuranceVotes[pairKey] = { ...reinsuranceVotes[pairKey] };
+      }
+
+      const existingVote = reinsuranceVotes[pairKey][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        reinsuranceVotes[pairKey][agentId] = {
+          targetState: votedState,
+          maxLiquidityLimit,
+          timestamp,
+        };
+        newState.reinsuranceVotes = reinsuranceVotes;
+        newState = reconcileReinsurancePools(newState, pack);
+
+        const activeContract = newState.reinsuranceContracts?.[pairKey]?.active ?? false;
+        const currentLimit = newState.reinsuranceContracts?.[pairKey]?.maxLiquidityLimit ?? maxLiquidityLimit;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Reinsurance] Agent ${agentId} voted ${votedState ? "FOR" : "AGAINST"} reinsurance contract between ${syndicateIdA} and ${syndicateIdB} with limit ${maxLiquidityLimit} (Status: ${activeContract ? "ACTIVE" : "PENDING/INACTIVE"}, Consensual Limit: ${currentLimit}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🛡️ Reinsurance vote cast by ${agentId} for ${syndicateIdA} & ${syndicateIdB} (Limit: ${maxLiquidityLimit}, Active: ${activeContract}).`,
+        } as any);
+
+        customEvents.push({
+          type: "reinsurance_pool_proposed" as any,
+          syndicateIdA,
+          syndicateIdB,
+          agentId,
+          maxLiquidityLimit,
+          targetState: votedState,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized TRANSFER_REINSURANCE_LIQUIDITY action (AF-101)
+  if ((action as any).type === "TRANSFER_REINSURANCE_LIQUIDITY") {
+    const { proposalId, fromSyndicateId, toSyndicateId, amount, targetState, timestamp } = action as any;
+    const votedState = targetState !== false;
+    const pairKey = [fromSyndicateId || "", toSyndicateId || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndFrom = state.syndicates?.[fromSyndicateId];
+    const syndTo = state.syndicates?.[toSyndicateId];
+    const contract = state.reinsuranceContracts?.[pairKey];
+    const sourcePool = state.jointLoanInsurancePools?.[fromSyndicateId];
+    const destPool = state.jointLoanInsurancePools?.[toSyndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required to transfer reinsurance liquidity.`;
+    } else if (!fromSyndicateId || !toSyndicateId) {
+      rejectionReason = `Both fromSyndicateId and toSyndicateId are required.`;
+    } else if (!syndFrom) {
+      rejectionReason = `Source syndicate ${fromSyndicateId} does not exist.`;
+    } else if (!syndTo) {
+      rejectionReason = `Destination syndicate ${toSyndicateId} does not exist.`;
+    } else if (fromSyndicateId === toSyndicateId) {
+      rejectionReason = `Cannot transfer liquidity to the same syndicate.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Transfer amount must be a positive integer.`;
+    } else if (!syndFrom.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of the sending syndicate ${fromSyndicateId} and cannot vote on transfer.`;
+    } else if (!contract || !contract.active) {
+      rejectionReason = `Active reinsurance contract does not exist between ${fromSyndicateId} and ${toSyndicateId}.`;
+    } else if (!sourcePool) {
+      rejectionReason = `Insurance pool for source syndicate ${fromSyndicateId} is not established.`;
+    } else if (!destPool) {
+      rejectionReason = `Insurance pool for destination syndicate ${toSyndicateId} is not established.`;
+    } else if (sourcePool.poolGold < amount) {
+      rejectionReason = `Source pool has insufficient gold (${sourcePool.poolGold}) to transfer ${amount}.`;
+    } else {
+      // Validate liquidity limit
+      const isAtoB = (fromSyndicateId === contract.syndicateIdA);
+      let allowed = false;
+      if (isAtoB) {
+        const repay = Math.min(amount, contract.borrowedAfromB);
+        const excess = amount - repay;
+        if (contract.borrowedBfromA + excess <= contract.maxLiquidityLimit) {
+          allowed = true;
+        } else {
+          rejectionReason = `Transfer would exceed max liquidity limit of ${contract.maxLiquidityLimit} (excess of ${contract.borrowedBfromA + excess - contract.maxLiquidityLimit}).`;
+        }
+      } else {
+        const repay = Math.min(amount, contract.borrowedBfromA);
+        const excess = amount - repay;
+        if (contract.borrowedAfromB + excess <= contract.maxLiquidityLimit) {
+          allowed = true;
+        } else {
+          rejectionReason = `Transfer would exceed max liquidity limit of ${contract.maxLiquidityLimit} (excess of ${contract.borrowedAfromB + excess - contract.maxLiquidityLimit}).`;
+        }
+      }
+
+      if (allowed) {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const reinsuranceTransferVotes = { ...(state.reinsuranceTransferVotes || {}) };
+      if (!reinsuranceTransferVotes[proposalId]) {
+        reinsuranceTransferVotes[proposalId] = {};
+      } else {
+        reinsuranceTransferVotes[proposalId] = { ...reinsuranceTransferVotes[proposalId] };
+      }
+
+      const existingVote = reinsuranceTransferVotes[proposalId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        reinsuranceTransferVotes[proposalId][agentId] = {
+          fromSyndicateId,
+          toSyndicateId,
+          amount,
+          targetState: votedState,
+          timestamp,
+        };
+        newState.reinsuranceTransferVotes = reinsuranceTransferVotes;
+        
+        const priorExecuted = newState.executedReinsuranceTransfers?.[proposalId] ?? false;
+        newState = reconcileReinsuranceTransfers(newState, pack);
+        const newlyExecuted = newState.executedReinsuranceTransfers?.[proposalId] ?? false;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Reinsurance] Agent ${agentId} voted ${votedState ? "FOR" : "AGAINST"} liquidity transfer proposal ${proposalId} of ${amount} gold from ${fromSyndicateId} to ${toSyndicateId} (Executed: ${newlyExecuted}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Liquidity transfer vote cast by ${agentId} for proposal ${proposalId} (Amount: ${amount}, Approved: ${newlyExecuted}).`,
+        } as any);
+
+        customEvents.push({
+          type: "reinsurance_liquidity_transfer_proposed" as any,
+          proposalId,
+          fromSyndicateId,
+          toSyndicateId,
+          amount,
+          agentId,
+          targetState: votedState,
+          timestamp,
+          executed: newlyExecuted,
+        });
+      }
     }
 
     newState.step += 1;

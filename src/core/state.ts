@@ -862,6 +862,34 @@ export const AgentPremiumPolicySchema = z.object({
 });
 export type AgentPremiumPolicy = z.infer<typeof AgentPremiumPolicySchema>;
 
+export const ReinsuranceVoteSchema = z.object({
+  targetState: z.boolean(),
+  maxLiquidityLimit: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceVote = z.infer<typeof ReinsuranceVoteSchema>;
+
+export const ReinsuranceContractSchema = z.object({
+  id: z.string(),
+  syndicateIdA: z.string(),
+  syndicateIdB: z.string(),
+  maxLiquidityLimit: z.number().int().nonnegative(),
+  active: z.boolean(),
+  borrowedAfromB: z.number().int().nonnegative(),
+  borrowedBfromA: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceContract = z.infer<typeof ReinsuranceContractSchema>;
+
+export const ReinsuranceTransferVoteSchema = z.object({
+  fromSyndicateId: z.string(),
+  toSyndicateId: z.string(),
+  amount: z.number().int().nonnegative(),
+  targetState: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceTransferVote = z.infer<typeof ReinsuranceTransferVoteSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1090,6 +1118,10 @@ export const GameStateSchema = z.object({
   groupDefaults: z.record(z.string(), z.number().int()).optional(),
   jointLoanInsurancePools: z.record(z.string(), JointLoanInsurancePoolSchema).optional(),
   agentPremiumPolicies: z.record(z.string(), AgentPremiumPolicySchema).optional(),
+  reinsuranceContracts: z.record(z.string(), ReinsuranceContractSchema).optional(),
+  reinsuranceVotes: z.record(z.string(), z.record(z.string(), ReinsuranceVoteSchema)).optional(),
+  reinsuranceTransferVotes: z.record(z.string(), z.record(z.string(), ReinsuranceTransferVoteSchema)).optional(),
+  executedReinsuranceTransfers: z.record(z.string(), z.boolean()).optional(),
 });
 
 
@@ -1244,6 +1276,10 @@ export const createInitialState = (options: {
     groupDefaults: {},
     jointLoanInsurancePools: {},
     agentPremiumPolicies: {},
+    reinsuranceContracts: {},
+    reinsuranceVotes: {},
+    reinsuranceTransferVotes: {},
+    executedReinsuranceTransfers: {},
   };
 };
 
@@ -1971,6 +2007,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     creditRecoveries: rest.creditRecoveries ? JSON.parse(JSON.stringify(rest.creditRecoveries)) : undefined,
     jointLoanInsurancePools: rest.jointLoanInsurancePools ? JSON.parse(JSON.stringify(rest.jointLoanInsurancePools)) : undefined,
     agentPremiumPolicies: rest.agentPremiumPolicies ? JSON.parse(JSON.stringify(rest.agentPremiumPolicies)) : undefined,
+    reinsuranceContracts: rest.reinsuranceContracts ? JSON.parse(JSON.stringify(rest.reinsuranceContracts)) : undefined,
+    reinsuranceVotes: rest.reinsuranceVotes ? JSON.parse(JSON.stringify(rest.reinsuranceVotes)) : undefined,
+    reinsuranceTransferVotes: rest.reinsuranceTransferVotes ? JSON.parse(JSON.stringify(rest.reinsuranceTransferVotes)) : undefined,
+    executedReinsuranceTransfers: rest.executedReinsuranceTransfers ? { ...rest.executedReinsuranceTransfers } : undefined,
   };
   return clone;
 }
@@ -3603,6 +3643,186 @@ export function reconcileJointLoanUnderwrites(state: GameState, pack: any): Game
 
   if (underwritesChanged) {
     newState.jointLoanUnderwrites = updatedUnderwrites;
+  }
+
+  return newState;
+}
+
+export function reconcileReinsurancePools(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    reinsuranceContracts: { ...(state.reinsuranceContracts || {}) },
+  };
+
+  if (!newState.reinsuranceVotes) {
+    newState.reinsuranceVotes = {};
+  }
+
+  for (const [pairKey, votes] of Object.entries(newState.reinsuranceVotes)) {
+    const parts = pairKey.split(":");
+    if (parts.length !== 2) continue;
+    const [syndicateIdA, syndicateIdB] = parts;
+
+    const syndA = newState.syndicates?.[syndicateIdA];
+    const syndB = newState.syndicates?.[syndicateIdB];
+    if (!syndA || !syndB) continue;
+
+    // Count votes for syndicate A
+    let yesA = 0;
+    let noA = 0;
+    for (const member of syndA.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesA++;
+        else noA++;
+      }
+    }
+
+    // Count votes for syndicate B
+    let yesB = 0;
+    let noB = 0;
+    for (const member of syndB.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesB++;
+        else noB++;
+      }
+    }
+
+    // Double majority approval
+    const approvedA = yesA > 0 && yesA >= noA;
+    const approvedB = yesB > 0 && yesB >= noB;
+    const isApproved = approvedA && approvedB;
+
+    if (isApproved) {
+      // Find the minimum maxLiquidityLimit among all yes voters
+      let minLimit = Infinity;
+      for (const v of Object.values(votes)) {
+        if (v.targetState && v.maxLiquidityLimit < minLimit) {
+          minLimit = v.maxLiquidityLimit;
+        }
+      }
+      if (minLimit === Infinity) minLimit = 100; // fallback
+
+      const existingContract = newState.reinsuranceContracts[pairKey];
+      newState.reinsuranceContracts[pairKey] = {
+        id: pairKey,
+        syndicateIdA,
+        syndicateIdB,
+        maxLiquidityLimit: minLimit,
+        active: true,
+        borrowedAfromB: existingContract?.borrowedAfromB ?? 0,
+        borrowedBfromA: existingContract?.borrowedBfromA ?? 0,
+        timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+      };
+    } else {
+      const existingContract = newState.reinsuranceContracts[pairKey];
+      if (existingContract) {
+        newState.reinsuranceContracts[pairKey] = {
+          ...existingContract,
+          active: false,
+          timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), existingContract.timestamp),
+        };
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileReinsuranceTransfers(state: GameState, pack: any): GameState {
+  let newState = {
+    ...state,
+    jointLoanInsurancePools: state.jointLoanInsurancePools ? { ...state.jointLoanInsurancePools } : {},
+    reinsuranceContracts: state.reinsuranceContracts ? { ...state.reinsuranceContracts } : {},
+    executedReinsuranceTransfers: state.executedReinsuranceTransfers ? { ...state.executedReinsuranceTransfers } : {},
+  };
+
+  if (!newState.reinsuranceTransferVotes) {
+    newState.reinsuranceTransferVotes = {};
+  }
+
+  for (const [proposalId, votes] of Object.entries(newState.reinsuranceTransferVotes)) {
+    if (newState.executedReinsuranceTransfers[proposalId]) continue;
+
+    // Get any vote to find fromSyndicateId, toSyndicateId, amount
+    const firstVote = Object.values(votes)[0];
+    if (!firstVote) continue;
+
+    const { fromSyndicateId, toSyndicateId, amount } = firstVote;
+    const syndFrom = newState.syndicates?.[fromSyndicateId];
+    if (!syndFrom) continue;
+
+    // Count votes from sending syndicate
+    let yes = 0;
+    let no = 0;
+    for (const member of syndFrom.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yes++;
+        else no++;
+      }
+    }
+
+    const isApproved = yes > 0 && yes >= no;
+    if (isApproved) {
+      // Execute the transfer!
+      const sourcePool = newState.jointLoanInsurancePools[fromSyndicateId];
+      const destPool = newState.jointLoanInsurancePools[toSyndicateId];
+      const pairKey = [fromSyndicateId, toSyndicateId].sort().join(":");
+      const contract = newState.reinsuranceContracts[pairKey];
+
+      if (sourcePool && destPool && contract && contract.active) {
+        if (sourcePool.poolGold >= amount) {
+          // Perform transfer calculation
+          const isAtoB = (fromSyndicateId === contract.syndicateIdA);
+          let allowed = false;
+          let newBorrowedAfromB = contract.borrowedAfromB;
+          let newBorrowedBfromA = contract.borrowedBfromA;
+
+          if (isAtoB) {
+            const repay = Math.min(amount, contract.borrowedAfromB);
+            const excess = amount - repay;
+            if (contract.borrowedBfromA + excess <= contract.maxLiquidityLimit) {
+              newBorrowedAfromB -= repay;
+              newBorrowedBfromA += excess;
+              allowed = true;
+            }
+          } else {
+            const repay = Math.min(amount, contract.borrowedBfromA);
+            const excess = amount - repay;
+            if (contract.borrowedAfromB + excess <= contract.maxLiquidityLimit) {
+              newBorrowedBfromA -= repay;
+              newBorrowedAfromB += excess;
+              allowed = true;
+            }
+          }
+
+          if (allowed) {
+            // Modify state
+            sourcePool.poolGold -= amount;
+            sourcePool.timestamp = Math.max(...Object.values(votes).map(v => v.timestamp));
+
+            destPool.poolGold += amount;
+            destPool.timestamp = Math.max(...Object.values(votes).map(v => v.timestamp));
+
+            newState.reinsuranceContracts[pairKey] = {
+              ...contract,
+              borrowedAfromB: newBorrowedAfromB,
+              borrowedBfromA: newBorrowedBfromA,
+              timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+            };
+
+            newState.executedReinsuranceTransfers[proposalId] = true;
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Reinsurance] Transfer of ${amount} gold from pool ${fromSyndicateId} to ${toSyndicateId} executed successfully via proposal ${proposalId}.`
+            );
+          }
+        }
+      }
+    }
   }
 
   return newState;

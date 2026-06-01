@@ -2208,17 +2208,72 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           let coveragePaid = 0;
 
           if (policy && policy.active) {
-            const pool = newState.jointLoanInsurancePools?.[updatedJointLoan.syndicateId];
+            const primarySyndId = updatedJointLoan.syndicateId;
+            const pool = newState.jointLoanInsurancePools?.[primarySyndId];
             if (pool && pool.poolGold > 0) {
               const updatedPool = { ...pool };
               coveragePaid = Math.min(remainingDue, updatedPool.poolGold);
               updatedPool.poolGold -= coveragePaid;
               updatedPool.timestamp = newState.step;
-              newState.jointLoanInsurancePools![updatedJointLoan.syndicateId] = updatedPool;
+              newState.jointLoanInsurancePools![primarySyndId] = updatedPool;
               
               remainingDue -= coveragePaid;
               collected += coveragePaid;
               newState.journal.push(`[Insurance Pool] Joint loan insurance pool covered ${coveragePaid} gold of agent ${agentId}'s share of group ${groupId} default.`);
+            }
+
+            // Fallback: Sourcing from reinsurance contracts if primary pool is depleted and we still owe gold!
+            if (remainingDue > 0 && newState.reinsuranceContracts) {
+              for (const [contractId, contract] of Object.entries(newState.reinsuranceContracts)) {
+                if (contract.active && (contract.syndicateIdA === primarySyndId || contract.syndicateIdB === primarySyndId)) {
+                  const partnerSyndId = contract.syndicateIdA === primarySyndId ? contract.syndicateIdB : contract.syndicateIdA;
+                  const partnerPool = newState.jointLoanInsurancePools?.[partnerSyndId];
+
+                  if (partnerPool && partnerPool.poolGold > 0) {
+                    const isAtoB = (primarySyndId === contract.syndicateIdA);
+                    const currentBorrowed = isAtoB ? contract.borrowedAfromB : contract.borrowedBfromA;
+                    const maxBorrowable = Math.max(0, contract.maxLiquidityLimit - currentBorrowed);
+
+                    if (maxBorrowable > 0) {
+                      const borrowAmount = Math.min(remainingDue, partnerPool.poolGold, maxBorrowable);
+                      if (borrowAmount > 0) {
+                        // Deduct from partner pool
+                        const updatedPartnerPool = { ...partnerPool };
+                        updatedPartnerPool.poolGold -= borrowAmount;
+                        updatedPartnerPool.timestamp = newState.step;
+                        newState.jointLoanInsurancePools![partnerSyndId] = updatedPartnerPool;
+
+                        // Record on contract
+                        const updatedContract = { ...contract };
+                        if (isAtoB) {
+                          updatedContract.borrowedAfromB += borrowAmount;
+                        } else {
+                          updatedContract.borrowedBfromA += borrowAmount;
+                        }
+                        updatedContract.timestamp = newState.step;
+                        newState.reinsuranceContracts[contractId] = updatedContract;
+
+                        // Primary pool records receiving it (update primary pool timestamp)
+                        if (newState.jointLoanInsurancePools?.[primarySyndId]) {
+                          newState.jointLoanInsurancePools[primarySyndId] = {
+                            ...newState.jointLoanInsurancePools[primarySyndId],
+                            timestamp: newState.step,
+                          };
+                        }
+
+                        remainingDue -= borrowAmount;
+                        collected += borrowAmount;
+                        coveragePaid += borrowAmount;
+
+                        newState.journal.push(
+                          `[Reinsurance Fallback] Primary pool ${primarySyndId} borrowed ${borrowAmount} gold from partner pool ${partnerSyndId} via contract ${contractId} (Borrowed so far: ${isAtoB ? updatedContract.borrowedAfromB : updatedContract.borrowedBfromA}/${contract.maxLiquidityLimit}).`
+                        );
+                      }
+                    }
+                  }
+                }
+                if (remainingDue <= 0) break;
+              }
             }
           }
 

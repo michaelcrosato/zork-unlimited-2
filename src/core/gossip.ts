@@ -1378,6 +1378,65 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge reinsuranceContracts using LWW
+  const reinsuranceContracts = { ...stateA.reinsuranceContracts };
+  if (stateB.reinsuranceContracts) {
+    for (const [key, entryB] of Object.entries(stateB.reinsuranceContracts)) {
+      const entryA = reinsuranceContracts[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        reinsuranceContracts[key] = entryB;
+      }
+    }
+  }
+
+  // Merge reinsuranceVotes using LWW
+  const reinsuranceVotes = { ...stateA.reinsuranceVotes };
+  if (stateB.reinsuranceVotes) {
+    for (const [pairKey, bInner] of Object.entries(stateB.reinsuranceVotes)) {
+      if (!reinsuranceVotes[pairKey]) {
+        reinsuranceVotes[pairKey] = { ...bInner };
+      } else {
+        const aInner = { ...reinsuranceVotes[pairKey] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        reinsuranceVotes[pairKey] = aInner;
+      }
+    }
+  }
+
+  // Merge reinsuranceTransferVotes using LWW
+  const reinsuranceTransferVotes = { ...stateA.reinsuranceTransferVotes };
+  if (stateB.reinsuranceTransferVotes) {
+    for (const [propId, bInner] of Object.entries(stateB.reinsuranceTransferVotes)) {
+      if (!reinsuranceTransferVotes[propId]) {
+        reinsuranceTransferVotes[propId] = { ...bInner };
+      } else {
+        const aInner = { ...reinsuranceTransferVotes[propId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        reinsuranceTransferVotes[propId] = aInner;
+      }
+    }
+  }
+
+  // Merge executedReinsuranceTransfers taking union (true takes priority)
+  const executedReinsuranceTransfers = { ...stateA.executedReinsuranceTransfers };
+  if (stateB.executedReinsuranceTransfers) {
+    for (const [key, valB] of Object.entries(stateB.executedReinsuranceTransfers)) {
+      if (valB) {
+        executedReinsuranceTransfers[key] = true;
+      }
+    }
+  }
+
   // Merge turfCheckpoints using LWW
   const turfCheckpoints = { ...stateA.turfCheckpoints };
   if (stateB.turfCheckpoints) {
@@ -1714,6 +1773,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     groupDefaults,
     jointLoanInsurancePools,
     agentPremiumPolicies,
+    reinsuranceContracts,
+    reinsuranceVotes,
+    reinsuranceTransferVotes,
+    executedReinsuranceTransfers,
   };
 }
 
