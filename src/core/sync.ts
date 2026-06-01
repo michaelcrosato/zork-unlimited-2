@@ -9,7 +9,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -34039,6 +34039,126 @@ export function multiAgentStep(
         poolId,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_POOL_UNDERWRITING action (AF-185)
+  if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_POOL_UNDERWRITING") {
+    const { syndicateId, poolId, baselinePremiumWeight, volatilityScalingMultiplier, historicalDefaultWeight, meshPartitionWeight, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const pool = state.swfReinsuranceOptionCrossSyndicatePools?.[poolId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!poolId) {
+      rejectionReason = `Pool ID is required.`;
+    } else if (baselinePremiumWeight === undefined || baselinePremiumWeight < 0) {
+      rejectionReason = `Baseline premium weight must be non-negative.`;
+    } else if (volatilityScalingMultiplier === undefined || volatilityScalingMultiplier < 0) {
+      rejectionReason = `Volatility scaling multiplier must be non-negative.`;
+    } else if (historicalDefaultWeight === undefined || historicalDefaultWeight < 0) {
+      rejectionReason = `Historical default weight must be non-negative.`;
+    } else if (meshPartitionWeight === undefined || meshPartitionWeight < 0) {
+      rejectionReason = `Mesh partition weight must be non-negative.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!pool) {
+      rejectionReason = `Volatility Pool ${poolId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes = { ...(state.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes || {}) };
+      if (!adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId]) {
+        adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId] = {};
+      }
+      adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId][agentId] = {
+        poolId,
+        baselinePremiumWeight,
+        volatilityScalingMultiplier,
+        historicalDefaultWeight,
+        meshPartitionWeight,
+        timestamp,
+      };
+      newState.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes = adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting(newState, pack);
+
+      const isConsensusReached = newState.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies?.[poolId]?.timestamp === Math.max(timestamp, newState.step);
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Volatility Pool Underwriting Vote] Agent ${agentId} voted to adjust volatility pool underwriting for Pool ${poolId} to Baseline Premium Weight: ${baselinePremiumWeight.toFixed(2)}, Volatility Scaling Multiplier: ${volatilityScalingMultiplier.toFixed(2)}, Historical Default Weight: ${historicalDefaultWeight.toFixed(2)}, Mesh Partition Weight: ${meshPartitionWeight.toFixed(2)} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Volatility Pool underwriting policy vote cast by ${agentId} for Syndicate ${syndicateId} (Pool: ${poolId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "adjust_swf_reinsurance_option_volatility_pool_underwriting_voted" as any,
+        syndicateId,
+        agentId,
+        poolId,
+        timestamp,
+      } as any);
     }
 
     newState.step += 1;

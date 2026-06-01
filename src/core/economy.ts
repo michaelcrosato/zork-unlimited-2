@@ -7850,6 +7850,7 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
     swfReinsuranceOptionCrossSyndicatePools: state.swfReinsuranceOptionCrossSyndicatePools ? JSON.parse(JSON.stringify(state.swfReinsuranceOptionCrossSyndicatePools)) : {},
     syndicates: state.syndicates ? JSON.parse(JSON.stringify(state.syndicates)) : {},
     marginAccounts: state.marginAccounts ? JSON.parse(JSON.stringify(state.marginAccounts)) : {},
+    swfReinsuranceOptionVolatilityPoolUnderwritingPolicies: state.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies ? JSON.parse(JSON.stringify(state.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies)) : {},
     journal: state.journal ? [...state.journal] : [],
   };
 
@@ -7859,6 +7860,57 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
     : 20.0;
 
   for (const pool of Object.values(newState.swfReinsuranceOptionCrossSyndicatePools) as SWFReinsuranceOptionCrossSyndicatePool[]) {
+    // AF-185: Underwriting & Risk Premium Calibration
+    const underwritingPolicy = newState.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies?.[pool.id];
+    if (underwritingPolicy) {
+      const defaultCount = Object.keys(pool.syndicateContributions).reduce(
+        (sum, sId) => sum + (newState.syndicateDefaults?.[sId] ?? 0),
+        0
+      );
+
+      let linkStateDropRate = 0.0;
+      if (newState.swfMultiFundReinsurancePools) {
+        for (const p of Object.values(newState.swfMultiFundReinsurancePools)) {
+          if (p.linkStateDropRate !== undefined) {
+            linkStateDropRate = Math.max(linkStateDropRate, p.linkStateDropRate);
+          }
+        }
+      }
+
+      const calibratedRate = underwritingPolicy.baselinePremiumWeight *
+        (1.0 + (avgVolatility / 100.0) * underwritingPolicy.volatilityScalingMultiplier) *
+        (1.0 + defaultCount * underwritingPolicy.historicalDefaultWeight) *
+        (1.0 + linkStateDropRate * underwritingPolicy.meshPartitionWeight);
+
+      const oldCalibrated = underwritingPolicy.calibratedPremiumRate;
+      underwritingPolicy.calibratedPremiumRate = Math.round(calibratedRate * 10000) / 10000;
+
+      if (underwritingPolicy.calibratedPremiumRate !== oldCalibrated) {
+        newState.journal.push(
+          `[SWF Volatility Pool Premium Calibration] Calibrated pool premium rate dynamically to ${underwritingPolicy.calibratedPremiumRate.toFixed(4)} (Baseline: ${underwritingPolicy.baselinePremiumWeight.toFixed(2)}, Volatility: ${avgVolatility.toFixed(2)}%, Defaults: ${defaultCount}, Mesh Drop: ${linkStateDropRate.toFixed(2)}) for Pool ${pool.id}.`
+        );
+      }
+
+      if (avgVolatility >= 30.0) {
+        for (const sId of Object.keys(pool.syndicateContributions)) {
+          const syndicate = newState.syndicates?.[sId];
+          if (syndicate) {
+            const premiumCost = Math.round(100 * underwritingPolicy.calibratedPremiumRate);
+            const availableChest = syndicate.warChest ?? 0;
+            const actualPremium = Math.min(premiumCost, availableChest);
+            if (actualPremium > 0) {
+              syndicate.warChest = availableChest - actualPremium;
+              pool.totalBalance += actualPremium;
+              pool.syndicateContributions[sId] = (pool.syndicateContributions[sId] ?? 0) + actualPremium;
+              newState.journal.push(
+                `[SWF Volatility Pool Premium Payment] Charged volatile premium toll of ${actualPremium} gold from Syndicate ${sId} to Volatility Pool ${pool.id} based on Calibrated Rate: ${underwritingPolicy.calibratedPremiumRate.toFixed(4)} under high volatility.`
+              );
+            }
+          }
+        }
+      }
+    }
+
     const policy = newState.swfReinsuranceOptionVolatilityPoolRebalancingPolicies?.[pool.id];
     if (!policy) continue;
 

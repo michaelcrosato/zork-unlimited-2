@@ -1,5 +1,5 @@
 import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies, reconcileSWFStakingPolicies } from "./state.js";
-import { reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending } from "./state.js";
+import { reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -3166,6 +3166,64 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfReinsuranceOptionVolatilityPoolRebalancingPolicies using LWW
+  const swfReinsuranceOptionVolatilityPoolRebalancingPolicies = { ...stateA.swfReinsuranceOptionVolatilityPoolRebalancingPolicies };
+  if (stateB.swfReinsuranceOptionVolatilityPoolRebalancingPolicies) {
+    for (const [key, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityPoolRebalancingPolicies)) {
+      const entryA = swfReinsuranceOptionVolatilityPoolRebalancingPolicies[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfReinsuranceOptionVolatilityPoolRebalancingPolicies[key] = entryB;
+      }
+    }
+  }
+
+  // Merge adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes using LWW
+  const adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes = { ...stateA.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes };
+  if (stateB.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes)) {
+      if (!adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId]) {
+        adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId] = { ...bVotes };
+      } else {
+        adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId] = { ...adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge swfReinsuranceOptionVolatilityPoolUnderwritingPolicies using LWW
+  const swfReinsuranceOptionVolatilityPoolUnderwritingPolicies = { ...stateA.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies };
+  if (stateB.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies) {
+    for (const [key, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies)) {
+      const entryA = swfReinsuranceOptionVolatilityPoolUnderwritingPolicies[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfReinsuranceOptionVolatilityPoolUnderwritingPolicies[key] = entryB;
+      }
+    }
+  }
+
+  // Merge adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes using LWW
+  const adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes = { ...stateA.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes };
+  if (stateB.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes)) {
+      if (!adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId]) {
+        adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId] = { ...bVotes };
+      } else {
+        adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId] = { ...adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -3364,6 +3422,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cooperativeSWFStakingCampaigns,
     cooperativeSWFStakingCampaignProposals,
     cooperativeSWFStakingCampaignJoinVotes,
+    swfReinsuranceOptionVolatilityPoolRebalancingPolicies,
+    adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes,
+    swfReinsuranceOptionVolatilityPoolUnderwritingPolicies,
+    adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes,
   };
 }
 
@@ -3376,7 +3438,9 @@ export function reconstructState(
   pack: any,
   transactions: Transaction[],
   allAgentIds: string[],
-  initialCDOs?: any
+  initialCDOs?: any,
+  initialSyndicates?: any,
+  initialPools?: any
 ): GameState {
   // Deterministically sort the agents alphabetically to ensure identical hash generation across nodes
   const sortedAgentIds = Array.from(new Set(allAgentIds)).sort();
@@ -3393,6 +3457,12 @@ export function reconstructState(
 
   if (initialCDOs) {
     state.swfYieldCDOs = JSON.parse(JSON.stringify(initialCDOs));
+  }
+  if (initialSyndicates) {
+    state.syndicates = JSON.parse(JSON.stringify(initialSyndicates));
+  }
+  if (initialPools) {
+    state.swfReinsuranceOptionCrossSyndicatePools = JSON.parse(JSON.stringify(initialPools));
   }
 
   // Replay all transactions in order (omitting sequence/hash constraints to allow resolution)
@@ -3640,7 +3710,15 @@ export class GossipNode {
     ]));
 
     // 5. Reconstruct converged GameState from transactions and the full list of agents
-    let convergedState = reconstructState(this.seed, this.pack, mergedTxs, allAgentIds, this.localState.swfYieldCDOs);
+    let convergedState = reconstructState(
+      this.seed,
+      this.pack,
+      mergedTxs,
+      allAgentIds,
+      this.localState.swfYieldCDOs,
+      this.localState.syndicates,
+      this.localState.swfReinsuranceOptionCrossSyndicatePools
+    );
 
     // Overwrite the transaction journal with the original canonical merged transactions to preserve timestamps/hashes
     convergedState.transactionJournal = mergedTxs;
@@ -3709,6 +3787,8 @@ export class GossipNode {
     convergedState = reconcileSWFReinsuranceOptionCrossMeshArbitrage(convergedState, this.pack);
     convergedState = reconcileSWFReinsuranceOptionArbitrageFeeSurcharge(convergedState, this.pack);
     convergedState = reconcileSWFReinsuranceOptionPeerLending(convergedState, this.pack);
+    convergedState = reconcileSWFReinsuranceOptionVolatilityPoolRebalancing(convergedState, this.pack);
+    convergedState = reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

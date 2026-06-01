@@ -2322,6 +2322,27 @@ export const SWFReinsuranceOptionVolatilityPoolRebalancingPolicyVoteSchema = z.o
 });
 export type SWFReinsuranceOptionVolatilityPoolRebalancingPolicyVote = z.infer<typeof SWFReinsuranceOptionVolatilityPoolRebalancingPolicyVoteSchema>;
 
+export const SWFReinsuranceOptionVolatilityPoolUnderwritingPolicySchema = z.object({
+  poolId: z.string(),
+  baselinePremiumWeight: z.number().nonnegative(),
+  volatilityScalingMultiplier: z.number().nonnegative(),
+  historicalDefaultWeight: z.number().nonnegative(),
+  meshPartitionWeight: z.number().nonnegative(),
+  timestamp: z.number().int(),
+  calibratedPremiumRate: z.number().optional(),
+});
+export type SWFReinsuranceOptionVolatilityPoolUnderwritingPolicy = z.infer<typeof SWFReinsuranceOptionVolatilityPoolUnderwritingPolicySchema>;
+
+export const SWFReinsuranceOptionVolatilityPoolUnderwritingPolicyVoteSchema = z.object({
+  poolId: z.string(),
+  baselinePremiumWeight: z.number().nonnegative(),
+  volatilityScalingMultiplier: z.number().nonnegative(),
+  historicalDefaultWeight: z.number().nonnegative(),
+  meshPartitionWeight: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityPoolUnderwritingPolicyVote = z.infer<typeof SWFReinsuranceOptionVolatilityPoolUnderwritingPolicyVoteSchema>;
+
 export const SWFReinsuranceOptionPeerLendingRequestSchema = z.object({
   id: z.string(),
   borrowerSyndicateId: z.string(),
@@ -3132,6 +3153,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionCrossSyndicatePools: z.record(z.string(), SWFReinsuranceOptionCrossSyndicatePoolSchema).optional(),
   swfReinsuranceOptionVolatilityPoolRebalancingPolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityPoolRebalancingPolicySchema).optional(),
   adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityPoolRebalancingPolicyVoteSchema)).optional(),
+  swfReinsuranceOptionVolatilityPoolUnderwritingPolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityPoolUnderwritingPolicySchema).optional(),
+  adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityPoolUnderwritingPolicyVoteSchema)).optional(),
   swfReinsuranceOptionPeerLendingRequests: z.record(z.string(), SWFReinsuranceOptionPeerLendingRequestSchema).optional(),
   swfReinsuranceOptionStressTestPolicies: z.record(z.string(), SWFReinsuranceOptionStressTestPolicySchema).optional(),
   adjustSWFReinsuranceOptionStressTestVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionStressTestVoteSchema)).optional(),
@@ -3482,6 +3505,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionCrossSyndicatePools: {},
     swfReinsuranceOptionVolatilityPoolRebalancingPolicies: {},
     adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes: {},
+    swfReinsuranceOptionVolatilityPoolUnderwritingPolicies: {},
+    adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes: {},
     swfReinsuranceOptionPeerLendingRequests: {},
     swfReinsuranceOptionStressTestPolicies: {},
     adjustSWFReinsuranceOptionStressTestVotes: {},
@@ -4538,6 +4563,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionCrossSyndicatePools: rest.swfReinsuranceOptionCrossSyndicatePools ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionCrossSyndicatePools)) : undefined,
     swfReinsuranceOptionVolatilityPoolRebalancingPolicies: rest.swfReinsuranceOptionVolatilityPoolRebalancingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityPoolRebalancingPolicies)) : undefined,
     adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes: rest.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes)) : undefined,
+    swfReinsuranceOptionVolatilityPoolUnderwritingPolicies: rest.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies)) : undefined,
+    adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes: rest.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes)) : undefined,
     swfReinsuranceOptionPeerLendingRequests: rest.swfReinsuranceOptionPeerLendingRequests ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPeerLendingRequests)) : undefined,
     swfReinsuranceOptionStressTestPolicies: rest.swfReinsuranceOptionStressTestPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionStressTestPolicies)) : undefined,
     adjustSWFReinsuranceOptionStressTestVotes: rest.adjustSWFReinsuranceOptionStressTestVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionStressTestVotes)) : undefined,
@@ -13830,6 +13857,78 @@ export function reconcileSWFReinsuranceOptionVolatilityPoolRebalancing(state: Ga
 
   return newState;
 }
+
+export function reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionVolatilityPoolUnderwritingPolicies: state.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies ? { ...state.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies } : {},
+    adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes: state.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes ? { ...state.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes || {})) {
+    const votes = newState.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      poolId: string;
+      baselinePremiumWeight: number;
+      volatilityScalingMultiplier: number;
+      historicalDefaultWeight: number;
+      meshPartitionWeight: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.poolId}::${vote.baselinePremiumWeight}::${vote.volatilityScalingMultiplier}::${vote.historicalDefaultWeight}::${vote.meshPartitionWeight}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            poolId: vote.poolId,
+            baselinePremiumWeight: vote.baselinePremiumWeight,
+            volatilityScalingMultiplier: vote.volatilityScalingMultiplier,
+            historicalDefaultWeight: vote.historicalDefaultWeight,
+            meshPartitionWeight: vote.meshPartitionWeight,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const policyKey = group.poolId;
+        const currentPolicy = newState.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies![policyKey];
+        newState.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies![policyKey] = {
+          poolId: group.poolId,
+          baselinePremiumWeight: group.baselinePremiumWeight,
+          volatilityScalingMultiplier: group.volatilityScalingMultiplier,
+          historicalDefaultWeight: group.historicalDefaultWeight,
+          meshPartitionWeight: group.meshPartitionWeight,
+          timestamp: Math.max(...group.timestamps, newState.step),
+          calibratedPremiumRate: currentPolicy ? currentPolicy.calibratedPremiumRate : undefined,
+        };
+
+        delete newState.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Volatility Pool Underwriting Policy Approved] Syndicate ${syndicateId} established underwriting policy for pool ${group.poolId} (Baseline Premium Weight: ${group.baselinePremiumWeight.toFixed(2)}, Volatility Scaling Multiplier: ${group.volatilityScalingMultiplier.toFixed(2)}, Historical Default Weight: ${group.historicalDefaultWeight.toFixed(2)}, Mesh Partition Weight: ${group.meshPartitionWeight.toFixed(2)}).`
+        );
+        break;
+      }
+    }
+  }
+
+  return newState;
+}
+
 
 
 
