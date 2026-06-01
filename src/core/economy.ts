@@ -8450,13 +8450,28 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
     }
   }
 
-  // SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment on epoch boundaries (AF-201)
+  // SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment on epoch boundaries (AF-201/AF-202)
   if (newState.step % 5 === 0 && newState.swfReinsuranceOptionMarginPolicies) {
     newState.swfReinsuranceOptionMarginPolicies = { ...newState.swfReinsuranceOptionMarginPolicies };
     for (const [policyKey, policy] of Object.entries(newState.swfReinsuranceOptionMarginPolicies)) {
-      const reinvestedAmount = policy.accumulatedFeeReinvestmentPool ?? 0;
+      const originalAmount = policy.accumulatedFeeReinvestmentPool ?? 0;
       const threshold = policy.autoReinvestThreshold ?? 0;
-      if (reinvestedAmount > 0 && threshold > 0 && reinvestedAmount >= threshold) {
+      if (originalAmount > 0 && threshold > 0 && originalAmount >= threshold) {
+        let reinvestedAmount = originalAmount;
+        const cap = newState.maxAutoReinvestYieldCap;
+        if (cap !== undefined && originalAmount > cap) {
+          reinvestedAmount = cap;
+          if (!newState.auditLogs) {
+            newState.auditLogs = [];
+          }
+          newState.auditLogs.push(
+            `[REINVESTMENT_AUDIT_BREACH] Syndicate SWF Reinsurance auto-reinvestment breach detected. Attempted: ${originalAmount} gold, Cap: ${cap} gold. Clamped to cap.`
+          );
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[REINVESTMENT_AUDIT_BREACH] Audit triggered! Attempted reinvestment of ${originalAmount} gold breached the authorized governance cap of ${cap} gold. Clamped to cap.`
+          );
+        }
         // Find corresponding CDO and tranche
         const cdo = newState.swfYieldCDOs?.[policy.swfYieldCdoId];
         if (cdo && cdo.tranches) {

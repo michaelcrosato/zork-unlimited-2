@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #199 (Ready for Cycle #200)
-* **Build/Test Status**: 🟢 PASS (All 735 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #200 (Ready for Cycle #201)
+* **Build/Test Status**: 🟢 PASS (All 737 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1270,16 +1270,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the tick economy boundary checks to automatically convert the accumulated fee gold into yield pool CDO reinvestments (`AF-201`).
 - [x] Write comprehensive Vitest unit and integration tests asserting all these features (`AF-201`).
 
+### Phase 180: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Auditing (Completed)
+- [x] Define `maxAutoReinvestYieldCap` and `auditLogs` in `GameState` (`AF-202`).
+- [x] Implement propose and vote actions to dynamically calibrate the reinvestment cap (`AF-202`).
+- [x] Wire the economy tick to clamp actual reinvested gold to the active cap and trigger audits on breach (`AF-202`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-202`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-202`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Auditing.
-* **Why this matters**: Enforce a strict governance cap on the maximum auto-reinvestment yield rate to prevent malicious syndicates from hyper-inflating tranche shares beyond the SWF's authorized capital reserves.
+**Task ID**: `AF-203`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing.
+* **Why this matters**: Enforce financial discipline by penalizing syndicates that consistently attempt to trigger reinvestments exceeding the SWF's governance cap, slashing their CDO tranche shares proportionally.
 * **Planned Actions**:
-  1. Define `maxAutoReinvestYieldCap` and audit logs in `GameState`.
-  2. Implement propose and vote actions to dynamically calibrate the reinvestment cap.
-  3. Wire the economy tick to clamp actual reinvested gold to the active cap and trigger audits on breach.
+  1. Define `reinvestmentBreachCount` and `breachSlashingRates` inside the GameState.
+  2. Implement propose/vote actions to dynamically scale the slashing rate.
+  3. Wire the economy tick to slice a percentage of the syndicate's CDO tranche ownership when a cap breach occurs.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---

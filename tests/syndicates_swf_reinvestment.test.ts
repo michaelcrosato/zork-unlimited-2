@@ -344,4 +344,160 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       "[SWF Option Margin Fee Reinvestment] Reinvested 600 accumulated gold fees back into SWF Yield CDO cdo_1 tranche senior yield pool on epoch boundary (increased total shares by 600)."
     );
   });
+
+  it("should propose and vote on auto-reinvestment governance cap, authorizing it and setting maxAutoReinvestYieldCap", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Propose cap of 1000
+    const stepResult1 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP" as any,
+          proposalId: "cap_prop_1",
+          syndicateId: "alpha",
+          maxAutoReinvestYieldCap: 1000,
+          timestamp: 1010,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult1.ok).toBe(true);
+    state = stepResult1.state;
+
+    const prop = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.["cap_prop_1"];
+    expect(prop).toBeDefined();
+    expect(prop?.maxAutoReinvestYieldCap).toBe(1000);
+    expect(prop?.status).toBe("proposed");
+
+    // Vote to authorize
+    const stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP" as any,
+          proposalId: "cap_prop_1",
+          vote: true,
+          timestamp: 1020,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    const propAfter = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.["cap_prop_1"];
+    expect(propAfter?.status).toBe("authorized");
+    expect(state.maxAutoReinvestYieldCap).toBe(1000);
+  });
+
+  it("should clamp auto-reinvested amount to maxAutoReinvestYieldCap and trigger audit logging on breach", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    state.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 10000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 1000,
+            ownership: { alpha: 1000 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.10,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.18,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    // Configure cap = 400
+    state.maxAutoReinvestYieldCap = 400;
+
+    // Configure margin policy with accumulatedFeeReinvestmentPool = 600, autoReinvestThreshold = 500
+    state.swfReinsuranceOptionMarginPolicies = {
+      "cdo_1_senior": {
+        swfYieldCdoId: "cdo_1",
+        trancheId: "senior",
+        liquidationThreshold: 0.1,
+        penaltyRate: 0.05,
+        timestamp: 1000,
+        autoReinvestThreshold: 500,
+        accumulatedFeeReinvestmentPool: 600,
+      },
+    };
+
+    state.step = 10; // Epoch boundary
+
+    const afterState = tickEconomy(state, mockPack);
+
+    // Verify CDO tranche shares increased by 400 (clamped)
+    const tranche = afterState.swfYieldCDOs?.["cdo_1"]?.tranches?.senior;
+    expect(tranche?.totalShares).toBe(1400);
+    expect(tranche?.ownership?.alpha).toBe(1400);
+
+    // Verify pool reset to 0
+    const policy = afterState.swfReinsuranceOptionMarginPolicies?.["cdo_1_senior"];
+    expect(policy?.accumulatedFeeReinvestmentPool).toBe(0);
+
+    // Verify audit logs and journal contain breach logging
+    expect(afterState.auditLogs).toContain(
+      "[REINVESTMENT_AUDIT_BREACH] Syndicate SWF Reinsurance auto-reinvestment breach detected. Attempted: 600 gold, Cap: 400 gold. Clamped to cap."
+    );
+    expect(afterState.journal).toContain(
+      "[REINVESTMENT_AUDIT_BREACH] Audit triggered! Attempted reinvestment of 600 gold breached the authorized governance cap of 400 gold. Clamped to cap."
+    );
+  });
 });
