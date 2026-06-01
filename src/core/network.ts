@@ -1,6 +1,7 @@
 import { GossipNode, GossipMessage, GossipFragment, GossipPacketFragmenter } from "./gossip.js";
 import { Action, StepResult } from "../api/types.js";
 import { GameEvent } from "./events.js";
+import { GossipAntiEntropyRecovery } from "./anti_entropy.js";
 
 /**
  * A presence announcement representing node existence, its current sequence number,
@@ -21,18 +22,20 @@ export interface RoutedPacket {
   sourceId: string;
   destinationId: string;
   ttl: number;
-  type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment";
+  type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment" | "anti_entropy_digest" | "anti_entropy_request";
   payload: any;
   route: string[];
   priority?: number;
 }
 
-export function getPriorityForType(type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment"): number {
+export function getPriorityForType(type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment" | "anti_entropy_digest" | "anti_entropy_request"): number {
   switch (type) {
     case "gossip":
     case "gossip_fragment":
       return 3;
     case "presence":
+    case "anti_entropy_digest":
+    case "anti_entropy_request":
       return 2;
     case "heartbeat_ack":
       return 1;
@@ -434,6 +437,10 @@ export class MeshNode extends GossipNode {
         const currentSimTime = this.network ? this.network.currentTimeMs : Date.now();
         const latency = currentSimTime - sendTime;
         this.lastHeartbeatLatency.set(packet.sourceId, latency);
+      } else if (packet.type === "anti_entropy_digest") {
+        GossipAntiEntropyRecovery.handleDigest(this, packet.payload);
+      } else if (packet.type === "anti_entropy_request") {
+        GossipAntiEntropyRecovery.handleRequest(this, packet.sourceId);
       }
     } else {
       // Forwarding to destination
@@ -721,6 +728,10 @@ export class MeshNetwork {
   // Configurable inactivity threshold for topology pruning (0 or undefined means disabled)
   public topologyPruningThresholdMs = 0;
 
+  // Configurable anti-entropy recovery interval (0 or undefined means disabled)
+  public antiEntropyIntervalMs = 0;
+  private lastAntiEntropyTick = 0;
+
   constructor() {}
 
   /**
@@ -800,7 +811,7 @@ export class MeshNetwork {
   public sendRoutedPacket(params: {
     sourceId: string;
     destinationId: string;
-    type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment";
+    type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment" | "anti_entropy_digest" | "anti_entropy_request";
     payload: any;
     priority?: number;
   }): void {
@@ -882,6 +893,12 @@ export class MeshNetwork {
       for (const node of this.nodes.values()) {
         node.performHeartbeatCheck();
       }
+    }
+
+    // Trigger periodic anti-entropy recovery if enabled
+    if (this.antiEntropyIntervalMs > 0 && this.currentTimeMs - this.lastAntiEntropyTick >= this.antiEntropyIntervalMs) {
+      this.lastAntiEntropyTick = this.currentTimeMs;
+      GossipAntiEntropyRecovery.triggerAntiEntropy(this);
     }
 
     let deliveredCount = 0;

@@ -350,6 +350,7 @@ export class GossipNode {
   public vectorClock: VectorClock;
   public pack: any;
   public peers: Map<string, GossipNode> = new Map();
+  public peerClocks: Map<string, VectorClock> = new Map();
   public seed: number;
   public lastSentGossipCache: Map<string, { vectorClock: VectorClock; transactionIds: string[]; timestamp: number }> = new Map();
 
@@ -464,7 +465,7 @@ export class GossipNode {
    */
   public generateGossipMessageFor(peerId: string): GossipMessage {
     const peerNode = this.peers.get(peerId);
-    const peerClock = peerNode ? peerNode.vectorClock : {};
+    const peerClock = peerNode ? peerNode.vectorClock : (this.peerClocks.get(peerId) ?? {});
 
     const agentTxCounts: Record<string, number> = {};
     const deltaTransactions: Transaction[] = [];

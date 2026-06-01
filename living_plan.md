@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #22 (Ready for Cycle #23)
-* **Build/Test Status**: 🟢 PASS (All 108 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #23 (Ready for Cycle #24)
+* **Build/Test Status**: 🟢 PASS (All 111 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -112,16 +112,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement an out-of-order buffer at the receiver node to reassemble fragments, handling missing or delayed packets (`AF-22`).
 - [x] Write comprehensive unit and integration tests asserting seamless reassembly, fragment drop tolerance, and state convergence (`AF-22`).
 
+### Phase 18: Gossip Anti-Entropy Recovery (Completed)
+- [x] Design a periodic low-overhead anti-entropy digest exchange containing a merkle tree root or condensed clock hash of local states (`AF-23`).
+- [x] Implement a background recovery task triggered when state divergence or clock discrepancies are detected (`AF-23`).
+- [x] Write comprehensive tests asserting complete convergence of partitioned nodes upon anti-entropy reconciliation (`AF-23`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-23`
-* **Objective**: Design and implement a Gossip anti-entropy recovery mechanism (`GossipAntiEntropyRecovery`) that periodically triggers a full vector-clock comparison and state reconciliation check for nodes that have recently suffered long physical partitions or high packet loss, resolving silent synchronization failures.
-* **Why this matters**: In highly dynamic meshes with frequent node failures and packet drops, even robust gossip and fragmentation protocols can occasionally leave nodes with undetected delta gaps. An active anti-entropy background task ensures perfect, ultimate consistency and eventual convergence under any adversarial network conditions.
+**Task ID**: `AF-24`
+* **Objective**: Design and implement a secure transaction verification and signing protocol (`SecureCooperativeMesh`) that uses asymmetric cryptography (or simulated cryptographic signatures) to sign, verify, and authenticate transaction entries in cooperative/multiplayer content packs, preventing malicious nodes from injecting unauthorized state actions.
+* **Why this matters**: In open P2P networks, gossip nodes must be able to verify that incoming state modifications were genuinely performed by the authorized agent and have not been tampered with in-transit by intermediate routing peers.
 * **Planned Actions**:
-  1. Design a periodic low-overhead anti-entropy digest exchange containing a merkle tree root or condensed clock hash of local states.
-  2. Implement a background recovery task triggered when state divergence or clock discrepancies are detected.
-  3. Write comprehensive tests asserting complete convergence of partitioned nodes upon anti-entropy reconciliation.
+  1. Define keypairs or simulated cryptographic credentials for each agent/node.
+  2. Add dynamic transaction signing upon execution and signature validation during `receiveGossip` / `reconstructState`.
+  3. Write robust unit tests simulating unauthorized transaction injection, verifying signature validation failure, and ensuring secure convergence of honest nodes.
 
 ---
 
