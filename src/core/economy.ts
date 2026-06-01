@@ -5761,8 +5761,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
-      // Get the liquidation threshold for the syndicate's written options (or use 1.0 if not defined/default)
+      // Get the liquidation threshold and grace period parameters for the syndicate's written options (or use 1.0 if not defined/default)
       let minThreshold = 1.0;
+      let gracePeriod = 0;
+      let volThreshold = 0;
+      let graceExtension = 0;
       if (newState.swfReinsuranceOptionsContracts) {
         for (const opt of Object.values(newState.swfReinsuranceOptionsContracts)) {
           if (opt.active && opt.writerSyndicateId === syndicateId) {
@@ -5770,8 +5773,28 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             const policy = newState.swfReinsuranceOptionMarginPolicies?.[policyKey];
             if (policy) {
               minThreshold = Math.min(minThreshold, policy.liquidationThreshold);
+              if (policy.marginCallGracePeriod !== undefined) {
+                gracePeriod = Math.max(gracePeriod, policy.marginCallGracePeriod);
+              }
+              if (policy.gracePeriodVolatilityThreshold !== undefined) {
+                volThreshold = Math.max(volThreshold, policy.gracePeriodVolatilityThreshold);
+              }
+              if (policy.gracePeriodExtension !== undefined) {
+                graceExtension = Math.max(graceExtension, policy.gracePeriodExtension);
+              }
             }
           }
+        }
+      }
+
+      // Check for extreme volatility to dynamically scale grace period
+      if (volThreshold > 0 && graceExtension > 0) {
+        const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
+        const avgVolatility = activeBonds.length > 0
+          ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+          : 15.0;
+        if (avgVolatility >= volThreshold) {
+          gracePeriod += graceExtension;
         }
       }
 
@@ -5781,6 +5804,31 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       const triggerDueToMarginDeficit = netEquity < maintenanceRequirement * minThreshold;
 
       if (triggerDueToMarginDeficit || triggerDueToDynamicBuffer) {
+        if (gracePeriod > 0) {
+          if (marginAccount.marginCallStartStep === undefined) {
+            marginAccount.marginCallStartStep = newState.step;
+            marginAccount.timestamp = newState.step;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Margin Call Warning] Syndicate ${syndicateId} margin balance fell below threshold! Entered margin call grace period. Start step: ${newState.step}, Duration: ${gracePeriod} steps.`
+            );
+          }
+
+          const elapsed = newState.step - marginAccount.marginCallStartStep;
+          if (elapsed < gracePeriod) {
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Margin Call Deferred] Syndicate ${syndicateId} is in margin call (elapsed: ${elapsed} steps), but liquidation is deferred due to active grace period (Total Grace steps: ${gracePeriod}, Start step: ${marginAccount.marginCallStartStep}).`
+            );
+            continue; // DEFER LIQUIDATION AUDIT!
+          } else {
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Margin Grace Period Expired] Syndicate ${syndicateId} margin call grace period expired after ${elapsed} steps. Triggering automatic liquidation.`
+            );
+          }
+        }
+
         if (triggerDueToDynamicBuffer) {
           newState.journal.push(`[Margin Call] Syndicate ${syndicateId} war chest (${currentWarChest} gold) fell below required dynamic buffer of ${requiredDynamicBuffer} gold (20% of aggregate pending SWF options limit order book value ${aggregatePendingValue} gold). Triggering automatic liquidation.`);
         } else {
@@ -5969,6 +6017,15 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           leveragedTranchePositions: {},
           timestamp: newState.step,
         };
+      } else {
+        if (marginAccount.marginCallStartStep !== undefined) {
+          marginAccount.marginCallStartStep = undefined;
+          marginAccount.timestamp = newState.step;
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Margin Call Recovered] Syndicate ${syndicateId} has recovered from margin call. Grace period cleared.`
+          );
+        }
       }
     }
   }

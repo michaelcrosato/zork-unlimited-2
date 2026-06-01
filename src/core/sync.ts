@@ -33678,7 +33678,7 @@ export function multiAgentStep(
 
   // Handle ADJUST_SWF_REINSURANCE_OPTION_MARGIN action (AF-170)
   if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_MARGIN") {
-    const { syndicateId, swfYieldCdoId, trancheId, liquidationThreshold, penaltyRate, autoDeleveragingThreshold, marginDeflectionFactor, compoundingFactor, compoundingYieldRate, stressReserveScalingLimit, stressReserveBufferMultiplier, stressStabilizationTarget, prunedRoutesRiskThreshold, protectivePoolAllocation, timestamp } = action as any;
+    const { syndicateId, swfYieldCdoId, trancheId, liquidationThreshold, penaltyRate, autoDeleveragingThreshold, marginDeflectionFactor, compoundingFactor, compoundingYieldRate, stressReserveScalingLimit, stressReserveBufferMultiplier, stressStabilizationTarget, prunedRoutesRiskThreshold, protectivePoolAllocation, marginCallGracePeriod, gracePeriodVolatilityThreshold, gracePeriodExtension, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -33714,6 +33714,12 @@ export function multiAgentStep(
       rejectionReason = `Pruned routes risk threshold must be non-negative.`;
     } else if (protectivePoolAllocation !== undefined && protectivePoolAllocation < 0) {
       rejectionReason = `Protective pool allocation must be non-negative.`;
+    } else if (marginCallGracePeriod !== undefined && marginCallGracePeriod < 0) {
+      rejectionReason = `Margin call grace period must be non-negative.`;
+    } else if (gracePeriodVolatilityThreshold !== undefined && gracePeriodVolatilityThreshold < 0) {
+      rejectionReason = `Grace period volatility threshold must be non-negative.`;
+    } else if (gracePeriodExtension !== undefined && gracePeriodExtension < 0) {
+      rejectionReason = `Grace period extension must be non-negative.`;
     } else if (!syndicate) {
       rejectionReason = `Syndicate ${syndicateId} does not exist.`;
     } else if (!cdo) {
@@ -33746,6 +33752,9 @@ export function multiAgentStep(
         stressStabilizationTarget,
         prunedRoutesRiskThreshold,
         protectivePoolAllocation,
+        marginCallGracePeriod,
+        gracePeriodVolatilityThreshold,
+        gracePeriodExtension,
         timestamp,
       };
       newState.adjustSWFReinsuranceOptionMarginVotes = adjustSWFReinsuranceOptionMarginVotes;
@@ -33763,6 +33772,9 @@ export function multiAgentStep(
       }
       if (prunedRoutesRiskThreshold !== undefined || protectivePoolAllocation !== undefined) {
         extraStr += `, Pruned Routes Risk Threshold: ${(prunedRoutesRiskThreshold ?? 0)}, Protective Pool Allocation: ${(protectivePoolAllocation ?? 0.0).toFixed(2)}`;
+      }
+      if (marginCallGracePeriod !== undefined || gracePeriodVolatilityThreshold !== undefined || gracePeriodExtension !== undefined) {
+        extraStr += `, Margin Call Grace Period: ${marginCallGracePeriod ?? 0}, Volatility Threshold: ${(gracePeriodVolatilityThreshold ?? 0.0).toFixed(2)}, Extension: ${gracePeriodExtension ?? 0}`;
       }
       newState.journal.push(
         `[SWF Reinsurance Option Margin Vote] Agent ${agentId} voted to adjust margin for CDO ${swfYieldCdoId} tranche ${trancheId} to Threshold: ${liquidationThreshold.toFixed(4)}, Penalty: ${penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(marginDeflectionFactor ?? 0.5).toFixed(2)}, Compounding Factor: ${(compoundingFactor ?? 0.0).toFixed(2)}, Compounding Yield Rate: ${(compoundingYieldRate ?? 0.0).toFixed(2)}${extraStr} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`

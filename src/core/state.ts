@@ -1858,6 +1858,7 @@ export const MarginAccountSchema = z.object({
   swfStakedFactions: z.record(z.string(), z.number().int().nonnegative()).optional(),
   swfStakingYields: z.record(z.string(), z.number().nonnegative()).optional(),
   swfGracePeriodExtensions: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  marginCallStartStep: z.number().int().nonnegative().optional(),
   swfBondArbitrageEnabled: z.boolean().optional(),
   swfBondArbitrageTargetPools: z.array(z.string()).optional(),
   swfBondArbitrageMaxCapital: z.number().int().nonnegative().optional(),
@@ -2242,6 +2243,9 @@ export const SWFReinsuranceOptionMarginPolicySchema = z.object({
   stressStabilizationTarget: z.number().nonnegative().optional(),
   prunedRoutesRiskThreshold: z.number().int().nonnegative().optional(),
   protectivePoolAllocation: z.number().nonnegative().optional(),
+  marginCallGracePeriod: z.number().int().nonnegative().optional(),
+  gracePeriodVolatilityThreshold: z.number().nonnegative().optional(),
+  gracePeriodExtension: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginPolicy = z.infer<typeof SWFReinsuranceOptionMarginPolicySchema>;
 
@@ -2260,6 +2264,9 @@ export const SWFReinsuranceOptionMarginVoteSchema = z.object({
   stressStabilizationTarget: z.number().nonnegative().optional(),
   prunedRoutesRiskThreshold: z.number().int().nonnegative().optional(),
   protectivePoolAllocation: z.number().nonnegative().optional(),
+  marginCallGracePeriod: z.number().int().nonnegative().optional(),
+  gracePeriodVolatilityThreshold: z.number().nonnegative().optional(),
+  gracePeriodExtension: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginVote = z.infer<typeof SWFReinsuranceOptionMarginVoteSchema>;
 
@@ -12762,13 +12769,16 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
       stressStabilizationTarget?: number;
       prunedRoutesRiskThreshold?: number;
       protectivePoolAllocation?: number;
+      marginCallGracePeriod?: number;
+      gracePeriodVolatilityThreshold?: number;
+      gracePeriodExtension?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
       if (syndicate.members.includes(voterId)) {
-        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}::${vote.compoundingFactor ?? 0}::${vote.compoundingYieldRate ?? 0}::${vote.stressReserveScalingLimit ?? 0}::${vote.stressReserveBufferMultiplier ?? 0}::${vote.stressStabilizationTarget ?? 0}::${vote.prunedRoutesRiskThreshold ?? 0}::${vote.protectivePoolAllocation ?? 0}`;
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}::${vote.compoundingFactor ?? 0}::${vote.compoundingYieldRate ?? 0}::${vote.stressReserveScalingLimit ?? 0}::${vote.stressReserveBufferMultiplier ?? 0}::${vote.stressStabilizationTarget ?? 0}::${vote.prunedRoutesRiskThreshold ?? 0}::${vote.protectivePoolAllocation ?? 0}::${vote.marginCallGracePeriod ?? 0}::${vote.gracePeriodVolatilityThreshold ?? 0}::${vote.gracePeriodExtension ?? 0}`;
         if (!voteGroups[key]) {
           voteGroups[key] = {
             swfYieldCdoId: vote.swfYieldCdoId,
@@ -12784,6 +12794,9 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
             stressStabilizationTarget: vote.stressStabilizationTarget,
             prunedRoutesRiskThreshold: vote.prunedRoutesRiskThreshold,
             protectivePoolAllocation: vote.protectivePoolAllocation,
+            marginCallGracePeriod: vote.marginCallGracePeriod,
+            gracePeriodVolatilityThreshold: vote.gracePeriodVolatilityThreshold,
+            gracePeriodExtension: vote.gracePeriodExtension,
             voters: new Set<string>(),
             timestamps: [],
           };
@@ -12810,6 +12823,9 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
           stressStabilizationTarget: group.stressStabilizationTarget,
           prunedRoutesRiskThreshold: group.prunedRoutesRiskThreshold,
           protectivePoolAllocation: group.protectivePoolAllocation,
+          marginCallGracePeriod: group.marginCallGracePeriod,
+          gracePeriodVolatilityThreshold: group.gracePeriodVolatilityThreshold,
+          gracePeriodExtension: group.gracePeriodExtension,
           timestamp: Math.max(...group.timestamps, newState.step),
         };
 
@@ -12822,6 +12838,9 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
         }
         if (group.prunedRoutesRiskThreshold !== undefined || group.protectivePoolAllocation !== undefined) {
           extraStr += `, Pruned Routes Risk Threshold: ${(group.prunedRoutesRiskThreshold ?? 0)}, Protective Pool Allocation: ${(group.protectivePoolAllocation ?? 0.0).toFixed(2)}`;
+        }
+        if (group.marginCallGracePeriod !== undefined || group.gracePeriodVolatilityThreshold !== undefined || group.gracePeriodExtension !== undefined) {
+          extraStr += `, Margin Call Grace Period: ${group.marginCallGracePeriod ?? 0}, Volatility Threshold: ${(group.gracePeriodVolatilityThreshold ?? 0.0).toFixed(2)}, Extension: ${group.gracePeriodExtension ?? 0}`;
         }
         newState.journal.push(
           `[SWF Reinsurance Option Margin Policy Adjusted] Syndicate ${syndicateId} adjusted margin policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Liquidation Threshold: ${group.liquidationThreshold.toFixed(4)}, Penalty Rate: ${group.penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(group.autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(group.marginDeflectionFactor ?? 0.5).toFixed(2)}, Compounding Factor: ${(group.compoundingFactor ?? 0.0).toFixed(2)}, Compounding Yield Rate: ${(group.compoundingYieldRate ?? 0.0).toFixed(2)}${extraStr}).`
