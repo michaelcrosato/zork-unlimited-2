@@ -6046,6 +6046,61 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           newState.journal.push(
             `[Security Insurance Pool Emergency Drawdown] Drew down ${drawdown} gold from security insurance pool to margin collateral for Syndicate ${syndicateId} to prevent margin call liquidation.`
           );
+
+          // AF-220: Dynamic deflection fee surcharge
+          marginAccount.emergencyDrawdownCount = (marginAccount.emergencyDrawdownCount ?? 0) + 1;
+          const drawdownCount = marginAccount.emergencyDrawdownCount;
+          const poolCap = newState.swfSecurityInsurancePoolCap ?? 2000;
+          const poolCurrent = newState.swfSecurityInsurancePool ?? 0;
+          const poolDepthFactor = poolCap > 0 ? Math.max(1.0, 1.0 + (1.0 - (poolCurrent / poolCap))) : 1.0;
+          const surchargeRate = 0.05 * drawdownCount * poolDepthFactor;
+          const deflectionFee = Math.round(drawdown * surchargeRate);
+
+          if (deflectionFee > 0 && syndicate) {
+            let feeRemaining = deflectionFee;
+            const chestDeduction = Math.min(syndicate.warChest ?? 0, feeRemaining);
+            syndicate.warChest = (syndicate.warChest ?? 0) - chestDeduction;
+            feeRemaining -= chestDeduction;
+
+            newState.journal.push(
+              `[Security Insurance Pool Drawdown Fee] Charged deflection fee of ${deflectionFee} gold (Rate: ${(surchargeRate * 100).toFixed(1)}%, Count: ${drawdownCount}, Depth Factor: ${poolDepthFactor.toFixed(2)}). Deducted ${chestDeduction} gold from war chest of Syndicate ${syndicateId}.`
+            );
+
+            if (feeRemaining > 0 && newState.swfYieldCDOs) {
+              for (const [cdoId, cdo] of Object.entries(newState.swfYieldCDOs)) {
+                if (feeRemaining <= 0) break;
+                for (const [trancheId, tranche] of Object.entries(cdo.tranches)) {
+                  if (feeRemaining <= 0) break;
+                  const ownership = tranche.ownership?.[syndicateId] ?? 0;
+                  if (ownership > 0) {
+                    const sharesToSlash = Math.min(ownership, Math.max(1, Math.round(feeRemaining / 10)));
+                    if (sharesToSlash > 0) {
+                      tranche.ownership[syndicateId] = ownership - sharesToSlash;
+                      tranche.totalShares = Math.max(0, tranche.totalShares - sharesToSlash);
+                      tranche.timestamp = newState.step;
+                      cdo.timestamp = newState.step;
+
+                      newState.swfYieldCDOs = {
+                        ...newState.swfYieldCDOs,
+                        [cdoId]: {
+                          ...cdo,
+                          tranches: {
+                            ...cdo.tranches,
+                            [trancheId]: { ...tranche }
+                          }
+                        }
+                      };
+
+                      feeRemaining -= sharesToSlash * 10;
+                      newState.journal.push(
+                        `[Security Insurance Pool Drawdown CDO Slash] Slashed ${sharesToSlash} shares from CDO ${cdoId} tranche ${trancheId} for Syndicate ${syndicateId} due to outstanding deflection fee.`
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
 

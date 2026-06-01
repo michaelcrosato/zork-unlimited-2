@@ -1865,6 +1865,7 @@ export const MarginAccountSchema = z.object({
   swfBondArbitrageMinYieldSpread: z.number().nonnegative().optional(),
   swfReinsuranceOptionVault: z.number().int().nonnegative().optional(),
   prunedRoutesCount: z.number().int().nonnegative().optional(),
+  emergencyDrawdownCount: z.number().int().nonnegative().optional(),
   swfUnderwritingLockedVaults: z.array(z.object({
     amount: z.number().int().nonnegative(),
     unlockStep: z.number().int().nonnegative(),

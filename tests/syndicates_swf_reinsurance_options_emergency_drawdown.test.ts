@@ -228,4 +228,131 @@ describe("Syndicate SWF Reinsurance Options Emergency Drawdowns (AF-219)", () =>
     expect(merged.swfSecurityInsurancePoolEmergencyDrawdownAuthorized).toBe(true);
     expect(merged.swfSecurityInsurancePoolEmergencyDrawdownProposals?.["drawdown_prop_1"]?.status).toBe("authorized");
   });
+
+  it("should charge deflection fee from war chest and scale dynamically by drawdown frequency and pool depth (AF-220)", () => {
+    let state = createInitialState({
+      seed: 54321,
+      start: "clearing",
+      varsInit: { gold: 20000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 100, // Low war chest to test CDO shares slashing
+      },
+    };
+
+    state.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: { alpha: 500 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.20,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      alpha: {
+        syndicateId: "alpha",
+        collateral: 300,
+        leveragedTranchePositions: {},
+        timestamp: 1000,
+        emergencyDrawdownCount: 1, // Already drawn down once
+      },
+    };
+
+    state.swfReinsuranceOptionsContracts = {
+      opt_1: {
+        id: "opt_1",
+        syndicateId: "alpha",
+        writerSyndicateId: "alpha",
+        swfYieldCdoId: "cdo_1",
+        trancheId: "senior",
+        optionType: "call",
+        strikePremiumRate: 0.02,
+        size: 1641, // deficit = 500
+        timestamp: 1000,
+        active: true,
+      },
+    };
+
+    state.swfReinsuranceOptionMarginPolicies = {
+      "cdo_1_senior": {
+        swfYieldCdoId: "cdo_1",
+        trancheId: "senior",
+        liquidationThreshold: 1.0,
+        penaltyRate: 0.2,
+        marginCallGracePeriod: 0,
+        timestamp: 1000,
+      },
+    };
+
+    state.swfSecurityInsurancePoolAuthorized = true;
+    state.swfSecurityInsurancePoolEmergencyDrawdownAuthorized = true;
+    state.swfSecurityInsurancePoolCap = 2000;
+    state.swfSecurityInsurancePool = 1000; // Remaining pool
+
+    // Run economy tick
+    const res = tickEconomy(state, mockPack);
+
+    // Let's verify the calculations:
+    // drawdownCount = 1 + 1 = 2
+    // poolCap = 2000
+    // poolCurrent = 500 (since 1000 - 500 = 500)
+    // poolDepthFactor = 1.0 + (1.0 - (500 / 2000)) = 1.75
+    // surchargeRate = 0.05 * 2 * 1.75 = 0.175 (17.5%)
+    // deflectionFee = Math.round(500 * 0.175) = 88 gold
+    // Syndicate war chest has 100 gold.
+    // Deflection fee (88 gold) should be fully covered by the war chest.
+    // remaining war chest = 100 - 88 = 12 gold
+    expect(res.syndicates?.alpha?.warChest).toBe(12);
+
+    // CDO ownership should be unchanged since war chest covered it all
+    expect(res.swfYieldCDOs?.cdo_1?.tranches?.senior?.ownership?.alpha).toBe(500);
+
+    // Let's verify CDO slashing by running with an even lower war chest (e.g. 50 gold)
+    state.syndicates.alpha.warChest = 50;
+    state.marginAccounts.alpha.collateral = 300; // Reset collateral to trigger drawdown again
+    // drawdownCount = 2 + 1 = 3
+    // surchargeRate = 0.05 * 3 * 1.75 = 0.2625 (26.25%)
+    // deflectionFee = Math.round(500 * 0.2625) = 131 gold
+    // war chest covers 50 gold (war chest becomes 0)
+    // feeRemaining = 81 gold
+    // CDO shares slashed = Math.max(1, Math.round(81 / 10)) = 8 shares
+    // senior tranche ownership should become 500 - 8 = 492
+    state.marginAccounts.alpha.emergencyDrawdownCount = 2;
+    const resSlash = tickEconomy(state, mockPack);
+    expect(resSlash.syndicates?.alpha?.warChest).toBe(0);
+    expect(resSlash.swfYieldCDOs?.cdo_1?.tranches?.senior?.ownership?.alpha).toBe(492);
+  });
 });
