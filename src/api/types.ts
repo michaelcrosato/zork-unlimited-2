@@ -255,7 +255,9 @@ export type Action =
   | { type: "SETTLE_CDS_CLAIMS"; cdsId: string; buyerSyndicateId: string; timestamp: number }
   | { type: "LIST_CDS_FOR_SALE"; cdsId: string; sellerSyndicateId: string; askPrice: number; timestamp: number }
   | { type: "BID_ON_CDS_CONTRACT"; cdsId: string; bidderSyndicateId: string; bidPrice: number; timestamp: number }
-  | { type: "TRANSFER_CDS_OWNERSHIP"; cdsId: string; sellerSyndicateId: string; buyerSyndicateId: string; price: number; timestamp: number };
+  | { type: "TRANSFER_CDS_OWNERSHIP"; cdsId: string; sellerSyndicateId: string; buyerSyndicateId: string; price: number; timestamp: number }
+  | { type: "CREATE_CDS_CDO_POOL"; cdoId: string; creatorSyndicateId: string; cdsIds: string[]; timestamp: number }
+  | { type: "INVEST_IN_CDO_TRANCHE"; cdoId: string; investorSyndicateId: string; trancheId: string; amount: number; timestamp: number };
 
 
 

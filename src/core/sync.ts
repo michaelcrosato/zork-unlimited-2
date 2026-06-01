@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -17818,6 +17818,307 @@ export function multiAgentStep(
     if (ok) {
       newState = tickProductionLabs(newState, customEvents, pack);
 
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CREATE_CDS_CDO_POOL action (AF-230)
+  if ((action as any).type === "CREATE_CDS_CDO_POOL") {
+    const { cdoId, creatorSyndicateId, cdsIds, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const creatorSyndicate = state.syndicates?.[creatorSyndicateId];
+
+    if (!cdoId) {
+      rejectionReason = `CDO ID is required to package CDS into CDO pool.`;
+    } else if (!creatorSyndicateId) {
+      rejectionReason = `Creator Syndicate ID is required.`;
+    } else if (!creatorSyndicate) {
+      rejectionReason = `Syndicate ${creatorSyndicateId} does not exist.`;
+    } else if (!creatorSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${creatorSyndicateId} and cannot package CDS CDO pool.`;
+    } else if (!cdsIds || !Array.isArray(cdsIds) || cdsIds.length === 0) {
+      rejectionReason = `CDS list is required and cannot be empty.`;
+    } else if (state.sovereignDebtCDSCDOPools?.[cdoId]) {
+      rejectionReason = `CDS CDO pool with ID ${cdoId} already exists.`;
+    } else {
+      // Validate all CDS contracts
+      let cdsValid = true;
+      for (const cdsId of cdsIds) {
+        const contract = state.sovereignDebtCDSContracts?.[cdsId];
+        if (!contract) {
+          rejectionReason = `CDS contract ${cdsId} does not exist.`;
+          cdsValid = false;
+          break;
+        }
+        if (contract.status !== "active") {
+          rejectionReason = `CDS contract ${cdsId} is not active (status: ${contract.status}).`;
+          cdsValid = false;
+          break;
+        }
+        if (contract.buyerSyndicateId !== creatorSyndicateId) {
+          rejectionReason = `CDS contract ${cdsId} is not owned by syndicate ${creatorSyndicateId}.`;
+          cdsValid = false;
+          break;
+        }
+      }
+      if (cdsValid) {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && creatorSyndicate) {
+      newState.sovereignDebtCDSCDOPools = state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {};
+      newState.sovereignDebtCDSContracts = state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {};
+      newState.sovereignDebtCDSPortfolios = state.sovereignDebtCDSPortfolios ? { ...state.sovereignDebtCDSPortfolios } : {};
+      newState.syndicates = state.syndicates ? { ...state.syndicates } : {};
+
+      let totalNotional = 0;
+      for (const cdsId of cdsIds) {
+        const contract = state.sovereignDebtCDSContracts![cdsId];
+        totalNotional += contract.notionalValue;
+
+        // Set cdoId reference
+        newState.sovereignDebtCDSContracts[cdsId] = {
+          ...contract,
+          cdoId,
+          timestamp,
+        };
+
+        // Remove from individual portfolio
+        const port = newState.sovereignDebtCDSPortfolios[creatorSyndicateId];
+        if (port) {
+          newState.sovereignDebtCDSPortfolios[creatorSyndicateId] = {
+            ...port,
+            purchasedCDSIds: port.purchasedCDSIds.filter(id => id !== cdsId),
+          };
+        }
+      }
+
+      const S = Math.floor(totalNotional * 0.50);
+      const M = Math.floor(totalNotional * 0.30);
+      const E = totalNotional - S - M;
+
+      newState.sovereignDebtCDSCDOPools[cdoId] = {
+        cdoId,
+        creatorSyndicateId,
+        cdsIds: [...cdsIds],
+        totalNotional,
+        tranches: {
+          senior: { trancheId: "senior", totalValue: S, sharesOwned: { [creatorSyndicateId]: S }, timestamp },
+          mezzanine: { trancheId: "mezzanine", totalValue: M, sharesOwned: { [creatorSyndicateId]: M }, timestamp },
+          equity: { trancheId: "equity", totalValue: E, sharesOwned: { [creatorSyndicateId]: E }, timestamp },
+        },
+        fractionalizedVault: {
+          balance: 0,
+          timestamp,
+        },
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt CDS CDO Pool Created] Syndicate ${creatorSyndicateId} created CDS CDO pool ${cdoId} with total notional ${totalNotional} gold (Senior: ${S}, Mezzanine: ${M}, Equity: ${E}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📦 CDS CDO pool created! Syndicate ${creatorSyndicateId} established Sovereign Debt CDS CDO pool ${cdoId} with total notional ${totalNotional} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "cds_cdo_pool_created" as any,
+        cdoId,
+        creatorSyndicateId,
+        totalNotional,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized INVEST_IN_CDO_TRANCHE action (AF-230)
+  if ((action as any).type === "INVEST_IN_CDO_TRANCHE") {
+    const { cdoId, investorSyndicateId, trancheId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignDebtCDSCDOPools?.[cdoId];
+    const investorSyndicate = state.syndicates?.[investorSyndicateId];
+
+    if (!cdoId) {
+      rejectionReason = `CDO ID is required to invest in CDO tranche.`;
+    } else if (!investorSyndicateId) {
+      rejectionReason = `Investor Syndicate ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid Tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (!amount || typeof amount !== "number" || amount <= 0) {
+      rejectionReason = `Valid positive investment amount is required.`;
+    } else if (!pool) {
+      rejectionReason = `CDS CDO pool with ID ${cdoId} does not exist.`;
+    } else if (!investorSyndicate) {
+      rejectionReason = `Syndicate ${investorSyndicateId} does not exist.`;
+    } else if (!investorSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${investorSyndicateId} and cannot invest.`;
+    } else if ((investorSyndicate.warChest ?? 0) < amount) {
+      rejectionReason = `Syndicate ${investorSyndicateId} has insufficient funds in war chest (${investorSyndicate.warChest ?? 0} gold) to invest ${amount} gold.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && pool && investorSyndicate) {
+      newState.sovereignDebtCDSCDOPools = state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {};
+      newState.syndicates = state.syndicates ? { ...state.syndicates } : {};
+
+      // Deduct gold from investor syndicate
+      newState.syndicates[investorSyndicateId] = {
+        ...investorSyndicate,
+        warChest: Math.max(0, (investorSyndicate.warChest ?? 0) - amount),
+      };
+
+      // Add gold to pool vault
+      const updatedPool = {
+        ...pool,
+        tranches: {
+          ...pool.tranches,
+          [trancheId]: {
+            ...pool.tranches[trancheId as "senior" | "mezzanine" | "equity"],
+            totalValue: pool.tranches[trancheId as "senior" | "mezzanine" | "equity"].totalValue + amount,
+            sharesOwned: {
+              ...pool.tranches[trancheId as "senior" | "mezzanine" | "equity"].sharesOwned,
+              [investorSyndicateId]: (pool.tranches[trancheId as "senior" | "mezzanine" | "equity"].sharesOwned[investorSyndicateId] ?? 0) + amount,
+            },
+            timestamp,
+          },
+        },
+        fractionalizedVault: {
+          ...pool.fractionalizedVault,
+          balance: pool.fractionalizedVault.balance + amount,
+          timestamp,
+        },
+        timestamp,
+      };
+      newState.sovereignDebtCDSCDOPools[cdoId] = updatedPool;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDS CDO Tranche Investment] Syndicate ${investorSyndicateId} invested ${amount} gold in CDS CDO pool ${cdoId} ${trancheId} tranche.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Syndicate ${investorSyndicateId} invested ${amount} gold in CDS CDO ${cdoId} ${trancheId} tranche.`,
+      } as any);
+
+      customEvents.push({
+        type: "cds_cdo_tranche_invested" as any,
+        cdoId,
+        investorSyndicateId,
+        trancheId,
+        amount,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
       const cloned = cloneStateWithoutHistory(state);
       history.push(cloned);

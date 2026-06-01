@@ -7239,6 +7239,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
   const newState = {
     ...state,
     sovereignDebtCDSContracts: state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {},
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
     syndicates: state.syndicates ? { ...state.syndicates } : {},
     journal: state.journal ? [...state.journal] : [],
   };
@@ -7248,10 +7249,10 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
   );
 
   for (const contract of activeContracts) {
-    const { cdsId, buyerSyndicateId, writerSyndicateId, targetSyndicateId, notionalValue } = contract as any;
+    const { cdsId, buyerSyndicateId, writerSyndicateId, targetSyndicateId, notionalValue, cdoId } = contract as any;
 
     const buyerSyndicate = newState.syndicates[buyerSyndicateId];
-    if (!buyerSyndicate) continue;
+    if (!buyerSyndicate && !cdoId) continue;
 
     // Check if target syndicate has entered default status (has an authorized default alert that is NOT resolved)
     const hasAuthorizedDefault = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
@@ -7265,7 +7266,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         status: "settled",
       };
 
-      // Deduct from writer and add to buyer
+      // Deduct from writer
       if (writerSyndicateId !== "system" && writerSyndicateId !== "swf") {
         const writerSyndicate = newState.syndicates[writerSyndicateId];
         if (writerSyndicate) {
@@ -7278,12 +7279,90 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         newState.swfStakingSweepPool = Math.max(0, (newState.swfStakingSweepPool ?? 0) - notionalValue);
       }
 
-      const updatedBuyer = { ...buyerSyndicate };
-      updatedBuyer.warChest = (updatedBuyer.warChest ?? 0) + notionalValue;
-      newState.syndicates[buyerSyndicateId] = updatedBuyer;
+      // Add payout to buyer
+      if (cdoId) {
+        const pool = newState.sovereignDebtCDSCDOPools[cdoId];
+        if (pool) {
+          // CDO Waterfall payout rules: Senior first, Mezzanine second, Equity third.
+          const seniorShare = Math.floor(notionalValue * 0.50);
+          const mezzanineShare = Math.floor(notionalValue * 0.30);
+          const equityShare = notionalValue - seniorShare - mezzanineShare;
+
+          let remainingPayout = notionalValue;
+
+          // 1. Senior payout
+          const senior = pool.tranches.senior;
+          const seniorPayout = Math.min(remainingPayout, seniorShare);
+          if (seniorPayout > 0) {
+            if (senior.totalValue > 0) {
+              for (const syndId of Object.keys(senior.sharesOwned)) {
+                const proportion = senior.sharesOwned[syndId] / senior.totalValue;
+                const pay = Math.round(seniorPayout * proportion);
+                if (pay > 0 && newState.syndicates[syndId]) {
+                  newState.syndicates[syndId].warChest = (newState.syndicates[syndId].warChest ?? 0) + pay;
+                  newState.journal.push(
+                    `[CDS CDO Tranche Payout] Distributed ${pay} gold to Syndicate ${syndId} from Senior tranche of CDO pool ${cdoId}.`
+                  );
+                }
+              }
+            } else {
+              pool.fractionalizedVault.balance += seniorPayout;
+            }
+            remainingPayout -= seniorPayout;
+          }
+
+          // 2. Mezzanine payout
+          const mezzanine = pool.tranches.mezzanine;
+          const mezzaninePayout = Math.min(remainingPayout, mezzanineShare);
+          if (mezzaninePayout > 0) {
+            if (mezzanine.totalValue > 0) {
+              for (const syndId of Object.keys(mezzanine.sharesOwned)) {
+                const proportion = mezzanine.sharesOwned[syndId] / mezzanine.totalValue;
+                const pay = Math.round(mezzaninePayout * proportion);
+                if (pay > 0 && newState.syndicates[syndId]) {
+                  newState.syndicates[syndId].warChest = (newState.syndicates[syndId].warChest ?? 0) + pay;
+                  newState.journal.push(
+                    `[CDS CDO Tranche Payout] Distributed ${pay} gold to Syndicate ${syndId} from Mezzanine tranche of CDO pool ${cdoId}.`
+                  );
+                }
+              }
+            } else {
+              pool.fractionalizedVault.balance += mezzaninePayout;
+            }
+            remainingPayout -= mezzaninePayout;
+          }
+
+          // 3. Equity payout
+          const equity = pool.tranches.equity;
+          const equityPayout = remainingPayout;
+          if (equityPayout > 0) {
+            if (equity.totalValue > 0) {
+              for (const syndId of Object.keys(equity.sharesOwned)) {
+                const proportion = equity.sharesOwned[syndId] / equity.totalValue;
+                const pay = Math.round(equityPayout * proportion);
+                if (pay > 0 && newState.syndicates[syndId]) {
+                  newState.syndicates[syndId].warChest = (newState.syndicates[syndId].warChest ?? 0) + pay;
+                  newState.journal.push(
+                    `[CDS CDO Tranche Payout] Distributed ${pay} gold to Syndicate ${syndId} from Equity tranche of CDO pool ${cdoId}.`
+                  );
+                }
+              }
+            } else {
+              pool.fractionalizedVault.balance += equityPayout;
+            }
+            remainingPayout = 0;
+          }
+
+          pool.timestamp = state.step;
+        }
+      } else {
+        const updatedBuyer = { ...buyerSyndicate };
+        updatedBuyer.warChest = (updatedBuyer.warChest ?? 0) + notionalValue;
+        newState.syndicates[buyerSyndicateId] = updatedBuyer;
+      }
 
       newState.journal.push(
-        `[Sovereign Debt CDS Settlement] CDS ${cdsId} automatically settled due to default of target Syndicate ${targetSyndicateId}. Transferred payout of ${notionalValue} gold to Buyer Syndicate ${buyerSyndicateId} from Writer ${writerSyndicateId}.`
+        `[Sovereign Debt CDS Settlement] CDS ${cdsId} automatically settled due to default of target Syndicate ${targetSyndicateId}. Transferred payout of ${notionalValue} gold to ${cdoId ? `CDS CDO pool ${cdoId} tranches` : `Buyer Syndicate ${buyerSyndicateId}`} from Writer ${writerSyndicateId}.`
       );
       continue;
     }
@@ -7339,34 +7418,120 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
     const premium = Math.round(basePremium * feeMultiplier * heatMultiplier * graceMultiplier);
 
     // Accrue payment
-    if ((buyerSyndicate.warChest ?? 0) >= premium) {
-      const updatedBuyer = { ...buyerSyndicate };
-      updatedBuyer.warChest = (updatedBuyer.warChest ?? 0) - premium;
-      newState.syndicates[buyerSyndicateId] = updatedBuyer;
+    if (cdoId) {
+      const pool = newState.sovereignDebtCDSCDOPools[cdoId];
+      if (pool) {
+        // CDO Waterfall loss rules: Equity absorbs first, Mezzanine second, Senior third, Vault balance last.
+        let remainingLoss = premium;
 
-      if (writerSyndicateId !== "system" && writerSyndicateId !== "swf") {
-        const writerSyndicate = newState.syndicates[writerSyndicateId];
-        if (writerSyndicate) {
-          const updatedWriter = { ...writerSyndicate };
-          updatedWriter.warChest = (updatedWriter.warChest ?? 0) + premium;
-          newState.syndicates[writerSyndicateId] = updatedWriter;
+        // 1. Equity absorbs first
+        const equity = pool.tranches.equity;
+        if (remainingLoss > 0 && equity.totalValue > 0) {
+          const lossToAbsorb = Math.min(remainingLoss, equity.totalValue);
+          const oldVal = equity.totalValue;
+          equity.totalValue -= lossToAbsorb;
+          for (const syndId of Object.keys(equity.sharesOwned)) {
+            const oldShares = equity.sharesOwned[syndId] ?? 0;
+            const lostShares = Math.round(lossToAbsorb * (oldShares / oldVal));
+            equity.sharesOwned[syndId] = Math.max(0, oldShares - lostShares);
+          }
+          remainingLoss -= lossToAbsorb;
         }
-      } else {
-        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + premium;
-      }
 
-      newState.journal.push(
-        `[Sovereign Debt CDS Premium] Buyer Syndicate ${buyerSyndicateId} paid dynamic premium of ${premium} gold to Writer ${writerSyndicateId} for CDS ${cdsId} (Indicators: Outstanding Fees: ${outstandingFees}, Heat: ${enforcerHeat}, Grace Active: ${hasActiveGrace}).`
-      );
+        // 2. Mezzanine absorbs second
+        const mezzanine = pool.tranches.mezzanine;
+        if (remainingLoss > 0 && mezzanine.totalValue > 0) {
+          const lossToAbsorb = Math.min(remainingLoss, mezzanine.totalValue);
+          const oldVal = mezzanine.totalValue;
+          mezzanine.totalValue -= lossToAbsorb;
+          for (const syndId of Object.keys(mezzanine.sharesOwned)) {
+            const oldShares = mezzanine.sharesOwned[syndId] ?? 0;
+            const lostShares = Math.round(lossToAbsorb * (oldShares / oldVal));
+            mezzanine.sharesOwned[syndId] = Math.max(0, oldShares - lostShares);
+          }
+          remainingLoss -= lossToAbsorb;
+        }
+
+        // 3. Senior absorbs third
+        const senior = pool.tranches.senior;
+        if (remainingLoss > 0 && senior.totalValue > 0) {
+          const lossToAbsorb = Math.min(remainingLoss, senior.totalValue);
+          const oldVal = senior.totalValue;
+          senior.totalValue -= lossToAbsorb;
+          for (const syndId of Object.keys(senior.sharesOwned)) {
+            const oldShares = senior.sharesOwned[syndId] ?? 0;
+            const lostShares = Math.round(lossToAbsorb * (oldShares / oldVal));
+            senior.sharesOwned[syndId] = Math.max(0, oldShares - lostShares);
+          }
+          remainingLoss -= lossToAbsorb;
+        }
+
+        // 4. Fractionalized vault balance absorbs last
+        if (remainingLoss > 0 && pool.fractionalizedVault.balance > 0) {
+          const lossToAbsorb = Math.min(remainingLoss, pool.fractionalizedVault.balance);
+          pool.fractionalizedVault.balance -= lossToAbsorb;
+          remainingLoss -= lossToAbsorb;
+        }
+
+        if (remainingLoss === 0) {
+          // Success! Pay premium to writer
+          if (writerSyndicateId !== "system" && writerSyndicateId !== "swf") {
+            const writerSyndicate = newState.syndicates[writerSyndicateId];
+            if (writerSyndicate) {
+              const updatedWriter = { ...writerSyndicate };
+              updatedWriter.warChest = (updatedWriter.warChest ?? 0) + premium;
+              newState.syndicates[writerSyndicateId] = updatedWriter;
+            }
+          } else {
+            newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + premium;
+          }
+
+          pool.timestamp = state.step;
+
+          newState.journal.push(
+            `[Sovereign Debt CDS Premium] CDS CDO pool ${cdoId} paid dynamic premium of ${premium} gold to Writer ${writerSyndicateId} for CDS ${cdsId} (Loss absorbed by tranches).`
+          );
+        } else {
+          // Terminate due to lack of payment
+          newState.sovereignDebtCDSContracts[cdsId] = {
+            ...contract,
+            status: "terminated",
+          };
+          newState.journal.push(
+            `[Sovereign Debt CDS Terminated] CDS contract ${cdsId} terminated due to insufficient reserves in CDS CDO pool ${cdoId} (Required premium: ${premium} gold).`
+          );
+        }
+      }
     } else {
-      // Terminate due to lack of payment
-      newState.sovereignDebtCDSContracts[cdsId] = {
-        ...contract,
-        status: "terminated",
-      };
-      newState.journal.push(
-        `[Sovereign Debt CDS Terminated] CDS contract ${cdsId} terminated due to insufficient war chest in Buyer Syndicate ${buyerSyndicateId} (Required premium: ${premium} gold).`
-      );
+      if ((buyerSyndicate.warChest ?? 0) >= premium) {
+        const updatedBuyer = { ...buyerSyndicate };
+        updatedBuyer.warChest = (updatedBuyer.warChest ?? 0) - premium;
+        newState.syndicates[buyerSyndicateId] = updatedBuyer;
+
+        if (writerSyndicateId !== "system" && writerSyndicateId !== "swf") {
+          const writerSyndicate = newState.syndicates[writerSyndicateId];
+          if (writerSyndicate) {
+            const updatedWriter = { ...writerSyndicate };
+            updatedWriter.warChest = (updatedWriter.warChest ?? 0) + premium;
+            newState.syndicates[writerSyndicateId] = updatedWriter;
+          }
+        } else {
+          newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + premium;
+        }
+
+        newState.journal.push(
+          `[Sovereign Debt CDS Premium] Buyer Syndicate ${buyerSyndicateId} paid dynamic premium of ${premium} gold to Writer ${writerSyndicateId} for CDS ${cdsId} (Indicators: Outstanding Fees: ${outstandingFees}, Heat: ${enforcerHeat}, Grace Active: ${hasActiveGrace}).`
+        );
+      } else {
+        // Terminate due to lack of payment
+        newState.sovereignDebtCDSContracts[cdsId] = {
+          ...contract,
+          status: "terminated",
+        };
+        newState.journal.push(
+          `[Sovereign Debt CDS Terminated] CDS contract ${cdsId} terminated due to insufficient war chest in Buyer Syndicate ${buyerSyndicateId} (Required premium: ${premium} gold).`
+        );
+      }
     }
   }
 

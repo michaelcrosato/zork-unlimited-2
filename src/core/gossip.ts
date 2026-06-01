@@ -4027,6 +4027,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge sovereignDebtCDSCDOPools using LWW
+  const sovereignDebtCDSCDOPools = { ...stateA.sovereignDebtCDSCDOPools };
+  if (stateB.sovereignDebtCDSCDOPools) {
+    for (const [id, valB] of Object.entries(stateB.sovereignDebtCDSCDOPools)) {
+      const valA = sovereignDebtCDSCDOPools[id];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        sovereignDebtCDSCDOPools[id] = valB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -4036,6 +4047,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     sovereignDebtDefaultPenaltyWaivers,
     sovereignDebtCDSContracts,
     sovereignDebtCDSPortfolios,
+    sovereignDebtCDSCDOPools,
     cdsListings,
     cdsBids,
     cdsTransfers,

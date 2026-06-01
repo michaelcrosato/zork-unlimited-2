@@ -3003,8 +3003,31 @@ export const SovereignDebtCDSContractSchema = z.object({
     vote: z.boolean(),
     timestamp: z.number().int(),
   })).optional(),
+  cdoId: z.string().optional(),
 });
 export type SovereignDebtCDSContract = z.infer<typeof SovereignDebtCDSContractSchema>;
+
+export const SovereignDebtCDSCDOTrancheSchema = z.object({
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  totalValue: z.number().int().nonnegative(),
+  sharesOwned: z.record(z.string(), z.number().int().nonnegative()),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSCDOTranche = z.infer<typeof SovereignDebtCDSCDOTrancheSchema>;
+
+export const SovereignDebtCDSCDOPoolSchema = z.object({
+  cdoId: z.string(),
+  creatorSyndicateId: z.string(),
+  cdsIds: z.array(z.string()),
+  totalNotional: z.number().int().positive(),
+  tranches: z.record(z.enum(["senior", "mezzanine", "equity"]), SovereignDebtCDSCDOTrancheSchema),
+  fractionalizedVault: z.object({
+    balance: z.number().int().nonnegative(),
+    timestamp: z.number().int(),
+  }),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSCDOPool = z.infer<typeof SovereignDebtCDSCDOPoolSchema>;
 
 export const SovereignDebtCDSPortfolioSchema = z.object({
   syndicateId: z.string(),
@@ -4047,6 +4070,7 @@ export const GameStateSchema = z.object({
   sovereignDebtDefaultPenaltyWaivers: z.record(z.string(), SovereignDebtDefaultPenaltyWaiverProposalSchema).optional(),
   sovereignDebtCDSContracts: z.record(z.string(), SovereignDebtCDSContractSchema).optional(),
   sovereignDebtCDSPortfolios: z.record(z.string(), SovereignDebtCDSPortfolioSchema).optional(),
+  sovereignDebtCDSCDOPools: z.record(z.string(), SovereignDebtCDSCDOPoolSchema).optional(),
   cdsListings: z.record(z.string(), SovereignDebtCDSListingSchema).optional(),
   cdsBids: z.record(z.string(), SovereignDebtCDSBidSchema).optional(),
   cdsTransfers: z.record(z.string(), SovereignDebtCDSTransferSchema).optional(),
@@ -4501,6 +4525,7 @@ export const createInitialState = (options: {
     sovereignDebtDefaultPenaltyWaivers: {},
     sovereignDebtCDSContracts: {},
     sovereignDebtCDSPortfolios: {},
+    sovereignDebtCDSCDOPools: {},
     cdsListings: {},
     cdsBids: {},
     cdsTransfers: {},
@@ -5681,6 +5706,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     sovereignDebtDefaultPenaltyWaivers: rest.sovereignDebtDefaultPenaltyWaivers ? JSON.parse(JSON.stringify(rest.sovereignDebtDefaultPenaltyWaivers)) : undefined,
     sovereignDebtCDSContracts: rest.sovereignDebtCDSContracts ? JSON.parse(JSON.stringify(rest.sovereignDebtCDSContracts)) : undefined,
     sovereignDebtCDSPortfolios: rest.sovereignDebtCDSPortfolios ? JSON.parse(JSON.stringify(rest.sovereignDebtCDSPortfolios)) : undefined,
+    sovereignDebtCDSCDOPools: rest.sovereignDebtCDSCDOPools ? JSON.parse(JSON.stringify(rest.sovereignDebtCDSCDOPools)) : undefined,
     cdsListings: rest.cdsListings ? JSON.parse(JSON.stringify(rest.cdsListings)) : undefined,
     cdsBids: rest.cdsBids ? JSON.parse(JSON.stringify(rest.cdsBids)) : undefined,
     cdsTransfers: rest.cdsTransfers ? JSON.parse(JSON.stringify(rest.cdsTransfers)) : undefined,
@@ -17774,6 +17800,13 @@ export function reconcileSovereignDebtCDSContracts(state: GameState, pack: any):
   }
 
   return newState;
+}
+
+export function reconcileSovereignDebtCDSCDOPools(state: GameState, pack: any): GameState {
+  return {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+  };
 }
 
 
