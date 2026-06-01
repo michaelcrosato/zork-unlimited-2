@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -4966,6 +4966,8 @@ export function multiAgentStep(
       rejectionReason = `Trade route ${routeId} does not exist or has no rooms.`;
     } else if (state.smugglingConvoys?.[convoyId]) {
       rejectionReason = `Smuggling convoy ${convoyId} already exists.`;
+    } else if (Object.values(state.smugglingConvoys || {}).filter(c => c.syndicateId === syndicateId && c.status === "en_route").length >= 1 && !syndicate.ringleader) {
+      rejectionReason = `Syndicate ${syndicateId} can only run multiple active convoys if a smuggling ringleader has been appointed.`;
     } else {
       const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
       const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
@@ -7103,6 +7105,216 @@ export function multiAgentStep(
       const history = state.stateHistory ? [...state.stateHistory] : [];
       const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized APPOINT_RINGLEADER action (AF-67)
+  if ((action as any).type === "APPOINT_RINGLEADER") {
+    const { syndicateId, ringleaderId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to appoint a ringleader.`;
+    } else if (!ringleaderId) {
+      rejectionReason = `Ringleader ID is required to appoint a ringleader.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!syndicate.members.includes(ringleaderId)) {
+      rejectionReason = `Proposed ringleader ${ringleaderId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const existingRingleader = syndicate.ringleader;
+
+      newState.syndicates = {
+        ...newState.syndicates,
+        [syndicateId]: {
+          ...syndicate,
+          ringleader: ringleaderId,
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] ${agentId} appointed ${ringleaderId} as the smuggling ringleader of syndicate ${syndicateId}.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `👑 ${ringleaderId} has been appointed as the smuggling ringleader for syndicate ${syndicateId}! They can now coordinate multi-convoy networks.`,
+      } as any);
+
+      customEvents.push({
+        type: "ringleader_appointed" as any,
+        syndicateId,
+        ringleaderId,
+        previousRingleader: existingRingleader,
+      } as any);
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_CARTEL_GLOBAL_TAX action (AF-67)
+  if ((action as any).type === "VOTE_CARTEL_GLOBAL_TAX") {
+    const { cartelId, taxRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const cartel = state.cartels?.[cartelId];
+    const isMember = cartel?.members.includes(agentId) || state.cartelMemberships?.[agentId]?.includes(cartelId) || false;
+
+    if (!cartelId) {
+      rejectionReason = `Cartel ID is required to vote on global cartel tax.`;
+    } else if (taxRate === undefined || taxRate < 0 || !Number.isInteger(taxRate)) {
+      rejectionReason = `Proposed global cartel tax rate must be a non-negative integer.`;
+    } else if (!cartel) {
+      rejectionReason = `Merchant cartel ${cartelId} does not exist in state.`;
+    } else if (!isMember) {
+      rejectionReason = `Agent ${agentId} is not a member of cartel ${cartelId} and cannot vote.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && cartel) {
+      const cartelGlobalTaxVotes = { ...(state.cartelGlobalTaxVotes || {}) };
+      if (!cartelGlobalTaxVotes[cartelId]) {
+        cartelGlobalTaxVotes[cartelId] = {};
+      } else {
+        cartelGlobalTaxVotes[cartelId] = { ...cartelGlobalTaxVotes[cartelId] };
+      }
+
+      const existingVote = cartelGlobalTaxVotes[cartelId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        cartelGlobalTaxVotes[cartelId][agentId] = {
+          rate: taxRate,
+          timestamp,
+        };
+        newState.cartelGlobalTaxVotes = cartelGlobalTaxVotes;
+        newState = reconcileCartelGlobalTaxes(newState, pack);
+
+        const newTaxRate = newState.cartelGlobalTaxPolicy?.[cartelId] ?? 0;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Cartel] ${agentId} voted for global cartel tax rate ${taxRate} in cartel ${cartelId}. Reconciled global tax is now ${newTaxRate}.`);
+
+        customEvents.push({
+          type: "cartel_global_tax_voted" as any,
+          cartelId,
+          agentId,
+          taxRate,
+          reconciledRate: newTaxRate,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
       if (history.length > 50) {
         history.shift();
       }

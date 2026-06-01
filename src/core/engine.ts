@@ -2172,6 +2172,18 @@ export function tickSmugglingConvoys(
           tax += 15;
         }
         toll = tax * convoy.cargo;
+
+        // Apply Cartel Global Tax if active for this faction
+        let cartelTax = 0;
+        if (newState.cartels) {
+          for (const cartel of Object.values(newState.cartels)) {
+            if (cartel.factionId === factionId) {
+              const globalTax = newState.cartelGlobalTaxPolicy?.[cartel.id] ?? 0;
+              cartelTax = Math.max(cartelTax, globalTax);
+            }
+          }
+        }
+        toll += cartelTax * convoy.cargo;
       }
 
       if (toll > 0) {
@@ -2180,7 +2192,7 @@ export function tickSmugglingConvoys(
         const currentGold = newState.vars[goldKey] ?? (organizerId === "player" ? 0 : 100);
         newState.vars[goldKey] = Math.max(0, currentGold - toll);
         if (!newState.journal) newState.journal = [];
-        newState.journal.push(`[Syndicate] Convoy ${convoyId} paid ${toll} gold in faction tolls to ${factionId} at room ${destRoomId}.`);
+        newState.journal.push(`[Syndicate] Convoy ${convoyId} paid ${toll} gold in faction/cartel tolls to ${factionId} at room ${destRoomId}.`);
       }
 
       // Check ambush risk

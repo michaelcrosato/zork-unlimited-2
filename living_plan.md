@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #66 (Ready for Cycle #67)
-* **Build/Test Status**: 🟢 PASS (All 298 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #67 (Ready for Cycle #68)
+* **Build/Test Status**: 🟢 PASS (All 303 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -396,17 +396,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Integrate with network Discovery/Mesh node gossip updates (`AF-66`).
 - [x] Write comprehensive integration tests verifying validations, active overrides, and gossip reconciliation (`AF-66`).
 
+### Phase 61: Smuggling Ringleaders & Global Cartel Taxes (Completed)
+- [x] Add `APPOINT_RINGLEADER` decentralized action reducer (`AF-67`).
+- [x] Add `VOTE_CARTEL_GLOBAL_TAX` decentralized action reducer (`AF-67`).
+- [x] Integrate with economy ticks and mesh-wide gossip sync (`AF-67`).
+- [x] Write comprehensive integration tests (`AF-67`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-67`
-* **Objective**: Syndicate Black Market Contraband Smuggling Ringleaders & Global Cartel Taxes.
-* **Why this matters**: Support appointing smuggling ringleaders that coordinate multi-convoy networks, and vote on global cartel tax adjustments that dynamically tax trade route crossings mesh-wide.
+**Task ID**: `AF-68`
+* **Objective**: Smuggler Guilds, Cartel Smuggler Guild CBA Traversal Overrides, and Cooperative Cartel Bounties.
+* **Why this matters**: Support creating smuggler guilds, voting on collective bargaining agreements (CBAs) that override crossing tolls for cartel routes, and cooperative bounties where syndicates pool resources to hunt down enforcer/pirate agents mesh-wide.
 * **Planned Actions**:
-  1. Add `APPOINT_RINGLEADER` decentralized action reducer.
-  2. Add `VOTE_CARTEL_GLOBAL_TAX` decentralized action reducer.
-  3. Integrate with economy ticks and mesh-wide gossip sync.
-  4. Write comprehensive integration tests.
+  1. Add `DEFINE_SMUGGLER_GUILD` decentralized action.
+  2. Add `VOTE_SMUGGLER_GUILD_CBA` decentralized action.
+  3. Add `POOL_BOUNTY_RESOURCES` decentralized action.
+  4. Integrate with movement border toll checks and enforcer ticks.
+  5. Write comprehensive integration tests.
 
 ---
 

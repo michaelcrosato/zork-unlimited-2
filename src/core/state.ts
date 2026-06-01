@@ -437,6 +437,7 @@ export const CrimeSyndicateSchema = z.object({
   undercoverAgents: z.array(z.string()).optional(),
   intelStock: z.record(z.string(), IntelReportSchema).optional(),
   intelTransactions: z.array(IntelTransactionSchema).optional(),
+  ringleader: z.string().optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
 
@@ -592,6 +593,8 @@ export const GameStateSchema = z.object({
   raidWarnings: z.record(z.string(), RaidWarningSchema).optional(),
   espionageNetworks: z.record(z.string(), EspionageNetworkSchema).optional(),
   wiretaps: z.record(z.string(), WiretapSchema).optional(),
+  cartelGlobalTaxVotes: z.record(z.string(), z.record(z.string(), TaxVoteSchema)).optional(),
+  cartelGlobalTaxPolicy: z.record(z.string(), z.number()).optional(),
 });
 
 
@@ -703,6 +706,8 @@ export const createInitialState = (options: {
     undercoverAgents: {},
     informants: {},
     raidWarnings: {},
+    cartelGlobalTaxVotes: {},
+    cartelGlobalTaxPolicy: {},
   };
 };
 
@@ -1271,6 +1276,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     undercoverAgents: rest.undercoverAgents ? JSON.parse(JSON.stringify(rest.undercoverAgents)) : undefined,
     informants: rest.informants ? JSON.parse(JSON.stringify(rest.informants)) : undefined,
     raidWarnings: rest.raidWarnings ? JSON.parse(JSON.stringify(rest.raidWarnings)) : undefined,
+    cartelGlobalTaxVotes: rest.cartelGlobalTaxVotes ? JSON.parse(JSON.stringify(rest.cartelGlobalTaxVotes)) : undefined,
+    cartelGlobalTaxPolicy: rest.cartelGlobalTaxPolicy ? { ...rest.cartelGlobalTaxPolicy } : undefined,
   };
   return clone;
 }
@@ -1365,4 +1372,43 @@ export function reconcileEspionageNetworks(state: GameState, pack: any): GameSta
 
 export function reconcileWiretaps(state: GameState, pack: any): GameState {
   return state;
+}
+
+export function reconcileCartelGlobalTaxes(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cartelGlobalTaxPolicy: state.cartelGlobalTaxPolicy ? { ...state.cartelGlobalTaxPolicy } : {},
+  };
+
+  if (!newState.cartelGlobalTaxVotes) {
+    newState.cartelGlobalTaxVotes = {};
+  }
+
+  for (const [cartelId, votes] of Object.entries(newState.cartelGlobalTaxVotes)) {
+    const cartel = newState.cartels?.[cartelId];
+    if (!cartel) continue;
+
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.rate] = (counts[vote.rate] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    let consensusRate = newState.cartelGlobalTaxPolicy[cartelId] ?? 0;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort rates descending to prefer higher rates.
+    const uniqueRates = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = counts[rate];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    newState.cartelGlobalTaxPolicy[cartelId] = consensusRate;
+  }
+
+  return newState;
 }

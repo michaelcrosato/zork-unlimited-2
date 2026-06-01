@@ -56,7 +56,9 @@ export type Action =
   | { type: "SELL_INTEL_REPORT"; syndicateId: string; reportId: string; gold: number; timestamp: number }
   | { type: "BUY_INTEL_REPORT"; syndicateId: string; reportId: string; intelType: "wiretap_log" | "transaction_map" | "raid_schedule"; roomId: string; cost: number; timestamp: number }
   | { type: "SABOTAGE_NETWORK"; syndicateId: string; targetSyndicateId: string; roomId: string; targetType: "espionage_network" | "wiretap"; reportId: string; timestamp: number }
-  | { type: "FLIP_UNDERCOVER_AGENT"; syndicateId: string; agentId: string; timestamp: number };
+  | { type: "FLIP_UNDERCOVER_AGENT"; syndicateId: string; agentId: string; timestamp: number }
+  | { type: "APPOINT_RINGLEADER"; syndicateId: string; ringleaderId: string; timestamp: number }
+  | { type: "VOTE_CARTEL_GLOBAL_TAX"; cartelId: string; taxRate: number; timestamp: number };
 
 
 

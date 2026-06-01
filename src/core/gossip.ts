@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -621,6 +621,30 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge cartelGlobalTaxVotes using LWW (Last-Write-Wins)
+  const cartelGlobalTaxVotes = { ...stateA.cartelGlobalTaxVotes };
+  if (stateB.cartelGlobalTaxVotes) {
+    for (const [cartelId, bVotes] of Object.entries(stateB.cartelGlobalTaxVotes)) {
+      if (!cartelGlobalTaxVotes[cartelId]) {
+        cartelGlobalTaxVotes[cartelId] = { ...bVotes };
+      } else {
+        cartelGlobalTaxVotes[cartelId] = { ...cartelGlobalTaxVotes[cartelId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = cartelGlobalTaxVotes[cartelId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            cartelGlobalTaxVotes[cartelId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge cartelGlobalTaxPolicy
+  const cartelGlobalTaxPolicy = {
+    ...(stateA.cartelGlobalTaxPolicy || {}),
+    ...(stateB.cartelGlobalTaxPolicy || {}),
+  };
+
   // Merge contrabandBlacklist using LWW (Last-Write-Wins)
   const contrabandBlacklist = { ...stateA.contrabandBlacklist };
   if (stateB.contrabandBlacklist) {
@@ -1033,6 +1057,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     raidWarnings,
     espionageNetworks,
     wiretaps,
+    cartelGlobalTaxVotes,
+    cartelGlobalTaxPolicy,
   };
 }
 
@@ -1351,6 +1377,7 @@ export class GossipNode {
     // Reconcile espionage networks and wiretaps
     convergedState = reconcileEspionageNetworks(convergedState, this.pack);
     convergedState = reconcileWiretaps(convergedState, this.pack);
+    convergedState = reconcileCartelGlobalTaxes(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};
