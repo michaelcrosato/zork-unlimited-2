@@ -709,6 +709,18 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge safehouses using LWW (Last-Write-Wins)
+  const safehouses = { ...stateA.safehouses };
+  if (stateB.safehouses) {
+    for (const [roomId, entryB] of Object.entries(stateB.safehouses)) {
+      const entryA = safehouses[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        safehouses[roomId] = entryB;
+      }
+    }
+  }
+
+
   // Merge syndicateTurfClaims using LWW (Last-Write-Wins)
   const syndicateTurfClaims = { ...stateA.syndicateTurfClaims };
   if (stateB.syndicateTurfClaims) {
@@ -797,6 +809,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     bribes,
     syndicates,
     productionLabs,
+    safehouses,
     syndicateTurfClaims,
     enforcementHeat,
     protectionRackets,

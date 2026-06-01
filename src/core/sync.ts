@@ -3655,6 +3655,468 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized BUY_SAFEHOUSE action (AF-48)
+  if ((action as any).type === "BUY_SAFEHOUSE") {
+    const { roomId, syndicateId, cost, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to buy a safehouse.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to buy a safehouse.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Safehouse cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.safehouses?.[roomId]) {
+      rejectionReason = `A safehouse already exists in room ${roomId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to buy safehouse costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Register safehouse
+      const safehouses = { ...(state.safehouses || {}) };
+      safehouses[roomId] = {
+        id: `safehouse_${roomId}`,
+        roomId,
+        ownerId: agentId,
+        syndicateId,
+        level: 1,
+        stashCapacity: 5,
+        stashItems: [],
+        timestamp,
+      };
+      newState.safehouses = safehouses;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Purchased safehouse in ${roomId} for ${cost} gold by agent ${agentId} of syndicate ${syndicateId}.`);
+      customEvents.push({
+        type: "safehouse_purchased",
+        agentId,
+        roomId,
+        syndicateId,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized UPGRADE_SAFEHOUSE action (AF-48)
+  if ((action as any).type === "UPGRADE_SAFEHOUSE") {
+    const { roomId, cost, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const safehouse = state.safehouses?.[roomId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to upgrade safehouse.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Safehouse upgrade cost ${cost} must be a non-negative integer.`;
+    } else if (!safehouse) {
+      rejectionReason = `No safehouse exists in room ${roomId}.`;
+    } else {
+      const syndicate = state.syndicates?.[safehouse.syndicateId];
+      if (!syndicate || !syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of the syndicate ${safehouse.syndicateId} owning the safehouse in ${roomId}.`;
+      } else {
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        if (currentGold < cost) {
+          rejectionReason = `Insufficient gold to upgrade safehouse (requires ${cost}, has ${currentGold}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && safehouse) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Upgrade safehouse
+      const safehouses = { ...(state.safehouses || {}) };
+      const currentLevel = safehouse.level;
+      safehouses[roomId] = {
+        ...safehouse,
+        level: currentLevel + 1,
+        stashCapacity: safehouse.stashCapacity + 5,
+        timestamp,
+      };
+      newState.safehouses = safehouses;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Upgraded safehouse in ${roomId} to level ${currentLevel + 1} for ${cost} gold by agent ${agentId}.`);
+      customEvents.push({
+        type: "safehouse_upgraded",
+        agentId,
+        roomId,
+        level: currentLevel + 1,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEPOSIT_STASH action (AF-48)
+  if ((action as any).type === "DEPOSIT_STASH") {
+    const { roomId, itemId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const safehouse = state.safehouses?.[roomId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to deposit item.`;
+    } else if (!itemId) {
+      rejectionReason = `Item ID is required to deposit item.`;
+    } else if (!safehouse) {
+      rejectionReason = `No safehouse exists in room ${roomId}.`;
+    } else {
+      const syndicate = state.syndicates?.[safehouse.syndicateId];
+      if (!syndicate || !syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId}.`;
+      } else {
+        // Check if agent has item in inventory
+        const agentInv = agentId === "player" ? state.inventory : state.agents?.[agentId]?.inventory ?? [];
+        if (!agentInv.includes(itemId)) {
+          rejectionReason = `Agent ${agentId} does not possess item ${itemId} to deposit.`;
+        } else if (safehouse.stashItems.length >= safehouse.stashCapacity) {
+          rejectionReason = `Safehouse stash in ${roomId} is at capacity (${safehouse.stashCapacity}/${safehouse.stashCapacity}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && safehouse) {
+      // Remove from agent inventory and add to stash
+      if (agentId === "player") {
+        newState.inventory = newState.inventory.filter(item => item !== itemId);
+      } else if (newState.agents?.[agentId]) {
+        const agents = { ...newState.agents };
+        agents[agentId] = {
+          ...agents[agentId],
+          inventory: agents[agentId].inventory.filter(item => item !== itemId),
+        };
+        newState.agents = agents;
+      }
+
+      // Add to stashItems
+      const safehouses = { ...(state.safehouses || {}) };
+      safehouses[roomId] = {
+        ...safehouse,
+        stashItems: [...safehouse.stashItems, itemId],
+        timestamp,
+      };
+      newState.safehouses = safehouses;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Agent ${agentId} deposited ${itemId} into safehouse stash in ${roomId}.`);
+      customEvents.push({
+        type: "stash_deposited",
+        agentId,
+        roomId,
+        itemId,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized WITHDRAW_STASH action (AF-48)
+  if ((action as any).type === "WITHDRAW_STASH") {
+    const { roomId, itemId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const safehouse = state.safehouses?.[roomId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to withdraw item.`;
+    } else if (!itemId) {
+      rejectionReason = `Item ID is required to withdraw item.`;
+    } else if (!safehouse) {
+      rejectionReason = `No safehouse exists in room ${roomId}.`;
+    } else {
+      const syndicate = state.syndicates?.[safehouse.syndicateId];
+      if (!syndicate || !syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId}.`;
+      } else if (!safehouse.stashItems.includes(itemId)) {
+        rejectionReason = `Safehouse stash in ${roomId} does not contain item ${itemId}.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && safehouse) {
+      // Remove from stashItems
+      const safehouses = { ...(state.safehouses || {}) };
+      safehouses[roomId] = {
+        ...safehouse,
+        stashItems: safehouse.stashItems.filter(item => item !== itemId),
+        timestamp,
+      };
+      newState.safehouses = safehouses;
+
+      // Add to agent inventory
+      if (agentId === "player") {
+        newState.inventory = [...newState.inventory, itemId];
+      } else if (newState.agents?.[agentId]) {
+        const agents = { ...newState.agents };
+        agents[agentId] = {
+          ...agents[agentId],
+          inventory: [...agents[agentId].inventory, itemId],
+        };
+        newState.agents = agents;
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Agent ${agentId} withdrew ${itemId} from safehouse stash in ${roomId}.`);
+      customEvents.push({
+        type: "stash_withdrawn",
+        agentId,
+        roomId,
+        itemId,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

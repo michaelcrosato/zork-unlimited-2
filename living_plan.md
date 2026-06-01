@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #47 (Ready for Cycle #48)
-* **Build/Test Status**: 🟢 PASS (All 208 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #48 (Ready for Cycle #49)
+* **Build/Test Status**: 🟢 PASS (All 212 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -276,16 +276,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Provide strategic 20% discounts on buying and 20% premium bonuses on selling contraband items for allied syndicate members (`AF-47`).
 - [x] Write comprehensive integration tests asserting dialogue gating, enforcer heat/reputation trade blocks, and syndicate pricing incentives (`AF-47`).
 
+### Phase 42: Syndicate Safehouses & Stash Networks (Completed)
+- [x] Define Syndicate Safehouse and Stash state schemas (`AF-48`).
+- [x] Implement reducer actions to purchase and upgrade safehouse stash capacity (`AF-48`).
+- [x] Wire stash item deposit and retrieval mechanics (`AF-48`).
+- [x] Integrate enforcer raid and combat defeat fallback points relocating players and agents to active safehouses (`AF-48`).
+- [x] Write comprehensive integration tests verifying safehouse management, stashing, and fallback mechanics (`AF-48`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-48`
-* **Objective**: Syndicate Safehouses & Stash Networks.
-* **Why this matters**: Support buying, upgrading, and utilizing decentralized syndicate safehouses as secure item storage stashes and enforcer raid fallback points.
+**Task ID**: `AF-49`
+* **Objective**: Syndicate Black Markets & Dynamic Tariffs.
+* **Why this matters**: Support selling contraband to syndicate black markets located in safehouses to bypass standard faction tariffs and avoid local tax tolls.
 * **Planned Actions**:
-  1. Define Syndicate Safehouse and Stash state schemas.
-  2. Implement reducer actions to purchase and upgrade safehouse stash capacity.
-  3. Wire stash item deposit and retrieval mechanics.
+  1. Define Syndicate Black Market trade structures and schemas in GameState.
+  2. Implement reducer actions to sell items to black markets within safehouses.
+  3. Wire logic to bypass regional tolls and tariffs when trading at a syndicate-registered safehouse.
   4. Write comprehensive integration tests.
 
 ---

@@ -378,10 +378,38 @@ export function step(
         }
 
         if (playerHp <= 0) {
-          newState.ended = true;
-          newState.endingId = "ending_died_in_combat";
-          combatLog += `💀 You have fallen in battle. Game Over.`;
+          let fallbackSafehouse: any = null;
+          if (newState.safehouses) {
+            for (const safehouse of Object.values(newState.safehouses)) {
+              const syndicate = newState.syndicates?.[safehouse.syndicateId];
+              if (syndicate && syndicate.members.includes("player")) {
+                fallbackSafehouse = safehouse;
+                break;
+              }
+            }
+          }
+
+          if (fallbackSafehouse) {
+            newState.current = fallbackSafehouse.roomId;
+            playerHp = newState.vars["max_hp"] ?? 20;
+            playerMana = newState.vars["max_mana"] ?? 10;
+
+            for (const flag of Object.keys(newState.flags)) {
+              if (flag.startsWith("in_combat_with_")) {
+                newState.flags[flag] = false;
+              }
+            }
+
+            newState.ended = false;
+            newState.endingId = null;
+            combatLog += `\n🛡️ You were defeated, but you managed to escape and fallback to your syndicate safehouse in ${fallbackSafehouse.roomId}! Your health has been fully restored.`;
+          } else {
+            newState.ended = true;
+            newState.endingId = "ending_died_in_combat";
+            combatLog += `💀 You have fallen in battle. Game Over.`;
+          }
         }
+
 
         // Save states back
         newState.vars["hp"] = playerHp;
@@ -2017,6 +2045,32 @@ function tickEnforcers(
                 } as any);
                 enforcer.status = "idle";
                 enforcer.timestamp = newState.step;
+
+                // Check if there is an active safehouse for this agent's syndicate
+                let agentFallback: any = null;
+                if (newState.safehouses) {
+                  for (const safehouse of Object.values(newState.safehouses)) {
+                    const syndicate = newState.syndicates?.[safehouse.syndicateId];
+                    if (syndicate && syndicate.members.includes(enforcer.targetId)) {
+                      agentFallback = safehouse;
+                      break;
+                    }
+                  }
+                }
+                if (agentFallback) {
+                  if (newState.agents?.[enforcer.targetId]) {
+                    const agents = { ...newState.agents };
+                    agents[enforcer.targetId] = {
+                      ...agents[enforcer.targetId],
+                      current: agentFallback.roomId,
+                    };
+                    newState.agents = agents;
+                    events.push({
+                      type: "narration",
+                      text: `🛡️ Agent ${enforcer.targetId} fell back to their syndicate safehouse in ${agentFallback.roomId}.`
+                    } as any);
+                  }
+                }
               }
             }
           }
