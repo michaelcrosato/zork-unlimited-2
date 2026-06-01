@@ -3537,6 +3537,25 @@ export const SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensio
 });
 export type SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityVote = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityVoteSchema>;
 
+export const SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalSchema = z.object({
+  proposalId: z.string(),
+  cdoId: z.string(),
+  syndicateId: z.string(),
+  targetProposalId: z.string(),
+  newMinLiquidityThreshold: z.number().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposal = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalSchema>;
+
+export const SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVote = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteSchema>;
+
 export const SovereignDebtCDSCDOYieldHedgingOptionListingSchema = z.object({
   listingId: z.string(),
   optionId: z.string(),
@@ -4607,6 +4626,8 @@ export const GameStateSchema = z.object({
   cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes: z.record(z.string(), z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVoteSchema)).optional(),
   cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposalSchema).optional(),
   cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityVotes: z.record(z.string(), z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityVoteSchema)).optional(),
+  cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalSchema).optional(),
+  cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: z.record(z.string(), z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteSchema)).optional(),
   cdsCdoYieldHedgingOptionListings: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionListingSchema).optional(),
   cdsCdoYieldHedgingOptionBids: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionBidSchema).optional(),
   cdsCdoYieldHedgingOptionTransfers: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionTransferSchema).optional(),
@@ -5099,6 +5120,8 @@ export const createInitialState = (options: {
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes: {},
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals: {},
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityVotes: {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals: {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: {},
     cdsCdoYieldHedgingOptionListings: {},
     cdsCdoYieldHedgingOptionBids: {},
     cdsCdoYieldHedgingOptionTransfers: {},
@@ -6317,6 +6340,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceVotes)) : undefined,
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals)) : undefined,
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityVotes: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityVotes ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityVotes)) : undefined,
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals)) : undefined,
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes)) : undefined,
     cdsCdoYieldHedgingOptionListings: rest.cdsCdoYieldHedgingOptionListings ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionListings)) : undefined,
     cdsCdoYieldHedgingOptionBids: rest.cdsCdoYieldHedgingOptionBids ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionBids)) : undefined,
     cdsCdoYieldHedgingOptionTransfers: rest.cdsCdoYieldHedgingOptionTransfers ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionTransfers)) : undefined,
@@ -19944,6 +19969,82 @@ export function reconcileCDSCDOYieldHedgingOptionContracts(state: GameState, pac
   }
 
   return newState as GameState;
+}
+
+export function reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjusts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals: state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals ? { ...state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals } : {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals: state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals ? { ...state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals } : {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals: state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals ? { ...state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals } : {},
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes ? { ...state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+
+    let newlyAuthorized = false;
+    if (authorizeVoters.size > totalMembers / 2) {
+      if (status !== "authorized") {
+        newlyAuthorized = true;
+      }
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+
+    if (newlyAuthorized) {
+      const targetLiqProp = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals[proposal.targetProposalId];
+      if (targetLiqProp) {
+        newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityProposals[proposal.targetProposalId] = {
+          ...targetLiqProp,
+          minLiquidityThreshold: proposal.newMinLiquidityThreshold,
+        };
+
+        const targetGraceProp = newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals[targetLiqProp.targetProposalId];
+        if (targetGraceProp) {
+          newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceProposals[targetLiqProp.targetProposalId] = {
+            ...targetGraceProp,
+            minLiquidityThreshold: proposal.newMinLiquidityThreshold,
+          };
+        }
+      }
+    }
+
+    newState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId] = {
+      ...proposal,
+      status,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
+  }
+
+  return newState;
 }
 
 
