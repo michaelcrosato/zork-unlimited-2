@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -340,6 +340,24 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge alliance votes using LWW (Last-Write-Wins)
+  const allianceVotes = { ...stateA.allianceVotes };
+  if (stateB.allianceVotes) {
+    for (const [pairKey, bVotes] of Object.entries(stateB.allianceVotes)) {
+      if (!allianceVotes[pairKey]) {
+        allianceVotes[pairKey] = { ...bVotes };
+      } else {
+        allianceVotes[pairKey] = { ...allianceVotes[pairKey] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = allianceVotes[pairKey][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            allianceVotes[pairKey][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -347,6 +365,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     lootClaims,
     territoryClaims,
     taxVotes,
+    allianceVotes,
   };
 }
 
@@ -634,6 +653,9 @@ export class GossipNode {
 
     // Reconcile tax policies to ensure consensual tax rates align perfectly across the mesh
     convergedState = reconcileTaxPolicies(convergedState, this.pack);
+
+    // Reconcile alliances to ensure dynamic mutual alliances/dissolutions converge perfectly across the mesh
+    convergedState = reconcileAlliances(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #31 (Ready for Cycle #32)
-* **Build/Test Status**: 🟢 PASS (All 140 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #32 (Ready for Cycle #33)
+* **Build/Test Status**: 🟢 PASS (All 144 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -166,17 +166,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Scale travel tax and periodic passive tax collections dynamically by consensual taxPolicy rate (`AF-31`).
 - [x] Write comprehensive unit tests for voting transactions, mesh convergence, and dynamic tax collection price scaling (`AF-31`).
 
+### Phase 27: Dynamic Decentralized Faction Alliances & Vote Arbitration (Completed)
+- [x] Add `alliances` state to track faction-faction relationships (neutral, allied, hostile) (`AF-32`).
+- [x] Implement `PROPOSE_ALLIANCE` and `DISSOLVE_ALLIANCE` decentralized actions and consensus voting logic (`AF-32`).
+- [x] Wire alliance state to scale tax policies (e.g. allied factions pay no travel tax or reduced tax, while hostile factions pay double tax!) (`AF-32`).
+- [x] Write comprehensive unit and integration tests asserting presence alliances, proposals, consensus tie-breaking, P2P mesh sync convergence, and strategic pricing effects (`AF-32`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-32`
-* **Objective**: Implement dynamic decentralized faction alliances and mesh-wide alliance formation/dissolution voting.
-* **Why this matters**: Allowing factions to dynamically form defensive and economic alliances or dissolve alliances mesh-wide via consensus-based voting takes the faction dynamics and mesh network strategy to a highly immersive, multi-agent political scale.
+**Task ID**: `AF-33`
+* **Objective**: Implement dynamic decentralized alliance-based cooperative defense and territory conquest goals.
+* **Why this matters**: Having allied nodes defend territories or cooperatively conquer neutral/hostile territories across the P2P gossip mesh expands the tactical gameplay to a true decentralized strategy.
 * **Planned Actions**:
-  1. Add `alliances` state to track faction-faction relationships (neutral, allied, hostile).
-  2. Implement `PROPOSE_ALLIANCE` and `DISSOLVE_ALLIANCE` decentralized actions and consensus voting logic.
-  3. Wire alliance state to scale tax policies (e.g. allied factions pay no travel tax or reduced tax, while hostile factions pay double tax!).
-  4. Write comprehensive unit tests for alliance proposal, voting, mesh-wide synchronization, and strategic pricing effects.
+  1. Add cooperative assistance/alliance defense variables to room control claims.
+  2. Implement `ASSIST_CONQUEST` actions that allow allied factions to secure territorial claims faster or with less penalty.
+  3. Wire dynamic narrative alerts for alliance battles.
+  4. Write comprehensive integration tests.
 
 ---
 

@@ -473,6 +473,29 @@ export function step(
           tax = tax * rateMultiplier;
         }
 
+        // Apply alliance scaling if alliances exist
+        let hasAlliedAlliance = false;
+        let hasHostileAlliance = false;
+
+        if (state.alliances && state.factionRep) {
+          for (const [otherFactionId, otherRep] of Object.entries(state.factionRep)) {
+            if (otherFactionId !== factionId && otherRep >= 10) {
+              const relation = state.alliances[factionId]?.[otherFactionId];
+              if (relation === "allied") {
+                hasAlliedAlliance = true;
+              } else if (relation === "hostile") {
+                hasHostileAlliance = true;
+              }
+            }
+          }
+        }
+
+        if (hasAlliedAlliance) {
+          tax = 0; // Allied factions pay no travel tax
+        } else if (hasHostileAlliance) {
+          tax = tax * 2; // Hostile factions pay double tax
+        }
+
         if (tax > 0) {
           const playerGold = state.vars["gold"] ?? 0;
           if (playerGold < tax) {

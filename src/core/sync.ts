@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -374,6 +374,119 @@ export function multiAgentStep(
       events: ok 
         ? [{ type: "territory_claimed", roomId, factionId, claimedBy: agentId } as any] 
         : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_ALLIANCE and DISSOLVE_ALLIANCE actions
+  if ((action as any).type === "PROPOSE_ALLIANCE" || (action as any).type === "DISSOLVE_ALLIANCE") {
+    const isPropose = (action as any).type === "PROPOSE_ALLIANCE";
+    const { factionA, factionB, targetState, timestamp } = action as any;
+    const pairKey = [factionA || "", factionB || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const isValidFactionA = (pack as any).factions?.some((f: any) => f.id === factionA);
+    const isValidFactionB = (pack as any).factions?.some((f: any) => f.id === factionB);
+
+    if (!isValidFactionA) {
+      rejectionReason = `Faction ${factionA} is not a valid faction in the content pack.`;
+    } else if (!isValidFactionB) {
+      rejectionReason = `Faction ${factionB} is not a valid faction in the content pack.`;
+    } else if (factionA === factionB) {
+      rejectionReason = `Cannot form alliance with the same faction.`;
+    } else if (isPropose && targetState && !["allied", "hostile", "neutral"].includes(targetState)) {
+      rejectionReason = `Proposed alliance state ${targetState} must be allied, hostile, or neutral.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const allianceVotes = { ...(state.allianceVotes || {}) };
+      if (!allianceVotes[pairKey]) {
+        allianceVotes[pairKey] = {};
+      } else {
+        allianceVotes[pairKey] = { ...allianceVotes[pairKey] };
+      }
+
+      const votedState = isPropose ? (targetState ?? "allied") : "neutral";
+
+      const existingVote = allianceVotes[pairKey][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        allianceVotes[pairKey][agentId] = {
+          targetState: votedState,
+          timestamp,
+        };
+        newState.allianceVotes = allianceVotes;
+        newState = reconcileAlliances(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    // Update agent sequence vector clock
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [
+            {
+              type: "state_change",
+              effect: isPropose ? "propose_alliance" : "dissolve_alliance",
+              variable: pairKey,
+              value: isPropose ? (targetState ?? "allied") : "neutral",
+            } as any,
+          ]
+        : [
+            {
+              type: "rejected",
+              reason: rejectionReason || "Failed alliance vote.",
+            } as any,
+          ],
       ok,
       rejectionReason,
     };

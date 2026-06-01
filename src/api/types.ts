@@ -25,7 +25,10 @@ export type Action =
   | { type: "FIGHT"; npc: string }
   | { type: "CAST"; spell: string; target: string }
   | { type: "FLEE" }
-  | { type: "VOTE_TAX_RATE"; factionId: string; rate: number; timestamp: number };
+  | { type: "VOTE_TAX_RATE"; factionId: string; rate: number; timestamp: number }
+  | { type: "PROPOSE_ALLIANCE"; factionA: string; factionB: string; targetState?: "allied" | "hostile" | "neutral"; timestamp: number }
+  | { type: "DISSOLVE_ALLIANCE"; factionA: string; factionB: string; timestamp: number };
+
 
 export type StepResult = {
   state: GameState;

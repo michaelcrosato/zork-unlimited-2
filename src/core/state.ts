@@ -61,6 +61,15 @@ export const TaxVoteSchema = z.object({
 
 export type TaxVote = z.infer<typeof TaxVoteSchema>;
 
+export const AllianceRelationshipSchema = z.enum(["allied", "hostile", "neutral"]);
+export type AllianceRelationship = z.infer<typeof AllianceRelationshipSchema>;
+
+export const AllianceVoteSchema = z.object({
+  targetState: AllianceRelationshipSchema,
+  timestamp: z.number().int(),
+});
+export type AllianceVote = z.infer<typeof AllianceVoteSchema>;
+
 export const TradeTransactionSchema = z.object({
   step: z.number().int().nonnegative(),
   npcId: z.string(),
@@ -117,6 +126,8 @@ export const GameStateSchema = z.object({
   territoryControl: z.record(z.string(), z.string()).optional(),
   taxPolicy: z.record(z.string(), z.number()).optional(),
   taxVotes: z.record(z.string(), z.record(z.string(), TaxVoteSchema)).optional(),
+  alliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
+  allianceVotes: z.record(z.string(), z.record(z.string(), AllianceVoteSchema)).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -183,6 +194,8 @@ export const createInitialState = (options: {
     territoryControl: options.territoryControlInit ?? {},
     taxPolicy: {},
     taxVotes: {},
+    alliances: {},
+    allianceVotes: {},
   };
 };
 
@@ -351,4 +364,56 @@ export function getRoomExits(state: GameState, currentRoom: any): any[] {
     }
   });
   return exits;
+}
+
+export function reconcileAlliances(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    alliances: { ...(state.alliances || {}) },
+  };
+
+  if (!newState.allianceVotes) {
+    newState.allianceVotes = {};
+  }
+
+  // Clear and rebuild alliances from scratch to ensure consistency
+  newState.alliances = {};
+
+  for (const [pairKey, votes] of Object.entries(newState.allianceVotes)) {
+    const parts = pairKey.split(":");
+    if (parts.length !== 2) continue;
+    const [factionA, factionB] = parts;
+
+    const counts: Record<string, number> = { allied: 0, hostile: 0, neutral: 0 };
+    for (const vote of Object.values(votes)) {
+      counts[vote.targetState] = (counts[vote.targetState] ?? 0) + 1;
+    }
+
+    let maxCount = -1;
+    let consensusState: "allied" | "hostile" | "neutral" = "neutral";
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort states priority: "allied" > "hostile" > "neutral"
+    const statesPriority: ("allied" | "hostile" | "neutral")[] = ["allied", "hostile", "neutral"];
+    for (const s of statesPriority) {
+      const count = counts[s] ?? 0;
+      if (count > maxCount) {
+        maxCount = count;
+        consensusState = s;
+      }
+    }
+
+    // Set symmetrically
+    if (!newState.alliances[factionA]) {
+      newState.alliances[factionA] = {};
+    }
+    newState.alliances[factionA][factionB] = consensusState;
+
+    if (!newState.alliances[factionB]) {
+      newState.alliances[factionB] = {};
+    }
+    newState.alliances[factionB][factionA] = consensusState;
+  }
+
+  return newState;
 }
