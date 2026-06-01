@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -575,6 +575,52 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge cartels using LWW (Last-Write-Wins)
+  const cartels = { ...stateA.cartels };
+  if (stateB.cartels) {
+    for (const [cartelId, cartelB] of Object.entries(stateB.cartels)) {
+      const cartelA = cartels[cartelId];
+      if (!cartelA) {
+        cartels[cartelId] = cartelB;
+      } else {
+        if (cartelB.timestamp > cartelA.timestamp) {
+          cartels[cartelId] = cartelB;
+        } else if (cartelB.timestamp === cartelA.timestamp) {
+          if (cartelB.definedBy.localeCompare(cartelA.definedBy) < 0) {
+            cartels[cartelId] = cartelB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge cartelMemberships monotonically
+  const cartelMemberships = { ...stateA.cartelMemberships };
+  if (stateB.cartelMemberships) {
+    for (const [agentId, bCartels] of Object.entries(stateB.cartelMemberships)) {
+      const aCartels = cartelMemberships[agentId] || [];
+      cartelMemberships[agentId] = Array.from(new Set([...aCartels, ...bCartels]));
+    }
+  }
+
+  // Merge cartelVotes using LWW (Last-Write-Wins)
+  const cartelVotes = { ...stateA.cartelVotes };
+  if (stateB.cartelVotes) {
+    for (const [cartelId, bVotes] of Object.entries(stateB.cartelVotes)) {
+      if (!cartelVotes[cartelId]) {
+        cartelVotes[cartelId] = { ...bVotes };
+      } else {
+        cartelVotes[cartelId] = { ...cartelVotes[cartelId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = cartelVotes[cartelId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            cartelVotes[cartelId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -597,6 +643,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     guildMemberships,
     guildVotes,
     collectiveBargainingAgreements,
+    cartels,
+    cartelMemberships,
+    cartelVotes,
   };
 }
 
@@ -896,6 +945,9 @@ export class GossipNode {
 
     // Reconcile merchant guild policies to ensure consensual guild policies align perfectly across the mesh
     convergedState = reconcileGuildPolicies(convergedState, this.pack);
+
+    // Reconcile merchant cartel policies to ensure consensual cartel policies align perfectly across the mesh
+    convergedState = reconcileCartelPolicies(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

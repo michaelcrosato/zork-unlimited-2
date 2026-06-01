@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #38 (Ready for Cycle #39)
-* **Build/Test Status**: 🟢 PASS (All 168 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #39 (Ready for Cycle #40)
+* **Build/Test Status**: 🟢 PASS (All 174 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -208,17 +208,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire guild membership discounts, non-member guild tariffs, export policies, and CBA faction tariff overrides into the strategic trade pricing module (`AF-38`).
 - [x] Write comprehensive integration tests verifying strategic pricing, voting consensus, CBA overrides, and mesh replication convergence (`AF-38`).
 
+### Phase 33: Gossip-based Collective Merchant Cartels and Price Collusion (Completed)
+- [x] Define merchant cartel coordination and embargo schemas in state variables (`AF-39`).
+- [x] Implement local competition/density checks to trigger coordinated pricing hikes (`AF-39`).
+- [x] Support P2P gossip mesh replication of active embargoes and cartel policies (`AF-39`).
+- [x] Write comprehensive integration tests verifying embargoes and cartel-coordinated price hikes (`AF-39`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-39`
-* **Objective**: Implement Gossip-based Collective Merchant Cartels and Price Collusion.
-* **Why this matters**: Cartels allowing guild merchants to actively coordinate price collusion, artificially raising prices under low competition or retaliating against hostile factions with severe embargoes.
+**Task ID**: `AF-40`
+* **Objective**: Implement Decentralized Cartel Smuggling and Contraband Economy.
+* **Why this matters**: A smuggling contraband economy that lets players/agents bypass hostile faction trade route tolls or active cartel embargoes, introducing dynamic contraband mechanics and risk/reward reputational stakes.
 * **Planned Actions**:
-  1. Define merchant cartel coordination and embargo schemas in state variables.
-  2. Implement local competition/density checks to trigger coordinated pricing hikes.
-  3. Support P2P gossip mesh replication of active embargoes and cartel policies.
-  4. Write comprehensive integration tests verifying embargoes and cartel-coordinated price hikes.
+  1. Add contraband flags to item schemas and state variables.
+  2. Implement smuggling reducer effects for crossing hostile/embargoed borders.
+  3. Support P2P gossip mesh synchronization of blacklisted contraband list and regional black-market smuggling payouts.
+  4. Write comprehensive Vitest integration tests for smuggling border checks, caught penalties, and mesh-wide sync.
 
 ---
 

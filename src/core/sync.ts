@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -1585,6 +1585,334 @@ export function multiAgentStep(
       state: newState,
       events: ok
         ? [{ type: "collective_bargaining_negotiated", guildId, factionId, agreedTariff, definedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEFINE_MERCHANT_CARTEL action
+  if ((action as any).type === "DEFINE_MERCHANT_CARTEL") {
+    const { cartelId, name, members, factionId, priceMultiplier, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const isValidFaction = (pack as any).factions?.some((f: any) => f.id === factionId);
+
+    if (!cartelId || typeof cartelId !== "string") {
+      rejectionReason = `Proposed cartel ID must be a non-empty string.`;
+    } else if (!name || typeof name !== "string") {
+      rejectionReason = `Proposed cartel name must be a non-empty string.`;
+    } else if (!Array.isArray(members) || members.some(m => typeof m !== "string")) {
+      rejectionReason = `Proposed cartel members must be an array of NPC ID strings.`;
+    } else if (!isValidFaction) {
+      rejectionReason = `Faction ${factionId} is not a valid faction in the content pack.`;
+    } else if (priceMultiplier < 0) {
+      rejectionReason = `Proposed price multiplier must be non-negative.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const cartels = { ...(state.cartels || {}) };
+      const existingCartel = cartels[cartelId];
+
+      if (!existingCartel || timestamp > existingCartel.timestamp ||
+        (timestamp === existingCartel.timestamp && agentId.localeCompare(existingCartel.definedBy) < 0)
+      ) {
+        cartels[cartelId] = {
+          id: cartelId,
+          name,
+          members,
+          factionId,
+          priceMultiplier,
+          definedBy: agentId,
+          timestamp,
+        };
+        newState.cartels = cartels;
+
+        // Initialize memberships
+        const cartelMemberships = { ...(state.cartelMemberships || {}) };
+        for (const memberId of members) {
+          if (!cartelMemberships[memberId]) {
+            cartelMemberships[memberId] = [];
+          } else {
+            cartelMemberships[memberId] = [...cartelMemberships[memberId]];
+          }
+          if (!cartelMemberships[memberId].includes(cartelId)) {
+            cartelMemberships[memberId].push(cartelId);
+          }
+        }
+        newState.cartelMemberships = cartelMemberships;
+
+        // Definer's initial vote
+        const cartelVotes = { ...(state.cartelVotes || {}) };
+        if (!cartelVotes[cartelId]) {
+          cartelVotes[cartelId] = {};
+        } else {
+          cartelVotes[cartelId] = { ...cartelVotes[cartelId] };
+        }
+        cartelVotes[cartelId][agentId] = {
+          priceMultiplier,
+          embargoedFactions: [],
+          timestamp,
+        };
+        newState.cartelVotes = cartelVotes;
+
+        newState = reconcileCartelPolicies(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "cartel_defined", cartelId, name, definedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized JOIN_MERCHANT_CARTEL action
+  if ((action as any).type === "JOIN_MERCHANT_CARTEL") {
+    const { cartelId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const cartel = state.cartels?.[cartelId];
+    if (!cartel) {
+      rejectionReason = `Merchant cartel ${cartelId} does not exist in state.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok && cartel) {
+      const cartelMemberships = { ...(state.cartelMemberships || {}) };
+      if (!cartelMemberships[agentId]) {
+        cartelMemberships[agentId] = [];
+      } else {
+        cartelMemberships[agentId] = [...cartelMemberships[agentId]];
+      }
+
+      if (!cartelMemberships[agentId].includes(cartelId)) {
+        cartelMemberships[agentId].push(cartelId);
+      }
+      newState.cartelMemberships = cartelMemberships;
+
+      // Update members in cartel object
+      const cartels = { ...(state.cartels || {}) };
+      if (cartels[cartelId]) {
+        cartels[cartelId] = {
+          ...cartels[cartelId],
+          members: Array.from(new Set([...cartels[cartelId].members, agentId])),
+        };
+        newState.cartels = cartels;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "cartel_joined", cartelId, agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_CARTEL_POLICY action
+  if ((action as any).type === "VOTE_CARTEL_POLICY") {
+    const { cartelId, priceMultiplier, embargoedFactions, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const cartel = state.cartels?.[cartelId];
+    const isMember = cartel?.members.includes(agentId) || state.cartelMemberships?.[agentId]?.includes(cartelId) || false;
+
+    if (!cartel) {
+      rejectionReason = `Merchant cartel ${cartelId} does not exist in state.`;
+    } else if (!isMember) {
+      rejectionReason = `Agent ${agentId} is not a member of cartel ${cartelId} and cannot vote.`;
+    } else if (priceMultiplier < 0) {
+      rejectionReason = `Proposed price multiplier must be non-negative.`;
+    } else if (!Array.isArray(embargoedFactions) || embargoedFactions.some(f => typeof f !== "string")) {
+      rejectionReason = `Proposed embargoed factions must be an array of faction ID strings.`;
+    } else {
+      // Validate factions exist
+      let allFactionsValid = true;
+      for (const factionId of embargoedFactions) {
+        const isValid = (pack as any).factions?.some((f: any) => f.id === factionId);
+        if (!isValid) {
+          allFactionsValid = false;
+          rejectionReason = `Faction ${factionId} in cartel embargo is not a valid faction.`;
+          break;
+        }
+      }
+      if (allFactionsValid) {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const cartelVotes = { ...(state.cartelVotes || {}) };
+      if (!cartelVotes[cartelId]) {
+        cartelVotes[cartelId] = {};
+      } else {
+        cartelVotes[cartelId] = { ...cartelVotes[cartelId] };
+      }
+
+      const existingVote = cartelVotes[cartelId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        cartelVotes[cartelId][agentId] = {
+          priceMultiplier,
+          embargoedFactions,
+          timestamp,
+        };
+        newState.cartelVotes = cartelVotes;
+        newState = reconcileCartelPolicies(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "cartel_policy_voted", cartelId, priceMultiplier, embargoedFactions, voter: agentId } as any]
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

@@ -146,6 +146,30 @@ export const CollectiveBargainingSchema = z.object({
 });
 export type CollectiveBargaining = z.infer<typeof CollectiveBargainingSchema>;
 
+export const CartelVoteSchema = z.object({
+  priceMultiplier: z.number().nonnegative(),
+  embargoedFactions: z.array(z.string()),
+  timestamp: z.number().int(),
+});
+export type CartelVote = z.infer<typeof CartelVoteSchema>;
+
+export const MerchantCartelSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  members: z.array(z.string()),
+  factionId: z.string(),
+  priceMultiplier: z.number().nonnegative(),
+  definedBy: z.string(),
+  timestamp: z.number().int(),
+});
+export type MerchantCartel = z.infer<typeof MerchantCartelSchema>;
+
+export const CartelPolicySchema = z.object({
+  priceMultiplier: z.number().nonnegative(),
+  embargoedFactions: z.array(z.string()),
+});
+export type CartelPolicy = z.infer<typeof CartelPolicySchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -208,12 +232,17 @@ export const GameStateSchema = z.object({
   tariffVotes: z.record(z.string(), z.record(z.string(), TariffVoteSchema)).optional(),
   tariffPolicy: z.record(z.string(), z.number()).optional(),
 
-  // decentralized merchant trade guilds and tariff arbitrations
   merchantGuilds: z.record(z.string(), MerchantGuildSchema).optional(),
   guildMemberships: z.record(z.string(), z.array(z.string())).optional(),
   guildVotes: z.record(z.string(), z.record(z.string(), GuildVoteSchema)).optional(),
   guildPolicies: z.record(z.string(), GuildPolicySchema).optional(),
   collectiveBargainingAgreements: z.record(z.string(), CollectiveBargainingSchema).optional(),
+
+  // decentralized merchant cartels and price collusion (AF-39)
+  cartels: z.record(z.string(), MerchantCartelSchema).optional(),
+  cartelMemberships: z.record(z.string(), z.array(z.string())).optional(),
+  cartelVotes: z.record(z.string(), z.record(z.string(), CartelVoteSchema)).optional(),
+  cartelPolicies: z.record(z.string(), CartelPolicySchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -292,6 +321,10 @@ export const createInitialState = (options: {
     guildVotes: {},
     guildPolicies: {},
     collectiveBargainingAgreements: {},
+    cartels: {},
+    cartelMemberships: {},
+    cartelVotes: {},
+    cartelPolicies: {},
   };
 };
 
@@ -637,4 +670,60 @@ export function reconcileGuildPolicies(state: GameState, pack: any): GameState {
 
   return newState;
 }
+
+export function reconcileCartelPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cartelPolicies: { ...(state.cartelPolicies || {}) },
+  };
+
+  if (!newState.cartelVotes) {
+    newState.cartelVotes = {};
+  }
+
+  for (const [cartelId, votes] of Object.entries(newState.cartelVotes)) {
+    const multiplierCounts: Record<number, number> = {};
+    const factionEmbargoVotes: Record<string, number> = {};
+    const totalVotes = Object.keys(votes).length;
+
+    for (const vote of Object.values(votes)) {
+      multiplierCounts[vote.priceMultiplier] = (multiplierCounts[vote.priceMultiplier] ?? 0) + 1;
+      for (const factionId of vote.embargoedFactions) {
+        factionEmbargoVotes[factionId] = (factionEmbargoVotes[factionId] ?? 0) + 1;
+      }
+    }
+
+    // 1. Reconcile priceMultiplier (highest rate wins on ties)
+    let maxMultiplierCount = 0;
+    let consensusMultiplier = 1.0;
+    const uniqueMultipliers = Object.keys(multiplierCounts).map(Number).sort((a, b) => b - a);
+    for (const mult of uniqueMultipliers) {
+      const count = multiplierCounts[mult];
+      if (count > maxMultiplierCount) {
+        maxMultiplierCount = count;
+        consensusMultiplier = mult;
+      }
+    }
+
+    // 2. Reconcile embargoedFactions (majority consensus: voted by >= 50% of the active cartel voters)
+    const consensusEmbargoes: string[] = [];
+    const threshold = totalVotes / 2;
+    // Sort faction IDs alphabetically to ensure perfect determinism
+    const uniqueFactions = Object.keys(factionEmbargoVotes).sort();
+    for (const factionId of uniqueFactions) {
+      const count = factionEmbargoVotes[factionId];
+      if (count >= threshold) {
+        consensusEmbargoes.push(factionId);
+      }
+    }
+
+    newState.cartelPolicies[cartelId] = {
+      priceMultiplier: consensusMultiplier,
+      embargoedFactions: consensusEmbargoes,
+    };
+  }
+
+  return newState;
+}
+
 

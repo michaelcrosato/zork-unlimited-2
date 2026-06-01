@@ -10,7 +10,8 @@ export function calculateTradePrice(
   packObj: any,
   baseCost: number,
   isBuy: boolean,
-  traderId: string = "player"
+  traderId: string = "player",
+  pack?: any
 ): number {
   let multiplier = 1.0;
 
@@ -200,6 +201,40 @@ export function calculateTradePrice(
     }
   }
 
+  // 7. Cartel Price Collusion & Coordinated Pricing Hikes (AF-39)
+  if (state.cartels && npc?.id && pack?.rooms) {
+    let cartelPriceMultiplier = 1.0;
+    for (const [cartelId, cartel] of Object.entries(state.cartels)) {
+      if (cartel.members.includes(npc.id)) {
+        // Find other merchants in the same room
+        const room = pack.rooms.find((r: any) => r.npcs?.includes(npc.id));
+        if (room && room.npcs) {
+          const localMerchants = room.npcs.filter((nid: string) => 
+            pack.npcs?.some((n: any) => n.id === nid)
+          );
+          const cartelMerchants = localMerchants.filter((nid: string) => 
+            cartel.members.includes(nid)
+          );
+          
+          const totalCount = localMerchants.length;
+          const cartelCount = cartelMerchants.length;
+          
+          // Coordinated price hikes under low competition:
+          // Low competition / high density: cartel merchants represent >= 50% of the merchants in the room
+          // or there are no non-cartel merchants.
+          if (totalCount > 0 && (cartelCount / totalCount >= 0.5)) {
+            const policy = state.cartelPolicies?.[cartelId];
+            const multiplierVal = policy?.priceMultiplier ?? cartel.priceMultiplier ?? 1.0;
+            cartelPriceMultiplier = Math.max(cartelPriceMultiplier, multiplierVal);
+          }
+        }
+      }
+    }
+    if (isBuy) {
+      multiplier *= cartelPriceMultiplier;
+    }
+  }
+
   const finalCost = Math.round(baseCost * multiplier);
   return Math.max(1, finalCost); // price never drops below 1 gold
 }
@@ -221,6 +256,26 @@ export function checkReputationTrade(
       reason: `The merchant refuses to trade with you due to your poor reputation (requires ${threshold}, you have ${rep}).`,
     };
   }
+
+  // Enforce Cartel Embargoes!
+  if (state.cartels && npc?.id) {
+    for (const [cartelId, cartel] of Object.entries(state.cartels)) {
+      if (cartel.members.includes(npc.id)) {
+        const cartelPolicy = state.cartelPolicies?.[cartelId];
+        const embargoedFactions = cartelPolicy?.embargoedFactions ?? [];
+        for (const factionId of embargoedFactions) {
+          const factionRep = state.factionRep?.[factionId] ?? 0;
+          if (factionRep > 0) {
+            return {
+              allowed: false,
+              reason: `The merchant is part of the ${cartel.name} cartel, which has active embargoes against faction ${factionId} (reputation: ${factionRep}).`,
+            };
+          }
+        }
+      }
+    }
+  }
+
   return { allowed: true };
 }
 
