@@ -2133,7 +2133,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       jointLoansChanged = true;
 
       // 2. Check for default / enforcer debt-recovery sweep
-      if (newState.step > updatedJointLoan.dueStep) {
+      if (newState.step > updatedJointLoan.dueStep + (updatedJointLoan.gracePeriodSteps ?? 0)) {
         // Debt-recovery sweep!
         const totalDue = updatedJointLoan.amount + updatedJointLoan.interestAccrued;
 

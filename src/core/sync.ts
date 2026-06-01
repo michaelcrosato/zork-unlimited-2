@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -13971,6 +13971,125 @@ export function multiAgentStep(
           removeCollateralId,
           addCollateralType,
           addCollateralId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_JOINT_LOAN_GRACE_PERIOD action (AF-97)
+  if ((action as any).type === "PROPOSE_JOINT_LOAN_GRACE_PERIOD") {
+    const { groupId, extensionSteps, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const jointLoan = state.jointLoans?.[groupId];
+    const syndicate = jointLoan ? state.syndicates?.[jointLoan.syndicateId] : undefined;
+    const bank = jointLoan ? state.syndicateBanks?.[jointLoan.syndicateId] : undefined;
+
+    if (!groupId) {
+      rejectionReason = `Group ID is required to propose joint loan grace period.`;
+    } else if (extensionSteps === undefined || extensionSteps <= 0 || !Number.isInteger(extensionSteps)) {
+      rejectionReason = `Extension steps must be a positive integer.`;
+    } else if (!jointLoan) {
+      rejectionReason = `Joint loan group ${groupId} does not exist or has no active loan.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate does not exist for the joint loan.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank does not exist for the joint loan.`;
+    } else if (!jointLoan.members.includes(agentId) && !syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of the joint loan group or the syndicate bank, and cannot vote on grace period.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && jointLoan) {
+      const jointLoanGracePeriodVotes = { ...(state.jointLoanGracePeriodVotes || {}) };
+      if (!jointLoanGracePeriodVotes[groupId]) {
+        jointLoanGracePeriodVotes[groupId] = {};
+      } else {
+        jointLoanGracePeriodVotes[groupId] = { ...jointLoanGracePeriodVotes[groupId] };
+      }
+
+      const existingVote = jointLoanGracePeriodVotes[groupId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        jointLoanGracePeriodVotes[groupId][agentId] = {
+          extensionSteps,
+          timestamp,
+        };
+        newState.jointLoanGracePeriodVotes = jointLoanGracePeriodVotes;
+        newState = reconcileJointLoanGracePeriods(newState, pack);
+
+        const updatedLoan = newState.jointLoans?.[groupId];
+        const currentGrace = updatedLoan?.gracePeriodSteps ?? extensionSteps;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Syndicate Bank] Agent ${agentId} voted for grace period on joint loan ${groupId} (New consensus grace: ${currentGrace} steps).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Joint loan grace period vote cast by ${agentId} for loan ${groupId} (Extension steps: ${extensionSteps}).`,
+        } as any);
+
+        customEvents.push({
+          type: "joint_loan_grace_period_proposed" as any,
+          groupId,
+          agentId,
+          extensionSteps,
           timestamp,
         });
       }

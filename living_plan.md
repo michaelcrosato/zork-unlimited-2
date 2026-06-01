@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #96 (Ready for Cycle #97)
-* **Build/Test Status**: 🟢 PASS (All 436 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #97 (Ready for Cycle #98)
+* **Build/Test Status**: 🟢 PASS (All 438 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -560,15 +560,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Integrate with Gossip LWW merging and convergence (`AF-96`).
 - [x] Write comprehensive integration and convergence tests (`AF-96`).
 
+### Phase 97: Syndicate Bank Joint-Liability Loan Default Grace Periods and Settlement Arbitration (Completed)
+- [x] Define schemas for joint-liability loan group grace period proposals (`jointLoanGracePeriodVotes` in GameState) (`AF-97`).
+- [x] Implement `PROPOSE_JOINT_LOAN_GRACE_PERIOD` action reducer and joint/bank double-majority consensus (`AF-97`).
+- [x] Integrate with Gossip sync and state reconciliation (`AF-97`).
+- [x] Write rigorous integration and convergence tests (`AF-97`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-97`
-* **Objective**: Syndicate Bank Joint-Liability Loan Default Grace Periods and Settlement Arbitration.
-* **Why this matters**: Support establishing decentralized enforcer grace periods for defaulting joint-liability loans, allowing groups to propose and vote on structured payment extensions (`PROPOSE_JOINT_LOAN_GRACE_PERIOD`) to delay bank collateral liquidation under distress, requiring joint group and bank majority consensus.
+**Task ID**: `AF-98`
+* **Objective**: Syndicate Bank Joint-Liability Loan Refinancing and Penalty Waiver Arbitration.
+* **Why this matters**: Support establishing decentralized enforcer penalty waivers for defaulting joint-liability loans, allowing groups to propose and vote on structured interest rate reductions or penalty waivers (`PROPOSE_JOINT_LOAN_PENALTY_WAIVER`) during grace periods, requiring joint group and bank majority consensus.
 * **Planned Actions**:
-  1. Define schemas for joint-liability loan group grace period proposals.
-  2. Implement `PROPOSE_JOINT_LOAN_GRACE_PERIOD` action reducer and joint/bank double-majority consensus.
+  1. Define schemas for joint-liability loan group penalty waiver proposals.
+  2. Implement `PROPOSE_JOINT_LOAN_PENALTY_WAIVER` action reducer and joint/bank double-majority consensus.
   3. Integrate with Gossip sync and state reconciliation.
   4. Write rigorous integration and convergence tests.
 

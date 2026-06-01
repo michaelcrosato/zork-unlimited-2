@@ -1316,5 +1316,165 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     expect(merged.jointLoanCollateralSwapVotes?.jgroup1?.player.timestamp).toBe(1050);
     expect(merged.jointLoanCollateralSwapVotes?.jgroup1?.player.addCollateralId).toBe("woods");
   });
+
+  it("should handle PROPOSE_JOINT_LOAN_GRACE_PERIOD voting, consensus, enforcer sweep delay, and Gossip mesh convergence (AF-97)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {
+        gold: 100,
+        gold_alice: 100,
+      },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "clearing",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 500
+      },
+    };
+
+    state.jointLoans = {
+      jgroup1: {
+        id: "jgroup1",
+        syndicateId: "blood_fangs",
+        members: ["player", "alice"],
+        collaterals: [
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+        ],
+        amount: 300,
+        interestAccrued: 50,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Group member 'player' proposes grace period of 5 steps
+    const action1 = {
+      type: "PROPOSE_JOINT_LOAN_GRACE_PERIOD",
+      groupId: "jgroup1",
+      extensionSteps: 5,
+      timestamp: 1020,
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
+    expect(res1.ok).toBe(true);
+    // Grace period should NOT be set yet since there is no consensus
+    expect(res1.state.jointLoans?.jgroup1?.gracePeriodSteps).toBeUndefined();
+    expect(res1.state.jointLoanGracePeriodVotes?.jgroup1?.player).toBeDefined();
+
+    // 2. Bank member 'bob' votes
+    const action2 = {
+      type: "PROPOSE_JOINT_LOAN_GRACE_PERIOD",
+      groupId: "jgroup1",
+      extensionSteps: 5,
+      timestamp: 1025,
+    };
+
+    let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
+    expect(res2.ok).toBe(true);
+    // Grace period should still not be set (needs alice to vote in the group too)
+    expect(res2.state.jointLoans?.jgroup1?.gracePeriodSteps).toBeUndefined();
+
+    // 3. Alice votes
+    const action3 = {
+      type: "PROPOSE_JOINT_LOAN_GRACE_PERIOD",
+      groupId: "jgroup1",
+      extensionSteps: 5,
+      timestamp: 1030,
+    };
+
+    let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
+    expect(res3.ok).toBe(true);
+
+    // Consensus reached! gracePeriodSteps should be 5
+    expect(res3.state.jointLoans?.jgroup1?.gracePeriodSteps).toBe(5);
+    // Votes should be cleared
+    expect(res3.state.jointLoanGracePeriodVotes?.jgroup1).toBeUndefined();
+
+    // 4. Test enforcer sweep delay:
+    // Let's manually tick the economy at step 11
+    let tickedState = res3.state;
+    tickedState.step = 11;
+    tickedState = tickEconomy(tickedState, mockPack);
+
+    // Should NOT default or liquidate collateral because dueStep is 10 and grace period is 5 (expires after step 15)
+    expect(tickedState.jointLoans?.jgroup1).toBeDefined();
+    expect(tickedState.safehouses?.clearing).toBeDefined();
+
+    // Now let's manual tick economy at step 16
+    tickedState.step = 16;
+    tickedState = tickEconomy(tickedState, mockPack);
+
+    // Should now default and liquidate collateral!
+    expect(tickedState.jointLoans?.jgroup1).toBeUndefined();
+    expect(tickedState.safehouses?.clearing).toBeUndefined();
+  });
+
+  it("should merge jointLoanGracePeriodVotes and reconcile terms across Gossip synchronization (AF-97)", () => {
+    let stateA = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateA.jointLoanGracePeriodVotes = {
+      jgroup1: {
+        player: {
+          extensionSteps: 5,
+          timestamp: 1050,
+        },
+      },
+    };
+
+    let stateB = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateB.jointLoanGracePeriodVotes = {
+      jgroup1: {
+        player: {
+          extensionSteps: 3,
+          timestamp: 1020, // older
+        },
+      },
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.jointLoanGracePeriodVotes?.jgroup1?.player.timestamp).toBe(1050);
+    expect(merged.jointLoanGracePeriodVotes?.jgroup1?.player.extensionSteps).toBe(5);
+  });
 });
 

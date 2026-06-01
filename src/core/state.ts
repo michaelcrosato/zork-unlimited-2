@@ -815,6 +815,12 @@ export const JointLoanCollateralSwapVoteSchema = z.object({
 });
 export type JointLoanCollateralSwapVote = z.infer<typeof JointLoanCollateralSwapVoteSchema>;
 
+export const JointLoanGracePeriodVoteSchema = z.object({
+  extensionSteps: z.number().int().positive(),
+  timestamp: z.number().int(),
+});
+export type JointLoanGracePeriodVote = z.infer<typeof JointLoanGracePeriodVoteSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -854,6 +860,7 @@ export const JointLoanSchema = z.object({
   dueStep: z.number().int().nonnegative(),
   timestamp: z.number().int(),
   refinancedInterestRate: z.number().int().nonnegative().optional(),
+  gracePeriodSteps: z.number().int().nonnegative().optional(),
 });
 export type JointLoan = z.infer<typeof JointLoanSchema>;
 
@@ -1033,6 +1040,7 @@ export const GameStateSchema = z.object({
   jointLoanCollateralSubstitutionVotes: z.record(z.string(), z.record(z.string(), JointLoanCollateralSubstitutionVoteSchema)).optional(),
   jointLoanDebtSettlementVotes: z.record(z.string(), z.record(z.string(), JointLoanDebtSettlementVoteSchema)).optional(),
   jointLoanCollateralSwapVotes: z.record(z.string(), z.record(z.string(), JointLoanCollateralSwapVoteSchema)).optional(),
+  jointLoanGracePeriodVotes: z.record(z.string(), z.record(z.string(), JointLoanGracePeriodVoteSchema)).optional(),
 });
 
 
@@ -1901,6 +1909,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     jointLoanCollateralSubstitutionVotes: rest.jointLoanCollateralSubstitutionVotes ? JSON.parse(JSON.stringify(rest.jointLoanCollateralSubstitutionVotes)) : undefined,
     jointLoanDebtSettlementVotes: rest.jointLoanDebtSettlementVotes ? JSON.parse(JSON.stringify(rest.jointLoanDebtSettlementVotes)) : undefined,
     jointLoanCollateralSwapVotes: rest.jointLoanCollateralSwapVotes ? JSON.parse(JSON.stringify(rest.jointLoanCollateralSwapVotes)) : undefined,
+    jointLoanGracePeriodVotes: rest.jointLoanGracePeriodVotes ? JSON.parse(JSON.stringify(rest.jointLoanGracePeriodVotes)) : undefined,
     creditRecoveries: rest.creditRecoveries ? JSON.parse(JSON.stringify(rest.creditRecoveries)) : undefined,
   };
   return clone;
@@ -3227,6 +3236,105 @@ export function reconcileJointLoanCollateralSwaps(state: GameState, pack: any): 
           `[Syndicate Bank] Joint loan collateral swap for group ${groupId} approved! Swapped ${fullyApprovedCombination.removeCollateralId} (${fullyApprovedCombination.removeCollateralType}) with ${fullyApprovedCombination.addCollateralId} (${fullyApprovedCombination.addCollateralType}).`
         );
       }
+    }
+  }
+
+  if (loansChanged) {
+    newState.jointLoans = updatedJointLoans;
+  }
+
+  return newState;
+}
+
+export function reconcileJointLoanGracePeriods(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    jointLoans: state.jointLoans ? { ...state.jointLoans } : {},
+  };
+
+  if (!newState.jointLoanGracePeriodVotes) {
+    newState.jointLoanGracePeriodVotes = {};
+    return newState;
+  }
+
+  const updatedJointLoans = { ...newState.jointLoans };
+  let loansChanged = false;
+
+  for (const [groupId, votes] of Object.entries(newState.jointLoanGracePeriodVotes)) {
+    const jointLoan = updatedJointLoans[groupId];
+    if (!jointLoan) continue;
+
+    const syndicate = newState.syndicates[jointLoan.syndicateId];
+    if (!syndicate) continue;
+
+    // Count votes for each unique combination of extensionSteps
+    const combinationCounts: Record<string, { 
+      extensionSteps: number;
+      groupVotes: Set<string>; 
+      bankVotes: Set<string>; 
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      const key = `${vote.extensionSteps}`;
+
+      if (!combinationCounts[key]) {
+        combinationCounts[key] = {
+          extensionSteps: vote.extensionSteps,
+          groupVotes: new Set<string>(),
+          bankVotes: new Set<string>(),
+        };
+      }
+
+      // If voter is in group, count as group vote
+      if (jointLoan.members.includes(voterId)) {
+        combinationCounts[key].groupVotes.add(voterId);
+      }
+
+      // If voter is in syndicate, count as bank vote
+      if (syndicate.members.includes(voterId)) {
+        combinationCounts[key].bankVotes.add(voterId);
+      }
+    }
+
+    // Check if any combination has a majority of group members AND syndicate bank members
+    const groupMajorityThreshold = jointLoan.members.length / 2;
+    const bankMajorityThreshold = syndicate.members.length / 2;
+
+    let fullyApprovedCombination: {
+      extensionSteps: number;
+      maxTimestamp: number;
+    } | undefined;
+
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.groupVotes.size > groupMajorityThreshold && combo.bankVotes.size > bankMajorityThreshold) {
+        const votersForCombo = [...combo.groupVotes, ...combo.bankVotes];
+        const timestamps = votersForCombo.map(vid => votes[vid]?.timestamp ?? 0);
+        const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : state.step;
+
+        fullyApprovedCombination = {
+          extensionSteps: combo.extensionSteps,
+          maxTimestamp,
+        };
+        break; // Strict majority consensus implies at most one combo can satisfy both
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      updatedJointLoans[groupId] = {
+        ...jointLoan,
+        gracePeriodSteps: fullyApprovedCombination.extensionSteps,
+        timestamp: fullyApprovedCombination.maxTimestamp,
+      };
+      loansChanged = true;
+
+      // Clear the votes so they don't apply again
+      delete newState.jointLoanGracePeriodVotes[groupId];
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate Bank] Joint loan grace period for group ${groupId} approved! Grace period of ${fullyApprovedCombination.extensionSteps} steps established.`
+      );
     }
   }
 
