@@ -7753,6 +7753,66 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
   newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
 
   for (const [cdoId, pool] of Object.entries(newState.sovereignDebtCDSCDOPools)) {
+    // Process yield hedging option settlements and expirations (AF-241)
+    if (newState.cdsCdoYieldHedgingOptionContracts) {
+      newState.cdsCdoYieldHedgingOptionContracts = { ...newState.cdsCdoYieldHedgingOptionContracts };
+      for (const [optionId, option] of Object.entries(newState.cdsCdoYieldHedgingOptionContracts)) {
+        if (option.cdoId === cdoId && option.status === "active") {
+          const poolCDSs = Object.values(newState.sovereignDebtCDSContracts || {}).filter(c => c.cdoId === cdoId);
+          const targetSyndicates = poolCDSs.map(c => c.targetSyndicateId);
+          const alertActive = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
+            (alert: any) => targetSyndicates.includes(alert.targetSyndicateId) && alert.status === "authorized" && !alert.resolved
+          );
+
+          if (alertActive) {
+            option.status = "settled";
+            if (pool.automatedHedgeEnabled) {
+              let marginDeposited = false;
+              for (const trancheId of ["senior", "mezzanine", "equity"] as const) {
+                const tranche = pool.tranches[trancheId];
+                if (tranche && tranche.sharesOwned?.[option.syndicateId] > 0 && tranche.marginCollateral) {
+                  tranche.marginCollateral = { ...tranche.marginCollateral };
+                  tranche.marginCollateral[option.syndicateId] = (tranche.marginCollateral[option.syndicateId] ?? 0) + option.coverageAmount;
+                  marginDeposited = true;
+
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[CDO Yield-Hedging Option Settled] Yield-hedging option contract ${optionId} settled due to default alert on CDO ${cdoId}. Auto-hedge deposited ${option.coverageAmount} gold into tranche ${trancheId} margin collateral for Syndicate ${option.syndicateId} to deflect margin call liquidation.`
+                  );
+                  break;
+                }
+              }
+              if (!marginDeposited) {
+                const syndicate = newState.syndicates?.[option.syndicateId];
+                if (syndicate) {
+                  syndicate.warChest = (syndicate.warChest ?? 0) + option.coverageAmount;
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[CDO Yield-Hedging Option Settled] Yield-hedging option contract ${optionId} settled due to default alert on CDO ${cdoId}. Paid out ${option.coverageAmount} gold to Syndicate ${option.syndicateId} war chest.`
+                  );
+                }
+              }
+            } else {
+              const syndicate = newState.syndicates?.[option.syndicateId];
+              if (syndicate) {
+                syndicate.warChest = (syndicate.warChest ?? 0) + option.coverageAmount;
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[CDO Yield-Hedging Option Settled] Yield-hedging option contract ${optionId} settled due to default alert on CDO ${cdoId}. Paid out ${option.coverageAmount} gold to Syndicate ${option.syndicateId} war chest.`
+                );
+              }
+            }
+          } else if (newState.step >= option.expiryStep) {
+            option.status = "expired";
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDO Yield-Hedging Option Expired] Yield-hedging option contract ${optionId} expired without a default alert.`
+            );
+          }
+        }
+      }
+    }
+
     // Process approved liquidity injections for this pool
     if (newState.cdsCdoLiquidityInjectionProposals) {
       for (const [propId, prop] of Object.entries(newState.cdsCdoLiquidityInjectionProposals)) {
@@ -10781,6 +10841,33 @@ export function tickAllianceYieldAutoRepay(state: GameState): GameState {
   }
 
   return newState;
+}
+
+export function getCDSCDOYieldHedgingPremium(state: GameState, cdoId: string, coverageAmount: number): number {
+  const pool = state.sovereignDebtCDSCDOPools?.[cdoId];
+  const spread = pool?.premiumPricingSpread ?? 0.05; // base spread
+  
+  // Dynamic factors:
+  // 1. Weather volatility multiplier
+  let weatherVolatility = 0.0;
+  if (state.weatherForecastOracleHistory) {
+    weatherVolatility = (state.step % 5) * 0.01;
+  }
+  
+  // 2. Active default alerts multiplier
+  let defaultRiskMultiplier = 1.0;
+  const poolCDSs = Object.values(state.sovereignDebtCDSContracts || {}).filter(c => c.cdoId === cdoId);
+  const targetSyndicates = poolCDSs.map(c => c.targetSyndicateId);
+  const activeAlerts = Object.values(state.sovereignDebtDefaultAlerts || {}).filter(
+    (a: any) => targetSyndicates.includes(a.targetSyndicateId) && a.status === "authorized" && !a.resolved
+  );
+  if (activeAlerts.length > 0) {
+    defaultRiskMultiplier = 2.0; // Double the premium under active default alerts
+  }
+
+  // Equation: coverageAmount * (spread + weatherVolatility) * defaultRiskMultiplier
+  const premium = Math.round(coverageAmount * (spread + weatherVolatility) * defaultRiskMultiplier);
+  return Math.max(1, premium);
 }
 
 
