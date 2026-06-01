@@ -250,6 +250,15 @@ export const SyndicateSafehouseSchema = z.object({
 });
 export type SyndicateSafehouse = z.infer<typeof SyndicateSafehouseSchema>;
 
+export const SyndicateBlackMarketSchema = z.object({
+  id: z.string(),
+  roomId: z.string(),
+  syndicateId: z.string(),
+  inventory: z.array(z.string()),
+  timestamp: z.number().int(),
+});
+export type SyndicateBlackMarket = z.infer<typeof SyndicateBlackMarketSchema>;
+
 
 export const CrimeSyndicateSchema = z.object({
   id: z.string(),
@@ -398,6 +407,7 @@ export const GameStateSchema = z.object({
   syndicateBribes: z.record(z.string(), SyndicateBribeSchema).optional(),
   deflectionPolicies: z.record(z.string(), DeflectionPolicySchema).optional(),
   safehouses: z.record(z.string(), SyndicateSafehouseSchema).optional(),
+  blackMarkets: z.record(z.string(), SyndicateBlackMarketSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -495,6 +505,7 @@ export const createInitialState = (options: {
     syndicateBribes: {},
     deflectionPolicies: {},
     safehouses: {},
+    blackMarkets: {},
   };
 };
 

@@ -628,6 +628,18 @@ export function step(
         }
       }
 
+      // Avoid local tax tolls, border travel taxes, route tolls, locking, and extortion tolls when moving to own syndicate safehouse
+      const destSafehouse = state.safehouses?.[destRoomId];
+      const agentSyndicate = state.syndicates
+        ? Object.values(state.syndicates).find(s => s.members.includes(agentId))
+        : undefined;
+      if (destSafehouse && agentSyndicate && destSafehouse.syndicateId === agentSyndicate.id) {
+        calculatedTax = 0;
+        calculatedExtortionToll = 0;
+        maxToll = 0;
+        lockingRouteId = null;
+      }
+
       const isHostileBorder = (calculatedTax > 0) || (maxToll > 0) || (lockingRouteId !== null);
       let isSmugglingBypassed = false;
 
@@ -1361,6 +1373,136 @@ export function step(
         type: "narration",
         text: `You buy the ${itemObj?.name ?? action.item} from ${npc.name} for ${itemCost} gold.`,
       });
+      break;
+    }
+
+    case "SELL_BLACK_MARKET": {
+      const act = action as any;
+      const roomId = act.roomId ?? state.current;
+      const itemId = act.itemId;
+
+      if (!roomId) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: "Room ID is required to sell to the black market." }],
+          ok: false,
+          rejectionReason: "Room ID is required.",
+        };
+      }
+
+      if (!itemId) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: "Item ID is required to sell to the black market." }],
+          ok: false,
+          rejectionReason: "Item ID is required.",
+        };
+      }
+
+      const safehouse = state.safehouses?.[roomId];
+      if (!safehouse) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `No safehouse exists in room ${roomId}.` }],
+          ok: false,
+          rejectionReason: `No safehouse exists here.`,
+        };
+      }
+
+      const syndicate = state.syndicates?.[safehouse.syndicateId];
+      if (!syndicate || !syndicate.members.includes(agentId)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId}.` }],
+          ok: false,
+          rejectionReason: `Unauthorized to trade at this safehouse.`,
+        };
+      }
+
+      // Check if agent has item in inventory
+      if (!state.inventory.includes(itemId)) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You don't have '${itemId}' in your inventory.` }],
+          ok: false,
+          rejectionReason: `You don't have that.`,
+        };
+      }
+
+      const itemObj = findObjectInPack(itemId);
+      if (itemObj?.quest_critical) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `You cannot sell quest critical items.` }],
+          ok: false,
+          rejectionReason: `You can't sell that.`,
+        };
+      }
+
+      // Ensure the item is contraband
+      const isPackContraband = itemObj?.contraband === true;
+      const isBlacklisted = state.contrabandBlacklist?.[itemId]?.blacklisted === true;
+      if (!isPackContraband && !isBlacklisted) {
+        return {
+          state,
+          events: [{ type: "rejected", reason: `Only contraband items can be sold to the black market.` }],
+          ok: false,
+          rejectionReason: `Only contraband items can be sold here.`,
+        };
+      }
+
+      const baseCost = itemObj?.cost ?? 10;
+      // Mock NPC using agentId to ensure isAlliedSyndicateMember is true in calculateTradePrice
+      const mockNpc = { id: agentId };
+      const itemPayout = calculateTradePrice(newState, mockNpc, itemObj, baseCost, false, agentId, parserPack);
+
+      // Deduct item from inventory and credit gold
+      newState.inventory = newState.inventory.filter((i) => i !== itemId);
+      
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      newState.vars[goldKey] = (newState.vars[goldKey] ?? 0) + itemPayout;
+
+      // Update black market inventory
+      const blackMarkets = { ...(state.blackMarkets || {}) };
+      if (!blackMarkets[roomId]) {
+        blackMarkets[roomId] = {
+          id: `black_market_${roomId}`,
+          roomId,
+          syndicateId: safehouse.syndicateId,
+          inventory: [],
+          timestamp: act.timestamp ?? Date.now(),
+        };
+      }
+      blackMarkets[roomId] = {
+        ...blackMarkets[roomId],
+        inventory: [...blackMarkets[roomId].inventory, itemId],
+        timestamp: act.timestamp ?? Date.now(),
+      };
+      newState.blackMarkets = blackMarkets;
+
+      // Update object state
+      const currentObj = newState.objectState[itemId] ?? {};
+      newState.objectState[itemId] = {
+        ...currentObj,
+        takenBy: "world",
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Agent ${agentId} sold contraband ${itemId} to the black market in safehouse ${roomId} for ${itemPayout} gold.`);
+
+      events.push({
+        type: "narration",
+        text: `You sell the contraband ${itemObj?.name ?? itemId} to the syndicate black market in the safehouse for ${itemPayout} gold (avoiding all tolls and tariffs).`,
+      });
+
+      events.push({
+        type: "black_market_sold",
+        agentId,
+        roomId,
+        itemId,
+        price: itemPayout,
+      });
+
       break;
     }
 

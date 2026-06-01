@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #48 (Ready for Cycle #49)
-* **Build/Test Status**: 🟢 PASS (All 212 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #49 (Ready for Cycle #50)
+* **Build/Test Status**: 🟢 PASS (All 216 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -285,14 +285,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 43: Syndicate Black Markets & Dynamic Tariffs (Completed)
+- [x] Define Syndicate Black Market trade structures and schemas in GameState (`AF-49`).
+- [x] Implement reducer actions to sell items to black markets within safehouses (`AF-49`).
+- [x] Wire logic to bypass regional tolls and tariffs when trading at a syndicate-registered safehouse (`AF-49`).
+- [x] Write comprehensive integration tests verifying safehouse black markets, tariff/toll bypasses, and Gossip replication (`AF-49`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-49`
-* **Objective**: Syndicate Black Markets & Dynamic Tariffs.
-* **Why this matters**: Support selling contraband to syndicate black markets located in safehouses to bypass standard faction tariffs and avoid local tax tolls.
+**Task ID**: `AF-50`
+* **Objective**: Crime Syndicate Laundering & Front Businesses.
+* **Why this matters**: Allow crime syndicates to invest gold into legitimate local merchants, converting them into syndicate front businesses that periodically launder extortion and contraband gold, lowering regional enforcement heat while generating passive clean gold for syndicate members.
 * **Planned Actions**:
-  1. Define Syndicate Black Market trade structures and schemas in GameState.
-  2. Implement reducer actions to sell items to black markets within safehouses.
-  3. Wire logic to bypass regional tolls and tariffs when trading at a syndicate-registered safehouse.
+  1. Define Syndicate Front Business schemas and structures in GameState.
+  2. Implement decentralized actions to BUY_FRONT_BUSINESS and LAUNDER_GOLD.
+  3. Wire periodic passive laundering ticks within `tickEconomy` that clean dirty gold and reduce enforcer heat based on syndicate dominance.
   4. Write comprehensive integration tests.
 
 ---

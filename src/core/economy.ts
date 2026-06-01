@@ -14,6 +14,7 @@ export function calculateTradePrice(
   pack?: any
 ): number {
   let multiplier = 1.0;
+  const isSafehouse = state.safehouses && state.safehouses[state.current] !== undefined;
 
   // 1. Weather/Climate Multiplier
   if (state.environment?.weather) {
@@ -40,7 +41,7 @@ export function calculateTradePrice(
 
   // 3. Faction Territory Control Modifier (AF-29)
   const controllingFactionId = state.territoryControl?.[state.current];
-  if (controllingFactionId) {
+  if (controllingFactionId && !isSafehouse) {
     const factionRep = state.factionRep?.[controllingFactionId] ?? 0;
     if (isBuy) {
       // Positive faction reputation gives a discount; negative reputation acts as a price penalty (markup)
@@ -54,7 +55,7 @@ export function calculateTradePrice(
   }
 
   // 4. Faction Territory Merchant Tariff (AF-35)
-  if (controllingFactionId) {
+  if (controllingFactionId && !isSafehouse) {
     const hasLicense = state.merchantLicenses?.[traderId]?.includes(controllingFactionId) || false;
     if (!hasLicense) {
       const licensing = state.merchantLicensings?.[controllingFactionId];
@@ -119,7 +120,7 @@ export function calculateTradePrice(
         const guildPolicy = state.guildPolicies?.[guildId];
 
         // Collective Bargaining Agreements override standard faction territory tariffs
-        if (controllingFactionId) {
+        if (controllingFactionId && !isSafehouse) {
           const cbaKey = `${guildId}:${controllingFactionId}`;
           const agreement = state.collectiveBargainingAgreements?.[cbaKey];
           if (agreement && !isTraderMember) {
@@ -166,7 +167,7 @@ export function calculateTradePrice(
           } else {
             multiplier *= 1.15; // 15% bonus for selling to own guild
           }
-        } else {
+        } else if (!isSafehouse) {
           // Non-member guild tariff markup/markdown
           if (guildPolicy) {
             const guildTariff = guildPolicy.tariffRate;

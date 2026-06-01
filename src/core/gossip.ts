@@ -720,6 +720,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge blackMarkets using LWW (Last-Write-Wins)
+  const blackMarkets = { ...stateA.blackMarkets };
+  if (stateB.blackMarkets) {
+    for (const [roomId, entryB] of Object.entries(stateB.blackMarkets)) {
+      const entryA = blackMarkets[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        blackMarkets[roomId] = entryB;
+      }
+    }
+  }
+
 
   // Merge syndicateTurfClaims using LWW (Last-Write-Wins)
   const syndicateTurfClaims = { ...stateA.syndicateTurfClaims };
@@ -810,6 +821,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     syndicates,
     productionLabs,
     safehouses,
+    blackMarkets,
     syndicateTurfClaims,
     enforcementHeat,
     protectionRackets,

@@ -38,7 +38,8 @@ export type Action =
   | { type: "DEFINE_MERCHANT_GUILD"; guildId: string; name: string; members: string[]; timestamp: number }
   | { type: "JOIN_MERCHANT_GUILD"; guildId: string; timestamp: number }
   | { type: "VOTE_GUILD_POLICY"; guildId: string; tariffRate: number; exportPricingPolicy: "premium" | "discount" | "standard"; timestamp: number }
-  | { type: "NEGOTIATE_COLLECTIVE_BARGAINING"; guildId: string; factionId: string; agreedTariff: number; timestamp: number };
+  | { type: "NEGOTIATE_COLLECTIVE_BARGAINING"; guildId: string; factionId: string; agreedTariff: number; timestamp: number }
+  | { type: "SELL_BLACK_MARKET"; itemId: string; roomId: string; timestamp: number };
 
 
 
