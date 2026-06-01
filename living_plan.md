@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #35 (Ready for Cycle #36)
-* **Build/Test Status**: 🟢 PASS (All 156 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #36 (Ready for Cycle #37)
+* **Build/Test Status**: 🟢 PASS (All 159 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -189,17 +189,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Propagate merchant licensing definitions, license holdings, and consensus tariff rates across the P2P Gossip mesh (`AF-35`).
 - [x] Write comprehensive integration tests asserting pricing, voting consensus, and mesh convergence (`AF-35`).
 
+### Phase 31: Decentralized Faction Reputation-Based Tariff Waivers & Merchant Trade Caps (Completed)
+- [x] Add faction reputation-based tariff discount thresholds and waivers to the tariff policy (`AF-36`).
+- [x] Implement merchant trade transaction count and gold volume caps based on faction standing (`AF-36`).
+- [x] Sync transaction caps and reputation alignments across the gossip mesh (`AF-36`).
+- [x] Write comprehensive integration tests verifying caps and reputation-based waivers (`AF-36`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-36`
-* **Objective**: Implement decentralized faction reputation-based tariff waivers and dynamic merchant trading caps.
-* **Why this matters**: Allowing factions to waive tariffs for highly reputable players or agents, and enforcing dynamic buy/sell volume limits based on faction alignment/standing, makes the RPG economy deeper and more responsive to faction dynamics.
+**Task ID**: `AF-37`
+* **Objective**: Implement decentralized multi-merchant price arbitrage and adaptive local inventory balancing.
+* **Why this matters**: Allowing merchants to dynamically scale buy/sell price multipliers based on their local stock levels, and enabling gossip-based synchronization of merchant inventory states across the P2P mesh, lets peer agents discover profitable trade routes and automatically arbitrage price discrepancies between different faction territories.
 * **Planned Actions**:
-  1. Add faction reputation-based tariff discount thresholds and waivers to the tariff policy.
-  2. Implement merchant trade transaction count or gold volume caps based on faction standing.
-  3. Sync transaction caps and reputation alignments across the gossip mesh.
-  4. Write comprehensive integration tests verifying caps and reputation-based waivers.
+  1. Add local inventory-based dynamic pricing multipliers (supply/demand curves) to the economy module.
+  2. Implement multi-node merchant inventory gossip updates across the mesh.
+  3. Add trade arbitrage pathfinding checks so that agents can identify and exploit cross-territory price gaps.
+  4. Write comprehensive integration tests verifying supply-based price updates and mesh arbitrage loops.
 
 ---
 
