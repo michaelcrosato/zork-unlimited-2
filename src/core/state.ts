@@ -2304,6 +2304,24 @@ export const SWFReinsuranceOptionCrossSyndicatePoolSchema = z.object({
 });
 export type SWFReinsuranceOptionCrossSyndicatePool = z.infer<typeof SWFReinsuranceOptionCrossSyndicatePoolSchema>;
 
+export const SWFReinsuranceOptionVolatilityPoolRebalancingPolicySchema = z.object({
+  poolId: z.string(),
+  riskSharingLimit: z.number().int().nonnegative(),
+  autoBalancingThreshold: z.number().nonnegative(),
+  yieldRebalancingMultiplier: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityPoolRebalancingPolicy = z.infer<typeof SWFReinsuranceOptionVolatilityPoolRebalancingPolicySchema>;
+
+export const SWFReinsuranceOptionVolatilityPoolRebalancingPolicyVoteSchema = z.object({
+  poolId: z.string(),
+  riskSharingLimit: z.number().int().nonnegative(),
+  autoBalancingThreshold: z.number().nonnegative(),
+  yieldRebalancingMultiplier: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityPoolRebalancingPolicyVote = z.infer<typeof SWFReinsuranceOptionVolatilityPoolRebalancingPolicyVoteSchema>;
+
 export const SWFReinsuranceOptionPeerLendingRequestSchema = z.object({
   id: z.string(),
   borrowerSyndicateId: z.string(),
@@ -3112,6 +3130,8 @@ export const GameStateSchema = z.object({
   adjustSWFReinsuranceOptionVolatilityInsuranceVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityInsuranceVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityInsurancePools: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePoolSchema).optional(),
   swfReinsuranceOptionCrossSyndicatePools: z.record(z.string(), SWFReinsuranceOptionCrossSyndicatePoolSchema).optional(),
+  swfReinsuranceOptionVolatilityPoolRebalancingPolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityPoolRebalancingPolicySchema).optional(),
+  adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityPoolRebalancingPolicyVoteSchema)).optional(),
   swfReinsuranceOptionPeerLendingRequests: z.record(z.string(), SWFReinsuranceOptionPeerLendingRequestSchema).optional(),
   swfReinsuranceOptionStressTestPolicies: z.record(z.string(), SWFReinsuranceOptionStressTestPolicySchema).optional(),
   adjustSWFReinsuranceOptionStressTestVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionStressTestVoteSchema)).optional(),
@@ -3460,6 +3480,8 @@ export const createInitialState = (options: {
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: {},
     swfReinsuranceOptionVolatilityInsurancePools: {},
     swfReinsuranceOptionCrossSyndicatePools: {},
+    swfReinsuranceOptionVolatilityPoolRebalancingPolicies: {},
+    adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes: {},
     swfReinsuranceOptionPeerLendingRequests: {},
     swfReinsuranceOptionStressTestPolicies: {},
     adjustSWFReinsuranceOptionStressTestVotes: {},
@@ -4514,6 +4536,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes)) : undefined,
     swfReinsuranceOptionVolatilityInsurancePools: rest.swfReinsuranceOptionVolatilityInsurancePools ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePools)) : undefined,
     swfReinsuranceOptionCrossSyndicatePools: rest.swfReinsuranceOptionCrossSyndicatePools ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionCrossSyndicatePools)) : undefined,
+    swfReinsuranceOptionVolatilityPoolRebalancingPolicies: rest.swfReinsuranceOptionVolatilityPoolRebalancingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityPoolRebalancingPolicies)) : undefined,
+    adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes: rest.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes)) : undefined,
     swfReinsuranceOptionPeerLendingRequests: rest.swfReinsuranceOptionPeerLendingRequests ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPeerLendingRequests)) : undefined,
     swfReinsuranceOptionStressTestPolicies: rest.swfReinsuranceOptionStressTestPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionStressTestPolicies)) : undefined,
     adjustSWFReinsuranceOptionStressTestVotes: rest.adjustSWFReinsuranceOptionStressTestVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionStressTestVotes)) : undefined,
@@ -13734,6 +13758,72 @@ export function reconcileSWFReinsuranceOptionPeerLending(state: GameState, pack:
             `[SWF Reinsurance Option Peer Lending Failed] Shared Pool ${poolId} has insufficient reserves (${poolGold} < ${amount}) to resolve request ${requestId}.`
           );
         }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionVolatilityPoolRebalancingPolicies: state.swfReinsuranceOptionVolatilityPoolRebalancingPolicies ? { ...state.swfReinsuranceOptionVolatilityPoolRebalancingPolicies } : {},
+    adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes: state.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes ? { ...state.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes || {})) {
+    const votes = newState.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      poolId: string;
+      riskSharingLimit: number;
+      autoBalancingThreshold: number;
+      yieldRebalancingMultiplier: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.poolId}::${vote.riskSharingLimit}::${vote.autoBalancingThreshold}::${vote.yieldRebalancingMultiplier}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            poolId: vote.poolId,
+            riskSharingLimit: vote.riskSharingLimit,
+            autoBalancingThreshold: vote.autoBalancingThreshold,
+            yieldRebalancingMultiplier: vote.yieldRebalancingMultiplier,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const policyKey = group.poolId;
+        newState.swfReinsuranceOptionVolatilityPoolRebalancingPolicies![policyKey] = {
+          poolId: group.poolId,
+          riskSharingLimit: group.riskSharingLimit,
+          autoBalancingThreshold: group.autoBalancingThreshold,
+          yieldRebalancingMultiplier: group.yieldRebalancingMultiplier,
+          timestamp: Math.max(...group.timestamps, newState.step),
+        };
+
+        delete newState.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Volatility Pool Rebalancing Policy Approved] Syndicate ${syndicateId} established rebalancing policy for pool ${group.poolId} (Risk Sharing Limit: ${group.riskSharingLimit} gold, Auto Balancing Threshold: ${group.autoBalancingThreshold.toFixed(2)}%, Yield Rebalancing Multiplier: ${group.yieldRebalancingMultiplier.toFixed(2)}).`
+        );
+        break;
       }
     }
   }

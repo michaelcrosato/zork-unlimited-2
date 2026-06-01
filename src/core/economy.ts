@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool, SWFReinsuranceOptionCrossSyndicatePool } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -6618,6 +6618,9 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
   // AF-183: Tick SWF Reinsurance Option Peer Lending
   finalState = tickSWFReinsuranceOptionPeerLending(finalState);
+
+  // AF-184: Tick SWF Volatility Pools Automated Rebalancing & Yield Optimization
+  finalState = tickSWFReinsuranceOptionVolatilityPoolRebalancing(finalState);
   return finalState;
 }
 
@@ -7833,6 +7836,92 @@ export function tickVolatilityInsuranceRebalancing(state: GameState): GameState 
           );
         }
       }
+    }
+  }
+
+  return newState;
+}
+
+export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameState): GameState {
+  if (!state.swfReinsuranceOptionCrossSyndicatePools) return state;
+
+  const newState = {
+    ...state,
+    swfReinsuranceOptionCrossSyndicatePools: state.swfReinsuranceOptionCrossSyndicatePools ? JSON.parse(JSON.stringify(state.swfReinsuranceOptionCrossSyndicatePools)) : {},
+    syndicates: state.syndicates ? JSON.parse(JSON.stringify(state.syndicates)) : {},
+    marginAccounts: state.marginAccounts ? JSON.parse(JSON.stringify(state.marginAccounts)) : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
+  const avgVolatility = activeBonds.length > 0
+    ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+    : 20.0;
+
+  for (const pool of Object.values(newState.swfReinsuranceOptionCrossSyndicatePools) as SWFReinsuranceOptionCrossSyndicatePool[]) {
+    const policy = newState.swfReinsuranceOptionVolatilityPoolRebalancingPolicies?.[pool.id];
+    if (!policy) continue;
+
+    // Check if volatility triggers rebalancing
+    if (avgVolatility >= policy.autoBalancingThreshold) {
+      // 1. Balance/Top up the pool from the war chests of participating syndicates (up to riskSharingLimit)
+      for (const [syndicateId, currentContribution] of Object.entries(pool.syndicateContributions)) {
+        const syndicate = newState.syndicates?.[syndicateId];
+        if (syndicate && currentContribution < policy.riskSharingLimit) {
+          const needed = policy.riskSharingLimit - currentContribution;
+          const available = syndicate.warChest ?? 0;
+          const toTransfer = Math.min(needed, available);
+          if (toTransfer > 0) {
+            syndicate.warChest = available - toTransfer;
+            pool.syndicateContributions[syndicateId] = currentContribution + toTransfer;
+            pool.totalBalance += toTransfer;
+            newState.journal.push(
+              `[SWF Volatility Pool Auto-Deposit] Syndicate ${syndicateId} automatically deposited ${toTransfer} gold to Volatility Pool ${pool.id} to maintain risk sharing limit of ${policy.riskSharingLimit} gold under high volatility (Volatility: ${avgVolatility.toFixed(2)}% >= Threshold: ${policy.autoBalancingThreshold}%).`
+            );
+          }
+        }
+      }
+
+      // 2. Transfer liquidity/fallback support to participating syndicates' margin accounts if they are low
+      for (const syndicateId of Object.keys(pool.syndicateContributions)) {
+        const marginAccount = newState.marginAccounts?.[syndicateId];
+        if (marginAccount) {
+          // Calculate dynamic transfer amount scaled by yieldRebalancingMultiplier
+          const transferAmount = Math.min(
+            pool.totalBalance,
+            Math.floor(policy.riskSharingLimit * policy.yieldRebalancingMultiplier)
+          );
+
+          if (transferAmount > 0) {
+            // Deduct from pool balance and contributions proportionally
+            const originalBalance = pool.totalBalance;
+            pool.totalBalance -= transferAmount;
+            for (const sId of Object.keys(pool.syndicateContributions)) {
+              const contr = pool.syndicateContributions[sId] ?? 0;
+              if (originalBalance > 0) {
+                const reduction = Math.min(contr, Math.floor(transferAmount * (contr / originalBalance)));
+                pool.syndicateContributions[sId] = Math.max(0, contr - reduction);
+              }
+            }
+
+            // Transfer to margin account collateral
+            marginAccount.collateral = (marginAccount.collateral ?? 0) + transferAmount;
+
+            // Generate optimized yield / reward: 5% of transfer scaled by yieldRebalancingMultiplier
+            const optimizedYield = Math.round(transferAmount * 0.05 * policy.yieldRebalancingMultiplier);
+            const syndicate = newState.syndicates?.[syndicateId];
+            if (syndicate && optimizedYield > 0) {
+              syndicate.warChest = (syndicate.warChest ?? 0) + optimizedYield;
+            }
+
+            newState.journal.push(
+              `[SWF Volatility Pool Auto-Rebalance] Transferred fallback liquidity of ${transferAmount} gold from Volatility Pool ${pool.id} to Syndicate ${syndicateId} margin account collateral (New Collateral: ${marginAccount.collateral} gold, New Pool Balance: ${pool.totalBalance} gold). Distributed optimized yield reward of ${optimizedYield} gold to war chest.`
+            );
+          }
+        }
+      }
+
+      pool.timestamp = newState.step;
     }
   }
 
