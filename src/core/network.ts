@@ -607,6 +607,9 @@ export class MeshNode extends GossipNode {
     if (!nextHop) return false;
 
     const gossipMsg = this.generateGossipMessageFor(targetNodeId);
+    if (this.isRedundantGossip(targetNodeId, gossipMsg)) {
+      return false;
+    }
     this.network.sendRoutedPacket({
       sourceId: this.nodeId,
       destinationId: targetNodeId,

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #20 (Ready for Cycle #21)
-* **Build/Test Status**: 🟢 PASS (All 98 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #21 (Ready for Cycle #22)
+* **Build/Test Status**: 🟢 PASS (All 104 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -102,16 +102,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Modify `receivePacket` to drop duplicate packets based on packet ID (`AF-20`).
 - [x] Write comprehensive unit tests simulating redundant/circular network paths and sliding window expiration (`AF-20`).
 
+### Phase 16: Gossip Differential Compression & RLE Delta Sync (Completed)
+- [x] Design a lightweight column-wise serialization, delta-encoding, and RLE compression protocol (`compressStateDiff`) to minimize packet sizes (`AF-21`).
+- [x] Implement local node caching of recently sent delta packets to avoid redundant updates (`AF-21`).
+- [x] Write comprehensive unit tests for compression, decompression, redundancy caching, and converged sync (`AF-21`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-21`
-* **Objective**: Design and implement a differential compression and run-length encoding (RLE) gossip delta-state synchronizer to minimize packet size when transmitting high-volume state journals and transition records.
-* **Why this matters**: In large cooperative campaigns or prolonged multi-agent play sessions, the accumulation of transactions and state journal history logs can result in highly oversized packets, consuming excessive bandwidth, inducing packet drops under congestion, and slowing down eventual state convergence.
+**Task ID**: `AF-22`
+* **Objective**: Design and implement a Gossip packet fragmentation and reassembly layer (`GossipPacketFragmenter`) to safely split oversized gossip states and transaction logs across multiple small network packets and reassemble them in order under network jitter or packet loss.
+* **Why this matters**: Even with differential compression, extremely long multi-agent sessions or rich structural game assets can eventually exceed the maximum transmission unit (MTU) of typical network layers, leading to fragmentation drops, high memory usage, or transmission failure in real P2P mesh deployments.
 * **Planned Actions**:
-  1. Design a lightweight serialization and compression protocol (`compressStateDiff`) that only transmits sequence-number-filtered delta records and encodes repetitive string sequences.
-  2. Implement local node caching of recently sent delta packets to avoid generating redundant updates.
-  3. Write comprehensive unit and integration tests asserting packet payload reduction and seamless state convergence post-compression.
+  1. Design a serialization wrapper that splits compressed state diffs into small indexed chunks/fragments with a shared transmission ID and total fragment count header.
+  2. Implement an out-of-order buffer at the receiver node to reassemble fragments, handling missing or delayed packets.
+  3. Write comprehensive unit and integration tests asserting seamless reassembly, fragment drop tolerance, and state convergence.
 
 ---
 

@@ -7,7 +7,21 @@ export { multiAgentStep, buildObservationForAgent } from "./core/sync.js";
 export type { MultiAgentAction } from "./core/sync.js";
 
 // Gossip & P2P Sync
-export { GossipNode, isClockBehind, mergeVectorClocks, getTransactionId, mergeAndSortTransactions, mergeMonotonicStateFields, reconstructState } from "./core/gossip.js";
+export {
+  GossipNode,
+  isClockBehind,
+  mergeVectorClocks,
+  getTransactionId,
+  mergeAndSortTransactions,
+  mergeMonotonicStateFields,
+  reconstructState,
+  compressRLE,
+  decompressRLE,
+  deltaEncode,
+  deltaDecode,
+  compressStateDiff,
+  decompressStateDiff
+} from "./core/gossip.js";
 export type { VectorClock, GossipMessage } from "./core/gossip.js";
 export { DecentralizedDungeonExpedition } from "./core/expedition.js";
 

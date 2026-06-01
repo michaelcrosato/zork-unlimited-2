@@ -13,6 +13,172 @@ export interface GossipMessage {
   senderId: string;
   vectorClock: VectorClock;
   transactions: Transaction[];
+  compressedDiff?: any;
+}
+
+/**
+ * RLE compresses any array of values.
+ * Compares objects using JSON stringification for safety.
+ */
+export function compressRLE(arr: any[]): any[] {
+  if (arr.length === 0) return [];
+  const result: any[] = [];
+  let current = arr[0];
+  let currentStr = typeof current === "object" && current !== null ? JSON.stringify(current) : String(current);
+  let count = 1;
+
+  for (let i = 1; i < arr.length; i++) {
+    const item = arr[i];
+    const itemStr = typeof item === "object" && item !== null ? JSON.stringify(item) : String(item);
+    
+    if (itemStr === currentStr) {
+      count++;
+    } else {
+      if (count > 1) {
+        result.push({ rle: true, val: current, count });
+      } else {
+        result.push(current);
+      }
+      current = item;
+      currentStr = itemStr;
+      count = 1;
+    }
+  }
+  if (count > 1) {
+    result.push({ rle: true, val: current, count });
+  } else {
+    result.push(current);
+  }
+  return result;
+}
+
+/**
+ * Decompresses an RLE compressed array.
+ */
+export function decompressRLE(arr: any[]): any[] {
+  const result: any[] = [];
+  for (const item of arr) {
+    if (item && typeof item === "object" && item.rle === true) {
+      for (let i = 0; i < item.count; i++) {
+        result.push(typeof item.val === "object" && item.val !== null ? JSON.parse(JSON.stringify(item.val)) : item.val);
+      }
+    } else {
+      result.push(item);
+    }
+  }
+  return result;
+}
+
+/**
+ * Delta encodes an array of numbers.
+ */
+export function deltaEncode(arr: number[]): number[] {
+  if (arr.length === 0) return [];
+  const result: number[] = [arr[0]];
+  for (let i = 1; i < arr.length; i++) {
+    result.push(arr[i] - arr[i - 1]);
+  }
+  return result;
+}
+
+/**
+ * Delta decodes an array of numbers.
+ */
+export function deltaDecode(arr: number[]): number[] {
+  if (arr.length === 0) return [];
+  const result: number[] = [arr[0]];
+  for (let i = 1; i < arr.length; i++) {
+    result.push(result[i - 1] + arr[i]);
+  }
+  return result;
+}
+
+/**
+ * Compresses an array of transactions starting from sequenceNumber >= baseSequence.
+ */
+export function compressStateDiff(transactions: Transaction[], baseSequence: number): any {
+  const filtered = transactions.filter(tx => tx.sequenceNumber >= baseSequence);
+  if (filtered.length === 0) {
+    return {
+      baseSequence,
+      count: 0,
+      agentIds: [],
+      sequenceNumbers: [],
+      actions: [],
+      stateHashesBefore: [],
+      stateHashesAfter: [],
+      timestamps: [],
+      oks: [],
+      rejectionReasons: []
+    };
+  }
+
+  const agentIds = filtered.map(tx => tx.agentId);
+  const seqs = filtered.map(tx => tx.sequenceNumber);
+  const actions = filtered.map(tx => tx.action);
+  const hashesBefore = filtered.map(tx => tx.stateHashBefore);
+  const hashesAfter = filtered.map(tx => tx.stateHashAfter);
+  const timestamps = filtered.map(tx => tx.timestamp);
+  const oks = filtered.map(tx => tx.ok);
+  const rejectionReasons = filtered.map(tx => tx.rejectionReason ?? "");
+
+  const compressedAgentIds = compressRLE(agentIds);
+  const compressedSeqs = compressRLE(deltaEncode(seqs));
+  const compressedActions = compressRLE(actions);
+  const compressedTimestamps = compressRLE(deltaEncode(timestamps));
+  const compressedOks = compressRLE(oks);
+  const compressedRejectionReasons = compressRLE(rejectionReasons);
+
+  return {
+    baseSequence,
+    count: filtered.length,
+    agentIds: compressedAgentIds,
+    sequenceNumbers: compressedSeqs,
+    actions: compressedActions,
+    stateHashesBefore: hashesBefore,
+    stateHashesAfter: hashesAfter,
+    timestamps: compressedTimestamps,
+    oks: compressedOks,
+    rejectionReasons: compressedRejectionReasons
+  };
+}
+
+/**
+ * Decompresses a compressed state diff object back into an array of transactions.
+ */
+export function decompressStateDiff(compressed: any): Transaction[] {
+  if (!compressed || compressed.count === 0) {
+    return [];
+  }
+
+  const count = compressed.count;
+  const agentIds = decompressRLE(compressed.agentIds);
+  const seqs = deltaDecode(decompressRLE(compressed.sequenceNumbers));
+  const actions = decompressRLE(compressed.actions);
+  const hashesBefore = compressed.stateHashesBefore;
+  const hashesAfter = compressed.stateHashesAfter;
+  const timestamps = deltaDecode(decompressRLE(compressed.timestamps));
+  const oks = decompressRLE(compressed.oks);
+  const rejectionReasons = decompressRLE(compressed.rejectionReasons);
+
+  const transactions: Transaction[] = [];
+  for (let i = 0; i < count; i++) {
+    const tx: Transaction = {
+      agentId: agentIds[i],
+      sequenceNumber: seqs[i],
+      action: actions[i],
+      stateHashBefore: hashesBefore[i],
+      stateHashAfter: hashesAfter[i],
+      timestamp: timestamps[i],
+      ok: oks[i]
+    };
+    if (rejectionReasons[i] !== undefined && rejectionReasons[i] !== "") {
+      tx.rejectionReason = rejectionReasons[i];
+    }
+    transactions.push(tx);
+  }
+
+  return transactions;
 }
 
 /**
@@ -185,6 +351,7 @@ export class GossipNode {
   public pack: any;
   public peers: Map<string, GossipNode> = new Map();
   public seed: number;
+  public lastSentGossipCache: Map<string, { vectorClock: VectorClock; transactionIds: string[]; timestamp: number }> = new Map();
 
   constructor(nodeId: string, pack: any, seed = 42) {
     this.nodeId = nodeId;
@@ -201,6 +368,53 @@ export class GossipNode {
       [nodeId]: 0,
     };
     this.localState.vectorClock = { ...this.vectorClock };
+  }
+
+  /**
+   * Checks if a gossip message is redundant based on the local cache.
+   * If it is not redundant, updates the cache and returns false.
+   * If it is redundant, returns true.
+   */
+  public isRedundantGossip(peerId: string, msg: GossipMessage, maxAgeMs = 5000): boolean {
+    const cached = this.lastSentGossipCache.get(peerId);
+    const currentTime = (this as any).network ? (this as any).network.currentTimeMs : Date.now();
+
+    if (cached && (currentTime - cached.timestamp < maxAgeMs)) {
+      const clockKeysMatch = Object.keys(msg.vectorClock).length === Object.keys(cached.vectorClock).length;
+      let clockValuesMatch = true;
+      if (clockKeysMatch) {
+        for (const [k, v] of Object.entries(msg.vectorClock)) {
+          if (cached.vectorClock[k] !== v) {
+            clockValuesMatch = false;
+            break;
+          }
+        }
+      }
+
+      const txs = msg.transactions && msg.transactions.length > 0
+        ? msg.transactions
+        : (msg.compressedDiff ? decompressStateDiff(msg.compressedDiff) : []);
+
+      const newTxIds = txs.map(getTransactionId);
+      const txIdsMatch = newTxIds.length === cached.transactionIds.length &&
+        newTxIds.every((id, idx) => id === cached.transactionIds[idx]);
+
+      if (clockKeysMatch && clockValuesMatch && txIdsMatch) {
+        return true;
+      }
+    }
+
+    const txs = msg.transactions && msg.transactions.length > 0
+      ? msg.transactions
+      : (msg.compressedDiff ? decompressStateDiff(msg.compressedDiff) : []);
+
+    const txIds = txs.map(getTransactionId);
+    this.lastSentGossipCache.set(peerId, {
+      vectorClock: { ...msg.vectorClock },
+      transactionIds: txIds,
+      timestamp: currentTime,
+    });
+    return false;
   }
 
   /**
@@ -268,10 +482,17 @@ export class GossipNode {
       }
     }
 
+    const minSeq = deltaTransactions.length > 0 
+      ? Math.min(...deltaTransactions.map(tx => tx.sequenceNumber)) 
+      : 0;
+
+    const compressedDiff = compressStateDiff(deltaTransactions, minSeq);
+
     return {
       senderId: this.nodeId,
       vectorClock: { ...this.vectorClock },
-      transactions: deltaTransactions,
+      transactions: [], // Clear uncompressed payload to reduce network packets size
+      compressedDiff,
     };
   }
 
@@ -280,6 +501,9 @@ export class GossipNode {
    * Merges delta transactions, resolves conflicts, and reconstructs converged state.
    */
   public receiveGossip(message: GossipMessage): boolean {
+    if (message.compressedDiff) {
+      message.transactions = decompressStateDiff(message.compressedDiff);
+    }
     // 1. Check if the message contains any updates or clock advancements we don't have
     const isBehind = isClockBehind(this.vectorClock, message.vectorClock);
     const hasNewTransactions = message.transactions.some(tx => {
@@ -349,6 +573,9 @@ export class GossipNode {
     let updatedCount = 0;
     for (const peerId of this.peers.keys()) {
       const msg = this.generateGossipMessageFor(peerId);
+      if (this.isRedundantGossip(peerId, msg)) {
+        continue;
+      }
       const peerNode = this.peers.get(peerId);
       if (peerNode) {
         const updated = peerNode.receiveGossip(msg);
