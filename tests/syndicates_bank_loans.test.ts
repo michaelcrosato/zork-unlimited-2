@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState, getSyndicateLoanLimit, isCollateralLocked } from "../src/core/state.js";
+import { createInitialState, getSyndicateLoanLimit, isCollateralLocked, cloneStateWithoutHistory, reconcileIndividualLoanCollateralSwaps } from "../src/core/state.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { tickEconomy } from "../src/core/economy.js";
@@ -829,5 +829,193 @@ describe("Smuggler Syndicate Cartel Bank Loans, Collateral-Gated Borrowing, & En
     // Merging A and B should keep B's alert overwritten by A's alert (timestamp 1050 > 1020)
     const merged = mergeMonotonicStateFields(nodeB, nodeA);
     expect(merged.defaultAlerts?.["player_blood_fangs"]?.timestamp).toBe(1050);
+  });
+
+  it("should handle SWAP_INDIVIDUAL_COLLATERAL voting, consensus, limits, and Gossip mesh convergence (AF-94)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 500 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"], // 3 members -> bank majority threshold = 3 / 2 = 1.5 -> requires 2 votes
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+        loans: {
+          player: {
+            agentId: "player",
+            amount: 150,
+            collateralType: "safehouse",
+            collateralId: "clearing",
+            interestAccrued: 0,
+            borrowStep: 10,
+            dueStep: 50,
+            timestamp: 1000,
+          },
+        },
+      },
+    };
+
+    // player's safehouses
+    state.safehouses = {
+      clearing: {
+        id: "clearing",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 1, // value: 200
+        stashCapacity: 5,
+        stashItems: [],
+        timestamp: 1000,
+      },
+      hideout: {
+        id: "hideout",
+        roomId: "hideout",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2, // value: 400
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+      },
+    };
+
+    state.npcRep = {
+      player: 100,
+    };
+
+    // 1. Try to swap collateral with hideout, but voter is not a member of the syndicate bank
+    const failNonMember = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "SWAP_INDIVIDUAL_COLLATERAL",
+          syndicateId: "blood_fangs",
+          targetAgentId: "player",
+          removeCollateralType: "safehouse",
+          removeCollateralId: "clearing",
+          addCollateralType: "safehouse",
+          addCollateralId: "hideout",
+          timestamp: 1005,
+        },
+      },
+      mockPack
+    );
+    expect(failNonMember.ok).toBe(false);
+    expect(failNonMember.rejectionReason).toContain("is not a member of syndicate");
+
+    // 2. Try to swap, but removeCollateral does not match loan's collateral
+    const failWrongRemove = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "SWAP_INDIVIDUAL_COLLATERAL",
+          syndicateId: "blood_fangs",
+          targetAgentId: "player",
+          removeCollateralType: "safehouse",
+          removeCollateralId: "wrong_id",
+          addCollateralType: "safehouse",
+          addCollateralId: "hideout",
+          timestamp: 1005,
+        },
+      },
+      mockPack
+    );
+    expect(failWrongRemove.ok).toBe(false);
+    expect(failWrongRemove.rejectionReason).toContain("does not match the active loan collateral");
+
+    // 3. First vote cast by player
+    const vote1 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "SWAP_INDIVIDUAL_COLLATERAL",
+          syndicateId: "blood_fangs",
+          targetAgentId: "player",
+          removeCollateralType: "safehouse",
+          removeCollateralId: "clearing",
+          addCollateralType: "safehouse",
+          addCollateralId: "hideout",
+          timestamp: 1005,
+        },
+      },
+      mockPack
+    );
+    expect(vote1.ok).toBe(true);
+    // Loan collateral shouldn't be swapped yet because we only have 1 out of 3 votes (requires 2 for majority)
+    expect(vote1.state.syndicateBanks?.["blood_fangs"]?.loans?.["player"]?.collateralId).toBe("clearing");
+    expect(vote1.state.individualLoanCollateralSwapVotes?.["blood_fangs"]?.["player"]?.["player"]).toBeDefined();
+
+    // 4. Second vote cast by alice (achieving majority consensus)
+    const vote2 = multiAgentStep(
+      vote1.state,
+      {
+        agentId: "alice",
+        action: {
+          type: "SWAP_INDIVIDUAL_COLLATERAL",
+          syndicateId: "blood_fangs",
+          targetAgentId: "player",
+          removeCollateralType: "safehouse",
+          removeCollateralId: "clearing",
+          addCollateralType: "safehouse",
+          addCollateralId: "hideout",
+          timestamp: 1006,
+        },
+      },
+      mockPack
+    );
+    expect(vote2.ok).toBe(true);
+    // Loan collateral MUST now be swapped to hideout!
+    expect(vote2.state.syndicateBanks?.["blood_fangs"]?.loans?.["player"]?.collateralId).toBe("hideout");
+    // Votes should be cleared
+    expect(vote2.state.individualLoanCollateralSwapVotes?.["blood_fangs"]?.["player"]?.["player"]).toBeUndefined();
+    expect(vote2.state.journal).toContain("[Syndicate Bank] Individual loan collateral swap for agent player in syndicate blood_fangs bank approved! Swapped clearing (safehouse) with hideout (safehouse).");
+
+    // 5. Test Gossip merge/convergence of the vote maps
+    let nodeX = cloneStateWithoutHistory(vote1.state); // player voted
+    let nodeY = cloneStateWithoutHistory(state);
+
+    // alice votes on nodeY
+    const voteY = multiAgentStep(
+      nodeY,
+      {
+        agentId: "alice",
+        action: {
+          type: "SWAP_INDIVIDUAL_COLLATERAL",
+          syndicateId: "blood_fangs",
+          targetAgentId: "player",
+          removeCollateralType: "safehouse",
+          removeCollateralId: "clearing",
+          addCollateralType: "safehouse",
+          addCollateralId: "hideout",
+          timestamp: 1006,
+        },
+      },
+      mockPack
+    );
+    expect(voteY.ok).toBe(true);
+
+    // Merge nodeX (player's vote) and voteY.state (alice's vote)
+    const mergedState = mergeMonotonicStateFields(nodeX, voteY.state);
+    // When merged, both votes are present, which triggers reconciliation and consensus!
+    const reconciled = reconcileIndividualLoanCollateralSwaps(mergedState, mockPack);
+    expect(reconciled.syndicateBanks?.["blood_fangs"]?.loans?.["player"]?.collateralId).toBe("hideout");
   });
 });

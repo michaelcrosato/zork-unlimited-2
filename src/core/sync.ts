@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -13375,6 +13375,181 @@ export function multiAgentStep(
           targetAgentId,
           newDueStep,
           newInterestRate,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized SWAP_INDIVIDUAL_COLLATERAL action (AF-94)
+  if ((action as any).type === "SWAP_INDIVIDUAL_COLLATERAL") {
+    const { syndicateId, targetAgentId, removeCollateralType, removeCollateralId, addCollateralType, addCollateralId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+    const loan = bank?.loans?.[targetAgentId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to propose individual loan collateral swap.`;
+    } else if (!targetAgentId) {
+      rejectionReason = `Target agent ID is required to propose individual loan collateral swap.`;
+    } else if (!removeCollateralType || !removeCollateralId) {
+      rejectionReason = `Valid removeCollateral structure is required.`;
+    } else if (!addCollateralType || !addCollateralId) {
+      rejectionReason = `Valid addCollateral structure is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on individual loan collateral swap.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} is not established.`;
+    } else if (!loan) {
+      rejectionReason = `Target agent ${targetAgentId} has no active loan to swap collateral.`;
+    } else if (loan.collateralType !== removeCollateralType || loan.collateralId !== removeCollateralId) {
+      rejectionReason = `The collateral to be removed does not match the active loan collateral.`;
+    } else {
+      // Validate addCollateral
+      let addCollateralValid = false;
+      if (addCollateralType === "safehouse") {
+        const safehouse = state.safehouses?.[addCollateralId];
+        if (safehouse && (safehouse.syndicateId === syndicateId || safehouse.ownerId === targetAgentId)) {
+          addCollateralValid = true;
+        } else {
+          rejectionReason = `Safehouse ${addCollateralId} does not exist or is not owned/controlled by syndicate ${syndicateId} or agent ${targetAgentId}.`;
+        }
+      } else if (addCollateralType === "outpost") {
+        const outpost = state.turfGuardOutposts?.[addCollateralId];
+        if (outpost && outpost.syndicateId === syndicateId) {
+          addCollateralValid = true;
+        } else {
+          rejectionReason = `Outpost ${addCollateralId} does not exist or is not controlled by syndicate ${syndicateId}.`;
+        }
+      } else {
+        rejectionReason = `Invalid addCollateral type ${addCollateralType}.`;
+      }
+
+      if (addCollateralValid) {
+        if (isCollateralLocked(state, addCollateralType, addCollateralId)) {
+          rejectionReason = `Proposed new collateral ${addCollateralId} is already locked.`;
+        } else {
+          // Check if borrowing limit is respected
+          const limit = getSyndicateLoanLimit(state, syndicateId, targetAgentId, addCollateralType, addCollateralId);
+          const outstanding = loan.amount + loan.interestAccrued;
+          if (outstanding > limit) {
+            rejectionReason = `Outstanding loan balance ${outstanding} exceeds the new collateral's loan limit of ${limit} gold.`;
+          } else {
+            // Also check value comparison: new collateral value must be equal or greater than the removed collateral value
+            const removeVal = getCollateralValue(state, removeCollateralType, removeCollateralId);
+            const addVal = getCollateralValue(state, addCollateralType, addCollateralId);
+            if (addVal < removeVal) {
+              rejectionReason = `New collateral value (${addVal}) must be equal to or greater than the removed collateral value (${removeVal}).`;
+            } else {
+              ok = true;
+            }
+          }
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && bank && loan) {
+      const individualLoanCollateralSwapVotes = { ...(state.individualLoanCollateralSwapVotes || {}) };
+      if (!individualLoanCollateralSwapVotes[syndicateId]) {
+        individualLoanCollateralSwapVotes[syndicateId] = {};
+      } else {
+        individualLoanCollateralSwapVotes[syndicateId] = { ...individualLoanCollateralSwapVotes[syndicateId] };
+      }
+
+      if (!individualLoanCollateralSwapVotes[syndicateId][targetAgentId]) {
+        individualLoanCollateralSwapVotes[syndicateId][targetAgentId] = {};
+      } else {
+        individualLoanCollateralSwapVotes[syndicateId][targetAgentId] = { ...individualLoanCollateralSwapVotes[syndicateId][targetAgentId] };
+      }
+
+      const existingVote = individualLoanCollateralSwapVotes[syndicateId][targetAgentId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        individualLoanCollateralSwapVotes[syndicateId][targetAgentId][agentId] = {
+          removeCollateralType,
+          removeCollateralId,
+          addCollateralType,
+          addCollateralId,
+          timestamp,
+        };
+        newState.individualLoanCollateralSwapVotes = individualLoanCollateralSwapVotes;
+        newState = reconcileIndividualLoanCollateralSwaps(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} voted for individual collateral swap for agent ${targetAgentId}'s loan in syndicate ${syndicateId} (Remove: ${removeCollateralId}, Add: ${addCollateralId}).`);
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Individual loan collateral swap vote cast by ${agentId} for borrower ${targetAgentId} in syndicate ${syndicateId} (Remove: ${removeCollateralId}, Add: ${addCollateralId}).`,
+        } as any);
+
+        customEvents.push({
+          type: "individual_loan_collateral_swap_proposed" as any,
+          syndicateId,
+          agentId,
+          targetAgentId,
+          removeCollateralType,
+          removeCollateralId,
+          addCollateralType,
+          addCollateralId,
           timestamp,
         });
       } else {

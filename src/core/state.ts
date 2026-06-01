@@ -784,6 +784,16 @@ export const LoanRefinancingVoteSchema = z.object({
 });
 export type LoanRefinancingVote = z.infer<typeof LoanRefinancingVoteSchema>;
 
+export const IndividualLoanCollateralSwapVoteSchema = z.object({
+  removeCollateralType: z.enum(["safehouse", "outpost"]),
+  removeCollateralId: z.string(),
+  addCollateralType: z.enum(["safehouse", "outpost"]),
+  addCollateralId: z.string(),
+  timestamp: z.number().int(),
+});
+export type IndividualLoanCollateralSwapVote = z.infer<typeof IndividualLoanCollateralSwapVoteSchema>;
+
+
 export const DebtSettlementVoteSchema = z.object({
   settlementAmount: z.number().int().nonnegative(),
   timestamp: z.number().int(),
@@ -999,6 +1009,7 @@ export const GameStateSchema = z.object({
   creditRatings: z.record(z.string(), z.number().int()).optional(),
   defaultAlerts: z.record(z.string(), DefaultAlertSchema).optional(),
   loanRefinancingVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), LoanRefinancingVoteSchema))).optional(),
+  individualLoanCollateralSwapVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), IndividualLoanCollateralSwapVoteSchema))).optional(),
   creditRecoveries: z.record(z.string(), CreditRecoverySchema).optional(),
   debtSettlementVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), DebtSettlementVoteSchema))).optional(),
   jointLoanProposals: z.record(z.string(), JointLoanProposalSchema).optional(),
@@ -1865,6 +1876,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     creditRatings: rest.creditRatings ? { ...rest.creditRatings } : undefined,
     defaultAlerts: rest.defaultAlerts ? JSON.parse(JSON.stringify(rest.defaultAlerts)) : undefined,
     loanRefinancingVotes: rest.loanRefinancingVotes ? JSON.parse(JSON.stringify(rest.loanRefinancingVotes)) : undefined,
+    individualLoanCollateralSwapVotes: rest.individualLoanCollateralSwapVotes ? JSON.parse(JSON.stringify(rest.individualLoanCollateralSwapVotes)) : undefined,
     debtSettlementVotes: rest.debtSettlementVotes ? JSON.parse(JSON.stringify(rest.debtSettlementVotes)) : undefined,
     jointLoanProposals: rest.jointLoanProposals ? JSON.parse(JSON.stringify(rest.jointLoanProposals)) : undefined,
     jointLoans: rest.jointLoans ? JSON.parse(JSON.stringify(rest.jointLoans)) : undefined,
@@ -2019,6 +2031,102 @@ export function reconcileLoanRefinancings(state: GameState, pack: any): GameStat
           timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
         };
         loansChanged = true;
+      }
+    }
+
+    if (loansChanged) {
+      newState.syndicateBanks[syndicateId] = {
+        ...bank,
+        loans: updatedLoans,
+        timestamp: newState.step,
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileIndividualLoanCollateralSwaps(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    syndicateBanks: state.syndicateBanks ? { ...state.syndicateBanks } : {},
+  };
+
+  if (!newState.individualLoanCollateralSwapVotes) {
+    newState.individualLoanCollateralSwapVotes = {};
+    return newState;
+  }
+
+  for (const [syndicateId, borrowerVotes] of Object.entries(newState.individualLoanCollateralSwapVotes)) {
+    const bank = newState.syndicateBanks[syndicateId];
+    if (!bank || !bank.loans) continue;
+
+    const syndicate = newState.syndicates[syndicateId];
+    if (!syndicate) continue;
+
+    const updatedLoans = { ...bank.loans };
+    let loansChanged = false;
+
+    for (const [borrowerId, votes] of Object.entries(borrowerVotes)) {
+      const loan = updatedLoans[borrowerId];
+      if (!loan) continue;
+
+      // Count votes for each unique combination of remove/add collateral
+      const combinationCounts: Record<string, {
+        removeCollateralType: "safehouse" | "outpost";
+        removeCollateralId: string;
+        addCollateralType: "safehouse" | "outpost";
+        addCollateralId: string;
+        votes: Set<string>;
+        timestamps: number[];
+      }> = {};
+
+      for (const [voterId, vote] of Object.entries(votes)) {
+        if (syndicate.members.includes(voterId)) {
+          const key = `${vote.removeCollateralType}_${vote.removeCollateralId}::${vote.addCollateralType}_${vote.addCollateralId}`;
+          if (!combinationCounts[key]) {
+            combinationCounts[key] = {
+              removeCollateralType: vote.removeCollateralType,
+              removeCollateralId: vote.removeCollateralId,
+              addCollateralType: vote.addCollateralType,
+              addCollateralId: vote.addCollateralId,
+              votes: new Set<string>(),
+              timestamps: [],
+            };
+          }
+          combinationCounts[key].votes.add(voterId);
+          combinationCounts[key].timestamps.push(vote.timestamp);
+        }
+      }
+
+      const totalMembers = syndicate.members.length;
+      let fullyApprovedCombination: any = undefined;
+
+      for (const combo of Object.values(combinationCounts)) {
+        if (combo.votes.size > totalMembers / 2) {
+          fullyApprovedCombination = combo;
+          break; // At most one combination can satisfy strict majority
+        }
+      }
+
+      if (fullyApprovedCombination) {
+        // Swap! Update the loan.
+        updatedLoans[borrowerId] = {
+          ...loan,
+          collateralType: fullyApprovedCombination.addCollateralType,
+          collateralId: fullyApprovedCombination.addCollateralId,
+          timestamp: Math.max(...fullyApprovedCombination.timestamps),
+        };
+        loansChanged = true;
+
+        // Clear the votes for this borrower so they don't apply again
+        delete borrowerVotes[borrowerId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Syndicate Bank] Individual loan collateral swap for agent ${borrowerId} in syndicate ${syndicateId} bank approved! Swapped ${fullyApprovedCombination.removeCollateralId} (${fullyApprovedCombination.removeCollateralType}) with ${fullyApprovedCombination.addCollateralId} (${fullyApprovedCombination.addCollateralType}).`
+        );
       }
     }
 

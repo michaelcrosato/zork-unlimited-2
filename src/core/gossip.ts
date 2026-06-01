@@ -1114,6 +1114,33 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge individualLoanCollateralSwapVotes using LWW
+  const individualLoanCollateralSwapVotes = { ...stateA.individualLoanCollateralSwapVotes };
+  if (stateB.individualLoanCollateralSwapVotes) {
+    for (const [syndicateId, bInner] of Object.entries(stateB.individualLoanCollateralSwapVotes)) {
+      if (!individualLoanCollateralSwapVotes[syndicateId]) {
+        individualLoanCollateralSwapVotes[syndicateId] = { ...bInner };
+      } else {
+        const aInner = { ...individualLoanCollateralSwapVotes[syndicateId] };
+        for (const [borrowerId, bVotes] of Object.entries(bInner)) {
+          if (!aInner[borrowerId]) {
+            aInner[borrowerId] = { ...bVotes };
+          } else {
+            const aVotes = { ...aInner[borrowerId] };
+            for (const [voterId, voteB] of Object.entries(bVotes)) {
+              const voteA = aVotes[voterId];
+              if (!voteA || voteB.timestamp > voteA.timestamp) {
+                aVotes[voterId] = voteB;
+              }
+            }
+            aInner[borrowerId] = aVotes;
+          }
+        }
+        individualLoanCollateralSwapVotes[syndicateId] = aInner;
+      }
+    }
+  }
+
   // Merge debtSettlementVotes using LWW
   const debtSettlementVotes = { ...stateA.debtSettlementVotes };
   if (stateB.debtSettlementVotes) {
@@ -1532,6 +1559,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     creditRatings,
     defaultAlerts,
     loanRefinancingVotes,
+    individualLoanCollateralSwapVotes,
     creditRecoveries,
     debtSettlementVotes,
     jointLoanProposals,
