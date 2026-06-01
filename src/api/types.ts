@@ -5,6 +5,7 @@ export type Action =
   // CYOA
   | { type: "CHOOSE"; choiceId: string }
   // Parser (Stage 2+)
+  | { type: "CHANGE_WEATHER"; weather?: string; temperature?: string; wind?: string }
   | { type: "LOOK"; target?: string }
   | { type: "MOVE"; direction: string }
   | { type: "TAKE"; item: string }

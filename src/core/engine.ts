@@ -456,6 +456,21 @@ export function step(
 
   // Action Switch Resolvers
   switch (action.type) {
+    case "CHANGE_WEATHER": {
+      const currentEnv = newState.environment || { weather: "clear", temperature: "mild", wind: "calm", lastUpdatedStep: newState.step };
+      newState.environment = {
+        ...currentEnv,
+        weather: action.weather ?? currentEnv.weather,
+        temperature: action.temperature ?? currentEnv.temperature,
+        wind: action.wind ?? currentEnv.wind ?? "calm",
+        lastUpdatedStep: newState.step,
+      };
+      const text = `Weather manually changed: weather is now ${newState.environment.weather}, temperature is ${newState.environment.temperature}, wind is ${newState.environment.wind}.`;
+      events.push({ type: "narration", text });
+      newState.journal.push(`[Environment] ${text}`);
+      break;
+    }
+
     case "LOOK": {
       if (!action.target) {
         // Look around room
@@ -531,6 +546,41 @@ export function step(
           ok: false,
           rejectionReason: exit.locked_msg ?? "That path is locked.",
         };
+      }
+
+      // Weather traversal check (AF-164)
+      const isOutdoorRoomLocal = (roomId: string): boolean => {
+        const idLower = roomId.toLowerCase();
+        return (
+          idLower.includes("forest") ||
+          idLower.includes("garden") ||
+          idLower.includes("entrance") ||
+          idLower.includes("yard") ||
+          idLower.includes("clearing") ||
+          idLower.includes("road") ||
+          idLower.includes("path") ||
+          idLower.includes("outside") ||
+          idLower.includes("exterior") ||
+          idLower.includes("glade") ||
+          idLower.includes("courtyard") ||
+          idLower.includes("cliff") ||
+          idLower.includes("mountains")
+        );
+      };
+      const isDestOutdoor = isOutdoorRoomLocal(exit.to);
+      const isCurrentOutdoor = isOutdoorRoomLocal(state.current);
+      const hasHeavyCloakInPack = parserPack.objects?.some(o => o.id === "heavy_cloak");
+      if (hasHeavyCloakInPack && (isDestOutdoor || isCurrentOutdoor) && newState.environment) {
+        const weather = newState.environment.weather;
+        const wind = newState.environment.wind ?? "calm";
+        if (weather === "storm" && wind === "tempest" && !newState.inventory.includes("heavy_cloak")) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: "The violent tempest and raging storm block your way! You need a heavy_cloak to traverse outdoor areas under such conditions." }],
+            ok: false,
+            rejectionReason: "Blocked by extreme storm weather conditions.",
+          };
+        }
       }
 
       // Territory-based exit traversal constraints & faction tax mechanics
@@ -2232,10 +2282,11 @@ function getWeatherForStep(
   seed: number,
   step: number,
   weatherPool?: string[]
-): { weather: string; temperature: string } {
+): { weather: string; temperature: string; wind: string } {
   const defaultWeathers = ["clear", "rain", "fog", "storm"];
   const weathers = (weatherPool && weatherPool.length > 0) ? weatherPool : defaultWeathers;
   const temperatures = ["cold", "mild", "hot"];
+  const winds = ["calm", "breezy", "gale", "tempest"];
 
   // Compute a deterministic hash of seed + floor(step / 5)
   const interval = Math.floor(step / 5);
@@ -2246,9 +2297,13 @@ function getWeatherForStep(
   const h2 = Math.abs(Math.imul(h1 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
   const tempIndex = h2 % temperatures.length;
 
+  const h3 = Math.abs(Math.imul(h2 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+  const windIndex = h3 % winds.length;
+
   return {
     weather: weathers[weatherIndex],
     temperature: temperatures[tempIndex],
+    wind: winds[windIndex],
   };
 }
 
@@ -3977,10 +4032,11 @@ function tickEnvironment(
 
   // We tick if the 5-step interval has changed OR if the current weather is not allowed in this room
   if (intervalChanged || !isWeatherAllowed) {
-    const { weather: nextWeather, temperature: nextTemp } = getWeatherForStep(newState.seed, newState.step, weatherPool);
+    const { weather: nextWeather, temperature: nextTemp, wind: nextWind } = getWeatherForStep(newState.seed, newState.step, weatherPool);
 
     const oldWeather = newState.environment.weather;
     const oldTemp = newState.environment.temperature;
+    const oldWind = newState.environment.wind ?? "calm";
 
     const updatedState = {
       ...newState,
@@ -3992,6 +4048,7 @@ function tickEnvironment(
       environment: {
         weather: nextWeather,
         temperature: nextTemp,
+        wind: nextWind,
         lastUpdatedStep: newState.step,
       },
     };
@@ -4015,6 +4072,15 @@ function tickEnvironment(
 
     if (nextTemp !== oldTemp && nextWeather === oldWeather) {
       const msg = `The temperature shifts, becoming ${nextTemp}.`;
+      events.push({
+        type: "narration",
+        text: `[Environment] ${msg}`,
+      });
+      updatedState.journal.push(`[Environment] ${msg}`);
+    }
+
+    if (nextWind !== oldWind && nextWeather === oldWeather) {
+      const msg = `The wind shifts, becoming ${nextWind}.`;
       events.push({
         type: "narration",
         text: `[Environment] ${msg}`,

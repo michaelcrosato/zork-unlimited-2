@@ -30,6 +30,7 @@ export const ConditionSchema: z.ZodType<any> = z.lazy(() =>
     }),
     z.object({ weather_is: z.string() }),
     z.object({ temperature_is: z.string() }),
+    z.object({ wind_is: z.string() }),
     z.object({
       faction_rep_gte: z.object({
         faction: z.string(),
@@ -79,6 +80,7 @@ export type Condition =
   | { var_eq: { name: string; value: number } }
   | { weather_is: string }
   | { temperature_is: string }
+  | { wind_is: string }
   | { faction_rep_gte: { faction: string; value: number } }
   | { faction_rep_lte: { faction: string; value: number } }
   | {
@@ -149,6 +151,11 @@ export function evaluateCondition(state: GameState, cond: Condition): boolean {
   if ("temperature_is" in cond) {
     const expected = cond.temperature_is;
     const current = state.environment?.temperature ?? "mild";
+    return current === expected;
+  }
+  if ("wind_is" in cond) {
+    const expected = cond.wind_is;
+    const current = state.environment?.wind ?? "calm";
     return current === expected;
   }
   if ("faction_rep_gte" in cond) {

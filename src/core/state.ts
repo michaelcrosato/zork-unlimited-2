@@ -12,6 +12,7 @@ export type ObjectRuntime = z.infer<typeof ObjectRuntimeSchema>;
 export const EnvironmentalStateSchema = z.object({
   weather: z.string(),
   temperature: z.string(),
+  wind: z.string().optional(),
   lastUpdatedStep: z.number().int().nonnegative(),
 });
 
@@ -2967,6 +2968,7 @@ export const createInitialState = (options: {
     environment: {
       weather: "clear",
       temperature: "mild",
+      wind: "calm",
       lastUpdatedStep: 0,
     },
     agents: options.agentsInit ? agents : undefined,
