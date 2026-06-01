@@ -5116,6 +5116,135 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized PURCHASE_CONVOY_INSURANCE action (AF-59)
+  if ((action as any).type === "PURCHASE_CONVOY_INSURANCE") {
+    const { convoyId, syndicateId, timestamp } = action as any;
+    const defaultCost = 150;
+    const cost = (action as any).cost ?? (action as any).goldCost ?? defaultCost;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const convoy = state.smugglingConvoys?.[convoyId];
+
+    if (!convoyId) {
+      rejectionReason = `Convoy ID is required to purchase insurance.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to purchase insurance.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Convoy insurance cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!convoy) {
+      rejectionReason = `Smuggling convoy ${convoyId} does not exist.`;
+    } else if (convoy.syndicateId !== syndicateId) {
+      rejectionReason = `Convoy ${convoyId} does not belong to syndicate ${syndicateId}.`;
+    } else if (convoy.status !== "en_route") {
+      rejectionReason = `Convoy ${convoyId} is not en_route (current status: ${convoy.status}).`;
+    } else if (state.convoyInsurance?.[convoyId]?.active) {
+      rejectionReason = `Smuggling convoy ${convoyId} already has an active insurance policy.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to purchase convoy insurance costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && convoy) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Coverage amount is dynamically set to cargo * 150 (lost value compensation)
+      const coverageAmount = convoy.cargo * 150;
+
+      // Add to convoyInsurance list
+      const convoyInsurance = { ...(state.convoyInsurance || {}) };
+      convoyInsurance[convoyId] = {
+        convoyId,
+        syndicateId,
+        cost,
+        coverageAmount,
+        active: true,
+        definedBy: agentId,
+        timestamp,
+      };
+      newState.convoyInsurance = convoyInsurance;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Purchased convoy insurance for ${convoyId} costing ${cost} gold (coverage: ${coverageAmount} gold).`);
+
+      customEvents.push({
+        type: "smuggling_convoy_insurance_purchased",
+        agentId,
+        convoyId,
+        syndicateId,
+        cost,
+        coverageAmount,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Handle decentralized ADJUST_TURF_TAX action (AF-53)
   if ((action as any).type === "ADJUST_TURF_TAX") {
     const { syndicateId, rate, timestamp } = action as any;

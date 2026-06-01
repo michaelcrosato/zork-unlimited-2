@@ -2220,6 +2220,45 @@ export function tickSmugglingConvoys(
             convoyId,
             room: destRoomId,
           } as any);
+
+          // Convoy loss insurance dynamic compensation claim (AF-59)
+          const insurance = newState.convoyInsurance?.[convoyId];
+          if (insurance && insurance.active) {
+            const updatedInsurance = { ...insurance, active: false };
+            newState.convoyInsurance = {
+              ...newState.convoyInsurance,
+              [convoyId]: updatedInsurance,
+            };
+
+            const syndicate = newState.syndicates?.[convoy.syndicateId];
+            const members = syndicate?.members || [convoy.definedBy];
+            const coverage = insurance.coverageAmount;
+            const share = members.length > 0 ? Math.floor(coverage / members.length) : 0;
+
+            if (share > 0) {
+              if (!newState.vars) newState.vars = {};
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+              }
+            }
+
+            newState.vars["totalConvoyInsurancePayouts"] = (newState.vars["totalConvoyInsurancePayouts"] ?? 0) + coverage;
+            newState.journal.push(`[Syndicate] Insurance claim processed for convoy ${convoyId}. Paid out ${coverage} gold dynamic loss compensation (Distributed ${share} gold to each member).`);
+            
+            events.push({
+              type: "narration",
+              text: `🛡️ Smuggling Convoy Insurance Policy triggered! Paid out ${coverage} gold in dynamic loss compensation to the syndicate.`,
+            } as any);
+            
+            events.push({
+              type: "smuggling_convoy_insurance_claimed" as any,
+              convoyId,
+              syndicateId: convoy.syndicateId,
+              payoutGold: coverage,
+              share,
+            } as any);
+          }
         } else {
           updatedConvoy.currentRoomIndex = nextRoomIndex;
           if (!newState.journal) newState.journal = [];

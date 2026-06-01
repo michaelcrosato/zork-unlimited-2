@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #58 (Ready for Cycle #59)
-* **Build/Test Status**: 🟢 PASS (All 263 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #59 (Ready for Cycle #60)
+* **Build/Test Status**: 🟢 PASS (All 267 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -346,17 +346,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire smuggling convoy transport ticks across trade routes, calculating ambush risks, faction toll deductions, and payout distributions (`AF-58`).
 - [x] Write comprehensive unit, integration, and P2P mesh convergence tests (`AF-58`).
 
+### Phase 53: Crime Syndicate Contraband Insurance Claims & Dynamic Loss Compensation Policies (Completed)
+- [x] Define smuggling convoy loss insurance schemas inside GameState (`AF-59`).
+- [x] Implement `PURCHASE_CONVOY_INSURANCE` decentralized consensus action costing gold (`AF-59`).
+- [x] Wire automatic insurance claim processing inside `tickSmugglingConvoys` on convoy ambush destruction, distributing compensation gold to members (`AF-59`).
+- [x] Write comprehensive unit, integration, and P2P mesh convergence tests (`AF-59`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-59`
-* **Objective**: Crime Syndicate Contraband Insurance Claims & Dynamic Loss Compensation Policies.
-* **Why this matters**: Support smuggling risk hedging by allowing syndicates to purchase decentralized contraband loss insurance policies that dynamically pay out clean gold to the syndicate when convoys are ambushed or destroyed.
+**Task ID**: `AF-60`
+* **Objective**: Crime Syndicate Contraband Insurance Underwriting & Dynamic Premium Adjustments.
+* **Why this matters**: Scale insurance premium costs dynamically based on the target convoy's route risk profile, historical syndicate loss rates, and local enforcement heat.
 * **Planned Actions**:
-  1. Define smuggling convoy loss insurance schemas inside GameState.
-  2. Implement `PURCHASE_CONVOY_INSURANCE` decentralized consensus action costing gold.
-  3. Wire automatic insurance claim processing inside `tickSmugglingConvoys` on convoy ambush destruction, distributing compensation gold to members.
-  4. Write comprehensive unit, integration, and P2P mesh convergence tests.
+  1. Define dynamic insurance premium scaling formulas inside the economy/sync system.
+  2. Implement route-risk evaluation based on room enforcement heat, active factions, and historical ambush occurrences.
+  3. Validate premium calculations dynamically upon `PURCHASE_CONVOY_INSURANCE` transactions.
+  4. Write comprehensive integration tests.
 
 ---
 
