@@ -752,6 +752,34 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
       );
     }
 
+    // Enforce consensus-voted dynamic volatility floor (AF-191)
+    let volatilityFloor = 0.0;
+    if (newState.swfReinsuranceOptionVolatilityFloorProposals) {
+      for (const prop of Object.values(newState.swfReinsuranceOptionVolatilityFloorProposals)) {
+        if (prop.swfYieldCdoId === optionCdoId &&
+            prop.trancheId === trancheId &&
+            prop.status === "authorized") {
+          volatilityFloor = prop.volatilityFloor;
+          break;
+        }
+      }
+    }
+    if (volatilityFloor > 0.0) {
+      const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
+      const avgVolatility = activeBonds.length > 0
+        ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+        : 15.0;
+      const minSpread = Math.round(avgVolatility * volatilityFloor);
+      if (bidAskSpread < minSpread) {
+        const originalSpread = bidAskSpread;
+        bidAskSpread = minSpread;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Volatility Floor Enforced] Dynamic volatility floor enforced on ${key}. Raised bid-ask spread from ${originalSpread} to ${bidAskSpread} gold based on average volatility ${avgVolatility.toFixed(2)}% and floor parameter ${volatilityFloor}.`
+        );
+      }
+    }
+
     // Volatility Insurance spread stabilization (AF-172)
     const volPolicy = newState.swfReinsuranceOptionVolatilityInsurancePolicies?.[key];
     const volPool = newState.swfReinsuranceOptionVolatilityInsurancePools?.[key];
