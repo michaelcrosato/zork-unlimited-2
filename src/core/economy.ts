@@ -5813,6 +5813,30 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         const feeA = Math.max(0, baseFee - subsidy);
         const feeB = Math.max(0, baseFee - subsidy);
 
+        // Calculate mid-market price and dynamic market maker rebate rates (AF-155)
+        const buyPrices = openOrdersForTranche.filter(o => o.orderType === "buy").map(o => o.limitPrice / o.size);
+        const sellPrices = openOrdersForTranche.filter(o => o.orderType === "sell").map(o => o.limitPrice / o.size);
+        const highestBuy = buyPrices.length > 0 ? Math.max(...buyPrices) : 0;
+        const lowestSell = sellPrices.length > 0 ? Math.min(...sellPrices) : 0;
+        let midMarketPrice = 0;
+        if (highestBuy > 0 && lowestSell > 0) {
+          midMarketPrice = (highestBuy + lowestSell) / 2;
+        } else if (highestBuy > 0) {
+          midMarketPrice = highestBuy;
+        } else if (lowestSell > 0) {
+          midMarketPrice = lowestSell;
+        }
+
+        const makerOrder = makerIsBuy ? buyOrder : sellOrder;
+        const makerPrice = makerOrder.limitPrice / makerOrder.size;
+        const closeness = midMarketPrice > 0 ? 1 / (1 + Math.abs(makerPrice - midMarketPrice)) : 1.0;
+
+        const rebatePolicy = newState.swfReinsuranceOptionMarketMakerRebatePolicies?.[policyKey];
+        const baseRebateRate = rebatePolicy ? rebatePolicy.baseRebateRate : 0;
+        const maxRebateRate = rebatePolicy ? rebatePolicy.maxRebateRate : 0;
+        const rebateRate = Math.min(maxRebateRate, baseRebateRate * closeness);
+        const rebateAmount = Math.round(finalPrice * rebateRate);
+
         // Check buyer warChest
         if ((buyer.warChest ?? 0) < finalPrice + feeA) {
           continue; // Buyer doesn't have enough gold, skip this match
@@ -5878,9 +5902,17 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
           };
         }
 
-        // Transfer gold using final price and deduct transaction fees
-        buyer.warChest = (buyer.warChest ?? 0) - finalPrice - feeA;
-        seller.warChest = (seller.warChest ?? 0) + finalPrice - feeB;
+        // Transfer gold using final price, deduct transaction fees, and apply rebate (AF-155)
+        let netBuyerDiff = -finalPrice - feeA;
+        let netSellerDiff = finalPrice - feeB;
+        if (makerIsBuy) {
+          netBuyerDiff += rebateAmount;
+        } else {
+          netSellerDiff += rebateAmount;
+        }
+
+        buyer.warChest = (buyer.warChest ?? 0) + netBuyerDiff;
+        seller.warChest = (seller.warChest ?? 0) + netSellerDiff;
 
         newState.syndicates[buyOrder.syndicateId] = { ...buyer };
         newState.syndicates[sellOrder.syndicateId] = { ...seller };
@@ -5917,6 +5949,13 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         newState.journal.push(
           `[SWF Reinsurance Option Trade Fees] Buyer Fee: ${feeA} gold, Seller Fee: ${feeB} gold (Base: ${baseFee} gold, Subsidy: ${subsidy} gold, Standing: ${standing}).`
         );
+
+        if (rebateAmount > 0) {
+          const makerSyndicateId = makerIsBuy ? buyOrder.syndicateId : sellOrder.syndicateId;
+          newState.journal.push(
+            `[SWF Reinsurance Option Market Maker Rebate] Syndicate ${makerSyndicateId} received ${rebateAmount} gold rebate as maker for order ${makerOrder.id} (Mid: ${midMarketPrice.toFixed(4)}, Order Price: ${makerPrice.toFixed(4)}, Closeness: ${closeness.toFixed(4)}, Rebate Rate: ${rebateRate.toFixed(4)}).`
+          );
+        }
 
         if (priceDiscount > 0) {
           newState.journal.push(

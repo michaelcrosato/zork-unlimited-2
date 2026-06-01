@@ -187,7 +187,8 @@ export type Action =
   | { type: "OPEN_SOVEREIGN_BOND_FUTURES_POSITION"; syndicateId: string; bondId: string; side: "long" | "short"; size: number; leverage: number; marginCollateral: number; timestamp: number }
   | { type: "CLOSE_SOVEREIGN_BOND_FUTURES_POSITION"; syndicateId: string; positionId: string; timestamp: number }
   | { type: "VOTE_MARGIN_LIQUIDATION_INSURANCE"; syndicateId: string; allocatedGold: number; timestamp: number }
-  | { type: "ADJUST_SWF_REINSURANCE_OPTION_TRANSACTION_COST"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; baseTransactionCost: number; subsidyPerReputationPoint: number; timestamp: number };
+  | { type: "ADJUST_SWF_REINSURANCE_OPTION_TRANSACTION_COST"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; baseTransactionCost: number; subsidyPerReputationPoint: number; timestamp: number }
+  | { type: "ADJUST_SWF_REINSURANCE_OPTION_MARKET_MAKER_REBATE"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; baseRebateRate: number; maxRebateRate: number; timestamp: number };
 
 
 

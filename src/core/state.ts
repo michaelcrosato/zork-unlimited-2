@@ -2121,6 +2121,24 @@ export const SWFReinsuranceOptionTransactionCostVoteSchema = z.object({
 });
 export type SWFReinsuranceOptionTransactionCostVote = z.infer<typeof SWFReinsuranceOptionTransactionCostVoteSchema>;
 
+export const SWFReinsuranceOptionMarketMakerRebatePolicySchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  baseRebateRate: z.number().nonnegative(),
+  maxRebateRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionMarketMakerRebatePolicy = z.infer<typeof SWFReinsuranceOptionMarketMakerRebatePolicySchema>;
+
+export const SWFReinsuranceOptionMarketMakerRebateVoteSchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  baseRebateRate: z.number().nonnegative(),
+  maxRebateRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionMarketMakerRebateVote = z.infer<typeof SWFReinsuranceOptionMarketMakerRebateVoteSchema>;
+
 export const SWFReinsuranceOptionOrderBookDepthSchema = z.object({
   buyVolume: z.number().int().nonnegative(),
   sellVolume: z.number().int().nonnegative(),
@@ -2686,6 +2704,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionOrderBookDepths: z.record(z.string(), SWFReinsuranceOptionOrderBookDepthSchema).optional(),
   swfReinsuranceOptionTransactionCostPolicies: z.record(z.string(), SWFReinsuranceOptionTransactionCostPolicySchema).optional(),
   adjustSWFReinsuranceOptionTransactionCostVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionTransactionCostVoteSchema)).optional(),
+  swfReinsuranceOptionMarketMakerRebatePolicies: z.record(z.string(), SWFReinsuranceOptionMarketMakerRebatePolicySchema).optional(),
+  adjustSWFReinsuranceOptionMarketMakerRebateVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionMarketMakerRebateVoteSchema)).optional(),
   submitSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
     orderId: z.string(),
     orderType: z.enum(["buy", "sell"]),
@@ -3001,6 +3021,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionOrderBookDepths: {},
     swfReinsuranceOptionTransactionCostPolicies: {},
     adjustSWFReinsuranceOptionTransactionCostVotes: {},
+    swfReinsuranceOptionMarketMakerRebatePolicies: {},
+    adjustSWFReinsuranceOptionMarketMakerRebateVotes: {},
     submitSWFReinsuranceOptionLimitOrderVotes: {},
     cancelSWFReinsuranceOptionLimitOrderVotes: {},
     swfLiquidityMiningRewards: {},
@@ -3883,6 +3905,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionOrderBookDepths: rest.swfReinsuranceOptionOrderBookDepths ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionOrderBookDepths)) : undefined,
     swfReinsuranceOptionTransactionCostPolicies: rest.swfReinsuranceOptionTransactionCostPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionTransactionCostPolicies)) : undefined,
     adjustSWFReinsuranceOptionTransactionCostVotes: rest.adjustSWFReinsuranceOptionTransactionCostVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionTransactionCostVotes)) : undefined,
+    swfReinsuranceOptionMarketMakerRebatePolicies: rest.swfReinsuranceOptionMarketMakerRebatePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionMarketMakerRebatePolicies)) : undefined,
+    adjustSWFReinsuranceOptionMarketMakerRebateVotes: rest.adjustSWFReinsuranceOptionMarketMakerRebateVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionMarketMakerRebateVotes)) : undefined,
     submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     swfLiquidityMiningRewards: rest.swfLiquidityMiningRewards ? JSON.parse(JSON.stringify(rest.swfLiquidityMiningRewards)) : undefined,
@@ -11830,6 +11854,71 @@ export function reconcileSWFReinsuranceOptionTransactionCosts(state: GameState, 
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[SWF Reinsurance Option Transaction Cost Policy Adjusted] Syndicate ${syndicateId} adjusted policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Base Cost: ${group.baseTransactionCost} gold, Subsidy per Rep: ${group.subsidyPerReputationPoint.toFixed(4)}).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionMarketMakerRebates(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionMarketMakerRebatePolicies: state.swfReinsuranceOptionMarketMakerRebatePolicies ? { ...state.swfReinsuranceOptionMarketMakerRebatePolicies } : {},
+    adjustSWFReinsuranceOptionMarketMakerRebateVotes: state.adjustSWFReinsuranceOptionMarketMakerRebateVotes ? { ...state.adjustSWFReinsuranceOptionMarketMakerRebateVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.adjustSWFReinsuranceOptionMarketMakerRebateVotes || {})) {
+    const votes = newState.adjustSWFReinsuranceOptionMarketMakerRebateVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      swfYieldCdoId: string;
+      trancheId: "senior" | "mezzanine" | "equity";
+      baseRebateRate: number;
+      maxRebateRate: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.baseRebateRate}::${vote.maxRebateRate}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            swfYieldCdoId: vote.swfYieldCdoId,
+            trancheId: vote.trancheId,
+            baseRebateRate: vote.baseRebateRate,
+            maxRebateRate: vote.maxRebateRate,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const policyKey = `${group.swfYieldCdoId}_${group.trancheId}`;
+        newState.swfReinsuranceOptionMarketMakerRebatePolicies![policyKey] = {
+          swfYieldCdoId: group.swfYieldCdoId,
+          trancheId: group.trancheId,
+          baseRebateRate: group.baseRebateRate,
+          maxRebateRate: group.maxRebateRate,
+          timestamp: Math.max(...group.timestamps, newState.step),
+        };
+
+        delete newState.adjustSWFReinsuranceOptionMarketMakerRebateVotes[syndicateId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Market Maker Rebate Policy Adjusted] Syndicate ${syndicateId} adjusted rebate policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Base Rebate Rate: ${group.baseRebateRate.toFixed(4)}, Max Rebate Rate: ${group.maxRebateRate.toFixed(4)}).`
         );
       }
     }

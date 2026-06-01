@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #154 (Ready for Cycle #155)
-* **Build/Test Status**: 🟢 PASS (All 629 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #155 (Ready for Cycle #156)
+* **Build/Test Status**: 🟢 PASS (All 631 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -933,14 +933,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 133: Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebates & Spread Incentives (Completed)
+- [x] Define dynamic market maker rebate rates scaling with order closeness to mid-market price (`AF-155`).
+- [x] Support decentralized voting on market maker rebate limits and parameters (`AF-155`).
+- [x] Wire dynamic rebate generation to the matching engine ticks and distribute gold back to market maker war chests (`AF-155`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-155`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-155`
-* **Objective**: Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebates & Dynamic Bid-Ask Spread Incentives.
-* **Why this matters**: Reward market makers who place limit orders close to the mid-market price with dynamic rebates, further narrowing the bid-ask spread and increasing order book liquidity.
+**Task ID**: `AF-156`
+* **Objective**: Syndicate SWF Reinsurance Options Dynamic Margin Maintenance Requirements & Automatic Position Liquidation Controls.
+* **Why this matters**: Introduce automated position checks that monitor option writers' dynamic collateral requirements and automatically liquidate open positions or penalize syndicates if collateral thresholds are breached.
 * **Planned Actions**:
-  1. Define dynamic market maker rebate rates scaling with order closeness to mid-market price.
-  2. Support decentralized voting on market maker rebate limits and parameters.
-  3. Wire dynamic rebate generation to the matching engine ticks and distribute gold back to market maker war chests.
+  1. Define dynamic margin maintenance requirements for option writers based on current spot reinsurance rate volatility.
+  2. Implement decentralized voting on liquidation thresholds and penalty rates.
+  3. Wire automatic margin audits and position liquidations to the economy ticks.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---
