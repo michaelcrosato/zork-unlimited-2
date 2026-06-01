@@ -2127,7 +2127,32 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           ? jointLoan.refinancedInterestRate 
           : (underwrittenRate !== undefined ? underwrittenRate : (bank?.interestRate ?? 5)));
       const loanRate = Math.max(0, baseRate);
-      const interest = Math.floor((jointLoan.amount * loanRate) / 100);
+      
+      let subsidyRate = 0;
+      if (newState.interestSubsidies && newState.syndicateAlliances) {
+        for (const [subId, subsidy] of Object.entries(newState.interestSubsidies)) {
+          if (subsidy.active && (subsidy.syndicateIdA === jointLoan.syndicateId || subsidy.syndicateIdB === jointLoan.syndicateId)) {
+            const partnerSyndId = subsidy.syndicateIdA === jointLoan.syndicateId ? subsidy.syndicateIdB : subsidy.syndicateIdA;
+            const allied = newState.syndicateAlliances[jointLoan.syndicateId]?.[partnerSyndId] === "allied" || 
+                           newState.syndicateAlliances[partnerSyndId]?.[jointLoan.syndicateId] === "allied";
+            if (allied) {
+              const defaults = newState.groupDefaults?.[groupId] ?? 0;
+              if (defaults === 0) {
+                subsidyRate += subsidy.subsidyRate;
+              }
+            }
+          }
+        }
+      }
+      const finalRate = Math.max(0, loanRate - subsidyRate);
+      const interest = Math.floor((jointLoan.amount * finalRate) / 100);
+
+      if (subsidyRate > 0) {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Interest Subsidy] Applied cooperative subsidy of -${subsidyRate}% from allied partner to group ${groupId}'s loan interest rate (Final Rate: ${finalRate}%, Base Rate: ${loanRate}%).`
+        );
+      }
 
       let updatedJointLoan = {
         ...jointLoan,
@@ -2306,6 +2331,66 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                           `[Reinsurance Fallback] Primary pool ${primarySyndId} borrowed ${borrowAmount} gold from partner pool ${partnerSyndId} via contract ${contractId} at dynamic premium multiplier ${multiplier}x (Charged: ${scaledOwed} gold, Borrowed so far: ${isAtoB ? updatedContract.borrowedAfromB : updatedContract.borrowedBfromA}/${contract.maxLiquidityLimit}).`
                         );
                       }
+                    }
+                  }
+                }
+                if (remainingDue <= 0) break;
+              }
+            }
+
+            // Fallback Secondary Reinsurance Collateral Pledges (AF-103)
+            if (remainingDue > 0 && newState.reinsuranceCollateralPledges) {
+              newState.reinsuranceCollateralPledges = { ...newState.reinsuranceCollateralPledges };
+              for (const [pledgeId, pledge] of Object.entries(newState.reinsuranceCollateralPledges)) {
+                if (pledge.active && pledge.syndicateIdA === primarySyndId) {
+                  const partnerSyndId = pledge.syndicateIdB;
+                  const pairKey = [primarySyndId, partnerSyndId].sort().join(":");
+                  const contract = newState.reinsuranceContracts?.[pairKey];
+                  if (contract && contract.active) {
+                    const colVal = getCollateralValue(newState, pledge.collateralType, pledge.collateralId);
+                    if (colVal > 0) {
+                      const coverageVal = Math.min(remainingDue, colVal);
+                      
+                      if (pledge.collateralType === "safehouse") {
+                        if (newState.safehouses) {
+                          newState.safehouses = { ...newState.safehouses };
+                          delete newState.safehouses[pledge.collateralId];
+                        }
+                      } else if (pledge.collateralType === "outpost") {
+                        if (newState.turfGuardOutposts) {
+                          newState.turfGuardOutposts = { ...newState.turfGuardOutposts };
+                          delete newState.turfGuardOutposts[pledge.collateralId];
+                        }
+                        if (newState.turfGuards) {
+                          newState.turfGuards = { ...newState.turfGuards };
+                          delete newState.turfGuards[pledge.collateralId];
+                        }
+                      }
+
+                      if (newState.enforcementHeat) {
+                        newState.enforcementHeat = { ...newState.enforcementHeat };
+                        const currentHeat = newState.enforcementHeat[pledge.collateralId]?.heat ?? 0;
+                        newState.enforcementHeat[pledge.collateralId] = {
+                          roomId: pledge.collateralId,
+                          heat: currentHeat + 15,
+                          timestamp: newState.step,
+                        };
+                      }
+
+                      const updatedPledge = {
+                        ...pledge,
+                        active: false,
+                        timestamp: newState.step,
+                      };
+                      newState.reinsuranceCollateralPledges[pledgeId] = updatedPledge;
+
+                      remainingDue -= coverageVal;
+                      collected += coverageVal;
+                      coveragePaid += coverageVal;
+
+                      newState.journal.push(
+                        `[Reinsurance Collateral Claim] Claimed and liquidated partner syndicate ${partnerSyndId}'s secondary reinsurance collateral ${pledge.collateralType} ${pledge.collateralId} for ${colVal} gold (Covered: ${coverageVal} gold, Remaining due: ${remainingDue}).`
+                      );
                     }
                   }
                 }

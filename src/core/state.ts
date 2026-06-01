@@ -912,6 +912,40 @@ export const ReinsurancePricingMultiplierSchema = z.object({
 });
 export type ReinsurancePricingMultiplier = z.infer<typeof ReinsurancePricingMultiplierSchema>;
 
+export const InterestSubsidyVoteSchema = z.object({
+  targetState: z.boolean(),
+  subsidyRate: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type InterestSubsidyVote = z.infer<typeof InterestSubsidyVoteSchema>;
+
+export const InterestSubsidySchema = z.object({
+  id: z.string(),
+  syndicateIdA: z.string(),
+  syndicateIdB: z.string(),
+  subsidyRate: z.number().int().nonnegative(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type InterestSubsidy = z.infer<typeof InterestSubsidySchema>;
+
+export const ReinsuranceCollateralVoteSchema = z.object({
+  targetState: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceCollateralVote = z.infer<typeof ReinsuranceCollateralVoteSchema>;
+
+export const ReinsuranceCollateralPledgeSchema = z.object({
+  id: z.string(),
+  syndicateIdA: z.string(),
+  syndicateIdB: z.string(),
+  collateralType: z.enum(["safehouse", "outpost"]),
+  collateralId: z.string(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceCollateralPledge = z.infer<typeof ReinsuranceCollateralPledgeSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1147,6 +1181,10 @@ export const GameStateSchema = z.object({
   contagionShields: z.record(z.string(), ContagionShieldSchema).optional(),
   contagionShieldVotes: z.record(z.string(), z.record(z.string(), ContagionShieldVoteSchema)).optional(),
   reinsurancePricingMultipliers: z.record(z.string(), ReinsurancePricingMultiplierSchema).optional(),
+  interestSubsidies: z.record(z.string(), InterestSubsidySchema).optional(),
+  interestSubsidyVotes: z.record(z.string(), z.record(z.string(), InterestSubsidyVoteSchema)).optional(),
+  reinsuranceCollateralPledges: z.record(z.string(), ReinsuranceCollateralPledgeSchema).optional(),
+  reinsuranceCollateralVotes: z.record(z.string(), z.record(z.string(), ReinsuranceCollateralVoteSchema)).optional(),
 });
 
 
@@ -1308,6 +1346,10 @@ export const createInitialState = (options: {
     contagionShields: {},
     contagionShieldVotes: {},
     reinsurancePricingMultipliers: {},
+    interestSubsidies: {},
+    interestSubsidyVotes: {},
+    reinsuranceCollateralPledges: {},
+    reinsuranceCollateralVotes: {},
   };
 };
 
@@ -2042,6 +2084,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     contagionShields: rest.contagionShields ? JSON.parse(JSON.stringify(rest.contagionShields)) : undefined,
     contagionShieldVotes: rest.contagionShieldVotes ? JSON.parse(JSON.stringify(rest.contagionShieldVotes)) : undefined,
     reinsurancePricingMultipliers: rest.reinsurancePricingMultipliers ? JSON.parse(JSON.stringify(rest.reinsurancePricingMultipliers)) : undefined,
+    interestSubsidies: rest.interestSubsidies ? JSON.parse(JSON.stringify(rest.interestSubsidies)) : undefined,
+    interestSubsidyVotes: rest.interestSubsidyVotes ? JSON.parse(JSON.stringify(rest.interestSubsidyVotes)) : undefined,
+    reinsuranceCollateralPledges: rest.reinsuranceCollateralPledges ? JSON.parse(JSON.stringify(rest.reinsuranceCollateralPledges)) : undefined,
+    reinsuranceCollateralVotes: rest.reinsuranceCollateralVotes ? JSON.parse(JSON.stringify(rest.reinsuranceCollateralVotes)) : undefined,
   };
   return clone;
 }
@@ -2808,6 +2854,13 @@ export function isCollateralLocked(state: GameState, collateralType: "safehouse"
         if (col.collateralType === collateralType && col.collateralId === collateralId) {
           return true;
         }
+      }
+    }
+  }
+  if (state.reinsuranceCollateralPledges) {
+    for (const pledge of Object.values(state.reinsuranceCollateralPledges)) {
+      if (pledge.active && pledge.collateralType === collateralType && pledge.collateralId === collateralId) {
+        return true;
       }
     }
   }
@@ -3921,6 +3974,157 @@ export function reconcileReinsuranceTransfers(state: GameState, pack: any): Game
             );
           }
         }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileInterestSubsidies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    interestSubsidies: { ...(state.interestSubsidies || {}) },
+  };
+
+  if (!newState.interestSubsidyVotes) {
+    newState.interestSubsidyVotes = {};
+  }
+
+  for (const [pairKey, votes] of Object.entries(newState.interestSubsidyVotes)) {
+    const parts = pairKey.split(":");
+    if (parts.length !== 2) continue;
+    const [syndicateIdA, syndicateIdB] = parts;
+
+    const syndA = newState.syndicates?.[syndicateIdA];
+    const syndB = newState.syndicates?.[syndicateIdB];
+    if (!syndA || !syndB) continue;
+
+    let yesA = 0;
+    let noA = 0;
+    for (const member of syndA.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesA++;
+        else noA++;
+      }
+    }
+
+    let yesB = 0;
+    let noB = 0;
+    for (const member of syndB.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesB++;
+        else noB++;
+      }
+    }
+
+    const approvedA = yesA > 0 && yesA >= noA;
+    const approvedB = yesB > 0 && yesB >= noB;
+    const isApproved = approvedA && approvedB;
+
+    if (isApproved) {
+      let minSubsidy = Infinity;
+      for (const v of Object.values(votes)) {
+        if (v.targetState && v.subsidyRate < minSubsidy) {
+          minSubsidy = v.subsidyRate;
+        }
+      }
+      if (minSubsidy === Infinity) minSubsidy = 0;
+
+      newState.interestSubsidies[pairKey] = {
+        id: pairKey,
+        syndicateIdA,
+        syndicateIdB,
+        subsidyRate: minSubsidy,
+        active: true,
+        timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+      };
+    } else {
+      const existingSubsidy = newState.interestSubsidies[pairKey];
+      if (existingSubsidy) {
+        newState.interestSubsidies[pairKey] = {
+          ...existingSubsidy,
+          active: false,
+          timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), existingSubsidy.timestamp),
+        };
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileReinsuranceCollateral(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    reinsuranceCollateralPledges: { ...(state.reinsuranceCollateralPledges || {}) },
+  };
+
+  if (!newState.reinsuranceCollateralVotes) {
+    newState.reinsuranceCollateralVotes = {};
+  }
+
+  for (const [voteKey, votes] of Object.entries(newState.reinsuranceCollateralVotes)) {
+    const parts = voteKey.split(":");
+    if (parts.length !== 4) continue;
+    const [syndicateIdA, syndicateIdB, collateralType, collateralId] = parts;
+
+    const syndA = newState.syndicates?.[syndicateIdA];
+    const syndB = newState.syndicates?.[syndicateIdB];
+    if (!syndA || !syndB) continue;
+
+    let belongsToB = false;
+    if (collateralType === "safehouse") {
+      belongsToB = newState.safehouses?.[collateralId]?.syndicateId === syndicateIdB;
+    } else if (collateralType === "outpost") {
+      belongsToB = newState.turfGuardOutposts?.[collateralId]?.syndicateId === syndicateIdB;
+    }
+    if (!belongsToB) continue;
+
+    let yesA = 0;
+    let noA = 0;
+    for (const member of syndA.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesA++;
+        else noA++;
+      }
+    }
+
+    let yesB = 0;
+    let noB = 0;
+    for (const member of syndB.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesB++;
+        else noB++;
+      }
+    }
+
+    const approvedA = yesA > 0 && yesA >= noA;
+    const approvedB = yesB > 0 && yesB >= noB;
+    const isApproved = approvedA && approvedB;
+
+    if (isApproved) {
+      newState.reinsuranceCollateralPledges[voteKey] = {
+        id: voteKey,
+        syndicateIdA,
+        syndicateIdB,
+        collateralType: collateralType as "safehouse" | "outpost",
+        collateralId,
+        active: true,
+        timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+      };
+    } else {
+      const existingPledge = newState.reinsuranceCollateralPledges[voteKey];
+      if (existingPledge) {
+        newState.reinsuranceCollateralPledges[voteKey] = {
+          ...existingPledge,
+          active: false,
+          timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), existingPledge.timestamp),
+        };
       }
     }
   }

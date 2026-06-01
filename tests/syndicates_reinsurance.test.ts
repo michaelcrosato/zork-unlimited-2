@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState } from "../src/core/state.js";
+import { createInitialState, isCollateralLocked } from "../src/core/state.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { tickEconomy } from "../src/core/economy.js";
@@ -781,5 +781,412 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
 
     expect(merged.reinsurancePricingMultipliers?.["blood_fangs:shadow_brokers"]?.multiplier).toBe(1.5);
     expect(merged.reinsurancePricingMultipliers?.["blood_fangs:shadow_brokers"]?.timestamp).toBe(1030);
+  });
+
+  it("should handle interest rate subsidies and secondary reinsurance collateral features (AF-103)", () => {
+    // 1. Setup initial state with two allied syndicates
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000, gold_alice: 0, gold_bob: 0 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+      },
+      shadow_brokers: {
+        id: "shadow_brokers",
+        name: "Shadow Brokers",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+      },
+    };
+
+    // 2. Validate PROPOSE_INTEREST_SUBSIDY checks allied status
+    const actSubNotAllied = {
+      type: "PROPOSE_INTEREST_SUBSIDY",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      subsidyRate: 2,
+      targetState: true,
+      timestamp: 1000,
+    };
+    let resNotAllied = multiAgentStep(state, { agentId: "player", action: actSubNotAllied as any }, mockPack);
+    expect(resNotAllied.ok).toBe(false);
+    expect(resNotAllied.rejectionReason).toContain("are not allied");
+
+    // Establish syndicate alliance
+    state.syndicateAlliances = {
+      blood_fangs: {
+        shadow_brokers: "allied",
+      },
+      shadow_brokers: {
+        blood_fangs: "allied",
+      },
+    };
+
+    // Valid vote A
+    let resSubA = multiAgentStep(state, { agentId: "player", action: actSubNotAllied as any }, mockPack);
+    expect(resSubA.ok).toBe(true);
+    expect(resSubA.state.interestSubsidies?.["blood_fangs:shadow_brokers"]).toBeUndefined();
+
+    // Valid vote B (bob votes rate 3)
+    const actSubB = {
+      type: "PROPOSE_INTEREST_SUBSIDY",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      subsidyRate: 3,
+      targetState: true,
+      timestamp: 1010,
+    };
+    let resSubB = multiAgentStep(resSubA.state, { agentId: "bob", action: actSubB as any }, mockPack);
+    expect(resSubB.ok).toBe(true);
+    
+    // Subsidies: A voted 2, B voted 3. Reconciled rate is minimum = 2.
+    const pairKey = "blood_fangs:shadow_brokers";
+    const subsidy = resSubB.state.interestSubsidies?.[pairKey];
+    expect(subsidy).toBeDefined();
+    expect(subsidy?.active).toBe(true);
+    expect(subsidy?.subsidyRate).toBe(2);
+
+    // 3. Validate PLEDGE_REINSURANCE_COLLATERAL checks
+    resSubB.state.safehouses = {
+      "clearing": {
+        id: "clearing",
+        roomId: "clearing",
+        ownerId: "bob",
+        syndicateId: "shadow_brokers",
+        level: 1,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+      },
+    };
+
+    const actPledgeNoContract = {
+      type: "PLEDGE_REINSURANCE_COLLATERAL",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      collateralType: "safehouse",
+      collateralId: "clearing",
+      targetState: true,
+      timestamp: 1020,
+    };
+    let resPledgeNoContract = multiAgentStep(resSubB.state, { agentId: "player", action: actPledgeNoContract as any }, mockPack);
+    expect(resPledgeNoContract.ok).toBe(false);
+    expect(resPledgeNoContract.rejectionReason).toContain("Active reinsurance contract does not exist");
+
+    // Establish reinsurance contract
+    resSubB.state.reinsuranceContracts = {
+      [pairKey]: {
+        id: pairKey,
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        maxLiquidityLimit: 500,
+        active: true,
+        borrowedAfromB: 0,
+        borrowedBfromA: 0,
+        timestamp: 1000,
+      },
+    };
+
+    // Try to pledge safehouse not owned by B
+    const actPledgeWrongOwner = {
+      type: "PLEDGE_REINSURANCE_COLLATERAL",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      collateralType: "safehouse",
+      collateralId: "wrong_room",
+      targetState: true,
+      timestamp: 1020,
+    };
+    let resPledgeWrongOwner = multiAgentStep(resSubB.state, { agentId: "player", action: actPledgeWrongOwner as any }, mockPack);
+    expect(resPledgeWrongOwner.ok).toBe(false);
+    expect(resPledgeWrongOwner.rejectionReason).toContain("does not belong to pledging syndicate");
+
+    // Valid vote A
+    let resPledgeA = multiAgentStep(resSubB.state, { agentId: "player", action: actPledgeNoContract as any }, mockPack);
+    expect(resPledgeA.ok).toBe(true);
+    expect(resPledgeA.state.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]).toBeUndefined();
+
+    // Valid vote B
+    let resPledgeB = multiAgentStep(resPledgeA.state, { agentId: "bob", action: actPledgeNoContract as any }, mockPack);
+    expect(resPledgeB.ok).toBe(true);
+
+    const pledgeKey = "blood_fangs:shadow_brokers:safehouse:clearing";
+    const pledge = resPledgeB.state.reinsuranceCollateralPledges?.[pledgeKey];
+    expect(pledge).toBeDefined();
+    expect(pledge?.active).toBe(true);
+    expect(pledge?.collateralId).toBe("clearing");
+
+    // Confirm that the pledged collateral is considered locked
+    expect(isCollateralLocked(resPledgeB.state, "safehouse", "clearing")).toBe(true);
+
+    // Try to pledge already locked collateral
+    const actPledgeLocked = {
+      type: "PLEDGE_REINSURANCE_COLLATERAL",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      collateralType: "safehouse",
+      collateralId: "clearing",
+      targetState: true,
+      timestamp: 1030,
+    };
+    let resPledgeLocked = multiAgentStep(resPledgeB.state, { agentId: "player", action: actPledgeLocked as any }, mockPack);
+    expect(resPledgeLocked.ok).toBe(false);
+    expect(resPledgeLocked.rejectionReason).toContain("is already locked");
+  });
+
+  it("should apply subsidized interest rates and resolve secondary reinsurance collateral claims in tickEconomy (AF-103)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000, gold_alice: 0, gold_bob: 0 },
+      agentsInit: ["alice"],
+    });
+
+    state.step = 10;
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+      },
+      shadow_brokers: {
+        id: "shadow_brokers",
+        name: "Shadow Brokers",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+      },
+    };
+
+    // Setup active interest subsidy of 2%
+    state.interestSubsidies = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        subsidyRate: 2,
+        active: true,
+        timestamp: 1000,
+      },
+    };
+
+    // Allied syndicates
+    state.syndicateAlliances = {
+      blood_fangs: {
+        shadow_brokers: "allied",
+      },
+      shadow_brokers: {
+        blood_fangs: "allied",
+      },
+    };
+
+    // Setup bank and joint loan: amount 1000, base rate 5%
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        interestRate: 5,
+        timestamp: 1000,
+      },
+    };
+
+    state.jointLoans = {
+      "group_1": {
+        id: "group_1",
+        syndicateId: "blood_fangs",
+        members: ["alice"],
+        collaterals: [],
+        amount: 1000,
+        interestAccrued: 0,
+        borrowStep: 2,
+        dueStep: 20, // Not defaulted yet, so we just accrue interest!
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Accrue interest: Rate should be 5% - 2% (subsidy) = 3%
+    // Interest accrued on 1000 gold loan at 3% should be 30 gold.
+    let ticked = tickEconomy(state, mockPack);
+    expect(ticked.jointLoans?.["group_1"]?.interestAccrued).toBe(30);
+    expect(ticked.journal.some(j => j.includes("[Interest Subsidy] Applied cooperative subsidy"))).toBe(true);
+
+    // 2. Set loan to defaulted
+    state.jointLoans["group_1"].dueStep = 5; // defaulted at step 10
+    
+    // Insurance pool has 0 gold
+    state.jointLoanInsurancePools = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        poolGold: 0,
+        premiumRate: 10,
+        timestamp: 1000,
+      },
+      shadow_brokers: {
+        syndicateId: "shadow_brokers",
+        poolGold: 0, // Depleted!
+        premiumRate: 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Reinsurance contract active
+    state.reinsuranceContracts = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        maxLiquidityLimit: 500,
+        active: true,
+        borrowedAfromB: 0,
+        borrowedBfromA: 0,
+        timestamp: 1000,
+      },
+    };
+
+    // Pledge secondary reinsurance collateral from shadow_brokers
+    state.safehouses = {
+      "clearing": {
+        id: "clearing",
+        roomId: "clearing",
+        ownerId: "bob",
+        syndicateId: "shadow_brokers",
+        level: 2, // Value: 200 * 2 = 400 gold
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+      },
+    };
+
+    state.reinsuranceCollateralPledges = {
+      "blood_fangs:shadow_brokers:safehouse:clearing": {
+        id: "blood_fangs:shadow_brokers:safehouse:clearing",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        collateralType: "safehouse",
+        collateralId: "clearing",
+        active: true,
+        timestamp: 1000,
+      },
+    };
+
+    state.agentPremiumPolicies = {
+      "alice_group_1": {
+        agentId: "alice",
+        syndicateId: "blood_fangs",
+        groupId: "group_1",
+        premiumPaid: 10,
+        active: true,
+        timestamp: 1000,
+      },
+    };
+
+    // Run tickEconomy
+    ticked = tickEconomy(state, mockPack);
+    
+    // Clearing safehouse should be deleted/liquidated
+    expect(ticked.safehouses?.["clearing"]).toBeUndefined();
+    
+    // Pledge should be deactivated
+    expect(ticked.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.active).toBe(false);
+
+    // Heat in clearing should increase by +15
+    expect(ticked.enforcementHeat?.["clearing"]?.heat).toBe(15);
+
+    // Journal should record reinsurance collateral claim
+    expect(ticked.journal.some(j => j.includes("[Reinsurance Collateral Claim] Claimed and liquidated partner syndicate shadow_brokers's secondary reinsurance collateral"))).toBe(true);
+  });
+
+  it("should merge interest rate subsidies and secondary reinsurance collateral fields in Gossip LWW sync (AF-103)", () => {
+    let stateA = createInitialState({ seed: 1, start: "clearing" });
+    let stateB = createInitialState({ seed: 1, start: "clearing" });
+
+    stateA.interestSubsidies = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        subsidyRate: 2,
+        active: false,
+        timestamp: 1000,
+      },
+    };
+    stateB.interestSubsidies = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        subsidyRate: 3,
+        active: true, // Newer subsidy
+        timestamp: 1020,
+      },
+    };
+
+    stateA.interestSubsidyVotes = {
+      "blood_fangs:shadow_brokers": {
+        player: {
+          targetState: false,
+          subsidyRate: 1,
+          timestamp: 1050, // Newer vote
+        },
+      },
+    };
+    stateB.interestSubsidyVotes = {
+      "blood_fangs:shadow_brokers": {
+        player: {
+          targetState: true,
+          subsidyRate: 3,
+          timestamp: 1010,
+        },
+      },
+    };
+
+    stateA.reinsuranceCollateralPledges = {
+      "blood_fangs:shadow_brokers:safehouse:clearing": {
+        id: "blood_fangs:shadow_brokers:safehouse:clearing",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        collateralType: "safehouse",
+        collateralId: "clearing",
+        active: false,
+        timestamp: 1000,
+      },
+    };
+    stateB.reinsuranceCollateralPledges = {
+      "blood_fangs:shadow_brokers:safehouse:clearing": {
+        id: "blood_fangs:shadow_brokers:safehouse:clearing",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        collateralType: "safehouse",
+        collateralId: "clearing",
+        active: true, // Newer pledge
+        timestamp: 1030,
+      },
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+
+    expect(merged.interestSubsidies?.["blood_fangs:shadow_brokers"]?.active).toBe(true);
+    expect(merged.interestSubsidies?.["blood_fangs:shadow_brokers"]?.subsidyRate).toBe(3);
+    expect(merged.interestSubsidies?.["blood_fangs:shadow_brokers"]?.timestamp).toBe(1020);
+
+    expect(merged.interestSubsidyVotes?.["blood_fangs:shadow_brokers"]?.player?.targetState).toBe(false);
+    expect(merged.interestSubsidyVotes?.["blood_fangs:shadow_brokers"]?.player?.subsidyRate).toBe(1);
+    expect(merged.interestSubsidyVotes?.["blood_fangs:shadow_brokers"]?.player?.timestamp).toBe(1050);
+
+    expect(merged.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.active).toBe(true);
+    expect(merged.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.timestamp).toBe(1030);
   });
 });

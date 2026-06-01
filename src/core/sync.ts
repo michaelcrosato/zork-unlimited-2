@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -14704,6 +14704,270 @@ export function multiAgentStep(
           type: "contagion_shield_proposed" as any,
           syndicateIdA,
           syndicateIdB,
+          agentId,
+          targetState: votedState,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_INTEREST_SUBSIDY action (AF-103)
+  if ((action as any).type === "PROPOSE_INTEREST_SUBSIDY") {
+    const { syndicateIdA, syndicateIdB, subsidyRate, targetState, timestamp } = action as any;
+    const votedState = targetState !== false; // Defaults to true if undefined
+    const pairKey = [syndicateIdA || "", syndicateIdB || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndA = state.syndicates?.[syndicateIdA];
+    const syndB = state.syndicates?.[syndicateIdB];
+
+    if (!syndicateIdA || !syndicateIdB) {
+      rejectionReason = `Both syndicateIdA and syndicateIdB are required to propose an interest subsidy.`;
+    } else if (!syndA) {
+      rejectionReason = `Syndicate ${syndicateIdA} does not exist.`;
+    } else if (!syndB) {
+      rejectionReason = `Syndicate ${syndicateIdB} does not exist.`;
+    } else if (syndicateIdA === syndicateIdB) {
+      rejectionReason = `Cannot form interest subsidy with the same syndicate.`;
+    } else if (subsidyRate === undefined || subsidyRate < 0 || !Number.isInteger(subsidyRate)) {
+      rejectionReason = `Subsidy rate must be a non-negative integer.`;
+    } else if (!syndA.members.includes(agentId) && !syndB.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of either syndicate A or B.`;
+    } else {
+      const allied = state.syndicateAlliances?.[syndicateIdA]?.[syndicateIdB] === "allied" || 
+                    state.syndicateAlliances?.[syndicateIdB]?.[syndicateIdA] === "allied";
+      if (!allied) {
+        rejectionReason = `Syndicates ${syndicateIdA} and ${syndicateIdB} are not allied.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const interestSubsidyVotes = { ...(state.interestSubsidyVotes || {}) };
+      if (!interestSubsidyVotes[pairKey]) {
+        interestSubsidyVotes[pairKey] = {};
+      } else {
+        interestSubsidyVotes[pairKey] = { ...interestSubsidyVotes[pairKey] };
+      }
+
+      const existingVote = interestSubsidyVotes[pairKey][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        interestSubsidyVotes[pairKey][agentId] = {
+          targetState: votedState,
+          subsidyRate,
+          timestamp,
+        };
+        newState.interestSubsidyVotes = interestSubsidyVotes;
+        newState = reconcileInterestSubsidies(newState, pack);
+
+        const activeSubsidy = newState.interestSubsidies?.[pairKey]?.active ?? false;
+        const currentSubsidy = newState.interestSubsidies?.[pairKey]?.subsidyRate ?? subsidyRate;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Interest Subsidy] Agent ${agentId} voted ${votedState ? "FOR" : "AGAINST"} interest subsidy between ${syndicateIdA} and ${syndicateIdB} with rate ${subsidyRate}% (Status: ${activeSubsidy ? "ACTIVE" : "PENDING/INACTIVE"}, Consensual Subsidy: ${currentSubsidy}%).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `📈 Interest subsidy vote cast by ${agentId} for ${syndicateIdA} & ${syndicateIdB} (Rate: ${subsidyRate}%, Active: ${activeSubsidy}).`,
+        } as any);
+
+        customEvents.push({
+          type: "interest_subsidy_proposed" as any,
+          syndicateIdA,
+          syndicateIdB,
+          agentId,
+          subsidyRate,
+          targetState: votedState,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PLEDGE_REINSURANCE_COLLATERAL action (AF-103)
+  if ((action as any).type === "PLEDGE_REINSURANCE_COLLATERAL") {
+    const { syndicateIdA, syndicateIdB, collateralType, collateralId, targetState, timestamp } = action as any;
+    const votedState = targetState !== false;
+    const voteKey = `${syndicateIdA}:${syndicateIdB}:${collateralType}:${collateralId}`;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndA = state.syndicates?.[syndicateIdA];
+    const syndB = state.syndicates?.[syndicateIdB];
+
+    if (!syndicateIdA || !syndicateIdB || !collateralType || !collateralId) {
+      rejectionReason = `syndicateIdA, syndicateIdB, collateralType, and collateralId are all required.`;
+    } else if (!syndA) {
+      rejectionReason = `Syndicate ${syndicateIdA} does not exist.`;
+    } else if (!syndB) {
+      rejectionReason = `Syndicate ${syndicateIdB} does not exist.`;
+    } else if (syndicateIdA === syndicateIdB) {
+      rejectionReason = `Cannot pledge secondary reinsurance collateral to the same syndicate.`;
+    } else if (collateralType !== "safehouse" && collateralType !== "outpost") {
+      rejectionReason = `Collateral type must be safehouse or outpost.`;
+    } else if (!syndA.members.includes(agentId) && !syndB.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of either syndicate A or B.`;
+    } else {
+      let belongsToB = false;
+      if (collateralType === "safehouse") {
+        belongsToB = state.safehouses?.[collateralId]?.syndicateId === syndicateIdB;
+      } else if (collateralType === "outpost") {
+        belongsToB = state.turfGuardOutposts?.[collateralId]?.syndicateId === syndicateIdB;
+      }
+
+      if (!belongsToB) {
+        rejectionReason = `Collateral ${collateralType} ${collateralId} does not belong to pledging syndicate ${syndicateIdB}.`;
+      } else {
+        const pairKey = [syndicateIdA, syndicateIdB].sort().join(":");
+        const contract = state.reinsuranceContracts?.[pairKey];
+        if (!contract || !contract.active) {
+          rejectionReason = `Active reinsurance contract does not exist between ${syndicateIdA} and ${syndicateIdB}.`;
+        } else if (votedState && isCollateralLocked(state, collateralType, collateralId)) {
+          rejectionReason = `Collateral ${collateralType} ${collateralId} is already locked by another loan or active reinsurance pledge.`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const reinsuranceCollateralVotes = { ...(state.reinsuranceCollateralVotes || {}) };
+      if (!reinsuranceCollateralVotes[voteKey]) {
+        reinsuranceCollateralVotes[voteKey] = {};
+      } else {
+        reinsuranceCollateralVotes[voteKey] = { ...reinsuranceCollateralVotes[voteKey] };
+      }
+
+      const existingVote = reinsuranceCollateralVotes[voteKey][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        reinsuranceCollateralVotes[voteKey][agentId] = {
+          targetState: votedState,
+          timestamp,
+        };
+        newState.reinsuranceCollateralVotes = reinsuranceCollateralVotes;
+        newState = reconcileReinsuranceCollateral(newState, pack);
+
+        const activePledge = newState.reinsuranceCollateralPledges?.[voteKey]?.active ?? false;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Reinsurance Collateral] Agent ${agentId} voted ${votedState ? "FOR" : "AGAINST"} pledging ${collateralType} ${collateralId} from ${syndicateIdB} as secondary reinsurance collateral for ${syndicateIdA} (Status: ${activePledge ? "ACTIVE" : "PENDING/INACTIVE"}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🛡️ Reinsurance collateral vote cast by ${agentId} to ${votedState ? "pledge" : "unpledge"} ${collateralType} ${collateralId} (Active: ${activePledge}).`,
+        } as any);
+
+        customEvents.push({
+          type: "reinsurance_collateral_pledged" as any,
+          syndicateIdA,
+          syndicateIdB,
+          collateralType,
+          collateralId,
           agentId,
           targetState: votedState,
           timestamp,
