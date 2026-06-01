@@ -291,6 +291,20 @@ export const SyndicateTaxVoteSchema = z.object({
 });
 export type SyndicateTaxVote = z.infer<typeof SyndicateTaxVoteSchema>;
 
+export const SyndicateBribeVoteSchema = z.object({
+  amount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SyndicateBribeVote = z.infer<typeof SyndicateBribeVoteSchema>;
+
+export const TurfCheckpointSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type TurfCheckpoint = z.infer<typeof TurfCheckpointSchema>;
+
 export const CrimeSyndicateSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -299,6 +313,7 @@ export const CrimeSyndicateSchema = z.object({
   timestamp: z.number().int(),
   dominance: z.number().int().nonnegative().optional(),
   turfTaxRate: z.number().int().nonnegative().optional(),
+  turfBribeCost: z.number().int().nonnegative().optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
 
@@ -443,6 +458,8 @@ export const GameStateSchema = z.object({
   frontBusinesses: z.record(z.string(), SyndicateFrontBusinessSchema).optional(),
   turfGuards: z.record(z.string(), TurfGuardSchema).optional(),
   syndicateTaxVotes: z.record(z.string(), z.record(z.string(), SyndicateTaxVoteSchema)).optional(),
+  turfCheckpoints: z.record(z.string(), TurfCheckpointSchema).optional(),
+  syndicateBribeVotes: z.record(z.string(), z.record(z.string(), SyndicateBribeVoteSchema)).optional(),
 });
 
 
@@ -545,6 +562,8 @@ export const createInitialState = (options: {
     frontBusinesses: {},
     turfGuards: {},
     syndicateTaxVotes: {},
+    turfCheckpoints: {},
+    syndicateBribeVotes: {},
   };
 };
 
@@ -1104,8 +1123,52 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     frontBusinesses: rest.frontBusinesses ? JSON.parse(JSON.stringify(rest.frontBusinesses)) : undefined,
     turfGuards: rest.turfGuards ? JSON.parse(JSON.stringify(rest.turfGuards)) : undefined,
     syndicateTaxVotes: rest.syndicateTaxVotes ? JSON.parse(JSON.stringify(rest.syndicateTaxVotes)) : undefined,
+    turfCheckpoints: rest.turfCheckpoints ? JSON.parse(JSON.stringify(rest.turfCheckpoints)) : undefined,
+    syndicateBribeVotes: rest.syndicateBribeVotes ? JSON.parse(JSON.stringify(rest.syndicateBribeVotes)) : undefined,
   };
   return clone;
+}
+
+export function reconcileSyndicateBribes(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  if (!newState.syndicateBribeVotes) {
+    newState.syndicateBribeVotes = {};
+  }
+
+  for (const [syndicateId, votes] of Object.entries(newState.syndicateBribeVotes)) {
+    const syndicate = newState.syndicates[syndicateId];
+    if (!syndicate) continue;
+
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.amount] = (counts[vote.amount] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    let consensusAmount = syndicate.turfBribeCost ?? 0;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort amounts descending to prefer higher bribe amounts in case of ties.
+    const uniqueAmounts = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const amount of uniqueAmounts) {
+      const count = counts[amount];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusAmount = amount;
+      }
+    }
+
+    newState.syndicates[syndicateId] = {
+      ...syndicate,
+      turfBribeCost: consensusAmount,
+    };
+  }
+
+  return newState;
 }
 
 

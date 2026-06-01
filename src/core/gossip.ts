@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -809,6 +809,53 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge turfCheckpoints using LWW
+  const turfCheckpoints = { ...stateA.turfCheckpoints };
+  if (stateB.turfCheckpoints) {
+    for (const [roomId, entryB] of Object.entries(stateB.turfCheckpoints)) {
+      const entryA = turfCheckpoints[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        turfCheckpoints[roomId] = entryB;
+      }
+    }
+  }
+
+  // Merge syndicateBribeVotes using LWW (Last-Write-Wins)
+  const syndicateBribeVotes = { ...stateA.syndicateBribeVotes };
+  if (stateB.syndicateBribeVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.syndicateBribeVotes)) {
+      if (!syndicateBribeVotes[syndicateId]) {
+        syndicateBribeVotes[syndicateId] = { ...bVotes };
+      } else {
+        syndicateBribeVotes[syndicateId] = { ...syndicateBribeVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = syndicateBribeVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            syndicateBribeVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge syndicateTaxVotes using LWW (Last-Write-Wins)
+  const syndicateTaxVotes = { ...stateA.syndicateTaxVotes };
+  if (stateB.syndicateTaxVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.syndicateTaxVotes)) {
+      if (!syndicateTaxVotes[syndicateId]) {
+        syndicateTaxVotes[syndicateId] = { ...bVotes };
+      } else {
+        syndicateTaxVotes[syndicateId] = { ...syndicateTaxVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = syndicateTaxVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            syndicateTaxVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -851,6 +898,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     deflectionPolicies,
     frontBusinesses,
     turfGuards,
+    turfCheckpoints,
+    syndicateBribeVotes,
+    syndicateTaxVotes,
   };
 }
 
@@ -1159,6 +1209,9 @@ export class GossipNode {
 
     // Reconcile syndicate taxes to ensure consensual tax rates align perfectly across the mesh
     convergedState = reconcileSyndicateTaxes(convergedState, this.pack);
+
+    // Reconcile syndicate bribes to ensure consensual bribe costs align perfectly across the mesh
+    convergedState = reconcileSyndicateBribes(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

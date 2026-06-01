@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -4564,6 +4564,108 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized ESTABLISH_CHECKPOINT action (AF-54)
+  if ((action as any).type === "ESTABLISH_CHECKPOINT") {
+    const { roomId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const roomExists = "rooms" in pack
+      ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
+      : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to establish a checkpoint.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to establish a checkpoint.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.syndicateTurf?.[roomId] !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} does not control the turf in room ${roomId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const turfCheckpoints = { ...(state.turfCheckpoints || {}) };
+      
+      turfCheckpoints[roomId] = {
+        roomId,
+        syndicateId,
+        active: true,
+        timestamp,
+      };
+      newState.turfCheckpoints = turfCheckpoints;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Established turf contraband checkpoint for syndicate ${syndicateId} in room ${roomId} by agent ${agentId}.`);
+
+      customEvents.push({
+        type: "turf_checkpoint_established",
+        agentId,
+        roomId,
+        syndicateId,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Handle decentralized ADJUST_TURF_TAX action (AF-53)
   if ((action as any).type === "ADJUST_TURF_TAX") {
     const { syndicateId, rate, timestamp } = action as any;
@@ -4613,6 +4715,110 @@ export function multiAgentStep(
           syndicateId,
           rate,
           consensusRate: newConsensusRate,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+
+  // Handle decentralized ADJUST_TURF_BRIBE action (AF-54)
+  if ((action as any).type === "ADJUST_TURF_BRIBE") {
+    const { syndicateId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to adjust turf bribe.`;
+    } else if (amount < 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Proposed turf bribe amount ${amount} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const syndicateBribeVotes = { ...(state.syndicateBribeVotes || {}) };
+      if (!syndicateBribeVotes[syndicateId]) {
+        syndicateBribeVotes[syndicateId] = {};
+      } else {
+        syndicateBribeVotes[syndicateId] = { ...syndicateBribeVotes[syndicateId] };
+      }
+
+      const existingVote = syndicateBribeVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        syndicateBribeVotes[syndicateId][agentId] = {
+          amount,
+          timestamp,
+        };
+        newState.syndicateBribeVotes = syndicateBribeVotes;
+        newState = reconcileSyndicateBribes(newState, pack);
+
+        const newConsensusAmount = newState.syndicates?.[syndicateId]?.turfBribeCost ?? 0;
+        newState.journal.push(`[Syndicate] Agent ${agentId} voted for turf bribe amount ${amount} in syndicate ${syndicateId} (New consensus amount: ${newConsensusAmount}).`);
+
+        customEvents.push({
+          type: "turf_bribe_adjusted",
+          agentId,
+          syndicateId,
+          amount,
+          consensusAmount: newConsensusAmount,
         });
       }
     }

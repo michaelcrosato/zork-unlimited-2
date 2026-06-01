@@ -812,6 +812,68 @@ export function step(
         }
       }
 
+      // Contraband Checkpoint & Automatic Bribe Extortion Check (AF-54)
+      if (controllingSyndicateId && carriesContraband) {
+        const isHostileTurf = !newState.syndicates?.[controllingSyndicateId]?.members.includes(agentId);
+        const checkpoint = newState.turfCheckpoints?.[destRoomId];
+        if (isHostileTurf && checkpoint && checkpoint.active) {
+          const syndicate = newState.syndicates?.[controllingSyndicateId];
+          const bribeCost = syndicate?.turfBribeCost ?? 0;
+          const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+          const currentGold = newState.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+          if (bribeCost > 0 && currentGold >= bribeCost) {
+            // Pay bribe toll and pass
+            newState.vars[goldKey] = currentGold - bribeCost;
+
+            // Distribute among syndicate members
+            const members = syndicate?.members ?? [];
+            const memberShare = members.length > 0 ? Math.floor(bribeCost / members.length) : 0;
+            if (memberShare > 0) {
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + memberShare;
+              }
+            }
+
+            newState.journal.push(`[Syndicate] Agent ${agentId} paid ${bribeCost} gold bribe to ${controllingSyndicateId} checkpoint at ${destRoomId}. Distributed ${memberShare} gold to each member.`);
+            events.push({
+              type: "narration",
+              text: `Paid ${bribeCost} gold in syndicate bribe toll to pass contraband checkpoint in ${destRoomId} (controlled by ${syndicateName}).`,
+            });
+          } else {
+            // Trigger enforcer skirmish!
+            const enforcerId = `turf_enforcer_${controllingSyndicateId}`;
+            newState.enforcers = {
+              ...(newState.enforcers || {}),
+              [enforcerId]: {
+                id: enforcerId,
+                name: `${syndicate?.name || "Syndicate"} Enforcer`,
+                factionId: controllingSyndicateId,
+                currentRoom: destRoomId,
+                status: "idle",
+                isBountyHunter: false,
+                timestamp: newState.step,
+                hp: 30,
+                max_hp: 30,
+                attack: 4,
+                defense: 12,
+                gold: 50,
+                xp: 40,
+              }
+            };
+            newState.flags[`in_combat_with_${enforcerId}`] = true;
+            newState.vars[`npc_hp_${enforcerId}`] = 30;
+
+            newState.journal.push(`[Syndicate] Agent ${agentId} intercepted at ${controllingSyndicateId} checkpoint in ${destRoomId} carrying contraband. Skirmish triggered!`);
+            events.push({
+              type: "narration",
+              text: `💥 Intercepted at Crime Syndicate checkpoint! ${syndicate?.name || "Syndicate"} Enforcer detects your contraband and attacks!`,
+            });
+          }
+        }
+      }
+
       newState.current = exit.to;
       newState.visited[exit.to] = true;
       events.push({

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #53 (Ready for Cycle #54)
-* **Build/Test Status**: 🟢 PASS (All 238 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #54 (Ready for Cycle #55)
+* **Build/Test Status**: 🟢 PASS (All 242 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -320,15 +320,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 48: Crime Syndicate Turf Contraband Checkpoints & Automatic Bribe Extortions (Completed)
+- [x] Define Turf Contraband Checkpoint and Bribe Cost schemas (`AF-54`).
+- [x] Implement `ADJUST_TURF_BRIBE` and `ESTABLISH_CHECKPOINT` decentralized consensus vote and action transitions (`AF-54`).
+- [x] Wire traversal checks to automatically intercept agents carrying contraband in hostile turf, levying consensus bribe tolls or triggering enforcer skirmishes (`AF-54`).
+- [x] Write comprehensive integration tests verifying checkpoints, bribe scales, and mesh convergence (`AF-54`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-54`
-* **Objective**: Crime Syndicate Turf Contraband Checkpoints & Automatic Bribe Extortions.
-* **Why this matters**: Introduce turf-wide enforcer checkpoints and contraband security scans where syndicates can set custom contraband tariffs or demand automated bribes from players/agents traversing their controlled territory with contraband in their inventory.
+**Task ID**: `AF-55`
+* **Objective**: Crime Syndicate Checkpoint Bribe Waivers & Reputation Gating.
+* **Why this matters**: Expand Crime Syndicate checkpoint controls to support reputation-based bribe waivers and strategic tariff discounts for highly respected syndicate allies, while levying double bribe fees or launching immediate pre-emptive ambushes against hated enemies.
 * **Planned Actions**:
-  1. Define Turf Contraband Checkpoint and Bribe Cost schemas.
-  2. Implement `ADJUST_TURF_BRIBE` decentralized consensus vote action.
-  3. Wire traversal checks to automatically intercept agents carrying contraband in hostile turf, levying consensus bribe tolls or triggering enforcer skirmishes.
-  4. Write comprehensive integration tests verifying checkpoints, bribe scales, and mesh convergence.
+  1. Add syndicate reputation thresholds for automated checkpoint bribe waivers and hostile enforcer skirmish scaling.
+  2. Implement `ADJUST_TURF_WAIVER` decentralized consensus action.
+  3. Wire dynamic price multiplier calculation and dynamic enforcer HP/defense scaling based on agent standing.
+  4. Write rigorous integration and mesh convergence tests.
 
 ---
 
