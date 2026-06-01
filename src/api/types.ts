@@ -73,6 +73,8 @@ export type Action =
   | { type: "PROPOSE_PEACE_TREATY"; syndicateId: string; factionId: string; vote?: boolean; timestamp: number }
   | { type: "ESTABLISH_COVERT_CELL"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "BROADCAST_PROPAGANDA"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "RECRUIT_SABOTEUR"; enforcerId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "LAUNCH_COUNTER_INTEL_SWEEP"; syndicateId: string; cost?: number; timestamp: number }
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 

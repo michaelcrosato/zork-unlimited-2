@@ -535,6 +535,15 @@ export const PropagandaCampaignSchema = z.object({
 });
 export type PropagandaCampaign = z.infer<typeof PropagandaCampaignSchema>;
 
+export const SaboteurSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  syndicateId: z.string(),
+  status: z.enum(["active", "exposed", "compromised"]),
+  timestamp: z.number().int(),
+});
+export type Saboteur = z.infer<typeof SaboteurSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -662,6 +671,7 @@ export const GameStateSchema = z.object({
   peaceTreatyVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), PeaceTreatyVoteSchema))).optional(),
   covertCells: z.record(z.string(), CovertCellSchema).optional(),
   propagandaCampaigns: z.record(z.string(), PropagandaCampaignSchema).optional(),
+  saboteurs: z.record(z.string(), SaboteurSchema).optional(),
 });
 
 
@@ -1465,6 +1475,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     peaceTreatyVotes: rest.peaceTreatyVotes ? JSON.parse(JSON.stringify(rest.peaceTreatyVotes)) : undefined,
     covertCells: rest.covertCells ? JSON.parse(JSON.stringify(rest.covertCells)) : undefined,
     propagandaCampaigns: rest.propagandaCampaigns ? JSON.parse(JSON.stringify(rest.propagandaCampaigns)) : undefined,
+    saboteurs: rest.saboteurs ? JSON.parse(JSON.stringify(rest.saboteurs)) : undefined,
   };
   return clone;
 }

@@ -229,35 +229,67 @@ export function calculateTradePrice(
     }
   }
 
-  // 7. Cartel Price Collusion & Coordinated Pricing Hikes (AF-39)
-  if (state.cartels && npc?.id && pack?.rooms) {
+  // 7. Cartel Price Collusion & Coordinated Pricing Hikes (AF-39) & Global Propaganda Network (AF-74)
+  if (state.cartels && npc?.id) {
     let cartelPriceMultiplier = 1.0;
+    
+    // Sum up the global propaganda campaign levels
+    let totalPropagandaLevel = 0;
+    if (state.propagandaCampaigns) {
+      for (const campaign of Object.values(state.propagandaCampaigns)) {
+        totalPropagandaLevel += campaign.level;
+      }
+    }
+
     for (const [cartelId, cartel] of Object.entries(state.cartels)) {
       if (cartel.members.includes(npc.id)) {
-        // Find other merchants in the same room
-        const room = pack.rooms.find((r: any) => r.npcs?.includes(npc.id));
-        if (room && room.npcs) {
-          const localMerchants = room.npcs.filter((nid: string) => 
-            pack.npcs?.some((n: any) => n.id === nid)
-          );
-          const cartelMerchants = localMerchants.filter((nid: string) => 
-            cartel.members.includes(nid)
-          );
-          
-          const totalCount = localMerchants.length;
-          const cartelCount = cartelMerchants.length;
-          
-          // Coordinated price hikes under low competition:
-          // Low competition / high density: cartel merchants represent >= 50% of the merchants in the room
-          // or there are no non-cartel merchants.
-          if (totalCount > 0 && (cartelCount / totalCount >= 0.5)) {
-            const policy = state.cartelPolicies?.[cartelId];
-            const multiplierVal = policy?.priceMultiplier ?? cartel.priceMultiplier ?? 1.0;
-            cartelPriceMultiplier = Math.max(cartelPriceMultiplier, multiplierVal);
+        const policy = state.cartelPolicies?.[cartelId];
+        const baseMultiplierVal = policy?.priceMultiplier ?? cartel.priceMultiplier ?? 1.0;
+
+        // Check standard room competition: cartel merchants represent >= 50% in the room
+        let localCartelActive = false;
+        if (pack?.rooms) {
+          const room = pack.rooms.find((r: any) => r.npcs?.includes(npc.id));
+          if (room && room.npcs) {
+            const localMerchants = room.npcs.filter((nid: string) => 
+              pack.npcs?.some((n: any) => n.id === nid)
+            );
+            const cartelMerchants = localMerchants.filter((nid: string) => 
+              cartel.members.includes(nid)
+            );
+            const totalCount = localMerchants.length;
+            const cartelCount = cartelMerchants.length;
+            if (totalCount > 0 && (cartelCount / totalCount >= 0.5)) {
+              localCartelActive = true;
+            }
           }
+        }
+
+        // Check if we are in an allied faction territory and global propaganda network is active
+        let globalPropagandaActive = false;
+        const controllingFactionId = state.territoryControl?.[state.current];
+        if (controllingFactionId && cartel.factionId && totalPropagandaLevel > 0) {
+          const isAlliedFaction = controllingFactionId === cartel.factionId || 
+            (state.alliances && (
+              state.alliances[controllingFactionId]?.[cartel.factionId] === "allied" ||
+              state.alliances[cartel.factionId]?.[controllingFactionId] === "allied"
+            ));
+          if (isAlliedFaction) {
+            globalPropagandaActive = true;
+          }
+        }
+
+        if (localCartelActive || globalPropagandaActive) {
+          let currentMultiplierVal = baseMultiplierVal;
+          if (globalPropagandaActive) {
+            // Scale cartel price adjustments across all allied faction territories using global propaganda level
+            currentMultiplierVal = 1.0 + (baseMultiplierVal - 1.0) * (1.0 + totalPropagandaLevel * 0.15);
+          }
+          cartelPriceMultiplier = Math.max(cartelPriceMultiplier, currentMultiplierVal);
         }
       }
     }
+    
     if (isBuy) {
       multiplier *= cartelPriceMultiplier;
     }
@@ -557,6 +589,65 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               },
             };
             newState.journal.push(`[SpecialOps] Covert cell in room ${roomId} triggered sabotage event, reducing local enforcer heat by ${heatReduction} (New heat: ${newHeat}).`);
+          }
+        }
+      }
+    }
+  }
+
+  // Saboteurs Special Operations Sabotage Ticking (AF-74)
+  if (newState.saboteurs) {
+    for (const [enforcerId, saboteur] of Object.entries(newState.saboteurs)) {
+      if (saboteur.status !== "active") continue;
+
+      // 100% chance of sabotage per economic tick
+      const sabotageChance = 1.0;
+      const { value: roll, nextSeed } = PureRand.next(newState.seed);
+      newState.seed = nextSeed;
+
+      if (roll <= sabotageChance) {
+        // Find rival outposts to disable
+        const rivalOutposts = Object.entries(newState.turfGuardOutposts || {}).filter(([roomId, outpost]) => {
+          return outpost.syndicateId !== saboteur.syndicateId && !outpost.disabled;
+        });
+
+        if (rivalOutposts.length > 0) {
+          const { value: index, nextSeed: s2 } = PureRand.nextInt(newState.seed, 0, rivalOutposts.length - 1);
+          newState.seed = s2;
+          const [roomId, outpost] = rivalOutposts[index];
+          
+          newState.turfGuardOutposts = {
+            ...(newState.turfGuardOutposts || {}),
+            [roomId]: {
+              ...outpost,
+              disabled: true,
+            },
+          };
+          newState.journal.push(`[Saboteur] Saboteur ${saboteur.name} located and disabled rival outpost in room ${roomId}!`);
+        } else {
+          // Fallback: reduce enforcer heat in one of our syndicate's controlled rooms
+          const ourTurfRooms = Object.entries(newState.syndicateTurf || {})
+            .filter(([_, syndicateId]) => syndicateId === saboteur.syndicateId)
+            .map(([roomId, _]) => roomId);
+
+          if (ourTurfRooms.length > 0) {
+            const { value: index, nextSeed: s2 } = PureRand.nextInt(newState.seed, 0, ourTurfRooms.length - 1);
+            newState.seed = s2;
+            const roomId = ourTurfRooms[index];
+            const currentHeatEntry = newState.enforcementHeat?.[roomId];
+            if (currentHeatEntry) {
+              const heatReduction = 30;
+              const newHeat = Math.max(0, currentHeatEntry.heat - heatReduction);
+              newState.enforcementHeat = {
+                ...(newState.enforcementHeat || {}),
+                [roomId]: {
+                  ...currentHeatEntry,
+                  heat: newHeat,
+                  timestamp: newState.step,
+                },
+              };
+              newState.journal.push(`[Saboteur] Saboteur ${saboteur.name} reduced local enforcer heat in room ${roomId} by ${heatReduction} (New heat: ${newHeat}).`);
+            }
           }
         }
       }
@@ -1006,8 +1097,27 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               }
             }
 
+            // Saboteur Sweep Deflection (AF-74)
+            let saboteurDeflection = false;
+            let deflectingSaboteurName = "";
+            if (newState.saboteurs) {
+              const matchingSaboteur = Object.values(newState.saboteurs).find(
+                s => s.syndicateId === front.syndicateId && s.status === "active"
+              );
+              if (matchingSaboteur) {
+                saboteurDeflection = true;
+                deflectingSaboteurName = matchingSaboteur.name;
+              }
+            }
+
+            if (saboteurDeflection) {
+              sweepDefended = true;
+            }
+
             if (sweepDefended) {
-              if (outpost) {
+              if (saboteurDeflection) {
+                newState.journal.push(`[Saboteur] Saboteur ${deflectingSaboteurName} successfully deflected the enforcer sweep at front business ${front.id} in room ${front.roomId}!`);
+              } else if (outpost) {
                 let msg = `[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards and Defense Outpost (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`;
                 if (totalFirepower > 0) {
                   msg = `[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled! Tactical turrets struck down enforcer forces with high firepower (Firepower: ${totalFirepower}, Armor: ${totalArmor}, Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`;

@@ -8900,6 +8900,247 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized RECRUIT_SABOTEUR action (AF-74)
+  if ((action as any).type === "RECRUIT_SABOTEUR") {
+    const { enforcerId, syndicateId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 150;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const enforcer = state.enforcers?.[enforcerId];
+
+    if (!enforcerId) {
+      rejectionReason = `Enforcer ID is required to recruit a saboteur.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to recruit a saboteur.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Saboteur recruitment cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!enforcer) {
+      rejectionReason = `Enforcer ${enforcerId} does not exist.`;
+    } else if (enforcer.status !== "defeated") {
+      rejectionReason = `Enforcer ${enforcer.name} is not defeated. Recruiting a saboteur requires a defeated enforcer.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to recruit saboteur costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && enforcer) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const saboteurs = { ...(state.saboteurs || {}) };
+      saboteurs[enforcerId] = {
+        id: enforcerId,
+        name: enforcer.name,
+        syndicateId,
+        status: "active" as const,
+        timestamp,
+      };
+      newState.saboteurs = saboteurs;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Enforcer ${enforcer.name} was recruited by agent ${agentId} as a saboteur for syndicate ${syndicateId}.`);
+
+      customEvents.push({
+        type: "saboteur_recruited",
+        agentId,
+        syndicateId,
+        enforcerId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LAUNCH_COUNTER_INTEL_SWEEP action (AF-74)
+  if ((action as any).type === "LAUNCH_COUNTER_INTEL_SWEEP") {
+    const { syndicateId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 200;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to launch a counter-intelligence sweep.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Counter-intelligence sweep cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to launch counter-intelligence sweep costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Expose/neutralize active undercover agents in this syndicate
+      newState.undercoverAgents = newState.undercoverAgents ? { ...newState.undercoverAgents } : {};
+      const agentsToNeutralize = Object.values(newState.undercoverAgents).filter(
+        a => a.syndicateId === syndicateId && a.status === "active"
+      );
+
+      if (!newState.journal) newState.journal = [];
+
+      if (agentsToNeutralize.length > 0) {
+        for (const agent of agentsToNeutralize) {
+          newState.undercoverAgents[agent.id] = {
+            ...agent,
+            status: "rooted_out" as const,
+            timestamp,
+          };
+          newState.journal.push(`[Syndicate] Counter-intelligence sweep by syndicate ${syndicateId} located and neutralized undercover agent ${agent.name}!`);
+          customEvents.push({
+            type: "undercover_agent_neutralized",
+            agentId,
+            syndicateId,
+            targetAgentId: agent.id,
+            name: agent.name,
+            timestamp,
+          });
+        }
+      } else {
+        newState.journal.push(`[Syndicate] Counter-intelligence sweep by syndicate ${syndicateId} found no active undercover agents.`);
+        customEvents.push({
+          type: "counter_intel_sweep_clean",
+          agentId,
+          syndicateId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

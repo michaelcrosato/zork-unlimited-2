@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #73 (Ready for Cycle #74)
-* **Build/Test Status**: 🟢 PASS (All 341 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #74 (Ready for Cycle #75)
+* **Build/Test Status**: 🟢 PASS (All 349 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -439,17 +439,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire covert cell presence and propaganda levels to modify faction siege triggers, enforcer pursuit speeds, and trade tax rates (`AF-73`).
 - [x] Write comprehensive integration tests verifying covert cell actions and strategic propaganda modifiers (`AF-73`).
 
+### Phase 67: Cartel Saboteurs, Counter-Intelligence Sweeps, and Global Propaganda Networks (Completed)
+- [x] Add `RECRUIT_SABOTEUR` and `LAUNCH_COUNTER_INTEL_SWEEP` decentralized actions (`AF-74`).
+- [x] Implement periodic saboteur sabotage ticks inside `tickEconomy`, automatically locating and disabling rival outposts or deflecting sweeps (`AF-74`).
+- [x] Wire global propaganda networks to scale cartel transaction price adjustments across all allied faction territories (`AF-74`).
+- [x] Write comprehensive integration tests verifying saboteur actions, counter-intel sweeps, and global price adjustments (`AF-74`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-74`
-* **Objective**: Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and Global Propaganda Networks.
-* **Why this matters**: Expand cartel special operations to recruit dedicated saboteurs from enforcer ranks, deploy mesh-wide counter-intelligence sweeps to locate and neutralize undercover agents, and dynamically broadcast global propaganda networks that scale cartel price adjustments across all friendly territories.
+**Task ID**: `AF-75`
+* **Objective**: Smuggler Syndicate Cartel Elite Enforcers, Regional Counter-Sabotage Operations, and Automated Cartel Bounty Hunting.
+* **Why this matters**: Recruit specialized elite enforcers from cooperative faction ranks, launch regional counter-sabotage sweeps to secure safehouses, and automatically set bounties on high-value targets violating cartel territories.
 * **Planned Actions**:
-  1. Add `RECRUIT_SABOTEUR` and `LAUNCH_COUNTER_INTEL_SWEEP` decentralized actions.
-  2. Implement periodic saboteur sabotage ticks inside `tickEconomy`, automatically locating and disabling rival outposts or deflecting sweeps.
-  3. Wire global propaganda networks to scale cartel transaction price adjustments across all allied faction territories.
-  4. Write comprehensive integration tests verifying saboteur actions, counter-intel sweeps, and global price adjustments.
+  1. Add `RECRUIT_ELITE_ENFORCER` and `LAUNCH_COUNTER_SABOTAGE` decentralized actions.
+  2. Implement periodic elite enforcer combat patrol ticks inside `tickEconomy`, automatically intercepting enforcer raids or executing rival syndicate turf guards.
+  3. Wire global bounty hunting networks to automatically track and target high-reputation player or NPC agents carrying contraband.
+  4. Write comprehensive Vitest integration tests.
 
 ---
 
