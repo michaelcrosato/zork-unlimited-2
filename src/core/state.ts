@@ -377,8 +377,23 @@ export const SmugglingConvoySchema = z.object({
   status: z.enum(["en_route", "completed", "ambushed"]),
   definedBy: z.string(),
   timestamp: z.number().int(),
+  isDreadnought: z.boolean().optional(),
 });
 export type SmugglingConvoy = z.infer<typeof SmugglingConvoySchema>;
+
+export const TreatyInfiltratorSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  roomId: z.string(),
+  timestamp: z.number().int(),
+});
+export type TreatyInfiltrator = z.infer<typeof TreatyInfiltratorSchema>;
+
+export const TariffExemptionVoteSchema = z.object({
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type TariffExemptionVote = z.infer<typeof TariffExemptionVoteSchema>;
 
 export const UndercoverAgentSchema = z.object({
   id: z.string(),
@@ -771,6 +786,9 @@ export const GameStateSchema = z.object({
   blackOpsSafehouses: z.record(z.string(), BlackOpsSafehouseSchema).optional(),
   shadowAlliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
   shadowAllianceVotes: z.record(z.string(), z.record(z.string(), AllianceVoteSchema)).optional(),
+  treatyInfiltrators: z.record(z.string(), TreatyInfiltratorSchema).optional(),
+  tariffExemptionVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), TariffExemptionVoteSchema))).optional(),
+  tariffExemptionPolicies: z.record(z.string(), z.record(z.string(), z.boolean())).optional(),
 });
 
 
@@ -905,6 +923,9 @@ export const createInitialState = (options: {
     blackOpsSafehouses: {},
     shadowAlliances: {},
     shadowAllianceVotes: {},
+    treatyInfiltrators: {},
+    tariffExemptionVotes: {},
+    tariffExemptionPolicies: {},
   };
 };
 
@@ -1600,6 +1621,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     blackOpsSafehouses: rest.blackOpsSafehouses ? JSON.parse(JSON.stringify(rest.blackOpsSafehouses)) : undefined,
     shadowAlliances: rest.shadowAlliances ? JSON.parse(JSON.stringify(rest.shadowAlliances)) : undefined,
     shadowAllianceVotes: rest.shadowAllianceVotes ? JSON.parse(JSON.stringify(rest.shadowAllianceVotes)) : undefined,
+    treatyInfiltrators: rest.treatyInfiltrators ? JSON.parse(JSON.stringify(rest.treatyInfiltrators)) : undefined,
+    tariffExemptionVotes: rest.tariffExemptionVotes ? JSON.parse(JSON.stringify(rest.tariffExemptionVotes)) : undefined,
+    tariffExemptionPolicies: rest.tariffExemptionPolicies ? JSON.parse(JSON.stringify(rest.tariffExemptionPolicies)) : undefined,
   };
   return clone;
 }
@@ -1892,6 +1916,46 @@ export function reconcileShadowAlliances(state: GameState, pack: any): GameState
       newState.shadowAlliances[syndicateId] = {};
     }
     newState.shadowAlliances[syndicateId][factionId] = consensusState;
+  }
+
+  return newState;
+}
+
+export function reconcileTariffExemptions(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    tariffExemptionPolicies: { ...(state.tariffExemptionPolicies || {}) },
+  };
+
+  if (!newState.tariffExemptionVotes) {
+    newState.tariffExemptionVotes = {};
+  }
+
+  // Clear and rebuild exemptions
+  newState.tariffExemptionPolicies = {};
+
+  for (const [factionId, synds] of Object.entries(newState.tariffExemptionVotes)) {
+    for (const [syndicateId, votes] of Object.entries(synds)) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) continue;
+
+      let yesVotes = 0;
+      for (const voteInfo of Object.values(votes)) {
+        if (voteInfo.vote) {
+          yesVotes++;
+        }
+      }
+
+      // Majority consensus: yesVotes > members.length / 2
+      const isApproved = yesVotes > syndicate.members.length / 2;
+
+      if (isApproved) {
+        if (!newState.tariffExemptionPolicies[factionId]) {
+          newState.tariffExemptionPolicies[factionId] = {};
+        }
+        newState.tariffExemptionPolicies[factionId][syndicateId] = true;
+      }
+    }
   }
 
   return newState;

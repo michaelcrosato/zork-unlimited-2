@@ -99,6 +99,19 @@ export function calculateTradePrice(
           effectiveTariffRate = tariffRate / 2;
         }
 
+        // High-Reputation Tariff Exemption Acts (AF-80)
+        let isTariffExempt = false;
+        if (state.tariffExemptionPolicies?.[controllingFactionId]) {
+          const approvedSyndicates = state.tariffExemptionPolicies[controllingFactionId];
+          const hasApprovedSyndicate = traderSyndicates.some(s => approvedSyndicates[s.id] === true);
+          if (hasApprovedSyndicate && factionRep >= 30) {
+            isTariffExempt = true;
+          }
+        }
+        if (isTariffExempt) {
+          effectiveTariffRate = 0;
+        }
+
         // Mastermind Contract allied faction tariff override (AF-77)
         let mastermindOverride = false;
         if (state.mastermindContracts) {

@@ -729,11 +729,15 @@ export function step(
                 toll = cbaToll;
               }
 
-              if (rep <= -10 && !hasCbaOverride) {
+              const agentSynds = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
+              const hasInfiltrator = Object.values(state.treatyInfiltrators || {}).some(
+                inf => inf.roomId === destRoomId && agentSynds.some(s => s.id === inf.syndicateId)
+              );
+
+              if (rep <= -10 && !hasCbaOverride && !hasInfiltrator) {
                 lockingRouteId = routeId;
               }
               // Faction War scaling (AF-71)
-              const agentSynds = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
               const isRouteFactionAtWar = rFactionId && agentSynds.some(s => state.factionWars?.[s.id]?.[rFactionId] === true);
               if (isRouteFactionAtWar) {
                 toll = toll * 4; // Factions at war charge 4x route toll
@@ -2459,6 +2463,11 @@ export function tickSmugglingConvoys(
       }
       const guards = newState.turfGuards?.[destRoomId]?.count ?? 0;
       ambushChance -= guards * 3;
+
+      // Dreadnought Convoy automated defensive turrets reduce ambush risk (AF-80)
+      if (convoy.isDreadnought) {
+        ambushChance -= 20;
+      }
       
       ambushChance = Math.max(5, Math.min(80, ambushChance));
 
@@ -2476,6 +2485,22 @@ export function tickSmugglingConvoys(
             type: "narration",
             text: `💥 Convoy ${convoyId} was ambushed in ${destRoomId}, but tactical turrets successfully defended it!`,
           } as any);
+        }
+
+        // Dreadnought Convoy defense turret counter-strike math (AF-80)
+        if (!deflected && convoy.isDreadnought) {
+          const { value: csRoll, nextSeed: nextSeed2 } = PureRand.nextInt(currentSeed, 1, 100);
+          currentSeed = nextSeed2;
+          const csSuccessChance = Math.max(20, 75 - heat * 5);
+          if (csRoll <= csSuccessChance) {
+            deflected = true;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(`[Syndicate] Dreadnought convoy ${convoyId} was ambushed in room ${destRoomId}, but its heavy automated defensive turrets counter-strike successfully, obliterating the ambushers!`);
+            events.push({
+              type: "narration",
+              text: `💥 Dreadnought convoy ${convoyId} was ambushed in ${destRoomId}, but its heavy automated defensive turrets counter-struck and obliterated the ambushers!`,
+            } as any);
+          }
         }
 
         if (!deflected) {

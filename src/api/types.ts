@@ -87,6 +87,9 @@ export type Action =
   | { type: "ESTABLISH_BLACK_OPS_SAFEHOUSE"; safehouseId: string; roomId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "PROPOSE_SHADOW_ALLIANCE"; syndicateId: string; factionId: string; targetState?: "allied" | "hostile" | "neutral"; timestamp: number }
   | { type: "INFILTRATE_ENFORCER_SWEEP"; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "BUILD_DREADNOUGHT_CONVOY"; convoyId: string; syndicateId: string; routeId: string; cargo: number; goldCost?: number; timestamp: number }
+  | { type: "ESTABLISH_TREATY_INFILTRATOR"; infiltratorId: string; syndicateId: string; roomId: string; cost?: number; timestamp: number }
+  | { type: "VOTE_TARIFF_EXEMPTION"; factionId: string; syndicateId: string; vote?: boolean; timestamp: number }
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 
