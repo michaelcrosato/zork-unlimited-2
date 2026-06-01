@@ -3013,43 +3013,113 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   if (newState.marginAccounts && Object.keys(newState.marginAccounts).length > 0) {
     newState.marginAccounts = { ...newState.marginAccounts };
     for (const [syndicateId, marginAccount] of Object.entries(newState.marginAccounts)) {
-      // AF-111: Process margin rehypothecation yield / sweep risk
-      if (marginAccount.rehypothecationAuthorized && marginAccount.rehypothecationVaultId && marginAccount.rehypothecationPercentage !== undefined && marginAccount.rehypothecationPercentage > 0 && marginAccount.collateral > 0) {
+      // AF-112: Auto-rebalance if rebalancing is enabled
+      if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
+        const collateral = marginAccount.collateral;
+        const targetBuffer = Math.floor(collateral * ((marginAccount.liquidityBufferRatio ?? 0) / 100));
+        const targetRehypothecated = collateral - targetBuffer;
+        const vaultAllocations: Record<string, number> = {};
+
+        for (const [vaultId, pct] of Object.entries(marginAccount.vaultTargets || {})) {
+          vaultAllocations[vaultId] = Math.floor(targetRehypothecated * (pct / 100));
+        }
+        const sumAllocated = Object.values(vaultAllocations).reduce((a, b) => a + b, 0);
+        marginAccount.liquidityBuffer = collateral - sumAllocated;
+        marginAccount.vaultAllocations = vaultAllocations;
+      }
+
+      // AF-111 & AF-112: Process margin rehypothecation yield / sweep risk
+      if (marginAccount.rebalancingEnabled) {
         const vaults = getSecondaryReserveVaults(newState);
-        const vault = vaults[marginAccount.rehypothecationVaultId];
-        if (vault) {
-          const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.rehypothecationPercentage / 100));
-          if (rehypothecatedAmount > 0) {
-            // Roll for enforcer sweep risk
-            const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
-            newState.seed = nextSeed;
+        const allocations = { ...(marginAccount.vaultAllocations || {}) };
+        let collateralChanged = false;
 
-            const riskPercentage = Math.round(vault.sweepRisk * 100);
-            if (riskPercentage > 0 && sweepRoll <= riskPercentage) {
-              // Sweep! Reduce collateral by rehypothecated amount
-              marginAccount.collateral = Math.max(0, marginAccount.collateral - rehypothecatedAmount);
-              marginAccount.timestamp = newState.step;
+        for (const [vaultId, allocatedAmount] of Object.entries(allocations)) {
+          if (allocatedAmount > 0 && marginAccount.collateral > 0) {
+            const vault = vaults[vaultId];
+            if (vault) {
+              // Roll for enforcer sweep risk
+              const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+              newState.seed = nextSeed;
 
-              if (!newState.journal) newState.journal = [];
-              newState.journal.push(
-                `[Rehypothecation Sweep] Regulators swept vault ${vault.name} (${marginAccount.rehypothecationVaultId}) containing rehypothecated collateral of Syndicate ${syndicateId}! Liquidated all ${rehypothecatedAmount} gold (Sweep Roll: ${sweepRoll} <= Risk: ${riskPercentage}%).`
-              );
-            } else {
-              // Earn yield!
-              let interest = 0;
-              if (vault.interestRate > 0) {
-                interest = Math.max(1, Math.floor(rehypothecatedAmount * vault.interestRate));
+              const riskPercentage = Math.round(vault.sweepRisk * 100);
+              if (riskPercentage > 0 && sweepRoll <= riskPercentage) {
+                // Sweep! Deduct this vault's allocation from the vault and total collateral
+                const actualDeduct = Math.min(allocatedAmount, marginAccount.collateral);
+                marginAccount.collateral -= actualDeduct;
+                allocations[vaultId] = 0;
+                collateralChanged = true;
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[Rehypothecation Sweep] Regulators swept vault ${vault.name} (${vaultId}) containing rehypothecated collateral of Syndicate ${syndicateId}! Liquidated all ${actualDeduct} gold (Sweep Roll: ${sweepRoll} <= Risk: ${riskPercentage}%).`
+                );
+              } else {
+                // Earn yield!
+                let interest = 0;
+                if (vault.interestRate > 0) {
+                  interest = Math.max(1, Math.floor(allocatedAmount * vault.interestRate));
+                }
+                if (interest > 0) {
+                  const yieldReturned = Math.floor(interest * 0.80);
+                  if (yieldReturned > 0) {
+                    marginAccount.collateral += yieldReturned;
+                    marginAccount.liquidityBuffer = (marginAccount.liquidityBuffer ?? 0) + yieldReturned;
+                    collateralChanged = true;
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[Rehypothecation Yield] Syndicate ${syndicateId} earned ${interest} gold passive interest from rehypothecated collateral in ${vault.name} (Returned ${yieldReturned} gold to margin collateral).`
+                    );
+                  }
+                }
               }
-              if (interest > 0) {
-                const yieldReturned = Math.floor(interest * 0.80);
-                if (yieldReturned > 0) {
-                  marginAccount.collateral += yieldReturned;
-                  marginAccount.timestamp = newState.step;
+            }
+          }
+        }
+        if (collateralChanged) {
+          marginAccount.vaultAllocations = allocations;
+          marginAccount.timestamp = newState.step;
+        }
+      } else {
+        // Fall back to old single-vault logic
+        if (marginAccount.rehypothecationAuthorized && marginAccount.rehypothecationVaultId && marginAccount.rehypothecationPercentage !== undefined && marginAccount.rehypothecationPercentage > 0 && marginAccount.collateral > 0) {
+          const vaults = getSecondaryReserveVaults(newState);
+          const vault = vaults[marginAccount.rehypothecationVaultId];
+          if (vault) {
+            const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.rehypothecationPercentage / 100));
+            if (rehypothecatedAmount > 0) {
+              // Roll for enforcer sweep risk
+              const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+              newState.seed = nextSeed;
 
-                  if (!newState.journal) newState.journal = [];
-                  newState.journal.push(
-                    `[Rehypothecation Yield] Syndicate ${syndicateId} earned ${interest} gold passive interest from rehypothecated collateral in ${vault.name} (Returned ${yieldReturned} gold to margin collateral).`
-                  );
+              const riskPercentage = Math.round(vault.sweepRisk * 100);
+              if (riskPercentage > 0 && sweepRoll <= riskPercentage) {
+                // Sweep! Reduce collateral by rehypothecated amount
+                marginAccount.collateral = Math.max(0, marginAccount.collateral - rehypothecatedAmount);
+                marginAccount.timestamp = newState.step;
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[Rehypothecation Sweep] Regulators swept vault ${vault.name} (${marginAccount.rehypothecationVaultId}) containing rehypothecated collateral of Syndicate ${syndicateId}! Liquidated all ${rehypothecatedAmount} gold (Sweep Roll: ${sweepRoll} <= Risk: ${riskPercentage}%).`
+                );
+              } else {
+                // Earn yield!
+                let interest = 0;
+                if (vault.interestRate > 0) {
+                  interest = Math.max(1, Math.floor(rehypothecatedAmount * vault.interestRate));
+                }
+                if (interest > 0) {
+                  const yieldReturned = Math.floor(interest * 0.80);
+                  if (yieldReturned > 0) {
+                    marginAccount.collateral += yieldReturned;
+                    marginAccount.timestamp = newState.step;
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[Rehypothecation Yield] Syndicate ${syndicateId} earned ${interest} gold passive interest from rehypothecated collateral in ${vault.name} (Returned ${yieldReturned} gold to margin collateral).`
+                    );
+                  }
                 }
               }
             }
@@ -3074,7 +3144,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         sumBorrowedAmount += pos.borrowedAmount;
       }
 
-      const netEquity = marginAccount.collateral + (sumCurrentStakeValue - sumBorrowedAmount);
+      let netEquity = marginAccount.collateral + (sumCurrentStakeValue - sumBorrowedAmount);
 
       // Calculate Maintenance Margin Requirement
       let sumCdsNotional = 0;
@@ -3091,16 +3161,78 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       marginAccount.leveragedCDSIds = stillActiveCDSIds;
 
       let rehypothecationPremium = 0;
-      if (marginAccount.rehypothecationAuthorized && marginAccount.rehypothecationVaultId && marginAccount.rehypothecationPercentage !== undefined) {
+      if (marginAccount.rebalancingEnabled) {
         const vaults = getSecondaryReserveVaults(newState);
-        const vault = vaults[marginAccount.rehypothecationVaultId];
-        if (vault) {
-          const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.rehypothecationPercentage / 100));
-          rehypothecationPremium = Math.round(rehypothecatedAmount * (0.10 + vault.sweepRisk));
+        const allocations = marginAccount.vaultAllocations || {};
+        for (const [vaultId, allocatedAmount] of Object.entries(allocations)) {
+          const vault = vaults[vaultId];
+          if (vault && allocatedAmount > 0) {
+            rehypothecationPremium += Math.round(allocatedAmount * (0.10 + vault.sweepRisk));
+          }
+        }
+      } else {
+        if (marginAccount.rehypothecationAuthorized && marginAccount.rehypothecationVaultId && marginAccount.rehypothecationPercentage !== undefined) {
+          const vaults = getSecondaryReserveVaults(newState);
+          const vault = vaults[marginAccount.rehypothecationVaultId];
+          if (vault) {
+            const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.rehypothecationPercentage / 100));
+            rehypothecationPremium = Math.round(rehypothecatedAmount * (0.10 + vault.sweepRisk));
+          }
         }
       }
 
-      const maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium);
+      let maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium);
+
+      // AF-112: Preemptive Drawdown Loop to prevent margin call liquidations
+      if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
+        const triggerRatio = marginAccount.bufferTriggerRatio ?? 1.2;
+        if (netEquity <= triggerRatio * maintenanceRequirement) {
+          const vaults = getSecondaryReserveVaults(newState);
+          const allocations = { ...(marginAccount.vaultAllocations || {}) };
+          
+          // Sort vaults by sweepRisk descending to draw back highest risk first
+          const sortedVaultIds = Object.keys(allocations).sort((a, b) => {
+            const riskA = vaults[a]?.sweepRisk ?? 0;
+            const riskB = vaults[b]?.sweepRisk ?? 0;
+            return riskB - riskA;
+          });
+
+          let drewBackAny = false;
+
+          for (const vaultId of sortedVaultIds) {
+            const allocatedAmount = allocations[vaultId] ?? 0;
+            if (allocatedAmount > 0) {
+              allocations[vaultId] = 0;
+              marginAccount.liquidityBuffer = (marginAccount.liquidityBuffer ?? 0) + allocatedAmount;
+              drewBackAny = true;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Preemptive Drawback] Syndicate ${syndicateId} drew back ${allocatedAmount} gold from vault ${vaultId} to prevent margin liquidation.`
+              );
+
+              // Recompute rehypothecationPremium and maintenanceRequirement
+              let tempPremium = 0;
+              for (const [vId, amt] of Object.entries(allocations)) {
+                const vault = vaults[vId];
+                if (vault && amt > 0) {
+                  tempPremium += Math.round(amt * (0.10 + vault.sweepRisk));
+                }
+              }
+              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + tempPremium);
+
+              if (netEquity > triggerRatio * maintenanceRequirement) {
+                break; // Safely avoided the danger zone!
+              }
+            }
+          }
+
+          if (drewBackAny) {
+            marginAccount.vaultAllocations = allocations;
+            marginAccount.timestamp = newState.step;
+          }
+        }
+      }
 
       // If netEquity < maintenanceRequirement, trigger a MARGIN CALL!
       if (netEquity < maintenanceRequirement) {

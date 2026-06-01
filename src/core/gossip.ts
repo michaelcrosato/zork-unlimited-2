@@ -1954,6 +1954,24 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge marginRebalancingPolicyVotes using LWW (Last-Write-Wins)
+  const marginRebalancingPolicyVotes = { ...stateA.marginRebalancingPolicyVotes };
+  if (stateB.marginRebalancingPolicyVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.marginRebalancingPolicyVotes)) {
+      if (!marginRebalancingPolicyVotes[syndicateId]) {
+        marginRebalancingPolicyVotes[syndicateId] = { ...bVotes };
+      } else {
+        marginRebalancingPolicyVotes[syndicateId] = { ...marginRebalancingPolicyVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = marginRebalancingPolicyVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            marginRebalancingPolicyVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   // Merge creditDefaultSwapVotes using LWW (Last-Write-Wins)
   const creditDefaultSwapVotes = { ...stateA.creditDefaultSwapVotes };
   if (stateB.creditDefaultSwapVotes) {
@@ -2141,6 +2159,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     marginAccounts,
     marginRehypothecationVotes,
     marginRehypothecationRevokeVotes,
+    marginRebalancingPolicyVotes,
   };
 }
 

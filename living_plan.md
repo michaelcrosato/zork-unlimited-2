@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #111 (Ready for Cycle #112)
-* **Build/Test Status**: 🟢 PASS (All 485 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #112 (Ready for Cycle #113)
+* **Build/Test Status**: 🟢 PASS (All 490 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -657,16 +657,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Adjust margin maintenance requirements based on rehypothecated amounts and vault risks (`AF-111`).
 - [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-111`).
 
+### Phase 90: Syndicate Bank Automated Rehypothecation Vault Rebalancing & Dynamic Liquidity Buffer Pools (Completed)
+- [x] Define rebalancing policies and multi-vault targets in GameState schemas (`AF-112`).
+- [x] Implement `SET_MARGIN_REBALANCING_POLICY` and `REBALANCE_MARGIN_COLLATERAL` decentralized consensus actions (`AF-112`).
+- [x] Wire dynamic rebalancing and preemptive drawdown execution loops inside `tickEconomy` before margin calls trigger (`AF-112`).
+- [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-112`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-112`
-* **Objective**: Syndicate Bank Automated Rehypothecation Vault Rebalancing & Dynamic Liquidity Buffer Pools.
-* **Why this matters**: Allow syndicates to define multi-vault target allocation policies and maintain a dynamic local liquidity buffer pool. This pool automatically and preemptively draws back rehypothecated collateral from vaults to prevent margin liquidations when net equity approaches maintenance thresholds.
+**Task ID**: `AF-113`
+* **Objective**: Syndicate Bank Multi-Vault Dynamic Yield-Risk Optimization & Automated Rebalancing Advisors.
+* **Why this matters**: Allow syndicates to deploy automated rebalancing advisors (heuristics) that monitor vault interest rates and sweep risks in real-time, voting to dynamically shift target allocations to optimize net interest income while keeping the total sweep risk below a user-defined safety threshold.
 * **Planned Actions**:
-  1. Define rebalancing policies and multi-vault targets in GameState schemas.
-  2. Implement `SET_MARGIN_REBALANCING_POLICY` and `REBALANCE_MARGIN_COLLATERAL` decentralized consensus actions.
-  3. Wire dynamic rebalancing and preemptive drawdown execution loops inside `tickEconomy` before margin calls trigger.
+  1. Define rebalancing advisor structures and safety thresholds in GameState schemas.
+  2. Implement `DEPLOY_REBALANCING_ADVISOR` and `SET_ADVISOR_SAFETY_THRESHOLD` decentralized consensus actions.
+  3. Wire dynamic advisor-led reallocation suggestions and target updates inside `tickEconomy` before rebalancing ticks.
   4. Write comprehensive Vitest integration and mesh convergence tests.
 
 ---

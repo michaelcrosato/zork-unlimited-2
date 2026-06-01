@@ -1083,6 +1083,12 @@ export const MarginAccountSchema = z.object({
   rehypothecationAuthorized: z.boolean().optional(),
   rehypothecationVaultId: z.string().optional(),
   rehypothecationPercentage: z.number().int().nonnegative().max(100).optional(),
+  rebalancingEnabled: z.boolean().optional(),
+  vaultTargets: z.record(z.string(), z.number().int().nonnegative().max(100)).optional(),
+  liquidityBufferRatio: z.number().int().nonnegative().max(100).optional(),
+  bufferTriggerRatio: z.number().optional(),
+  liquidityBuffer: z.number().int().nonnegative().optional(),
+  vaultAllocations: z.record(z.string(), z.number().int().nonnegative()).optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -1392,6 +1398,13 @@ export const GameStateSchema = z.object({
   marginRehypothecationRevokeVotes: z.record(z.string(), z.record(z.string(), z.object({
     timestamp: z.number().int(),
   }))).optional(),
+  marginRebalancingPolicyVotes: z.record(z.string(), z.record(z.string(), z.object({
+    enabled: z.boolean(),
+    vaultTargets: z.record(z.string(), z.number().int().nonnegative().max(100)),
+    liquidityBufferRatio: z.number().int().nonnegative().max(100),
+    bufferTriggerRatio: z.number(),
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -1573,6 +1586,7 @@ export const createInitialState = (options: {
     marginAccounts: {},
     marginRehypothecationVotes: {},
     marginRehypothecationRevokeVotes: {},
+    marginRebalancingPolicyVotes: {},
   };
 };
 
@@ -2347,6 +2361,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     marginAccounts: rest.marginAccounts ? JSON.parse(JSON.stringify(rest.marginAccounts)) : undefined,
     marginRehypothecationVotes: rest.marginRehypothecationVotes ? JSON.parse(JSON.stringify(rest.marginRehypothecationVotes)) : undefined,
     marginRehypothecationRevokeVotes: rest.marginRehypothecationRevokeVotes ? JSON.parse(JSON.stringify(rest.marginRehypothecationRevokeVotes)) : undefined,
+    marginRebalancingPolicyVotes: rest.marginRebalancingPolicyVotes ? JSON.parse(JSON.stringify(rest.marginRebalancingPolicyVotes)) : undefined,
   };
   return clone;
 }
@@ -2711,6 +2726,107 @@ export function reconcileMarginRehypothecations(state: GameState, pack: any): Ga
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Margin Rehypothecation] Rehypothecation for Syndicate ${syndicateId} authorized by consensus majority (Vault: ${fullyApprovedCombination.vaultId}, Percentage: ${fullyApprovedCombination.percentage}%).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileMarginRebalancingPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    marginRebalancingPolicyVotes: state.marginRebalancingPolicyVotes ? { ...state.marginRebalancingPolicyVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.marginRebalancingPolicyVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      enabled: boolean;
+      vaultTargets: Record<string, number>;
+      liquidityBufferRatio: number;
+      bufferTriggerRatio: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        // Deterministic serialization of vaultTargets
+        const sortedTargets = Object.entries(vote.vaultTargets || {})
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([k, v]) => `${k}:${v}`)
+          .join(",");
+        const key = `${vote.enabled}::${sortedTargets}::${vote.liquidityBufferRatio}::${vote.bufferTriggerRatio}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            enabled: vote.enabled,
+            vaultTargets: vote.vaultTargets,
+            liquidityBufferRatio: vote.liquidityBufferRatio,
+            bufferTriggerRatio: vote.bufferTriggerRatio,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break; // At most one combination can satisfy strict majority
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      // Rebalance immediately upon policy activation if enabled is true!
+      const collateral = marginAccount.collateral;
+      const targetBuffer = Math.floor(collateral * (fullyApprovedCombination.liquidityBufferRatio / 100));
+      const targetRehypothecated = collateral - targetBuffer;
+      const vaultAllocations: Record<string, number> = {};
+
+      for (const [vaultId, pct] of Object.entries(fullyApprovedCombination.vaultTargets || {})) {
+        vaultAllocations[vaultId] = Math.floor(targetRehypothecated * ((pct as number) / 100));
+      }
+      const sumAllocated = Object.values(vaultAllocations).reduce((a, b) => a + b, 0);
+      const liquidityBuffer = collateral - sumAllocated;
+
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        rebalancingEnabled: fullyApprovedCombination.enabled,
+        vaultTargets: fullyApprovedCombination.vaultTargets,
+        liquidityBufferRatio: fullyApprovedCombination.liquidityBufferRatio,
+        bufferTriggerRatio: fullyApprovedCombination.bufferTriggerRatio,
+        liquidityBuffer,
+        vaultAllocations,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      // Clear votes
+      if (newState.marginRebalancingPolicyVotes) {
+        delete newState.marginRebalancingPolicyVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Margin Rebalancing Policy] Rebalancing policy for Syndicate ${syndicateId} set by consensus majority (Enabled: ${fullyApprovedCombination.enabled}, Buffer Ratio: ${fullyApprovedCombination.liquidityBufferRatio}%, Buffer Trigger: ${fullyApprovedCombination.bufferTriggerRatio}%).`
       );
     }
   }

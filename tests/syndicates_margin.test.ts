@@ -610,5 +610,309 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
     expect(merged.marginRehypothecationVotes?.blood_fangs?.player?.percentage).toBe(70);
     expect(merged.marginRehypothecationVotes?.blood_fangs?.alice?.percentage).toBe(50);
   });
+
+  describe("Syndicate Bank Automated Rehypothecation Vault Rebalancing & Dynamic Liquidity Buffer Pools (AF-112)", () => {
+    it("should support setting rebalancing policy by majority consensus and initializing allocations", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 1000 },
+        agentsInit: ["player", "alice", "bob"],
+      });
+
+      state.syndicates = {
+        blood_fangs: {
+          id: "blood_fangs",
+          name: "Blood Fangs",
+          members: ["player", "alice", "bob"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 1000,
+        },
+      };
+
+      // Open margin account first with 500 gold
+      state.marginAccounts = {
+        blood_fangs: {
+          syndicateId: "blood_fangs",
+          collateral: 500,
+          leveragedCDSIds: [],
+          leveragedTranchePositions: {},
+          timestamp: 1000,
+        },
+      };
+
+      // Vote 1: Player votes for rebalancing policy (Needs 2 out of 3 votes)
+      const policyVote1 = {
+        type: "SET_MARGIN_REBALANCING_POLICY",
+        syndicateId: "blood_fangs",
+        enabled: true,
+        vaultTargets: { safe_savings: 40, high_yield: 60 },
+        liquidityBufferRatio: 20,
+        bufferTriggerRatio: 1.25,
+        timestamp: 1001,
+      };
+
+      let resVote1 = multiAgentStep(state, { agentId: "player", action: policyVote1 as any }, mockPack);
+      expect(resVote1.ok).toBe(true);
+      state = resVote1.state;
+      expect(state.marginAccounts?.blood_fangs?.rebalancingEnabled).toBeUndefined();
+
+      // Vote 2: Alice votes for identical policy, achieving consensus!
+      const policyVote2 = {
+        type: "SET_MARGIN_REBALANCING_POLICY",
+        syndicateId: "blood_fangs",
+        enabled: true,
+        vaultTargets: { safe_savings: 40, high_yield: 60 },
+        liquidityBufferRatio: 20,
+        bufferTriggerRatio: 1.25,
+        timestamp: 1002,
+      };
+
+      let resVote2 = multiAgentStep(state, { agentId: "alice", action: policyVote2 as any }, mockPack);
+      expect(resVote2.ok).toBe(true);
+      state = resVote2.state;
+
+      const ma = state.marginAccounts?.blood_fangs;
+      expect(ma?.rebalancingEnabled).toBe(true);
+      expect(ma?.liquidityBufferRatio).toBe(20);
+      expect(ma?.bufferTriggerRatio).toBe(1.25);
+      expect(ma?.vaultTargets?.safe_savings).toBe(40);
+      expect(ma?.vaultTargets?.high_yield).toBe(60);
+
+      // Total collateral = 500
+      // targetBuffer = 500 * 20% = 100 local buffer
+      // targetRehypothecated = 500 - 100 = 400
+      // safe_savings target: 400 * 40% = 160
+      // high_yield target: 400 * 60% = 240
+      // Total allocations: 160 + 240 = 400. Remaining buffer: 500 - 400 = 100
+      expect(ma?.vaultAllocations?.safe_savings).toBe(160);
+      expect(ma?.vaultAllocations?.high_yield).toBe(240);
+      expect(ma?.liquidityBuffer).toBe(100);
+    });
+
+    it("should support manual rebalancing action", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 1000 },
+        agentsInit: ["player"],
+      });
+
+      state.syndicates = {
+        blood_fangs: {
+          id: "blood_fangs",
+          name: "Blood Fangs",
+          members: ["player"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 1000,
+        },
+      };
+
+      state.marginAccounts = {
+        blood_fangs: {
+          syndicateId: "blood_fangs",
+          collateral: 800, // Collateral increases to 800
+          rebalancingEnabled: true,
+          vaultTargets: { safe_savings: 50, high_yield: 50 },
+          liquidityBufferRatio: 30,
+          bufferTriggerRatio: 1.2,
+          liquidityBuffer: 100, // old stale buffer
+          vaultAllocations: { safe_savings: 100, high_yield: 100 }, // old stale allocations
+          timestamp: 1000,
+        },
+      };
+
+      // Trigger manual rebalance
+      const rebalanceAct = {
+        type: "REBALANCE_MARGIN_COLLATERAL",
+        syndicateId: "blood_fangs",
+        timestamp: 1005,
+      };
+
+      let res = multiAgentStep(state, { agentId: "player", action: rebalanceAct as any }, mockPack);
+      expect(res.ok).toBe(true);
+
+      const ma = res.state.marginAccounts?.blood_fangs;
+      // Total: 800
+      // buffer = 800 * 30% = 240
+      // rehypo = 800 - 240 = 560
+      // safe_savings: 560 * 50% = 280
+      // high_yield: 560 * 50% = 280
+      // buffer: 800 - 560 = 240
+      expect(ma?.vaultAllocations?.safe_savings).toBe(280);
+      expect(ma?.vaultAllocations?.high_yield).toBe(280);
+      expect(ma?.liquidityBuffer).toBe(240);
+    });
+
+    it("should process yield and sweep risk on multiple vaults individually in tickEconomy", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 1000 },
+        agentsInit: ["player"],
+      });
+
+      state.secondaryReserveVaults = {
+        safe_savings: {
+          vaultId: "safe_savings",
+          name: "SafeSavings",
+          interestRate: 0.1,
+          sweepRisk: 0.0, // safe
+          timestamp: 1000,
+        },
+        risky_pool: {
+          vaultId: "risky_pool",
+          name: "RiskyPool",
+          interestRate: 0.5,
+          sweepRisk: 1.0, // 100% sweep risk
+          timestamp: 1000,
+        },
+      };
+
+      state.marginAccounts = {
+        blood_fangs: {
+          syndicateId: "blood_fangs",
+          collateral: 300,
+          rebalancingEnabled: true,
+          vaultTargets: { safe_savings: 50, risky_pool: 50 },
+          liquidityBufferRatio: 0,
+          bufferTriggerRatio: 1.5,
+          liquidityBuffer: 0,
+          vaultAllocations: { safe_savings: 150, risky_pool: 150 },
+          timestamp: 1000,
+        },
+      };
+
+      // Tick economy. The 100% sweep risk pool should get swept to 0, while the safe savings earns yield!
+      let nextState = tickEconomy(state, mockPack);
+      const ma = nextState.marginAccounts?.blood_fangs;
+
+      // risky_pool swept: 150 gold swept!
+      // safe_savings interest: 150 * 10% = 15 interest. Returned: 15 * 80% = 12 gold returned.
+      // Total collateral: 300 - 150 (swept) + 12 (yield) = 162 gold.
+      expect(ma?.collateral).toBe(162);
+      expect(ma?.vaultAllocations?.risky_pool).toBe(0); // Swept!
+      expect(JSON.stringify(nextState.journal)).toContain("swept vault RiskyPool");
+      expect(JSON.stringify(nextState.journal)).toContain("earned 15 gold passive interest");
+    });
+
+    it("should preemptively draw back collateral from high-risk vaults to prevent margin calls", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 1000 },
+        agentsInit: ["player"],
+      });
+
+      state.syndicates = {
+        blood_fangs: {
+          id: "blood_fangs",
+          name: "Blood Fangs",
+          members: ["player"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 100,
+        },
+      };
+
+      state.secondaryReserveVaults = {
+        safe_savings: {
+          vaultId: "safe_savings",
+          name: "SafeSavings",
+          interestRate: 0.0,
+          sweepRisk: 0.01,
+          timestamp: 1000,
+        },
+        risky_pool: {
+          vaultId: "risky_pool",
+          name: "RiskyPool",
+          interestRate: 0.0,
+          sweepRisk: 0.05, // High risk relatively, but low chance to sweep
+          timestamp: 1000,
+        },
+      };
+
+      // Set up CDS wrote on margin
+      state.creditDefaultSwaps = {
+        cds_margin: {
+          id: "cds_margin",
+          buyerSyndicateId: "some_buyer",
+          writerSyndicateId: "blood_fangs",
+          cdoId: "cdo_test_1",
+          trancheId: "senior",
+          notionalValue: 100,
+          premiumRate: 0.0,
+          timestamp: 1000,
+          active: true,
+          marginEnabled: true,
+        },
+      };
+
+      // Collateral = 50. Vault allocations: safe_savings = 25, risky_pool = 25
+      // Net Equity = 50.
+      // rehypothecationPremium:
+      // safe_savings (25) => 25 * (0.10 + 0.01) = 2.75 => 3
+      // risky_pool (25) => 25 * (0.10 + 0.05) = 3.75 => 4
+      // Total Premium = 7.
+      // maintenanceRequirement = 0.20 * CDS (100) + premium (7) = 27.
+      // Trigger ratio is 1.9. Trigger threshold = 27 * 1.9 = 51.3.
+      // Since Net Equity (50) <= 51.3, trigger preemptive drawback!
+      // Draw back from highest risk (risky_pool) first!
+      // risky_pool allocation goes to 0 (drew back 25).
+      // safe_savings tempPremium = 3. New maintenanceRequirement = 23.
+      // Net Equity (50) > 23 * 1.9 (43.7) => We stop and are safe!
+      state.marginAccounts = {
+        blood_fangs: {
+          syndicateId: "blood_fangs",
+          collateral: 50,
+          leveragedCDSIds: ["cds_margin"],
+          leveragedTranchePositions: {},
+          rebalancingEnabled: true,
+          vaultTargets: { safe_savings: 50, risky_pool: 50 },
+          liquidityBufferRatio: 0,
+          bufferTriggerRatio: 1.9,
+          liquidityBuffer: 0,
+          vaultAllocations: { safe_savings: 25, risky_pool: 25 },
+          timestamp: 1000,
+        },
+      };
+
+      let nextState = tickEconomy(state, mockPack);
+      const ma = nextState.marginAccounts?.blood_fangs;
+
+      // Risky pool drew back preemptively!
+      expect(ma?.vaultAllocations?.risky_pool).toBe(0);
+      expect(ma?.vaultAllocations?.safe_savings).toBe(25);
+      expect(ma?.liquidityBuffer).toBe(25);
+      expect(nextState.creditDefaultSwaps?.cds_margin?.active).toBe(true); // Saved from margin call!
+      expect(JSON.stringify(nextState.journal)).toContain("drew back 25 gold from vault risky_pool");
+    });
+
+    it("should successfully merge margin rebalancing votes using LWW", () => {
+      let stateA = createInitialState({ seed: 12345, start: "clearing" });
+      stateA.marginRebalancingPolicyVotes = {
+        blood_fangs: {
+          player: { enabled: true, vaultTargets: { safe_savings: 100 }, liquidityBufferRatio: 10, bufferTriggerRatio: 1.2, timestamp: 1500 },
+        }
+      };
+
+      let stateB = createInitialState({ seed: 12345, start: "clearing" });
+      stateB.marginRebalancingPolicyVotes = {
+        blood_fangs: {
+          player: { enabled: false, vaultTargets: { safe_savings: 50, high_yield: 50 }, liquidityBufferRatio: 20, bufferTriggerRatio: 1.5, timestamp: 1600 }, // newer
+          alice: { enabled: true, vaultTargets: { safe_savings: 100 }, liquidityBufferRatio: 10, bufferTriggerRatio: 1.2, timestamp: 1400 },
+        }
+      };
+
+      let merged = mergeMonotonicStateFields(stateA, stateB);
+      const playerVote = merged.marginRebalancingPolicyVotes?.blood_fangs?.player;
+      expect(playerVote?.enabled).toBe(false);
+      expect(playerVote?.liquidityBufferRatio).toBe(20);
+      expect(playerVote?.vaultTargets?.high_yield).toBe(50);
+      expect(merged.marginRebalancingPolicyVotes?.blood_fangs?.alice?.timestamp).toBe(1400);
+    });
+  });
 });
 

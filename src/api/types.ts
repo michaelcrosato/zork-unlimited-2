@@ -134,6 +134,8 @@ export type Action =
   | { type: "DEPOSIT_MARGIN_COLLATERAL"; syndicateId: string; amount: number; timestamp: number }
   | { type: "AUTHORIZE_MARGIN_REHYPOTHECATION"; syndicateId: string; vaultId: string; percentage: number; timestamp: number }
   | { type: "REVOKE_MARGIN_REHYPOTHECATION"; syndicateId: string; timestamp: number }
+  | { type: "SET_MARGIN_REBALANCING_POLICY"; syndicateId: string; enabled: boolean; vaultTargets: Record<string, number>; liquidityBufferRatio: number; bufferTriggerRatio: number; timestamp: number }
+  | { type: "REBALANCE_MARGIN_COLLATERAL"; syndicateId: string; timestamp: number }
   | { type: "PROPOSE_CDS_TRADE"; tradeId: string; cdsId: string; proposerSyndicateId: string; counterpartySyndicateId: string; role: "buyer" | "writer"; goldPrice: number; timestamp: number }
   | { type: "ACCEPT_CDS_TRADE"; tradeId: string; timestamp: number };
 
