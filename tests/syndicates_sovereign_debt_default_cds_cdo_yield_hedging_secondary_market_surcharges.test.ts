@@ -1078,5 +1078,182 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(postExpiryTradeLog).toBeDefined();
     expect(postExpiryTradeLog).toContain("Discounted");
   });
+
+  it("should propose, vote, and cancel surcharge panic override extension to terminate authorized override duration early (AF-257)", () => {
+    let state = setupState();
+
+    // 1. Propose spread penalty policy with surcharge faction standing discounts
+    let res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "surcharge_policy_panic_override_cancel_test",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        spreadPenaltyMultiplier: 2.0,
+        spreadPenaltyThresholdPercent: 0.20,
+        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
+        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent
+        marketMakerSurchargeAutoCompound: false,
+        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.30 }, // 30% discount for rangers
+        timestamp: 1100,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Vote to authorize spread penalty policy
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "surcharge_policy_panic_override_cancel_test",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1150,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+    pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
+
+    // Setup active default alert for target syndicate (beta)
+    state.sovereignDebtDefaultAlerts = {
+      alert_1: {
+        alertId: "alert_1",
+        targetSyndicateId: "beta",
+        status: "authorized",
+        resolved: false,
+        timestamp: 1200,
+      } as any,
+    };
+
+    // Set seller standing with rangers to 80 (allied)
+    state.factionRep = {
+      ...state.factionRep,
+      rangers: 80,
+    };
+
+    // Setup active option contract
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        coverageAmount: 1000,
+        premiumPaid: 100,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: state.step + 30,
+        timestamp: 1000,
+      },
+    };
+
+    // Create listing for the option from alpha (ask 1200 gold)
+    state.cdsCdoYieldHedgingOptionListings = {
+      listing_1: {
+        listingId: "listing_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    // Create matching bid from beta (bid 1200 gold)
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_1: {
+        bidId: "bid_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    pool!.fractionalizedVault.balance = 1500;
+
+    // 2. Propose surcharge panic override to suspend the standing-gated discount
+    res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+        proposalId: "surcharge_panic_override_test",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        panicOverrideActive: true,
+        cooldownDuration: 5,
+        timestamp: 1250,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Vote on panic override
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+        proposalId: "surcharge_panic_override_test",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1260,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Assert proposal is authorized
+    const prop = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    expect(prop).toBeDefined();
+    expect(prop!.status).toBe("authorized");
+
+    // 3. Propose override extension cancellation
+    res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
+        proposalId: "cancel_prop_1",
+        targetProposalId: "surcharge_panic_override_test",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        timestamp: 1270,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Proposing cancellation automatically registers proposer vote = true.
+    // Vote on override extension cancellation by other syndicate member (Alice) to authorize it.
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
+        proposalId: "cancel_prop_1",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1280,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Assert target proposal's override is now terminated/inactive
+    const updatedProp = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    expect(updatedProp!.cooldownEndStep).toBeUndefined();
+    expect(updatedProp!.panicOverrideActive).toBe(false);
+
+    // 4. Tick economy - standing-gated discount should be active (since override is cancelled early!)
+    const newState = tickEconomy(state, mockPack);
+
+    const tradeLog = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    expect(tradeLog).toBeDefined();
+    expect(tradeLog).toContain("Discounted");
+  });
 });
 

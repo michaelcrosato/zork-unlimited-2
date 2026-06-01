@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #253 (Ready for Cycle #254)
-* **Build/Test Status**: 🟢 PASS (All 850 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #254 (Ready for Cycle #255)
+* **Build/Test Status**: 🟢 PASS (All 851 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1635,15 +1635,20 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the cooldown check inside `tickEconomy` to respect extended panic overrides (`AF-256`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-256`).
 
+### Phase 235: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation (Completed)
+- [x] Define panic override extension cancellation proposal and voting schemas for surcharge standing discounts (`AF-257`).
+- [x] Wire the cooldown check inside `tickEconomy` to terminate panic overrides when cancellation proposals are authorized (`AF-257`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-257`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-257`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation.
-* **Why this matters**: Introduce custom voting and panic override extension cancellations specifically for dynamic MM surcharge discount/boost scaling, allowing syndicates to cancel active panic override extensions early when market recovery or partition resolution occurs ahead of schedule.
+**Task ID**: `AF-258`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period.
+* **Why this matters**: Introduce a customizable cancellation grace period, allowing syndicates to define a dynamic transition delay during which the panic override is still partially active or slowly decays before full termination.
 * **Planned Actions**:
-  1. Define panic override extension cancellation proposal and voting schemas for surcharge standing discounts.
-  2. Wire the cooldown check inside `tickEconomy` to terminate panic overrides when cancellation proposals are authorized.
+  1. Define surcharge panic override extension cancellation grace period proposal and voting schemas.
+  2. Wire the cooldown check in `tickEconomy` to process the remaining grace steps and apply a linear decay of the override restrictions.
   3. Write comprehensive Vitest unit and integration tests.
 
 ---

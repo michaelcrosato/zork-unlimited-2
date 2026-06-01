@@ -8052,9 +8052,31 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               (alert: any) => targetSyndicates.includes(alert.targetSyndicateId) && alert.status === "authorized" && !alert.resolved
             );
 
-            // Surcharge Cooldown & Panic Override check (AF-255)
+            // Surcharge Cooldown & Panic Override check (AF-255, AF-257)
+            const surchargeProposals = (newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals;
+            const surchargeCancellations = (newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals;
+            if (surchargeProposals && surchargeCancellations) {
+              for (const cancelProp of Object.values(surchargeCancellations) as any[]) {
+                if (cancelProp && cancelProp.status === "authorized" && surchargeProposals[cancelProp.targetProposalId]) {
+                  const target = surchargeProposals[cancelProp.targetProposalId];
+                  if (target && target.panicOverrideActive) {
+                    target.panicOverrideActive = false;
+                    target.cooldownEndStep = undefined;
+                  }
+                }
+              }
+            }
+
             const isPanicOverrideActive = Object.values((newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals || {}).some(
-              (prop: any) => prop.cdoId === cdoId && prop.status === "authorized" && prop.panicOverrideActive && prop.cooldownEndStep !== undefined && newState.step <= prop.cooldownEndStep
+              (prop: any) => {
+                if (prop.cdoId !== cdoId || prop.status !== "authorized" || !prop.panicOverrideActive || prop.cooldownEndStep === undefined || newState.step > prop.cooldownEndStep) {
+                  return false;
+                }
+                const hasCancellation = Object.values((newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals || {}).some(
+                  (cancel: any) => cancel.targetProposalId === prop.proposalId && cancel.status === "authorized"
+                );
+                return !hasCancellation;
+              }
             );
 
             if (alertActive && pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts && !isPanicOverrideActive) {
