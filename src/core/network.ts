@@ -180,6 +180,11 @@ export class MeshNode extends GossipNode {
   public routeRepairsSucceeded = 0;
   public packetsDroppedCount = 0;
 
+  // Sliding-window history tracker for packet deduplication
+  public processedPacketCache: Map<string, number> = new Map();
+  public deduplicationWindowMs = 5000;
+  public duplicatePacketsDroppedCount = 0;
+
   public pendingEvents: GameEvent[] = [];
 
   public flushPendingEvents(): GameEvent[] {
@@ -321,6 +326,24 @@ export class MeshNode extends GossipNode {
    * or forwarding it along the computed shortest path next hop if it's intermediate.
    */
   public receivePacket(packet: RoutedPacket): void {
+    const currentTime = this.network ? this.network.currentTimeMs : Date.now();
+
+    // Sliding-window cache pruning of expired entries
+    for (const [cachedId, ts] of this.processedPacketCache.entries()) {
+      if (currentTime - ts > this.deduplicationWindowMs) {
+        this.processedPacketCache.delete(cachedId);
+      }
+    }
+
+    // Consult the cache: silently drop duplicate packets
+    if (this.processedPacketCache.has(packet.packetId)) {
+      this.duplicatePacketsDroppedCount++;
+      return;
+    }
+
+    // Cache the packet ID
+    this.processedPacketCache.set(packet.packetId, currentTime);
+
     this.packetsReceivedCount++;
     packet.route.push(this.nodeId);
 

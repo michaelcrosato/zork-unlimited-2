@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { parse as parseYaml } from "yaml";
-import { MeshNode, MeshNetwork, NetworkDiscovery } from "../src/core/network.js";
+import { MeshNode, MeshNetwork, NetworkDiscovery, RoutedPacket } from "../src/core/network.js";
 import { computeStateHash } from "../src/core/hash.js";
 
 const packPath = fileURLToPath(new URL("../content/parser/pack/multiplayer_forest.yaml", import.meta.url));
@@ -693,6 +693,115 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     const record2 = discovery.topology.get("B")!;
     expect(record2.seq).toBe(5);
     expect(record2.lastSeen).toBe(200);
+  });
+
+  it("should prevent duplicate processing and terminate loops in circular/redundant network paths", () => {
+    // Ring topology: A - B - C - D - A
+    const net = new MeshNetwork();
+    net.minLatencyMs = 10;
+    net.maxLatencyMs = 20;
+
+    const nodeA = new MeshNode("A", pack, 42);
+    const nodeB = new MeshNode("B", pack, 42);
+    const nodeC = new MeshNode("C", pack, 42);
+    const nodeD = new MeshNode("D", pack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+    net.registerNode(nodeD);
+
+    net.connectNodes("A", "B");
+    net.connectNodes("B", "C");
+    net.connectNodes("C", "D");
+    net.connectNodes("D", "A");
+
+    // Propagate presence
+    for (let i = 0; i < 10; i++) {
+      net.tick(50);
+    }
+
+    // Reset counters to start clean
+    for (const node of [nodeA, nodeB, nodeC, nodeD]) {
+      node.packetsReceivedCount = 0;
+      node.duplicatePacketsDroppedCount = 0;
+      node.processedPacketCache.clear();
+    }
+
+    // Forgery of a routed packet with a specific ID
+    const packetId = "gossip-loop-test-123";
+    const packet: RoutedPacket = {
+      packetId,
+      sourceId: "A",
+      destinationId: "C",
+      ttl: 15,
+      type: "gossip",
+      payload: nodeA.generateGossipMessageFor("C"),
+      route: ["A"],
+    };
+
+    // Deliver the exact same packet to B multiple times
+    nodeB.receivePacket(packet);
+    nodeB.receivePacket(packet);
+    nodeB.receivePacket(packet);
+
+    // B should have received it once, and dropped the other 2 times
+    expect(nodeB.packetsReceivedCount).toBe(1);
+    expect(nodeB.duplicatePacketsDroppedCount).toBe(2);
+
+    // The packet was forwarded from B to C. Let's tick the network to let it deliver.
+    net.tick(50);
+
+    // Now if C receives it, it gets processed once
+    expect(nodeC.packetsReceivedCount).toBeGreaterThanOrEqual(1);
+
+    // If we send it again directly to C, C should drop it
+    const initialReceived = nodeC.packetsReceivedCount;
+    const initialDropped = nodeC.duplicatePacketsDroppedCount;
+    
+    nodeC.receivePacket(packet);
+    expect(nodeC.packetsReceivedCount).toBe(initialReceived);
+    expect(nodeC.duplicatePacketsDroppedCount).toBe(initialDropped + 1);
+  });
+
+  it("should respect the sliding window expiration threshold in the deduplication cache", () => {
+    const net = new MeshNetwork();
+    const node = new MeshNode("A", pack, 42);
+    net.registerNode(node);
+
+    node.deduplicationWindowMs = 100; // 100ms window
+
+    const packet: RoutedPacket = {
+      packetId: "temp-packet-999",
+      sourceId: "B",
+      destinationId: "A",
+      ttl: 5,
+      type: "gossip",
+      payload: {
+        senderId: "B",
+        vectorClock: {},
+        transactions: [],
+      },
+      route: ["B"],
+    };
+
+    // Receive the packet first time
+    node.receivePacket(packet);
+    expect(node.packetsReceivedCount).toBe(1);
+    expect(node.duplicatePacketsDroppedCount).toBe(0);
+
+    // Receive again immediately (within window) -> dropped
+    node.receivePacket(packet);
+    expect(node.packetsReceivedCount).toBe(1);
+    expect(node.duplicatePacketsDroppedCount).toBe(1);
+
+    // Advance network time (simulating physical clock tick) past the deduplication window
+    net.tick(150); // currentTime = 150ms > 100ms
+
+    // Receive again -> should process again because the previous entry has expired!
+    node.receivePacket(packet);
+    expect(node.packetsReceivedCount).toBe(2);
+    expect(node.duplicatePacketsDroppedCount).toBe(1); // duplicate count stays at 1
   });
 });
 

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #19 (Ready for Cycle #20)
-* **Build/Test Status**: 🟢 PASS (All 96 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #20 (Ready for Cycle #21)
+* **Build/Test Status**: 🟢 PASS (All 98 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -97,16 +97,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Recalculate routing tables upon garbage collection and assert dynamic route adjustment under silent node failures (`AF-19`).
 - [x] Write robust unit tests verifying stale node pruning, timestamp tracking, and duplicate/older sequence updates (`AF-19`).
 
+### Phase 15: Gossip / Mesh Packet Deduplication & Loop Prevention (Completed)
+- [x] Add a `processedPacketCache` to `MeshNode` with sliding window cleanup (`AF-20`).
+- [x] Modify `receivePacket` to drop duplicate packets based on packet ID (`AF-20`).
+- [x] Write comprehensive unit tests simulating redundant/circular network paths and sliding window expiration (`AF-20`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-20`
-* **Objective**: Design and implement a dynamic packet deduplication and sliding-window history tracker for `MeshNode` to prevent redundant processing and loop propagation of gossip or presence packets in dense mesh networks.
-* **Why this matters**: In highly redundant mesh topologies, flooding and multi-hop routing can cause nodes to process and forward duplicate packets, leading to exponential packet amplification, heavy memory usage, and infinite routing loops.
+**Task ID**: `AF-21`
+* **Objective**: Design and implement a differential compression and run-length encoding (RLE) gossip delta-state synchronizer to minimize packet size when transmitting high-volume state journals and transition records.
+* **Why this matters**: In large cooperative campaigns or prolonged multi-agent play sessions, the accumulation of transactions and state journal history logs can result in highly oversized packets, consuming excessive bandwidth, inducing packet drops under congestion, and slowing down eventual state convergence.
 * **Planned Actions**:
-  1. Add a `processedPacketCache` to `MeshNode` (storing recent `packetId` strings mapped to their processing timestamp, with a sliding expiration threshold).
-  2. Modify `receivePacket` to consult the cache first, silently dropping duplicate packets and preventing their forwarding or reprocessing.
-  3. Write comprehensive unit tests simulating circular network paths and high flooding packet depth to assert perfect packet deduplication and loop termination.
+  1. Design a lightweight serialization and compression protocol (`compressStateDiff`) that only transmits sequence-number-filtered delta records and encodes repetitive string sequences.
+  2. Implement local node caching of recently sent delta packets to avoid generating redundant updates.
+  3. Write comprehensive unit and integration tests asserting packet payload reduction and seamless state convergence post-compression.
 
 ---
 
