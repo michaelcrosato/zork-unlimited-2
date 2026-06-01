@@ -1464,6 +1464,57 @@ export const CrossMeshBridgeLoanSchema = z.object({
 });
 export type CrossMeshBridgeLoan = z.infer<typeof CrossMeshBridgeLoanSchema>;
 
+export const SovereignWealthFundSchema = z.object({
+  id: z.string(),
+  syndicates: z.record(z.string(), z.number().int().nonnegative()),
+  totalReserves: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SovereignWealthFund = z.infer<typeof SovereignWealthFundSchema>;
+
+export const JointVenturePortfolioSchema = z.object({
+  id: z.string(),
+  fundId: z.string(),
+  targetType: z.enum(["FactionBond", "ArbitrageRoute"]),
+  targetId: z.string(),
+  investedAmount: z.number().int().nonnegative(),
+  yieldRate: z.number(),
+  status: z.enum(["Active", "Closed"]),
+  timestamp: z.number().int(),
+});
+export type JointVenturePortfolio = z.infer<typeof JointVenturePortfolioSchema>;
+
+export const SovereignWealthFundProposalSchema = z.object({
+  id: z.string(),
+  fundId: z.string(),
+  syndicateId: z.string(),
+  amount: z.number().int().positive(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignWealthFundProposal = z.infer<typeof SovereignWealthFundProposalSchema>;
+
+export const JointVentureInvestmentProposalSchema = z.object({
+  id: z.string(),
+  fundId: z.string(),
+  proposerSyndicateId: z.string(),
+  targetType: z.enum(["FactionBond", "ArbitrageRoute"]),
+  targetId: z.string(),
+  amount: z.number().int().positive(),
+  yieldRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type JointVentureInvestmentProposal = z.infer<typeof JointVentureInvestmentProposalSchema>;
+
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
   totalLocked: z.number().int().nonnegative(),
@@ -1862,6 +1913,10 @@ export const GameStateSchema = z.object({
   stabilizationTransferVotes: z.record(z.string(), z.record(z.string(), StabilizationTransferVoteSchema)).optional(),
   crossMeshBridgeProposals: z.record(z.string(), CrossMeshBridgeProposalSchema).optional(),
   crossMeshBridgeLoans: z.record(z.string(), CrossMeshBridgeLoanSchema).optional(),
+  sovereignWealthFunds: z.record(z.string(), SovereignWealthFundSchema).optional(),
+  jointVenturePortfolios: z.record(z.string(), JointVenturePortfolioSchema).optional(),
+  sovereignWealthFundProposals: z.record(z.string(), SovereignWealthFundProposalSchema).optional(),
+  jointVentureInvestmentProposals: z.record(z.string(), JointVentureInvestmentProposalSchema).optional(),
 });
 
 
@@ -2083,6 +2138,10 @@ export const createInitialState = (options: {
     stabilizationTransferVotes: {},
     crossMeshBridgeProposals: {},
     crossMeshBridgeLoans: {},
+    sovereignWealthFunds: {},
+    jointVenturePortfolios: {},
+    sovereignWealthFundProposals: {},
+    jointVentureInvestmentProposals: {},
   };
 };
 
@@ -2898,6 +2957,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     stabilizationTransferVotes: rest.stabilizationTransferVotes ? JSON.parse(JSON.stringify(rest.stabilizationTransferVotes)) : undefined,
     crossMeshBridgeProposals: rest.crossMeshBridgeProposals ? JSON.parse(JSON.stringify(rest.crossMeshBridgeProposals)) : undefined,
     crossMeshBridgeLoans: rest.crossMeshBridgeLoans ? JSON.parse(JSON.stringify(rest.crossMeshBridgeLoans)) : undefined,
+    sovereignWealthFunds: rest.sovereignWealthFunds ? JSON.parse(JSON.stringify(rest.sovereignWealthFunds)) : undefined,
+    jointVenturePortfolios: rest.jointVenturePortfolios ? JSON.parse(JSON.stringify(rest.jointVenturePortfolios)) : undefined,
+    sovereignWealthFundProposals: rest.sovereignWealthFundProposals ? JSON.parse(JSON.stringify(rest.sovereignWealthFundProposals)) : undefined,
+    jointVentureInvestmentProposals: rest.jointVentureInvestmentProposals ? JSON.parse(JSON.stringify(rest.jointVentureInvestmentProposals)) : undefined,
   };
   return clone;
 }
@@ -6979,6 +7042,158 @@ export function reconcileCrossMeshBridges(state: GameState, pack: any): GameStat
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[Bridge Loan Resolution Failed] Lender Syndicate ${lenderSyndicateId} has insufficient reserves (${lenderGold} < ${amount}) to resolve proposal ${proposalId}.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignWealthFunds(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignWealthFundProposals: state.sovereignWealthFundProposals ? { ...state.sovereignWealthFundProposals } : {},
+    sovereignWealthFunds: state.sovereignWealthFunds ? { ...state.sovereignWealthFunds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sovereignWealthFundProposals || {})) {
+    const proposal = newState.sovereignWealthFundProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { fundId, syndicateId, amount, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    const votes = proposal.votes || {};
+
+    const yesVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    // Majority check of the proposing syndicate members
+    if (yesVotes.length > members.length / 2) {
+      const syndicateGold = syndicate.warChest ?? 0;
+      if (syndicateGold >= amount) {
+        // Resolve proposal
+        newState.sovereignWealthFundProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        // Deduct from syndicate warChest
+        syndicate.warChest = syndicateGold - amount;
+
+        // Establish or update SWF
+        if (!newState.sovereignWealthFunds[fundId]) {
+          newState.sovereignWealthFunds[fundId] = {
+            id: fundId,
+            syndicates: {},
+            totalReserves: 0,
+            timestamp,
+          };
+        } else {
+          newState.sovereignWealthFunds[fundId] = {
+            ...newState.sovereignWealthFunds[fundId],
+            syndicates: { ...newState.sovereignWealthFunds[fundId].syndicates },
+          };
+        }
+
+        const fund = newState.sovereignWealthFunds[fundId];
+        fund.syndicates[syndicateId] = (fund.syndicates[syndicateId] || 0) + amount;
+        fund.totalReserves += amount;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reserve Pooled] Sovereign wealth fund ${fundId} received contribution of ${amount} gold from syndicate ${syndicateId}. Total reserves: ${fund.totalReserves} gold.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Pooling Failed] Syndicate ${syndicateId} has insufficient reserves (${syndicateGold} < ${amount}) to resolve proposal ${proposalId}.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileJointVentureInvestments(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    jointVentureInvestmentProposals: state.jointVentureInvestmentProposals ? { ...state.jointVentureInvestmentProposals } : {},
+    jointVenturePortfolios: state.jointVenturePortfolios ? { ...state.jointVenturePortfolios } : {},
+    sovereignWealthFunds: state.sovereignWealthFunds ? { ...state.sovereignWealthFunds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.jointVentureInvestmentProposals || {})) {
+    const proposal = newState.jointVentureInvestmentProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { fundId, targetType, targetId, amount, yieldRate, timestamp } = proposal;
+    const fund = newState.sovereignWealthFunds?.[fundId];
+    if (!fund) continue;
+
+    // Check consensus: requires majority approval from each participating syndicate in the SWF!
+    const participatingSyndicateIds = Object.keys(fund.syndicates);
+    if (participatingSyndicateIds.length === 0) continue;
+
+    let allSyndicatesApproved = true;
+    const votes = proposal.votes || {};
+
+    for (const syndicateId of participatingSyndicateIds) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) {
+        allSyndicatesApproved = false;
+        break;
+      }
+      const members = syndicate.members;
+      const yesVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length <= members.length / 2) {
+        allSyndicatesApproved = false;
+        break;
+      }
+    }
+
+    if (allSyndicatesApproved) {
+      const fundReserves = fund.totalReserves;
+      if (fundReserves >= amount) {
+        // Resolve proposal
+        newState.jointVentureInvestmentProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        // Deduct from fund reserves
+        fund.totalReserves = fundReserves - amount;
+
+        // Establish joint venture portfolio investment
+        newState.jointVenturePortfolios[proposalId] = {
+          id: proposalId,
+          fundId,
+          targetType,
+          targetId,
+          investedAmount: amount,
+          yieldRate,
+          status: "Active" as const,
+          timestamp,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[JV Investment Active] Established joint-venture investment ${proposalId} from fund ${fundId} in ${targetType} on ${targetId} for ${amount} gold at yield rate ${yieldRate}%.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[JV Investment Failed] SWF ${fundId} has insufficient reserves (${fundReserves} < ${amount}) to resolve proposal ${proposalId}.`
         );
       }
     }

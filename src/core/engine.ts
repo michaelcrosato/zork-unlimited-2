@@ -2435,6 +2435,78 @@ export function tickProductionLabs(
     newState.reserveSweepPolicies = updatedSweepPolicies;
   }
 
+  // Periodic Sovereign Wealth Fund / Joint-Venture Portfolios yields and dividends (AF-128)
+  if (newState.jointVenturePortfolios && Object.keys(newState.jointVenturePortfolios).length > 0) {
+    const updatedPortfolios = { ...newState.jointVenturePortfolios };
+    const updatedFunds = newState.sovereignWealthFunds ? { ...newState.sovereignWealthFunds } : {};
+    const updatedSyndicates = { ...(newState.syndicates || {}) };
+    const updatedFactionReserves = { ...(newState.factionReservePools || {}) };
+    let portfoliosChanged = false;
+
+    for (const [portfolioId, portfolio] of Object.entries(updatedPortfolios)) {
+      if (portfolio.status === "Active") {
+        const fund = updatedFunds[portfolio.fundId];
+        if (!fund) continue;
+
+        // Calculate total contributions to determine fractions
+        let totalContributed = 0;
+        for (const amt of Object.values(fund.syndicates)) {
+          totalContributed += amt;
+        }
+
+        if (totalContributed <= 0) continue;
+
+        // Determine yield payout
+        let yieldAmount = Math.floor(portfolio.investedAmount * (portfolio.yieldRate / 100));
+
+        if (portfolio.targetType === "FactionBond") {
+          const factionId = portfolio.targetId;
+          const factionGold = updatedFactionReserves[factionId] ?? 10000;
+          if (factionGold < yieldAmount) {
+            yieldAmount = factionGold;
+          }
+          if (yieldAmount > 0) {
+            updatedFactionReserves[factionId] = factionGold - yieldAmount;
+          }
+        }
+
+        if (yieldAmount > 0) {
+          // Distribute fractional dividends to syndicates
+          for (const [syndicateId, contribution] of Object.entries(fund.syndicates)) {
+            const syndicate = updatedSyndicates[syndicateId];
+            if (!syndicate) continue;
+
+            const factionShare = contribution / totalContributed;
+            const dividend = Math.floor(yieldAmount * factionShare);
+
+            if (dividend > 0) {
+              syndicate.warChest = (syndicate.warChest ?? 0) + dividend;
+              
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[JV Dividend Paid] Syndicate ${syndicateId} received fractional dividend of ${dividend} gold from joint-venture ${portfolioId} (${(factionShare * 100).toFixed(1)}% share).`
+              );
+            }
+          }
+
+          events.push({
+            type: "narration",
+            text: `📈 [JV Investment Yield] Joint-venture portfolio ${portfolioId} (${portfolio.targetType} on ${portfolio.targetId}) generated ${yieldAmount} gold in yields, distributed to SWF ${portfolio.fundId} syndicates.`,
+          } as any);
+
+          portfoliosChanged = true;
+        }
+      }
+    }
+
+    if (portfoliosChanged) {
+      newState.jointVenturePortfolios = updatedPortfolios;
+      newState.sovereignWealthFunds = updatedFunds;
+      newState.syndicates = updatedSyndicates;
+      newState.factionReservePools = updatedFactionReserves;
+    }
+  }
+
   if (!state.productionLabs || Object.keys(state.productionLabs).length === 0) {
     if (heatChanged) {
       newState.enforcementHeat = updatedHeat;
