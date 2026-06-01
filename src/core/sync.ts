@@ -33678,7 +33678,7 @@ export function multiAgentStep(
 
   // Handle ADJUST_SWF_REINSURANCE_OPTION_MARGIN action (AF-170)
   if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_MARGIN") {
-    const { syndicateId, swfYieldCdoId, trancheId, liquidationThreshold, penaltyRate, autoDeleveragingThreshold, marginDeflectionFactor, timestamp } = action as any;
+    const { syndicateId, swfYieldCdoId, trancheId, liquidationThreshold, penaltyRate, autoDeleveragingThreshold, marginDeflectionFactor, compoundingFactor, compoundingYieldRate, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -33700,6 +33700,10 @@ export function multiAgentStep(
       rejectionReason = `Auto-deleveraging threshold must be non-negative.`;
     } else if (marginDeflectionFactor !== undefined && marginDeflectionFactor < 0) {
       rejectionReason = `Margin deflection factor must be non-negative.`;
+    } else if (compoundingFactor !== undefined && (compoundingFactor < 0 || compoundingFactor > 1)) {
+      rejectionReason = `Compounding factor must be between 0 and 1.`;
+    } else if (compoundingYieldRate !== undefined && compoundingYieldRate < 0) {
+      rejectionReason = `Compounding yield rate must be non-negative.`;
     } else if (!syndicate) {
       rejectionReason = `Syndicate ${syndicateId} does not exist.`;
     } else if (!cdo) {
@@ -33725,6 +33729,8 @@ export function multiAgentStep(
         penaltyRate,
         autoDeleveragingThreshold,
         marginDeflectionFactor,
+        compoundingFactor,
+        compoundingYieldRate,
         timestamp,
       };
       newState.adjustSWFReinsuranceOptionMarginVotes = adjustSWFReinsuranceOptionMarginVotes;
@@ -33737,7 +33743,7 @@ export function multiAgentStep(
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
-        `[SWF Reinsurance Option Margin Vote] Agent ${agentId} voted to adjust margin for CDO ${swfYieldCdoId} tranche ${trancheId} to Threshold: ${liquidationThreshold.toFixed(4)}, Penalty: ${penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(marginDeflectionFactor ?? 0.5).toFixed(2)} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
+        `[SWF Reinsurance Option Margin Vote] Agent ${agentId} voted to adjust margin for CDO ${swfYieldCdoId} tranche ${trancheId} to Threshold: ${liquidationThreshold.toFixed(4)}, Penalty: ${penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(marginDeflectionFactor ?? 0.5).toFixed(2)}, Compounding Factor: ${(compoundingFactor ?? 0.0).toFixed(2)}, Compounding Yield Rate: ${(compoundingYieldRate ?? 0.0).toFixed(2)} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
       );
 
       customEvents.push({

@@ -1862,6 +1862,7 @@ export const MarginAccountSchema = z.object({
   swfBondArbitrageTargetPools: z.array(z.string()).optional(),
   swfBondArbitrageMaxCapital: z.number().int().nonnegative().optional(),
   swfBondArbitrageMinYieldSpread: z.number().nonnegative().optional(),
+  swfReinsuranceOptionVault: z.number().int().nonnegative().optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -2136,6 +2137,8 @@ export const SWFReinsuranceOptionContractSchema = z.object({
   size: z.number().int().positive(),
   timestamp: z.number().int(),
   active: z.boolean(),
+  premiumPaid: z.number().int().nonnegative().optional(),
+  premiumCompounded: z.boolean().optional(),
 });
 export type SWFReinsuranceOptionContract = z.infer<typeof SWFReinsuranceOptionContractSchema>;
 
@@ -2227,6 +2230,8 @@ export const SWFReinsuranceOptionMarginPolicySchema = z.object({
   timestamp: z.number().int(),
   autoDeleveragingThreshold: z.number().nonnegative().optional(),
   marginDeflectionFactor: z.number().nonnegative().optional(),
+  compoundingFactor: z.number().nonnegative().optional(),
+  compoundingYieldRate: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginPolicy = z.infer<typeof SWFReinsuranceOptionMarginPolicySchema>;
 
@@ -2238,6 +2243,8 @@ export const SWFReinsuranceOptionMarginVoteSchema = z.object({
   timestamp: z.number().int(),
   autoDeleveragingThreshold: z.number().nonnegative().optional(),
   marginDeflectionFactor: z.number().nonnegative().optional(),
+  compoundingFactor: z.number().nonnegative().optional(),
+  compoundingYieldRate: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginVote = z.infer<typeof SWFReinsuranceOptionMarginVoteSchema>;
 
@@ -12081,6 +12088,7 @@ export function reconcileSWFReinsuranceOptionsSales(state: GameState, pack: any)
                 size: listing.size,
                 timestamp,
                 active: true,
+                premiumPaid: finalPrice,
               };
 
               // Transfer gold
@@ -12520,13 +12528,15 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
       penaltyRate: number;
       autoDeleveragingThreshold?: number;
       marginDeflectionFactor?: number;
+      compoundingFactor?: number;
+      compoundingYieldRate?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
       if (syndicate.members.includes(voterId)) {
-        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}`;
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}::${vote.compoundingFactor ?? 0}::${vote.compoundingYieldRate ?? 0}`;
         if (!voteGroups[key]) {
           voteGroups[key] = {
             swfYieldCdoId: vote.swfYieldCdoId,
@@ -12535,6 +12545,8 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
             penaltyRate: vote.penaltyRate,
             autoDeleveragingThreshold: vote.autoDeleveragingThreshold,
             marginDeflectionFactor: vote.marginDeflectionFactor,
+            compoundingFactor: vote.compoundingFactor,
+            compoundingYieldRate: vote.compoundingYieldRate,
             voters: new Set<string>(),
             timestamps: [],
           };
@@ -12554,6 +12566,8 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
           penaltyRate: group.penaltyRate,
           autoDeleveragingThreshold: group.autoDeleveragingThreshold,
           marginDeflectionFactor: group.marginDeflectionFactor,
+          compoundingFactor: group.compoundingFactor,
+          compoundingYieldRate: group.compoundingYieldRate,
           timestamp: Math.max(...group.timestamps, newState.step),
         };
 
@@ -12561,7 +12575,7 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
 
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
-          `[SWF Reinsurance Option Margin Policy Adjusted] Syndicate ${syndicateId} adjusted margin policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Liquidation Threshold: ${group.liquidationThreshold.toFixed(4)}, Penalty Rate: ${group.penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(group.autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(group.marginDeflectionFactor ?? 0.5).toFixed(2)}).`
+          `[SWF Reinsurance Option Margin Policy Adjusted] Syndicate ${syndicateId} adjusted margin policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Liquidation Threshold: ${group.liquidationThreshold.toFixed(4)}, Penalty Rate: ${group.penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(group.autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(group.marginDeflectionFactor ?? 0.5).toFixed(2)}, Compounding Factor: ${(group.compoundingFactor ?? 0.0).toFixed(2)}, Compounding Yield Rate: ${(group.compoundingYieldRate ?? 0.0).toFixed(2)}).`
         );
       }
     }

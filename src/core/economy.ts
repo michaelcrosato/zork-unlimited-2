@@ -3945,6 +3945,95 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   if (newState.marginAccounts && Object.keys(newState.marginAccounts).length > 0) {
     newState.marginAccounts = { ...newState.marginAccounts };
     for (const [syndicateId, marginAccount] of Object.entries(newState.marginAccounts)) {
+      // AF-171: Reinsurance Options Premium Auto-Compounding & Secondary Liquidity Vault Interest Ticks
+      const compoundingSyndicate = newState.syndicates?.[syndicateId];
+      if (compoundingSyndicate) {
+        // 1. Periodic Premium Auto-Compounding
+        if (newState.swfReinsuranceOptionsContracts) {
+          newState.swfReinsuranceOptionsContracts = { ...newState.swfReinsuranceOptionsContracts };
+          for (const [optId, opt] of Object.entries(newState.swfReinsuranceOptionsContracts)) {
+            if (opt.active && opt.writerSyndicateId === syndicateId && !opt.premiumCompounded) {
+              const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
+              const policy = newState.swfReinsuranceOptionMarginPolicies?.[policyKey];
+              if (policy && policy.compoundingFactor !== undefined && policy.compoundingFactor > 0) {
+                const premium = opt.premiumPaid ?? Math.floor(opt.size * getCDOTrancheReinsurancePremiumRate(newState, opt.swfYieldCdoId, opt.trancheId) * 100);
+                const compoundAmount = Math.floor(premium * policy.compoundingFactor);
+                const actualCompound = Math.min(compoundAmount, compoundingSyndicate.warChest ?? 0);
+                if (actualCompound > 0) {
+                  compoundingSyndicate.warChest = (compoundingSyndicate.warChest ?? 0) - actualCompound;
+                  marginAccount.swfReinsuranceOptionVault = (marginAccount.swfReinsuranceOptionVault ?? 0) + actualCompound;
+                  marginAccount.timestamp = newState.step;
+                  
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[SWF Reinsurance Premium Auto-Compounding] Routed ${actualCompound} gold (factor ${(policy.compoundingFactor * 100).toFixed(0)}%) of premium ${premium} gold from written option ${opt.id} to interest-bearing vault for Syndicate ${syndicateId}.`
+                  );
+                }
+              }
+              // Mark as compounded (even if actual compound was 0 due to no warChest) so we don't try again
+              newState.swfReinsuranceOptionsContracts[optId] = {
+                ...opt,
+                premiumCompounded: true,
+              };
+            }
+          }
+        }
+
+        // 2. Secondary Vault Interest Accruals (during normal network operations)
+        const writtenOpts = Object.values(newState.swfReinsuranceOptionsContracts || {}).filter(opt => opt.active && opt.writerSyndicateId === syndicateId);
+        if (writtenOpts.length > 0 && (marginAccount.swfReinsuranceOptionVault ?? 0) > 0) {
+          let maxYieldRate = 0.0;
+          let isNormal = true;
+          for (const opt of writtenOpts) {
+            const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
+            const policy = newState.swfReinsuranceOptionMarginPolicies?.[policyKey];
+            if (policy) {
+              if (policy.compoundingYieldRate !== undefined) {
+                maxYieldRate = Math.max(maxYieldRate, policy.compoundingYieldRate);
+              }
+              
+              // Calculate linkStateDropRate for this specific option
+              let poolLinkStateDropRate = 0.0;
+              if (newState.swfMultiFundReinsurancePools) {
+                const cdo = newState.swfYieldCDOs?.[opt.swfYieldCdoId];
+                const creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
+                for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+                  if (pool.linkStateDropRate !== undefined && creatorSyndicateId && pool.syndicateIds.includes(creatorSyndicateId)) {
+                    poolLinkStateDropRate = Math.max(poolLinkStateDropRate, pool.linkStateDropRate);
+                  }
+                }
+              }
+              let optLinkStateDropRate = poolLinkStateDropRate;
+              if (optLinkStateDropRate === 0.0 && newState.swfMultiFundReinsurancePools) {
+                for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+                  if (pool.linkStateDropRate !== undefined) {
+                    optLinkStateDropRate = Math.max(optLinkStateDropRate, pool.linkStateDropRate);
+                  }
+                }
+              }
+              const threshold = policy.autoDeleveragingThreshold ?? 0.3;
+              if (optLinkStateDropRate >= threshold) {
+                isNormal = false;
+              }
+            }
+          }
+
+          if (isNormal && maxYieldRate > 0) {
+            const interest = Math.floor((marginAccount.swfReinsuranceOptionVault ?? 0) * maxYieldRate);
+            if (interest > 0) {
+              const oldVal = marginAccount.swfReinsuranceOptionVault ?? 0;
+              marginAccount.swfReinsuranceOptionVault = oldVal + interest;
+              marginAccount.timestamp = newState.step;
+              
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[SWF Reinsurance Vault Interest] Syndicate ${syndicateId} earned ${interest} gold interest on reinsurance vault balance ${oldVal} gold (Yield Rate: ${(maxYieldRate * 100).toFixed(1)}%).`
+              );
+            }
+          }
+        }
+      }
+
       // AF-144: Volatility-Hedged Reserve Buffer Automated Adjustment
       const bufferPolicy = newState.volatilityHedgedReserveBuffers?.[syndicateId];
       if (bufferPolicy) {
@@ -5472,8 +5561,43 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
-      // Capital Safeguard Reserve Payback to prevent margin call liquidations (AF-163)
+      // Secondary Reinsurance Option Vault instant withdrawal under margin calls (AF-171)
       const requiredDynamicBuffer = Math.round(aggregatePendingValue * 0.20);
+      if ((netEquity < maintenanceRequirement || (aggregatePendingValue > 0 && (syndicate?.warChest ?? 0) < requiredDynamicBuffer)) && (marginAccount.swfReinsuranceOptionVault ?? 0) > 0) {
+        let needed = 0;
+        if (netEquity < maintenanceRequirement) {
+          needed = maintenanceRequirement - netEquity;
+        } else if (aggregatePendingValue > 0 && (syndicate?.warChest ?? 0) < requiredDynamicBuffer) {
+          needed = requiredDynamicBuffer - (syndicate?.warChest ?? 0);
+        }
+
+        if (needed > 0) {
+          const oldVaultVal = marginAccount.swfReinsuranceOptionVault ?? 0;
+          const payback = Math.min(needed, oldVaultVal);
+          marginAccount.swfReinsuranceOptionVault = oldVaultVal - payback;
+          marginAccount.timestamp = newState.step;
+
+          if (netEquity < maintenanceRequirement) {
+            marginAccount.collateral = (marginAccount.collateral ?? 0) + payback;
+            netEquity += payback;
+            
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Reinsurance Option Vault Margin Deficit Payback] Withdrew ${payback} gold from secondary reinsurance option vault to margin collateral for Syndicate ${syndicateId} to prevent margin call liquidation (Vault remaining: ${marginAccount.swfReinsuranceOptionVault} gold).`
+            );
+          } else if (aggregatePendingValue > 0 && (syndicate?.warChest ?? 0) < requiredDynamicBuffer) {
+            if (syndicate) {
+              syndicate.warChest = (syndicate.warChest ?? 0) + payback;
+            }
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Reinsurance Option Vault Buffer Deficit Payback] Withdrew ${payback} gold from secondary reinsurance option vault to war chest for Syndicate ${syndicateId} to maintain dynamic reserve buffer (Vault remaining: ${marginAccount.swfReinsuranceOptionVault} gold).`
+            );
+          }
+        }
+      }
+
+      // Capital Safeguard Reserve Payback to prevent margin call liquidations (AF-163)
       if ((netEquity < maintenanceRequirement || (aggregatePendingValue > 0 && (syndicate?.warChest ?? 0) < requiredDynamicBuffer)) && newState.swfSafeguardCapitalReserves) {
         for (const [safeguardKey, safeguard] of Object.entries(newState.swfSafeguardCapitalReserves)) {
           if (safeguard.syndicateId === syndicateId && safeguard.lockedGold > 0) {
@@ -7101,6 +7225,7 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
             size: executedSize, // scaled size!
             timestamp: newState.step,
             active: true,
+            premiumPaid: finalPrice,
           };
         }
 
@@ -7223,6 +7348,7 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
                 size: matchedSize,
                 timestamp: newState.step,
                 active: true,
+                premiumPaid: totalOrderPrice,
               };
 
               // Transfer gold
@@ -7277,6 +7403,7 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
                       size: matchedSize,
                       timestamp: newState.step,
                       active: true,
+                      premiumPaid: totalOrderPrice,
                     };
                   }
 
