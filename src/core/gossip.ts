@@ -1972,6 +1972,57 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge factionSponsorProposals using LWW (Last-Write-Wins)
+  const factionSponsorProposals = { ...stateA.factionSponsorProposals };
+  if (stateB.factionSponsorProposals) {
+    for (const [propId, propB] of Object.entries(stateB.factionSponsorProposals)) {
+      const propA = factionSponsorProposals[propId];
+      if (!propA) {
+        factionSponsorProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          factionSponsorProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          factionSponsorProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
+  // Merge factionSponsorPolicies using LWW (Last-Write-Wins)
+  const factionSponsorPolicies = { ...stateA.factionSponsorPolicies };
+  if (stateB.factionSponsorPolicies) {
+    for (const [syndId, bInner] of Object.entries(stateB.factionSponsorPolicies)) {
+      if (!factionSponsorPolicies[syndId]) {
+        factionSponsorPolicies[syndId] = { ...bInner };
+      } else {
+        const aInner = { ...factionSponsorPolicies[syndId] };
+        for (const [vaultId, policyB] of Object.entries(bInner)) {
+          const policyA = aInner[vaultId];
+          if (!policyA || policyB.timestamp > policyA.timestamp) {
+            aInner[vaultId] = policyB;
+          }
+        }
+        factionSponsorPolicies[syndId] = aInner;
+      }
+    }
+  }
+
   // Merge creditDefaultSwapVotes using LWW (Last-Write-Wins)
   const creditDefaultSwapVotes = { ...stateA.creditDefaultSwapVotes };
   if (stateB.creditDefaultSwapVotes) {
@@ -2160,6 +2211,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     marginRehypothecationVotes,
     marginRehypothecationRevokeVotes,
     marginRebalancingPolicyVotes,
+    factionSponsorProposals,
+    factionSponsorPolicies,
   };
 }
 

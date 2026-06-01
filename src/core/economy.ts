@@ -3137,6 +3137,14 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
                   const totalLocked = activeLocks.reduce((sum, p) => sum + p.amount, 0);
 
+                  const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[vaultId];
+                  let effectiveInterestRate = vault.interestRate;
+                  if (sponsorPolicy) {
+                    const factionRep = newState.factionRep?.[sponsorPolicy.factionId] ?? 0;
+                    const repBoost = factionRep > 0 ? (factionRep * 0.005) : 0;
+                    effectiveInterestRate = vault.interestRate * (1.0 + repBoost + (sponsorPolicy.rewardRate * 0.2));
+                  }
+
                   if (totalLocked > 0 && allocatedAmount > 0) {
                     let lockedInterestSum = 0;
                     for (const lock of activeLocks) {
@@ -3145,13 +3153,14 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                       const lockAllocated = Math.min(lock.amount, Math.floor(allocatedAmount * shareFraction));
                       
                       const yieldMultiplier = 1.0 + (lock.durationEpochs * 0.1);
-                      const lockInterest = Math.floor(lockAllocated * vault.interestRate * yieldMultiplier);
+                      const lockInterest = Math.floor(lockAllocated * effectiveInterestRate * yieldMultiplier);
                       lockedInterestSum += lockInterest;
 
                       // Passive reputation accrual with reputation multiplier (e.g. 1.0 + durationEpochs * 0.1)
                       const repMultiplier = 1.0 + (lock.durationEpochs * 0.1);
                       const baseRepAccrual = 1;
-                      const repAccrued = Math.max(1, Math.round(baseRepAccrual * repMultiplier));
+                      const sponsorRepBonus = sponsorPolicy ? (1.0 + sponsorPolicy.rewardRate) : 1.0;
+                      const repAccrued = Math.max(1, Math.round(baseRepAccrual * repMultiplier * sponsorRepBonus));
                       
                       if (!newState.factionRep) newState.factionRep = {};
                       newState.factionRep[lock.factionId] = (newState.factionRep[lock.factionId] ?? 0) + repAccrued;
@@ -3162,10 +3171,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                       );
                     }
                     const unlockedAmount = Math.max(0, allocatedAmount - totalLocked);
-                    const unlockedInterest = Math.floor(unlockedAmount * vault.interestRate);
+                    const unlockedInterest = Math.floor(unlockedAmount * effectiveInterestRate);
                     interest = Math.max(1, lockedInterestSum + unlockedInterest);
                   } else {
-                    interest = Math.max(1, Math.floor(allocatedAmount * vault.interestRate));
+                    interest = Math.max(1, Math.floor(allocatedAmount * effectiveInterestRate));
                   }
                 }
                 if (interest > 0) {
@@ -3222,6 +3231,14 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
                   const totalLocked = activeLocks.reduce((sum, p) => sum + p.amount, 0);
 
+                  const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[vaultId];
+                  let effectiveInterestRate = vault.interestRate;
+                  if (sponsorPolicy) {
+                    const factionRep = newState.factionRep?.[sponsorPolicy.factionId] ?? 0;
+                    const repBoost = factionRep > 0 ? (factionRep * 0.005) : 0;
+                    effectiveInterestRate = vault.interestRate * (1.0 + repBoost + (sponsorPolicy.rewardRate * 0.2));
+                  }
+
                   if (totalLocked > 0 && rehypothecatedAmount > 0) {
                     let lockedInterestSum = 0;
                     for (const lock of activeLocks) {
@@ -3229,12 +3246,13 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                       const lockAllocated = Math.min(lock.amount, Math.floor(rehypothecatedAmount * shareFraction));
                       
                       const yieldMultiplier = 1.0 + (lock.durationEpochs * 0.1);
-                      const lockInterest = Math.floor(lockAllocated * vault.interestRate * yieldMultiplier);
+                      const lockInterest = Math.floor(lockAllocated * effectiveInterestRate * yieldMultiplier);
                       lockedInterestSum += lockInterest;
 
                       const repMultiplier = 1.0 + (lock.durationEpochs * 0.1);
                       const baseRepAccrual = 1;
-                      const repAccrued = Math.max(1, Math.round(baseRepAccrual * repMultiplier));
+                      const sponsorRepBonus = sponsorPolicy ? (1.0 + sponsorPolicy.rewardRate) : 1.0;
+                      const repAccrued = Math.max(1, Math.round(baseRepAccrual * repMultiplier * sponsorRepBonus));
                       
                       if (!newState.factionRep) newState.factionRep = {};
                       newState.factionRep[lock.factionId] = (newState.factionRep[lock.factionId] ?? 0) + repAccrued;
@@ -3245,10 +3263,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                       );
                     }
                     const unlockedAmount = Math.max(0, rehypothecatedAmount - totalLocked);
-                    const unlockedInterest = Math.floor(unlockedAmount * vault.interestRate);
+                    const unlockedInterest = Math.floor(unlockedAmount * effectiveInterestRate);
                     interest = Math.max(1, lockedInterestSum + unlockedInterest);
                   } else {
-                    interest = Math.max(1, Math.floor(rehypothecatedAmount * vault.interestRate));
+                    interest = Math.max(1, Math.floor(rehypothecatedAmount * effectiveInterestRate));
                   }
                 }
                 if (interest > 0) {

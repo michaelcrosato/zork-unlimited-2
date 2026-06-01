@@ -1088,6 +1088,32 @@ export const LockedLiquidityPositionSchema = z.object({
 });
 export type LockedLiquidityPosition = z.infer<typeof LockedLiquidityPositionSchema>;
 
+export const FactionSponsorProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  vaultId: z.string(),
+  factionId: z.string(),
+  rewardRate: z.number(),
+  minLockTerms: z.number().int().positive(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type FactionSponsorProposal = z.infer<typeof FactionSponsorProposalSchema>;
+
+export const FactionSponsorPolicySchema = z.object({
+  syndicateId: z.string(),
+  vaultId: z.string(),
+  factionId: z.string(),
+  rewardRate: z.number(),
+  minLockTerms: z.number().int().positive(),
+  timestamp: z.number().int(),
+});
+export type FactionSponsorPolicy = z.infer<typeof FactionSponsorPolicySchema>;
+
+
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
   totalLocked: z.number().int().nonnegative(),
@@ -1454,6 +1480,8 @@ export const GameStateSchema = z.object({
     positionId: z.string(),
     timestamp: z.number().int(),
   }))).optional(),
+  factionSponsorProposals: z.record(z.string(), FactionSponsorProposalSchema).optional(),
+  factionSponsorPolicies: z.record(z.string(), z.record(z.string(), FactionSponsorPolicySchema)).optional(),
 });
 
 
@@ -1651,6 +1679,8 @@ export const createInitialState = (options: {
     },
     lockedCollateralVotes: {},
     claimLiquidityRewardsVotes: {},
+    factionSponsorProposals: {},
+    factionSponsorPolicies: {},
   };
 };
 
@@ -2434,6 +2464,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     yieldBoostMultipliers: rest.yieldBoostMultipliers ? JSON.parse(JSON.stringify(rest.yieldBoostMultipliers)) : undefined,
     lockedCollateralVotes: rest.lockedCollateralVotes ? JSON.parse(JSON.stringify(rest.lockedCollateralVotes)) : undefined,
     claimLiquidityRewardsVotes: rest.claimLiquidityRewardsVotes ? JSON.parse(JSON.stringify(rest.claimLiquidityRewardsVotes)) : undefined,
+    factionSponsorProposals: rest.factionSponsorProposals ? JSON.parse(JSON.stringify(rest.factionSponsorProposals)) : undefined,
+    factionSponsorPolicies: rest.factionSponsorPolicies ? JSON.parse(JSON.stringify(rest.factionSponsorPolicies)) : undefined,
   };
   return clone;
 }
@@ -3269,8 +3301,10 @@ export function reconcileClaimLiquidityRewards(state: GameState, pack: any): Gam
         const amount = position.amount;
         const factionId = position.factionId;
 
-        // Reward formula: 5% of amount per epoch
-        const rewardBase = Math.floor(amount * 0.05 * duration);
+        // Reward formula: use policy rate if exists, otherwise default 5% (0.05) per epoch
+        const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[position.vaultId];
+        const rewardRate = sponsorPolicy ? sponsorPolicy.rewardRate : 0.05;
+        const rewardBase = Math.floor(amount * rewardRate * duration);
         const factionReserves = newState.factionReservePools?.[factionId] ?? 10000;
         const rewardPaid = Math.min(factionReserves, rewardBase);
 
@@ -5377,6 +5411,55 @@ export function reconcileCreditDefaultSwaps(state: GameState, pack: any): GameSt
 
   return newState;
 }
+
+export function reconcileFactionSponsors(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    factionSponsorProposals: state.factionSponsorProposals ? { ...state.factionSponsorProposals } : {},
+    factionSponsorPolicies: state.factionSponsorPolicies ? { ...state.factionSponsorPolicies } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.factionSponsorProposals || {})) {
+    const proposal = newState.factionSponsorProposals?.[proposalId];
+    if (!proposal) continue;
+
+    const { syndicateId, vaultId, factionId, rewardRate, minLockTerms, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      if (!newState.factionSponsorPolicies) newState.factionSponsorPolicies = {};
+      if (!newState.factionSponsorPolicies[syndicateId]) newState.factionSponsorPolicies[syndicateId] = {};
+
+      const existingPolicy = newState.factionSponsorPolicies[syndicateId][vaultId];
+      if (!existingPolicy || timestamp > existingPolicy.timestamp) {
+        newState.factionSponsorPolicies[syndicateId][vaultId] = {
+          syndicateId,
+          vaultId,
+          factionId,
+          rewardRate,
+          minLockTerms,
+          timestamp,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction Sponsor Resolved] Syndicate ${syndicateId} resolved sponsoring policy for vault ${vaultId}: sponsored by ${factionId} with reward rate ${rewardRate} and min lock of ${minLockTerms} epochs.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
 
 
 

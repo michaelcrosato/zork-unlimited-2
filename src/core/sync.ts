@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -19289,7 +19289,18 @@ export function multiAgentStep(
     } else if (!vault) {
       rejectionReason = `Vault ${vaultId} does not exist.`;
     } else {
-      ok = true;
+      const sponsorPolicy = state.factionSponsorPolicies?.[syndicateId]?.[vaultId];
+      if (sponsorPolicy) {
+        if (factionId !== sponsorPolicy.factionId) {
+          rejectionReason = `Cannot lock rehypothecated collateral with faction ${factionId}. Vault ${vaultId} is sponsored by faction ${sponsorPolicy.factionId} for Syndicate ${syndicateId}.`;
+        } else if (durationEpochs < sponsorPolicy.minLockTerms) {
+          rejectionReason = `Lock duration ${durationEpochs} epochs is less than the required minimum of ${sponsorPolicy.minLockTerms} epochs for vault ${vaultId} under Syndicate ${syndicateId}'s sponsoring policy.`;
+        } else {
+          ok = true;
+        }
+      } else {
+        ok = true;
+      }
     }
 
     let newState = { ...state };
@@ -19453,6 +19464,253 @@ export function multiAgentStep(
         });
       } else {
         ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_FACTION_SPONSOR action (AF-115)
+  if ((action as any).type === "PROPOSE_FACTION_SPONSOR") {
+    const { proposalId, syndicateId, vaultId, factionId, rewardRate, minLockTerms, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const vaults = getSecondaryReserveVaults(state);
+    const vault = vaults[vaultId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!vaultId) {
+      rejectionReason = `Vault ID is required.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required.`;
+    } else if (rewardRate === undefined || rewardRate <= 0) {
+      rejectionReason = `Reward rate must be positive.`;
+    } else if (minLockTerms === undefined || minLockTerms <= 0 || !Number.isInteger(minLockTerms)) {
+      rejectionReason = `Minimum lock terms must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!vault) {
+      rejectionReason = `Vault ${vaultId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot propose faction sponsor.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const proposals = { ...(state.factionSponsorProposals || {}) };
+      
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          syndicateId,
+          vaultId,
+          factionId,
+          rewardRate,
+          minLockTerms,
+          timestamp,
+          votes,
+        };
+
+        newState.factionSponsorProposals = proposals;
+        newState = reconcileFactionSponsors(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction Sponsor Proposed] Agent ${agentId} proposed faction sponsor for vault ${vaultId}: sponsored by ${factionId} with reward rate ${rewardRate} and min lock of ${minLockTerms} epochs.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Faction sponsor proposal created by ${agentId} for vault ${vaultId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "faction_sponsor_proposed" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          vaultId,
+          factionId,
+          rewardRate,
+          minLockTerms,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_FACTION_SPONSOR action (AF-115)
+  if ((action as any).type === "VOTE_FACTION_SPONSOR") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.factionSponsorProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `Proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on faction sponsor proposal.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.factionSponsorProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.factionSponsorProposals = proposalsCopy;
+        newState = reconcileFactionSponsors(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction Sponsor Voted] Agent ${agentId} voted ${vote ? "FOR" : "AGAINST"} proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Faction sponsor vote cast by ${agentId} for proposal ${proposalId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "faction_sponsor_voted" as any,
+          syndicateId,
+          proposalId,
+          agentId,
+          vote,
+          timestamp,
+        });
       }
     }
 

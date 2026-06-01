@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #114 (Ready for Cycle #115)
-* **Build/Test Status**: 🟢 PASS (All 498 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #115 (Ready for Cycle #116)
+* **Build/Test Status**: 🟢 PASS (All 502 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -682,15 +682,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 ---
 
 
+### Phase 93: Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsoring Votes (Completed)
+- [x] Define faction sponsoring proposals and voting state schemas in GameState (`AF-115`).
+- [x] Implement `PROPOSE_FACTION_SPONSOR` and `VOTE_FACTION_SPONSOR` decentralized actions (`AF-115`).
+- [x] Wire majority-consensus faction sponsoring resolution and reward adjustments inside tickEconomy (`AF-115`).
+- [x] Write comprehensive Vitest integration and P2P mesh convergence tests (`AF-115`).
+
+---
+
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-115`
-* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsoring Votes.
-* **Why this matters**: Allow syndicates to propose and vote on which faction sponsors a vault's liquidity mining rewards and adjust the reward rate or minimum lock terms, enabling cooperative governance and dynamic interest rate/reputation adjustments in P2P mesh environments.
+**Task ID**: `AF-116`
+* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance Epoch Audits & Faction Sponsor Revocations.
+* **Why this matters**: Allow syndicates to propose and vote to audit sponsor policies at the end of each epoch, triggering faction sponsor revocations or premium adjustments if a sponsoring faction's reserves are depleted or if faction reputation drops below a threshold, ensuring secure risk-capped economic growth in cooperative P2P environments.
 * **Planned Actions**:
-  1. Define faction sponsoring proposals and voting state schemas in GameState.
-  2. Implement `PROPOSE_FACTION_SPONSOR` and `VOTE_FACTION_SPONSOR` decentralized actions.
-  3. Wire majority-consensus faction sponsoring resolution and reward adjustments inside tickEconomy.
-  4. Write comprehensive Vitest integration and P2P mesh convergence tests.
+  1. Define audit and revocation proposals and states in GameState.
+  2. Implement `PROPOSE_SPONSOR_AUDIT` and `PROPOSE_SPONSOR_REVOCATION` decentralized consensus actions.
+  3. Wire periodic epoch audit checking, sponsor reserve verification, and automatic revocation/rate penalty reductions inside tickEconomy.
+  4. Write comprehensive Vitest integration and mesh convergence tests.
 
 ---
 

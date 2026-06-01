@@ -141,7 +141,9 @@ export type Action =
   | { type: "PROPOSE_CDS_TRADE"; tradeId: string; cdsId: string; proposerSyndicateId: string; counterpartySyndicateId: string; role: "buyer" | "writer"; goldPrice: number; timestamp: number }
   | { type: "ACCEPT_CDS_TRADE"; tradeId: string; timestamp: number }
   | { type: "LOCK_REHYPOTHECATED_COLLATERAL"; syndicateId: string; vaultId: string; amount: number; durationEpochs: number; factionId: string; timestamp: number }
-  | { type: "CLAIM_LIQUIDITY_MINING_REWARDS"; syndicateId: string; positionId: string; timestamp: number };
+  | { type: "CLAIM_LIQUIDITY_MINING_REWARDS"; syndicateId: string; positionId: string; timestamp: number }
+  | { type: "PROPOSE_FACTION_SPONSOR"; proposalId: string; syndicateId: string; vaultId: string; factionId: string; rewardRate: number; minLockTerms: number; timestamp: number }
+  | { type: "VOTE_FACTION_SPONSOR"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 
