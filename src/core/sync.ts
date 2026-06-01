@@ -18248,6 +18248,340 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized PROPOSE_CDS_TRADE action (AF-109)
+  if ((action as any).type === "PROPOSE_CDS_TRADE") {
+    const { tradeId, cdsId, proposerSyndicateId, counterpartySyndicateId, role, goldPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposerSyndicate = state.syndicates?.[proposerSyndicateId];
+    const counterpartySyndicate = state.syndicates?.[counterpartySyndicateId];
+    const cds = state.creditDefaultSwaps?.[cdsId];
+
+    if (!tradeId) {
+      rejectionReason = `Trade ID is required to propose CDS trade.`;
+    } else if (!cdsId) {
+      rejectionReason = `CDS ID is required.`;
+    } else if (!proposerSyndicateId) {
+      rejectionReason = `Proposer Syndicate ID is required.`;
+    } else if (!counterpartySyndicateId) {
+      rejectionReason = `Counterparty Syndicate ID is required.`;
+    } else if (role !== "buyer" && role !== "writer") {
+      rejectionReason = `Role must be either 'buyer' or 'writer'.`;
+    } else if (goldPrice === undefined || goldPrice < 0 || !Number.isInteger(goldPrice)) {
+      rejectionReason = `Gold price must be a non-negative integer.`;
+    } else if (!proposerSyndicate) {
+      rejectionReason = `Proposer syndicate ${proposerSyndicateId} does not exist.`;
+    } else if (!counterpartySyndicate) {
+      rejectionReason = `Counterparty syndicate ${counterpartySyndicateId} does not exist.`;
+    } else if (proposerSyndicateId === counterpartySyndicateId) {
+      rejectionReason = `Proposer and counterparty syndicates must be different.`;
+    } else if (!proposerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposer syndicate ${proposerSyndicateId}.`;
+    } else if (!cds) {
+      rejectionReason = `Credit Default Swap ${cdsId} does not exist.`;
+    } else if (!cds.active) {
+      rejectionReason = `Credit Default Swap ${cdsId} is not active.`;
+    } else {
+      // Validate that either proposer or counterparty holds the role in the CDS
+      if (role === "buyer") {
+        if (cds.buyerSyndicateId !== proposerSyndicateId && cds.buyerSyndicateId !== counterpartySyndicateId) {
+          rejectionReason = `Neither proposer ${proposerSyndicateId} nor counterparty ${counterpartySyndicateId} is the current buyer of CDS ${cdsId}.`;
+        } else {
+          ok = true;
+        }
+      } else { // role === "writer"
+        if (cds.writerSyndicateId !== proposerSyndicateId && cds.writerSyndicateId !== counterpartySyndicateId) {
+          rejectionReason = `Neither proposer ${proposerSyndicateId} nor counterparty ${counterpartySyndicateId} is the current writer of CDS ${cdsId}.`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      const creditDefaultSwapTrades = { ...(state.creditDefaultSwapTrades || {}) };
+      
+      const existingProposal = creditDefaultSwapTrades[tradeId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        creditDefaultSwapTrades[tradeId] = {
+          id: tradeId,
+          cdsId,
+          proposerSyndicateId,
+          counterpartySyndicateId,
+          role,
+          goldPrice,
+          timestamp,
+          active: true,
+        };
+        newState.creditDefaultSwapTrades = creditDefaultSwapTrades;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDS Trade Proposal] Agent ${agentId} proposed CDS trade ${tradeId} for CDS ${cdsId} (${role} role) from Syndicate ${proposerSyndicateId} to Syndicate ${counterpartySyndicateId} for ${goldPrice} gold.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `📈 CDS trade proposal ${tradeId} created by ${agentId} (CDS: ${cdsId}, Role: ${role}, Price: ${goldPrice} gold).`,
+        } as any);
+
+        customEvents.push({
+          type: "cds_trade_proposed" as any,
+          tradeId,
+          cdsId,
+          proposerSyndicateId,
+          counterpartySyndicateId,
+          role,
+          goldPrice,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ACCEPT_CDS_TRADE action (AF-109)
+  if ((action as any).type === "ACCEPT_CDS_TRADE") {
+    const { tradeId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposal = state.creditDefaultSwapTrades?.[tradeId];
+    
+    let cds: any;
+    let proposerSyndicate: any;
+    let counterpartySyndicate: any;
+    let acquirerSyndicateId = "";
+    let relinquisherSyndicateId = "";
+
+    if (!tradeId) {
+      rejectionReason = `Trade ID is required to accept CDS trade.`;
+    } else if (!proposal) {
+      rejectionReason = `CDS trade proposal ${tradeId} does not exist.`;
+    } else if (!proposal.active) {
+      rejectionReason = `CDS trade proposal ${tradeId} is no longer active.`;
+    } else {
+      cds = state.creditDefaultSwaps?.[proposal.cdsId];
+      proposerSyndicate = state.syndicates?.[proposal.proposerSyndicateId];
+      counterpartySyndicate = state.syndicates?.[proposal.counterpartySyndicateId];
+
+      if (!cds) {
+        rejectionReason = `Credit Default Swap ${proposal.cdsId} does not exist.`;
+      } else if (!cds.active) {
+        rejectionReason = `Credit Default Swap ${proposal.cdsId} is no longer active.`;
+      } else if (!proposerSyndicate) {
+        rejectionReason = `Proposer syndicate ${proposal.proposerSyndicateId} does not exist.`;
+      } else if (!counterpartySyndicate) {
+        rejectionReason = `Counterparty syndicate ${proposal.counterpartySyndicateId} does not exist.`;
+      } else if (!counterpartySyndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of counterparty syndicate ${proposal.counterpartySyndicateId} and cannot accept this trade.`;
+      } else {
+        // Resolve acquirer and relinquisher depending on the role and current owner
+        const { role, proposerSyndicateId, counterpartySyndicateId } = proposal;
+        if (role === "buyer") {
+          if (cds.buyerSyndicateId === proposerSyndicateId) {
+            acquirerSyndicateId = counterpartySyndicateId;
+            relinquisherSyndicateId = proposerSyndicateId;
+          } else if (cds.buyerSyndicateId === counterpartySyndicateId) {
+            acquirerSyndicateId = proposerSyndicateId;
+            relinquisherSyndicateId = counterpartySyndicateId;
+          }
+        } else if (role === "writer") {
+          if (cds.writerSyndicateId === proposerSyndicateId) {
+            acquirerSyndicateId = counterpartySyndicateId;
+            relinquisherSyndicateId = proposerSyndicateId;
+          } else if (cds.writerSyndicateId === counterpartySyndicateId) {
+            acquirerSyndicateId = proposerSyndicateId;
+            relinquisherSyndicateId = counterpartySyndicateId;
+          }
+        }
+
+        if (!acquirerSyndicateId || !relinquisherSyndicateId) {
+          rejectionReason = `Ownership of role ${role} in CDS ${proposal.cdsId} has shifted since the proposal was made.`;
+        } else {
+          const acquirer = state.syndicates?.[acquirerSyndicateId];
+          const relinquisher = state.syndicates?.[relinquisherSyndicateId];
+          if (!acquirer || !relinquisher) {
+            rejectionReason = `One or both of the participating syndicates do not exist.`;
+          } else if ((acquirer.warChest ?? 0) < proposal.goldPrice) {
+            rejectionReason = `Acquirer syndicate ${acquirerSyndicateId} has insufficient gold in its war chest (${acquirer.warChest ?? 0}) to pay the trade price of ${proposal.goldPrice}.`;
+          } else {
+            ok = true;
+          }
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && proposal && cds) {
+      const { cdsId, role, goldPrice, proposerSyndicateId, counterpartySyndicateId } = proposal;
+      
+      // Update proposal state to inactive
+      const creditDefaultSwapTrades = { ...(newState.creditDefaultSwapTrades || {}) };
+      creditDefaultSwapTrades[tradeId] = {
+        ...proposal,
+        active: false,
+        timestamp,
+      };
+      newState.creditDefaultSwapTrades = creditDefaultSwapTrades;
+
+      // Transfer gold
+      const acquirer = { ...newState.syndicates![acquirerSyndicateId] };
+      const relinquisher = { ...newState.syndicates![relinquisherSyndicateId] };
+
+      acquirer.warChest = (acquirer.warChest ?? 0) - goldPrice;
+      relinquisher.warChest = (relinquisher.warChest ?? 0) + goldPrice;
+
+      newState.syndicates = {
+        ...newState.syndicates,
+        [acquirerSyndicateId]: acquirer as any,
+        [relinquisherSyndicateId]: relinquisher as any,
+      };
+
+      // Update CDS contract ownership
+      const updatedCds = {
+        ...newState.creditDefaultSwaps![cdsId],
+        timestamp,
+      };
+
+      if (role === "buyer") {
+        updatedCds.buyerSyndicateId = acquirerSyndicateId;
+      } else {
+        updatedCds.writerSyndicateId = acquirerSyndicateId;
+      }
+      newState.creditDefaultSwaps = {
+        ...newState.creditDefaultSwaps,
+        [cdsId]: updatedCds,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDS Trade Accepted] Agent ${agentId} accepted CDS trade ${tradeId}. Ownership of ${role} role for CDS ${cdsId} transferred from Syndicate ${relinquisherSyndicateId} to Syndicate ${acquirerSyndicateId} for ${goldPrice} gold.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🤝 CDS trade accepted! ${acquirerSyndicateId} acquired ${role} position of CDS ${cdsId} from ${relinquisherSyndicateId} for ${goldPrice} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "cds_trade_accepted" as any,
+        tradeId,
+        cdsId,
+        acquirerSyndicateId,
+        relinquisherSyndicateId,
+        role,
+        goldPrice,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

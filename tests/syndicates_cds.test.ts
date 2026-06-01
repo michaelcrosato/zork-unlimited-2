@@ -319,4 +319,191 @@ describe("Syndicate Bank CDO Credit Default Swaps (CDS) & Synthetic Leverage (AF
     expect(merged.creditDefaultSwaps?.cds_1?.active).toBe(false); // timestamp 1100 won
     expect(merged.creditDefaultSwaps?.cds_1?.timestamp).toBe(1100);
   });
+
+  it("should support proposing and accepting active CDS trades, validating ownership and war chests", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      buyer_corp: {
+        id: "buyer_corp",
+        name: "Buyer Corp",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corp",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+      third_corp: {
+        id: "third_corp",
+        name: "Third Corp",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 500,
+      },
+    };
+
+    state.creditDefaultSwaps = {
+      cds_1: {
+        id: "cds_1",
+        buyerSyndicateId: "buyer_corp",
+        writerSyndicateId: "writer_corp",
+        cdoId: "cdo_test_1",
+        trancheId: "mezzanine",
+        notionalValue: 100,
+        premiumRate: 0.05,
+        timestamp: 1000,
+        active: true,
+      },
+    };
+
+    // 1. Propose buyer-role transfer (buyer_corp proposes to trade buyer role to third_corp for 100 gold)
+    const proposeBuyerTrade = {
+      type: "PROPOSE_CDS_TRADE",
+      tradeId: "trade_buyer_1",
+      cdsId: "cds_1",
+      proposerSyndicateId: "buyer_corp",
+      counterpartySyndicateId: "third_corp",
+      role: "buyer",
+      goldPrice: 100,
+      timestamp: 1005,
+    };
+
+    let propRes = multiAgentStep(state, { agentId: "player", action: proposeBuyerTrade as any }, mockPack);
+    expect(propRes.ok).toBe(true);
+    expect(propRes.state.creditDefaultSwapTrades?.trade_buyer_1).toBeDefined();
+    expect(propRes.state.creditDefaultSwapTrades?.trade_buyer_1?.active).toBe(true);
+
+    // 2. Accept trade (third_corp representative bob accepts)
+    const acceptBuyerTrade = {
+      type: "ACCEPT_CDS_TRADE",
+      tradeId: "trade_buyer_1",
+      timestamp: 1010,
+    };
+
+    let acceptRes = multiAgentStep(propRes.state, { agentId: "bob", action: acceptBuyerTrade as any }, mockPack);
+    expect(acceptRes.ok).toBe(true);
+
+    // Assert gold transfer: third_corp paid 100, buyer_corp received 100
+    expect(acceptRes.state.syndicates?.buyer_corp?.warChest).toBe(1100);
+    expect(acceptRes.state.syndicates?.third_corp?.warChest).toBe(400);
+
+    // Assert CDS buyer updated to third_corp
+    expect(acceptRes.state.creditDefaultSwaps?.cds_1?.buyerSyndicateId).toBe("third_corp");
+    expect(acceptRes.state.creditDefaultSwapTrades?.trade_buyer_1?.active).toBe(false);
+
+    // 3. Propose writer-role transfer (writer_corp proposes to trade writer role to third_corp for 200 gold)
+    const proposeWriterTrade = {
+      type: "PROPOSE_CDS_TRADE",
+      tradeId: "trade_writer_1",
+      cdsId: "cds_1",
+      proposerSyndicateId: "writer_corp",
+      counterpartySyndicateId: "third_corp",
+      role: "writer",
+      goldPrice: 200,
+      timestamp: 1015,
+    };
+
+    let propWriterRes = multiAgentStep(acceptRes.state, { agentId: "alice", action: proposeWriterTrade as any }, mockPack);
+    expect(propWriterRes.ok).toBe(true);
+
+    // 4. Test validation: third_corp has 400 gold, what if price was 500 gold?
+    const proposeTooExpensiveTrade = {
+      type: "PROPOSE_CDS_TRADE",
+      tradeId: "trade_expensive",
+      cdsId: "cds_1",
+      proposerSyndicateId: "writer_corp",
+      counterpartySyndicateId: "third_corp",
+      role: "writer",
+      goldPrice: 500, // third_corp only has 400 gold
+      timestamp: 1016,
+    };
+
+    let propExpensiveRes = multiAgentStep(acceptRes.state, { agentId: "alice", action: proposeTooExpensiveTrade as any }, mockPack);
+    expect(propExpensiveRes.ok).toBe(true);
+
+    const acceptExpensiveTrade = {
+      type: "ACCEPT_CDS_TRADE",
+      tradeId: "trade_expensive",
+      timestamp: 1020,
+    };
+
+    let acceptExpensiveRes = multiAgentStep(propExpensiveRes.state, { agentId: "bob", action: acceptExpensiveTrade as any }, mockPack);
+    expect(acceptExpensiveRes.ok).toBe(false); // Insufficient gold!
+    expect(acceptExpensiveRes.rejectionReason).toContain("insufficient gold");
+
+    // 5. Accept writer trade successfully for 200 gold
+    const acceptWriterTrade = {
+      type: "ACCEPT_CDS_TRADE",
+      tradeId: "trade_writer_1",
+      timestamp: 1025,
+    };
+
+    let acceptWriterRes = multiAgentStep(propWriterRes.state, { agentId: "bob", action: acceptWriterTrade as any }, mockPack);
+    expect(acceptWriterRes.ok).toBe(true);
+
+    // Assert gold transfer: third_corp paid 200 (400 -> 200), writer_corp received 200 (1000 -> 1200)
+    expect(acceptWriterRes.state.syndicates?.writer_corp?.warChest).toBe(1200);
+    expect(acceptWriterRes.state.syndicates?.third_corp?.warChest).toBe(200);
+
+    // Assert CDS writer updated to third_corp
+    expect(acceptWriterRes.state.creditDefaultSwaps?.cds_1?.writerSyndicateId).toBe("third_corp");
+  });
+
+  it("should successfully converge trades across Gossip merge", () => {
+    let stateA = createInitialState({
+      seed: 12345,
+      start: "clearing",
+    });
+
+    let stateB = createInitialState({
+      seed: 12345,
+      start: "clearing",
+    });
+
+    stateA.creditDefaultSwapTrades = {
+      trade_1: {
+        id: "trade_1",
+        cdsId: "cds_1",
+        proposerSyndicateId: "buyer_corp",
+        counterpartySyndicateId: "third_corp",
+        role: "buyer",
+        goldPrice: 100,
+        timestamp: 1050,
+        active: true,
+      },
+    };
+
+    stateB.creditDefaultSwapTrades = {
+      trade_1: {
+        id: "trade_1",
+        cdsId: "cds_1",
+        proposerSyndicateId: "buyer_corp",
+        counterpartySyndicateId: "third_corp",
+        role: "buyer",
+        goldPrice: 100,
+        timestamp: 1100, // Newer write-wins
+        active: false,
+      },
+    };
+
+    const merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.creditDefaultSwapTrades?.trade_1?.active).toBe(false); // timestamp 1100 won
+    expect(merged.creditDefaultSwapTrades?.trade_1?.timestamp).toBe(1100);
+  });
 });

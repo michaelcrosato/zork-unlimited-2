@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #108 (Ready for Cycle #109)
-* **Build/Test Status**: 🟢 PASS (All 477 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #109 (Ready for Cycle #110)
+* **Build/Test Status**: 🟢 PASS (All 479 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -642,14 +642,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 87: Syndicate Bank CDS Secondary Market Trading & Speculative Bid/Ask Spreads (Completed)
+- [x] Add trade transaction schemas for active CDS contracts in state variables (`AF-109`).
+- [x] Implement `PROPOSE_CDS_TRADE` and `ACCEPT_CDS_TRADE` decentralized consensus actions (`AF-109`).
+- [x] Wire premium assignment and ownership transfer logic on trade convergence (`AF-109`).
+- [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-109`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-109`
-* **Objective**: Syndicate Bank CDS Secondary Market Trading & Speculative Bid/Ask Spreads.
-* **Why this matters**: Allow syndicates to trade active Credit Default Swaps (CDS) contracts to other syndicates over the P2P gossip mesh, supporting speculative bidding, asking spreads, and arbitrage on tranche risk without needing to terminate or default the CDS. This enables highly dynamic risk transferring and premium market pricing.
+**Task ID**: `AF-110`
+* **Objective**: Syndicate Bank CDO & CDS Margin Accounts and Leverage Collateral Call Triggers.
+* **Why this matters**: Allow syndicates to trade assets or write CDS contracts on margin, tracking dynamic leverage ratios and triggering automatic collateral liquidation (margin calls) when CDO tranche write-downs or default accruals reduce the margin balance below maintenance thresholds.
 * **Planned Actions**:
-  1. Add trade transaction schemas for active CDS contracts in state variables.
-  2. Implement `PROPOSE_CDS_TRADE` and `ACCEPT_CDS_TRADE` decentralized consensus actions.
-  3. Wire premium assignment and ownership transfer logic on trade convergence.
+  1. Define margin account schemas, initial margins, and maintenance threshold variables in GameState.
+  2. Implement `OPEN_CDS_MARGIN_ACCOUNT` and `DEPOSIT_MARGIN_COLLATERAL` decentralized consensus actions.
+  3. Wire automatic margin health evaluation and collateral call liquidations inside `tickEconomy` when write-downs or defaults hit a syndicate's leveraged positions.
   4. Write comprehensive Vitest integration and mesh convergence tests.
 
 ---

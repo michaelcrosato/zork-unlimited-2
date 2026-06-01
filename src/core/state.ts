@@ -1064,6 +1064,18 @@ export const CreditDefaultSwapSchema = z.object({
 });
 export type CreditDefaultSwap = z.infer<typeof CreditDefaultSwapSchema>;
 
+export const CDSTradeProposalSchema = z.object({
+  id: z.string(),
+  cdsId: z.string(),
+  proposerSyndicateId: z.string(),
+  counterpartySyndicateId: z.string(),
+  role: z.enum(["buyer", "writer"]),
+  goldPrice: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type CDSTradeProposal = z.infer<typeof CDSTradeProposalSchema>;
+
 export const CDSVoteSchema = z.object({
   cdsId: z.string(),
   buyerSyndicateId: z.string(),
@@ -1347,6 +1359,7 @@ export const GameStateSchema = z.object({
   cdos: z.record(z.string(), CDOSchema).optional(),
   creditDefaultSwaps: z.record(z.string(), CreditDefaultSwapSchema).optional(),
   creditDefaultSwapVotes: z.record(z.string(), z.record(z.string(), CDSVoteSchema)).optional(),
+  creditDefaultSwapTrades: z.record(z.string(), CDSTradeProposalSchema).optional(),
 });
 
 
@@ -1524,6 +1537,7 @@ export const createInitialState = (options: {
     secondaryReserveInvestments: {},
     creditDefaultSwaps: {},
     creditDefaultSwapVotes: {},
+    creditDefaultSwapTrades: {},
   };
 };
 
@@ -2294,6 +2308,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdos: rest.cdos ? JSON.parse(JSON.stringify(rest.cdos)) : undefined,
     creditDefaultSwaps: rest.creditDefaultSwaps ? JSON.parse(JSON.stringify(rest.creditDefaultSwaps)) : undefined,
     creditDefaultSwapVotes: rest.creditDefaultSwapVotes ? JSON.parse(JSON.stringify(rest.creditDefaultSwapVotes)) : undefined,
+    creditDefaultSwapTrades: rest.creditDefaultSwapTrades ? JSON.parse(JSON.stringify(rest.creditDefaultSwapTrades)) : undefined,
   };
   return clone;
 }

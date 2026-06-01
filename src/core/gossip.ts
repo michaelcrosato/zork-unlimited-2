@@ -1956,6 +1956,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge creditDefaultSwapTrades using LWW (Last-Write-Wins)
+  const creditDefaultSwapTrades = { ...stateA.creditDefaultSwapTrades };
+  if (stateB.creditDefaultSwapTrades) {
+    for (const [key, tradeB] of Object.entries(stateB.creditDefaultSwapTrades)) {
+      const tradeA = creditDefaultSwapTrades[key];
+      if (!tradeA || tradeB.timestamp > tradeA.timestamp) {
+        creditDefaultSwapTrades[key] = tradeB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -2079,6 +2090,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cdos,
     creditDefaultSwaps,
     creditDefaultSwapVotes,
+    creditDefaultSwapTrades,
   };
 }
 
