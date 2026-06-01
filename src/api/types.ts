@@ -156,7 +156,11 @@ export type Action =
   | { type: "VOTE_REHAB_SUBSIDY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "LOCK_LOYALTY_BOND"; syndicateId: string; factionId: string; amount: number; timestamp: number }
   | { type: "CLAIM_LOYALTY_RANK"; proposalId: string; syndicateId: string; factionId: string; rank: "Bronze" | "Silver" | "Gold" | "Platinum"; timestamp: number }
-  | { type: "VOTE_LOYALTY_RANK"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_LOYALTY_RANK"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "ESTABLISH_COOPERATIVE_YIELD_CAMPAIGN"; proposalId: string; syndicateId: string; cdoId: string; campaignName: string; factionId: string; bronzeMultiplier: number; silverMultiplier: number; goldMultiplier: number; platinumMultiplier: number; timestamp: number }
+  | { type: "VOTE_COOPERATIVE_YIELD_CAMPAIGN"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "ESTABLISH_FACTION_CDO_INSURANCE_POOL"; proposalId: string; syndicateId: string; cdoId: string; factionId: string; initialReserve: number; minLoyaltyRank: "None" | "Bronze" | "Silver" | "Gold" | "Platinum"; payoutRatio: number; timestamp: number }
+  | { type: "VOTE_FACTION_CDO_INSURANCE_POOL"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

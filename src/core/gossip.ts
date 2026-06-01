@@ -2237,6 +2237,50 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge factionCdoInsurancePools using LWW (Last-Write-Wins)
+  const factionCdoInsurancePools = { ...stateA.factionCdoInsurancePools };
+  if (stateB.factionCdoInsurancePools) {
+    for (const [poolId, poolB] of Object.entries(stateB.factionCdoInsurancePools)) {
+      const poolA = factionCdoInsurancePools[poolId];
+      if (!poolA || poolB.timestamp > poolA.timestamp) {
+        factionCdoInsurancePools[poolId] = { ...poolB };
+      }
+    }
+  }
+
+  // Merge cdoMiningBoosters using LWW (Last-Write-Wins)
+  const cdoMiningBoosters = { ...stateA.cdoMiningBoosters };
+  if (stateB.cdoMiningBoosters) {
+    for (const [boosterId, boosterB] of Object.entries(stateB.cdoMiningBoosters)) {
+      const boosterA = cdoMiningBoosters[boosterId];
+      if (!boosterA || boosterB.timestamp > boosterA.timestamp) {
+        cdoMiningBoosters[boosterId] = { ...boosterB };
+      }
+    }
+  }
+
+  // Merge cooperativeYieldCampaignProposals using LWW (Last-Write-Wins)
+  const cooperativeYieldCampaignProposals = { ...stateA.cooperativeYieldCampaignProposals };
+  if (stateB.cooperativeYieldCampaignProposals) {
+    for (const [propId, propB] of Object.entries(stateB.cooperativeYieldCampaignProposals)) {
+      const propA = cooperativeYieldCampaignProposals[propId];
+      if (!propA || propB.timestamp > propA.timestamp) {
+        cooperativeYieldCampaignProposals[propId] = { ...propB };
+      }
+    }
+  }
+
+  // Merge factionCdoInsurancePoolProposals using LWW (Last-Write-Wins)
+  const factionCdoInsurancePoolProposals = { ...stateA.factionCdoInsurancePoolProposals };
+  if (stateB.factionCdoInsurancePoolProposals) {
+    for (const [propId, propB] of Object.entries(stateB.factionCdoInsurancePoolProposals)) {
+      const propA = factionCdoInsurancePoolProposals[propId];
+      if (!propA || propB.timestamp > propA.timestamp) {
+        factionCdoInsurancePoolProposals[propId] = { ...propB };
+      }
+    }
+  }
+
   // Merge maliciousActors using boolean OR union
   const maliciousActors = { ...stateA.maliciousActors };
   if (stateB.maliciousActors) {
@@ -2453,6 +2497,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     factionLoyaltyBonds,
     claimLoyaltyRankProposals,
     factionLoyaltyRanks,
+    factionCdoInsurancePools,
+    cdoMiningBoosters,
+    cooperativeYieldCampaignProposals,
+    factionCdoInsurancePoolProposals,
     maliciousActors,
     slashingRates,
   };

@@ -1218,6 +1218,69 @@ export const FactionLoyaltyRankSchema = z.object({
 });
 export type FactionLoyaltyRank = z.infer<typeof FactionLoyaltyRankSchema>;
 
+export const FactionCdoInsurancePoolSchema = z.object({
+  id: z.string(),
+  factionId: z.string(),
+  syndicateId: z.string(),
+  cdoId: z.string(),
+  insuranceReserve: z.number().int().nonnegative(),
+  minLoyaltyRank: z.enum(["None", "Bronze", "Silver", "Gold", "Platinum"]),
+  payoutRatio: z.number().min(0).max(1),
+  timestamp: z.number().int(),
+});
+export type FactionCdoInsurancePool = z.infer<typeof FactionCdoInsurancePoolSchema>;
+
+export const CdoMiningBoosterSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  cdoId: z.string(),
+  factionId: z.string(),
+  campaignName: z.string(),
+  bronzeMultiplier: z.number().positive(),
+  silverMultiplier: z.number().positive(),
+  goldMultiplier: z.number().positive(),
+  platinumMultiplier: z.number().positive(),
+  timestamp: z.number().int(),
+});
+export type CdoMiningBooster = z.infer<typeof CdoMiningBoosterSchema>;
+
+export const CooperativeYieldCampaignProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  cdoId: z.string(),
+  campaignName: z.string(),
+  factionId: z.string(),
+  bronzeMultiplier: z.number().positive(),
+  silverMultiplier: z.number().positive(),
+  goldMultiplier: z.number().positive(),
+  platinumMultiplier: z.number().positive(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type CooperativeYieldCampaignProposal = z.infer<typeof CooperativeYieldCampaignProposalSchema>;
+
+export const FactionCdoInsurancePoolProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  cdoId: z.string(),
+  factionId: z.string(),
+  initialReserve: z.number().int().nonnegative(),
+  minLoyaltyRank: z.enum(["None", "Bronze", "Silver", "Gold", "Platinum"]),
+  payoutRatio: z.number().min(0).max(1),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type FactionCdoInsurancePoolProposal = z.infer<typeof FactionCdoInsurancePoolProposalSchema>;
+
+
 
 
 
@@ -1597,6 +1660,10 @@ export const GameStateSchema = z.object({
   factionLoyaltyBonds: z.record(z.string(), FactionLoyaltyBondSchema).optional(),
   claimLoyaltyRankProposals: z.record(z.string(), ClaimLoyaltyRankProposalSchema).optional(),
   factionLoyaltyRanks: z.record(z.string(), FactionLoyaltyRankSchema).optional(),
+  factionCdoInsurancePools: z.record(z.string(), FactionCdoInsurancePoolSchema).optional(),
+  cdoMiningBoosters: z.record(z.string(), CdoMiningBoosterSchema).optional(),
+  cooperativeYieldCampaignProposals: z.record(z.string(), CooperativeYieldCampaignProposalSchema).optional(),
+  factionCdoInsurancePoolProposals: z.record(z.string(), FactionCdoInsurancePoolProposalSchema).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
 });
@@ -1800,6 +1867,10 @@ export const createInitialState = (options: {
     factionSponsorPolicies: {},
     sponsorAuditProposals: {},
     sponsorRevocationProposals: {},
+    factionCdoInsurancePools: {},
+    cdoMiningBoosters: {},
+    cooperativeYieldCampaignProposals: {},
+    factionCdoInsurancePoolProposals: {},
   };
 };
 
@@ -2593,6 +2664,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     factionLoyaltyBonds: rest.factionLoyaltyBonds ? JSON.parse(JSON.stringify(rest.factionLoyaltyBonds)) : undefined,
     claimLoyaltyRankProposals: rest.claimLoyaltyRankProposals ? JSON.parse(JSON.stringify(rest.claimLoyaltyRankProposals)) : undefined,
     factionLoyaltyRanks: rest.factionLoyaltyRanks ? JSON.parse(JSON.stringify(rest.factionLoyaltyRanks)) : undefined,
+    factionCdoInsurancePools: rest.factionCdoInsurancePools ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePools)) : undefined,
+    cdoMiningBoosters: rest.cdoMiningBoosters ? JSON.parse(JSON.stringify(rest.cdoMiningBoosters)) : undefined,
+    cooperativeYieldCampaignProposals: rest.cooperativeYieldCampaignProposals ? JSON.parse(JSON.stringify(rest.cooperativeYieldCampaignProposals)) : undefined,
+    factionCdoInsurancePoolProposals: rest.factionCdoInsurancePoolProposals ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePoolProposals)) : undefined,
     maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
     slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
   };
@@ -5960,6 +6035,118 @@ export function reconcileClaimLoyaltyRanks(state: GameState, pack: any): GameSta
 
   return newState;
 }
+
+export function reconcileCooperativeYieldCampaigns(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cooperativeYieldCampaignProposals: state.cooperativeYieldCampaignProposals ? { ...state.cooperativeYieldCampaignProposals } : {},
+    cdoMiningBoosters: state.cdoMiningBoosters ? { ...state.cdoMiningBoosters } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.cooperativeYieldCampaignProposals || {})) {
+    const proposal = newState.cooperativeYieldCampaignProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, cdoId, campaignName, factionId, bronzeMultiplier, silverMultiplier, goldMultiplier, platinumMultiplier, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.cooperativeYieldCampaignProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      newState.cdoMiningBoosters[`${syndicateId}-${cdoId}`] = {
+        id: proposalId,
+        syndicateId,
+        cdoId,
+        factionId,
+        campaignName,
+        bronzeMultiplier,
+        silverMultiplier,
+        goldMultiplier,
+        platinumMultiplier,
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Cooperative Yield Campaign Resolved] Syndicate ${syndicateId} established yield campaign ${campaignName} for CDO ${cdoId} sponsored by ${factionId}.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileFactionCdoInsurancePools(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    factionCdoInsurancePoolProposals: state.factionCdoInsurancePoolProposals ? { ...state.factionCdoInsurancePoolProposals } : {},
+    factionCdoInsurancePools: state.factionCdoInsurancePools ? { ...state.factionCdoInsurancePools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.factionCdoInsurancePoolProposals || {})) {
+    const proposal = newState.factionCdoInsurancePoolProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, cdoId, factionId, initialReserve, minLoyaltyRank, payoutRatio, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      if ((syndicate.warChest ?? 0) >= initialReserve) {
+        syndicate.warChest = (syndicate.warChest ?? 0) - initialReserve;
+
+        newState.factionCdoInsurancePoolProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        newState.factionCdoInsurancePools[`${syndicateId}-${cdoId}`] = {
+          id: proposalId,
+          factionId,
+          syndicateId,
+          cdoId,
+          insuranceReserve: initialReserve,
+          minLoyaltyRank,
+          payoutRatio,
+          timestamp,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction CDO Insurance Pool Resolved] Syndicate ${syndicateId} established insurance pool for CDO ${cdoId} with initial reserve of ${initialReserve} gold.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction CDO Insurance Pool Resolution Failed] Syndicate ${syndicateId} has insufficient funds in war chest (${syndicate.warChest} < ${initialReserve}) to resolve proposal ${proposalId}.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
 
 
 

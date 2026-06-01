@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -2947,19 +2947,40 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 remainingDue = totalDue - collected;
               }
 
-              if (updatedLoan.collateralType === "safehouse") {
-                if (newState.safehouses) {
-                  newState.safehouses = { ...newState.safehouses };
-                  delete newState.safehouses[updatedLoan.collateralId];
+              let skipLiquidation = false;
+              if (remainingDue > 0) {
+                const syndicateId = cdo.creatorSyndicateId;
+                const pool = newState.factionCdoInsurancePools?.[`${syndicateId}-${cdoId}`];
+                if (pool) {
+                  const rank = getSyndicateFactionLoyaltyRank(newState, syndicateId, pool.factionId);
+                  if (isRankAtLeast(rank, pool.minLoyaltyRank)) {
+                    const coveredAmount = Math.min(pool.insuranceReserve, Math.floor(remainingDue * pool.payoutRatio));
+                    if (coveredAmount > 0) {
+                      pool.insuranceReserve -= coveredAmount;
+                      collected += coveredAmount;
+                      remainingDue -= coveredAmount;
+                      skipLiquidation = true;
+                      newState.journal.push(`[CDO Insurance Shield] Faction CDO Insurance pool for CDO ${cdoId} covered ${coveredAmount} gold of defaulted loan for agent ${agentId}, sparing collateral.`);
+                    }
+                  }
                 }
-              } else if (updatedLoan.collateralType === "outpost") {
-                if (newState.turfGuardOutposts) {
-                  newState.turfGuardOutposts = { ...newState.turfGuardOutposts };
-                  delete newState.turfGuardOutposts[updatedLoan.collateralId];
-                }
-                if (newState.turfGuards) {
-                  newState.turfGuards = { ...newState.turfGuards };
-                  delete newState.turfGuards[updatedLoan.collateralId];
+              }
+
+              if (!skipLiquidation) {
+                if (updatedLoan.collateralType === "safehouse") {
+                  if (newState.safehouses) {
+                    newState.safehouses = { ...newState.safehouses };
+                    delete newState.safehouses[updatedLoan.collateralId];
+                  }
+                } else if (updatedLoan.collateralType === "outpost") {
+                  if (newState.turfGuardOutposts) {
+                    newState.turfGuardOutposts = { ...newState.turfGuardOutposts };
+                    delete newState.turfGuardOutposts[updatedLoan.collateralId];
+                  }
+                  if (newState.turfGuards) {
+                    newState.turfGuards = { ...newState.turfGuards };
+                    delete newState.turfGuards[updatedLoan.collateralId];
+                  }
                 }
               }
 
@@ -3054,13 +3075,30 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             if (ownedValue > 0) {
               const syndicate = newState.syndicates[syndicateId];
               if (syndicate) {
-                const share = Math.floor(payout * (ownedValue / tranche.totalValue));
-                if (share > 0) {
-                  newState.syndicates[syndicateId] = {
-                    ...syndicate,
-                    warChest: (syndicate.warChest ?? 0) + share,
-                  };
-                  newState.journal.push(`[CDO Yield Payout] Syndicate ${syndicateId} earned ${share} gold payout from CDO ${cdoId} tranche ${tranche.trancheId}.`);
+                const baseShare = Math.floor(payout * (ownedValue / tranche.totalValue));
+                if (baseShare > 0) {
+                  let multiplier = 1.0;
+                  const booster = newState.cdoMiningBoosters?.[`${syndicateId}-${cdoId}`];
+                  if (booster) {
+                    const rank = getSyndicateFactionLoyaltyRank(newState, syndicateId, booster.factionId);
+                    if (rank === "Bronze") multiplier = booster.bronzeMultiplier;
+                    else if (rank === "Silver") multiplier = booster.silverMultiplier;
+                    else if (rank === "Gold") multiplier = booster.goldMultiplier;
+                    else if (rank === "Platinum") multiplier = booster.platinumMultiplier;
+                  }
+
+                  const share = Math.floor(baseShare * multiplier);
+                  if (share > 0) {
+                    newState.syndicates[syndicateId] = {
+                      ...syndicate,
+                      warChest: (syndicate.warChest ?? 0) + share,
+                    };
+                    if (multiplier > 1.0) {
+                      newState.journal.push(`[CDO Yield Payout] Syndicate ${syndicateId} earned ${share} gold payout (boosted ${multiplier}x by campaign ${booster?.campaignName}) from CDO ${cdoId} tranche ${tranche.trancheId}.`);
+                    } else {
+                      newState.journal.push(`[CDO Yield Payout] Syndicate ${syndicateId} earned ${share} gold payout from CDO ${cdoId} tranche ${tranche.trancheId}.`);
+                    }
+                  }
                 }
               }
             }
