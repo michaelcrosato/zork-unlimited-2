@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -8364,6 +8364,246 @@ export function multiAgentStep(
       state: newState,
       events: ok
         ? [{ type: "campaign_launched", agentId, syndicateId, factionId, roomId, success, successProb, roll: rolledValue } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BUILD_DEFENSE_FORTRESS action (AF-72)
+  if ((action as any).type === "BUILD_DEFENSE_FORTRESS") {
+    const { roomId, syndicateId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 200;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const roomExists = "rooms" in pack
+      ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
+      : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to build a defense fortress.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to build a defense fortress.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Defense fortress cost ${cost} must be a non-negative integer.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.territoryControl?.[roomId] !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} does not control territory ${roomId} to build a fortress.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to build defense fortress costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const defenseFortresses = { ...(state.defenseFortresses || {}) };
+      const existingFortress = defenseFortresses[roomId];
+      const newLevel = existingFortress ? existingFortress.fortressLevel + 1 : 1;
+
+      defenseFortresses[roomId] = {
+        roomId,
+        syndicateId,
+        fortressLevel: newLevel,
+        timestamp,
+      };
+      newState.defenseFortresses = defenseFortresses;
+
+      if (!newState.journal) newState.journal = [];
+      if (existingFortress) {
+        newState.journal.push(`[Syndicate] Upgraded cartel defense fortress in room ${roomId} to level ${newLevel} for ${cost} gold by agent ${agentId}.`);
+      } else {
+        newState.journal.push(`[Syndicate] Established cartel defense fortress in room ${roomId} at level 1 for ${cost} gold by agent ${agentId}.`);
+      }
+
+      customEvents.push({
+        type: "cartel_fortress_built",
+        agentId,
+        roomId,
+        syndicateId,
+        fortressLevel: newLevel,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_PEACE_TREATY action (AF-72)
+  if ((action as any).type === "PROPOSE_PEACE_TREATY") {
+    const { syndicateId, factionId, vote, timestamp } = action as any;
+    const votedState = vote !== false; // Defaults to true if undefined
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const isAtWar = syndicateId && factionId && state.factionWars?.[syndicateId]?.[factionId] === true;
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to propose a peace treaty.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required to propose a peace treaty.`;
+    } else if (!isAtWar) {
+      rejectionReason = `Syndicate ${syndicateId} is not at war with faction ${factionId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const peaceTreatyVotes = { ...(state.peaceTreatyVotes || {}) };
+      if (!peaceTreatyVotes[syndicateId]) {
+        peaceTreatyVotes[syndicateId] = {};
+      } else {
+        peaceTreatyVotes[syndicateId] = { ...peaceTreatyVotes[syndicateId] };
+      }
+      if (!peaceTreatyVotes[syndicateId][factionId]) {
+        peaceTreatyVotes[syndicateId][factionId] = {};
+      } else {
+        peaceTreatyVotes[syndicateId][factionId] = { ...peaceTreatyVotes[syndicateId][factionId] };
+      }
+
+      const existingVote = peaceTreatyVotes[syndicateId][factionId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        peaceTreatyVotes[syndicateId][factionId][agentId] = {
+          targetState: votedState,
+          timestamp,
+        };
+        newState.peaceTreatyVotes = peaceTreatyVotes;
+        newState = reconcileFactionWars(newState, pack);
+
+        const activeWar = newState.factionWars?.[syndicateId]?.[factionId] ?? false;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[War] Agent ${agentId} voted ${votedState ? "FOR" : "AGAINST"} peace treaty with ${factionId} in syndicate ${syndicateId} (War Status: ${activeWar ? "ACTIVE" : "ENDED"}).`);
+
+        customEvents.push({
+          type: "peace_treaty_voted",
+          agentId,
+          syndicateId,
+          factionId,
+          vote: votedState,
+          warActive: activeWar,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

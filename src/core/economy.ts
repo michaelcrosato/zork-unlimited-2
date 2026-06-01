@@ -518,6 +518,88 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // 5. Faction Counter-Attacks and Sieges (AF-72)
+  if (newState.step > 0 && newState.step % 10 === 0 && newState.territoryControl) {
+    const activeControl = { ...newState.territoryControl };
+    const activeClaims = newState.territoryClaims ? { ...newState.territoryClaims } : {};
+    let controlChanged = false;
+
+    const findPackRoom = (p: any, rid: string) => {
+      if (p.rooms) {
+        return p.rooms.find((r: any) => r.id === rid);
+      }
+      if (p.scenes) {
+        return p.scenes.find((s: any) => s.id === rid);
+      }
+      return undefined;
+    };
+
+    for (const [roomId, syndicateId] of Object.entries(activeControl)) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) continue; // Only syndicates can be counter-attacked by native factions
+
+      const roomDef = findPackRoom(pack, roomId);
+      const nativeFactionId = roomDef?.faction;
+      if (!nativeFactionId) continue;
+
+      const isAtWar = newState.factionWars?.[syndicateId]?.[nativeFactionId] === true;
+      if (!isAtWar) continue;
+
+      // Base defense success rate: 20%
+      const baseRate = 0.2;
+
+      // Fortresses
+      const fortress = newState.defenseFortresses?.[roomId];
+      const fortressBonus = fortress ? 0.3 * fortress.fortressLevel : 0;
+
+      // Outposts
+      const outpost = newState.turfGuardOutposts?.[roomId];
+      const outpostBonus = outpost ? 0.1 * outpost.securityLevel : 0;
+
+      // Syndicate pooled resources (warChest)
+      const warChestBonus = Math.min(0.3, (syndicate.warChest ?? 0) / 1000);
+
+      const successProb = Math.min(1.0, baseRate + fortressBonus + outpostBonus + warChestBonus);
+
+      // Roll deterministic outcome
+      const { value: roll, nextSeed } = PureRand.next(newState.seed);
+      newState.seed = nextSeed;
+
+      if (roll <= successProb) {
+        // Syndicate successfully repelled the counter-attack!
+        newState.journal.push(`[Siege] Syndicate ${syndicateId} successfully repelled the ${nativeFactionId} counter-attack in room ${roomId} (Defense Success Prob: ${successProb.toFixed(3)}, Roll: ${roll.toFixed(3)})!`);
+      } else {
+        // Counter-attack succeeded! Faction reclaims the territory
+        delete activeControl[roomId];
+        delete activeClaims[roomId];
+        controlChanged = true;
+
+        if (newState.defenseFortresses) {
+          const updatedFortresses = { ...newState.defenseFortresses };
+          delete updatedFortresses[roomId];
+          newState.defenseFortresses = updatedFortresses;
+        }
+        if (newState.turfGuardOutposts) {
+          const updatedOutposts = { ...newState.turfGuardOutposts };
+          delete updatedOutposts[roomId];
+          newState.turfGuardOutposts = updatedOutposts;
+        }
+        if (newState.turfGuards) {
+          const updatedGuards = { ...newState.turfGuards };
+          delete updatedGuards[roomId];
+          newState.turfGuards = updatedGuards;
+        }
+
+        newState.journal.push(`[Siege] Faction ${nativeFactionId} successfully reclaimed room ${roomId} from syndicate ${syndicateId} (Defense Success Prob: ${successProb.toFixed(3)}, Roll: ${roll.toFixed(3)})!`);
+      }
+    }
+
+    if (controlChanged) {
+      newState.territoryControl = activeControl;
+      newState.territoryClaims = activeClaims;
+    }
+  }
+
   if (!pack || !pack.npcs) {
     // Still run periodic tax ticking even if there are no npcs
     if (newState.step > 0 && newState.step % 5 === 0 && newState.territoryControl) {

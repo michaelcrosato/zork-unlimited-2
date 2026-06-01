@@ -69,6 +69,8 @@ export type Action =
   | { type: "PAY_FACTION_BRIBE"; factionId: string; syndicateId?: string; amount: number; timestamp: number; useWarChest?: boolean }
   | { type: "DECLARE_FACTION_WAR"; syndicateId: string; factionId: string; timestamp: number }
   | { type: "LAUNCH_CAMPAIGN"; syndicateId: string; factionId: string; roomId: string; goldInvestment: number; timestamp: number }
+  | { type: "BUILD_DEFENSE_FORTRESS"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "PROPOSE_PEACE_TREATY"; syndicateId: string; factionId: string; vote?: boolean; timestamp: number }
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 

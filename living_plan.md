@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #71 (Ready for Cycle #72)
-* **Build/Test Status**: 🟢 PASS (All 323 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #72 (Ready for Cycle #73)
+* **Build/Test Status**: 🟢 PASS (All 332 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -428,17 +428,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Support passive tax distribution and regional taxation rules over controlled territories (`AF-71`).
 - [x] Write comprehensive integration tests asserting war declaration, campaigns, pricing/tolls, and gossip convergence (`AF-71`).
 
+- [x] Add `BUILD_DEFENSE_FORTRESS` and `PROPOSE_PEACE_TREATY` decentralized consensus actions (`AF-72`).
+- [x] Implement periodic faction counter-attacks ticking inside `tickEconomy`, triggering sieges against seized syndicate territories (`AF-72`).
+- [x] Wire counter-attack defense success rates to built fortresses, outposts, and pooled cartel resources (`AF-72`).
+- [x] Write comprehensive integration tests verifying P2P peace treaty consensus and territory defense resolution (`AF-72`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-72`
-* **Objective**: Smuggler Syndicate Cartel Territory Defense Networks, Faction Counter-Attacks, and P2P Peace Treaties.
-* **Why this matters**: Support factions launching counter-attacks to reclaim seized territories, constructing cartel defense fortresses to repel counter-attacks, and voting on mesh-wide faction peace treaties to end active hot wars.
+**Task ID**: `AF-73`
+* **Objective**: Smuggler Syndicate Cartel Special Operations, Sabotage Covert Cells, and Territory Conquest Propaganda.
+* **Why this matters**: Introduce covert special operations to infiltrate hostile factions, establish hidden sabotage cells in faction-controlled rooms to lower faction counter-attack chances, and broadcast conquest propaganda to increase syndicate dominance and reputation.
 * **Planned Actions**:
-  1. Add `BUILD_DEFENSE_FORTRESS` and `PROPOSE_PEACE_TREATY` decentralized consensus actions.
-  2. Implement periodic faction counter-attacks ticking inside `tickEconomy`, triggering sieges against seized syndicate territories.
-  3. Wire counter-attack defense success rates to built fortresses, outposts, and pooled cartel resources.
-  4. Write comprehensive integration tests verifying P2P peace treaty consensus and territory defense resolution.
+  1. Add `ESTABLISH_COVERT_CELL` and `BROADCAST_PROPAGANDA` decentralized actions.
+  2. Implement periodic special operations ticking inside `tickEconomy`, triggering cell-based sabotage events (e.g. disabling local outposts or decreasing local enforcer presence).
+  3. Wire covert cell presence and propaganda levels to modify faction siege triggers, enforcer pursuit speeds, and trade tax rates.
+  4. Write comprehensive integration tests verifying covert cell actions and strategic propaganda modifiers.
 
 ---
 

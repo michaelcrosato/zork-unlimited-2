@@ -504,6 +504,20 @@ export const ProtectionRacketSchema = z.object({
 });
 export type ProtectionRacket = z.infer<typeof ProtectionRacketSchema>;
 
+export const DefenseFortressSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  fortressLevel: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type DefenseFortress = z.infer<typeof DefenseFortressSchema>;
+
+export const PeaceTreatyVoteSchema = z.object({
+  targetState: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type PeaceTreatyVote = z.infer<typeof PeaceTreatyVoteSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -627,6 +641,8 @@ export const GameStateSchema = z.object({
   syndicateAlliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
   syndicateAllianceVotes: z.record(z.string(), z.record(z.string(), AllianceVoteSchema)).optional(),
   factionWars: z.record(z.string(), z.record(z.string(), z.boolean())).optional(),
+  defenseFortresses: z.record(z.string(), DefenseFortressSchema).optional(),
+  peaceTreatyVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), PeaceTreatyVoteSchema))).optional(),
 });
 
 
@@ -1038,18 +1054,50 @@ export function reconcileSyndicateAlliances(state: GameState, pack: any): GameSt
 }
 
 export function reconcileFactionWars(state: GameState, pack: any): GameState {
-  if (!state.factionWars) return state;
-
   const newState = {
     ...state,
-    factionWars: { ...(state.factionWars || {}) },
+    factionWars: state.factionWars ? { ...state.factionWars } : {},
+    peaceTreatyVotes: state.peaceTreatyVotes ? { ...state.peaceTreatyVotes } : {},
   };
 
-  for (const [syndicateId, wars] of Object.entries(state.factionWars)) {
+  // Reconcile wars first
+  for (const [syndicateId, wars] of Object.entries(newState.factionWars)) {
     newState.factionWars[syndicateId] = {
       ...(newState.factionWars[syndicateId] || {}),
       ...wars,
     };
+  }
+
+  // Reconcile peace treaty votes
+  if (newState.peaceTreatyVotes) {
+    for (const [syndicateId, factionVotes] of Object.entries(newState.peaceTreatyVotes)) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) continue;
+
+      if (!newState.factionWars[syndicateId]) {
+        newState.factionWars[syndicateId] = {};
+      }
+
+      for (const [factionId, votes] of Object.entries(factionVotes)) {
+        const totalMembers = syndicate.members.length;
+        let yesVotes = 0;
+        let noVotes = 0;
+
+        for (const vote of Object.values(votes)) {
+          if (vote.targetState === true) {
+            yesVotes++;
+          } else {
+            noVotes++;
+          }
+        }
+
+        // Decisive deterministic majority-consensus arbitration rule:
+        // If majority of syndicate members vote true, war ends!
+        if (yesVotes > totalMembers / 2) {
+          newState.factionWars[syndicateId][factionId] = false;
+        }
+      }
+    }
   }
 
   return newState;
@@ -1394,6 +1442,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     syndicateAlliances: rest.syndicateAlliances ? JSON.parse(JSON.stringify(rest.syndicateAlliances)) : undefined,
     syndicateAllianceVotes: rest.syndicateAllianceVotes ? JSON.parse(JSON.stringify(rest.syndicateAllianceVotes)) : undefined,
     factionWars: rest.factionWars ? JSON.parse(JSON.stringify(rest.factionWars)) : undefined,
+    defenseFortresses: rest.defenseFortresses ? JSON.parse(JSON.stringify(rest.defenseFortresses)) : undefined,
+    peaceTreatyVotes: rest.peaceTreatyVotes ? JSON.parse(JSON.stringify(rest.peaceTreatyVotes)) : undefined,
   };
   return clone;
 }
