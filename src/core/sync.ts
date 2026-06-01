@@ -33678,7 +33678,7 @@ export function multiAgentStep(
 
   // Handle ADJUST_SWF_REINSURANCE_OPTION_MARGIN action (AF-170)
   if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_MARGIN") {
-    const { syndicateId, swfYieldCdoId, trancheId, liquidationThreshold, penaltyRate, autoDeleveragingThreshold, marginDeflectionFactor, compoundingFactor, compoundingYieldRate, timestamp } = action as any;
+    const { syndicateId, swfYieldCdoId, trancheId, liquidationThreshold, penaltyRate, autoDeleveragingThreshold, marginDeflectionFactor, compoundingFactor, compoundingYieldRate, stressReserveScalingLimit, stressReserveBufferMultiplier, stressStabilizationTarget, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -33704,6 +33704,12 @@ export function multiAgentStep(
       rejectionReason = `Compounding factor must be between 0 and 1.`;
     } else if (compoundingYieldRate !== undefined && compoundingYieldRate < 0) {
       rejectionReason = `Compounding yield rate must be non-negative.`;
+    } else if (stressReserveScalingLimit !== undefined && stressReserveScalingLimit < 0) {
+      rejectionReason = `Stress reserve scaling limit must be non-negative.`;
+    } else if (stressReserveBufferMultiplier !== undefined && stressReserveBufferMultiplier < 0) {
+      rejectionReason = `Stress reserve buffer multiplier must be non-negative.`;
+    } else if (stressStabilizationTarget !== undefined && stressStabilizationTarget < 0) {
+      rejectionReason = `Stress stabilization target must be non-negative.`;
     } else if (!syndicate) {
       rejectionReason = `Syndicate ${syndicateId} does not exist.`;
     } else if (!cdo) {
@@ -33731,6 +33737,9 @@ export function multiAgentStep(
         marginDeflectionFactor,
         compoundingFactor,
         compoundingYieldRate,
+        stressReserveScalingLimit,
+        stressReserveBufferMultiplier,
+        stressStabilizationTarget,
         timestamp,
       };
       newState.adjustSWFReinsuranceOptionMarginVotes = adjustSWFReinsuranceOptionMarginVotes;
@@ -33742,8 +33751,12 @@ export function multiAgentStep(
       const isConsensusReached = newState.swfReinsuranceOptionMarginPolicies?.[policyKey]?.timestamp === Math.max(timestamp, newState.step);
 
       if (!newState.journal) newState.journal = [];
+      let extraStr = "";
+      if (stressReserveScalingLimit !== undefined || stressReserveBufferMultiplier !== undefined || stressStabilizationTarget !== undefined) {
+        extraStr = `, Stress Reserve Scaling Limit: ${(stressReserveScalingLimit ?? 20.0).toFixed(2)}, Stress Reserve Buffer Multiplier: ${(stressReserveBufferMultiplier ?? 1.5).toFixed(2)}, Stress Stabilization Target: ${(stressStabilizationTarget ?? 100).toFixed(0)}`;
+      }
       newState.journal.push(
-        `[SWF Reinsurance Option Margin Vote] Agent ${agentId} voted to adjust margin for CDO ${swfYieldCdoId} tranche ${trancheId} to Threshold: ${liquidationThreshold.toFixed(4)}, Penalty: ${penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(marginDeflectionFactor ?? 0.5).toFixed(2)}, Compounding Factor: ${(compoundingFactor ?? 0.0).toFixed(2)}, Compounding Yield Rate: ${(compoundingYieldRate ?? 0.0).toFixed(2)} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
+        `[SWF Reinsurance Option Margin Vote] Agent ${agentId} voted to adjust margin for CDO ${swfYieldCdoId} tranche ${trancheId} to Threshold: ${liquidationThreshold.toFixed(4)}, Penalty: ${penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(marginDeflectionFactor ?? 0.5).toFixed(2)}, Compounding Factor: ${(compoundingFactor ?? 0.0).toFixed(2)}, Compounding Yield Rate: ${(compoundingYieldRate ?? 0.0).toFixed(2)}${extraStr} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
       );
 
       customEvents.push({

@@ -4063,6 +4063,56 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             }
           }
         }
+
+        // 3. Automated Secondary Market Safety Capital Transfers under High Volatility Shocks
+        if (writtenOpts.length > 0 && (marginAccount.swfReinsuranceOptionVault ?? 0) > 0) {
+          const uniquePolicyKeys = new Set(writtenOpts.map(opt => `${opt.swfYieldCdoId}_${opt.trancheId}`));
+          for (const policyKey of uniquePolicyKeys) {
+            const policy = newState.swfReinsuranceOptionMarginPolicies?.[policyKey];
+            if (policy) {
+              const stressPolicy = newState.swfReinsuranceOptionStressTestPolicies?.[policyKey];
+              if (stressPolicy && stressPolicy.simulatedVolatilityShock !== undefined) {
+                const limit = policy.stressReserveScalingLimit ?? 20.0;
+                if (stressPolicy.simulatedVolatilityShock >= limit) {
+                  const target = policy.stressStabilizationTarget ?? 100;
+                  const mult = policy.stressReserveBufferMultiplier ?? 1.5;
+                  const targetBalance = Math.floor(target * mult);
+
+                  if (!newState.swfReinsuranceOptionVolatilityInsurancePools) {
+                    newState.swfReinsuranceOptionVolatilityInsurancePools = {};
+                  }
+                  if (!newState.swfReinsuranceOptionVolatilityInsurancePools[policyKey]) {
+                    const [cdoId, trancheId] = policyKey.split("_") as [string, "senior" | "mezzanine" | "equity"];
+                    newState.swfReinsuranceOptionVolatilityInsurancePools[policyKey] = {
+                      id: `pool_${policyKey}`,
+                      swfYieldCdoId: cdoId,
+                      trancheId: trancheId,
+                      balance: 0,
+                      timestamp: newState.step,
+                    };
+                  }
+
+                  const pool = newState.swfReinsuranceOptionVolatilityInsurancePools[policyKey];
+                  if (pool.balance < targetBalance) {
+                    const deficit = targetBalance - pool.balance;
+                    const amountToTransfer = Math.min(deficit, marginAccount.swfReinsuranceOptionVault ?? 0);
+                    if (amountToTransfer > 0) {
+                      marginAccount.swfReinsuranceOptionVault = (marginAccount.swfReinsuranceOptionVault ?? 0) - amountToTransfer;
+                      pool.balance += amountToTransfer;
+                      pool.timestamp = newState.step;
+                      marginAccount.timestamp = newState.step;
+
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[SWF Safety Capital Transfer] Transferred ${amountToTransfer} gold from secondary reinsurance vault of Syndicate ${syndicateId} to stabilization pool ${policyKey} under high volatility shock (Shock: ${stressPolicy.simulatedVolatilityShock} >= Limit: ${limit}, Pool New Balance: ${pool.balance} gold).`
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
 
       // AF-144: Volatility-Hedged Reserve Buffer Automated Adjustment
