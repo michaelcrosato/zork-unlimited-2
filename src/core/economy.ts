@@ -5202,6 +5202,14 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           updatedPolicy.premiumRate = rateToUse; // update policy rate
         }
 
+        // SWF Reinsurance Options rate hedging (AF-148)
+        const activeOption = Object.values(newState.swfReinsuranceOptionsContracts || {}).find(
+          o => o.active && o.syndicateId === updatedPolicy.syndicateId && o.swfYieldCdoId === updatedPolicy.swfYieldCdoId && o.trancheId === updatedPolicy.trancheId && o.optionType === "call"
+        );
+        if (activeOption) {
+          rateToUse = Math.min(rateToUse, activeOption.strikePremiumRate);
+        }
+
         const premium = Math.max(1, Math.floor(updatedPolicy.coverageAmount * rateToUse));
         if (!newState.syndicates) newState.syndicates = {};
         const syndicate = newState.syndicates[updatedPolicy.syndicateId];
@@ -5257,6 +5265,46 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           active: false,
           timestamp: newState.step,
         };
+      }
+    }
+  }
+
+  // Auto-settlement of SWF Reinsurance Options on epoch boundaries (AF-148)
+  if (newState.step % 5 === 0 && newState.swfReinsuranceOptionsContracts && Object.keys(newState.swfReinsuranceOptionsContracts).length > 0) {
+    newState.swfReinsuranceOptionsContracts = { ...newState.swfReinsuranceOptionsContracts };
+    newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
+
+    for (const [optId, opt] of Object.entries(newState.swfReinsuranceOptionsContracts)) {
+      if (opt.active) {
+        const spotRate = getCDOTrancheReinsurancePremiumRate(newState, opt.swfYieldCdoId, opt.trancheId);
+        let payout = 0;
+        if (opt.optionType === "call") {
+          payout = Math.max(0, spotRate - opt.strikePremiumRate) * opt.size * 100;
+        } else {
+          payout = Math.max(0, opt.strikePremiumRate - spotRate) * opt.size * 100;
+        }
+        payout = Math.floor(payout);
+
+        const writer = newState.syndicates[opt.writerSyndicateId];
+        const holder = newState.syndicates[opt.syndicateId];
+        let actualPaid = payout;
+
+        if (writer && holder) {
+          actualPaid = Math.min(payout, writer.warChest ?? 0);
+          writer.warChest = Math.max(0, (writer.warChest ?? 0) - actualPaid);
+          holder.warChest = (holder.warChest ?? 0) + actualPaid;
+        }
+
+        newState.swfReinsuranceOptionsContracts[optId] = {
+          ...opt,
+          active: false,
+          timestamp: newState.step,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Settled] Option ${optId} for Syndicate ${opt.syndicateId} on CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId} settled at spot rate ${spotRate.toFixed(4)} vs strike ${opt.strikePremiumRate.toFixed(4)} (Payout: ${payout} gold, Actual Paid: ${actualPaid} gold).`
+        );
       }
     }
   }

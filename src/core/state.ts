@@ -2054,6 +2054,39 @@ export const SWFReinsuranceFuturesContractSchema = z.object({
 });
 export type SWFReinsuranceFuturesContract = z.infer<typeof SWFReinsuranceFuturesContractSchema>;
 
+export const SWFReinsuranceOptionContractSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  writerSyndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  optionType: z.enum(["call", "put"]),
+  strikePremiumRate: z.number().nonnegative(),
+  size: z.number().int().positive(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type SWFReinsuranceOptionContract = z.infer<typeof SWFReinsuranceOptionContractSchema>;
+
+export const SWFReinsuranceOptionsListingSchema = z.object({
+  id: z.string(),
+  sellerSyndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  optionType: z.enum(["call", "put"]),
+  strikePremiumRate: z.number().nonnegative(),
+  size: z.number().int().positive(),
+  askPrice: z.number().int().positive(),
+  status: z.enum(["Open", "Completed", "Cancelled"]),
+  timestamp: z.number().int(),
+  bids: z.record(z.string(), z.object({
+    bidderSyndicateId: z.string(),
+    bidAmount: z.number().int().positive(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFReinsuranceOptionsListing = z.infer<typeof SWFReinsuranceOptionsListingSchema>;
+
 export const VolatilityHedgedPremiumPolicySchema = z.object({
   swfYieldCdoId: z.string(),
   volatilityReserve: z.number().int().nonnegative(),
@@ -2578,6 +2611,32 @@ export const GameStateSchema = z.object({
     volatilityHedgeMultiplier: z.number().nonnegative(),
     timestamp: z.number().int(),
   }))).optional(),
+  swfReinsuranceOptionsContracts: z.record(z.string(), SWFReinsuranceOptionContractSchema).optional(),
+  swfReinsuranceOptionsListings: z.record(z.string(), SWFReinsuranceOptionsListingSchema).optional(),
+  listSWFReinsuranceOptionVotes: z.record(z.string(), z.record(z.string(), z.object({
+    listingId: z.string(),
+    swfYieldCdoId: z.string(),
+    trancheId: z.enum(["senior", "mezzanine", "equity"]),
+    optionType: z.enum(["call", "put"]),
+    strikePremiumRate: z.number(),
+    size: z.number().int().positive(),
+    askPrice: z.number().int().positive(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  bidSWFReinsuranceOptionVotes: z.record(z.string(), z.record(z.string(), z.object({
+    listingId: z.string(),
+    bidAmount: z.number().int().positive(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  executeSWFReinsuranceOptionSaleVotes: z.record(z.string(), z.record(z.string(), z.object({
+    listingId: z.string(),
+    buyerSyndicateId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  exerciseSWFReinsuranceOptionVotes: z.record(z.string(), z.record(z.string(), z.object({
+    contractId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -2862,6 +2921,12 @@ export const createInitialState = (options: {
     closeSWFReinsuranceFuturesVotes: {},
     volatilityHedgedPremiumPolicies: {},
     configureVolatilityHedgedPremiumPolicyVotes: {},
+    swfReinsuranceOptionsContracts: {},
+    swfReinsuranceOptionsListings: {},
+    listSWFReinsuranceOptionVotes: {},
+    bidSWFReinsuranceOptionVotes: {},
+    executeSWFReinsuranceOptionSaleVotes: {},
+    exerciseSWFReinsuranceOptionVotes: {},
   };
 };
 
@@ -3729,6 +3794,12 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     closeSWFReinsuranceFuturesVotes: rest.closeSWFReinsuranceFuturesVotes ? JSON.parse(JSON.stringify(rest.closeSWFReinsuranceFuturesVotes)) : undefined,
     volatilityHedgedPremiumPolicies: rest.volatilityHedgedPremiumPolicies ? JSON.parse(JSON.stringify(rest.volatilityHedgedPremiumPolicies)) : undefined,
     configureVolatilityHedgedPremiumPolicyVotes: rest.configureVolatilityHedgedPremiumPolicyVotes ? JSON.parse(JSON.stringify(rest.configureVolatilityHedgedPremiumPolicyVotes)) : undefined,
+    swfReinsuranceOptionsContracts: rest.swfReinsuranceOptionsContracts ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionsContracts)) : undefined,
+    swfReinsuranceOptionsListings: rest.swfReinsuranceOptionsListings ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionsListings)) : undefined,
+    listSWFReinsuranceOptionVotes: rest.listSWFReinsuranceOptionVotes ? JSON.parse(JSON.stringify(rest.listSWFReinsuranceOptionVotes)) : undefined,
+    bidSWFReinsuranceOptionVotes: rest.bidSWFReinsuranceOptionVotes ? JSON.parse(JSON.stringify(rest.bidSWFReinsuranceOptionVotes)) : undefined,
+    executeSWFReinsuranceOptionSaleVotes: rest.executeSWFReinsuranceOptionSaleVotes ? JSON.parse(JSON.stringify(rest.executeSWFReinsuranceOptionSaleVotes)) : undefined,
+    exerciseSWFReinsuranceOptionVotes: rest.exerciseSWFReinsuranceOptionVotes ? JSON.parse(JSON.stringify(rest.exerciseSWFReinsuranceOptionVotes)) : undefined,
   };
   return clone;
 }
@@ -11131,6 +11202,312 @@ export function reconcileVolatilityHedgedPremiumPolicies(state: GameState, pack:
   return newState;
 }
 
+export function reconcileSWFReinsuranceOptionsListings(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    listSWFReinsuranceOptionVotes: state.listSWFReinsuranceOptionVotes ? { ...state.listSWFReinsuranceOptionVotes } : {},
+    swfReinsuranceOptionsListings: state.swfReinsuranceOptionsListings ? { ...state.swfReinsuranceOptionsListings } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.listSWFReinsuranceOptionVotes || {})) {
+    const votes = newState.listSWFReinsuranceOptionVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by listingId
+    const votesByListing: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByListing[voteObj.listingId]) {
+        votesByListing[voteObj.listingId] = {};
+      }
+      votesByListing[voteObj.listingId][voterId] = voteObj;
+    }
+
+    for (const [listingId, listingVotes] of Object.entries(votesByListing)) {
+      const firstVote = Object.values(listingVotes)[0];
+      if (!firstVote) continue;
+
+      const { swfYieldCdoId, trancheId, optionType, strikePremiumRate, size, askPrice, timestamp } = firstVote;
+      const yesVotes = Object.entries(listingVotes)
+        .filter(([voterId]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        newState.swfReinsuranceOptionsListings![listingId] = {
+          id: listingId,
+          sellerSyndicateId: syndicateId,
+          swfYieldCdoId,
+          trancheId,
+          optionType,
+          strikePremiumRate,
+          size,
+          askPrice,
+          status: "Open" as const,
+          timestamp,
+          bids: {},
+        };
+
+        if (newState.listSWFReinsuranceOptionVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.listSWFReinsuranceOptionVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.listSWFReinsuranceOptionVotes[syndicateId]).length === 0) {
+            delete newState.listSWFReinsuranceOptionVotes[syndicateId];
+          }
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Listed] Syndicate ${syndicateId} successfully listed a ${optionType} option on CDO ${swfYieldCdoId} tranche ${trancheId} at ask price ${askPrice} gold (Strike: ${strikePremiumRate.toFixed(4)}, Size: ${size}).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionsBids(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    bidSWFReinsuranceOptionVotes: state.bidSWFReinsuranceOptionVotes ? { ...state.bidSWFReinsuranceOptionVotes } : {},
+    swfReinsuranceOptionsListings: state.swfReinsuranceOptionsListings ? { ...state.swfReinsuranceOptionsListings } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.bidSWFReinsuranceOptionVotes || {})) {
+    const votes = newState.bidSWFReinsuranceOptionVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by listingId
+    const votesByListing: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByListing[voteObj.listingId]) {
+        votesByListing[voteObj.listingId] = {};
+      }
+      votesByListing[voteObj.listingId][voterId] = voteObj;
+    }
+
+    for (const [listingId, listingVotes] of Object.entries(votesByListing)) {
+      const firstVote = Object.values(listingVotes)[0];
+      if (!firstVote) continue;
+
+      const { bidAmount, timestamp } = firstVote;
+      const yesVotes = Object.entries(listingVotes)
+        .filter(([voterId]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        const listing = newState.swfReinsuranceOptionsListings![listingId];
+        if (listing && listing.status === "Open") {
+          const bids = listing.bids ? { ...listing.bids } : {};
+          bids[syndicateId] = {
+            bidderSyndicateId: syndicateId,
+            bidAmount,
+            timestamp,
+          };
+          listing.bids = bids;
+          newState.swfReinsuranceOptionsListings![listingId] = listing;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Option Bid Placed] Syndicate ${syndicateId} placed a bid of ${bidAmount} gold on options listing ${listingId}.`
+          );
+        }
+
+        if (newState.bidSWFReinsuranceOptionVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.bidSWFReinsuranceOptionVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.bidSWFReinsuranceOptionVotes[syndicateId]).length === 0) {
+            delete newState.bidSWFReinsuranceOptionVotes[syndicateId];
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionsSales(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    executeSWFReinsuranceOptionSaleVotes: state.executeSWFReinsuranceOptionSaleVotes ? { ...state.executeSWFReinsuranceOptionSaleVotes } : {},
+    swfReinsuranceOptionsListings: state.swfReinsuranceOptionsListings ? { ...state.swfReinsuranceOptionsListings } : {},
+    swfReinsuranceOptionsContracts: state.swfReinsuranceOptionsContracts ? { ...state.swfReinsuranceOptionsContracts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.executeSWFReinsuranceOptionSaleVotes || {})) {
+    const votes = newState.executeSWFReinsuranceOptionSaleVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by listingId
+    const votesByListing: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByListing[voteObj.listingId]) {
+        votesByListing[voteObj.listingId] = {};
+      }
+      votesByListing[voteObj.listingId][voterId] = voteObj;
+    }
+
+    for (const [listingId, listingVotes] of Object.entries(votesByListing)) {
+      const firstVote = Object.values(listingVotes)[0];
+      if (!firstVote) continue;
+
+      const { buyerSyndicateId, timestamp } = firstVote;
+      const yesVotes = Object.entries(listingVotes)
+        .filter(([voterId]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        const listing = newState.swfReinsuranceOptionsListings![listingId];
+        if (listing && listing.status === "Open") {
+          const bid = buyerSyndicateId === "market_maker"
+            ? (listing.bids?.["market_maker"] || { bidderSyndicateId: "market_maker", bidAmount: listing.askPrice })
+            : listing.bids?.[buyerSyndicateId];
+
+          if (bid) {
+            const finalPrice = bid.bidAmount;
+            const buyerSyndicate = buyerSyndicateId === "market_maker"
+              ? { id: "market_maker", warChest: 99999999 }
+              : newState.syndicates[buyerSyndicateId];
+
+            if (buyerSyndicate && (buyerSyndicateId === "market_maker" || (buyerSyndicate.warChest ?? 0) >= finalPrice)) {
+              // Create the active option contract
+              const optionId = `opt_${Object.keys(newState.swfReinsuranceOptionsContracts || {}).length + 1}`;
+              newState.swfReinsuranceOptionsContracts![optionId] = {
+                id: optionId,
+                syndicateId: buyerSyndicateId,
+                writerSyndicateId: syndicateId,
+                swfYieldCdoId: listing.swfYieldCdoId,
+                trancheId: listing.trancheId,
+                optionType: listing.optionType,
+                strikePremiumRate: listing.strikePremiumRate,
+                size: listing.size,
+                timestamp,
+                active: true,
+              };
+
+              // Transfer gold
+              syndicate.warChest = (syndicate.warChest ?? 0) + finalPrice;
+              if (buyerSyndicateId !== "market_maker" && newState.syndicates[buyerSyndicateId]) {
+                newState.syndicates[buyerSyndicateId].warChest = (newState.syndicates[buyerSyndicateId].warChest ?? 0) - finalPrice;
+              }
+
+              // Close listing
+              listing.status = "Completed";
+              listing.timestamp = timestamp;
+              newState.swfReinsuranceOptionsListings![listingId] = listing;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[SWF Reinsurance Option Sale Executed] Syndicate ${syndicateId} sold a ${listing.optionType} option on CDO ${listing.swfYieldCdoId} tranche ${listing.trancheId} (Strike: ${listing.strikePremiumRate.toFixed(4)}, Size: ${listing.size}) to syndicate ${buyerSyndicateId} for ${finalPrice} gold.`
+              );
+            }
+          }
+        }
+
+        if (newState.executeSWFReinsuranceOptionSaleVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.executeSWFReinsuranceOptionSaleVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.executeSWFReinsuranceOptionSaleVotes[syndicateId]).length === 0) {
+            delete newState.executeSWFReinsuranceOptionSaleVotes[syndicateId];
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileExerciseSWFReinsuranceOptions(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    exerciseSWFReinsuranceOptionVotes: state.exerciseSWFReinsuranceOptionVotes ? { ...state.exerciseSWFReinsuranceOptionVotes } : {},
+    swfReinsuranceOptionsContracts: state.swfReinsuranceOptionsContracts ? { ...state.swfReinsuranceOptionsContracts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.exerciseSWFReinsuranceOptionVotes || {})) {
+    const votes = newState.exerciseSWFReinsuranceOptionVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by contractId
+    const votesByContract: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByContract[voteObj.contractId]) {
+        votesByContract[voteObj.contractId] = {};
+      }
+      votesByContract[voteObj.contractId][voterId] = voteObj;
+    }
+
+    for (const [contractId, contractVotes] of Object.entries(votesByContract)) {
+      const firstVote = Object.values(contractVotes)[0];
+      if (!firstVote) continue;
+
+      const { timestamp } = firstVote;
+      const yesVotes = Object.entries(contractVotes)
+        .filter(([voterId]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        const contract = newState.swfReinsuranceOptionsContracts![contractId];
+        if (contract && contract.active && contract.syndicateId === syndicateId) {
+          const spotRate = getCDOTrancheReinsurancePremiumRate(newState, contract.swfYieldCdoId, contract.trancheId);
+          let payout = 0;
+          if (contract.optionType === "call") {
+            payout = Math.max(0, spotRate - contract.strikePremiumRate) * contract.size * 100;
+          } else {
+            payout = Math.max(0, contract.strikePremiumRate - spotRate) * contract.size * 100;
+          }
+          payout = Math.floor(payout);
+
+          const writer = newState.syndicates[contract.writerSyndicateId];
+          const holder = newState.syndicates[contract.syndicateId];
+          let actualPaid = payout;
+
+          if (writer && holder) {
+            actualPaid = Math.min(payout, writer.warChest ?? 0);
+            writer.warChest = Math.max(0, (writer.warChest ?? 0) - actualPaid);
+            holder.warChest = (holder.warChest ?? 0) + actualPaid;
+          }
+
+          contract.active = false;
+          contract.timestamp = timestamp;
+          newState.swfReinsuranceOptionsContracts![contractId] = contract;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Option Exercised] Contract ${contractId} exercised. Spot rate: ${spotRate.toFixed(4)}, Strike: ${contract.strikePremiumRate.toFixed(4)}, Payout: ${payout} gold (Actual Paid: ${actualPaid} gold).`
+          );
+        }
+
+        if (newState.exerciseSWFReinsuranceOptionVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.exerciseSWFReinsuranceOptionVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.exerciseSWFReinsuranceOptionVotes[syndicateId]).length === 0) {
+            delete newState.exerciseSWFReinsuranceOptionVotes[syndicateId];
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
 
 
 

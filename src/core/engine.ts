@@ -2538,6 +2538,47 @@ export function tickProductionLabs(
     }
   }
 
+  // Automated secondary reinsurance options market-maker bids (AF-148)
+  if (newState.swfReinsuranceOptionsListings && Object.keys(newState.swfReinsuranceOptionsListings).length > 0) {
+    const updatedListings = { ...newState.swfReinsuranceOptionsListings };
+    let listingsChanged = false;
+
+    for (const [listingId, listing] of Object.entries(updatedListings)) {
+      if (listing.status === "Open") {
+        const currentBids = listing.bids ? { ...listing.bids } : {};
+        if (!currentBids["market_maker"]) {
+          const { value: bidRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+          newState.seed = nextSeed;
+
+          if (bidRoll <= 50) {
+            // Determine bid amount (85% to 105% of askPrice)
+            const { value: pct, nextSeed: s2 } = PureRand.nextInt(newState.seed, 85, 105);
+            newState.seed = s2;
+            const bidAmount = Math.floor(listing.askPrice * (pct / 100));
+
+            currentBids["market_maker"] = {
+              bidderSyndicateId: "market_maker",
+              bidAmount: Math.max(1, bidAmount),
+              timestamp: newState.step,
+            };
+            listing.bids = currentBids;
+            listingsChanged = true;
+
+            events.push({
+              type: "narration",
+              text: `📈 [Options Market Maker Bid] Automated MM placed a bid of ${bidAmount} gold on reinsurance option listing ${listingId} (Ask: ${listing.askPrice}).`,
+            } as any);
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(`[Options Market Maker Bid] MM bid ${bidAmount} gold on option listing ${listingId}.`);
+          }
+        }
+      }
+    }
+    if (listingsChanged) {
+      newState.swfReinsuranceOptionsListings = updatedListings;
+    }
+  }
+
   // Periodic Cooperative Sovereignty Bond dividend and maturation (AF-138)
   if (newState.cooperativeSovereigntyBondProposals && Object.keys(newState.cooperativeSovereigntyBondProposals).length > 0) {
     const updatedCoopBonds = { ...newState.cooperativeSovereigntyBondProposals };
