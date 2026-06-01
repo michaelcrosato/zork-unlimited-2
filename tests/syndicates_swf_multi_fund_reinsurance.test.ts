@@ -289,4 +289,100 @@ describe("Syndicate SWF Multi-Fund Reinsurance Pools Dynamic Yield Arbitrage & V
     expect(state.syndicates?.alpha_corp?.warChest).toBe(85);
     expect(state.syndicates?.beta_corp?.warChest).toBe(4985);
   });
+
+  it("should support dynamic pricing adjustments to fractionalBridgeRatio based on linkStateDropRate and volatilityShock (AF-168)", () => {
+    let state = createInitialState({
+      seed: 44444,
+      start: "market",
+      varsInit: { gold: 20000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      alpha_corp: {
+        id: "alpha_corp",
+        name: "Alpha Corp",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 0,
+      },
+      beta_corp: {
+        id: "beta_corp",
+        name: "Beta Corp",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 5000,
+      },
+    };
+
+    // Pre-activate a pool with bridging and dynamic adjustments enabled
+    state.swfMultiFundReinsurancePools = {
+      pool_1: {
+        id: "pool_1",
+        syndicateIds: ["alpha_corp", "beta_corp"],
+        capitalAllocated: {
+          alpha_corp: 1000,
+          beta_corp: 1000,
+        },
+        totalReserve: 2000,
+        volatilityHedgeRatio: 0.5,
+        targetYieldRate: 0.10, // 10% base yield
+        historicalVolatility: 20.0,
+        timestamp: 1000,
+        active: true,
+        fractionalYieldBridgingEnabled: true,
+        fractionalBridgeRatio: 0.40,
+        baseBridgeRatio: 0.40,
+        poolCollateral: {
+          collective: 200,
+        },
+        crossMeshReserveTarget: 150,
+        fractionalDividendPayouts: {},
+        linkStateDropRate: 0.20, // 20% link state drop rate -> +0.10 adjustment
+        volatilityShock: 10.0, // 10% volatility shock -> +0.10 adjustment
+      },
+    };
+
+    // Step 0:
+    // Fluctuation step % 6 = 0 -> spotVolatility = 20 + 0 = 20.
+    // required multiplier = 1 + (20/100)*0.5 = 1.1x.
+    // totalRequired = 2000 * 1.1 = 2200. Share per syndicate = 1100.
+    // alpha_corp needs 100 but has 0 warChest. It draws 100 from collective collateral (200 -> 100).
+    // beta_corp deposits 100 normally (5000 -> 4900).
+    //
+    // Base Yield = 2200 * 0.10 = 220 gold.
+    // Dynamic fractionalBridgeRatio = baseBridgeRatio (0.40) + dropRate * 0.5 (0.10) + volatilityShock * 0.01 (0.10) = 0.60.
+    // Bridged Yield = 220 * 0.60 = 132 gold.
+    // Remaining Direct Yield = 220 - 132 = 88 gold (44 gold each).
+    // Bridged Yield adds to collective collateral: 100 + 132 = 232.
+    // Dividends tracker gets 66 each.
+    //
+    // Collateral Sweep: 232 exceeds target 150 by 82. Capped at 150.
+    // 82 gold is swept and distributed equally (41 gold each).
+    // Final alpha_corp warChest: 0 (start) + 44 (direct yield) + 41 (sweep) = 85 gold.
+    // Final beta_corp warChest: 5000 (start) - 100 (deposit) + 44 (direct yield) + 41 (sweep) = 4985 gold.
+    state.step = 0;
+    state = tickEconomy(state, mockPack);
+
+    const pool = state.swfMultiFundReinsurancePools?.["pool_1"];
+    expect(pool).toBeDefined();
+    expect(pool?.capitalAllocated.alpha_corp).toBe(1100);
+    expect(pool?.capitalAllocated.beta_corp).toBe(1100);
+    expect(pool?.poolCollateral?.collective).toBe(150); // Capped at target by sweep
+    expect(pool?.fractionalDividendPayouts?.alpha_corp).toBe(66);
+    expect(pool?.fractionalDividendPayouts?.beta_corp).toBe(66);
+    expect(pool?.fractionalBridgeRatio).toBe(0.60); // Assert dynamically scaled ratio!
+
+    expect(state.syndicates?.alpha_corp?.warChest).toBe(85);
+    expect(state.syndicates?.beta_corp?.warChest).toBe(4985);
+
+    // Verify journal log contains dynamic adjustment entry
+    const dynamicPricingLog = state.journal.find(log => log.includes("Adjusted fractionalBridgeRatio dynamically"));
+    expect(dynamicPricingLog).toBeDefined();
+    expect(dynamicPricingLog).toContain("from 0.4000 to 0.6000");
+  });
 });

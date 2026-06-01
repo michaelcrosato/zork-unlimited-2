@@ -34156,6 +34156,9 @@ export function multiAgentStep(
       poolCollateral,
       crossMeshReserveTarget,
       fractionalDividendPayouts,
+      linkStateDropRate,
+      volatilityShock,
+      baseBridgeRatio,
     } = action as any;
 
     let ok = false;
@@ -34208,6 +34211,9 @@ export function multiAgentStep(
         poolCollateral,
         crossMeshReserveTarget,
         fractionalDividendPayouts,
+        linkStateDropRate,
+        volatilityShock,
+        baseBridgeRatio,
       };
       newState.adjustSWFMultiFundReinsuranceVotes = adjustSWFMultiFundReinsuranceVotes;
 

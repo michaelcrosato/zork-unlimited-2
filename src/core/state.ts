@@ -1863,6 +1863,9 @@ export const SWFMultiFundReinsurancePoolSchema = z.object({
   poolCollateral: z.record(z.string(), z.number().int().nonnegative()).optional(),
   crossMeshReserveTarget: z.number().int().nonnegative().optional(),
   fractionalDividendPayouts: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  linkStateDropRate: z.number().nonnegative().optional(),
+  volatilityShock: z.number().nonnegative().optional(),
+  baseBridgeRatio: z.number().nonnegative().optional(),
 });
 export type SWFMultiFundReinsurancePool = z.infer<typeof SWFMultiFundReinsurancePoolSchema>;
 
@@ -1881,6 +1884,9 @@ export const SWFMultiFundReinsuranceVoteSchema = z.object({
   poolCollateral: z.record(z.string(), z.number().int().nonnegative()).optional(),
   crossMeshReserveTarget: z.number().int().nonnegative().optional(),
   fractionalDividendPayouts: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  linkStateDropRate: z.number().nonnegative().optional(),
+  volatilityShock: z.number().nonnegative().optional(),
+  baseBridgeRatio: z.number().nonnegative().optional(),
 });
 export type SWFMultiFundReinsuranceVote = z.infer<typeof SWFMultiFundReinsuranceVoteSchema>;
 
@@ -12925,12 +12931,15 @@ export function reconcileSWFMultiFundReinsurance(state: GameState, pack: any): G
       poolCollateral?: Record<string, number>;
       crossMeshReserveTarget?: number;
       fractionalDividendPayouts?: Record<string, number>;
+      linkStateDropRate?: number;
+      volatilityShock?: number;
+      baseBridgeRatio?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
-      const key = `${vote.poolId}::${vote.syndicateIds.sort().join(",")}::${JSON.stringify(vote.capitalAllocated)}::${vote.volatilityHedgeRatio}::${vote.targetYieldRate}::${vote.historicalVolatility}::${JSON.stringify(vote.arbitrageRoutes ?? [])}::${vote.fractionalYieldBridgingEnabled ?? false}::${vote.fractionalBridgeRatio ?? 0}::${JSON.stringify(vote.poolCollateral ?? {})}::${vote.crossMeshReserveTarget ?? 0}::${JSON.stringify(vote.fractionalDividendPayouts ?? {})}`;
+      const key = `${vote.poolId}::${vote.syndicateIds.sort().join(",")}::${JSON.stringify(vote.capitalAllocated)}::${vote.volatilityHedgeRatio}::${vote.targetYieldRate}::${vote.historicalVolatility}::${JSON.stringify(vote.arbitrageRoutes ?? [])}::${vote.fractionalYieldBridgingEnabled ?? false}::${vote.fractionalBridgeRatio ?? 0}::${JSON.stringify(vote.poolCollateral ?? {})}::${vote.crossMeshReserveTarget ?? 0}::${JSON.stringify(vote.fractionalDividendPayouts ?? {})}::${vote.linkStateDropRate ?? 0}::${vote.volatilityShock ?? 0}::${vote.baseBridgeRatio ?? 0}`;
       if (!voteGroups[key]) {
         voteGroups[key] = {
           poolId: vote.poolId,
@@ -12945,6 +12954,9 @@ export function reconcileSWFMultiFundReinsurance(state: GameState, pack: any): G
           poolCollateral: vote.poolCollateral,
           crossMeshReserveTarget: vote.crossMeshReserveTarget,
           fractionalDividendPayouts: vote.fractionalDividendPayouts,
+          linkStateDropRate: vote.linkStateDropRate,
+          volatilityShock: vote.volatilityShock,
+          baseBridgeRatio: vote.baseBridgeRatio,
           voters: new Set<string>(),
           timestamps: [],
         };
@@ -12986,6 +12998,9 @@ export function reconcileSWFMultiFundReinsurance(state: GameState, pack: any): G
           poolCollateral: group.poolCollateral,
           crossMeshReserveTarget: group.crossMeshReserveTarget,
           fractionalDividendPayouts: group.fractionalDividendPayouts,
+          linkStateDropRate: group.linkStateDropRate,
+          volatilityShock: group.volatilityShock,
+          baseBridgeRatio: group.baseBridgeRatio ?? group.fractionalBridgeRatio,
         };
 
         delete newState.adjustSWFMultiFundReinsuranceVotes![poolId];

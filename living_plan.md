@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #166 (Ready for Cycle #167)
-* **Build/Test Status**: 🟢 PASS (All 664 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #167 (Ready for Cycle #168)
+* **Build/Test Status**: 🟢 PASS (All 665 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1029,14 +1029,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 146: Syndicate SWF Cross-Mesh Reinsurance Dynamic Pricing Hedging & Yield Risk Adjustments (Completed)
+- [x] Define dynamic pricing and yield risk variables (linkStateDropRate, volatilityShock, baseBridgeRatio) in the SWF Multi-Fund Reinsurance schema (`AF-168`).
+- [x] Wire automatic adjustments to `fractionalBridgeRatio` dynamically scaling with node link-state drop rates and volatility shocks during tick economy (`AF-168`).
+- [x] Write comprehensive unit and integration tests verifying volatility-hedged adjustments (`AF-168`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-168`
-* **Objective**: Syndicate SWF Cross-Mesh Reinsurance Dynamic Pricing Hedging & Yield Risk Adjustments.
-* **Why this matters**: Allow dynamic adjustments of the fractional yield routing based on real-time mesh node partition risks and volatility shocks.
+**Task ID**: `AF-169`
+* **Objective**: Syndicate SWF Cross-Mesh Reinsurance Dynamic Volatility-Hedged Spread Incentives & Dynamic Liquidity Rewards.
+* **Why this matters**: Scale the market maker rebates and spread incentives dynamically with active network partition risk and reinsurance spot volatility.
 * **Planned Actions**:
-  1. Define dynamic pricing and yield risk variables in the SWF Multi-Fund Reinsurance schema.
-  2. Wire automatic adjustments to `fractionalBridgeRatio` dynamically scaling with node link-state drop rates during tick economy.
-  3. Write comprehensive unit and integration tests verifying volatility-hedged adjustments.
+  1. Define dynamic risk-adjusted rebate parameters in the SWF Reinsurance Options Cartel and Guild structures.
+  2. Wire automatic adjustments to the market maker rebates based on real-time link-state drop rates and option book depth.
+  3. Write comprehensive unit and integration tests verifying risk-adjusted rebate distributions.
 
 ---
 

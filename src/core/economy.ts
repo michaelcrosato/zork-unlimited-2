@@ -6178,6 +6178,24 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
     const stepFluc = (newState.step % 6) * 10;
     const spotVolatility = Math.max(10.0, pool.historicalVolatility + stepFluc);
 
+    // Calculate dynamically adjusted fractionalBridgeRatio based on linkStateDropRate and volatilityShock
+    let bridgeRatio = pool.fractionalBridgeRatio ?? 0.4;
+    const baseRatio = pool.baseBridgeRatio ?? pool.fractionalBridgeRatio ?? 0.4;
+    if (pool.fractionalYieldBridgingEnabled) {
+      if (pool.linkStateDropRate !== undefined || pool.volatilityShock !== undefined) {
+        const dropRate = pool.linkStateDropRate ?? 0;
+        const shock = pool.volatilityShock ?? 0;
+        const adjustment = (dropRate * 0.5) + (shock * 0.01);
+        bridgeRatio = Math.min(1.0, Math.max(0.0, baseRatio + adjustment));
+        
+        if (bridgeRatio !== baseRatio) {
+          newState.journal.push(
+            `[SWF Multi-Fund Reinsurance Dynamic Pricing] Adjusted fractionalBridgeRatio dynamically from ${baseRatio.toFixed(4)} to ${bridgeRatio.toFixed(4)} due to link-state drop rate (${(pool.linkStateDropRate ?? 0).toFixed(2)}) and volatility shock (${(pool.volatilityShock ?? 0).toFixed(2)}%).`
+          );
+        }
+      }
+    }
+
     // 2. Automated Rebalancing: calculate required capital based on volatility and hedge ratio
     const requiredCapitalMultiplier = 1.0 + (spotVolatility / 100.0) * pool.volatilityHedgeRatio;
     const totalRequired = Math.round(2000 * requiredCapitalMultiplier);
@@ -6282,7 +6300,6 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
 
     if (totalYield > 0) {
       if (pool.fractionalYieldBridgingEnabled) {
-        const bridgeRatio = pool.fractionalBridgeRatio ?? 0.4;
         const bridgedYield = Math.round(totalYield * bridgeRatio);
         const remainingYield = totalYield - bridgedYield;
 
@@ -6377,6 +6394,7 @@ export function tickSWFMultiFundReinsurance(state: GameState): GameState {
       timestamp: newState.step,
       poolCollateral: currentPoolCollateral,
       fractionalDividendPayouts: currentDividends,
+      fractionalBridgeRatio: pool.fractionalYieldBridgingEnabled ? parseFloat(bridgeRatio.toFixed(4)) : pool.fractionalBridgeRatio,
     };
   }
 
