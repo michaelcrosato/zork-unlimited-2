@@ -4864,6 +4864,64 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
+      // Automated hedging reallocations (AF-158)
+      if (newState.swfReinsuranceOptionsContracts) {
+        for (const opt of Object.values(newState.swfReinsuranceOptionsContracts)) {
+          if (opt.active && opt.writerSyndicateId === syndicateId) {
+            const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
+            const stressPolicy = newState.swfReinsuranceOptionStressTestPolicies?.[policyKey];
+            const hedgingPolicy = newState.swfReinsuranceOptionHedgingPolicies?.[policyKey];
+
+            if (stressPolicy && hedgingPolicy) {
+              const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
+              const avgVolatility = activeBonds.length > 0
+                ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+                : 15.0;
+
+              const stressVolatility = avgVolatility + stressPolicy.simulatedVolatilityShock;
+
+              if (stressVolatility >= hedgingPolicy.hedgingActivationThreshold) {
+                const reserve = newState.secondaryReserves?.[syndicateId];
+                if (reserve && reserve.reserveGold > 0) {
+                  const limit = hedgingPolicy.reserveReallocationLimit;
+                  const toReallocate = Math.min(reserve.reserveGold, limit);
+                  if (toReallocate > 0) {
+                    newState.secondaryReserves = { ...newState.secondaryReserves };
+                    newState.secondaryReserves[syndicateId] = {
+                      ...reserve,
+                      reserveGold: reserve.reserveGold - toReallocate,
+                      timestamp: newState.step,
+                    };
+
+                    if (!newState.marginLiquidationInsurancePolicies) {
+                      newState.marginLiquidationInsurancePolicies = {};
+                    } else {
+                      newState.marginLiquidationInsurancePolicies = { ...newState.marginLiquidationInsurancePolicies };
+                    }
+                    if (!newState.marginLiquidationInsurancePolicies[syndicateId]) {
+                      newState.marginLiquidationInsurancePolicies[syndicateId] = {
+                        syndicateId,
+                        allocatedGold: 0,
+                        timestamp: newState.step,
+                      };
+                    } else {
+                      newState.marginLiquidationInsurancePolicies[syndicateId] = { ...newState.marginLiquidationInsurancePolicies[syndicateId] };
+                    }
+                    newState.marginLiquidationInsurancePolicies[syndicateId].allocatedGold += toReallocate;
+                    newState.marginLiquidationInsurancePolicies[syndicateId].timestamp = newState.step;
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[Automated Hedging Reallocation] Syndicate ${syndicateId} reallocated ${toReallocate} gold from lower-yield secondary reserves to reinsurance insurance pool. Stress Volatility: ${stressVolatility.toFixed(2)}% >= Hedging Threshold: ${hedgingPolicy.hedgingActivationThreshold.toFixed(2)}% (Reallocation Limit: ${limit} gold).`
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       // Automated liquidation insurance payback (AF-143)
       if (netEquity < maintenanceRequirement && newState.marginLiquidationInsurancePolicies?.[syndicateId]) {
         const policy = newState.marginLiquidationInsurancePolicies[syndicateId];

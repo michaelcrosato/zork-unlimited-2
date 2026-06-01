@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #157 (Ready for Cycle #158)
-* **Build/Test Status**: 🟢 PASS (All 634 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #158 (Ready for Cycle #159)
+* **Build/Test Status**: 🟢 PASS (All 636 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -957,14 +957,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 136: Syndicate SWF Stress-Test-Aware Automated Hedging & Dynamic Liquidity Insurance Pool Reallocation (Completed)
+- [x] Define stress-test-aware automated hedging thresholds and state variables in GameState (`AF-158`).
+- [x] Implement decentralized voting on hedging activation and reserve reallocation limits (`AF-158`).
+- [x] Wire automated hedging reallocations to economy ticks before liquidation audits occur (`AF-158`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-158`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-158`
-* **Objective**: Syndicate SWF Stress-Test-Aware Automated Hedging & Dynamic Liquidity Insurance Pool Reallocation.
-* **Why this matters**: Automatically trigger rebalancing and preemptive liquidity reallocation from lower-yield reserves to reinsurance insurance pools when stress-test volatility metrics indicate a high probability of impending margin calls.
+**Task ID**: `AF-159`
+* **Objective**: Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Spot Rate Arbitrage Execution.
+* **Why this matters**: Support automatic spot rate arbitrage execution and delta-hedging rebalancing by purchasing or selling underlying CDO tranche yield tokens directly from the pool when option price deltas move beyond acceptable volatility thresholds.
 * **Planned Actions**:
-  1. Define stress-test-aware automated hedging thresholds and state variables in GameState.
-  2. Implement decentralized voting on hedging activation and reserve reallocation limits.
-  3. Wire automated hedging reallocations to economy ticks before liquidation audits occur.
+  1. Define dynamic delta-hedging metrics, tracking thresholds, and state variables in GameState.
+  2. Implement decentralized voting on delta-hedging targets and rebalancing price tolerances.
+  3. Wire automated delta-hedging yield token rebalancing transactions to economy ticks.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---

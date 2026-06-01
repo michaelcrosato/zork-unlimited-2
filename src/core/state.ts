@@ -2186,7 +2186,23 @@ export const SWFReinsuranceOptionStressTestVoteSchema = z.object({
 });
 export type SWFReinsuranceOptionStressTestVote = z.infer<typeof SWFReinsuranceOptionStressTestVoteSchema>;
 
+export const SWFReinsuranceOptionHedgingPolicySchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  hedgingActivationThreshold: z.number().nonnegative(),
+  reserveReallocationLimit: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionHedgingPolicy = z.infer<typeof SWFReinsuranceOptionHedgingPolicySchema>;
 
+export const SWFReinsuranceOptionHedgingVoteSchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  hedgingActivationThreshold: z.number().nonnegative(),
+  reserveReallocationLimit: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionHedgingVote = z.infer<typeof SWFReinsuranceOptionHedgingVoteSchema>;
 
 export const VolatilityHedgedPremiumPolicySchema = z.object({
   swfYieldCdoId: z.string(),
@@ -2749,6 +2765,8 @@ export const GameStateSchema = z.object({
   adjustSWFReinsuranceOptionMarginVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionMarginVoteSchema)).optional(),
   swfReinsuranceOptionStressTestPolicies: z.record(z.string(), SWFReinsuranceOptionStressTestPolicySchema).optional(),
   adjustSWFReinsuranceOptionStressTestVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionStressTestVoteSchema)).optional(),
+  swfReinsuranceOptionHedgingPolicies: z.record(z.string(), SWFReinsuranceOptionHedgingPolicySchema).optional(),
+  adjustSWFReinsuranceOptionHedgingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionHedgingVoteSchema)).optional(),
   submitSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
     orderId: z.string(),
     orderType: z.enum(["buy", "sell"]),
@@ -3070,6 +3088,8 @@ export const createInitialState = (options: {
     adjustSWFReinsuranceOptionMarginVotes: {},
     swfReinsuranceOptionStressTestPolicies: {},
     adjustSWFReinsuranceOptionStressTestVotes: {},
+    swfReinsuranceOptionHedgingPolicies: {},
+    adjustSWFReinsuranceOptionHedgingVotes: {},
     submitSWFReinsuranceOptionLimitOrderVotes: {},
     cancelSWFReinsuranceOptionLimitOrderVotes: {},
     swfLiquidityMiningRewards: {},
@@ -3958,6 +3978,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     adjustSWFReinsuranceOptionMarginVotes: rest.adjustSWFReinsuranceOptionMarginVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionMarginVotes)) : undefined,
     swfReinsuranceOptionStressTestPolicies: rest.swfReinsuranceOptionStressTestPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionStressTestPolicies)) : undefined,
     adjustSWFReinsuranceOptionStressTestVotes: rest.adjustSWFReinsuranceOptionStressTestVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionStressTestVotes)) : undefined,
+    swfReinsuranceOptionHedgingPolicies: rest.swfReinsuranceOptionHedgingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionHedgingPolicies)) : undefined,
+    adjustSWFReinsuranceOptionHedgingVotes: rest.adjustSWFReinsuranceOptionHedgingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionHedgingVotes)) : undefined,
     submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     swfLiquidityMiningRewards: rest.swfLiquidityMiningRewards ? JSON.parse(JSON.stringify(rest.swfLiquidityMiningRewards)) : undefined,
@@ -12103,6 +12125,71 @@ export function reconcileSWFReinsuranceOptionStressTests(state: GameState, pack:
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[SWF Reinsurance Option Stress Test Adjusted] Syndicate ${syndicateId} adjusted stress test policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Volatility Shock: +${group.simulatedVolatilityShock.toFixed(2)}%, Liquidity Shock: ${group.simulatedLiquidityShock.toFixed(2)} gold, Reserve Multiplier: ${group.reserveMultiplier.toFixed(4)}x).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionHedging(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionHedgingPolicies: state.swfReinsuranceOptionHedgingPolicies ? { ...state.swfReinsuranceOptionHedgingPolicies } : {},
+    adjustSWFReinsuranceOptionHedgingVotes: state.adjustSWFReinsuranceOptionHedgingVotes ? { ...state.adjustSWFReinsuranceOptionHedgingVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.adjustSWFReinsuranceOptionHedgingVotes || {})) {
+    const votes = newState.adjustSWFReinsuranceOptionHedgingVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      swfYieldCdoId: string;
+      trancheId: "senior" | "mezzanine" | "equity";
+      hedgingActivationThreshold: number;
+      reserveReallocationLimit: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.hedgingActivationThreshold}::${vote.reserveReallocationLimit}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            swfYieldCdoId: vote.swfYieldCdoId,
+            trancheId: vote.trancheId,
+            hedgingActivationThreshold: vote.hedgingActivationThreshold,
+            reserveReallocationLimit: vote.reserveReallocationLimit,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const policyKey = `${group.swfYieldCdoId}_${group.trancheId}`;
+        newState.swfReinsuranceOptionHedgingPolicies![policyKey] = {
+          swfYieldCdoId: group.swfYieldCdoId,
+          trancheId: group.trancheId,
+          hedgingActivationThreshold: group.hedgingActivationThreshold,
+          reserveReallocationLimit: group.reserveReallocationLimit,
+          timestamp: Math.max(...group.timestamps, newState.step),
+        };
+
+        delete newState.adjustSWFReinsuranceOptionHedgingVotes[syndicateId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Hedging Adjusted] Syndicate ${syndicateId} adjusted hedging policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Hedging Activation Threshold: ${group.hedgingActivationThreshold.toFixed(2)}%, Reserve Reallocation Limit: ${group.reserveReallocationLimit} gold).`
         );
       }
     }
