@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -1902,6 +1902,46 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         if (paidPenalty > 0) {
           newState.vars[ownerGoldKey] = currentGold - paidPenalty;
           newState.journal.push(`[Safehouse Penalty] Safehouse in room ${roomId} is over capacity (${safehouse.stashItems.length}/${dynamicCap}). Charged owner ${safehouse.ownerId} a penalty of ${paidPenalty} gold for over-limit storage.`);
+        }
+      }
+    }
+  }
+
+  // Periodic Syndicate Bank Interest Ticking (AF-86)
+  if (newState.syndicateBanks) {
+    newState.syndicateBanks = { ...newState.syndicateBanks };
+    for (const [syndicateId, bank] of Object.entries(newState.syndicateBanks)) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) continue;
+
+      const interestRate = bank.interestRate ?? newState.bankInterestPolicies?.[syndicateId] ?? 0;
+      if (interestRate > 0) {
+        const balances = { ...(bank.balances as Record<string, number>) };
+        let balancesChanged = false;
+        const cap = getSyndicateBankCapacity(newState, syndicateId);
+
+        for (const [agentId, balance] of Object.entries(balances)) {
+          // Interest is paid to members!
+          if (syndicate.members.includes(agentId) && balance > 0) {
+            const totalBalances = Object.values(balances).reduce((a, b) => a + b, 0);
+            const remainingCap = Math.max(0, cap - totalBalances);
+            if (remainingCap > 0) {
+              const interest = Math.min(remainingCap, Math.floor((balance * interestRate) / 100));
+              if (interest > 0) {
+                balances[agentId] = balance + interest;
+                balancesChanged = true;
+                newState.journal.push(`[Bank Interest] Credited ${interest} gold interest to member ${agentId} in syndicate ${syndicateId} bank. New balance: ${balances[agentId]} (Capacity: ${cap}).`);
+              }
+            }
+          }
+        }
+
+        if (balancesChanged) {
+          newState.syndicateBanks[syndicateId] = {
+            ...bank,
+            balances,
+            timestamp: newState.step,
+          };
         }
       }
     }

@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -11294,8 +11294,13 @@ export function multiAgentStep(
     } else {
       const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
       const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      const bank = state.syndicateBanks?.[syndicateId];
+      const bankCap = getSyndicateBankCapacity(state, syndicateId);
+      const totalBalances = bank ? Object.values(bank.balances as Record<string, number>).reduce((a, b) => a + b, 0) : 0;
       if (currentGold < amount) {
         rejectionReason = `Insufficient gold to deposit ${amount} into syndicate bank (requires ${amount}, has ${currentGold}).`;
+      } else if (totalBalances + amount > bankCap) {
+        rejectionReason = `Syndicate bank deposit capacity exceeded (requires capacity for ${totalBalances + amount}, capacity is ${bankCap}).`;
       } else {
         ok = true;
       }
@@ -11349,6 +11354,488 @@ export function multiAgentStep(
       const history = state.stateHistory ? [...state.stateHistory] : [];
       const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized WITHDRAW_SYNDICATE_BANK action (AF-86)
+  if ((action as any).type === "WITHDRAW_SYNDICATE_BANK") {
+    const { syndicateId, agentId: actionAgentId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+    const balances = bank?.balances as Record<string, number> | undefined;
+    const currentBalance = balances?.[actionAgentId] ?? 0;
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to withdraw from syndicate bank.`;
+    } else if (!actionAgentId) {
+      rejectionReason = `Agent ID is required to withdraw from syndicate bank.`;
+    } else if (amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Withdrawal amount ${amount} must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (agentId !== actionAgentId) {
+      rejectionReason = `Agent ${agentId} cannot withdraw on behalf of ${actionAgentId}.`;
+    } else if (currentBalance < amount) {
+      rejectionReason = `Insufficient balance to withdraw ${amount} from syndicate bank (has ${currentBalance}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && bank && syndicate) {
+      const isMember = syndicate.members.includes(actionAgentId);
+      const tariff = isMember ? 0 : (bank.withdrawalTariff ?? 0);
+      const paidTariff = Math.min(amount, tariff);
+      const netAmount = amount - paidTariff;
+
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct full amount from bank balance
+      const newBalances = { ...(bank.balances as Record<string, number>) };
+      newBalances[actionAgentId] = currentBalance - amount;
+
+      const updatedBank = {
+        ...bank,
+        balances: newBalances,
+        timestamp,
+      };
+      newState.syndicateBanks = {
+        ...(state.syndicateBanks || {}),
+        [syndicateId]: updatedBank,
+      };
+
+      // Add net amount to agent's gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold + netAmount,
+      };
+
+      // If tariff paid, distribute to syndicate members!
+      if (paidTariff > 0) {
+        const members = syndicate.members ?? [];
+        const share = members.length > 0 ? Math.floor(paidTariff / members.length) : 0;
+        if (share > 0) {
+          for (const member of members) {
+            const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+            newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+          }
+        }
+      }
+
+      if (!newState.journal) newState.journal = [];
+      if (paidTariff > 0) {
+        newState.journal.push(`[Syndicate Bank] Non-member Agent ${agentId} withdrew ${amount} gold from syndicate ${syndicateId} bank. Charged ${paidTariff} withdrawal tariff (distributed to members). Net gold received: ${netAmount}.`);
+      } else {
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} withdrew ${amount} gold from syndicate ${syndicateId} bank.`);
+      }
+
+      customEvents.push({
+        type: "syndicate_bank_withdrawn" as any,
+        agentId,
+        syndicateId,
+        amount,
+        netAmount,
+        paidTariff,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized UPGRADE_BANK_VAULT action (AF-86)
+  if ((action as any).type === "UPGRADE_BANK_VAULT") {
+    const { syndicateId, cost: costParam, timestamp } = action as any;
+    const cost = costParam ?? 300;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to upgrade bank vault.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Bank vault upgrade cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot upgrade bank vault.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to upgrade bank vault (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const existingBank = (bank || {
+        syndicateId,
+        balances: {} as Record<string, number>,
+        timestamp,
+      }) as any;
+
+      const nextUpgradeLevel = (existingBank.vaultUpgradeLevel ?? 0) + 1;
+      const syndicateBanks = { ...(state.syndicateBanks || {}) };
+      syndicateBanks[syndicateId] = {
+        ...existingBank,
+        vaultUpgradeLevel: nextUpgradeLevel,
+        timestamp,
+      };
+      newState.syndicateBanks = syndicateBanks;
+
+      // Recalculate dynamic capacity
+      const newCap = getSyndicateBankCapacity(newState, syndicateId);
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate Bank] Agent ${agentId} upgraded Syndicate ${syndicateId} Bank Vault to level ${nextUpgradeLevel} for ${cost} gold. New capacity: ${newCap}.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `🏦 Syndicate bank vault upgraded to level ${nextUpgradeLevel}! Capacity expanded to ${newCap} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "syndicate_bank_vault_upgraded" as any,
+        syndicateId,
+        vaultLevel: nextUpgradeLevel,
+        newCapacity: newCap,
+        cost,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ESTABLISH_WITHDRAWAL_TARIFF action (AF-86)
+  if ((action as any).type === "ESTABLISH_WITHDRAWAL_TARIFF") {
+    const { syndicateId, tariffAmount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to establish withdrawal tariff.`;
+    } else if (tariffAmount === undefined || tariffAmount < 0 || !Number.isInteger(tariffAmount)) {
+      rejectionReason = `Withdrawal tariff rate must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot establish withdrawal tariff.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const existingBank = (bank || {
+        syndicateId,
+        balances: {} as Record<string, number>,
+        timestamp,
+      }) as any;
+
+      const syndicateBanks = { ...(state.syndicateBanks || {}) };
+      syndicateBanks[syndicateId] = {
+        ...existingBank,
+        withdrawalTariff: tariffAmount,
+        timestamp,
+      };
+      newState.syndicateBanks = syndicateBanks;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate Bank] Agent ${agentId} established withdrawal tariff of ${tariffAmount} gold for syndicate ${syndicateId} bank.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Withdrawal tariff of ${tariffAmount} gold has been established for syndicate ${syndicateId} bank for non-members.`,
+      } as any);
+
+      customEvents.push({
+        type: "withdrawal_tariff_established" as any,
+        syndicateId,
+        tariffAmount,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_INTEREST_RATE action (AF-86)
+  if ((action as any).type === "VOTE_INTEREST_RATE") {
+    const { syndicateId, rate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to vote on interest rate.`;
+    } else if (rate === undefined || rate < 0 || !Number.isInteger(rate)) {
+      rejectionReason = `Proposed interest rate must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on interest rate.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const bankInterestVotes = { ...(state.bankInterestVotes || {}) };
+      if (!bankInterestVotes[syndicateId]) {
+        bankInterestVotes[syndicateId] = {};
+      } else {
+        bankInterestVotes[syndicateId] = { ...bankInterestVotes[syndicateId] };
+      }
+
+      const existingVote = bankInterestVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        bankInterestVotes[syndicateId][agentId] = {
+          rate,
+          timestamp,
+        };
+        newState.bankInterestVotes = bankInterestVotes;
+        newState = reconcileBankInterestRates(newState, pack);
+
+        const newInterestRate = newState.bankInterestPolicies?.[syndicateId] ?? 0;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} voted for interest rate ${rate}% in syndicate ${syndicateId}. Reconciled rate is now ${newInterestRate}%.`);
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Interest rate vote cast by ${agentId} for ${rate}%. Reconciled rate is now ${newInterestRate}% per tick.`,
+        } as any);
+
+        customEvents.push({
+          type: "bank_interest_voted" as any,
+          syndicateId,
+          agentId,
+          rate,
+          reconciledRate: newInterestRate,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
       if (history.length > 50) {
         history.shift();
       }

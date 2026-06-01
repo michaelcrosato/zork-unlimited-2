@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #85 (Ready for Cycle #86)
-* **Build/Test Status**: 🟢 PASS (All 402 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #86 (Ready for Cycle #87)
+* **Build/Test Status**: 🟢 PASS (All 407 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -497,16 +497,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire storage rent charges and voting arbitrations to distribute rent profits to the syndicate and penalize over-limit storage (`AF-85`).
 - [x] Write comprehensive Vitest integration tests (`AF-85`).
 
+- [x] Add `UPGRADE_BANK_VAULT`, `ESTABLISH_WITHDRAWAL_TARIFF`, and `VOTE_INTEREST_RATE` decentralized actions (`AF-86`).
+- [x] Implement dynamic bank deposit capacities scaling based on upgrades and enforcer heat pressure (`AF-86`).
+- [x] Wire interest rate payouts and consensus arbitrations to distribute passive income or charge non-members transaction fees (`AF-86`).
+- [x] Write comprehensive Vitest integration tests (`AF-86`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-86`
-* **Objective**: Smuggler Syndicate Cartel Bank Vault Upgrades, Dynamic Syndicate Deposit Capacities, and Cartel Interest Rate consensus arbitration.
-* **Why this matters**: Further expand the syndicate banking mechanics, enabling syndicates to construct and upgrade bank vaults, dynamically scale deposit capacities, levy withdrawal tariffs on non-members, and execute consensual interest rate consensus voting arbitrations.
+**Task ID**: `AF-87`
+* **Objective**: Smuggler Syndicate Cartel Bank Loans, Collateral-Gated borrowing, and Enforcer Debt-Recovery sweeps.
+* **Why this matters**: Introduce advanced syndicate credit mechanics, enabling agents/players to borrow gold from the syndicate bank, locking owned safehouse assets or outposts as collateral, scaling loan limits by syndicate dominance/standing, and triggering enforcer collections or asset liquidation if loans default (remain unpaid after a certain number of steps/ticks).
 * **Planned Actions**:
-  1. Add `UPGRADE_BANK_VAULT`, `ESTABLISH_WITHDRAWAL_TARIFF`, and `VOTE_INTEREST_RATE` decentralized actions.
-  2. Implement dynamic vault deposit capacities scaling based on upgrades and enforcer heat pressure.
-  3. Wire interest rate payouts and consensus arbitrations to distribute passive income or charge non-members transaction fees.
+  1. Add `BORROW_SYNDICATE_BANK`, `PAYBACK_SYNDICATE_BANK`, and `LIQUIDATE_COLLATERAL` decentralized actions.
+  2. Implement dynamic borrowing capacities scaling based on syndicate dominance, reputation, and collateral values.
+  3. Wire periodic loan interest accruals and enforcer-led debt collection sweeps on default inside economy ticks.
   4. Write comprehensive Vitest integration tests.
 
 ---

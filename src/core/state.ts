@@ -279,6 +279,12 @@ export const SafehouseRentVoteSchema = z.object({
 });
 export type SafehouseRentVote = z.infer<typeof SafehouseRentVoteSchema>;
 
+export const BankInterestVoteSchema = z.object({
+  rate: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type BankInterestVote = z.infer<typeof BankInterestVoteSchema>;
+
 export const SyndicateSafehouseSchema = z.object({
   id: z.string(),
   roomId: z.string(),
@@ -584,6 +590,9 @@ export const SyndicateBankSchema = z.object({
   syndicateId: z.string(),
   balances: z.record(z.string(), z.number().int().nonnegative()),
   timestamp: z.number().int(),
+  vaultUpgradeLevel: z.number().int().nonnegative().optional(),
+  withdrawalTariff: z.number().int().nonnegative().optional(),
+  interestRate: z.number().int().nonnegative().optional(),
 });
 export type SyndicateBank = z.infer<typeof SyndicateBankSchema>;
 
@@ -893,6 +902,8 @@ export const GameStateSchema = z.object({
   stashItemOwners: z.record(z.string(), z.string()).optional(),
   safehouseRentVotes: z.record(z.string(), z.record(z.string(), SafehouseRentVoteSchema)).optional(),
   safehouseRentPolicies: z.record(z.string(), z.number()).optional(),
+  bankInterestVotes: z.record(z.string(), z.record(z.string(), BankInterestVoteSchema)).optional(),
+  bankInterestPolicies: z.record(z.string(), z.number()).optional(),
 });
 
 
@@ -2140,5 +2151,77 @@ export function getSafehouseStorageCapacity(state: GameState, roomId: string): n
   const upgradeBonus = (safehouse.storageUpgradeLevel ?? 0) * 10;
   const regionalSupplyCap = Math.max(2, 20 - (state.enforcementHeat?.[roomId]?.heat ?? 0));
   return baseCap + upgradeBonus + regionalSupplyCap;
+}
+
+export function getSyndicateBankCapacity(state: GameState, syndicateId: string): number {
+  const bank = state.syndicateBanks?.[syndicateId];
+  const baseCap = 1000;
+  const upgradeBonus = (bank?.vaultUpgradeLevel ?? 0) * 500;
+  
+  // Find controlling rooms heat
+  let maxHeat = 0;
+  if (state.syndicateTurf) {
+    for (const [roomId, ownerId] of Object.entries(state.syndicateTurf)) {
+      if (ownerId === syndicateId) {
+        const heat = state.enforcementHeat?.[roomId]?.heat ?? 0;
+        if (heat > maxHeat) {
+          maxHeat = heat;
+        }
+      }
+    }
+  }
+  const heatReduction = maxHeat * 50;
+  const capacity = Math.max(100, baseCap + upgradeBonus - heatReduction);
+  return capacity;
+}
+
+export function reconcileBankInterestRates(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicateBanks: state.syndicateBanks ? { ...state.syndicateBanks } : {},
+    bankInterestPolicies: state.bankInterestPolicies ? { ...state.bankInterestPolicies } : {},
+  };
+
+  if (!newState.bankInterestVotes) {
+    newState.bankInterestVotes = {};
+  }
+
+  for (const [syndicateId, votes] of Object.entries(newState.bankInterestVotes)) {
+    const bank = newState.syndicateBanks?.[syndicateId];
+    if (!bank) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    // Only count votes from current members of the syndicate
+    const counts: Record<number, number> = {};
+    for (const [agentId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(agentId)) {
+        counts[vote.rate] = (counts[vote.rate] ?? 0) + 1;
+      }
+    }
+
+    let maxCount = 0;
+    let consensusRate = newState.bankInterestPolicies[syndicateId] ?? 0;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort rates descending to prefer higher rates.
+    const uniqueRates = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = counts[rate];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    newState.bankInterestPolicies[syndicateId] = consensusRate;
+    newState.syndicateBanks[syndicateId] = {
+      ...bank,
+      interestRate: consensusRate,
+    };
+  }
+
+  return newState;
 }
 
