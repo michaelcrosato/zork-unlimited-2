@@ -1,9 +1,9 @@
 # 🤖 AI Autopilot Living Report
 
-* **Last Updated**: 2026-06-01T13:03:47.921Z
+* **Last Updated**: 2026-06-01T13:08:36.088Z
 * **Autopilot Cycle**: #1
-* **Cycle Duration**: 19.5 seconds
-* **Build Status**: 🟢 PASS
+* **Cycle Duration**: 18.7 seconds
+* **Build Status**: 🔴 FAIL
 * **Tests Status**: 🟢 PASS
 
 ## 🗺️ Content Packs Audit
@@ -18,17 +18,21 @@
 
 ### TypeScript Build Log
 ```
-Clean compilation.
+tests/syndicates_swf_reinsurance_options_penalty_refund.test.ts(140,13): error TS2353: Object literal may only specify known properties, and 'yieldRate' does not exist in type '{ trancheId: "senior" | "mezzanine" | "equity"; interestRate: number; sweepRiskExposure: number; totalValue: number; ownership: Record<string, number>; timestamp: number; }'.
+tests/syndicates_swf_reinsurance_options_penalty_refund.test.ts(149,13): error TS2353: Object literal may only specify known properties, and 'yieldRate' does not exist in type '{ trancheId: "senior" | "mezzanine" | "equity"; interestRate: number; sweepRiskExposure: number; totalValue: number; ownership: Record<string, number>; timestamp: number; }'.
+tests/syndicates_swf_reinsurance_options_penalty_refund.test.ts(156,13): error TS2353: Object literal may only specify known properties, and 'yieldRate' does not exist in type '{ trancheId: "senior" | "mezzanine" | "equity"; interestRate: number; sweepRiskExposure: number; totalValue: number; ownership: Record<string, number>; timestamp: number; }'.
+tests/syndicates_swf_reinsurance_options_penalty_refund.test.ts(202,7): error TS2739: Type '{ trancheId: "senior"; riskRating: "C"; timestamp: number; }' is missing the following properties from type '{ id: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; riskRating: "AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC" | "CC" | "C" | "D"; collateralizationRatio: number; defaultCorrelation: number; timestamp: number; }': id, swfYieldCdoId, collateralizationRatio, defaultCorrelation
+[ELIFECYCLE] Command failed with exit code 2.
 ```
 
 ### Unit Tests Log
 ```
-✓ should validate the trade pack without errors  6768ms
+✓ tests/syndicates_swf_reinsurance_options_penalty_refund.test.ts (2 tests) 63ms
 
- Test Files  147 passed (147)
-      Tests  700 passed (700)
-   Start at  06:03:37
-   Duration  8.78s (transform 36.58s, setup 0ms, import 158.72s, tests 27.04s, environment 20ms)
+ Test Files  148 passed (148)
+      Tests  702 passed (702)
+   Start at  06:08:26
+   Duration  8.22s (transform 28.80s, setup 0ms, import 150.36s, tests 23.29s, environment 19ms)
 ```
 
 ---

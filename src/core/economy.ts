@@ -5980,16 +5980,63 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 }
               }
 
+              // Check for authorized penalty refund (AF-189)
+              let isPenaltyRefundActive = false;
+              if (newState.swfReinsuranceOptionPenaltyRefundProposals) {
+                for (const prop of Object.values(newState.swfReinsuranceOptionPenaltyRefundProposals)) {
+                  if (
+                    prop.syndicateId === syndicateId &&
+                    prop.swfYieldCdoId === opt.swfYieldCdoId &&
+                    prop.trancheId === opt.trancheId &&
+                    prop.status === "authorized" &&
+                    prop.refundPenalty
+                  ) {
+                    isPenaltyRefundActive = true;
+                    break;
+                  }
+                }
+              }
+
               const penalty = isPenaltyWaived ? 0 : Math.floor(effectiveSize * spotRate * pRate * 100);
 
               // Charge writer's collateral
               netEquity -= penalty;
 
-              // Pay option holder
-              if (opt.syndicateId !== "market_maker" && penalty > 0) {
-                const holder = newState.syndicates[opt.syndicateId];
-                if (holder) {
-                  holder.warChest = (holder.warChest ?? 0) + penalty;
+              // Pay option holder or refund pro-rata
+              if (isPenaltyRefundActive && penalty > 0) {
+                const contributions = newState.swfReinsuranceOptionPremiumContributions || {};
+                let totalContributions = 0;
+                for (const amt of Object.values(contributions)) {
+                  totalContributions += amt;
+                }
+
+                if (totalContributions > 0) {
+                  for (const [syndId, amt] of Object.entries(contributions)) {
+                    const refundShare = Math.floor(penalty * (amt / totalContributions));
+                    if (refundShare > 0) {
+                      const synd = newState.syndicates[syndId];
+                      if (synd) {
+                        synd.warChest = (synd.warChest ?? 0) + refundShare;
+                      }
+                      newState.journal.push(`[Option Penalty Refund] Distributed refund of ${refundShare} gold to Syndicate ${syndId} (premium contribution share: ${(amt / totalContributions * 100).toFixed(1)}%).`);
+                    }
+                  }
+                } else {
+                  // Fallback: pay option holder
+                  if (opt.syndicateId !== "market_maker") {
+                    const holder = newState.syndicates[opt.syndicateId];
+                    if (holder) {
+                      holder.warChest = (holder.warChest ?? 0) + penalty;
+                    }
+                  }
+                }
+              } else {
+                // Normal flow: pay option holder
+                if (opt.syndicateId !== "market_maker" && penalty > 0) {
+                  const holder = newState.syndicates[opt.syndicateId];
+                  if (holder) {
+                    holder.warChest = (holder.warChest ?? 0) + penalty;
+                  }
                 }
               }
 
@@ -6001,6 +6048,8 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
               if (isPenaltyWaived) {
                 newState.journal.push(`[Option Liquidation] Written option contract ${optId} of Syndicate ${syndicateId} has been liquidated. Penalty WAIVED due to authorized penalty waiver.`);
+              } else if (isPenaltyRefundActive) {
+                newState.journal.push(`[Option Liquidation] Written option contract ${optId} of Syndicate ${syndicateId} has been liquidated. Penalty of ${penalty} gold REFUNDED pro-rata to participating syndicates.`);
               } else {
                 newState.journal.push(`[Option Liquidation] Written option contract ${optId} of Syndicate ${syndicateId} has been liquidated. Charge penalty of ${penalty} gold paid to Syndicate ${opt.syndicateId}.`);
               }
@@ -7588,6 +7637,12 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         newState.syndicates[buyOrder.syndicateId] = { ...buyer };
         newState.syndicates[sellOrder.syndicateId] = { ...seller };
 
+        if (!newState.swfReinsuranceOptionPremiumContributions) {
+          newState.swfReinsuranceOptionPremiumContributions = {};
+        }
+        newState.swfReinsuranceOptionPremiumContributions[buyOrder.syndicateId] =
+          (newState.swfReinsuranceOptionPremiumContributions[buyOrder.syndicateId] ?? 0) + finalPrice;
+
         // Deposit deflected amount to volatility insurance pool
         if (deflectedAmount > 0 && volInsurancePolicy) {
           if (!newState.swfReinsuranceOptionVolatilityInsurancePools) {
@@ -7727,6 +7782,12 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
                 newState.syndicates[openOrder.syndicateId] = { ...buyer };
                 newState.syndicates[providerSyndicateId] = { ...provider };
 
+                if (!newState.swfReinsuranceOptionPremiumContributions) {
+                  newState.swfReinsuranceOptionPremiumContributions = {};
+                }
+                newState.swfReinsuranceOptionPremiumContributions[openOrder.syndicateId] =
+                  (newState.swfReinsuranceOptionPremiumContributions[openOrder.syndicateId] ?? 0) + totalOrderPrice;
+
                 // Fill order
                 openOrder.status = "Filled";
                 openOrder.size = 0;
@@ -7783,6 +7844,12 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
                     newState.syndicates[openOrder.syndicateId] = { ...seller };
                     newState.syndicates[providerSyndicateId] = { ...provider };
 
+                    if (!newState.swfReinsuranceOptionPremiumContributions) {
+                      newState.swfReinsuranceOptionPremiumContributions = {};
+                    }
+                    newState.swfReinsuranceOptionPremiumContributions[providerSyndicateId] =
+                      (newState.swfReinsuranceOptionPremiumContributions[providerSyndicateId] ?? 0) + totalOrderPrice;
+
                     // Fill order
                     openOrder.status = "Filled";
                     openOrder.size = 0;
@@ -7824,6 +7891,12 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
 
                   newState.syndicates[openOrder.syndicateId] = { ...seller };
                   newState.syndicates[providerSyndicateId] = { ...provider };
+
+                  if (!newState.swfReinsuranceOptionPremiumContributions) {
+                    newState.swfReinsuranceOptionPremiumContributions = {};
+                  }
+                  newState.swfReinsuranceOptionPremiumContributions[providerSyndicateId] =
+                    (newState.swfReinsuranceOptionPremiumContributions[providerSyndicateId] ?? 0) + totalOrderPrice;
 
                   // Fill order
                   openOrder.status = "Filled";

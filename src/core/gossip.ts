@@ -1,5 +1,5 @@
 import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies, reconcileSWFStakingPolicies } from "./state.js";
-import { reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting } from "./state.js";
+import { reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileSWFReinsuranceOptionPenaltyWaivers, reconcileSWFReinsuranceOptionPenaltyRefunds } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -3224,10 +3224,86 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfReinsuranceOptionPenaltyWaiverProposals using LWW
+  const swfReinsuranceOptionPenaltyWaiverProposals = { ...stateA.swfReinsuranceOptionPenaltyWaiverProposals };
+  if (stateB.swfReinsuranceOptionPenaltyWaiverProposals) {
+    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionPenaltyWaiverProposals)) {
+      const entryA = swfReinsuranceOptionPenaltyWaiverProposals[proposalId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfReinsuranceOptionPenaltyWaiverProposals[proposalId] = entryB;
+      }
+    }
+  }
+
+  // Merge swfReinsuranceOptionPenaltyWaiverVotes using LWW
+  const swfReinsuranceOptionPenaltyWaiverVotes = { ...stateA.swfReinsuranceOptionPenaltyWaiverVotes };
+  if (stateB.swfReinsuranceOptionPenaltyWaiverVotes) {
+    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionPenaltyWaiverVotes)) {
+      if (!swfReinsuranceOptionPenaltyWaiverVotes[proposalId]) {
+        swfReinsuranceOptionPenaltyWaiverVotes[proposalId] = { ...bInner };
+      } else {
+        const aInner = { ...swfReinsuranceOptionPenaltyWaiverVotes[proposalId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        swfReinsuranceOptionPenaltyWaiverVotes[proposalId] = aInner;
+      }
+    }
+  }
+
+  // Merge swfReinsuranceOptionPenaltyRefundProposals using LWW
+  const swfReinsuranceOptionPenaltyRefundProposals = { ...stateA.swfReinsuranceOptionPenaltyRefundProposals };
+  if (stateB.swfReinsuranceOptionPenaltyRefundProposals) {
+    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionPenaltyRefundProposals)) {
+      const entryA = swfReinsuranceOptionPenaltyRefundProposals[proposalId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfReinsuranceOptionPenaltyRefundProposals[proposalId] = entryB;
+      }
+    }
+  }
+
+  // Merge swfReinsuranceOptionPenaltyRefundVotes using LWW
+  const swfReinsuranceOptionPenaltyRefundVotes = { ...stateA.swfReinsuranceOptionPenaltyRefundVotes };
+  if (stateB.swfReinsuranceOptionPenaltyRefundVotes) {
+    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionPenaltyRefundVotes)) {
+      if (!swfReinsuranceOptionPenaltyRefundVotes[proposalId]) {
+        swfReinsuranceOptionPenaltyRefundVotes[proposalId] = { ...bInner };
+      } else {
+        const aInner = { ...swfReinsuranceOptionPenaltyRefundVotes[proposalId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        swfReinsuranceOptionPenaltyRefundVotes[proposalId] = aInner;
+      }
+    }
+  }
+
+  // Merge swfReinsuranceOptionPremiumContributions using LWW
+  const swfReinsuranceOptionPremiumContributions = { ...stateA.swfReinsuranceOptionPremiumContributions };
+  if (stateB.swfReinsuranceOptionPremiumContributions) {
+    for (const [syndicateId, valB] of Object.entries(stateB.swfReinsuranceOptionPremiumContributions)) {
+      const valA = swfReinsuranceOptionPremiumContributions[syndicateId];
+      if (valA === undefined || valB > valA) {
+        swfReinsuranceOptionPremiumContributions[syndicateId] = valB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
     swfReinsuranceOptionOrderBookDepths,
+    swfReinsuranceOptionPenaltyWaiverProposals,
+    swfReinsuranceOptionPenaltyWaiverVotes,
+    swfReinsuranceOptionPenaltyRefundProposals,
+    swfReinsuranceOptionPenaltyRefundVotes,
+    swfReinsuranceOptionPremiumContributions,
     swfReinsuranceOptionCrossMeshArbitrageRoutes,
     swfReinsuranceOptionCrossSyndicatePools,
     swfReinsuranceOptionPeerLendingRequests,
@@ -3789,6 +3865,8 @@ export class GossipNode {
     convergedState = reconcileSWFReinsuranceOptionPeerLending(convergedState, this.pack);
     convergedState = reconcileSWFReinsuranceOptionVolatilityPoolRebalancing(convergedState, this.pack);
     convergedState = reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting(convergedState, this.pack);
+    convergedState = reconcileSWFReinsuranceOptionPenaltyWaivers(convergedState, this.pack);
+    convergedState = reconcileSWFReinsuranceOptionPenaltyRefunds(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};
