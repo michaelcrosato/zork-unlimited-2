@@ -777,7 +777,23 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
       });
       const marginPolicy = marginPolicyKey ? newState.swfReinsuranceOptionMarginPolicies![marginPolicyKey] : undefined;
 
-      if (marginPolicy && marginPolicy.liquidityDepletionThreshold !== undefined && marginPolicy.floorScalingFactor !== undefined) {
+      let depletionThreshold = marginPolicy?.liquidityDepletionThreshold;
+      let scalingFactor = marginPolicy?.floorScalingFactor;
+
+      // Check if there is an authorized auto-adjust proposal for this CDO and tranche
+      if (newState.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals) {
+        for (const prop of Object.values(newState.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals)) {
+          if (prop.swfYieldCdoId === optionCdoId &&
+              prop.trancheId === trancheId &&
+              prop.status === "authorized") {
+            depletionThreshold = prop.liquidityDepletionThreshold;
+            scalingFactor = prop.floorScalingFactor;
+            break;
+          }
+        }
+      }
+
+      if (depletionThreshold !== undefined && scalingFactor !== undefined) {
         // Find the cross-syndicate pool or volatility insurance pool
         const crossPool = Object.values(newState.swfReinsuranceOptionCrossSyndicatePools || {}).find((p: any) =>
           p.swfYieldCdoId === optionCdoId && p.trancheId === trancheId
@@ -799,12 +815,12 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
 
         if (liabilities > 0) {
           const ratio = reserves / liabilities;
-          if (ratio < marginPolicy.liquidityDepletionThreshold) {
-            const depletionGap = marginPolicy.liquidityDepletionThreshold - ratio;
-            const multiplier = 1.0 + marginPolicy.floorScalingFactor * depletionGap;
+          if (ratio < depletionThreshold) {
+            const depletionGap = depletionThreshold - ratio;
+            const multiplier = 1.0 + scalingFactor * depletionGap;
             volatilityFloor = volatilityFloor * multiplier;
             autoAdjusted = true;
-            boostLogMsg = `[SWF Reinsurance Option Volatility Floor Auto-Boosted] Pool liquidity is depleted (Reserves: ${reserves}, Liabilities: ${liabilities}, Ratio: ${ratio.toFixed(4)} < Threshold: ${marginPolicy.liquidityDepletionThreshold}). Dynamically boosted volatility floor from ${originalVolatilityFloor.toFixed(2)} to ${volatilityFloor.toFixed(2)} using scaling factor ${marginPolicy.floorScalingFactor}.`;
+            boostLogMsg = `[SWF Reinsurance Option Volatility Floor Auto-Boosted] Pool liquidity is depleted (Reserves: ${reserves}, Liabilities: ${liabilities}, Ratio: ${ratio.toFixed(4)} < Threshold: ${depletionThreshold}). Dynamically boosted volatility floor from ${originalVolatilityFloor.toFixed(2)} to ${volatilityFloor.toFixed(2)} using scaling factor ${scalingFactor}.`;
           }
         }
       }

@@ -2320,6 +2320,27 @@ export const SWFReinsuranceOptionVolatilityFloorVoteSchema = z.object({
 });
 export type SWFReinsuranceOptionVolatilityFloorVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorVoteSchema>;
 
+export const SWFReinsuranceOptionVolatilityFloorAutoAdjustProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  liquidityDepletionThreshold: z.number().nonnegative(),
+  floorScalingFactor: z.number().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorAutoAdjustProposal = z.infer<typeof SWFReinsuranceOptionVolatilityFloorAutoAdjustProposalSchema>;
+
+export const SWFReinsuranceOptionVolatilityFloorAutoAdjustVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorAutoAdjustVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorAutoAdjustVoteSchema>;
+
+
 export const SWFReinsuranceOptionPenaltyRefundVoteSchema = z.object({
   proposalId: z.string(),
   vote: z.boolean(),
@@ -3251,6 +3272,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionSpreadAdjustmentVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionSpreadAdjustmentVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityFloorProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorProposalSchema).optional(),
   swfReinsuranceOptionVolatilityFloorVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorVoteSchema)).optional(),
+  swfReinsuranceOptionVolatilityFloorAutoAdjustProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorAutoAdjustProposalSchema).optional(),
+  swfReinsuranceOptionVolatilityFloorAutoAdjustVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorAutoAdjustVoteSchema)).optional(),
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
   swfReinsuranceOptionVolatilityInsurancePolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePolicySchema).optional(),
   adjustSWFReinsuranceOptionVolatilityInsuranceVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityInsuranceVoteSchema)).optional(),
@@ -3612,6 +3635,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionSpreadAdjustmentVotes: {},
     swfReinsuranceOptionVolatilityFloorProposals: {},
     swfReinsuranceOptionVolatilityFloorVotes: {},
+    swfReinsuranceOptionVolatilityFloorAutoAdjustProposals: {},
+    swfReinsuranceOptionVolatilityFloorAutoAdjustVotes: {},
     swfReinsuranceOptionPremiumContributions: {},
     swfReinsuranceOptionVolatilityInsurancePolicies: {},
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: {},
@@ -4679,6 +4704,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionSpreadAdjustmentVotes: rest.swfReinsuranceOptionSpreadAdjustmentVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionSpreadAdjustmentVotes)) : undefined,
     swfReinsuranceOptionVolatilityFloorProposals: rest.swfReinsuranceOptionVolatilityFloorProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorProposals)) : undefined,
     swfReinsuranceOptionVolatilityFloorVotes: rest.swfReinsuranceOptionVolatilityFloorVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorVotes)) : undefined,
+    swfReinsuranceOptionVolatilityFloorAutoAdjustProposals: rest.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals)) : undefined,
+    swfReinsuranceOptionVolatilityFloorAutoAdjustVotes: rest.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes)) : undefined,
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
     swfReinsuranceOptionVolatilityInsurancePolicies: rest.swfReinsuranceOptionVolatilityInsurancePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePolicies)) : undefined,
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes)) : undefined,
@@ -14288,6 +14315,59 @@ export function reconcileSWFReinsuranceOptionVolatilityFloors(state: GameState, 
 
   return newState;
 }
+
+export function reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionVolatilityFloorAutoAdjustProposals: state.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals ? { ...state.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals } : {},
+    swfReinsuranceOptionVolatilityFloorAutoAdjustVotes: state.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes ? { ...state.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+
+    if (authorizeVoters.size > totalMembers / 2) {
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+
+    newState.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals[proposalId] = {
+      ...proposal,
+      status,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
+  }
+
+  return newState;
+}
+
 
 
 
