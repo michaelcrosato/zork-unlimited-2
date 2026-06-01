@@ -7854,6 +7854,30 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
     journal: state.journal ? [...state.journal] : [],
   };
 
+  // Unlock matured underwriting premium vaults for all margin accounts
+  for (const [syndicateId, ma] of Object.entries(newState.marginAccounts || {})) {
+    const marginAccount = ma as any;
+    if (marginAccount.swfUnderwritingLockedVaults && marginAccount.swfUnderwritingLockedVaults.length > 0) {
+      const activeLocks: { amount: number; unlockStep: number }[] = [];
+      let totalUnlocked = 0;
+      for (const lock of marginAccount.swfUnderwritingLockedVaults) {
+        if (newState.step >= lock.unlockStep) {
+          totalUnlocked += lock.amount;
+        } else {
+          activeLocks.push(lock);
+        }
+      }
+      if (totalUnlocked > 0) {
+        marginAccount.swfUnderwritingLockedVaults = activeLocks;
+        marginAccount.swfReinsuranceOptionVault = (marginAccount.swfReinsuranceOptionVault ?? 0) + totalUnlocked;
+        marginAccount.timestamp = newState.step;
+        newState.journal.push(
+          `[SWF Volatility Pool Premium Matured] Unlocked ${totalUnlocked} gold of compounded premium for Syndicate ${syndicateId} into secondary reinsurance option vault.`
+        );
+      }
+    }
+  }
+
   const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
   const avgVolatility = activeBonds.length > 0
     ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
@@ -7902,6 +7926,13 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
               syndicate.warChest = availableChest - actualPremium;
               pool.totalBalance += actualPremium;
               pool.syndicateContributions[sId] = (pool.syndicateContributions[sId] ?? 0) + actualPremium;
+              
+              // Track accumulated underwriting premiums since last epoch boundary
+              if (!pool.accumulatedUnderwritingPremiums) {
+                pool.accumulatedUnderwritingPremiums = {};
+              }
+              pool.accumulatedUnderwritingPremiums[sId] = (pool.accumulatedUnderwritingPremiums[sId] ?? 0) + actualPremium;
+
               newState.journal.push(
                 `[SWF Volatility Pool Premium Payment] Charged volatile premium toll of ${actualPremium} gold from Syndicate ${sId} to Volatility Pool ${pool.id} based on Calibrated Rate: ${underwritingPolicy.calibratedPremiumRate.toFixed(4)} under high volatility.`
               );
@@ -7974,6 +8005,61 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
       }
 
       pool.timestamp = newState.step;
+    }
+  }
+
+  // Auto-distribute collected premium proceeds and trigger compounding reinvestments on epoch boundaries
+  if (newState.step % 5 === 0) {
+    for (const pool of Object.values(newState.swfReinsuranceOptionCrossSyndicatePools) as SWFReinsuranceOptionCrossSyndicatePool[]) {
+      const underwritingPolicy = newState.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies?.[pool.id];
+      if (underwritingPolicy && pool.accumulatedUnderwritingPremiums) {
+        const yieldRedistributionWeight = underwritingPolicy.yieldRedistributionWeight !== undefined ? underwritingPolicy.yieldRedistributionWeight : 0.6;
+        const vaultLockDuration = underwritingPolicy.vaultLockDuration !== undefined ? underwritingPolicy.vaultLockDuration : 10;
+
+        for (const [sId, collected] of Object.entries(pool.accumulatedUnderwritingPremiums)) {
+          if (collected > 0) {
+            const redistributedAmount = Math.floor(collected * yieldRedistributionWeight);
+            const compoundedAmount = collected - redistributedAmount;
+
+            // Distribute redistributedAmount to syndicate's war chest
+            const syndicate = newState.syndicates?.[sId];
+            if (syndicate) {
+              syndicate.warChest = (syndicate.warChest ?? 0) + redistributedAmount;
+            }
+
+            // Lock compoundedAmount in margin account's swfUnderwritingLockedVaults
+            let marginAccount = newState.marginAccounts?.[sId];
+            if (!marginAccount) {
+              marginAccount = {
+                syndicateId: sId,
+                collateral: 0,
+                timestamp: newState.step,
+                swfUnderwritingLockedVaults: [],
+              };
+              if (!newState.marginAccounts) newState.marginAccounts = {};
+              newState.marginAccounts[sId] = marginAccount;
+            }
+
+            if (compoundedAmount > 0) {
+              if (!marginAccount.swfUnderwritingLockedVaults) {
+                marginAccount.swfUnderwritingLockedVaults = [];
+              }
+              marginAccount.swfUnderwritingLockedVaults.push({
+                amount: compoundedAmount,
+                unlockStep: newState.step + vaultLockDuration,
+              });
+              marginAccount.timestamp = newState.step;
+            }
+
+            newState.journal.push(
+              `[SWF Volatility Pool Premium Distribution] Distributed ${redistributedAmount} gold to Syndicate ${sId} war chest and locked ${compoundedAmount} gold in secondary vault (compounding with ${vaultLockDuration} ticks lock duration) from collected premium proceeds of ${collected} gold for Pool ${pool.id}.`
+            );
+
+            // Reset accumulated
+            pool.accumulatedUnderwritingPremiums[sId] = 0;
+          }
+        }
+      }
     }
   }
 

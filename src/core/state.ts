@@ -1864,6 +1864,10 @@ export const MarginAccountSchema = z.object({
   swfBondArbitrageMinYieldSpread: z.number().nonnegative().optional(),
   swfReinsuranceOptionVault: z.number().int().nonnegative().optional(),
   prunedRoutesCount: z.number().int().nonnegative().optional(),
+  swfUnderwritingLockedVaults: z.array(z.object({
+    amount: z.number().int().nonnegative(),
+    unlockStep: z.number().int().nonnegative(),
+  })).optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -2301,6 +2305,7 @@ export const SWFReinsuranceOptionCrossSyndicatePoolSchema = z.object({
   syndicateContributions: z.record(z.string(), z.number().int().nonnegative()),
   totalBalance: z.number().int().nonnegative(),
   timestamp: z.number().int(),
+  accumulatedUnderwritingPremiums: z.record(z.string(), z.number().int().nonnegative()).optional(),
 });
 export type SWFReinsuranceOptionCrossSyndicatePool = z.infer<typeof SWFReinsuranceOptionCrossSyndicatePoolSchema>;
 
@@ -2330,6 +2335,8 @@ export const SWFReinsuranceOptionVolatilityPoolUnderwritingPolicySchema = z.obje
   meshPartitionWeight: z.number().nonnegative(),
   timestamp: z.number().int(),
   calibratedPremiumRate: z.number().optional(),
+  yieldRedistributionWeight: z.number().nonnegative().optional(),
+  vaultLockDuration: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionVolatilityPoolUnderwritingPolicy = z.infer<typeof SWFReinsuranceOptionVolatilityPoolUnderwritingPolicySchema>;
 
@@ -2340,6 +2347,8 @@ export const SWFReinsuranceOptionVolatilityPoolUnderwritingPolicyVoteSchema = z.
   historicalDefaultWeight: z.number().nonnegative(),
   meshPartitionWeight: z.number().nonnegative(),
   timestamp: z.number().int(),
+  yieldRedistributionWeight: z.number().nonnegative().optional(),
+  vaultLockDuration: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionVolatilityPoolUnderwritingPolicyVote = z.infer<typeof SWFReinsuranceOptionVolatilityPoolUnderwritingPolicyVoteSchema>;
 
@@ -13878,13 +13887,17 @@ export function reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting(state: G
       volatilityScalingMultiplier: number;
       historicalDefaultWeight: number;
       meshPartitionWeight: number;
+      yieldRedistributionWeight?: number;
+      vaultLockDuration?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
       if (syndicate.members.includes(voterId)) {
-        const key = `${vote.poolId}::${vote.baselinePremiumWeight}::${vote.volatilityScalingMultiplier}::${vote.historicalDefaultWeight}::${vote.meshPartitionWeight}`;
+        const yieldWeight = vote.yieldRedistributionWeight !== undefined ? vote.yieldRedistributionWeight : 0.6;
+        const lockDuration = vote.vaultLockDuration !== undefined ? vote.vaultLockDuration : 10;
+        const key = `${vote.poolId}::${vote.baselinePremiumWeight}::${vote.volatilityScalingMultiplier}::${vote.historicalDefaultWeight}::${vote.meshPartitionWeight}::${yieldWeight}::${lockDuration}`;
         if (!voteGroups[key]) {
           voteGroups[key] = {
             poolId: vote.poolId,
@@ -13892,6 +13905,8 @@ export function reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting(state: G
             volatilityScalingMultiplier: vote.volatilityScalingMultiplier,
             historicalDefaultWeight: vote.historicalDefaultWeight,
             meshPartitionWeight: vote.meshPartitionWeight,
+            yieldRedistributionWeight: vote.yieldRedistributionWeight,
+            vaultLockDuration: vote.vaultLockDuration,
             voters: new Set<string>(),
             timestamps: [],
           };
@@ -13913,13 +13928,17 @@ export function reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting(state: G
           meshPartitionWeight: group.meshPartitionWeight,
           timestamp: Math.max(...group.timestamps, newState.step),
           calibratedPremiumRate: currentPolicy ? currentPolicy.calibratedPremiumRate : undefined,
+          yieldRedistributionWeight: group.yieldRedistributionWeight,
+          vaultLockDuration: group.vaultLockDuration,
         };
 
         delete newState.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId];
 
         if (!newState.journal) newState.journal = [];
+        const redistributionStr = group.yieldRedistributionWeight !== undefined ? `, Yield Redistribution Weight: ${group.yieldRedistributionWeight.toFixed(2)}` : "";
+        const lockStr = group.vaultLockDuration !== undefined ? `, Vault Lock Duration: ${group.vaultLockDuration} ticks` : "";
         newState.journal.push(
-          `[SWF Volatility Pool Underwriting Policy Approved] Syndicate ${syndicateId} established underwriting policy for pool ${group.poolId} (Baseline Premium Weight: ${group.baselinePremiumWeight.toFixed(2)}, Volatility Scaling Multiplier: ${group.volatilityScalingMultiplier.toFixed(2)}, Historical Default Weight: ${group.historicalDefaultWeight.toFixed(2)}, Mesh Partition Weight: ${group.meshPartitionWeight.toFixed(2)}).`
+          `[SWF Volatility Pool Underwriting Policy Approved] Syndicate ${syndicateId} established underwriting policy for pool ${group.poolId} (Baseline Premium Weight: ${group.baselinePremiumWeight.toFixed(2)}, Volatility Scaling Multiplier: ${group.volatilityScalingMultiplier.toFixed(2)}, Historical Default Weight: ${group.historicalDefaultWeight.toFixed(2)}, Mesh Partition Weight: ${group.meshPartitionWeight.toFixed(2)}${redistributionStr}${lockStr}).`
         );
         break;
       }

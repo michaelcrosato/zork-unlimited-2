@@ -34089,7 +34089,7 @@ export function multiAgentStep(
 
   // Handle ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_POOL_UNDERWRITING action (AF-185)
   if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_POOL_UNDERWRITING") {
-    const { syndicateId, poolId, baselinePremiumWeight, volatilityScalingMultiplier, historicalDefaultWeight, meshPartitionWeight, timestamp } = action as any;
+    const { syndicateId, poolId, baselinePremiumWeight, volatilityScalingMultiplier, historicalDefaultWeight, meshPartitionWeight, yieldRedistributionWeight, vaultLockDuration, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -34109,6 +34109,10 @@ export function multiAgentStep(
       rejectionReason = `Historical default weight must be non-negative.`;
     } else if (meshPartitionWeight === undefined || meshPartitionWeight < 0) {
       rejectionReason = `Mesh partition weight must be non-negative.`;
+    } else if (yieldRedistributionWeight !== undefined && (yieldRedistributionWeight < 0 || yieldRedistributionWeight > 1)) {
+      rejectionReason = `Yield redistribution weight must be between 0 and 1.`;
+    } else if (vaultLockDuration !== undefined && (vaultLockDuration < 0 || !Number.isInteger(vaultLockDuration))) {
+      rejectionReason = `Vault lock duration must be a non-negative integer.`;
     } else if (!syndicate) {
       rejectionReason = `Syndicate ${syndicateId} does not exist.`;
     } else if (!pool) {
@@ -34133,6 +34137,8 @@ export function multiAgentStep(
         volatilityScalingMultiplier,
         historicalDefaultWeight,
         meshPartitionWeight,
+        yieldRedistributionWeight,
+        vaultLockDuration,
         timestamp,
       };
       newState.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes = adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes;
@@ -34143,8 +34149,10 @@ export function multiAgentStep(
       const isConsensusReached = newState.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies?.[poolId]?.timestamp === Math.max(timestamp, newState.step);
 
       if (!newState.journal) newState.journal = [];
+      const redistributionStr = yieldRedistributionWeight !== undefined ? `, Yield Redistribution Weight: ${yieldRedistributionWeight.toFixed(2)}` : "";
+      const lockStr = vaultLockDuration !== undefined ? `, Vault Lock Duration: ${vaultLockDuration} ticks` : "";
       newState.journal.push(
-        `[SWF Volatility Pool Underwriting Vote] Agent ${agentId} voted to adjust volatility pool underwriting for Pool ${poolId} to Baseline Premium Weight: ${baselinePremiumWeight.toFixed(2)}, Volatility Scaling Multiplier: ${volatilityScalingMultiplier.toFixed(2)}, Historical Default Weight: ${historicalDefaultWeight.toFixed(2)}, Mesh Partition Weight: ${meshPartitionWeight.toFixed(2)} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
+        `[SWF Volatility Pool Underwriting Vote] Agent ${agentId} voted to adjust volatility pool underwriting for Pool ${poolId} to Baseline Premium Weight: ${baselinePremiumWeight.toFixed(2)}, Volatility Scaling Multiplier: ${volatilityScalingMultiplier.toFixed(2)}, Historical Default Weight: ${historicalDefaultWeight.toFixed(2)}, Mesh Partition Weight: ${meshPartitionWeight.toFixed(2)}${redistributionStr}${lockStr} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
       );
 
       customEvents.push({

@@ -132,6 +132,8 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
         volatilityScalingMultiplier: 1.2,
         historicalDefaultWeight: 0.5,
         meshPartitionWeight: 0.8,
+        yieldRedistributionWeight: 0.0,
+        vaultLockDuration: 10,
         timestamp: 1000,
       },
     };
@@ -265,5 +267,107 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
     expect(policyB).toBeDefined();
     expect(policyA?.baselinePremiumWeight).toBe(1.5);
     expect(policyB?.baselinePremiumWeight).toBe(1.5);
+  });
+
+  it("should automatically distribute underwriting premium revenues and compound the rest with lock durations, unlocking them after expiration (AF-186)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 50000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 5000,
+      },
+    };
+
+    state.swfReinsuranceOptionCrossSyndicatePools = {
+      pool_1: {
+        id: "pool_1",
+        swfYieldCdoId: "cdo_1",
+        trancheId: "senior",
+        syndicateContributions: { alpha: 1000 },
+        totalBalance: 1000,
+        timestamp: 1000,
+      },
+    };
+
+    state.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies = {
+      pool_1: {
+        poolId: "pool_1",
+        baselinePremiumWeight: 0.1,
+        volatilityScalingMultiplier: 1.2,
+        historicalDefaultWeight: 0.5,
+        meshPartitionWeight: 0.8,
+        yieldRedistributionWeight: 0.6, // 60% redistributed to warChest, 40% compounded/locked
+        vaultLockDuration: 2, // Locked for 2 steps
+        timestamp: 1000,
+      },
+    };
+
+    state.syndicateDefaults = { alpha: 2 };
+
+    state.swfMultiFundReinsurancePools = {
+      mf_pool: {
+        id: "mf_pool",
+        syndicateIds: ["alpha"],
+        capitalAllocated: { alpha: 1000 },
+        totalReserve: 1000,
+        volatilityHedgeRatio: 0.5,
+        targetYieldRate: 0.06,
+        historicalVolatility: 12,
+        active: false,
+        linkStateDropRate: 0.5,
+        timestamp: 1000,
+      },
+    };
+
+    state.yieldVolatilityIndexes = {
+      bond_1: { bondId: "bond_1", volatility: 40, timestamp: 1000 }
+    };
+
+    // First tick (step = 1000, which is an epoch boundary since 1000 % 5 === 0)
+    // Dynamic premium is charged: 41 gold.
+    // War chest drops: 5000 - 41 = 4959.
+    // At the end of the tick, because step is 1000 (epoch boundary):
+    // 41 gold collected is distributed:
+    // redistributedAmount = Math.floor(41 * 0.6) = 24 gold distributed back to alpha war chest (4959 + 24 = 4983)
+    // compoundedAmount = 41 - 24 = 17 gold locked in secondary vault until step 1002 (1000 + 2)
+    state.step = 1000;
+    state = tickEconomy(state, mockPack);
+
+    expect(state.syndicates?.alpha?.warChest).toBe(4983);
+    const margin = state.marginAccounts?.["alpha"];
+    expect(margin).toBeDefined();
+    expect(margin?.swfUnderwritingLockedVaults).toHaveLength(1);
+    expect(margin?.swfUnderwritingLockedVaults?.[0]?.amount).toBe(17);
+    expect(margin?.swfUnderwritingLockedVaults?.[0]?.unlockStep).toBe(1002);
+    expect(margin?.swfReinsuranceOptionVault ?? 0).toBe(0);
+
+    // Second tick (step = 1001, NOT an epoch boundary, not matured yet)
+    state.step = 1001;
+    // Clear volatility so no new premiums are charged
+    state.yieldVolatilityIndexes = {
+      bond_1: { bondId: "bond_1", volatility: 10, timestamp: 1001 }
+    };
+    state = tickEconomy(state, mockPack);
+    expect(state.syndicates?.alpha?.warChest).toBe(4983);
+    expect(state.marginAccounts?.["alpha"]?.swfUnderwritingLockedVaults).toHaveLength(1);
+    expect(state.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault ?? 0).toBe(0);
+
+    // Third tick (step = 1002, matured, should unlock 17 gold into reinsurance vault!)
+    state.step = 1002;
+    state = tickEconomy(state, mockPack);
+    expect(state.syndicates?.alpha?.warChest).toBe(4983);
+    expect(state.marginAccounts?.["alpha"]?.swfUnderwritingLockedVaults).toHaveLength(0);
+    expect(state.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault).toBe(17);
+    expect(state.journal?.some(j => j.includes("[SWF Volatility Pool Premium Matured]") && j.includes("Unlocked 17 gold"))).toBe(true);
   });
 });
