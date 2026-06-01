@@ -3093,6 +3093,9 @@ export function multiAgentStep(
         if (existingLab && existingLab.syndicateId === targetSyndicateId) {
           defenderStrength += (existingLab.level * 10) + (existingLab.defense ?? 0);
         }
+
+        const defenderGuards = state.turfGuards?.[roomId]?.count ?? 0;
+        defenderStrength += defenderGuards * 10;
         
         const defenseRes = PureRand.nextInt(currentSeed, 1, 20);
         const defenseRoll = defenseRes.value;
@@ -4423,6 +4426,131 @@ export function multiAgentStep(
         agentId,
         merchantId,
         level: newLevel,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized HIRE_TURF_GUARD action (AF-52)
+  if ((action as any).type === "HIRE_TURF_GUARD") {
+    const { roomId, syndicateId, cost, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const roomExists = "rooms" in pack
+      ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
+      : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to hire a turf guard.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to hire a turf guard.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Guard cost ${cost} must be a non-negative integer.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.syndicateTurf?.[roomId] !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} does not control the turf in room ${roomId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to hire turf guard costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const turfGuards = { ...(state.turfGuards || {}) };
+      const existingGuard = turfGuards[roomId];
+      const newCount = (existingGuard?.count ?? 0) + 1;
+
+      turfGuards[roomId] = {
+        roomId,
+        syndicateId,
+        count: newCount,
+        cost: (existingGuard?.cost ?? 0) + cost,
+        timestamp,
+      };
+      newState.turfGuards = turfGuards;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Hired turf guard for syndicate ${syndicateId} in room ${roomId} (Count: ${newCount}) for ${cost} gold by agent ${agentId}.`);
+
+      customEvents.push({
+        type: "turf_guard_hired",
+        agentId,
+        roomId,
+        syndicateId,
+        count: newCount,
         cost,
       });
     }

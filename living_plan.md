@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #51 (Ready for Cycle #52)
-* **Build/Test Status**: 🟢 PASS (All 222 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #52 (Ready for Cycle #53)
+* **Build/Test Status**: 🟢 PASS (All 227 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -306,17 +306,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Add `UPGRADE_FRONT_BUSINESS` decentralized action increasing capacity and rate (`AF-51`).
 - [x] Implement laundering-volume-based enforcer sweep triggers when heat exceeds threshold (`AF-51`).
 - [x] Write comprehensive integration tests (`AF-51`).
+### Phase 46: Syndicate Turf Defence Buffs & Security Guards (Completed)
+- [x] Define Turf Guard state schema and cost in state (`AF-52`).
+- [x] Implement `HIRE_TURF_GUARD` action checking membership, room validity, and gold (`AF-52`).
+- [x] Wire guard presence to lower enforcer raid success rate or provide turf defence combat bonuses (`AF-52`).
+- [x] Write comprehensive integration tests verifying validations, lab/front sweep defenses, turf wars, and gossip sync (`AF-52`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-52`
-* **Objective**: Syndicate Turf Defence Buffs & Security Guards.
-* **Why this matters**: Introduce the ability to hire syndicate guards (`HIRE_TURF_GUARD` decentralized action) to protect front businesses and contraband production labs from enforcement raids and rival syndicate turf wars, scaling defence modifiers based on hired guard counts.
+**Task ID**: `AF-53`
+* **Objective**: Crime Syndicate Turf Tax & Automatic Gold Laundering Collections.
+* **Why this matters**: Introduce turf-wide automated tax collection where crime syndicates can demand passive gold payouts from all front businesses operating in rooms they control, automatically distributing the earnings to the syndicate members.
 * **Planned Actions**:
-  1. Define Turf Guard state schema and cost in state.
-  2. Implement `HIRE_TURF_GUARD` action checking membership, room validity, and gold.
-  3. Wire guard presence to lower enforcer raid success rate or provide turf defence combat bonuses.
+  1. Add `turfTaxRate` to CrimeSyndicate state schema.
+  2. Implement `ADJUST_TURF_TAX` decentralized consensus vote action.
+  3. Wire periodic passive tax generation inside `tickEconomy` scaling by local turf guard security presence.
   4. Write comprehensive integration tests.
 
 ---

@@ -273,6 +273,16 @@ export const SyndicateFrontBusinessSchema = z.object({
 });
 export type SyndicateFrontBusiness = z.infer<typeof SyndicateFrontBusinessSchema>;
 
+export const TurfGuardSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  count: z.number().int().nonnegative(),
+  cost: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type TurfGuard = z.infer<typeof TurfGuardSchema>;
+
+
 
 
 export const CrimeSyndicateSchema = z.object({
@@ -424,6 +434,7 @@ export const GameStateSchema = z.object({
   safehouses: z.record(z.string(), SyndicateSafehouseSchema).optional(),
   blackMarkets: z.record(z.string(), SyndicateBlackMarketSchema).optional(),
   frontBusinesses: z.record(z.string(), SyndicateFrontBusinessSchema).optional(),
+  turfGuards: z.record(z.string(), TurfGuardSchema).optional(),
 });
 
 
@@ -524,6 +535,7 @@ export const createInitialState = (options: {
     safehouses: {},
     blackMarkets: {},
     frontBusinesses: {},
+    turfGuards: {},
   };
 };
 

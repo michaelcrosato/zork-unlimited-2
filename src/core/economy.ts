@@ -610,20 +610,48 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         if (clean >= 150) {
           if (currentHeat >= 25) {
             // Trigger Enforcer Sweep!
-            const confiscatedDirty = dirty;
-            const confiscatedClean = Math.floor(clean / 2);
-            dirty = 0;
-            clean = clean - confiscatedClean;
+            const guards = newState.turfGuards?.[front.roomId]?.count ?? 0;
+            let sweepDefended = false;
+            let sweepStrength = 0;
+            let defenseScore = guards * 15;
 
-            // Reset room heat
-            if (newState.enforcementHeat?.[front.roomId]) {
-              newState.enforcementHeat[front.roomId] = {
-                ...newState.enforcementHeat[front.roomId],
-                heat: 0,
-              };
+            if (guards > 0) {
+              const { value: rolledStrength, nextSeed } = PureRand.nextInt(newState.seed, 1, 50);
+              newState.seed = nextSeed;
+              sweepStrength = rolledStrength;
+              if (defenseScore >= sweepStrength) {
+                sweepDefended = true;
+              }
             }
 
-            newState.journal.push(`[Syndicate] Enforcer sweep triggered at front business ${front.id} in room ${front.roomId} due to high laundering volume and heat! Confiscated ${confiscatedDirty} dirty gold and ${confiscatedClean} clean gold.`);
+            if (sweepDefended) {
+              newState.journal.push(`[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`);
+              if (newState.enforcementHeat?.[front.roomId]) {
+                newState.enforcementHeat[front.roomId] = {
+                  ...newState.enforcementHeat[front.roomId],
+                  heat: Math.max(0, newState.enforcementHeat[front.roomId].heat - 15),
+                };
+              }
+            } else {
+              const confiscatedDirty = dirty;
+              const confiscatedClean = Math.floor(clean / 2);
+              dirty = 0;
+              clean = clean - confiscatedClean;
+
+              // Reset room heat
+              if (newState.enforcementHeat?.[front.roomId]) {
+                newState.enforcementHeat[front.roomId] = {
+                  ...newState.enforcementHeat[front.roomId],
+                  heat: 0,
+                };
+              }
+
+              if (guards > 0) {
+                newState.journal.push(`[Syndicate] Enforcer sweep triggered at front business ${front.id} in room ${front.roomId}! Hired turf guards failed to defend the business (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength}). Confiscated ${confiscatedDirty} dirty gold and ${confiscatedClean} clean gold.`);
+              } else {
+                newState.journal.push(`[Syndicate] Enforcer sweep triggered at front business ${front.id} in room ${front.roomId} due to high laundering volume and heat! Confiscated ${confiscatedDirty} dirty gold and ${confiscatedClean} clean gold.`);
+              }
+            }
             frontUpdated = true;
           } else {
             // Trigger Regional Market Boost!
