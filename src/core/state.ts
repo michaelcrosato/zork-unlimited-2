@@ -282,6 +282,7 @@ export const SyndicateFrontBusinessSchema = z.object({
   launderingCapacity: z.number().int().nonnegative(),
   launderingRate: z.number().int().nonnegative(),
   timestamp: z.number().int(),
+  activeAudit: z.boolean().optional(),
 });
 export type SyndicateFrontBusiness = z.infer<typeof SyndicateFrontBusinessSchema>;
 

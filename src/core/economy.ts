@@ -650,6 +650,82 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           currentHeat = newHeat;
         }
 
+        // Money Laundering Audit (AF-61)
+        let activeAudit = front.activeAudit ?? false;
+        if (activeAudit) {
+          // Resolve the audit!
+          const outpost = newState.turfGuardOutposts?.[front.roomId];
+          const guardsCount = newState.turfGuards?.[front.roomId]?.count ?? 0;
+          const activeBribe = newState.syndicateBribes?.[front.roomId]?.active ?? false;
+          const activeDeflection = newState.deflectionPolicies?.[front.roomId]?.active ?? false;
+
+          let totalFirepower = 0;
+          let totalArmor = 0;
+          if (outpost && outpost.turrets) {
+            for (const turret of Object.values(outpost.turrets)) {
+              totalFirepower += (turret as any).firepower ?? 0;
+              totalArmor += (turret as any).armor ?? 0;
+            }
+          }
+
+          let defenseScore = guardsCount * 15 +
+                             (outpost ? outpost.securityLevel * 25 : 0) +
+                             (activeBribe ? 50 : 0) +
+                             (activeDeflection ? 75 : 0) +
+                             totalFirepower +
+                             totalArmor;
+
+          const { value: auditStrength, nextSeed } = PureRand.nextInt(newState.seed, 20, 100);
+          newState.seed = nextSeed;
+
+          if (defenseScore >= auditStrength) {
+            // Defended!
+            newState.journal.push(`[Syndicate] Front business ${front.id} successfully passed money laundering audit in room ${front.roomId}! Active protection systems repelled regulators (Defense: ${defenseScore} vs Audit Strength: ${auditStrength}).`);
+            activeAudit = false;
+            if (newState.enforcementHeat?.[front.roomId]) {
+              newState.enforcementHeat[front.roomId] = {
+                ...newState.enforcementHeat[front.roomId],
+                heat: Math.max(0, newState.enforcementHeat[front.roomId].heat - 10),
+              };
+            }
+          } else {
+            // Failed audit!
+            const confiscatedDirty = dirty;
+            const damageReductionFactor = Math.max(0.1, 1 - (totalArmor / 100));
+            const confiscationFactor = Math.max(0.1, 1 - (defenseScore / 200)) * damageReductionFactor;
+            const confiscatedClean = Math.floor(clean * confiscationFactor * 0.75);
+
+            dirty -= confiscatedDirty;
+            clean -= confiscatedClean;
+
+            // Reset room heat since enforcers fully audited the business
+            if (newState.enforcementHeat?.[front.roomId]) {
+              newState.enforcementHeat[front.roomId] = {
+                ...newState.enforcementHeat[front.roomId],
+                heat: 0,
+              };
+            }
+
+            newState.journal.push(`[Syndicate] Front business ${front.id} failed money laundering audit in room ${front.roomId}! Enforcers raided the premises, confiscating ${confiscatedDirty} dirty gold and ${confiscatedClean} clean gold (Defense: ${defenseScore} vs Audit Strength: ${auditStrength}).`);
+            activeAudit = false;
+          }
+          frontUpdated = true;
+        } else {
+          // Check if an audit triggers
+          const launderingVolume = dirty + clean;
+          const heat = newState.enforcementHeat?.[front.roomId]?.heat ?? 0;
+          if (heat > 0 || launderingVolume > 0) {
+            const auditChance = Math.min(95, Math.floor(heat * 0.5 + launderingVolume * 0.1));
+            const { value: rolled, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+            newState.seed = nextSeed;
+            if (rolled <= auditChance) {
+              activeAudit = true;
+              newState.journal.push(`[Syndicate] Money laundering audit triggered at front business ${front.id} in room ${front.roomId}! Overall enforcer heat is ${heat} and laundering volume is ${launderingVolume}. Regulators will audit the business next tick.`);
+              frontUpdated = true;
+            }
+          }
+        }
+
         // Check for laundering-volume-based dynamic events (AF-51)
         // If the front business is highly active (cleanGold >= 150)
         if (clean >= 150) {
@@ -828,6 +904,8 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             ...front,
             dirtyGold: dirty,
             cleanGold: clean,
+            activeAudit: activeAudit,
+            timestamp: newState.step,
           };
           frontsChanged = true;
         }
