@@ -1034,39 +1034,99 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     journal: [...state.journal],
   };
 
-  // Wire grace ticks for volatility floor panic override early cancellation grace period (AF-197)
+  // Wire grace ticks for volatility floor panic override early cancellation grace period (AF-197/AF-198)
   if (newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals) {
     newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals = { ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals };
     for (const [cancelId, cancelProp] of Object.entries(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals)) {
       if (cancelProp.status === "authorized" && cancelProp.remainingGraceSteps !== undefined) {
         if (cancelProp.remainingGraceSteps > 0) {
-          const newRemaining = cancelProp.remainingGraceSteps - 1;
-          newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[cancelId] = {
-            ...cancelProp,
-            remainingGraceSteps: newRemaining,
-          };
-          
-          const targetOverride = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.[cancelProp.targetProposalId];
-          if (targetOverride) {
-            newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals = {
-              ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals,
-              [cancelProp.targetProposalId]: {
-                ...targetOverride,
-                cooldownEndStep: newRemaining > 0 ? newState.step + newRemaining : undefined,
-                timestamp: newState.step,
+          // Fetch pool reserves
+          const optionCdoId = cancelProp.swfYieldCdoId;
+          const trancheId = cancelProp.trancheId;
+
+          const crossPool = Object.values(newState.swfReinsuranceOptionCrossSyndicatePools || {}).find((p: any) =>
+            p.swfYieldCdoId === optionCdoId && p.trancheId === trancheId
+          ) as any;
+          const volPool = Object.values(newState.swfReinsuranceOptionVolatilityInsurancePools || {}).find((vp: any) =>
+            vp.swfYieldCdoId === optionCdoId && vp.trancheId === trancheId
+          ) as any;
+
+          let reserves = 0;
+          if (crossPool) {
+            reserves = crossPool.totalBalance;
+          } else if (volPool) {
+            reserves = volPool.balance;
+          }
+
+          // Check for active minimum liquidity threshold
+          let activeThreshold: number | undefined;
+          if (newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals) {
+            for (const liqProp of Object.values(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals)) {
+              if (liqProp.status === "authorized") {
+                if (liqProp.targetProposalId === cancelId) {
+                  activeThreshold = liqProp.minLiquidityThreshold;
+                  break;
+                }
+                const graceProp = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals?.[liqProp.targetProposalId];
+                if (graceProp && graceProp.targetProposalId === cancelId) {
+                  activeThreshold = liqProp.minLiquidityThreshold;
+                  break;
+                }
               }
+            }
+          }
+
+          if (activeThreshold !== undefined && reserves < activeThreshold) {
+            // Instantly cancel/terminate grace period!
+            newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[cancelId] = {
+              ...cancelProp,
+              remainingGraceSteps: 0,
             };
-            if (newRemaining === 0) {
-              if (!newState.journal) newState.journal = [];
-              newState.journal.push(
-                `[SWF Reinsurance Option Volatility Floor Panic Override Extension Cancellation Grace Ended] Grace period ended for cancellation ${cancelId}. Panic override ${cancelProp.targetProposalId} has been terminated early.`
-              );
+            const targetOverride = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.[cancelProp.targetProposalId];
+            if (targetOverride) {
+              newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals = {
+                ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals,
+                [cancelProp.targetProposalId]: {
+                  ...targetOverride,
+                  cooldownEndStep: undefined,
+                  timestamp: newState.step,
+                }
+              };
+            }
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Reinsurance Option Volatility Floor Panic Override Extension Cancellation Grace Terminated] Grace period cancelled early for cancellation ${cancelId} due to liquidity depletion (Reserves: ${reserves} < Threshold: ${activeThreshold}).`
+            );
+          } else {
+            const newRemaining = cancelProp.remainingGraceSteps - 1;
+            newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[cancelId] = {
+              ...cancelProp,
+              remainingGraceSteps: newRemaining,
+            };
+            
+            const targetOverride = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.[cancelProp.targetProposalId];
+            if (targetOverride) {
+              newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals = {
+                ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals,
+                [cancelProp.targetProposalId]: {
+                  ...targetOverride,
+                  cooldownEndStep: newRemaining > 0 ? newState.step + newRemaining : undefined,
+                  timestamp: newState.step,
+                }
+              };
+              if (newRemaining === 0) {
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[SWF Reinsurance Option Volatility Floor Panic Override Extension Cancellation Grace Ended] Grace period ended for cancellation ${cancelId}. Panic override ${cancelProp.targetProposalId} has been terminated early.`
+                );
+              }
             }
           }
         }
       }
     }
   }
+
 
   // SWF Reinsurance Option Order Book Volume Tracking (AF-150) & Depths (AF-151)
   let afterMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
