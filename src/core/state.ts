@@ -1297,6 +1297,26 @@ export const CooperativeSWFStakingCampaignProposalSchema = z.object({
 });
 export type CooperativeSWFStakingCampaignProposal = z.infer<typeof CooperativeSWFStakingCampaignProposalSchema>;
 
+export const CooperativeSovereigntyBondProposalSchema = z.object({
+  id: z.string(),
+  creatorSyndicateId: z.string(),
+  factionId: z.string(),
+  faceValue: z.number().int().nonnegative(),
+  interestRate: z.number().nonnegative(),
+  termEpochs: z.number().int().positive(),
+  remainingEpochs: z.number().int().nonnegative(),
+  status: z.enum(["Proposed", "Active", "Matured", "Defaulted"]),
+  contributions: z.record(z.string(), z.number().int().nonnegative()),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+  approved: z.boolean().optional(),
+  resolved: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type CooperativeSovereigntyBondProposal = z.infer<typeof CooperativeSovereigntyBondProposalSchema>;
+
 export const FactionCdoInsurancePoolProposalSchema = z.object({
   id: z.string(),
   syndicateId: z.string(),
@@ -2162,6 +2182,7 @@ export const GameStateSchema = z.object({
   factionCdoInsurancePools: z.record(z.string(), FactionCdoInsurancePoolSchema).optional(),
   cdoMiningBoosters: z.record(z.string(), CdoMiningBoosterSchema).optional(),
   cooperativeYieldCampaignProposals: z.record(z.string(), CooperativeYieldCampaignProposalSchema).optional(),
+  cooperativeSovereigntyBondProposals: z.record(z.string(), CooperativeSovereigntyBondProposalSchema).optional(),
   factionCdoInsurancePoolProposals: z.record(z.string(), FactionCdoInsurancePoolProposalSchema).optional(),
   multiFactionCdoRiskRatings: z.record(z.string(), MultiFactionCdoRiskRatingSchema).optional(),
   multiFactionCdoRiskRatingProposals: z.record(z.string(), MultiFactionCdoRiskRatingProposalSchema).optional(),
@@ -2430,6 +2451,7 @@ export const createInitialState = (options: {
     factionCdoInsurancePools: {},
     cdoMiningBoosters: {},
     cooperativeYieldCampaignProposals: {},
+    cooperativeSovereigntyBondProposals: {},
     factionCdoInsurancePoolProposals: {},
     multiFactionCdoRiskRatings: {},
     multiFactionCdoRiskRatingProposals: {},
@@ -3269,6 +3291,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     factionCdoInsurancePools: rest.factionCdoInsurancePools ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePools)) : undefined,
     cdoMiningBoosters: rest.cdoMiningBoosters ? JSON.parse(JSON.stringify(rest.cdoMiningBoosters)) : undefined,
     cooperativeYieldCampaignProposals: rest.cooperativeYieldCampaignProposals ? JSON.parse(JSON.stringify(rest.cooperativeYieldCampaignProposals)) : undefined,
+    cooperativeSovereigntyBondProposals: rest.cooperativeSovereigntyBondProposals ? JSON.parse(JSON.stringify(rest.cooperativeSovereigntyBondProposals)) : undefined,
     factionCdoInsurancePoolProposals: rest.factionCdoInsurancePoolProposals ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePoolProposals)) : undefined,
     multiFactionCdoRiskRatings: rest.multiFactionCdoRiskRatings ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatings)) : undefined,
     multiFactionCdoRiskRatingProposals: rest.multiFactionCdoRiskRatingProposals ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatingProposals)) : undefined,
@@ -7211,6 +7234,56 @@ export function reconcileCooperativeSWFStakingCampaigns(state: GameState, pack: 
           newState.cooperativeSWFStakingCampaignJoinVotes[syndicateId] = updatedJoinVotes;
         }
       }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCooperativeSovereigntyBonds(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cooperativeSovereigntyBondProposals: state.cooperativeSovereigntyBondProposals ? { ...state.cooperativeSovereigntyBondProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.cooperativeSovereigntyBondProposals || {})) {
+    const proposal = newState.cooperativeSovereigntyBondProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { creatorSyndicateId, factionId, faceValue, votes } = proposal;
+    const syndicate = newState.syndicates?.[creatorSyndicateId];
+    if (!syndicate) continue;
+
+    // Calculate majority vote in creator syndicate
+    const totalMembers = syndicate.members.length;
+    const trueVotes = Object.entries(votes || {})
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const isApproved = trueVotes.length > totalMembers / 2;
+    if (isApproved && !proposal.approved) {
+      proposal.approved = true;
+    }
+
+    // Calculate total contributions
+    const totalContributed = Object.values(proposal.contributions).reduce((sum, val) => sum + val, 0);
+
+    // If approved and fully funded, resolve the proposal to Active bond!
+    if (proposal.approved && totalContributed >= faceValue) {
+      proposal.resolved = true;
+      proposal.status = "Active";
+      proposal.remainingEpochs = proposal.termEpochs;
+
+      // Pay the pooled faceValue into the faction reserve pool
+      const currentPool = newState.factionReservePools[factionId] ?? 10000;
+      newState.factionReservePools[factionId] = currentPool + faceValue;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Cooperative Sovereignty Bond Active] Cooperative bond ${proposalId} for faction ${factionId} is now Active with total funding of ${totalContributed} gold.`
+      );
     }
   }
 

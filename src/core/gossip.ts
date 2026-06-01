@@ -2552,6 +2552,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge cooperativeSovereigntyBondProposals using LWW (Last-Write-Wins)
+  const cooperativeSovereigntyBondProposals = { ...stateA.cooperativeSovereigntyBondProposals };
+  if (stateB.cooperativeSovereigntyBondProposals) {
+    for (const [propId, propB] of Object.entries(stateB.cooperativeSovereigntyBondProposals)) {
+      const propA = cooperativeSovereigntyBondProposals[propId];
+      if (!propA || propB.timestamp > propA.timestamp) {
+        cooperativeSovereigntyBondProposals[propId] = { ...propB };
+      }
+    }
+  }
+
   // Merge factionCdoInsurancePoolProposals using LWW (Last-Write-Wins)
   const factionCdoInsurancePoolProposals = { ...stateA.factionCdoInsurancePoolProposals };
   if (stateB.factionCdoInsurancePoolProposals) {
@@ -3204,6 +3215,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     factionCdoInsurancePools,
     cdoMiningBoosters,
     cooperativeYieldCampaignProposals,
+    cooperativeSovereigntyBondProposals,
     factionCdoInsurancePoolProposals,
     multiFactionCdoRiskRatings,
     multiFactionCdoRiskRatingProposals,

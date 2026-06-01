@@ -616,6 +616,27 @@ export function step(
           tax = tax * 4; // Factions at war charge 4x travel tax
         }
 
+        // Cooperative Sovereignty Bond Tax Exemption (AF-138)
+        let totalCoopDiscount = 0;
+        if (state.cooperativeSovereigntyBondProposals && factionId) {
+          const agentSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
+          for (const s of agentSyndicates) {
+            for (const bond of Object.values(state.cooperativeSovereigntyBondProposals)) {
+              if (bond.status === "Active" && bond.resolved && bond.factionId === factionId) {
+                const contrib = bond.contributions[s.id] || 0;
+                const totalContributed = Object.values(bond.contributions).reduce((sum, v) => sum + v, 0);
+                if (totalContributed > 0 && contrib > 0) {
+                  const ratio = contrib / totalContributed;
+                  totalCoopDiscount += ratio;
+                }
+              }
+            }
+          }
+        }
+        if (totalCoopDiscount > 0) {
+          tax = Math.floor(tax * Math.max(0, 1 - totalCoopDiscount));
+        }
+
         // Apply covert cell and propaganda discounts! (AF-73)
         const activeSyndicate = agentSyndicates[0];
         if (activeSyndicate) {
@@ -2433,6 +2454,97 @@ export function tickProductionLabs(
     newState.secondaryReserves = updatedSecondaryReserves;
     newState.secondaryReserveInvestments = updatedSecondaryReserveInvestments;
     newState.reserveSweepPolicies = updatedSweepPolicies;
+  }
+
+  // Periodic Cooperative Sovereignty Bond dividend and maturation (AF-138)
+  if (newState.cooperativeSovereigntyBondProposals && Object.keys(newState.cooperativeSovereigntyBondProposals).length > 0) {
+    const updatedCoopBonds = { ...newState.cooperativeSovereigntyBondProposals };
+    const updatedSyndicates = { ...(newState.syndicates || {}) };
+    const updatedFactionReserves = { ...(newState.factionReservePools || {}) };
+
+    for (const [bondId, bond] of Object.entries(updatedCoopBonds)) {
+      if (bond.status === "Active" && bond.resolved) {
+        const { factionId, faceValue, interestRate, contributions } = bond;
+        const totalContributed = Object.values(contributions).reduce((sum, v) => sum + v, 0);
+        if (totalContributed <= 0) continue;
+
+        let isFinalEpoch = bond.remainingEpochs === 1;
+        let dividend = Math.floor(faceValue * (interestRate / 100));
+        let epochPayout = dividend;
+        if (isFinalEpoch) {
+          epochPayout += faceValue;
+        }
+
+        const factionPool = updatedFactionReserves[factionId] ?? 10000;
+        let payAmount = epochPayout;
+        let isDefault = false;
+
+        if (factionPool < epochPayout) {
+          payAmount = factionPool;
+          isDefault = true;
+        }
+
+        // Deduct from faction reserve pool
+        updatedFactionReserves[factionId] = Math.max(0, factionPool - payAmount);
+
+        // Distribute to contributing syndicates based on contribution ratio
+        for (const [syndicateId, contrib] of Object.entries(contributions)) {
+          const syndicate = updatedSyndicates[syndicateId];
+          if (!syndicate) continue;
+
+          const ratio = contrib / totalContributed;
+          const share = Math.floor(payAmount * ratio);
+          if (share > 0) {
+            syndicate.warChest = (syndicate.warChest ?? 0) + share;
+          }
+        }
+
+        const remainingEpochs = Math.max(0, bond.remainingEpochs - 1);
+        let newStatus: "Proposed" | "Active" | "Matured" | "Defaulted" = bond.status;
+        if (isDefault) {
+          newStatus = "Defaulted";
+        } else if (remainingEpochs === 0) {
+          newStatus = "Matured";
+        }
+
+        updatedCoopBonds[bondId] = {
+          ...bond,
+          remainingEpochs,
+          status: newStatus,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        if (isDefault) {
+          newState.journal.push(
+            `[Cooperative Sovereignty Bond Defaulted] Faction ${factionId} defaulted on cooperative bond ${bondId} due to insufficient reserves (Paid only ${payAmount} gold).`
+          );
+          events.push({
+            type: "narration",
+            text: `⚠️ [Cooperative Sovereignty Bond Defaulted] Faction ${factionId} defaulted on cooperative bond ${bondId}.`,
+          } as any);
+        } else if (newStatus === "Matured") {
+          newState.journal.push(
+            `[Cooperative Sovereignty Bond Matured] Cooperative bond ${bondId} for faction ${factionId} has matured. Principal of ${faceValue} and final dividend of ${dividend} gold returned to sponsors.`
+          );
+          events.push({
+            type: "narration",
+            text: `🎉 [Cooperative Sovereignty Bond Matured] Cooperative bond ${bondId} for faction ${factionId} matured successfully!`,
+          } as any);
+        } else {
+          newState.journal.push(
+            `[Cooperative Sovereignty Bond Dividend] Cooperative bond ${bondId} for faction ${factionId} distributed ${dividend} gold dividend yield to sponsors.`
+          );
+          events.push({
+            type: "narration",
+            text: `🏛️ [Cooperative Sovereignty Bond Dividend] Faction ${factionId} distributed ${dividend} gold dividend yield to sponsors of bond ${bondId}.`,
+          } as any);
+        }
+      }
+    }
+
+    newState.cooperativeSovereigntyBondProposals = updatedCoopBonds;
+    newState.syndicates = updatedSyndicates;
+    newState.factionReservePools = updatedFactionReserves;
   }
 
   // Periodic Sovereign Wealth Fund / Joint-Venture Portfolios yields and dividends (AF-128)
