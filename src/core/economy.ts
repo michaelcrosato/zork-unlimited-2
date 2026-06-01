@@ -7773,7 +7773,19 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
             const targetTrancheId = hedgingConfig.targetTrancheId;
             const targetTranche = pool.tranches[targetTrancheId];
             if (targetTranche) {
-              const allocationPercent = hedgingConfig.allocationPercent;
+              let allocationPercent = hedgingConfig.allocationPercent;
+
+              if (pool.reserveFloor !== undefined && pool.governanceCap !== undefined && pool.fractionalizedVault.balance < pool.reserveFloor) {
+                if (allocationPercent > pool.governanceCap) {
+                  const oldAllocation = allocationPercent;
+                  allocationPercent = pool.governanceCap;
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[CDS CDO Cross-Tranche Hedging Clamped] Syndicate ${syndicateId} cross-tranche yield hedging allocation clamped from ${oldAllocation}% to governance cap of ${pool.governanceCap}% due to CDO ${cdoId} fractionalized vault balance (${pool.fractionalizedVault.balance}) dropping below reserve floor (${pool.reserveFloor}).`
+                  );
+                }
+              }
+
               const hedgedAmount = Math.floor(payout * (allocationPercent / 100));
               const remainingAmount = payout - hedgedAmount;
 

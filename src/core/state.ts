@@ -3036,6 +3036,8 @@ export const SovereignDebtCDSCDOPoolSchema = z.object({
     timestamp: z.number().int(),
   }),
   timestamp: z.number().int(),
+  reserveFloor: z.number().int().nonnegative().optional(),
+  governanceCap: z.number().int().min(0).max(100).optional(),
 });
 export type SovereignDebtCDSCDOPool = z.infer<typeof SovereignDebtCDSCDOPoolSchema>;
 
@@ -3200,6 +3202,21 @@ export const SovereignDebtCDSCDOCrossTrancheHedgingSchema = z.object({
   })).optional(),
 });
 export type SovereignDebtCDSCDOCrossTrancheHedging = z.infer<typeof SovereignDebtCDSCDOCrossTrancheHedgingSchema>;
+
+export const SovereignDebtCDSCDOHedgingReserveFloorAndCapProposalSchema = z.object({
+  proposalId: z.string(),
+  cdoId: z.string(),
+  syndicateId: z.string(),
+  reserveFloor: z.number().int().nonnegative(),
+  governanceCap: z.number().int().min(0).max(100),
+  status: z.enum(["proposed", "approved", "rejected"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOHedgingReserveFloorAndCapProposal = z.infer<typeof SovereignDebtCDSCDOHedgingReserveFloorAndCapProposalSchema>;
 
 
 
@@ -4196,6 +4213,7 @@ export const GameStateSchema = z.object({
   cdsCdoTrancheLeverageAdjustments: z.record(z.string(), SovereignDebtCDSCDOTrancheLeverageAdjustmentSchema).optional(),
   cdsCdoAutocallTriggers: z.record(z.string(), SovereignDebtCDSCDOAutocallTriggerSchema).optional(),
   cdsCdoCrossTrancheHedging: z.record(z.string(), SovereignDebtCDSCDOCrossTrancheHedgingSchema).optional(),
+  cdsCdoHedgingReserveFloorAndCapProposals: z.record(z.string(), SovereignDebtCDSCDOHedgingReserveFloorAndCapProposalSchema).optional(),
 
 
 
@@ -4658,6 +4676,7 @@ export const createInitialState = (options: {
     cdsCdoTrancheLeverageAdjustments: {},
     cdsCdoAutocallTriggers: {},
     cdsCdoCrossTrancheHedging: {},
+    cdsCdoHedgingReserveFloorAndCapProposals: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5846,6 +5865,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoTrancheLeverageAdjustments: rest.cdsCdoTrancheLeverageAdjustments ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheLeverageAdjustments)) : undefined,
     cdsCdoAutocallTriggers: rest.cdsCdoAutocallTriggers ? JSON.parse(JSON.stringify(rest.cdsCdoAutocallTriggers)) : undefined,
     cdsCdoCrossTrancheHedging: rest.cdsCdoCrossTrancheHedging ? JSON.parse(JSON.stringify(rest.cdsCdoCrossTrancheHedging)) : undefined,
+    cdsCdoHedgingReserveFloorAndCapProposals: rest.cdsCdoHedgingReserveFloorAndCapProposals ? JSON.parse(JSON.stringify(rest.cdsCdoHedgingReserveFloorAndCapProposals)) : undefined,
 
   };
   return clone;
@@ -18248,6 +18268,47 @@ export function reconcileSovereignDebtCDSCDOCrossTrancheHedging(state: GameState
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[CDS CDO Cross-Tranche Hedging Approved] Syndicate ${proposal.syndicateId} approved cross-tranche yield hedging allocation of ${proposal.allocationPercent}% from equity tranche to ${proposal.targetTrancheId} tranche for CDO ${proposal.cdoId}.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtCDSCDOHedgingReserveFloorAndCap(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoHedgingReserveFloorAndCapProposals: state.cdsCdoHedgingReserveFloorAndCapProposals ? { ...state.cdsCdoHedgingReserveFloorAndCapProposals } : {},
+  };
+
+  if (newState.cdsCdoHedgingReserveFloorAndCapProposals) {
+    for (const [proposalId, proposal] of Object.entries(newState.cdsCdoHedgingReserveFloorAndCapProposals)) {
+      if (proposal.status !== "proposed") continue;
+      const syndicate = newState.syndicates[proposal.syndicateId];
+      if (!syndicate) continue;
+      const votes = proposal.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > syndicate.members.length / 2;
+      if (passed) {
+        proposal.status = "approved";
+
+        const pool = newState.sovereignDebtCDSCDOPools[proposal.cdoId];
+        if (pool) {
+          newState.sovereignDebtCDSCDOPools[proposal.cdoId] = {
+            ...pool,
+            reserveFloor: proposal.reserveFloor,
+            governanceCap: proposal.governanceCap,
+          };
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDS CDO Hedging Reserve Floor & Cap Approved] Syndicate ${proposal.syndicateId} approved reserve floor of ${proposal.reserveFloor} and governance cap of ${proposal.governanceCap}% for CDO ${proposal.cdoId}.`
         );
       }
     }

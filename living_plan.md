@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #231 (Ready for Cycle #232)
-* **Build/Test Status**: 🟢 PASS (All 803 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #232 (Ready for Cycle #233)
+* **Build/Test Status**: 🟢 PASS (All 806 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1503,22 +1503,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
-### Phase 212: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Cross-Tranche Hedging & Portfolio Stress Rebalancing (Completed)
-- [x] Define cross-tranche yield hedging allocation schemas and properties in GameState schemas (`AF-234`).
-- [x] Implement `SET_CDS_CDO_CROSS_TRANCHE_HEDGING` decentralized consensus action (`AF-234`).
-- [x] Wire the economy tick to automatically transfer designated equity yield payouts into the senior/mezzanine margin collateral accounts before margin requirement calculations to deflect margin calls dynamically (`AF-234`).
-- [x] Write comprehensive Vitest integration tests (`AF-234`).
+### Phase 213: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Cross-Tranche Hedging Liquidity Pool Reserve Floor & Governance Cap (Completed)
+- [x] Define cross-tranche hedging reserve floor and governance cap properties in GameState schemas (`AF-235`).
+- [x] Implement decentralized consensus voting action to configure reserve floor and cap targets (`AF-235`).
+- [x] Wire the economy tick to clamp cross-tranche hedging allocations to the dynamic cap when CDO fractionalized vault reserves drop below the floor (`AF-235`).
+- [x] Write comprehensive Vitest integration tests (`AF-235`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-235`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Cross-Tranche Hedging Liquidity Pool Reserve Floor & Governance Cap.
-* **Why this matters**: Introduce a minimum reserve floor and dynamic fee adjustments for cross-tranche yield hedging, preventing syndicates from over-allocating equity yield to the senior tranche when overall CDO pool liquidity is depleted, ensuring balanced risk distribution across the mesh.
+**Task ID**: `AF-236`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Reserve Floor Breach Liquidity Injection Proposals.
+* **Why this matters**: Introduce a decentralized cooperative action allowing syndicates to propose and vote to inject liquidity from their war chests directly into a stressed CDO fractionalized vault when its balance drops below the reserve floor, triggering dynamic reputation boosts and fee exemptions to incentivize cooperative mesh defense.
 * **Planned Actions**:
-  1. Define cross-tranche hedging reserve floor and governance cap properties in GameState schemas.
-  2. Implement decentralized consensus voting action to configure reserve floor and cap targets.
-  3. Wire the economy tick to clamp cross-tranche hedging allocations to the dynamic cap when CDO fractionalized vault reserves drop below the floor.
+  1. Define `LIQUIDITY_INJECTION_PROPOSAL` schema and state structures in GameState.
+  2. Implement the consensus voting action to propose and execute war chest to CDO fractionalized vault liquidity injections.
+  3. Wire the economy tick to grant reputation increases and fee waivers to syndicates contributing to restore pool liquidity above the floor.
   4. Write comprehensive Vitest integration tests.
 
 ---
