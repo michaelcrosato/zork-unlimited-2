@@ -2349,6 +2349,22 @@ export const SWFReinsuranceOptionCrossMeshArbitrageVoteSchema = z.object({
 });
 export type SWFReinsuranceOptionCrossMeshArbitrageVote = z.infer<typeof SWFReinsuranceOptionCrossMeshArbitrageVoteSchema>;
 
+export const SWFReinsuranceOptionArbitrageFeeSurchargePolicySchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  maxLatencyHedgedOverhead: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionArbitrageFeeSurchargePolicy = z.infer<typeof SWFReinsuranceOptionArbitrageFeeSurchargePolicySchema>;
+
+export const SWFReinsuranceOptionArbitrageFeeSurchargeVoteSchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  maxLatencyHedgedOverhead: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionArbitrageFeeSurchargeVote = z.infer<typeof SWFReinsuranceOptionArbitrageFeeSurchargeVoteSchema>;
+
 export const SWFReinsuranceOptionCrossMeshArbitrageRouteSchema = z.object({
   routeId: z.string(),
   sourceNodeId: z.string(),
@@ -2357,6 +2373,8 @@ export const SWFReinsuranceOptionCrossMeshArbitrageRouteSchema = z.object({
   trancheId: z.enum(["senior", "mezzanine", "equity"]),
   spreadDifference: z.number().int(),
   timestamp: z.number().int(),
+  linkStateLatencyMs: z.number().int().nonnegative().optional(),
+  dynamicTollRate: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionCrossMeshArbitrageRoute = z.infer<typeof SWFReinsuranceOptionCrossMeshArbitrageRouteSchema>;
 
@@ -3055,6 +3073,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionCrossMeshArbitragePolicies: z.record(z.string(), SWFReinsuranceOptionCrossMeshArbitragePolicySchema).optional(),
   adjustSWFReinsuranceOptionCrossMeshArbitrageVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionCrossMeshArbitrageVoteSchema)).optional(),
   swfReinsuranceOptionCrossMeshArbitrageRoutes: z.record(z.string(), SWFReinsuranceOptionCrossMeshArbitrageRouteSchema).optional(),
+  swfReinsuranceOptionArbitrageFeeSurchargePolicies: z.record(z.string(), SWFReinsuranceOptionArbitrageFeeSurchargePolicySchema).optional(),
+  adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionArbitrageFeeSurchargeVoteSchema)).optional(),
   swfReinsuranceOptionDeltaHedgingPolicies: z.record(z.string(), SWFReinsuranceOptionDeltaHedgingPolicySchema).optional(),
   adjustSWFReinsuranceOptionDeltaHedgingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionDeltaHedgingVoteSchema)).optional(),
   swfReinsuranceOptionStressTestDeltaHedgingPolicies: z.record(z.string(), SWFReinsuranceOptionStressTestDeltaHedgingPolicySchema).optional(),
@@ -3399,6 +3419,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionCrossMeshArbitragePolicies: {},
     adjustSWFReinsuranceOptionCrossMeshArbitrageVotes: {},
     swfReinsuranceOptionCrossMeshArbitrageRoutes: {},
+    swfReinsuranceOptionArbitrageFeeSurchargePolicies: {},
+    adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes: {},
     swfReinsuranceOptionDeltaHedgingPolicies: {},
     adjustSWFReinsuranceOptionDeltaHedgingVotes: {},
     swfReinsuranceOptionStressTestDeltaHedgingPolicies: {},
@@ -4449,6 +4471,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionCrossMeshArbitragePolicies: rest.swfReinsuranceOptionCrossMeshArbitragePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionCrossMeshArbitragePolicies)) : undefined,
     adjustSWFReinsuranceOptionCrossMeshArbitrageVotes: rest.adjustSWFReinsuranceOptionCrossMeshArbitrageVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionCrossMeshArbitrageVotes)) : undefined,
     swfReinsuranceOptionCrossMeshArbitrageRoutes: rest.swfReinsuranceOptionCrossMeshArbitrageRoutes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionCrossMeshArbitrageRoutes)) : undefined,
+    swfReinsuranceOptionArbitrageFeeSurchargePolicies: rest.swfReinsuranceOptionArbitrageFeeSurchargePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionArbitrageFeeSurchargePolicies)) : undefined,
+    adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes: rest.adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes)) : undefined,
     swfReinsuranceOptionDeltaHedgingPolicies: rest.swfReinsuranceOptionDeltaHedgingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionDeltaHedgingPolicies)) : undefined,
     adjustSWFReinsuranceOptionDeltaHedgingVotes: rest.adjustSWFReinsuranceOptionDeltaHedgingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionDeltaHedgingVotes)) : undefined,
     swfReinsuranceOptionStressTestDeltaHedgingPolicies: rest.swfReinsuranceOptionStressTestDeltaHedgingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionStressTestDeltaHedgingPolicies)) : undefined,
@@ -12974,6 +12998,68 @@ export function reconcileSWFReinsuranceOptionCrossMeshArbitrage(state: GameState
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[SWF Reinsurance Option Cross-Mesh Arbitrage Adjusted] Syndicate ${syndicateId} adjusted cross-mesh arbitrage policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Arbitrage Spread Threshold: ${group.arbitrageSpreadThreshold.toFixed(2)} gold, Max Arbitrage Volume: ${group.maxArbitrageVolume} units).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionArbitrageFeeSurcharge(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionArbitrageFeeSurchargePolicies: state.swfReinsuranceOptionArbitrageFeeSurchargePolicies ? { ...state.swfReinsuranceOptionArbitrageFeeSurchargePolicies } : {},
+    adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes: state.adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes ? { ...state.adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes || {})) {
+    const votes = newState.adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      swfYieldCdoId: string;
+      trancheId: "senior" | "mezzanine" | "equity";
+      maxLatencyHedgedOverhead: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.maxLatencyHedgedOverhead}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            swfYieldCdoId: vote.swfYieldCdoId,
+            trancheId: vote.trancheId,
+            maxLatencyHedgedOverhead: vote.maxLatencyHedgedOverhead,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const policyKey = `${group.swfYieldCdoId}_${group.trancheId}`;
+        newState.swfReinsuranceOptionArbitrageFeeSurchargePolicies![policyKey] = {
+          swfYieldCdoId: group.swfYieldCdoId,
+          trancheId: group.trancheId,
+          maxLatencyHedgedOverhead: group.maxLatencyHedgedOverhead,
+          timestamp: Math.max(...group.timestamps, newState.step),
+        };
+
+        delete newState.adjustSWFReinsuranceOptionArbitrageFeeSurchargeVotes[syndicateId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Arbitrage Fee Surcharge Adjusted] Syndicate ${syndicateId} adjusted arbitrage fee surcharge policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Max Latency-Hedged Overhead: ${group.maxLatencyHedgedOverhead.toFixed(2)} gold).`
         );
       }
     }

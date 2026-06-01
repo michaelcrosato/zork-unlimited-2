@@ -207,6 +207,25 @@ export class MeshNode extends GossipNode {
 
     let changed = false;
 
+    function getPathLength(discovery: NetworkDiscovery, start: string, end: string): number {
+      if (start === end) return 0;
+      const queue: Array<[string, number]> = [[start, 0]];
+      const visited = new Set<string>([start]);
+      while (queue.length > 0) {
+        const [current, dist] = queue.shift()!;
+        if (current === end) return dist;
+        const record = discovery.topology.get(current);
+        const neighbors = record ? record.neighbors : [];
+        for (const neighbor of neighbors) {
+          if (!visited.has(neighbor)) {
+            visited.add(neighbor);
+            queue.push([neighbor, dist + 1]);
+          }
+        }
+      }
+      return 999; // Unreachable
+    }
+
     for (const [routeId, route] of Object.entries(state.swfReinsuranceOptionCrossMeshArbitrageRoutes)) {
       const { sourceNodeId, targetNodeId, swfYieldCdoId, trancheId } = route;
       const policyKey = `${swfYieldCdoId}_${trancheId}`;
@@ -217,6 +236,33 @@ export class MeshNode extends GossipNode {
       const sourceNode = this.network?.nodes.get(sourceNodeId);
       const targetNode = this.network?.nodes.get(targetNodeId);
       if (!sourceNode || !targetNode) continue;
+
+      // Calculate path length and latency
+      const hops = getPathLength(sourceNode.discovery, sourceNodeId, targetNodeId);
+      const latency = sourceNode.lastHeartbeatLatency.get(targetNodeId) ?? (hops * 50);
+
+      // Check max latency hedged overhead from the policy
+      const surchargePolicyKey = `${swfYieldCdoId}_${trancheId}`;
+      const surchargePolicy = state.swfReinsuranceOptionArbitrageFeeSurchargePolicies?.[surchargePolicyKey];
+
+      const dynamicToll = surchargePolicy ? Math.floor(latency * 0.1) : 0;
+      const maxLatencyHedgedOverhead = surchargePolicy?.maxLatencyHedgedOverhead ?? Infinity;
+
+      // Update route fields in state schemas
+      if (route.linkStateLatencyMs !== latency || route.dynamicTollRate !== dynamicToll) {
+        route.linkStateLatencyMs = latency;
+        route.dynamicTollRate = dynamicToll;
+        route.timestamp = state.step;
+        changed = true;
+      }
+
+      let halted = false;
+      let haltReason = "";
+
+      if (surchargePolicy && latency > maxLatencyHedgedOverhead) {
+        halted = true;
+        haltReason = `Latency ${latency}ms exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`;
+      }
 
       // Calculate spread difference between different gossip mesh nodes
       const key = `${swfYieldCdoId}_${trancheId}`;
@@ -232,10 +278,17 @@ export class MeshNode extends GossipNode {
         changed = true;
       }
 
+      if (surchargePolicy && dynamicToll >= spreadDiff) {
+        halted = true;
+        haltReason = `Network routing costs (${dynamicToll} gold) exceed potential spread difference (${spreadDiff} gold)`;
+      }
+
       const threshold = policy.arbitrageSpreadThreshold;
-      if (spreadDiff > threshold) {
+      if (spreadDiff > threshold && !halted) {
         // Price imbalance exceeds threshold! Automatic options purchase/sale and spread alignment reconciliation
-        const arbitrageProfit = Math.min(Math.floor((spreadDiff - threshold) * 0.5), policy.maxArbitrageVolume);
+        const baseProfit = Math.floor((spreadDiff - threshold) * 0.5);
+        // Wire dynamic fee deduction
+        const arbitrageProfit = Math.min(Math.max(baseProfit - dynamicToll, 0), policy.maxArbitrageVolume);
         
         if (arbitrageProfit > 0) {
           // Execute automated buy/sell transactions on the nodes to balance options liquidity
@@ -277,16 +330,21 @@ export class MeshNode extends GossipNode {
 
               if (!sourceNode.localState.journal) sourceNode.localState.journal = [];
               sourceNode.localState.journal.push(
-                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
+                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold, Latency: ${latency}ms, Toll: ${dynamicToll} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
               );
               
               if (!targetNode.localState.journal) targetNode.localState.journal = [];
               targetNode.localState.journal.push(
-                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
+                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold, Latency: ${latency}ms, Toll: ${dynamicToll} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
               );
             }
           }
         }
+      } else if (halted) {
+        if (!sourceNode.localState.journal) sourceNode.localState.journal = [];
+        sourceNode.localState.journal.push(
+          `[SWF Reinsurance Option Cross-Mesh Arbitrage] Arbitrage rebalancing halted along route ${routeId}: ${haltReason}.`
+        );
       }
     }
   }

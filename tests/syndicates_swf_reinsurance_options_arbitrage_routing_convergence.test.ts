@@ -361,4 +361,169 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(1017);
     expect(nodeB.localState.syndicates?.alpha?.warChest).toBe(1017);
   });
+
+  it("should vote on ADJUST_ARBITRAGE_FEE_SURCHARGE and halt/scale back arbitrage rebalancing based on latency and dynamic tolls", () => {
+    const net = new MeshNetwork();
+
+    const nodeA = new MeshNode("A", mockPack, 42);
+    const nodeB = new MeshNode("B", mockPack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.connectNodes("A", "B");
+
+    // Initialize syndicates via transactions
+    nodeA.executeLocalAction({
+      type: "CREATE_SYNDICATE",
+      id: "alpha",
+      name: "Alpha Syndicate",
+      members: ["A", "B"],
+      timestamp: 1000,
+    });
+
+    nodeA.executeLocalAction({
+      type: "CONTRIBUTE_WAR_CHEST",
+      syndicateId: "alpha",
+      amount: 1000,
+      timestamp: 1010,
+    });
+
+    // Initialize CDO
+    nodeA.localState.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
+          mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+        },
+        timestamp: 1000,
+      },
+    };
+    
+    nodeB.localState.swfYieldCDOs = JSON.parse(JSON.stringify(nodeA.localState.swfYieldCDOs));
+
+    // Sync syndicate and CDO from A to B so B has them in its local state and journal
+    nodeB.receiveGossip(nodeA.generateGossipMessageFor("B"));
+
+    // Set up active cross-mesh arbitrage policy via consensus transactions
+    nodeA.executeLocalAction({
+      type: "ADJUST_SWF_REINSURANCE_OPTION_CROSS_MESH_ARBITRAGE",
+      syndicateId: "alpha",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      arbitrageSpreadThreshold: 10.0,
+      maxArbitrageVolume: 100,
+      timestamp: 1200,
+    });
+    nodeB.executeLocalAction({
+      type: "ADJUST_SWF_REINSURANCE_OPTION_CROSS_MESH_ARBITRAGE",
+      syndicateId: "alpha",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      arbitrageSpreadThreshold: 10.0,
+      maxArbitrageVolume: 100,
+      timestamp: 1200,
+    });
+
+    // Consensus vote on ADJUST_ARBITRAGE_FEE_SURCHARGE
+    nodeA.executeLocalAction({
+      type: "ADJUST_ARBITRAGE_FEE_SURCHARGE",
+      syndicateId: "alpha",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      maxLatencyHedgedOverhead: 120.0,
+      timestamp: 1500,
+    });
+
+    nodeB.executeLocalAction({
+      type: "ADJUST_ARBITRAGE_FEE_SURCHARGE",
+      syndicateId: "alpha",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      maxLatencyHedgedOverhead: 120.0,
+      timestamp: 1500,
+    });
+
+    nodeA.receiveGossip(nodeB.generateGossipMessageFor("A"));
+    nodeB.receiveGossip(nodeA.generateGossipMessageFor("B"));
+
+    const consensusPolicy = nodeA.localState.swfReinsuranceOptionArbitrageFeeSurchargePolicies?.cdo_1_senior;
+    expect(consensusPolicy).toBeDefined();
+    expect(consensusPolicy?.maxLatencyHedgedOverhead).toBe(120.0);
+
+    // Route setup
+    const routeA = {
+      routeId: "route_A_B",
+      sourceNodeId: "A",
+      targetNodeId: "B",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      spreadDifference: 0,
+      timestamp: 1000,
+    };
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: routeA };
+    nodeB.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...routeA } };
+
+    // Test Case 1: Low Latency, Profitable Arbitrage
+    nodeA.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 50 },
+    };
+    nodeB.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 10 },
+    };
+
+    // Run network ticks to propagate presence, calculate routing tables, and measure latency
+    for (let i = 0; i < 5; i++) {
+      net.tick(100);
+    }
+
+    nodeA.lastHeartbeatLatency.set("B", 100);
+
+    // Run reconciliation (should be a no-op because spreads already converged during the tick)
+    nodeA.reconcileCrossMeshOptionArbitrage();
+
+    // Spread Difference = 40, Spread Threshold = 10, Base Profit = floor((40 - 10) * 0.5) = 15 gold
+    // Tick used natural link latency (50ms). Toll = floor(50 * 0.1) = 5 gold. Adjusted Profit = 15 - 5 = 10 gold.
+    expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(1010);
+    // Latency and toll are updated to the latest values set before reconcile (100ms and 10 gold)
+    expect(nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B?.linkStateLatencyMs).toBe(100);
+    expect(nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B?.dynamicTollRate).toBe(10);
+
+    // Reset warChest and spreads for the next cases
+    nodeA.localState.syndicates!.alpha!.warChest = 1000;
+    nodeB.localState.syndicates!.alpha!.warChest = 1000;
+    nodeA.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 50 },
+    };
+    nodeB.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 10 },
+    };
+
+    // Test Case 2: High Latency Exceeding maxLatencyHedgedOverhead -> HALT rebalancing
+    nodeA.lastHeartbeatLatency.set("B", 130); // 130ms > 120ms limit
+
+    nodeA.reconcileCrossMeshOptionArbitrage();
+
+    // Rebalancing should be halted, warChest remains 1000
+    expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(1000);
+    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("Arbitrage rebalancing halted along route route_A_B: Latency 130ms exceeds max allowed overhead of 120ms"));
+
+    // Test Case 3: Dynamic routing cost exceeds potential spread difference -> HALT rebalancing
+    nodeA.lastHeartbeatLatency.set("B", 100); // 100ms (10 gold toll)
+    nodeA.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 18 },
+    };
+    nodeB.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 10 },
+    }; // Spread Difference = 8 gold, dynamic toll = 10 gold. Toll (10) >= Spread Difference (8)
+
+    nodeA.reconcileCrossMeshOptionArbitrage();
+
+    expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(1000);
+    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("Arbitrage rebalancing halted along route route_A_B: Network routing costs (10 gold) exceed potential spread difference"));
+  });
 });
