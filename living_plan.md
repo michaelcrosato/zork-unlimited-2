@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #146 (Ready for Cycle #147)
-* **Build/Test Status**: 🟢 PASS (All 615 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #147 (Ready for Cycle #148)
+* **Build/Test Status**: 🟢 PASS (All 618 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -877,16 +877,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire transaction settlements and ownership transfer of active reinsurance coverage into the ticks (`AF-146`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-146`).
 
+### Phase 125: SWF Reinsurance Futures & Volatility-Hedged Premium Policies (Completed)
+- [x] Define SWF Reinsurance Futures contract and Volatility-Hedged Premium policy schemas in GameState (`AF-147`).
+- [x] Implement decentralized consensus actions to open/close reinsurance futures positions and vote on volatility reserve adjustments (`AF-147`).
+- [x] Wire dynamic premium adjustments scaling by volatility and auto-settlement of futures on epoch boundaries (`AF-147`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-147`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-147`
-* **Objective**: Syndicate SWF Reinsurance Futures & Volatility-Hedged Reinsurance Premium Adjustments.
-* **Why this matters**: Introduce reinsurance futures contracts allowing syndicates to lock in future reinsurance premium rates, and design a volatility-hedged premium adjustment policy scaling future premium rates based on the CDO's dynamic risk ratings and market volatility trends.
+**Task ID**: `AF-148`
+* **Objective**: Syndicate SWF Reinsurance Options & Dynamic Volatility-Hedged Premium Rate Hedges.
+* **Why this matters**: Introduce SWF reinsurance options allowing syndicates to buy put or call options on future premium rates, hedging against high premium rate spikes during high volatility events.
 * **Planned Actions**:
-  1. Define SWF Reinsurance Futures contract and Volatility-Hedged Premium policy schemas in GameState.
-  2. Implement decentralized consensus actions to open/close reinsurance futures positions and vote on volatility reserve adjustments.
-  3. Wire dynamic premium adjustments scaling by volatility and auto-settlement of futures on epoch boundaries.
+  1. Define SWF Reinsurance Options contracts and bid-ask option listing schemas in GameState.
+  2. Implement decentralized consensus actions to list reinsurance options, bid, execute, or exercise options.
+  3. Wire option expiry settlements and dynamic premium fee adjustments to options holdings in ticks.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---

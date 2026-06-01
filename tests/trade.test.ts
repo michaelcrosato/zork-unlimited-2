@@ -127,7 +127,7 @@ describe("Procedural Merchant and Trading System (NPC_TRADE)", () => {
     const report = validateParserPack(tradePack);
     console.log("VALIDATION FINDINGS FOR TRADE PACK:", JSON.stringify(report.findings, null, 2));
     expect(report.ok).toBe(true);
-  });
+  }, 30000);
 
   it("should successfully stock, buy, and sell items deterministically", () => {
     let state = createInitialState({

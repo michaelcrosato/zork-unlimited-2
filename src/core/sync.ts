@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool } from "./state.js";
 export interface MultiAgentAction {
@@ -32126,6 +32126,365 @@ export function multiAgentStep(
         syndicateId,
         agentId,
         listingId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle OPEN_REINSURANCE_FUTURES action (AF-147)
+  if ((action as any).type === "OPEN_REINSURANCE_FUTURES") {
+    const { id, syndicateId, swfYieldCdoId, trancheId, side, lockPremiumRate, size, marginCollateral, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to open reinsurance futures.`;
+    } else if (!id) {
+      rejectionReason = `Futures ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (!side || !["long", "short"].includes(side)) {
+      rejectionReason = `Valid side (long, short) is required.`;
+    } else if (lockPremiumRate === undefined || lockPremiumRate < 0) {
+      rejectionReason = `Lock premium rate must be non-negative.`;
+    } else if (size === undefined || size <= 0) {
+      rejectionReason = `Futures contract size must be positive.`;
+    } else if (marginCollateral === undefined || marginCollateral < 0) {
+      rejectionReason = `Margin collateral must be non-negative.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < marginCollateral) {
+      rejectionReason = `Syndicate war chest does not have enough gold for margin collateral.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && cdo) {
+      const openSWFReinsuranceFuturesVotes = { ...(state.openSWFReinsuranceFuturesVotes || {}) };
+      if (!openSWFReinsuranceFuturesVotes[syndicateId]) {
+        openSWFReinsuranceFuturesVotes[syndicateId] = {};
+      }
+      openSWFReinsuranceFuturesVotes[syndicateId][agentId] = {
+        id,
+        swfYieldCdoId,
+        trancheId,
+        side,
+        lockPremiumRate,
+        size,
+        marginCollateral,
+        timestamp,
+      };
+      newState.openSWFReinsuranceFuturesVotes = openSWFReinsuranceFuturesVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFReinsuranceFuturesContracts(newState, pack);
+
+      const isOpened = newState.swfReinsuranceFuturesContracts?.[id]?.active ?? false;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Futures Open Vote] Agent ${agentId} voted to open ${side} futures contract ${id} for Syndicate ${syndicateId} (Status: ${isOpened ? "OPENED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance Futures open vote cast by ${agentId} for Syndicate ${syndicateId} (Contract: ${id}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_futures_open_voted" as any,
+        syndicateId,
+        agentId,
+        id,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle CLOSE_REINSURANCE_FUTURES action (AF-147)
+  if ((action as any).type === "CLOSE_REINSURANCE_FUTURES") {
+    const { positionId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const position = state.swfReinsuranceFuturesContracts?.[positionId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to close reinsurance futures.`;
+    } else if (!positionId) {
+      rejectionReason = `Position ID is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!position) {
+      rejectionReason = `Futures position ${positionId} does not exist.`;
+    } else if (!position.active) {
+      rejectionReason = `Futures position ${positionId} is not active.`;
+    } else if (position.syndicateId !== syndicateId) {
+      rejectionReason = `Futures position ${positionId} does not belong to Syndicate ${syndicateId}.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && position) {
+      const closeSWFReinsuranceFuturesVotes = { ...(state.closeSWFReinsuranceFuturesVotes || {}) };
+      if (!closeSWFReinsuranceFuturesVotes[syndicateId]) {
+        closeSWFReinsuranceFuturesVotes[syndicateId] = {};
+      }
+      closeSWFReinsuranceFuturesVotes[syndicateId][agentId] = {
+        positionId,
+        timestamp,
+      };
+      newState.closeSWFReinsuranceFuturesVotes = closeSWFReinsuranceFuturesVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFReinsuranceFuturesContracts(newState, pack);
+
+      const isClosed = !newState.swfReinsuranceFuturesContracts?.[positionId]?.active;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Futures Close Vote] Agent ${agentId} voted to close futures contract ${positionId} for Syndicate ${syndicateId} (Status: ${isClosed ? "CLOSED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance Futures close vote cast by ${agentId} for Syndicate ${syndicateId} (Contract: ${positionId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_futures_close_voted" as any,
+        syndicateId,
+        agentId,
+        positionId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle CONFIGURE_VOLATILITY_HEDGED_PREMIUM_POLICY action (AF-147)
+  if ((action as any).type === "CONFIGURE_VOLATILITY_HEDGED_PREMIUM_POLICY") {
+    const { syndicateId, swfYieldCdoId, basePremiumRate, volatilityReserve, volatilityHedgeMultiplier, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to configure premium policy.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (basePremiumRate === undefined || basePremiumRate < 0) {
+      rejectionReason = `Base premium rate must be non-negative.`;
+    } else if (volatilityReserve === undefined || volatilityReserve < 0) {
+      rejectionReason = `Volatility reserve must be non-negative.`;
+    } else if (volatilityHedgeMultiplier === undefined || volatilityHedgeMultiplier < 0) {
+      rejectionReason = `Volatility hedge multiplier must be non-negative.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < volatilityReserve) {
+      rejectionReason = `Syndicate war chest does not have enough gold for volatility reserve.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && cdo) {
+      const configureVolatilityHedgedPremiumPolicyVotes = { ...(state.configureVolatilityHedgedPremiumPolicyVotes || {}) };
+      if (!configureVolatilityHedgedPremiumPolicyVotes[syndicateId]) {
+        configureVolatilityHedgedPremiumPolicyVotes[syndicateId] = {};
+      }
+      configureVolatilityHedgedPremiumPolicyVotes[syndicateId][agentId] = {
+        swfYieldCdoId,
+        basePremiumRate,
+        volatilityReserve,
+        volatilityHedgeMultiplier,
+        timestamp,
+      };
+      newState.configureVolatilityHedgedPremiumPolicyVotes = configureVolatilityHedgedPremiumPolicyVotes;
+
+      // Reconcile votes
+      newState = reconcileVolatilityHedgedPremiumPolicies(newState, pack);
+
+      const isConfigured = newState.volatilityHedgedPremiumPolicies?.[swfYieldCdoId]?.timestamp === timestamp;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Premium Policy Vote] Agent ${agentId} voted to configure premium policy on CDO ${swfYieldCdoId} for Syndicate ${syndicateId} (Status: ${isConfigured ? "CONFIGURED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Premium policy vote cast by ${agentId} for Syndicate ${syndicateId} (CDO: ${swfYieldCdoId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_policy_configured_voted" as any,
+        syndicateId,
+        agentId,
+        swfYieldCdoId,
         timestamp,
       });
     }

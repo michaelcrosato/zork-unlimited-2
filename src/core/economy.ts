@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -5189,7 +5189,20 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     for (const [policyId, policy] of Object.entries(newState.swfYieldCDOTrancheReinsurancePolicies)) {
       if (policy.active) {
         const updatedPolicy = { ...policy };
-        const premium = Math.max(1, Math.floor(updatedPolicy.coverageAmount * updatedPolicy.premiumRate));
+        
+        // Dynamic Premium Adjustments (AF-147)
+        let rateToUse = updatedPolicy.premiumRate;
+        const activeFutures = Object.values(newState.swfReinsuranceFuturesContracts || {}).find(
+          f => f.active && f.syndicateId === updatedPolicy.syndicateId && f.swfYieldCdoId === updatedPolicy.swfYieldCdoId && f.trancheId === updatedPolicy.trancheId && f.side === "long"
+        );
+        if (activeFutures) {
+          rateToUse = activeFutures.lockPremiumRate;
+        } else if (newState.volatilityHedgedPremiumPolicies?.[updatedPolicy.swfYieldCdoId]) {
+          rateToUse = getCDOTrancheReinsurancePremiumRate(newState, updatedPolicy.swfYieldCdoId, updatedPolicy.trancheId);
+          updatedPolicy.premiumRate = rateToUse; // update policy rate
+        }
+
+        const premium = Math.max(1, Math.floor(updatedPolicy.coverageAmount * rateToUse));
         if (!newState.syndicates) newState.syndicates = {};
         const syndicate = newState.syndicates[updatedPolicy.syndicateId];
         if (syndicate) {
@@ -5210,6 +5223,40 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           updatedPolicy.timestamp = newState.step;
           newState.swfYieldCDOTrancheReinsurancePolicies[policyId] = updatedPolicy;
         }
+      }
+    }
+  }
+
+  // Auto-settlement of SWF Reinsurance Futures on epoch boundaries (AF-147)
+  if (newState.step % 5 === 0 && newState.swfReinsuranceFuturesContracts && Object.keys(newState.swfReinsuranceFuturesContracts).length > 0) {
+    newState.swfReinsuranceFuturesContracts = { ...newState.swfReinsuranceFuturesContracts };
+    newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
+    
+    for (const [futId, fut] of Object.entries(newState.swfReinsuranceFuturesContracts)) {
+      if (fut.active) {
+        const spotRate = getCDOTrancheReinsurancePremiumRate(newState, fut.swfYieldCdoId, fut.trancheId);
+        const diff = spotRate - fut.lockPremiumRate;
+        const profit = Math.floor((fut.side === "long" ? 1 : -1) * diff * fut.size * 100);
+        
+        const syndicate = newState.syndicates[fut.syndicateId];
+        if (syndicate) {
+          const netGold = fut.marginCollateral + profit;
+          newState.syndicates[fut.syndicateId] = {
+            ...syndicate,
+            warChest: Math.max(0, (syndicate.warChest ?? 0) + netGold),
+          };
+          
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Futures Settled] Contract ${futId} for Syndicate ${fut.syndicateId} on CDO ${fut.swfYieldCdoId} tranche ${fut.trancheId} settled at spot rate ${spotRate.toFixed(4)} vs locked rate ${fut.lockPremiumRate.toFixed(4)} (Profit/Loss: ${profit} gold, Returned: ${netGold} gold).`
+          );
+        }
+        
+        newState.swfReinsuranceFuturesContracts[futId] = {
+          ...fut,
+          active: false,
+          timestamp: newState.step,
+        };
       }
     }
   }

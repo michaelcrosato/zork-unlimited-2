@@ -2040,6 +2040,30 @@ export const SWFYieldCDOTrancheReinsuranceProposalSchema = z.object({
 });
 export type SWFYieldCDOTrancheReinsuranceProposal = z.infer<typeof SWFYieldCDOTrancheReinsuranceProposalSchema>;
 
+export const SWFReinsuranceFuturesContractSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  side: z.enum(["long", "short"]),
+  lockPremiumRate: z.number().nonnegative(),
+  size: z.number().int().positive(),
+  marginCollateral: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type SWFReinsuranceFuturesContract = z.infer<typeof SWFReinsuranceFuturesContractSchema>;
+
+export const VolatilityHedgedPremiumPolicySchema = z.object({
+  swfYieldCdoId: z.string(),
+  volatilityReserve: z.number().int().nonnegative(),
+  basePremiumRate: z.number().nonnegative(),
+  volatilityHedgeMultiplier: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type VolatilityHedgedPremiumPolicy = z.infer<typeof VolatilityHedgedPremiumPolicySchema>;
+
+
 export const SWFYieldCDOTrancheRiskRatingSchema = z.object({
   id: z.string(),
   swfYieldCdoId: z.string(),
@@ -2531,6 +2555,29 @@ export const GameStateSchema = z.object({
   swfYieldCDORiskRatingModels: z.record(z.string(), SWFYieldCDORiskRatingModelSchema).optional(),
   swfYieldCDORiskRatingModelProposals: z.record(z.string(), SWFYieldCDORiskRatingModelProposalSchema).optional(),
   swfCDODefaultCorrelationLogs: z.array(SWFCDODefaultCorrelationLogSchema).optional(),
+  swfReinsuranceFuturesContracts: z.record(z.string(), SWFReinsuranceFuturesContractSchema).optional(),
+  openSWFReinsuranceFuturesVotes: z.record(z.string(), z.record(z.string(), z.object({
+    id: z.string(),
+    swfYieldCdoId: z.string(),
+    trancheId: z.enum(["senior", "mezzanine", "equity"]),
+    side: z.enum(["long", "short"]),
+    lockPremiumRate: z.number(),
+    size: z.number().int().positive(),
+    marginCollateral: z.number().int().nonnegative(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  closeSWFReinsuranceFuturesVotes: z.record(z.string(), z.record(z.string(), z.object({
+    positionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  volatilityHedgedPremiumPolicies: z.record(z.string(), VolatilityHedgedPremiumPolicySchema).optional(),
+  configureVolatilityHedgedPremiumPolicyVotes: z.record(z.string(), z.record(z.string(), z.object({
+    swfYieldCdoId: z.string(),
+    basePremiumRate: z.number().nonnegative(),
+    volatilityReserve: z.number().int().nonnegative(),
+    volatilityHedgeMultiplier: z.number().nonnegative(),
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -2810,6 +2857,11 @@ export const createInitialState = (options: {
     swfYieldCDORiskRatingModels: {},
     swfYieldCDORiskRatingModelProposals: {},
     swfCDODefaultCorrelationLogs: [],
+    swfReinsuranceFuturesContracts: {},
+    openSWFReinsuranceFuturesVotes: {},
+    closeSWFReinsuranceFuturesVotes: {},
+    volatilityHedgedPremiumPolicies: {},
+    configureVolatilityHedgedPremiumPolicyVotes: {},
   };
 };
 
@@ -3672,6 +3724,11 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfYieldCDORiskRatingModels: rest.swfYieldCDORiskRatingModels ? JSON.parse(JSON.stringify(rest.swfYieldCDORiskRatingModels)) : undefined,
     swfYieldCDORiskRatingModelProposals: rest.swfYieldCDORiskRatingModelProposals ? JSON.parse(JSON.stringify(rest.swfYieldCDORiskRatingModelProposals)) : undefined,
     swfCDODefaultCorrelationLogs: rest.swfCDODefaultCorrelationLogs ? JSON.parse(JSON.stringify(rest.swfCDODefaultCorrelationLogs)) : undefined,
+    swfReinsuranceFuturesContracts: rest.swfReinsuranceFuturesContracts ? JSON.parse(JSON.stringify(rest.swfReinsuranceFuturesContracts)) : undefined,
+    openSWFReinsuranceFuturesVotes: rest.openSWFReinsuranceFuturesVotes ? JSON.parse(JSON.stringify(rest.openSWFReinsuranceFuturesVotes)) : undefined,
+    closeSWFReinsuranceFuturesVotes: rest.closeSWFReinsuranceFuturesVotes ? JSON.parse(JSON.stringify(rest.closeSWFReinsuranceFuturesVotes)) : undefined,
+    volatilityHedgedPremiumPolicies: rest.volatilityHedgedPremiumPolicies ? JSON.parse(JSON.stringify(rest.volatilityHedgedPremiumPolicies)) : undefined,
+    configureVolatilityHedgedPremiumPolicyVotes: rest.configureVolatilityHedgedPremiumPolicyVotes ? JSON.parse(JSON.stringify(rest.configureVolatilityHedgedPremiumPolicyVotes)) : undefined,
   };
   return clone;
 }
@@ -10826,6 +10883,254 @@ export function reconcileCancelSWFYieldCDOTrancheReinsuranceListings(state: Game
 
   return newState;
 }
+
+export function getCDOTrancheReinsurancePremiumRate(state: GameState, cdoId: string, trancheId: "senior" | "mezzanine" | "equity"): number {
+  let basePremiumRate = 0.05;
+  let volatilityReserve = 0;
+  let volatilityHedgeMultiplier = 0.02;
+
+  if (state.volatilityHedgedPremiumPolicies?.[cdoId]) {
+    const policy = state.volatilityHedgedPremiumPolicies[cdoId];
+    basePremiumRate = policy.basePremiumRate;
+    volatilityReserve = policy.volatilityReserve;
+    volatilityHedgeMultiplier = policy.volatilityHedgeMultiplier;
+  }
+
+  const ratingId = `${cdoId}_${trancheId}`;
+  const ratingRecord = state.swfYieldCDOTrancheRiskRatings?.[ratingId];
+  const riskRating = ratingRecord ? ratingRecord.riskRating : "AAA";
+
+  const ratingMultipliers: Record<string, number> = {
+    "AAA": 0.5,
+    "AA": 0.7,
+    "A": 0.9,
+    "BBB": 1.1,
+    "BB": 1.4,
+    "B": 1.8,
+    "CCC": 2.3,
+    "CC": 3.0,
+    "C": 4.0,
+    "D": 5.0,
+  };
+  const ratingMult = ratingMultipliers[riskRating] ?? 1.0;
+
+  const activeBonds = Object.values(state.yieldVolatilityIndexes || {});
+  const avgVolatility = activeBonds.length > 0
+    ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+    : 15.0;
+
+  const volMultiplier = 1.0 + (avgVolatility * volatilityHedgeMultiplier) / Math.max(1.0, volatilityReserve / 100);
+  return basePremiumRate * ratingMult * volMultiplier;
+}
+
+export function reconcileSWFReinsuranceFuturesContracts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceFuturesContracts: state.swfReinsuranceFuturesContracts ? { ...state.swfReinsuranceFuturesContracts } : {},
+    openSWFReinsuranceFuturesVotes: state.openSWFReinsuranceFuturesVotes ? { ...state.openSWFReinsuranceFuturesVotes } : {},
+    closeSWFReinsuranceFuturesVotes: state.closeSWFReinsuranceFuturesVotes ? { ...state.closeSWFReinsuranceFuturesVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  // Reconcile OPEN futures votes
+  for (const syndicateId of Object.keys(newState.openSWFReinsuranceFuturesVotes || {})) {
+    const votes = newState.openSWFReinsuranceFuturesVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      id: string;
+      swfYieldCdoId: string;
+      trancheId: "senior" | "mezzanine" | "equity";
+      side: "long" | "short";
+      lockPremiumRate: number;
+      size: number;
+      marginCollateral: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.side}::${vote.lockPremiumRate}::${vote.size}::${vote.marginCollateral}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            id: vote.id,
+            swfYieldCdoId: vote.swfYieldCdoId,
+            trancheId: vote.trancheId,
+            side: vote.side,
+            lockPremiumRate: vote.lockPremiumRate,
+            size: vote.size,
+            marginCollateral: vote.marginCollateral,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        if ((syndicate.warChest ?? 0) >= group.marginCollateral) {
+          syndicate.warChest = (syndicate.warChest ?? 0) - group.marginCollateral;
+          
+          const id = group.id || `reins_fut_${Object.keys(newState.swfReinsuranceFuturesContracts || {}).length + 1}`;
+          newState.swfReinsuranceFuturesContracts![id] = {
+            id,
+            syndicateId,
+            swfYieldCdoId: group.swfYieldCdoId,
+            trancheId: group.trancheId,
+            side: group.side,
+            lockPremiumRate: group.lockPremiumRate,
+            size: group.size,
+            marginCollateral: group.marginCollateral,
+            timestamp: Math.max(...group.timestamps, newState.step),
+            active: true,
+          };
+
+          delete newState.openSWFReinsuranceFuturesVotes[syndicateId];
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Futures Opened] Syndicate ${syndicateId} opened a ${group.side} futures contract on CDO ${group.swfYieldCdoId} tranche ${group.trancheId} (Size: ${group.size}, Lock Rate: ${group.lockPremiumRate.toFixed(4)}, Collateral: ${group.marginCollateral} gold).`
+          );
+        }
+        break;
+      }
+    }
+  }
+
+  // Reconcile CLOSE futures votes
+  for (const syndicateId of Object.keys(newState.closeSWFReinsuranceFuturesVotes || {})) {
+    const votes = newState.closeSWFReinsuranceFuturesVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      positionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = vote.positionId;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            positionId: vote.positionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const position = newState.swfReinsuranceFuturesContracts?.[group.positionId];
+        if (position && position.active && position.syndicateId === syndicateId) {
+          const spotRate = getCDOTrancheReinsurancePremiumRate(newState, position.swfYieldCdoId, position.trancheId);
+          const diff = spotRate - position.lockPremiumRate;
+          const profit = Math.floor((position.side === "long" ? 1 : -1) * diff * position.size * 100);
+
+          syndicate.warChest = Math.max(0, (syndicate.warChest ?? 0) + position.marginCollateral + profit);
+
+          position.active = false;
+          position.timestamp = Math.max(...group.timestamps, newState.step);
+
+          delete newState.closeSWFReinsuranceFuturesVotes[syndicateId];
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Futures Closed] Syndicate ${syndicateId} closed futures contract ${group.positionId} at spot rate ${spotRate.toFixed(4)} (Final profit/loss: ${profit} gold).`
+          );
+        }
+        break;
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileVolatilityHedgedPremiumPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    volatilityHedgedPremiumPolicies: state.volatilityHedgedPremiumPolicies ? { ...state.volatilityHedgedPremiumPolicies } : {},
+    configureVolatilityHedgedPremiumPolicyVotes: state.configureVolatilityHedgedPremiumPolicyVotes ? { ...state.configureVolatilityHedgedPremiumPolicyVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.configureVolatilityHedgedPremiumPolicyVotes || {})) {
+    const votes = newState.configureVolatilityHedgedPremiumPolicyVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      swfYieldCdoId: string;
+      basePremiumRate: number;
+      volatilityReserve: number;
+      volatilityHedgeMultiplier: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.swfYieldCdoId}::${vote.basePremiumRate}::${vote.volatilityReserve}::${vote.volatilityHedgeMultiplier}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            swfYieldCdoId: vote.swfYieldCdoId,
+            basePremiumRate: vote.basePremiumRate,
+            volatilityReserve: vote.volatilityReserve,
+            volatilityHedgeMultiplier: vote.volatilityHedgeMultiplier,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        if ((syndicate.warChest ?? 0) >= group.volatilityReserve) {
+          syndicate.warChest = (syndicate.warChest ?? 0) - group.volatilityReserve;
+
+          const existingPolicy = newState.volatilityHedgedPremiumPolicies![group.swfYieldCdoId];
+          const newReserve = (existingPolicy?.volatilityReserve ?? 0) + group.volatilityReserve;
+
+          newState.volatilityHedgedPremiumPolicies![group.swfYieldCdoId] = {
+            swfYieldCdoId: group.swfYieldCdoId,
+            basePremiumRate: group.basePremiumRate,
+            volatilityReserve: newReserve,
+            volatilityHedgeMultiplier: group.volatilityHedgeMultiplier,
+            timestamp: Math.max(...group.timestamps, newState.step),
+          };
+
+          delete newState.configureVolatilityHedgedPremiumPolicyVotes[syndicateId];
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Volatility Hedged Premium Policy Configured] Syndicate ${syndicateId} configured premium policy on CDO ${group.swfYieldCdoId}: Base Rate ${group.basePremiumRate.toFixed(4)}, Total Reserve: ${newReserve} gold, Hedge Mult: ${group.volatilityHedgeMultiplier.toFixed(4)}.`
+          );
+        }
+        break;
+      }
+    }
+  }
+
+  return newState;
+}
+
 
 
 
