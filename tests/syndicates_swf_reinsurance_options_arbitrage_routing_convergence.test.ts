@@ -663,4 +663,119 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     expect(finalRoute?.linkStateLatencyMs).toBe(100); // 2 hops * 50 = 100ms
     expect(nodeA.localState.syndicates?.alpha?.warChest).toBeGreaterThan(1000);
   });
+
+  it("should successfully execute multi-path split options arbitrage routing under split path configurations", () => {
+    const net = new MeshNetwork();
+    const nodeA = new MeshNode("A", mockPack, 42);
+    const nodeB = new MeshNode("B", mockPack, 42);
+    const nodeC = new MeshNode("C", mockPack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+
+    // Form topology: A - B, A - C, C - B
+    nodeA.directNeighbors.add("B");
+    nodeA.directNeighbors.add("C");
+    nodeB.directNeighbors.add("A");
+    nodeB.directNeighbors.add("C");
+    nodeC.directNeighbors.add("A");
+    nodeC.directNeighbors.add("B");
+
+    // Initialize syndicates
+    const syndicateObj = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["A", "B", "C"],
+        definedBy: "A",
+        timestamp: 1000,
+        warChest: 1000,
+      },
+    };
+    nodeA.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+    nodeB.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+    nodeC.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+
+    // Initialize CDO
+    const cdoObj = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
+        },
+        timestamp: 1000,
+      },
+    };
+    nodeA.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+    nodeB.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+    nodeC.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+
+    // Set up cross-mesh arbitrage policy
+    const policy = {
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      arbitrageSpreadThreshold: 10.0,
+      maxArbitrageVolume: 100,
+      timestamp: 1000,
+    };
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+    nodeB.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+    nodeC.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+
+    // Set up active cross-mesh arbitrage route with pathSplitWeights
+    // Path split weights: 60% on direct path (B) and 40% on alternative path (C)
+    const route = {
+      routeId: "route_A_B",
+      sourceNodeId: "A",
+      targetNodeId: "B",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      spreadDifference: 0,
+      timestamp: 1000,
+      pathSplitWeights: {
+        B: 0.6,
+        C: 0.4,
+      },
+    };
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: route };
+    nodeB.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...route } };
+    nodeC.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...route } };
+
+    // Propagate presence and calculate routing tables
+    for (let i = 0; i < 5; i++) {
+      net.tick(100);
+    }
+
+    // Setup order books AFTER network has finished ticking/propagating
+    nodeA.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 50 },
+    };
+    nodeB.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 10 },
+    };
+
+    // Set specific heartbeats and latency
+    nodeA.lastHeartbeatLatency.set("B", 50);
+    nodeA.lastHeartbeatLatency.set("C", 40);
+
+    // Reconcile
+    nodeA.reconcileCrossMeshOptionArbitrage();
+
+    // Verification
+    const finalRoute = nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B;
+    expect(finalRoute).toBeDefined();
+    expect(finalRoute?.spreadDifference).toBe(40);
+
+    // Verify multi-path split log is added to journal
+    const journals = nodeA.localState.journal || [];
+    const hasSplitLog = journals.some(j => j.includes("Executed multi-path split options purchase/sale along route route_A_B"));
+    expect(hasSplitLog).toBe(true);
+
+    // Verify syndicate warchest grew
+    expect(nodeA.localState.syndicates?.alpha?.warChest).toBeGreaterThan(1000);
+  });
 });

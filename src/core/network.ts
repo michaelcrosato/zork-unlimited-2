@@ -252,6 +252,24 @@ export class MeshNode extends GossipNode {
       return dist[end] ?? 999;
     }
 
+    function getLinkWeight(nodeA: string, nodeB: string): number {
+      let penalty = 1.0;
+      if (state.swfReinsuranceOptionCrossMeshArbitrageRoutes) {
+        for (const r of Object.values(state.swfReinsuranceOptionCrossMeshArbitrageRoutes)) {
+          if (
+            (r.sourceNodeId === nodeA && r.targetNodeId === nodeB) ||
+            (r.sourceNodeId === nodeB && r.targetNodeId === nodeA)
+          ) {
+            if (r.routePenaltyMultiplier !== undefined) {
+              penalty = r.routePenaltyMultiplier;
+            }
+            break;
+          }
+        }
+      }
+      return 1.0 * penalty;
+    }
+
     for (const [routeId, route] of Object.entries(state.swfReinsuranceOptionCrossMeshArbitrageRoutes)) {
       const { sourceNodeId, targetNodeId, swfYieldCdoId, trancheId } = route;
       const policyKey = `${swfYieldCdoId}_${trancheId}`;
@@ -263,80 +281,31 @@ export class MeshNode extends GossipNode {
       const targetNode = this.network?.nodes.get(targetNodeId);
       if (!sourceNode || !targetNode) continue;
 
-      // Calculate path length and latency
-      const hops = getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId);
       const nextHop = sourceNode.discovery.getNextHop(targetNodeId);
-      const isDirect = nextHop === targetNodeId;
-      const rawLatency = (isDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hops * 50);
 
-      // Dynamically adjust route penalty multiplier based on latency degradation in network ticking logic
-      let currentPenalty = 1.0;
-      if (rawLatency > 100) {
-        currentPenalty = 2.0;
-      }
-      if (route.routePenaltyMultiplier !== currentPenalty) {
-        route.routePenaltyMultiplier = currentPenalty;
-        route.timestamp = state.step;
-        changed = true;
-      }
+      // Determine paths to use and their weights
+      const paths = route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0
+        ? { ...route.pathSplitWeights }
+        : { [nextHop || targetNodeId]: 1.0 };
 
-      let latency = rawLatency * currentPenalty;
+      // Normalize weights so they sum to 1.0
+      const totalWeight = Object.values(paths).reduce((sum, w) => sum + w, 0);
+      const normalizedPaths: Record<string, number> = {};
+      for (const [hopNodeId, w] of Object.entries(paths)) {
+        normalizedPaths[hopNodeId] = totalWeight > 0 ? w / totalWeight : 0;
+      }
 
       // Check max latency hedged overhead from the policy
       const surchargePolicyKey = `${swfYieldCdoId}_${trancheId}`;
       const surchargePolicy = state.swfReinsuranceOptionArbitrageFeeSurchargePolicies?.[surchargePolicyKey];
-
       const maxLatencyHedgedOverhead = surchargePolicy?.maxLatencyHedgedOverhead ?? Infinity;
-
-      let halted = false;
-      let haltReason = "";
-
-      if (surchargePolicy && latency > maxLatencyHedgedOverhead) {
-        halted = true;
-        haltReason = `Latency ${latency}ms exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`;
-
-        // Wire automatic route repair when executing cross-mesh option arbitrage on a degraded route
-        if (nextHop) {
-          const repaired = sourceNode.repairRoute(targetNodeId, nextHop);
-          if (repaired) {
-            const newHops = getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId);
-            const newNextHop = sourceNode.discovery.getNextHop(targetNodeId);
-            const newIsDirect = newNextHop === targetNodeId;
-            const newRawLatency = (newIsDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(newHops * 50);
-            const newPenalty = newRawLatency > 100 ? 2.0 : 1.0;
-            
-            route.routePenaltyMultiplier = newPenalty;
-            latency = newRawLatency * newPenalty;
-            route.timestamp = state.step;
-            changed = true;
-
-            if (latency <= maxLatencyHedgedOverhead) {
-              halted = false;
-              haltReason = "";
-            } else {
-              haltReason = `Latency ${latency}ms after repair still exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`;
-            }
-          }
-        }
-      }
-
-      const dynamicToll = surchargePolicy ? Math.floor(latency * 0.1) : 0;
-
-      // Update route fields in state schemas
-      if (route.linkStateLatencyMs !== latency || route.dynamicTollRate !== dynamicToll) {
-        route.linkStateLatencyMs = latency;
-        route.dynamicTollRate = dynamicToll;
-        route.timestamp = state.step;
-        changed = true;
-      }
 
       // Calculate spread difference between different gossip mesh nodes
       const key = `${swfYieldCdoId}_${trancheId}`;
       const spreadSource = sourceNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]?.bidAskSpread ?? 0;
       const spreadTarget = targetNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]?.bidAskSpread ?? 0;
-      
       const spreadDiff = Math.abs(spreadSource - spreadTarget);
-      
+
       // Update spread differences in state schemas
       if (route.spreadDifference !== spreadDiff) {
         route.spreadDifference = spreadDiff;
@@ -344,64 +313,190 @@ export class MeshNode extends GossipNode {
         changed = true;
       }
 
-      if (surchargePolicy && dynamicToll >= spreadDiff) {
-        halted = true;
-        haltReason = `Network routing costs (${dynamicToll} gold) exceed potential spread difference (${spreadDiff} gold)`;
+      const threshold = policy.arbitrageSpreadThreshold;
+
+      let totalWeightedLatency = 0;
+      let totalWeightedToll = 0;
+      let totalWeightedPenalty = 0;
+
+      let anyPathExecuted = false;
+      let allPathsHalted = true;
+      const pathHaltReasons: string[] = [];
+      let totalArbitrageProfit = 0;
+
+      for (const [hopNodeId, splitWeight] of Object.entries(normalizedPaths)) {
+        const isDirect = hopNodeId === targetNodeId;
+        const hops = hopNodeId === sourceNodeId
+          ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
+          : getLinkWeight(sourceNodeId, hopNodeId) + getWeightedPathLength(sourceNode.discovery, hopNodeId, targetNodeId);
+
+        const rawLatency = (isDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hops * 50);
+
+        let currentPenalty = 1.0;
+        if (rawLatency > 100) {
+          currentPenalty = 2.0;
+        }
+
+        let latency = rawLatency * currentPenalty;
+        let pathHalted = false;
+        let pathHaltReason = "";
+
+        const isSplitRoute = route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0;
+
+        if (surchargePolicy && latency > maxLatencyHedgedOverhead) {
+          pathHalted = true;
+          pathHaltReason = isSplitRoute
+            ? `Path via ${hopNodeId} latency ${latency}ms exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`
+            : `Latency ${latency}ms exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`;
+
+          // Wire automatic route repair
+          const repairHop = hopNodeId === targetNodeId ? nextHop : hopNodeId;
+          if (repairHop) {
+            const repaired = sourceNode.repairRoute(targetNodeId, repairHop);
+            if (repaired) {
+              const newHops = getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId);
+              
+              const newNextHop = sourceNode.discovery.getNextHop(targetNodeId);
+              const newIsDirect = newNextHop === targetNodeId;
+              const newRawLatency = (newIsDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(newHops * 50);
+              const newPenalty = newRawLatency > 100 ? 2.0 : 1.0;
+              
+              currentPenalty = newPenalty;
+              latency = newRawLatency * newPenalty;
+
+              if (latency <= maxLatencyHedgedOverhead) {
+                pathHalted = false;
+                pathHaltReason = "";
+              } else {
+                pathHaltReason = isSplitRoute
+                  ? `Path via ${hopNodeId} latency ${latency}ms after repair still exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`
+                  : `Latency ${latency}ms after repair still exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`;
+              }
+            }
+          }
+        }
+
+        const dynamicToll = surchargePolicy ? Math.floor(latency * 0.1) : 0;
+
+        if (surchargePolicy && dynamicToll >= spreadDiff) {
+          pathHalted = true;
+          pathHaltReason = isSplitRoute
+            ? `Network routing costs for path via ${hopNodeId} (${dynamicToll} gold) exceed potential spread difference (${spreadDiff} gold)`
+            : `Network routing costs (${dynamicToll} gold) exceed potential spread difference (${spreadDiff} gold)`;
+        }
+
+        totalWeightedLatency += latency * splitWeight;
+        totalWeightedToll += dynamicToll * splitWeight;
+        totalWeightedPenalty += currentPenalty * splitWeight;
+
+        if (spreadDiff > threshold && !pathHalted) {
+          allPathsHalted = false;
+
+          const baseProfit = Math.floor((spreadDiff - threshold) * 0.5);
+          const pathBaseProfit = Math.floor(baseProfit * splitWeight);
+          const pathMaxVolume = Math.floor(policy.maxArbitrageVolume * splitWeight);
+          const pathArbitrageProfit = Math.min(Math.max(pathBaseProfit - dynamicToll, 0), pathMaxVolume);
+
+          if (pathArbitrageProfit > 0) {
+            totalArbitrageProfit += pathArbitrageProfit;
+            anyPathExecuted = true;
+          }
+        } else {
+          if (pathHalted) {
+            pathHaltReasons.push(pathHaltReason);
+          }
+        }
       }
 
-      const threshold = policy.arbitrageSpreadThreshold;
-      if (spreadDiff > threshold && !halted) {
-        // Price imbalance exceeds threshold! Automatic options purchase/sale and spread alignment reconciliation
-        const baseProfit = Math.floor((spreadDiff - threshold) * 0.5);
-        // Wire dynamic fee deduction
-        const arbitrageProfit = Math.min(Math.max(baseProfit - dynamicToll, 0), policy.maxArbitrageVolume);
-        
-        if (arbitrageProfit > 0) {
-          // Execute automated buy/sell transactions on the nodes to balance options liquidity
-          const creatorSyndicateId = state.swfYieldCDOs?.[swfYieldCdoId]?.creatorSyndicateId;
-          if (creatorSyndicateId) {
-            const sourceSyndicate = sourceNode.localState.syndicates?.[creatorSyndicateId];
-            const targetSyndicate = targetNode.localState.syndicates?.[creatorSyndicateId];
+      const finalLatency = Math.floor(totalWeightedLatency);
+      const finalToll = Math.floor(totalWeightedToll);
+      const finalPenalty = Math.round(totalWeightedPenalty * 10) / 10;
+      const halted = allPathsHalted;
+      const haltReason = pathHaltReasons.join("; ");
+
+      // Update route fields in state schemas
+      if (route.routePenaltyMultiplier !== finalPenalty) {
+        route.routePenaltyMultiplier = finalPenalty;
+        route.timestamp = state.step;
+        changed = true;
+      }
+
+      if (route.linkStateLatencyMs !== finalLatency || route.dynamicTollRate !== finalToll) {
+        route.linkStateLatencyMs = finalLatency;
+        route.dynamicTollRate = finalToll;
+        route.timestamp = state.step;
+        changed = true;
+      }
+
+      if (anyPathExecuted) {
+        // Execute automated buy/sell transactions on the nodes to balance options liquidity
+        const creatorSyndicateId = state.swfYieldCDOs?.[swfYieldCdoId]?.creatorSyndicateId;
+        if (creatorSyndicateId) {
+          const sourceSyndicate = sourceNode.localState.syndicates?.[creatorSyndicateId];
+          const targetSyndicate = targetNode.localState.syndicates?.[creatorSyndicateId];
+          
+          if (sourceSyndicate && targetSyndicate) {
+            sourceNode.localState.syndicates = { ...sourceNode.localState.syndicates };
+            sourceNode.localState.syndicates[creatorSyndicateId] = {
+              ...sourceSyndicate,
+              warChest: (sourceSyndicate.warChest ?? 0) + totalArbitrageProfit,
+            };
             
-            if (sourceSyndicate && targetSyndicate) {
-              sourceNode.localState.syndicates = { ...sourceNode.localState.syndicates };
-              sourceNode.localState.syndicates[creatorSyndicateId] = {
-                ...sourceSyndicate,
-                warChest: (sourceSyndicate.warChest ?? 0) + arbitrageProfit,
+            targetNode.localState.syndicates = { ...targetNode.localState.syndicates };
+            targetNode.localState.syndicates[creatorSyndicateId] = {
+              ...targetSyndicate,
+              warChest: (targetSyndicate.warChest ?? 0) + totalArbitrageProfit,
+            };
+            
+            // Converge option spreads
+            const targetSpread = Math.floor((spreadSource + spreadTarget) / 2);
+            
+            if (sourceNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]) {
+              sourceNode.localState.swfReinsuranceOptionOrderBookDepths = { ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths };
+              sourceNode.localState.swfReinsuranceOptionOrderBookDepths[key] = {
+                ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths[key],
+                bidAskSpread: targetSpread,
               };
-              
-              targetNode.localState.syndicates = { ...targetNode.localState.syndicates };
-              targetNode.localState.syndicates[creatorSyndicateId] = {
-                ...targetSyndicate,
-                warChest: (targetSyndicate.warChest ?? 0) + arbitrageProfit,
+            }
+            if (targetNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]) {
+              targetNode.localState.swfReinsuranceOptionOrderBookDepths = { ...targetNode.localState.swfReinsuranceOptionOrderBookDepths };
+              targetNode.localState.swfReinsuranceOptionOrderBookDepths[key] = {
+                ...targetNode.localState.swfReinsuranceOptionOrderBookDepths[key],
+                bidAskSpread: targetSpread,
               };
-              
-              // Converge option spreads
-              const targetSpread = Math.floor((spreadSource + spreadTarget) / 2);
-              
-              if (sourceNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]) {
-                sourceNode.localState.swfReinsuranceOptionOrderBookDepths = { ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths };
-                sourceNode.localState.swfReinsuranceOptionOrderBookDepths[key] = {
-                  ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths[key],
-                  bidAskSpread: targetSpread,
-                };
-              }
-              if (targetNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]) {
-                targetNode.localState.swfReinsuranceOptionOrderBookDepths = { ...targetNode.localState.swfReinsuranceOptionOrderBookDepths };
-                targetNode.localState.swfReinsuranceOptionOrderBookDepths[key] = {
-                  ...targetNode.localState.swfReinsuranceOptionOrderBookDepths[key],
-                  bidAskSpread: targetSpread,
-                };
-              }
+            }
+
+            if (route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0) {
+              const pathLogDetails = Object.entries(normalizedPaths).map(([hId, w]) => {
+                const hopsCount = hId === sourceNodeId
+                  ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
+                  : getLinkWeight(sourceNodeId, hId) + getWeightedPathLength(sourceNode.discovery, hId, targetNodeId);
+                const isDir = hId === targetNodeId;
+                const pathRawLat = (isDir ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hopsCount * 50);
+                const pathPenalty = pathRawLat > 100 ? 2.0 : 1.0;
+                const pathLat = pathRawLat * pathPenalty;
+                const pathToll = surchargePolicy ? Math.floor(pathLat * 0.1) : 0;
+                return `${hId} (weight: ${w.toFixed(2)}, latency: ${pathLat}ms, toll: ${pathToll}g)`;
+              }).join(", ");
 
               if (!sourceNode.localState.journal) sourceNode.localState.journal = [];
               sourceNode.localState.journal.push(
-                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold, Latency: ${latency}ms, Toll: ${dynamicToll} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
+                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed multi-path split options purchase/sale along route ${routeId} with total profit ${totalArbitrageProfit} gold (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold). Paths: ${pathLogDetails}. Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
               );
               
               if (!targetNode.localState.journal) targetNode.localState.journal = [];
               targetNode.localState.journal.push(
-                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold, Latency: ${latency}ms, Toll: ${dynamicToll} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
+                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed multi-path split options purchase/sale along route ${routeId} with total profit ${totalArbitrageProfit} gold (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold). Paths: ${pathLogDetails}. Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
+              );
+            } else {
+              if (!sourceNode.localState.journal) sourceNode.localState.journal = [];
+              sourceNode.localState.journal.push(
+                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold, Latency: ${finalLatency}ms, Toll: ${finalToll} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
+              );
+              
+              if (!targetNode.localState.journal) targetNode.localState.journal = [];
+              targetNode.localState.journal.push(
+                `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold, Latency: ${finalLatency}ms, Toll: ${finalToll} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
               );
             }
           }
