@@ -800,6 +800,12 @@ export const DebtSettlementVoteSchema = z.object({
 });
 export type DebtSettlementVote = z.infer<typeof DebtSettlementVoteSchema>;
 
+export const JointLoanDebtSettlementVoteSchema = z.object({
+  settlementAmount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type JointLoanDebtSettlementVote = z.infer<typeof JointLoanDebtSettlementVoteSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1016,6 +1022,7 @@ export const GameStateSchema = z.object({
   jointLoans: z.record(z.string(), JointLoanSchema).optional(),
   jointLoanRefinancingVotes: z.record(z.string(), z.record(z.string(), LoanRefinancingVoteSchema)).optional(),
   jointLoanCollateralSubstitutionVotes: z.record(z.string(), z.record(z.string(), JointLoanCollateralSubstitutionVoteSchema)).optional(),
+  jointLoanDebtSettlementVotes: z.record(z.string(), z.record(z.string(), JointLoanDebtSettlementVoteSchema)).optional(),
 });
 
 
@@ -1882,6 +1889,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     jointLoans: rest.jointLoans ? JSON.parse(JSON.stringify(rest.jointLoans)) : undefined,
     jointLoanRefinancingVotes: rest.jointLoanRefinancingVotes ? JSON.parse(JSON.stringify(rest.jointLoanRefinancingVotes)) : undefined,
     jointLoanCollateralSubstitutionVotes: rest.jointLoanCollateralSubstitutionVotes ? JSON.parse(JSON.stringify(rest.jointLoanCollateralSubstitutionVotes)) : undefined,
+    jointLoanDebtSettlementVotes: rest.jointLoanDebtSettlementVotes ? JSON.parse(JSON.stringify(rest.jointLoanDebtSettlementVotes)) : undefined,
     creditRecoveries: rest.creditRecoveries ? JSON.parse(JSON.stringify(rest.creditRecoveries)) : undefined,
   };
   return clone;
@@ -2924,5 +2932,165 @@ export function reconcileJointLoanCollateralSubstitutions(state: GameState, pack
 
   return newState;
 }
+
+export function reconcileJointLoanDebtSettlements(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    jointLoans: state.jointLoans ? { ...state.jointLoans } : {},
+    defaultAlerts: state.defaultAlerts ? { ...state.defaultAlerts } : {},
+    creditRatings: state.creditRatings ? { ...state.creditRatings } : {},
+    vars: state.vars ? { ...state.vars } : {},
+  };
+
+  if (!newState.jointLoanDebtSettlementVotes) {
+    newState.jointLoanDebtSettlementVotes = {};
+  }
+
+  const updatedJointLoans = { ...newState.jointLoans };
+  let loansChanged = false;
+
+  for (const [groupId, votes] of Object.entries(newState.jointLoanDebtSettlementVotes)) {
+    const jointLoan = updatedJointLoans[groupId];
+    if (!jointLoan) continue;
+
+    const syndicate = newState.syndicates[jointLoan.syndicateId];
+    if (!syndicate) continue;
+
+    // Count votes for each proposed settlementAmount
+    const combinationCounts: Record<number, { settlementAmount: number; groupVotes: Set<string>; bankVotes: Set<string> }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      const amt = vote.settlementAmount;
+      if (!combinationCounts[amt]) {
+        combinationCounts[amt] = {
+          settlementAmount: amt,
+          groupVotes: new Set<string>(),
+          bankVotes: new Set<string>(),
+        };
+      }
+
+      // If voter is in group, count as group vote
+      if (jointLoan.members.includes(voterId)) {
+        combinationCounts[amt].groupVotes.add(voterId);
+      }
+
+      // If voter is in syndicate, count as bank vote
+      if (syndicate.members.includes(voterId)) {
+        combinationCounts[amt].bankVotes.add(voterId);
+      }
+    }
+
+    // Check if any combination has a majority of group members AND syndicate bank members
+    const groupMajorityThreshold = jointLoan.members.length / 2;
+    const bankMajorityThreshold = syndicate.members.length / 2;
+
+    let fullyApprovedAmount: number | undefined;
+    let maxTimestamp = state.step;
+
+    // Sort descending to prefer higher settlement amount (more favorable to the bank) on tie, though strict majority should be unique
+    const uniqueAmounts = Object.keys(combinationCounts).map(Number).sort((a, b) => b - a);
+
+    for (const amt of uniqueAmounts) {
+      const combo = combinationCounts[amt];
+      if (combo.groupVotes.size > groupMajorityThreshold && combo.bankVotes.size > bankMajorityThreshold) {
+        const votersForCombo = [...combo.groupVotes, ...combo.bankVotes];
+        const timestamps = votersForCombo.map(vid => votes[vid]?.timestamp ?? 0);
+        maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : state.step;
+        fullyApprovedAmount = amt;
+        break; 
+      }
+    }
+
+    if (fullyApprovedAmount !== undefined) {
+      // Consensus reached! Now check if all group members can afford their pro-rata share.
+      // Proportional liability distribution (based on collateral value)
+      let totalCollateralValue = 0;
+      const collateralValues: Record<string, number> = {};
+      for (const col of jointLoan.collaterals) {
+        const val = getCollateralValue(newState, col.collateralType, col.collateralId);
+        collateralValues[`${col.agentId}_${col.collateralId}`] = val;
+        totalCollateralValue += val;
+      }
+
+      const members = jointLoan.members;
+      const proportions: Record<string, number> = {};
+      for (const agentId of members) {
+        let agentCollateralValue = 0;
+        for (const col of jointLoan.collaterals) {
+          if (col.agentId === agentId) {
+            agentCollateralValue += collateralValues[`${col.agentId}_${col.collateralId}`] ?? 0;
+          }
+        }
+        proportions[agentId] = totalCollateralValue > 0 ? (agentCollateralValue / totalCollateralValue) : (1 / members.length);
+      }
+
+      // Distribute total settlement amount pro-rata
+      const dueShares: Record<string, number> = {};
+      let distributedSum = 0;
+      for (let i = 0; i < members.length; i++) {
+        const agentId = members[i];
+        if (i === members.length - 1) {
+          dueShares[agentId] = fullyApprovedAmount - distributedSum;
+        } else {
+          const share = Math.floor(fullyApprovedAmount * proportions[agentId]);
+          dueShares[agentId] = share;
+          distributedSum += share;
+        }
+      }
+
+      // Check if ALL members have enough gold
+      let allCanAfford = true;
+      for (const agentId of members) {
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = newState.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        if (currentGold < dueShares[agentId]) {
+          allCanAfford = false;
+          break;
+        }
+      }
+
+      if (allCanAfford) {
+        // Deduct gold from all members
+        for (const agentId of members) {
+          const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+          const currentGold = newState.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+          newState.vars[goldKey] = currentGold - dueShares[agentId];
+        }
+
+        // Delete the joint loan
+        delete updatedJointLoans[groupId];
+        loansChanged = true;
+
+        // Clear default alerts for all members of the group
+        for (const agentId of members) {
+          const alertKey = `${agentId}_${jointLoan.syndicateId}`;
+          delete newState.defaultAlerts[alertKey];
+        }
+
+        // Increase credit rating for ALL members by +15
+        for (const agentId of members) {
+          const currentRating = newState.creditRatings[agentId] ?? 100;
+          newState.creditRatings[agentId] = Math.min(200, currentRating + 15);
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Syndicate Bank] Joint debt settlement agreed and paid for group ${groupId} in syndicate ${jointLoan.syndicateId} bank. Paid total ${fullyApprovedAmount} gold. Pledged collaterals [${jointLoan.collaterals.map(c => c.collateralId).join(", ")}] are released/unlocked.`
+        );
+
+        // Clear the settlement votes for this group so they don't apply again
+        delete newState.jointLoanDebtSettlementVotes[groupId];
+      }
+    }
+  }
+
+  if (loansChanged) {
+    newState.jointLoans = updatedJointLoans;
+  }
+
+  return newState;
+}
+
 
 

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #94 (Ready for Cycle #95)
-* **Build/Test Status**: 🟢 PASS (All 432 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #95 (Ready for Cycle #96)
+* **Build/Test Status**: 🟢 PASS (All 434 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -548,15 +548,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Integrate with Gossip LWW merging and convergence (`AF-94`).
 - [x] Write comprehensive integration tests asserting validations, consensus voting, and Gossip mesh convergence (`AF-94`).
 
+### Phase 95: Syndicate Bank Joint-Liability Loan Debt Settlement Proposals (Completed)
+- [x] Define schemas for joint-liability loan group debt settlement proposals (`jointLoanDebtSettlementVotes` in GameState) (`AF-95`).
+- [x] Implement `PROPOSE_JOINT_DEBT_SETTLEMENT` action reducer and joint/bank double-majority voting consensus (`AF-95`).
+- [x] Integrate with Gossip LWW merging and convergence (`AF-95`).
+- [x] Write comprehensive integration and convergence tests (`AF-95`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-95`
-* **Objective**: Syndicate Bank Joint-Liability Loan Debt Settlement Proposals.
-* **Why this matters**: Support settling outstanding joint-liability loan group debt under distress by allowing members to propose a pro-rata debt settlement (`PROPOSE_JOINT_DEBT_SETTLEMENT`), requiring both a joint group majority and a bank majority approval consensus to release all group pledged safehouses and outposts.
+**Task ID**: `AF-96`
+* **Objective**: Syndicate Bank Joint-Liability Loan Collateral Swap Proposals.
+* **Why this matters**: Support swapping pledged collateral under distress for active joint-liability loans by allowing group members to propose replacing a pledged safehouse or outpost with another of equal or greater value (`SWAP_JOINT_COLLATERAL`), requiring both a joint group majority and a bank majority approval consensus to execute the asset swap.
 * **Planned Actions**:
-  1. Define schemas for joint-liability loan group debt settlement proposals.
-  2. Implement `PROPOSE_JOINT_DEBT_SETTLEMENT` action reducer and joint/bank double-majority voting consensus.
+  1. Define schemas for joint-liability loan group collateral swap proposals.
+  2. Implement `SWAP_JOINT_COLLATERAL` action reducer and joint/bank double-majority voting consensus.
   3. Integrate with Gossip sync and state reconciliation.
   4. Write rigorous integration and convergence tests.
 

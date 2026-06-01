@@ -972,5 +972,184 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     expect(merged.jointLoanCollateralSubstitutionVotes?.jgroup1?.player.timestamp).toBe(1050);
     expect(merged.jointLoanCollateralSubstitutionVotes?.jgroup1?.player.removeCollateral.collateralId).toBe("sh1");
   });
+
+  it("should handle decentralized PROPOSE_JOINT_DEBT_SETTLEMENT, require double-majority, calculate pro-rata shares, deduct gold, restore credit ratings, and clear default alerts upon consensus execution", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 200, gold_alice: 200 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "sh1",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 500
+      },
+    };
+
+    state.turfGuardOutposts = {
+      clearing: {
+        roomId: "clearing",
+        syndicateId: "blood_fangs",
+        securityLevel: 2,
+        turrets: {},
+        timestamp: 1000, // value 300
+      },
+    };
+
+    state.jointLoans = {
+      jgroup1: {
+        id: "jgroup1",
+        syndicateId: "blood_fangs",
+        members: ["player", "alice"],
+        collaterals: [
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" }, // 500 value
+          { agentId: "alice", collateralType: "outpost", collateralId: "clearing" } // 300 value
+        ],
+        amount: 500,
+        interestAccrued: 100,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000
+      }
+    };
+
+    state.creditRatings = {
+      player: 100,
+      alice: 100
+    };
+
+    state.defaultAlerts = {
+      player_blood_fangs: { agentId: "player", syndicateId: "blood_fangs", defaultStep: 10, timestamp: 1010 },
+      alice_blood_fangs: { agentId: "alice", syndicateId: "blood_fangs", defaultStep: 10, timestamp: 1010 }
+    };
+
+    // 1. Group member 'player' proposes debt settlement of 240 gold (total for group)
+    // Proportions: Player = 500/800 = 62.5%. Alice = 300/800 = 37.5%.
+    // Player share: floor(240 * 0.625) = 150 gold.
+    // Alice share: remainder = 90 gold.
+    const action1 = {
+      type: "PROPOSE_JOINT_DEBT_SETTLEMENT",
+      groupId: "jgroup1",
+      settlementAmount: 240,
+      timestamp: 1020
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
+    expect(res1.ok).toBe(true);
+    // Loan shouldn't be settled yet (no double-majority consensus)
+    expect(res1.state.jointLoans?.jgroup1).toBeDefined();
+    expect(res1.state.jointLoanDebtSettlementVotes?.jgroup1?.player).toBeDefined();
+
+    // 2. Syndicate bank member 'bob' votes for 240 gold
+    const action2 = {
+      type: "PROPOSE_JOINT_DEBT_SETTLEMENT",
+      groupId: "jgroup1",
+      settlementAmount: 240,
+      timestamp: 1025
+    };
+
+    let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
+    expect(res2.ok).toBe(true);
+    expect(res2.state.jointLoans?.jgroup1).toBeDefined(); // still not enough group votes
+
+    // 3. Group member 'alice' votes for 240 gold
+    // Group votes for 240: player, alice (2/2 = majority > 1) -> approved!
+    // Bank votes for 240: player, bob, alice (3/3 = majority > 1.5) -> approved!
+    // All members have enough gold: player has 200 >= 150, alice has 200 >= 90.
+    // Settle!
+    const action3 = {
+      type: "PROPOSE_JOINT_DEBT_SETTLEMENT",
+      groupId: "jgroup1",
+      settlementAmount: 240,
+      timestamp: 1030
+    };
+
+    let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
+    expect(res3.ok).toBe(true);
+
+    // Loan must be dissolved/deleted
+    expect(res3.state.jointLoans?.jgroup1).toBeUndefined();
+
+    // Gold deducted pro-rata
+    expect(res3.state.vars.gold).toBe(50); // 200 - 150 = 50
+    expect(res3.state.vars.gold_alice).toBe(110); // 200 - 90 = 110
+
+    // Credit rating increased by +15
+    expect(res3.state.creditRatings?.player).toBe(115);
+    expect(res3.state.creditRatings?.alice).toBe(115);
+
+    // Default alerts cleared
+    expect(res3.state.defaultAlerts?.player_blood_fangs).toBeUndefined();
+    expect(res3.state.defaultAlerts?.alice_blood_fangs).toBeUndefined();
+
+    // Votes cleared
+    expect(res3.state.jointLoanDebtSettlementVotes?.jgroup1).toBeUndefined();
+  });
+
+  it("should merge jointLoanDebtSettlementVotes and reconcile terms across Gossip synchronization", () => {
+    let stateA = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateA.jointLoanDebtSettlementVotes = {
+      jgroup1: {
+        player: {
+          settlementAmount: 240,
+          timestamp: 1050,
+        }
+      }
+    };
+
+    let stateB = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateB.jointLoanDebtSettlementVotes = {
+      jgroup1: {
+        player: {
+          settlementAmount: 180,
+          timestamp: 1020, // older
+        }
+      }
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.jointLoanDebtSettlementVotes?.jgroup1?.player.timestamp).toBe(1050);
+    expect(merged.jointLoanDebtSettlementVotes?.jgroup1?.player.settlementAmount).toBe(240);
+  });
 });
 

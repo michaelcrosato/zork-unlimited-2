@@ -120,7 +120,8 @@ export type Action =
   | { type: "PAYBACK_JOINT_LOAN"; groupId: string; amount: number; timestamp: number }
   | { type: "PROPOSE_JOINT_REFINANCING"; groupId: string; newDueStep: number; newInterestRate: number; timestamp: number }
   | { type: "PROPOSE_COLLATERAL_SUBSTITUTION"; groupId: string; removeCollateral: { agentId: string; collateralType: "safehouse" | "outpost"; collateralId: string }; addCollateral?: { agentId: string; collateralType: "safehouse" | "outpost"; collateralId: string }; timestamp: number }
-  | { type: "SWAP_INDIVIDUAL_COLLATERAL"; syndicateId: string; targetAgentId: string; removeCollateralType: "safehouse" | "outpost"; removeCollateralId: string; addCollateralType: "safehouse" | "outpost"; addCollateralId: string; timestamp: number };
+  | { type: "SWAP_INDIVIDUAL_COLLATERAL"; syndicateId: string; targetAgentId: string; removeCollateralType: "safehouse" | "outpost"; removeCollateralId: string; addCollateralType: "safehouse" | "outpost"; addCollateralId: string; timestamp: number }
+  | { type: "PROPOSE_JOINT_DEBT_SETTLEMENT"; groupId: string; settlementAmount: number; timestamp: number };
 
 
 
