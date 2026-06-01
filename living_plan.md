@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #158 (Ready for Cycle #159)
-* **Build/Test Status**: 🟢 PASS (All 636 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #159 (Ready for Cycle #160)
+* **Build/Test Status**: 🟢 PASS (All 639 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -963,16 +963,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire automated hedging reallocations to economy ticks before liquidation audits occur (`AF-158`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-158`).
 
+### Phase 137: Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Spot Rate Arbitrage Execution (Completed)
+- [x] Define dynamic delta-hedging metrics, tracking thresholds, and state variables in GameState (`AF-159`).
+- [x] Implement decentralized voting on delta-hedging targets and rebalancing price tolerances (`AF-159`).
+- [x] Wire automated delta-hedging yield token rebalancing transactions and spot rate arbitrage profits to economy ticks (`AF-159`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-159`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-159`
-* **Objective**: Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Spot Rate Arbitrage Execution.
-* **Why this matters**: Support automatic spot rate arbitrage execution and delta-hedging rebalancing by purchasing or selling underlying CDO tranche yield tokens directly from the pool when option price deltas move beyond acceptable volatility thresholds.
+**Task ID**: `AF-160`
+* **Objective**: Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta Hedging & Capital Reallocation Optimization.
+* **Why this matters**: Further optimize the dynamic delta-hedging algorithms to be stress-test-aware, dynamically allocating and shifting safety capital/reserves from secondary vaults or capital insurance pools based on options delta portfolio volatility stress.
 * **Planned Actions**:
-  1. Define dynamic delta-hedging metrics, tracking thresholds, and state variables in GameState.
-  2. Implement decentralized voting on delta-hedging targets and rebalancing price tolerances.
-  3. Wire automated delta-hedging yield token rebalancing transactions to economy ticks.
+  1. Define stress-test-aware delta-hedging targets and safety reserve reallocation metrics in GameState.
+  2. Implement decentralized consensus voting to configure safety capital reallocation thresholds.
+  3. Wire automated stress-test-aware delta hedging and capital reallocations into economy ticks.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---

@@ -9,7 +9,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -33704,6 +33704,127 @@ export function multiAgentStep(
 
       customEvents.push({
         type: "adjust_swf_reinsurance_option_hedging_voted" as any,
+        syndicateId,
+        agentId,
+        swfYieldCdoId,
+        trancheId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle ADJUST_SWF_REINSURANCE_OPTION_DELTA_HEDGING action (AF-159)
+  if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_DELTA_HEDGING") {
+    const { syndicateId, swfYieldCdoId, trancheId, targetDelta, rebalancingPriceTolerance, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (targetDelta === undefined || targetDelta < 0) {
+      rejectionReason = `Target delta must be non-negative.`;
+    } else if (rebalancingPriceTolerance === undefined || rebalancingPriceTolerance < 0) {
+      rejectionReason = `Rebalancing price tolerance must be non-negative.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const adjustSWFReinsuranceOptionDeltaHedgingVotes = { ...(state.adjustSWFReinsuranceOptionDeltaHedgingVotes || {}) };
+      if (!adjustSWFReinsuranceOptionDeltaHedgingVotes[syndicateId]) {
+        adjustSWFReinsuranceOptionDeltaHedgingVotes[syndicateId] = {};
+      }
+      adjustSWFReinsuranceOptionDeltaHedgingVotes[syndicateId][agentId] = {
+        swfYieldCdoId,
+        trancheId,
+        targetDelta,
+        rebalancingPriceTolerance,
+        timestamp,
+      };
+      newState.adjustSWFReinsuranceOptionDeltaHedgingVotes = adjustSWFReinsuranceOptionDeltaHedgingVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFReinsuranceOptionDeltaHedging(newState, pack);
+
+      const policyKey = `${swfYieldCdoId}_${trancheId}`;
+      const isConsensusReached = newState.swfReinsuranceOptionDeltaHedgingPolicies?.[policyKey]?.timestamp === Math.max(timestamp, newState.step);
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Option Delta Hedging Vote] Agent ${agentId} voted to adjust delta hedging policy for CDO ${swfYieldCdoId} tranche ${trancheId} to Target Delta: ${targetDelta.toFixed(2)}, Rebalancing Price Tolerance: ${rebalancingPriceTolerance.toFixed(4)} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance Option delta hedging policy vote cast by ${agentId} for Syndicate ${syndicateId} (CDO: ${swfYieldCdoId}, Tranche: ${trancheId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "adjust_swf_reinsurance_option_delta_hedging_voted" as any,
         syndicateId,
         agentId,
         swfYieldCdoId,

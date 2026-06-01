@@ -4922,6 +4922,95 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
+      // Dynamic Delta Hedging & Automated Spot Rate Arbitrage Execution (AF-159)
+      if (newState.swfReinsuranceOptionsContracts) {
+        for (const [optId, opt] of Object.entries(newState.swfReinsuranceOptionsContracts)) {
+          if (opt.active && opt.writerSyndicateId === syndicateId) {
+            const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
+            const deltaPolicy = newState.swfReinsuranceOptionDeltaHedgingPolicies?.[policyKey];
+
+            if (deltaPolicy) {
+              const spotRate = getCDOTrancheReinsurancePremiumRate(newState, opt.swfYieldCdoId, opt.trancheId);
+              let delta = 0.5;
+              if (opt.optionType === "call") {
+                delta = 1.0 / (1.0 + Math.exp(-(spotRate - opt.strikePremiumRate) * 50.0));
+              } else {
+                delta = 1.0 / (1.0 + Math.exp(-(opt.strikePremiumRate - spotRate) * 50.0));
+              }
+
+              const targetDelta = deltaPolicy.targetDelta;
+              const tolerance = deltaPolicy.rebalancingPriceTolerance;
+              const targetHolding = Math.floor(delta * opt.size);
+              const cdo = newState.swfYieldCDOs?.[opt.swfYieldCdoId];
+              const tranche = cdo?.tranches?.[opt.trancheId];
+              const currentHolding = tranche?.ownership?.[syndicateId] ?? 0;
+              const difference = targetHolding - currentHolding;
+              const sharePrice = Math.max(10, Math.floor(100.0 * (1.0 + spotRate)));
+              const cost = difference * sharePrice;
+
+              if (Math.abs(delta - targetDelta) > tolerance) {
+                const targetHolding = Math.floor(delta * opt.size);
+                
+                // Ensure swfYieldCDOs exists and retrieve tranche
+                if (newState.swfYieldCDOs && newState.swfYieldCDOs[opt.swfYieldCdoId]) {
+                  const cdo = newState.swfYieldCDOs[opt.swfYieldCdoId];
+                  const tranche = cdo.tranches[opt.trancheId];
+                  
+                  if (tranche) {
+                    const currentHolding = tranche.ownership[syndicateId] ?? 0;
+                    const difference = targetHolding - currentHolding;
+                    const sharePrice = Math.max(10, Math.floor(100.0 * (1.0 + spotRate)));
+
+                    if (difference > 0) {
+                      // Buy deficit
+                      const cost = difference * sharePrice;
+                      const syndicate = newState.syndicates?.[syndicateId];
+                      if (syndicate && (syndicate.warChest ?? 0) >= cost) {
+                        syndicate.warChest = (syndicate.warChest ?? 0) - cost;
+                        tranche.ownership[syndicateId] = currentHolding + difference;
+                        
+                        // Execute spot rate arbitrage profit
+                        const arbitrageProfit = Math.floor(Math.abs(spotRate - opt.strikePremiumRate) * difference * 5);
+                        if (arbitrageProfit > 0) {
+                          syndicate.warChest = (syndicate.warChest ?? 0) + arbitrageProfit;
+                        }
+
+                        if (!newState.journal) newState.journal = [];
+                        newState.journal.push(
+                          `[Delta Hedging Rebalancing] Syndicate ${syndicateId} purchased ${difference} underlying CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId} yield tokens at ${sharePrice} gold/share to hedge option ${optId} (Current Delta: ${delta.toFixed(2)} vs Target: ${targetDelta.toFixed(2)}). Arbitrage Profit: ${arbitrageProfit} gold.`
+                        );
+                      }
+                    } else if (difference < 0) {
+                      // Sell surplus
+                      const sharesToSell = Math.min(-difference, currentHolding);
+                      if (sharesToSell > 0) {
+                        const revenue = sharesToSell * sharePrice;
+                        const syndicate = newState.syndicates?.[syndicateId];
+                        if (syndicate) {
+                          syndicate.warChest = (syndicate.warChest ?? 0) + revenue;
+                          tranche.ownership[syndicateId] = currentHolding - sharesToSell;
+
+                          // Execute spot rate arbitrage profit
+                          const arbitrageProfit = Math.floor(Math.abs(spotRate - opt.strikePremiumRate) * sharesToSell * 5);
+                          if (arbitrageProfit > 0) {
+                            syndicate.warChest = (syndicate.warChest ?? 0) + arbitrageProfit;
+                          }
+
+                          if (!newState.journal) newState.journal = [];
+                          newState.journal.push(
+                            `[Delta Hedging Rebalancing] Syndicate ${syndicateId} sold ${sharesToSell} underlying CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId} yield tokens at ${sharePrice} gold/share to hedge option ${optId} (Current Delta: ${delta.toFixed(2)} vs Target: ${targetDelta.toFixed(2)}). Arbitrage Profit: ${arbitrageProfit} gold.`
+                          );
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
       // Automated liquidation insurance payback (AF-143)
       if (netEquity < maintenanceRequirement && newState.marginLiquidationInsurancePolicies?.[syndicateId]) {
         const policy = newState.marginLiquidationInsurancePolicies[syndicateId];
