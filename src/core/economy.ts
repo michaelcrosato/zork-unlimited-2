@@ -7248,6 +7248,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
     cdsCdoFeeExemptions: state.cdsCdoFeeExemptions ? { ...state.cdsCdoFeeExemptions } : {},
     cdsCdoCoinvestmentProposals: state.cdsCdoCoinvestmentProposals ? JSON.parse(JSON.stringify(state.cdsCdoCoinvestmentProposals)) : {},
     cdsCdoPartialFeeWaivers: state.cdsCdoPartialFeeWaivers ? { ...state.cdsCdoPartialFeeWaivers } : {},
+    cdsCdoCoinvestmentYieldPayouts: state.cdsCdoCoinvestmentYieldPayouts ? { ...state.cdsCdoCoinvestmentYieldPayouts } : {},
     journal: state.journal ? [...state.journal] : [],
   };
 
@@ -7840,7 +7841,49 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
         if (totalDefaults < equityTranche.autocallTriggerLevel && !equityTranche.autocallPaid[syndicateId]) {
           const trancheTotal = equityTranche.totalValue || 1;
-          const payout = Math.floor(equityTranche.autocallCoupon * (shares / trancheTotal));
+          const initialPayout = Math.floor(equityTranche.autocallCoupon * (shares / trancheTotal));
+          let payout = initialPayout;
+
+          // Check if co-investment yield distribution is active for this CDO pool
+          const coinvestProposal = Object.values(newState.cdsCdoCoinvestmentProposals || {}).find(
+            (p: any) => p.cdoId === cdoId && p.status === "executed"
+          ) as any;
+          if (coinvestProposal && coinvestProposal.yieldCompensationShare && coinvestProposal.yieldCompensationShare > 0) {
+            const yieldCompensationShare = coinvestProposal.yieldCompensationShare;
+            const contributions = coinvestProposal.contributions || {};
+            const locked = coinvestProposal.lockedContributions || {};
+            const lockedSyndicates = Object.keys(locked).filter(sId => locked[sId] === true);
+            const totalLocked = lockedSyndicates.reduce((sum, sId) => sum + (contributions[sId] ?? 0), 0);
+
+            if (totalLocked > 0) {
+              const divertedTotal = Math.floor(initialPayout * (yieldCompensationShare / 100));
+              payout = initialPayout - divertedTotal;
+
+              coinvestProposal.historicalYieldPayouts = coinvestProposal.historicalYieldPayouts || {};
+              newState.cdsCdoCoinvestmentYieldPayouts = newState.cdsCdoCoinvestmentYieldPayouts || {};
+
+              for (const sId of lockedSyndicates) {
+                const contribution = contributions[sId] ?? 0;
+                const ratio = contribution / totalLocked;
+                const divertedAmount = Math.floor(divertedTotal * ratio);
+
+                if (divertedAmount > 0) {
+                  const coSynd = newState.syndicates[sId];
+                  if (coSynd) {
+                    coSynd.warChest = (coSynd.warChest ?? 0) + divertedAmount;
+                  }
+                  coinvestProposal.historicalYieldPayouts[sId] = (coinvestProposal.historicalYieldPayouts[sId] ?? 0) + divertedAmount;
+                  const globalKey = `${coinvestProposal.proposalId}_${sId}`;
+                  newState.cdsCdoCoinvestmentYieldPayouts[globalKey] = (newState.cdsCdoCoinvestmentYieldPayouts[globalKey] ?? 0) + divertedAmount;
+
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[CDS CDO Co-Investment Yield Payout] Syndicate ${sId} received ${divertedAmount} gold (pro-rata co-investment yield compensation) from CDO ${cdoId} tranche equity autocall.`
+                  );
+                }
+              }
+            }
+          }
 
           // Check if there is an approved cross-tranche hedging policy for this syndicate in this CDO
           const hedgingConfig = Object.values(newState.cdsCdoCrossTrancheHedging || {}).find(
@@ -8089,8 +8132,50 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
             if (totalDefaults < tranche.autocallTriggerLevel && !tranche.autocallPaid[syndicateId]) {
               const trancheTotal = tranche.totalValue || 1;
-              const payout = Math.floor(tranche.autocallCoupon * (shares / trancheTotal));
-              
+              const initialPayout = Math.floor(tranche.autocallCoupon * (shares / trancheTotal));
+              let payout = initialPayout;
+
+              // Check if co-investment yield distribution is active for this CDO pool
+              const coinvestProposal = Object.values(newState.cdsCdoCoinvestmentProposals || {}).find(
+                (p: any) => p.cdoId === cdoId && p.status === "executed"
+              ) as any;
+              if (coinvestProposal && coinvestProposal.yieldCompensationShare && coinvestProposal.yieldCompensationShare > 0) {
+                const yieldCompensationShare = coinvestProposal.yieldCompensationShare;
+                const contributions = coinvestProposal.contributions || {};
+                const locked = coinvestProposal.lockedContributions || {};
+                const lockedSyndicates = Object.keys(locked).filter(sId => locked[sId] === true);
+                const totalLocked = lockedSyndicates.reduce((sum, sId) => sum + (contributions[sId] ?? 0), 0);
+
+                if (totalLocked > 0) {
+                  const divertedTotal = Math.floor(initialPayout * (yieldCompensationShare / 100));
+                  payout = initialPayout - divertedTotal;
+
+                  coinvestProposal.historicalYieldPayouts = coinvestProposal.historicalYieldPayouts || {};
+                  newState.cdsCdoCoinvestmentYieldPayouts = newState.cdsCdoCoinvestmentYieldPayouts || {};
+
+                  for (const sId of lockedSyndicates) {
+                    const contribution = contributions[sId] ?? 0;
+                    const ratio = contribution / totalLocked;
+                    const divertedAmount = Math.floor(divertedTotal * ratio);
+
+                    if (divertedAmount > 0) {
+                      const coSynd = newState.syndicates[sId];
+                      if (coSynd) {
+                        coSynd.warChest = (coSynd.warChest ?? 0) + divertedAmount;
+                      }
+                      coinvestProposal.historicalYieldPayouts[sId] = (coinvestProposal.historicalYieldPayouts[sId] ?? 0) + divertedAmount;
+                      const globalKey = `${coinvestProposal.proposalId}_${sId}`;
+                      newState.cdsCdoCoinvestmentYieldPayouts[globalKey] = (newState.cdsCdoCoinvestmentYieldPayouts[globalKey] ?? 0) + divertedAmount;
+
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[CDS CDO Co-Investment Yield Payout] Syndicate ${sId} received ${divertedAmount} gold (pro-rata co-investment yield compensation) from CDO ${cdoId} tranche ${trancheId} autocall.`
+                      );
+                    }
+                  }
+                }
+              }
+
               synd.warChest = (synd.warChest ?? 0) + payout;
               tranche.autocallPaid[syndicateId] = true;
 

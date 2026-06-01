@@ -268,7 +268,8 @@ export type Action =
   | { type: "LIQUIDITY_INJECTION_PROPOSAL"; proposalId: string; cdoId: string; syndicateId: string; amount: number; timestamp: number }
   | { type: "PROPOSE_CDO_COINVESTMENT"; proposalId: string; cdoId: string; creatorSyndicateId: string; targetAmount: number; timestamp: number }
   | { type: "JOIN_CDO_COINVESTMENT"; proposalId: string; syndicateId: string; amount: number; timestamp: number }
-  | { type: "LOCK_CDO_COINVESTMENT"; proposalId: string; syndicateId: string; timestamp: number };
+  | { type: "LOCK_CDO_COINVESTMENT"; proposalId: string; syndicateId: string; timestamp: number }
+  | { type: "PROPOSE_CDO_COINVESTMENT_YIELD_SHARE"; proposalId: string; cdoId: string; syndicateId: string; yieldCompensationShare: number; timestamp: number };
 
 
 

@@ -3245,8 +3245,24 @@ export const SovereignDebtCDSCDOCoinvestmentProposalSchema = z.object({
   })).optional(),
   contributions: z.record(z.string(), z.number().int().nonnegative()),
   lockedContributions: z.record(z.string(), z.boolean()).optional(),
+  yieldCompensationShare: z.number().int().min(0).max(100).optional(),
+  historicalYieldPayouts: z.record(z.string(), z.number().int().nonnegative()).optional(),
 });
 export type SovereignDebtCDSCDOCoinvestmentProposal = z.infer<typeof SovereignDebtCDSCDOCoinvestmentProposalSchema>;
+
+export const SovereignDebtCDSCDOCoinvestmentYieldShareProposalSchema = z.object({
+  proposalId: z.string(),
+  cdoId: z.string(),
+  syndicateId: z.string(),
+  yieldCompensationShare: z.number().int().min(0).max(100),
+  status: z.enum(["proposed", "approved", "rejected", "executed"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOCoinvestmentYieldShareProposal = z.infer<typeof SovereignDebtCDSCDOCoinvestmentYieldShareProposalSchema>;
 
 
 
@@ -4248,6 +4264,8 @@ export const GameStateSchema = z.object({
   cdsCdoFeeExemptions: z.record(z.string(), z.boolean()).optional(),
   cdsCdoCoinvestmentProposals: z.record(z.string(), SovereignDebtCDSCDOCoinvestmentProposalSchema).optional(),
   cdsCdoPartialFeeWaivers: z.record(z.string(), z.number()).optional(),
+  cdsCdoCoinvestmentYieldShareProposals: z.record(z.string(), SovereignDebtCDSCDOCoinvestmentYieldShareProposalSchema).optional(),
+  cdsCdoCoinvestmentYieldPayouts: z.record(z.string(), z.number().int().nonnegative()).optional(),
 
 
 
@@ -4715,6 +4733,8 @@ export const createInitialState = (options: {
     cdsCdoFeeExemptions: {},
     cdsCdoCoinvestmentProposals: {},
     cdsCdoPartialFeeWaivers: {},
+    cdsCdoCoinvestmentYieldShareProposals: {},
+    cdsCdoCoinvestmentYieldPayouts: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5908,6 +5928,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoFeeExemptions: rest.cdsCdoFeeExemptions ? JSON.parse(JSON.stringify(rest.cdsCdoFeeExemptions)) : undefined,
     cdsCdoCoinvestmentProposals: rest.cdsCdoCoinvestmentProposals ? JSON.parse(JSON.stringify(rest.cdsCdoCoinvestmentProposals)) : undefined,
     cdsCdoPartialFeeWaivers: rest.cdsCdoPartialFeeWaivers ? JSON.parse(JSON.stringify(rest.cdsCdoPartialFeeWaivers)) : undefined,
+    cdsCdoCoinvestmentYieldShareProposals: rest.cdsCdoCoinvestmentYieldShareProposals ? JSON.parse(JSON.stringify(rest.cdsCdoCoinvestmentYieldShareProposals)) : undefined,
+    cdsCdoCoinvestmentYieldPayouts: rest.cdsCdoCoinvestmentYieldPayouts ? JSON.parse(JSON.stringify(rest.cdsCdoCoinvestmentYieldPayouts)) : undefined,
 
   };
   return clone;
@@ -18159,6 +18181,8 @@ export function reconcileSovereignDebtCDSCDOAutocallTriggers(state: GameState, p
     syndicates: state.syndicates ? { ...state.syndicates } : {},
     cdsCdoAutocallTriggers: state.cdsCdoAutocallTriggers ? { ...state.cdsCdoAutocallTriggers } : {},
     sovereignDebtCDSContracts: state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {},
+    cdsCdoCoinvestmentProposals: state.cdsCdoCoinvestmentProposals ? JSON.parse(JSON.stringify(state.cdsCdoCoinvestmentProposals)) : {},
+    cdsCdoCoinvestmentYieldPayouts: state.cdsCdoCoinvestmentYieldPayouts ? { ...state.cdsCdoCoinvestmentYieldPayouts } : {},
   };
 
   if (newState.cdsCdoAutocallTriggers) {
@@ -18197,8 +18221,51 @@ export function reconcileSovereignDebtCDSCDOAutocallTriggers(state: GameState, p
               const trancheTotal = tranche.totalValue || 1;
               const payout = Math.floor(coupon * (shares / trancheTotal));
 
+              let finalPayout = payout;
+
+              // Check if co-investment yield distribution is active for this CDO pool
+              const coinvestProposal = Object.values(newState.cdsCdoCoinvestmentProposals || {}).find(
+                (p: any) => p.cdoId === trig.cdoId && p.status === "executed"
+              ) as any;
+              if (coinvestProposal && coinvestProposal.yieldCompensationShare && coinvestProposal.yieldCompensationShare > 0) {
+                const yieldCompensationShare = coinvestProposal.yieldCompensationShare;
+                const contributions = coinvestProposal.contributions || {};
+                const locked = coinvestProposal.lockedContributions || {};
+                const lockedSyndicates = Object.keys(locked).filter(sId => locked[sId] === true);
+                const totalLocked = lockedSyndicates.reduce((sum, sId) => sum + (contributions[sId] ?? 0), 0);
+
+                if (totalLocked > 0) {
+                  const divertedTotal = Math.floor(payout * (yieldCompensationShare / 100));
+                  finalPayout = payout - divertedTotal;
+
+                  coinvestProposal.historicalYieldPayouts = coinvestProposal.historicalYieldPayouts || {};
+                  newState.cdsCdoCoinvestmentYieldPayouts = newState.cdsCdoCoinvestmentYieldPayouts || {};
+
+                  for (const sId of lockedSyndicates) {
+                    const contribution = contributions[sId] ?? 0;
+                    const ratio = contribution / totalLocked;
+                    const divertedAmount = Math.floor(divertedTotal * ratio);
+
+                    if (divertedAmount > 0) {
+                      const coSynd = newState.syndicates[sId];
+                      if (coSynd) {
+                        coSynd.warChest = (coSynd.warChest ?? 0) + divertedAmount;
+                      }
+                      coinvestProposal.historicalYieldPayouts[sId] = (coinvestProposal.historicalYieldPayouts[sId] ?? 0) + divertedAmount;
+                      const globalKey = `${coinvestProposal.proposalId}_${sId}`;
+                      newState.cdsCdoCoinvestmentYieldPayouts[globalKey] = (newState.cdsCdoCoinvestmentYieldPayouts[globalKey] ?? 0) + divertedAmount;
+
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[CDS CDO Co-Investment Yield Payout] Syndicate ${sId} received ${divertedAmount} gold (pro-rata co-investment yield compensation) from CDO ${trig.cdoId} tranche ${trig.trancheId} autocall.`
+                      );
+                    }
+                  }
+                }
+              }
+
               // Pay coupon
-              syndicate.warChest = (syndicate.warChest ?? 0) + payout;
+              syndicate.warChest = (syndicate.warChest ?? 0) + finalPayout;
 
               // Update tranche
               const updatedTranche = {
@@ -18423,6 +18490,41 @@ export function reconcileCDSCDOCoinvestments(state: GameState, pack: any): GameS
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[CDO Co-investment Approved] Syndicate ${proposal.creatorSyndicateId} approved co-investment proposal ${proposalId} for CDO ${proposal.cdoId} with target ${proposal.targetAmount} gold.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCDSCDOCoinvestmentYieldShares(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cdsCdoCoinvestmentProposals: state.cdsCdoCoinvestmentProposals ? { ...state.cdsCdoCoinvestmentProposals } : {},
+    cdsCdoCoinvestmentYieldShareProposals: state.cdsCdoCoinvestmentYieldShareProposals ? { ...state.cdsCdoCoinvestmentYieldShareProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  if (newState.cdsCdoCoinvestmentYieldShareProposals) {
+    for (const [propId, prop] of Object.entries(newState.cdsCdoCoinvestmentYieldShareProposals)) {
+      if (prop.status !== "proposed") continue;
+      const syndicate = newState.syndicates[prop.syndicateId];
+      if (!syndicate) continue;
+      const votes = prop.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > syndicate.members.length / 2;
+      if (passed) {
+        prop.status = "approved";
+        const mainProposal = newState.cdsCdoCoinvestmentProposals[prop.proposalId];
+        if (mainProposal) {
+          mainProposal.yieldCompensationShare = prop.yieldCompensationShare;
+        }
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDO Co-investment Yield Share Approved] Syndicate ${prop.syndicateId} approved yield compensation share of ${prop.yieldCompensationShare}% for co-investment proposal ${prop.proposalId}.`
         );
       }
     }
