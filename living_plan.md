@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #254 (Ready for Cycle #255)
-* **Build/Test Status**: 🟢 PASS (All 851 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #255 (Ready for Cycle #256)
+* **Build/Test Status**: 🟢 PASS (All 852 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1640,15 +1640,20 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the cooldown check inside `tickEconomy` to terminate panic overrides when cancellation proposals are authorized (`AF-257`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-257`).
 
+### Phase 236: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period (Completed)
+- [x] Define surcharge panic override extension cancellation grace period proposal and voting schemas (`AF-258`).
+- [x] Wire the cooldown check in `tickEconomy` to process the remaining grace steps and apply a linear decay of the override restrictions (`AF-258`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-258`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-258`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period.
-* **Why this matters**: Introduce a customizable cancellation grace period, allowing syndicates to define a dynamic transition delay during which the panic override is still partially active or slowly decays before full termination.
+**Task ID**: `AF-259`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Enforcement.
+* **Why this matters**: Establish a minimum liquidity threshold enforcement mechanism that instantly terminates the cancellation grace period and panic override if the CDO fractionalized vault balance drops below the threshold under defaults stress.
 * **Planned Actions**:
-  1. Define surcharge panic override extension cancellation grace period proposal and voting schemas.
-  2. Wire the cooldown check in `tickEconomy` to process the remaining grace steps and apply a linear decay of the override restrictions.
+  1. Define surcharge panic override extension cancellation grace period minimum liquidity threshold proposal and voting schemas.
+  2. Wire the liquidity check in `tickEconomy` to instantly terminate the grace period and deactivate the panic override if the active pool's reserves drop below the authorized threshold.
   3. Write comprehensive Vitest unit and integration tests.
 
 ---
