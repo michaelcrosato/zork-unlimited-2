@@ -83,33 +83,33 @@ describe("CDS CDO Co-Investment Yield Compensation & Pro-Rata Distribution (AF-2
         tranches: {
           senior: {
             trancheId: "senior",
-            cdoId: "cdo_pool_1",
             totalValue: 3000,
             marginCollateral: { alpha: 3000 },
             sharesOwned: { alpha: 3000 },
             autocallTriggerLevel: 200,
             autocallCoupon: 1000,
             autocallPaid: {},
+            timestamp: 1000,
           },
           mezzanine: {
             trancheId: "mezzanine",
-            cdoId: "cdo_pool_1",
             totalValue: 1500,
             marginCollateral: { alpha: 1500 },
             sharesOwned: { alpha: 1500 },
             autocallTriggerLevel: 100,
             autocallCoupon: 500,
             autocallPaid: {},
+            timestamp: 1000,
           },
           equity: {
             trancheId: "equity",
-            cdoId: "cdo_pool_1",
             totalValue: 500,
             marginCollateral: { alpha: 500 },
             sharesOwned: { alpha: 500 },
             autocallTriggerLevel: 50,
             autocallCoupon: 200,
             autocallPaid: {},
+            timestamp: 1000,
           },
         },
         timestamp: 1000,
@@ -139,8 +139,8 @@ describe("CDS CDO Co-Investment Yield Compensation & Pro-Rata Distribution (AF-2
     };
 
     // Verify initial warChests
-    expect(state.syndicates.alpha.warChest).toBe(20000);
-    expect(state.syndicates.beta.warChest).toBe(20000);
+    expect(state.syndicates!.alpha.warChest).toBe(20000);
+    expect(state.syndicates!.beta.warChest).toBe(20000);
 
     // 1. Propose yield compensation share of 40% (needs voting by creator syndicate "alpha" members)
     let res = multiAgentStep(state, {
@@ -153,7 +153,7 @@ describe("CDS CDO Co-Investment Yield Compensation & Pro-Rata Distribution (AF-2
         yieldCompensationShare: 40,
         timestamp: 1100,
       },
-    });
+    }, mockPack);
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -173,7 +173,7 @@ describe("CDS CDO Co-Investment Yield Compensation & Pro-Rata Distribution (AF-2
         yieldCompensationShare: 40,
         timestamp: 1150,
       },
-    });
+    }, mockPack);
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -198,9 +198,9 @@ describe("CDS CDO Co-Investment Yield Compensation & Pro-Rata Distribution (AF-2
     const finalState = tickEconomy(state, mockPack);
 
     // Alpha warChest: 20000 + 840 (senior) + 420 (mezzanine) + 168 (equity) = 21428 gold
-    expect(finalState.syndicates.alpha.warChest).toBe(21428);
+    expect(finalState.syndicates!.alpha.warChest).toBe(21428);
     // Beta warChest: 20000 + 160 (senior) + 80 (mezzanine) + 32 (equity) = 20272 gold
-    expect(finalState.syndicates.beta.warChest).toBe(20272);
+    expect(finalState.syndicates!.beta.warChest).toBe(20272);
 
     // Verify historical yield payouts recorded in the proposal (total diverted: 240 + 120 + 48 = 408 for alpha, 160 + 80 + 32 = 272 for beta)
     const updatedCoinvest = finalState.cdsCdoCoinvestmentProposals?.coinvest_1;

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #234 (Ready for Cycle #235)
-* **Build/Test Status**: 🟢 PASS (All 812 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #235 (Ready for Cycle #236)
+* **Build/Test Status**: 🟢 PASS (All 813 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1525,16 +1525,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the economy tick to calculate and allocate proportional reputation increases and partial deflection fee waivers to all participating syndicates (`AF-237`).
 - [x] Write comprehensive Vitest integration tests (`AF-237`).
 
+### Phase 216: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Automated Yield Compensations (Completed)
+- [x] Define co-investment yield distribution rules and historical payout trackers in GameState (`AF-238`).
+- [x] Implement decentralized co-investment yield payout adjustments allowing consensus voting on the yield compensation share (`AF-238`).
+- [x] Wire the economy tick's autocallable yield payout flow to divert the configured percentage of coupon payouts to the locked co-investing syndicates (`AF-238`).
+- [x] Write comprehensive Vitest integration tests and resolve TypeScript compilation type safety issues (`AF-238`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-238`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Automated Yield Compensations.
-* **Why this matters**: Further incentivize multiple syndicates to participate in stressed CDO co-investment pools by dynamically distributing a share of future autocallable tranche coupon yields back to co-investing syndicates pro-rata to their locked contribution ratios.
+**Task ID**: `AF-239`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Automated Yield Reinvestment and Compound Boost.
+* **Why this matters**: Allow co-investing syndicates to compound their yields by configuring an optional automated reinvestment percentage. When coupon yields are paid out, the reinvested portion is dynamically added back to the syndicate's locked contribution in the CDO pool (increasing their share of future payouts) and added to the CDO fractionalized vault's balance, instead of being fully paid out to the war chest.
 * **Planned Actions**:
-  1. Define co-investment yield distribution rules and historical payout trackers in GameState.
-  2. Implement decentralized co-investment yield payout adjustments allowing consensus voting on the yield compensation share.
-  3. Wire the economy tick's autocallable yield payout flow to divert the configured percentage of coupon payouts to the locked co-investing syndicates.
+  1. Define co-investment yield reinvestment rules and reinvestment trackers in GameState.
+  2. Implement decentralized co-investment yield reinvestment adjustments allowing consensus voting on the yield reinvestment share.
+  3. Wire the economy tick's yield payout flow to divert the configured percentage of co-investor coupon payouts back into their locked contributions and increase the CDO fractionalized vault balance.
   4. Write comprehensive Vitest integration tests.
 
 ---
