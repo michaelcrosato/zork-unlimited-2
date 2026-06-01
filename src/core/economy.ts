@@ -724,6 +724,34 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
     const lowestSellPrice = sellOrders.length > 0 ? Math.min(...sellOrders.map((o) => o.limitPrice)) : 0;
     let bidAskSpread = (highestBuyPrice > 0 && lowestSellPrice > 0) ? Math.max(0, lowestSellPrice - highestBuyPrice) : 0;
 
+    let optionCdoId = "";
+    let trancheId = "";
+    if (key.includes("_")) {
+      const idx = key.lastIndexOf("_");
+      optionCdoId = key.substring(0, idx);
+      trancheId = key.substring(idx + 1);
+    }
+
+    // Apply consensual spread adjustment factor (AF-190)
+    let spreadAdjustmentFactor = 1.0;
+    if (newState.swfReinsuranceOptionSpreadAdjustmentProposals) {
+      for (const prop of Object.values(newState.swfReinsuranceOptionSpreadAdjustmentProposals)) {
+        if (prop.swfYieldCdoId === optionCdoId &&
+            prop.trancheId === trancheId &&
+            prop.status === "authorized") {
+          spreadAdjustmentFactor = prop.spreadAdjustmentFactor;
+          break;
+        }
+      }
+    }
+    if (spreadAdjustmentFactor !== 1.0 && bidAskSpread > 0) {
+      const originalSpread = bidAskSpread;
+      bidAskSpread = Math.round(bidAskSpread * spreadAdjustmentFactor);
+      newState.journal.push(
+        `[SWF Reinsurance Option Spread Adjustment Applied] Consensual spread adjustment factor ${spreadAdjustmentFactor} applied on ${key}. Adjusted bid-ask spread from ${originalSpread} to ${bidAskSpread} gold.`
+      );
+    }
+
     // Volatility Insurance spread stabilization (AF-172)
     const volPolicy = newState.swfReinsuranceOptionVolatilityInsurancePolicies?.[key];
     const volPool = newState.swfReinsuranceOptionVolatilityInsurancePools?.[key];

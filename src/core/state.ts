@@ -2280,6 +2280,25 @@ export const SWFReinsuranceOptionPenaltyRefundProposalSchema = z.object({
 });
 export type SWFReinsuranceOptionPenaltyRefundProposal = z.infer<typeof SWFReinsuranceOptionPenaltyRefundProposalSchema>;
 
+export const SWFReinsuranceOptionSpreadAdjustmentProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  spreadAdjustmentFactor: z.number().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionSpreadAdjustmentProposal = z.infer<typeof SWFReinsuranceOptionSpreadAdjustmentProposalSchema>;
+
+export const SWFReinsuranceOptionSpreadAdjustmentVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionSpreadAdjustmentVote = z.infer<typeof SWFReinsuranceOptionSpreadAdjustmentVoteSchema>;
+
 export const SWFReinsuranceOptionPenaltyRefundVoteSchema = z.object({
   proposalId: z.string(),
   vote: z.boolean(),
@@ -3205,6 +3224,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionPenaltyWaiverVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionPenaltyWaiverVoteSchema)).optional(),
   swfReinsuranceOptionPenaltyRefundProposals: z.record(z.string(), SWFReinsuranceOptionPenaltyRefundProposalSchema).optional(),
   swfReinsuranceOptionPenaltyRefundVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionPenaltyRefundVoteSchema)).optional(),
+  swfReinsuranceOptionSpreadAdjustmentProposals: z.record(z.string(), SWFReinsuranceOptionSpreadAdjustmentProposalSchema).optional(),
+  swfReinsuranceOptionSpreadAdjustmentVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionSpreadAdjustmentVoteSchema)).optional(),
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
   swfReinsuranceOptionVolatilityInsurancePolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePolicySchema).optional(),
   adjustSWFReinsuranceOptionVolatilityInsuranceVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityInsuranceVoteSchema)).optional(),
@@ -3562,6 +3583,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionPenaltyWaiverVotes: {},
     swfReinsuranceOptionPenaltyRefundProposals: {},
     swfReinsuranceOptionPenaltyRefundVotes: {},
+    swfReinsuranceOptionSpreadAdjustmentProposals: {},
+    swfReinsuranceOptionSpreadAdjustmentVotes: {},
     swfReinsuranceOptionPremiumContributions: {},
     swfReinsuranceOptionVolatilityInsurancePolicies: {},
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: {},
@@ -4625,6 +4648,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionPenaltyWaiverVotes: rest.swfReinsuranceOptionPenaltyWaiverVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPenaltyWaiverVotes)) : undefined,
     swfReinsuranceOptionPenaltyRefundProposals: rest.swfReinsuranceOptionPenaltyRefundProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPenaltyRefundProposals)) : undefined,
     swfReinsuranceOptionPenaltyRefundVotes: rest.swfReinsuranceOptionPenaltyRefundVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPenaltyRefundVotes)) : undefined,
+    swfReinsuranceOptionSpreadAdjustmentProposals: rest.swfReinsuranceOptionSpreadAdjustmentProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionSpreadAdjustmentProposals)) : undefined,
+    swfReinsuranceOptionSpreadAdjustmentVotes: rest.swfReinsuranceOptionSpreadAdjustmentVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionSpreadAdjustmentVotes)) : undefined,
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
     swfReinsuranceOptionVolatilityInsurancePolicies: rest.swfReinsuranceOptionVolatilityInsurancePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePolicies)) : undefined,
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes)) : undefined,
@@ -14122,6 +14147,58 @@ export function reconcileSWFReinsuranceOptionPenaltyRefunds(state: GameState, pa
     const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
 
     newState.swfReinsuranceOptionPenaltyRefundProposals[proposalId] = {
+      ...proposal,
+      status,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionSpreadAdjustments(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionSpreadAdjustmentProposals: state.swfReinsuranceOptionSpreadAdjustmentProposals ? { ...state.swfReinsuranceOptionSpreadAdjustmentProposals } : {},
+    swfReinsuranceOptionSpreadAdjustmentVotes: state.swfReinsuranceOptionSpreadAdjustmentVotes ? { ...state.swfReinsuranceOptionSpreadAdjustmentVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfReinsuranceOptionSpreadAdjustmentProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.swfReinsuranceOptionSpreadAdjustmentVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+
+    if (authorizeVoters.size > totalMembers / 2) {
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+
+    newState.swfReinsuranceOptionSpreadAdjustmentProposals[proposalId] = {
       ...proposal,
       status,
       timestamp: Math.max(maxTimestamp, newState.step),
