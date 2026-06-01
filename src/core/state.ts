@@ -2859,6 +2859,23 @@ export const SWFSecurityInsurancePoolEmergencyDrawdownProposalSchema = z.object(
 });
 export type SWFSecurityInsurancePoolEmergencyDrawdownProposal = z.infer<typeof SWFSecurityInsurancePoolEmergencyDrawdownProposalSchema>;
 
+export const SWFDeflectionSurchargePolicyProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  baseSurchargeRate: z.number(),
+  poolDepthScalingFactor: z.number(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFDeflectionSurchargePolicyProposal = z.infer<typeof SWFDeflectionSurchargePolicyProposalSchema>;
+
+
 
 
 
@@ -3822,6 +3839,10 @@ export const GameStateSchema = z.object({
   swfSecurityInsurancePoolProposals: z.record(z.string(), SWFSecurityInsurancePoolProposalSchema).optional(),
   swfSecurityInsurancePoolEmergencyDrawdownAuthorized: z.boolean().optional(),
   swfSecurityInsurancePoolEmergencyDrawdownProposals: z.record(z.string(), SWFSecurityInsurancePoolEmergencyDrawdownProposalSchema).optional(),
+  swfDeflectionSurchargeBaseRate: z.number().optional(),
+  swfDeflectionSurchargePoolDepthScalingFactor: z.number().optional(),
+  swfDeflectionSurchargePolicyProposals: z.record(z.string(), SWFDeflectionSurchargePolicyProposalSchema).optional(),
+
 
 
 
@@ -4248,6 +4269,9 @@ export const createInitialState = (options: {
     swfSecurityInsurancePoolProposals: {},
     swfSecurityInsurancePoolEmergencyDrawdownAuthorized: false,
     swfSecurityInsurancePoolEmergencyDrawdownProposals: {},
+    swfDeflectionSurchargeBaseRate: 0.05,
+    swfDeflectionSurchargePoolDepthScalingFactor: 1.0,
+    swfDeflectionSurchargePolicyProposals: {},
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
 
@@ -5404,6 +5428,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     swfLiquidityMiningRewards: rest.swfLiquidityMiningRewards ? JSON.parse(JSON.stringify(rest.swfLiquidityMiningRewards)) : undefined,
     claimReinsuranceLiquidityMiningRewardsVotes: rest.claimReinsuranceLiquidityMiningRewardsVotes ? JSON.parse(JSON.stringify(rest.claimReinsuranceLiquidityMiningRewardsVotes)) : undefined,
+    swfDeflectionSurchargePolicyProposals: rest.swfDeflectionSurchargePolicyProposals ? JSON.parse(JSON.stringify(rest.swfDeflectionSurchargePolicyProposals)) : undefined,
   };
   return clone;
 }
@@ -16868,6 +16893,57 @@ export function reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals(stat
 
   return newState;
 }
+
+export function reconcileSWFDeflectionSurchargePolicyProposals(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfDeflectionSurchargePolicyProposals: state.swfDeflectionSurchargePolicyProposals ? { ...state.swfDeflectionSurchargePolicyProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfDeflectionSurchargePolicyProposals)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.swfDeflectionSurchargePolicyProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      newState.swfDeflectionSurchargeBaseRate = proposal.baseSurchargeRate;
+      newState.swfDeflectionSurchargePoolDepthScalingFactor = proposal.poolDepthScalingFactor;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Deflection Surcharge Policy Resolved] Syndicate ${proposal.syndicateId} authorized deflection surcharge policy proposal ${proposalId} (Base Rate: ${proposal.baseSurchargeRate}, Depth Scaling: ${proposal.poolDepthScalingFactor}).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.swfDeflectionSurchargePolicyProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
 
 
 

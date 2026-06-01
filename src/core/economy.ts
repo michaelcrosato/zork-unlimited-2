@@ -6047,13 +6047,15 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             `[Security Insurance Pool Emergency Drawdown] Drew down ${drawdown} gold from security insurance pool to margin collateral for Syndicate ${syndicateId} to prevent margin call liquidation.`
           );
 
-          // AF-220: Dynamic deflection fee surcharge
+          // AF-220 & AF-221: Dynamic deflection fee surcharge policy
           marginAccount.emergencyDrawdownCount = (marginAccount.emergencyDrawdownCount ?? 0) + 1;
           const drawdownCount = marginAccount.emergencyDrawdownCount;
           const poolCap = newState.swfSecurityInsurancePoolCap ?? 2000;
           const poolCurrent = newState.swfSecurityInsurancePool ?? 0;
-          const poolDepthFactor = poolCap > 0 ? Math.max(1.0, 1.0 + (1.0 - (poolCurrent / poolCap))) : 1.0;
-          const surchargeRate = 0.05 * drawdownCount * poolDepthFactor;
+          const baseRate = newState.swfDeflectionSurchargeBaseRate ?? 0.05;
+          const depthScaling = newState.swfDeflectionSurchargePoolDepthScalingFactor ?? 1.0;
+          const poolDepthFactor = poolCap > 0 ? Math.max(1.0, 1.0 + depthScaling * (1.0 - (poolCurrent / poolCap))) : 1.0;
+          const surchargeRate = baseRate * drawdownCount * poolDepthFactor;
           const deflectionFee = Math.round(drawdown * surchargeRate);
 
           if (deflectionFee > 0 && syndicate) {

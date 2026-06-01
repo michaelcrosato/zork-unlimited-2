@@ -1,6 +1,6 @@
 import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileCooperativeRehabSubsidy, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies, reconcileSWFStakingPolicies } from "./state.js";
 import { reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileSWFReinsuranceOptionPenaltyWaivers, reconcileSWFReinsuranceOptionPenaltyRefunds, reconcileSWFReinsuranceOptionSpreadAdjustments, reconcileSWFReinsuranceOptionVolatilityFloors, reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrides, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCaps } from "./state.js";
-import { reconcileSweepPoolRankAdjustFeeCalibrations } from "./state.js";
+import { reconcileSweepPoolRankAdjustFeeCalibrations, reconcileSWFDeflectionSurchargePolicyProposals } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -3844,6 +3844,18 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfDeflectionSurchargePolicyProposals using LWW (AF-221)
+  const swfDeflectionSurchargePolicyProposals = { ...stateA.swfDeflectionSurchargePolicyProposals };
+  if (stateB.swfDeflectionSurchargePolicyProposals) {
+    for (const [proposalId, entryB] of Object.entries(stateB.swfDeflectionSurchargePolicyProposals)) {
+      const entryA = swfDeflectionSurchargePolicyProposals[proposalId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfDeflectionSurchargePolicyProposals[proposalId] = entryB;
+      }
+    }
+  }
+
+
   // Merge sweepPoolRankAdjustFeeCalibrationProposals using LWW (AF-209)
   const sweepPoolRankAdjustFeeCalibrationProposals = { ...stateA.sweepPoolRankAdjustFeeCalibrationProposals };
   if (stateB.sweepPoolRankAdjustFeeCalibrationProposals) {
@@ -3929,6 +3941,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfSecurityInsurancePoolProposals,
     swfSecurityInsurancePoolEmergencyDrawdownAuthorized,
     swfSecurityInsurancePoolEmergencyDrawdownProposals,
+    swfDeflectionSurchargeBaseRate: stateA.swfDeflectionSurchargeBaseRate !== undefined && stateB.swfDeflectionSurchargeBaseRate !== undefined ? (stateA.swfDeflectionSurchargeBaseRate > stateB.swfDeflectionSurchargeBaseRate ? stateA.swfDeflectionSurchargeBaseRate : stateB.swfDeflectionSurchargeBaseRate) : (stateA.swfDeflectionSurchargeBaseRate ?? stateB.swfDeflectionSurchargeBaseRate ?? 0.05),
+    swfDeflectionSurchargePoolDepthScalingFactor: stateA.swfDeflectionSurchargePoolDepthScalingFactor !== undefined && stateB.swfDeflectionSurchargePoolDepthScalingFactor !== undefined ? (stateA.swfDeflectionSurchargePoolDepthScalingFactor > stateB.swfDeflectionSurchargePoolDepthScalingFactor ? stateA.swfDeflectionSurchargePoolDepthScalingFactor : stateB.swfDeflectionSurchargePoolDepthScalingFactor) : (stateA.swfDeflectionSurchargePoolDepthScalingFactor ?? stateB.swfDeflectionSurchargePoolDepthScalingFactor ?? 1.0),
+    swfDeflectionSurchargePolicyProposals,
     sweepPoolRankAdjustBaseProposalFee: Math.max(stateA.sweepPoolRankAdjustBaseProposalFee ?? 200, stateB.sweepPoolRankAdjustBaseProposalFee ?? 200),
     sweepPoolRankAdjustBaseVoteFee: Math.max(stateA.sweepPoolRankAdjustBaseVoteFee ?? 50, stateB.sweepPoolRankAdjustBaseVoteFee ?? 50),
     sweepPoolRankAdjustFeeCalibrationProposals,
@@ -4511,6 +4526,7 @@ export class GossipNode {
     convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments(convergedState, this.pack);
     convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCaps(convergedState, this.pack);
     convergedState = reconcileSweepPoolRankAdjustFeeCalibrations(convergedState, this.pack);
+    convergedState = reconcileSWFDeflectionSurchargePolicyProposals(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #218 (Ready for Cycle #219)
-* **Build/Test Status**: 🟢 PASS (All 771 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #219 (Ready for Cycle #220)
+* **Build/Test Status**: 🟢 PASS (All 772 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1401,14 +1401,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 199: Syndicate SWF Deflection Surcharge Policy Consensus Voting (Completed)
+- [x] Define proposal and voting schemas inside GameState schemas for deflection fee surcharge policies (`AF-221`).
+- [x] Implement `PROPOSE_DEFLECTION_SURCHARGE_POLICY` and `VOTE_DEFLECTION_SURCHARGE_POLICY` decentralized actions and consensus state transitions (`AF-221`).
+- [x] Wire dynamic consensus surcharge parameters to the tick economy (`AF-221`).
+- [x] Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization (`AF-221`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-221`
-* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Multi-Oracle Consensus Dynamic Security Insurance Pool Emergency Drawdowns Deflection Fee Surcharge Policy Consensus Voting.
-* **Why this matters**: Support proposing and voting on dynamic deflection fee surcharge policies across the P2P Gossip mesh, allowing syndicates to cooperatively adjust the base surcharge rate or pool depth scaling parameters via majority consensus arbitration.
+**Task ID**: `AF-222`
+* **Objective**: Syndicate SWF Deflection Surcharge Policy dynamic deflection cap & strategic emergency refunding consensus voting.
+* **Why this matters**: Support proposing and voting on dynamic deflection surcharge caps and strategic refund allocations across the P2P Gossip mesh, allowing syndicates to cooperatively allocate dynamic emergency refunds during extreme liquidity distress via majority consensus.
 * **Planned Actions**:
-  1. Define proposal and voting schemas inside GameState schemas for deflection fee surcharge policies.
-  2. Implement `PROPOSE_DEFLECTION_SURCHARGE_POLICY` and `VOTE_DEFLECTION_SURCHARGE_POLICY` decentralized actions and consensus state transitions.
-  3. Wire dynamic consensus surcharge parameters to the tick economy.
+  1. Define proposal and voting schemas inside GameState schemas for deflection cap and refund policy.
+  2. Implement `PROPOSE_DEFLECTION_CAP_AND_REFUND` and `VOTE_DEFLECTION_CAP_AND_REFUND` decentralized actions and consensus state transitions.
+  3. Wire dynamic deflection cap and refund allocations to the tick economy.
   4. Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization.
 
 ---
