@@ -1389,7 +1389,7 @@ export function multiAgentStep(
 
   // Handle decentralized VOTE_GUILD_POLICY action
   if ((action as any).type === "VOTE_GUILD_POLICY") {
-    const { guildId, tariffRate, exportPricingPolicy, reinsuranceOptionRebateMultiplier, timestamp } = action as any;
+    const { guildId, tariffRate, exportPricingPolicy, reinsuranceOptionRebateMultiplier, reinsuranceOptionVolatilityHedgeFactor, reinsuranceOptionPartitionRiskFactor, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -1407,6 +1407,10 @@ export function multiAgentStep(
       rejectionReason = `Proposed export pricing policy ${exportPricingPolicy} is invalid.`;
     } else if (reinsuranceOptionRebateMultiplier !== undefined && (typeof reinsuranceOptionRebateMultiplier !== "number" || reinsuranceOptionRebateMultiplier < 0)) {
       rejectionReason = `Proposed reinsurance option rebate multiplier must be non-negative.`;
+    } else if (reinsuranceOptionVolatilityHedgeFactor !== undefined && (typeof reinsuranceOptionVolatilityHedgeFactor !== "number" || reinsuranceOptionVolatilityHedgeFactor < 0)) {
+      rejectionReason = `Proposed reinsurance option volatility hedge factor must be non-negative.`;
+    } else if (reinsuranceOptionPartitionRiskFactor !== undefined && (typeof reinsuranceOptionPartitionRiskFactor !== "number" || reinsuranceOptionPartitionRiskFactor < 0)) {
+      rejectionReason = `Proposed reinsurance option partition risk factor must be non-negative.`;
     } else {
       ok = true;
     }
@@ -1426,6 +1430,8 @@ export function multiAgentStep(
           tariffRate,
           exportPricingPolicy,
           reinsuranceOptionRebateMultiplier,
+          reinsuranceOptionVolatilityHedgeFactor,
+          reinsuranceOptionPartitionRiskFactor,
           timestamp,
         };
         newState.guildVotes = guildVotes;
@@ -1584,7 +1590,7 @@ export function multiAgentStep(
 
   // Handle decentralized DEFINE_MERCHANT_CARTEL action
   if ((action as any).type === "DEFINE_MERCHANT_CARTEL") {
-    const { cartelId, name, members, factionId, priceMultiplier, reinsuranceOptionRebateMultiplier, timestamp } = action as any;
+    const { cartelId, name, members, factionId, priceMultiplier, reinsuranceOptionRebateMultiplier, reinsuranceOptionVolatilityHedgeFactor, reinsuranceOptionPartitionRiskFactor, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -1603,6 +1609,10 @@ export function multiAgentStep(
       rejectionReason = `Proposed price multiplier must be non-negative.`;
     } else if (reinsuranceOptionRebateMultiplier !== undefined && (typeof reinsuranceOptionRebateMultiplier !== "number" || reinsuranceOptionRebateMultiplier < 0)) {
       rejectionReason = `Proposed reinsurance option rebate multiplier must be non-negative.`;
+    } else if (reinsuranceOptionVolatilityHedgeFactor !== undefined && (typeof reinsuranceOptionVolatilityHedgeFactor !== "number" || reinsuranceOptionVolatilityHedgeFactor < 0)) {
+      rejectionReason = `Proposed reinsurance option volatility hedge factor must be non-negative.`;
+    } else if (reinsuranceOptionPartitionRiskFactor !== undefined && (typeof reinsuranceOptionPartitionRiskFactor !== "number" || reinsuranceOptionPartitionRiskFactor < 0)) {
+      rejectionReason = `Proposed reinsurance option partition risk factor must be non-negative.`;
     } else {
       ok = true;
     }
@@ -1622,6 +1632,8 @@ export function multiAgentStep(
           factionId,
           priceMultiplier,
           reinsuranceOptionRebateMultiplier,
+          reinsuranceOptionVolatilityHedgeFactor,
+          reinsuranceOptionPartitionRiskFactor,
           definedBy: agentId,
           timestamp,
         };
@@ -1652,6 +1664,8 @@ export function multiAgentStep(
           priceMultiplier,
           embargoedFactions: [],
           reinsuranceOptionRebateMultiplier,
+          reinsuranceOptionVolatilityHedgeFactor,
+          reinsuranceOptionPartitionRiskFactor,
           timestamp,
         };
         newState.cartelVotes = cartelVotes;
@@ -1805,7 +1819,7 @@ export function multiAgentStep(
 
   // Handle decentralized VOTE_CARTEL_POLICY action
   if ((action as any).type === "VOTE_CARTEL_POLICY") {
-    const { cartelId, priceMultiplier, embargoedFactions, reinsuranceOptionRebateMultiplier, timestamp } = action as any;
+    const { cartelId, priceMultiplier, embargoedFactions, reinsuranceOptionRebateMultiplier, reinsuranceOptionVolatilityHedgeFactor, reinsuranceOptionPartitionRiskFactor, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -1821,6 +1835,10 @@ export function multiAgentStep(
       rejectionReason = `Proposed price multiplier must be non-negative.`;
     } else if (reinsuranceOptionRebateMultiplier !== undefined && (typeof reinsuranceOptionRebateMultiplier !== "number" || reinsuranceOptionRebateMultiplier < 0)) {
       rejectionReason = `Proposed reinsurance option rebate multiplier must be non-negative.`;
+    } else if (reinsuranceOptionVolatilityHedgeFactor !== undefined && (typeof reinsuranceOptionVolatilityHedgeFactor !== "number" || reinsuranceOptionVolatilityHedgeFactor < 0)) {
+      rejectionReason = `Proposed reinsurance option volatility hedge factor must be non-negative.`;
+    } else if (reinsuranceOptionPartitionRiskFactor !== undefined && (typeof reinsuranceOptionPartitionRiskFactor !== "number" || reinsuranceOptionPartitionRiskFactor < 0)) {
+      rejectionReason = `Proposed reinsurance option partition risk factor must be non-negative.`;
     } else if (!Array.isArray(embargoedFactions) || embargoedFactions.some(f => typeof f !== "string")) {
       rejectionReason = `Proposed embargoed factions must be an array of faction ID strings.`;
     } else {
@@ -1854,6 +1872,8 @@ export function multiAgentStep(
           priceMultiplier,
           embargoedFactions,
           reinsuranceOptionRebateMultiplier,
+          reinsuranceOptionVolatilityHedgeFactor,
+          reinsuranceOptionPartitionRiskFactor,
           timestamp,
         };
         newState.cartelVotes = cartelVotes;

@@ -233,17 +233,17 @@ describe("Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebate
     // midMarketPrice = (300/1000 + 300/1000) / 2 = 0.3
     // maker price = 300/1000 = 0.3
     // closeness = 1 / (1 + |0.3 - 0.3|) = 1.0
-    // rebateRate = min(0.10, 0.04 * 1.0) = 0.04 (4% rebate)
+    // rebateRate = min(0.10, 0.04 * 1.0 * 1.3 * 1.3333333333333333) = 0.069333 (6.93% rebate)
     // Execution price (finalPrice) before transaction fee is 303 gold (scaled by volume/impact, standing is 0).
-    // Rebate = round(303 * 0.04) = 12 gold.
-    // Buyer (Alpha, maker) pays: finalPrice (303) + transactionFee (0 since no cost policy exists) - rebate (12) = 291 gold.
+    // Rebate = round(303 * 0.069333) = 21 gold.
+    // Buyer (Alpha, maker) pays: finalPrice (303) + transactionFee (0 since no cost policy exists) - rebate (21) = 282 gold.
     // Seller (Beta, taker) receives: finalPrice (303) - transactionFee (0) = 303 gold.
-    expect(state.syndicates?.["alpha"]?.warChest).toBe(10000 - 291);
+    expect(state.syndicates?.["alpha"]?.warChest).toBe(10000 - 282);
     expect(state.syndicates?.["beta"]?.warChest).toBe(10000 + 303);
 
     // Verify journal log contains the rebate entry
     const log = state.journal.find(j => j.includes("[SWF Reinsurance Option Market Maker Rebate]"));
     expect(log).toBeDefined();
-    expect(log).toContain("Syndicate alpha received 12 gold rebate as maker");
+    expect(log).toContain("Syndicate alpha received 21 gold rebate as maker");
   });
 });

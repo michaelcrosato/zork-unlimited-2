@@ -725,13 +725,14 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
 
     let poolLinkStateDropRate = 0.0;
     let cdoId = "";
+    let creatorSyndicateId = "";
     if (key.includes("_")) {
       const idx = key.lastIndexOf("_");
       cdoId = key.substring(0, idx);
     }
     if (newState.swfMultiFundReinsurancePools && cdoId) {
       const cdo = newState.swfYieldCDOs?.[cdoId];
-      const creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
+      creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
       for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
         if (pool.linkStateDropRate !== undefined) {
           if (creatorSyndicateId && pool.syndicateIds.includes(creatorSyndicateId)) {
@@ -755,7 +756,30 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
       ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
       : 15.0;
 
-    const spreadMultiplier = (1.0 + linkStateDropRate) * (1.0 + avgVolatility / 100.0);
+    let volHedgeMult = 1.0;
+    let partitionRiskMult = 1.0;
+    if (creatorSyndicateId) {
+      const cartelPolicy = getSyndicateCartelPolicy(newState, creatorSyndicateId);
+      const guildPolicy = getSyndicateGuildPolicy(newState, creatorSyndicateId);
+      if (cartelPolicy) {
+        if (cartelPolicy.reinsuranceOptionVolatilityHedgeFactor !== undefined) {
+          volHedgeMult *= cartelPolicy.reinsuranceOptionVolatilityHedgeFactor;
+        }
+        if (cartelPolicy.reinsuranceOptionPartitionRiskFactor !== undefined) {
+          partitionRiskMult *= cartelPolicy.reinsuranceOptionPartitionRiskFactor;
+        }
+      }
+      if (guildPolicy) {
+        if (guildPolicy.reinsuranceOptionVolatilityHedgeFactor !== undefined) {
+          volHedgeMult *= guildPolicy.reinsuranceOptionVolatilityHedgeFactor;
+        }
+        if (guildPolicy.reinsuranceOptionPartitionRiskFactor !== undefined) {
+          partitionRiskMult *= guildPolicy.reinsuranceOptionPartitionRiskFactor;
+        }
+      }
+    }
+
+    const spreadMultiplier = (1.0 + linkStateDropRate * partitionRiskMult) * (1.0 + (avgVolatility / 100.0) * volHedgeMult);
 
     let spreadAdjustment = 1.0;
     if (buyVolume + sellVolume > 0) {
@@ -6716,7 +6740,11 @@ function getSyndicateCartelPolicy(state: GameState, syndicateId: string): any {
                      syndicateMembers.some(m => cartel.members.includes(m) || state.cartelMemberships?.[m]?.includes(cartelId));
     if (isMember) {
       const policy = state.cartelPolicies?.[cartelId];
-      if (policy && policy.reinsuranceOptionRebateMultiplier !== undefined) {
+      if (policy && (
+        policy.reinsuranceOptionRebateMultiplier !== undefined ||
+        policy.reinsuranceOptionVolatilityHedgeFactor !== undefined ||
+        policy.reinsuranceOptionPartitionRiskFactor !== undefined
+      )) {
         return policy;
       }
     }
@@ -6735,7 +6763,11 @@ function getSyndicateGuildPolicy(state: GameState, syndicateId: string): any {
                      syndicateMembers.some(m => guild.members.includes(m) || state.guildMemberships?.[m]?.includes(guildId));
     if (isMember) {
       const policy = state.guildPolicies?.[guildId];
-      if (policy && policy.reinsuranceOptionRebateMultiplier !== undefined) {
+      if (policy && (
+        policy.reinsuranceOptionRebateMultiplier !== undefined ||
+        policy.reinsuranceOptionVolatilityHedgeFactor !== undefined ||
+        policy.reinsuranceOptionPartitionRiskFactor !== undefined
+      )) {
         return policy;
       }
     }
@@ -6910,17 +6942,21 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
           ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
           : 15.0;
 
-        const volumeFactor = depth > 0 ? (1000 / (1000 + depth)) : 1.0;
-
-        const volFactor = 1.0 + (avgVolatility / 50.0);
-        const dropFactor = 1.0 + (linkStateDropRate * 2.0);
-        const depthFactor = 1.0 + volumeFactor;
-
         const cartelPolicy = getSyndicateCartelPolicy(newState, makerSyndicateId);
         const guildPolicy = getSyndicateGuildPolicy(newState, makerSyndicateId);
         
         const cartelMult = cartelPolicy?.reinsuranceOptionRebateMultiplier ?? 1.0;
         const guildMult = guildPolicy?.reinsuranceOptionRebateMultiplier ?? 1.0;
+
+        const cartelVolHedge = cartelPolicy?.reinsuranceOptionVolatilityHedgeFactor ?? 1.0;
+        const guildVolHedge = guildPolicy?.reinsuranceOptionVolatilityHedgeFactor ?? 1.0;
+        const cartelPartitionRisk = cartelPolicy?.reinsuranceOptionPartitionRiskFactor ?? 1.0;
+        const guildPartitionRisk = guildPolicy?.reinsuranceOptionPartitionRiskFactor ?? 1.0;
+
+        const volumeFactor = depth > 0 ? (1000 / (1000 + depth)) : 1.0;
+        const volFactor = 1.0 + (avgVolatility / 50.0) * cartelVolHedge * guildVolHedge;
+        const dropFactor = 1.0 + (linkStateDropRate * 2.0) * cartelPartitionRisk * guildPartitionRisk;
+        const depthFactor = 1.0 + volumeFactor;
 
         const rebatePolicy = newState.swfReinsuranceOptionMarketMakerRebatePolicies?.[policyKey];
         const baseRebateRate = rebatePolicy ? rebatePolicy.baseRebateRate : 0;

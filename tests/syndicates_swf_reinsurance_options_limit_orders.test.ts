@@ -581,17 +581,17 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
 
     // 3. Tick economy to evaluate sell scarcity:
     // buyVolume = 150, sellVolume = 0. imbalance = 150.
-    // spreadAdjustment = 1.0 + (150 / 150) * 0.5 = 1.5.
+    // spreadAdjustment = 1.0 + (150 / 150) * 0.5 * 1.15 = 1.575.
     let tickScarcity = tickEconomy(state, mockPack);
     const depthScarcity = tickScarcity.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
     expect(depthScarcity?.buyVolume).toBe(150);
     expect(depthScarcity?.sellVolume).toBe(0);
     expect(depthScarcity?.imbalance).toBe(150);
-    expect(depthScarcity?.spreadAdjustment).toBe(1.5);
+    expect(depthScarcity?.spreadAdjustment).toBe(1.575);
     expect(depthScarcity?.bidAskSpread).toBe(0);
 
     // Verify journal notification logged
-    const scarcityLog = tickScarcity.journal.find(j => j.includes("[SWF Reinsurance Option Pricing Adjustment]") && j.includes("1.5000x") && j.includes("sell volume scarcity"));
+    const scarcityLog = tickScarcity.journal.find(j => j.includes("[SWF Reinsurance Option Pricing Adjustment]") && j.includes("1.5750x") && j.includes("sell volume scarcity"));
     expect(scarcityLog).toBeDefined();
 
     // 4. Submit Sell Limit Order (Beta wants to SELL Call Option, Strike: 0.03, Size: 500, Price: 250 gold) -> SELL Supply
@@ -617,17 +617,17 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
 
     // Tick economy to evaluate coexistence (both buy and sell orders are open, no match because buy limit < sell limit):
     // buyVolume = 150, sellVolume = 250. imbalance = 150 - 250 = -100.
-    // spreadAdjustment = 1.0 + (-100 / 400) * 0.5 = 1.0 - 0.125 = 0.875.
+    // spreadAdjustment = 1.0 + (-100 / 400) * 0.5 * 1.15 = 1.0 - 0.14375 = 0.85625 (rounds to 0.8563).
     // bidAskSpread = lowestSellPrice (250) - highestBuyPrice (150) = 100 gold.
     let tickCoexist = tickEconomy(state, mockPack);
     const depthCoexist = tickCoexist.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
     expect(depthCoexist?.buyVolume).toBe(150);
     expect(depthCoexist?.sellVolume).toBe(250);
     expect(depthCoexist?.imbalance).toBe(-100);
-    expect(depthCoexist?.spreadAdjustment).toBe(0.875);
+    expect(depthCoexist?.spreadAdjustment).toBe(0.8563);
     expect(depthCoexist?.bidAskSpread).toBe(100);
 
-    const coexistLog = tickCoexist.journal.find(j => j.includes("[SWF Reinsurance Option Pricing Adjustment]") && j.includes("0.8750x") && j.includes("sell volume abundance"));
+    const coexistLog = tickCoexist.journal.find(j => j.includes("[SWF Reinsurance Option Pricing Adjustment]") && j.includes("0.8563x") && j.includes("sell volume abundance"));
     expect(coexistLog).toBeDefined();
 
     // 5. Verify that cancel/fill updates recalculate depths correctly
@@ -644,13 +644,13 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
     state = res.state;
 
     // buyVolume = 0, sellVolume = 250. imbalance = -250.
-    // spreadAdjustment = 1.0 + (-250 / 250) * 0.5 = 0.5.
+    // spreadAdjustment = 1.0 + (-250 / 250) * 0.5 * 1.15 = 0.425.
     let tickCancel = tickEconomy(state, mockPack);
     const depthCancel = tickCancel.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
     expect(depthCancel?.buyVolume).toBe(0);
     expect(depthCancel?.sellVolume).toBe(250);
     expect(depthCancel?.imbalance).toBe(-250);
-    expect(depthCancel?.spreadAdjustment).toBe(0.5);
+    expect(depthCancel?.spreadAdjustment).toBe(0.425);
     expect(depthCancel?.bidAskSpread).toBe(0);
   });
 

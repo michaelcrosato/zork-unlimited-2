@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #167 (Ready for Cycle #168)
-* **Build/Test Status**: 🟢 PASS (All 665 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #168 (Ready for Cycle #169)
+* **Build/Test Status**: 🟢 PASS (All 669 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1036,14 +1036,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 147: Syndicate SWF Cross-Mesh Reinsurance Dynamic Volatility-Hedged Spread Incentives & Dynamic Liquidity Rewards (Completed)
+- [x] Define dynamic risk-adjusted rebate parameters in the SWF Reinsurance Options Cartel and Guild structures (`AF-169`).
+- [x] Wire automatic adjustments to the market maker rebates based on real-time link-state drop rates and option book depth (`AF-169`).
+- [x] Write comprehensive unit and integration tests verifying risk-adjusted rebate distributions (`AF-169`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-169`
-* **Objective**: Syndicate SWF Cross-Mesh Reinsurance Dynamic Volatility-Hedged Spread Incentives & Dynamic Liquidity Rewards.
-* **Why this matters**: Scale the market maker rebates and spread incentives dynamically with active network partition risk and reinsurance spot volatility.
+**Task ID**: `AF-170`
+* **Objective**: Syndicate SWF Reinsurance Options Cross-Mesh Volatility-Hedged Margin Deflection & Auto-Deleveraging Policies.
+* **Why this matters**: Safeguard option writers against systemic liquidations caused by temporary network partitions and high volatility spikes.
 * **Planned Actions**:
-  1. Define dynamic risk-adjusted rebate parameters in the SWF Reinsurance Options Cartel and Guild structures.
-  2. Wire automatic adjustments to the market maker rebates based on real-time link-state drop rates and option book depth.
-  3. Write comprehensive unit and integration tests verifying risk-adjusted rebate distributions.
+  1. Define auto-deleveraging and margin deflection parameters in the SWF Reinsurance Option Margin policies.
+  2. Implement an automatic position sizing markdown and margin requirement reduction when link-state drop rates indicate severe network degradation.
+  3. Write comprehensive unit and integration tests verifying margin deflection and auto-deleveraging triggers under simulated partitions.
 
 ---
 

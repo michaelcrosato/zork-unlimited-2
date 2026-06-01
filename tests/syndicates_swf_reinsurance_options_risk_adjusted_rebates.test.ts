@@ -310,4 +310,179 @@ describe("Syndicate SWF Reinsurance Options Dynamic Risk-Adjusted MM Rebates & S
     // Check that Alpha's buy order is filled!
     expect(state.swfReinsuranceOptionLimitOrders?.["buy_1"]?.status).toBe("Filled");
   });
+
+  it("should dynamically scale the market maker rebates and spread adjustments based on cartel and guild risk-adjusted factors (AF-169)", () => {
+    let state = createInitialState({
+      seed: 54321,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player", "alice", "bob", "carol"],
+    });
+
+    // Setup syndicates
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 15000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "carol"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 15000,
+      },
+    };
+
+    // Setup SWF Multi-Fund Reinsurance Pool
+    state.swfMultiFundReinsurancePools = {
+      pool_1: {
+        id: "pool_1",
+        syndicateIds: ["alpha", "beta"],
+        capitalAllocated: { alpha: 5000, beta: 5000 },
+        totalReserve: 10000,
+        volatilityHedgeRatio: 0.5,
+        targetYieldRate: 0.12,
+        historicalVolatility: 15.0,
+        timestamp: 1000,
+        active: true,
+        linkStateDropRate: 0.25,
+      },
+    };
+
+    // Setup Yield Volatility Indexes
+    state.yieldVolatilityIndexes = {
+      bond_1: {
+        bondId: "bond_1",
+        volatility: 40.0,
+        timestamp: 1000,
+      },
+    };
+
+    // Setup CDO
+    state.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: {},
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.20,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    // Setup MM Rebate Policy
+    state.swfReinsuranceOptionMarketMakerRebatePolicies = {
+      cdo_1_senior: {
+        swfYieldCdoId: "cdo_1",
+        trancheId: "senior",
+        baseRebateRate: 0.04,
+        maxRebateRate: 0.25,
+        timestamp: 1000,
+      },
+    };
+
+    // Define Cartel with Volatility Hedge and Partition Risk Factors
+    const defineCartelAction = {
+      type: "DEFINE_MERCHANT_CARTEL",
+      cartelId: "cartel_1",
+      name: "Alpha Cartel",
+      members: ["player", "alice"],
+      factionId: "rangers",
+      priceMultiplier: 1.0,
+      reinsuranceOptionRebateMultiplier: 1.0,
+      reinsuranceOptionVolatilityHedgeFactor: 1.2,
+      reinsuranceOptionPartitionRiskFactor: 1.3,
+      timestamp: 1000,
+    };
+
+    let res = multiAgentStep(state, { agentId: "player", action: defineCartelAction as any }, mockPack);
+    state = res.state;
+
+    // Verify cartel policy was reconciled with the new factors
+    expect(state.cartelPolicies?.["cartel_1"]?.reinsuranceOptionVolatilityHedgeFactor).toBe(1.2);
+    expect(state.cartelPolicies?.["cartel_1"]?.reinsuranceOptionPartitionRiskFactor).toBe(1.3);
+
+    // Alpha (buyer, maker) submits limit order
+    const buyAction = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "buy_1",
+      syndicateId: "alpha",
+      orderType: "buy",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 1000,
+      limitPrice: 400,
+      timestamp: 1001,
+    };
+    res = multiAgentStep(state, { agentId: "player", action: buyAction as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "alice", action: buyAction as any }, mockPack);
+    state = res.state;
+
+    // Beta (seller, taker) submits limit order
+    const sellAction = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "sell_1",
+      syndicateId: "beta",
+      orderType: "sell",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 1000,
+      limitPrice: 400,
+      timestamp: 1002,
+    };
+    res = multiAgentStep(state, { agentId: "bob", action: sellAction as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "carol", action: sellAction as any }, mockPack);
+    state = res.state;
+
+    // Trigger match and economy tick
+    state = tickEconomy(state, mockPack);
+
+    // Let's verify that the rebate calculation applied the cartel's risk factors:
+    // avgVolatility = 40.0, baseVolFactor = 1.0 + 40/50 = 1.8.
+    // With cartelVolHedge (1.2): volFactor = 1.0 + 0.8 * 1.2 = 1.96.
+    // linkStateDropRate = 0.25, baseDropFactor = 1.0 + 0.25 * 2.0 = 1.5.
+    // With cartelPartitionRisk (1.3): dropFactor = 1.0 + 0.5 * 1.3 = 1.65.
+    // depthFactor = 1.333333.
+    // closeness = 1.0.
+    // rebateRate = 0.04 * 1.0 * 1.96 * 1.65 * 1.333333 = 0.17248 (17.25% rebate rate!)
+    // Execution price before transaction fee is 404.
+    // RebateAmount = round(404 * 0.17248) = 70 gold.
+    const rebateLog = state.journal.find(j => j.includes("[SWF Reinsurance Option Market Maker Rebate]"));
+    expect(rebateLog).toBeDefined();
+    expect(rebateLog).toContain("Syndicate alpha received 70 gold rebate as maker");
+  });
 });
