@@ -1173,6 +1173,29 @@ export const RehabCampaignProposalSchema = z.object({
 });
 export type RehabCampaignProposal = z.infer<typeof RehabCampaignProposalSchema>;
 
+export const RehabSubsidyProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  factionId: z.string(),
+  subsidyPercentage: z.number().int().min(0).max(50),
+  timestamp: z.number().int(),
+  resolved: z.boolean().optional(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type RehabSubsidyProposal = z.infer<typeof RehabSubsidyProposalSchema>;
+
+export const FactionLoyaltyBondSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  factionId: z.string(),
+  lockedGold: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type FactionLoyaltyBond = z.infer<typeof FactionLoyaltyBondSchema>;
+
 
 
 export const LockedLiquidityEpochPoolSchema = z.object({
@@ -1547,6 +1570,8 @@ export const GameStateSchema = z.object({
   sponsorRevocationProposals: z.record(z.string(), SponsorRevocationProposalSchema).optional(),
   rewardSlashingProposals: z.record(z.string(), RewardSlashingProposalSchema).optional(),
   rehabCampaignProposals: z.record(z.string(), RehabCampaignProposalSchema).optional(),
+  rehabSubsidyProposals: z.record(z.string(), RehabSubsidyProposalSchema).optional(),
+  factionLoyaltyBonds: z.record(z.string(), FactionLoyaltyBondSchema).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
 });
@@ -2539,6 +2564,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     sponsorRevocationProposals: rest.sponsorRevocationProposals ? JSON.parse(JSON.stringify(rest.sponsorRevocationProposals)) : undefined,
     rewardSlashingProposals: rest.rewardSlashingProposals ? JSON.parse(JSON.stringify(rest.rewardSlashingProposals)) : undefined,
     rehabCampaignProposals: rest.rehabCampaignProposals ? JSON.parse(JSON.stringify(rest.rehabCampaignProposals)) : undefined,
+    rehabSubsidyProposals: rest.rehabSubsidyProposals ? JSON.parse(JSON.stringify(rest.rehabSubsidyProposals)) : undefined,
+    factionLoyaltyBonds: rest.factionLoyaltyBonds ? JSON.parse(JSON.stringify(rest.factionLoyaltyBonds)) : undefined,
     maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
     slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
   };
@@ -5623,14 +5650,73 @@ export function reconcileSponsorAuditsAndRevocations(state: GameState, pack: any
   return newState;
 }
 
+export function getSyndicateFactionStanding(state: GameState, syndicateId: string, factionId: string): number {
+  const baseRep = state.factionRep?.[factionId] ?? 0;
+  let bondBonus = 0;
+  if (state.factionLoyaltyBonds) {
+    const bondId = `${syndicateId}-${factionId}`;
+    const bond = state.factionLoyaltyBonds[bondId];
+    if (bond) {
+      bondBonus += Math.floor(bond.lockedGold * 0.01);
+    }
+  }
+  return baseRep + bondBonus;
+}
+
+export function isFactionAlliedToSyndicate(state: GameState, syndicateId: string, factionId: string): boolean {
+  if (!state.alliances) return false;
+  return state.alliances[syndicateId]?.[factionId] === "allied" ||
+         state.alliances[factionId]?.[syndicateId] === "allied";
+}
+
+export function reconcileRehabSubsidy(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    rehabSubsidyProposals: state.rehabSubsidyProposals ? { ...state.rehabSubsidyProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.rehabSubsidyProposals || {})) {
+    const proposal = newState.rehabSubsidyProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, factionId, subsidyPercentage } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.rehabSubsidyProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Reputation Rehab Subsidy Resolved] Syndicate ${syndicateId} resolved pro-rata reputation rehab subsidy proposal ${proposalId} with faction ${factionId} at ${subsidyPercentage}%.`
+      );
+    }
+  }
+
+  return newState;
+}
+
 export function reconcileRehabCampaign(state: GameState, pack: any): GameState {
   const newState = {
     ...state,
     rehabCampaignProposals: state.rehabCampaignProposals ? { ...state.rehabCampaignProposals } : {},
+    rehabSubsidyProposals: state.rehabSubsidyProposals ? { ...state.rehabSubsidyProposals } : {},
     maliciousActors: state.maliciousActors ? { ...state.maliciousActors } : {},
     slashingRates: state.slashingRates ? { ...state.slashingRates } : {},
     syndicates: state.syndicates ? { ...state.syndicates } : {},
     factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+    factionLoyaltyBonds: state.factionLoyaltyBonds ? { ...state.factionLoyaltyBonds } : {},
   };
 
   // For any already resolved proposals, ensure targetActor is cleared from maliciousActors!
@@ -5674,16 +5760,39 @@ export function reconcileRehabCampaign(state: GameState, pack: any): GameState {
       }
 
       const proposingSyndicate = newState.syndicates?.[syndicateId];
+      let appliedSubsidyPercentage = 0;
+      let activeSubsidy = 0;
+      if (newState.rehabSubsidyProposals) {
+        for (const subProp of Object.values(newState.rehabSubsidyProposals)) {
+          if (subProp.resolved && subProp.syndicateId === syndicateId && subProp.factionId === factionId) {
+            activeSubsidy = Math.max(activeSubsidy, subProp.subsidyPercentage);
+          }
+        }
+      }
+
+      const standing = getSyndicateFactionStanding(newState, syndicateId, factionId);
+      const isAllied = isFactionAlliedToSyndicate(newState, syndicateId, factionId) || standing >= 50;
+
+      if (activeSubsidy > 0 && isAllied && standing >= 50) {
+        appliedSubsidyPercentage = Math.min(50, Math.min(activeSubsidy, Math.floor(standing * 0.5)));
+      }
+
+      const subsidizedShare = Math.floor(goldCost * (appliedSubsidyPercentage / 100));
+      const actualGoldCost = goldCost - subsidizedShare;
+
       if (proposingSyndicate) {
-        proposingSyndicate.warChest = Math.max(0, (proposingSyndicate.warChest ?? 0) - goldCost);
+        proposingSyndicate.warChest = Math.max(0, (proposingSyndicate.warChest ?? 0) - actualGoldCost);
       }
 
       if (!newState.factionReservePools) newState.factionReservePools = {};
-      newState.factionReservePools[factionId] = (newState.factionReservePools[factionId] ?? 0) + goldCost;
+      if (subsidizedShare > 0) {
+        newState.factionReservePools[factionId] = Math.max(0, (newState.factionReservePools[factionId] ?? 0) - subsidizedShare);
+      }
+      newState.factionReservePools[factionId] = (newState.factionReservePools[factionId] ?? 0) + actualGoldCost;
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
-        `[Reputation Rehab Resolved] Syndicate ${syndicateId} resolved rehabilitation campaign proposal ${proposalId} for target ${targetActor}, paying ${goldCost} gold to faction ${factionId}.`
+        `[Reputation Rehab Resolved] Syndicate ${syndicateId} resolved rehabilitation campaign proposal ${proposalId} for target ${targetActor}, paying ${actualGoldCost} gold (subsidized by ${subsidizedShare} gold) to faction ${factionId}.`
       );
     }
   }

@@ -112,6 +112,22 @@ export function calculateTradePrice(
           effectiveTariffRate = 0;
         }
 
+        // Faction Loyalty Bond Automatic Tariff Waiver (AF-119)
+        let hasLoyaltyWaiver = false;
+        if (state.factionLoyaltyBonds) {
+          for (const synd of traderSyndicates) {
+            const bondId = `${synd.id}-${controllingFactionId}`;
+            const bond = state.factionLoyaltyBonds[bondId];
+            if (bond && bond.lockedGold > 0) {
+              hasLoyaltyWaiver = true;
+              break;
+            }
+          }
+        }
+        if (hasLoyaltyWaiver) {
+          effectiveTariffRate = 0;
+        }
+
         // Mastermind Contract allied faction tariff override (AF-77)
         let mastermindOverride = false;
         if (state.mastermindContracts) {
@@ -197,6 +213,22 @@ export function calculateTradePrice(
                 standardEffectiveRate = 0;
               } else if (factionRep >= discountThreshold) {
                 standardEffectiveRate = standardTariff / 2;
+              }
+
+              // Faction Loyalty Bond Automatic Tariff Waiver (AF-119)
+              let hasLoyaltyWaiver = false;
+              if (state.factionLoyaltyBonds) {
+                for (const synd of traderSyndicates) {
+                  const bondId = `${synd.id}-${controllingFactionId}`;
+                  const bond = state.factionLoyaltyBonds[bondId];
+                  if (bond && bond.lockedGold > 0) {
+                    hasLoyaltyWaiver = true;
+                    break;
+                  }
+                }
+              }
+              if (hasLoyaltyWaiver) {
+                standardEffectiveRate = 0;
               }
 
               if (standardEffectiveRate > 0) {

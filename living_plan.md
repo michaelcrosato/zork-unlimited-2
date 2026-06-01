@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #118 (Ready for Cycle #119)
-* **Build/Test Status**: 🟢 PASS (All 515 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #119 (Ready for Cycle #120)
+* **Build/Test Status**: 🟢 PASS (All 519 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -706,17 +706,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire successful rehabilitation consensus to remove target actors from `maliciousActors` list, clear slashing rates, and restore standard reward payouts (`AF-118`).
 - [x] Write comprehensive Vitest integration, unit, and P2P gossip mesh convergence tests (`AF-118`).
 
+### Phase 97: Syndicate Bank Leverage Liquidity Mining Governance Pro-Rata Rehab Subsidies & Faction Loyalty Bonds (Completed)
+- [x] Define pro-rata rehab subsidy proposals and faction loyalty bonds in GameState (`AF-119`).
+- [x] Implement `PROPOSE_REHAB_SUBSIDY` and `LOCK_LOYALTY_BOND` decentralized consensus actions (`AF-119`).
+- [x] Wire successful subsidy consensus to dynamically reduce gold deduction during `reconcileRehabCampaign` based on standing, pulling the subsidized share from the faction reserve pool (`AF-119`).
+- [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-119`).
+
 ---
 
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-119`
-* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance Pro-Rata Rehab Subsidies & Faction Loyalty Bonds.
-* **Why this matters**: Allow rehabilitated members or allied factions to propose and vote to establish pro-rata reputation rehab subsidies, where allied faction reserve pools sponsor up to 50% of the gold costs of rehabilitation campaigns for syndicates with highly positive faction standing. Add customizable loyalty bonds in GameState where syndicates lock gold for dynamic loyalty-based standing scaling and automatic tariff waivers.
+**Task ID**: `AF-120`
+* **Objective**: Syndicate Bank Multi-Tiered Dynamic Faction Loyalty Ranks & Standing-Gated Vault Access.
+* **Why this matters**: Introduce structured multi-tiered faction loyalty ranks (Bronze, Silver, Gold, Platinum) computed dynamically based on the faction loyalty bonds locked gold. Wire these ranks to restrict/gate access to premium syndicate bank vaults and lower loan interest rates dynamically based on reached loyalty tiers.
 * **Planned Actions**:
-  1. Define pro-rata rehab subsidy proposals and faction loyalty bonds in GameState.
-  2. Implement `PROPOSE_REHAB_SUBSIDY` and `LOCK_LOYALTY_BOND` decentralized consensus actions.
-  3. Wire successful subsidy consensus to dynamically reduce gold deduction during `reconcileRehabCampaign` based on standing, pulling the subsidized share from the faction reserve pool.
+  1. Define loyalty ranks, vault thresholds, and dynamic interest discounts in GameState.
+  2. Implement `CLAIM_LOYALTY_RANK` decentralized consensus actions or automatic rank updates.
+  3. Wire dynamic ranks to block bank borrowing/depositing if the syndicate's loyalty rank is too low.
   4. Write comprehensive Vitest integration and mesh convergence tests.
 
 ---

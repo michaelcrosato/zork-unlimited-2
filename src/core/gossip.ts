@@ -2151,6 +2151,49 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge rehabSubsidyProposals using LWW (Last-Write-Wins)
+  const rehabSubsidyProposals = { ...stateA.rehabSubsidyProposals };
+  if (stateB.rehabSubsidyProposals) {
+    for (const [propId, propB] of Object.entries(stateB.rehabSubsidyProposals)) {
+      const propA = rehabSubsidyProposals[propId];
+      if (!propA) {
+        rehabSubsidyProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          rehabSubsidyProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          rehabSubsidyProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
+  // Merge factionLoyaltyBonds using LWW (Last-Write-Wins)
+  const factionLoyaltyBonds = { ...stateA.factionLoyaltyBonds };
+  if (stateB.factionLoyaltyBonds) {
+    for (const [bondId, bondB] of Object.entries(stateB.factionLoyaltyBonds)) {
+      const bondA = factionLoyaltyBonds[bondId];
+      if (!bondA || bondB.timestamp > bondA.timestamp) {
+        factionLoyaltyBonds[bondId] = { ...bondB };
+      }
+    }
+  }
+
   // Merge maliciousActors using boolean OR union
   const maliciousActors = { ...stateA.maliciousActors };
   if (stateB.maliciousActors) {
@@ -2363,6 +2406,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     sponsorRevocationProposals,
     rewardSlashingProposals,
     rehabCampaignProposals,
+    rehabSubsidyProposals,
+    factionLoyaltyBonds,
     maliciousActors,
     slashingRates,
   };
