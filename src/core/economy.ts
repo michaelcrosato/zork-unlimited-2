@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool, SWFReinsuranceOptionCrossSyndicatePool, getSyndicateFactionStanding } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool, SWFReinsuranceOptionCrossSyndicatePool, getSyndicateFactionStanding, distributeOptionFeeDividends } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -7237,7 +7237,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 }
 
 export function tickSovereignDebtCDS(state: GameState): GameState {
-  const newState = {
+  let newState = {
     ...state,
     sovereignDebtCDSContracts: state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {},
     sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
@@ -7790,7 +7790,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
       const spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
 
-      newState.cdsCdoYieldHedgingOptionMarketSpreads[optionId] = {
+      newState.cdsCdoYieldHedgingOptionMarketSpreads![optionId] = {
         spreadId: optionId,
         optionId,
         highestBid,
@@ -7834,7 +7834,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
           if (arbSyndicate) {
             const bidId = `${optionId}_${arbSyndicate.id}_arb`;
-            newState.cdsCdoYieldHedgingOptionBids[bidId] = {
+            newState.cdsCdoYieldHedgingOptionBids![bidId] = {
               bidId,
               optionId,
               bidderSyndicateId: arbSyndicate.id,
@@ -7849,8 +7849,8 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
             );
             highestBid = validLowestAsk;
             validHighestBid = validLowestAsk;
-            newState.cdsCdoYieldHedgingOptionMarketSpreads[optionId].highestBid = highestBid;
-            newState.cdsCdoYieldHedgingOptionMarketSpreads[optionId].spread = validLowestAsk - highestBid;
+            newState.cdsCdoYieldHedgingOptionMarketSpreads![optionId].highestBid = highestBid;
+            newState.cdsCdoYieldHedgingOptionMarketSpreads![optionId].spread = validLowestAsk - highestBid;
           }
         }
       }
@@ -7887,30 +7887,38 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
             };
 
             // Transfer option ownership
-            newState.cdsCdoYieldHedgingOptionContracts[optionId] = {
+            newState.cdsCdoYieldHedgingOptionContracts![optionId] = {
               ...option,
               syndicateId: bidderSyndicateId,
             };
 
-            // Transfer gold
-            sellerSynd.warChest = (sellerSynd.warChest ?? 0) + tradePrice;
+            // Transfer gold with secondary fee deduction
+            const feePercent = pool.yieldHedgingOptionSecondaryFeePercent ?? 0;
+            const feeAmount = Math.round(tradePrice * feePercent);
+
+            sellerSynd.warChest = (sellerSynd.warChest ?? 0) + tradePrice - feeAmount;
             bidderSynd.warChest = Math.max(0, (bidderSynd.warChest ?? 0) - tradePrice);
 
+            // Distribute dividends
+            if (feeAmount > 0) {
+              newState = distributeOptionFeeDividends(newState as GameState, cdoId, feeAmount) as any;
+            }
+
             // Cancel / complete all other active listings and bids for this option
-            for (const [lid, listing] of Object.entries(newState.cdsCdoYieldHedgingOptionListings)) {
+            for (const [lid, listing] of Object.entries(newState.cdsCdoYieldHedgingOptionListings || {})) {
               if (listing.optionId === optionId && listing.status === "active") {
-                newState.cdsCdoYieldHedgingOptionListings[lid] = { ...listing, status: "completed" };
+                newState.cdsCdoYieldHedgingOptionListings![lid] = { ...listing, status: "completed" };
               }
             }
-            for (const [bid, b] of Object.entries(newState.cdsCdoYieldHedgingOptionBids)) {
+            for (const [bid, b] of Object.entries(newState.cdsCdoYieldHedgingOptionBids || {})) {
               if (b.optionId === optionId && b.status === "active") {
-                newState.cdsCdoYieldHedgingOptionBids[bid] = { ...b, status: "rejected" };
+                newState.cdsCdoYieldHedgingOptionBids![bid] = { ...b, status: "rejected" };
               }
             }
 
             if (!newState.journal) newState.journal = [];
             newState.journal.push(
-              `[CDO Yield-Hedging Option Traded] Option ${optionId} traded from ${sellerSyndicateId} to ${bidderSyndicateId} at price ${tradePrice} gold${pool.dynamicMatchingEnabled ? " (Dynamic Mid-Price Match)" : ""}.`
+              `[CDO Yield-Hedging Option Traded] Option ${optionId} traded from ${sellerSyndicateId} to ${bidderSyndicateId} at price ${tradePrice} gold${pool.dynamicMatchingEnabled ? " (Dynamic Mid-Price Match)" : ""}${feeAmount > 0 ? ` (Levied Transaction Fee: ${feeAmount} gold)` : ""}.`
             );
           }
         }
@@ -8278,7 +8286,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
       const spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
       const spreadId = `${cdoId}_${trancheId}`;
 
-      newState.cdsCdoTrancheMarketSpreads[spreadId] = {
+      newState.cdsCdoTrancheMarketSpreads![spreadId] = {
         spreadId,
         cdoId,
         trancheId,
@@ -8300,7 +8308,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
           );
           if (trancheArbSyndicate) {
             const bidId = `${cdoId}_${trancheId}_${trancheArbSyndicate.id}_${trancheListing.sharesAmount}_arb`;
-            newState.cdsCdoTrancheBids[bidId] = {
+            newState.cdsCdoTrancheBids![bidId] = {
               bidId,
               cdoId,
               trancheId,
@@ -8316,8 +8324,8 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               `[CDS CDO Tranche Arbitrage Bot] Syndicate ${trancheArbSyndicate.id} arbitrage bot placed an active matching bid of ${trancheListing.askPrice} gold on undervalued CDO ${cdoId} tranche ${trancheId} (Fair Value: ${listingFairValue} gold for ${trancheListing.sharesAmount} shares).`
             );
             highestBid = trancheListing.askPrice;
-            newState.cdsCdoTrancheMarketSpreads[spreadId].highestBid = highestBid;
-            newState.cdsCdoTrancheMarketSpreads[spreadId].spread = lowestAsk - highestBid;
+            newState.cdsCdoTrancheMarketSpreads![spreadId].highestBid = highestBid;
+            newState.cdsCdoTrancheMarketSpreads![spreadId].spread = lowestAsk - highestBid;
             break;
           }
         }
@@ -8337,18 +8345,18 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         if (trancheMatchingBid) {
           const bidderSyndicateId = trancheMatchingBid.bidderSyndicateId;
           const sellerSyndicateId = trancheListing.sellerSyndicateId;
-          const bidderSynd = newState.syndicates[bidderSyndicateId];
-          const sellerSynd = newState.syndicates[sellerSyndicateId];
+          const bidderSynd = newState.syndicates![bidderSyndicateId];
+          const sellerSynd = newState.syndicates![sellerSyndicateId];
 
           if (bidderSynd && sellerSynd && (bidderSynd.warChest ?? 0) >= trancheListing.askPrice) {
             const sellerShares = pool.tranches[trancheId].sharesOwned[sellerSyndicateId] ?? 0;
             if (sellerShares >= trancheListing.sharesAmount) {
               // Complete trade
-              newState.cdsCdoTrancheListings[trancheListing.listingId] = {
+              newState.cdsCdoTrancheListings![trancheListing.listingId] = {
                 ...trancheListing,
                 status: "completed",
               };
-              newState.cdsCdoTrancheBids[trancheMatchingBid.bidId] = {
+              newState.cdsCdoTrancheBids![trancheMatchingBid.bidId] = {
                 ...trancheMatchingBid,
                 status: "accepted",
               };
@@ -8368,9 +8376,9 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
               // Terminate other active listings/bids for same syndicate if their remaining shares are insufficient
               const updatedShares = pool.tranches[trancheId].sharesOwned[sellerSyndicateId];
-              for (const [lid, l] of Object.entries(newState.cdsCdoTrancheListings)) {
+              for (const [lid, l] of Object.entries(newState.cdsCdoTrancheListings || {})) {
                 if (l.sellerSyndicateId === sellerSyndicateId && l.cdoId === cdoId && l.trancheId === trancheId && l.status === "active" && l.sharesAmount > updatedShares) {
-                  newState.cdsCdoTrancheListings[lid] = { ...l, status: "cancelled" };
+                  newState.cdsCdoTrancheListings![lid] = { ...l, status: "cancelled" };
                 }
               }
 
@@ -8379,7 +8387,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
                 `[CDS CDO Tranche Matched Trade] Automatic bid matching executed. Syndicate ${bidderSyndicateId} purchased ${trancheListing.sharesAmount} shares of CDO ${cdoId} ${trancheId} tranche from Syndicate ${sellerSyndicateId} for ${trancheListing.askPrice} gold.`
               );
             } else {
-              newState.cdsCdoTrancheListings[trancheListing.listingId] = {
+              newState.cdsCdoTrancheListings![trancheListing.listingId] = {
                 ...trancheListing,
                 status: "cancelled",
               };
@@ -8610,7 +8618,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
     }
   }
 
-  return newState;
+  return newState as GameState;
 }
 
 export function tickSovereignDebtDefaultAlerts(state: GameState): GameState {

@@ -278,6 +278,10 @@ export type Action =
   | { type: "PURCHASE_CDO_YIELD_HEDGING_OPTION"; optionId: string; cdoId: string; syndicateId: string; coverageAmount: number; timestamp: number }
   | { type: "LIST_CDO_YIELD_HEDGING_OPTION"; optionId: string; sellerSyndicateId: string; askPrice: number; timestamp: number }
   | { type: "BID_ON_CDO_YIELD_HEDGING_OPTION"; bidId: string; optionId: string; bidderSyndicateId: string; bidPrice: number; timestamp: number }
+  | { type: "PROPOSE_CDO_YIELD_HEDGING_FEE_POLICY"; proposalId: string; cdoId: string; syndicateId: string; secondaryFeePercent: number; timestamp: number }
+  | { type: "VOTE_CDO_YIELD_HEDGING_FEE_POLICY"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
+  | { type: "STAKE_CDO_YIELD_HEDGING_OPTION"; cdoId: string; amount: number; timestamp: number }
+  | { type: "UNSTAKE_CDO_YIELD_HEDGING_OPTION"; cdoId: string; amount: number; timestamp: number }
   | { type: "TRANSFER_CDO_YIELD_HEDGING_OPTION"; optionId: string; sellerSyndicateId: string; buyerSyndicateId: string; price: number; timestamp: number };
 
 
