@@ -1728,6 +1728,11 @@ export const MarginAccountSchema = z.object({
   swfArbitrageEnabled: z.boolean().optional(),
   swfYieldThresholds: z.record(z.string(), z.number()).optional(),
   swfAutoWithdrawalEnabled: z.boolean().optional(),
+  swfStakingEnabled: z.boolean().optional(),
+  swfStakingTargets: z.record(z.string(), z.number().int().nonnegative().max(100)).optional(),
+  swfStakedFactions: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  swfStakingYields: z.record(z.string(), z.number().nonnegative()).optional(),
+  swfGracePeriodExtensions: z.record(z.string(), z.number().int().nonnegative()).optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -2076,6 +2081,11 @@ export const GameStateSchema = z.object({
     autoWithdrawalEnabled: z.boolean(),
     timestamp: z.number().int(),
   }))).optional(),
+  swfStakingPolicyVotes: z.record(z.string(), z.record(z.string(), z.object({
+    enabled: z.boolean(),
+    stakedFactions: z.record(z.string(), z.number().int().nonnegative().max(100)),
+    timestamp: z.number().int(),
+  }))).optional(),
   swfRebalancingAdvisorVotes: z.record(z.string(), z.record(z.string(), z.object({
     enabled: z.boolean(),
     timestamp: z.number().int(),
@@ -2353,6 +2363,7 @@ export const createInitialState = (options: {
     swfMarginRehypothecationRevokeVotes: {},
     swfMarginRebalancingPolicyVotes: {},
     swfYieldArbitragePolicyVotes: {},
+    swfStakingPolicyVotes: {},
     swfRebalancingAdvisorVotes: {},
     swfAdvisorSafetyThresholdVotes: {},
     swfLeverageTargetVotes: {},
@@ -3192,6 +3203,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfMarginRehypothecationRevokeVotes: rest.swfMarginRehypothecationRevokeVotes ? JSON.parse(JSON.stringify(rest.swfMarginRehypothecationRevokeVotes)) : undefined,
     swfMarginRebalancingPolicyVotes: rest.swfMarginRebalancingPolicyVotes ? JSON.parse(JSON.stringify(rest.swfMarginRebalancingPolicyVotes)) : undefined,
     swfYieldArbitragePolicyVotes: rest.swfYieldArbitragePolicyVotes ? JSON.parse(JSON.stringify(rest.swfYieldArbitragePolicyVotes)) : undefined,
+    swfStakingPolicyVotes: rest.swfStakingPolicyVotes ? JSON.parse(JSON.stringify(rest.swfStakingPolicyVotes)) : undefined,
     swfRebalancingAdvisorVotes: rest.swfRebalancingAdvisorVotes ? JSON.parse(JSON.stringify(rest.swfRebalancingAdvisorVotes)) : undefined,
     swfAdvisorSafetyThresholdVotes: rest.swfAdvisorSafetyThresholdVotes ? JSON.parse(JSON.stringify(rest.swfAdvisorSafetyThresholdVotes)) : undefined,
     swfLeverageTargetVotes: rest.swfLeverageTargetVotes ? JSON.parse(JSON.stringify(rest.swfLeverageTargetVotes)) : undefined,
@@ -8874,6 +8886,85 @@ export function reconcileSWFYieldArbitragePolicies(state: GameState, pack: any):
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[SWF Yield Arbitrage Policy] SWF Yield Arbitrage policy for Syndicate ${syndicateId} set by consensus majority (Enabled: ${fullyApprovedCombination.enabled}, Auto-Withdrawal: ${fullyApprovedCombination.autoWithdrawalEnabled}, Yield Thresholds: ${JSON.stringify(fullyApprovedCombination.yieldThresholds)}).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFStakingPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfStakingPolicyVotes: state.swfStakingPolicyVotes ? { ...state.swfStakingPolicyVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.swfStakingPolicyVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      enabled: boolean;
+      stakedFactions: Record<string, number>;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const sortedFactions = Object.entries(vote.stakedFactions || {})
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([k, v]) => `${k}:${v}`)
+          .join(",");
+        const key = `${vote.enabled}::${sortedFactions}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            enabled: vote.enabled,
+            stakedFactions: vote.stakedFactions,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfStakingEnabled: fullyApprovedCombination.enabled,
+        swfStakingTargets: fullyApprovedCombination.stakedFactions,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      if (newState.swfStakingPolicyVotes) {
+        delete newState.swfStakingPolicyVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Staking Policy] SWF Staking policy for Syndicate ${syndicateId} set by consensus majority (Enabled: ${fullyApprovedCombination.enabled}, Staked Factions Targets: ${JSON.stringify(fullyApprovedCombination.stakedFactions)}).`
       );
     }
   }

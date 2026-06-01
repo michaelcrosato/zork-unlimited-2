@@ -2199,7 +2199,17 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           loansChanged = true;
 
           // 2. Check for default / enforcer debt-recovery sweep
-          if (newState.step > updatedLoan.dueStep) {
+          let factionGraceExtension = 0;
+          const agentSyndicateId = Object.keys(newState.syndicates ?? {}).find(sid => newState.syndicates?.[sid]?.members.includes(agentId));
+          if (agentSyndicateId) {
+            const mAcc = newState.marginAccounts?.[agentSyndicateId];
+            if (mAcc && mAcc.swfGracePeriodExtensions) {
+              for (const steps of Object.values(mAcc.swfGracePeriodExtensions)) {
+                factionGraceExtension += steps;
+              }
+            }
+          }
+          if (newState.step > updatedLoan.dueStep + factionGraceExtension) {
             // Debt-recovery sweep!
             const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
             const agentGold = newState.vars[goldKey] ?? 0;
@@ -2353,7 +2363,14 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       jointLoansChanged = true;
 
       // 2. Check for default / enforcer debt-recovery sweep
-      if (newState.step > updatedJointLoan.dueStep + (updatedJointLoan.gracePeriodSteps ?? 0)) {
+      let factionGraceExtension = 0;
+      const mAcc = newState.marginAccounts?.[updatedJointLoan.syndicateId];
+      if (mAcc && mAcc.swfGracePeriodExtensions) {
+        for (const steps of Object.values(mAcc.swfGracePeriodExtensions)) {
+          factionGraceExtension += steps;
+        }
+      }
+      if (newState.step > updatedJointLoan.dueStep + (updatedJointLoan.gracePeriodSteps ?? 0) + factionGraceExtension) {
         // Increment group defaults counter
         if (!newState.groupDefaults) {
           newState.groupDefaults = {};
@@ -2965,7 +2982,17 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             asset.value = updatedLoan.amount + updatedLoan.interestAccrued;
             cashflowCollected += interest;
 
-            if (newState.step > updatedLoan.dueStep) {
+            let factionGraceExtension = 0;
+            const agentSyndicateId = Object.keys(newState.syndicates ?? {}).find(sid => newState.syndicates?.[sid]?.members.includes(updatedLoan.agentId));
+            if (agentSyndicateId) {
+              const mAcc = newState.marginAccounts?.[agentSyndicateId];
+              if (mAcc && mAcc.swfGracePeriodExtensions) {
+                for (const steps of Object.values(mAcc.swfGracePeriodExtensions)) {
+                  factionGraceExtension += steps;
+                }
+              }
+            }
+            if (newState.step > updatedLoan.dueStep + factionGraceExtension) {
               const agentId = updatedLoan.agentId;
               const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
               const agentGold = newState.vars[goldKey] ?? 0;
@@ -4081,6 +4108,70 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
+      // AF-136: Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions
+      if (marginAccount.swfStakingEnabled && marginAccount.collateral > 0 && marginAccount.swfLiquidityBuffer !== undefined && marginAccount.swfLiquidityBuffer > 0) {
+        const stakedFactions: Record<string, number> = {};
+        const stakingYields: Record<string, number> = {};
+        const graceExtensions: Record<string, number> = {};
+        
+        const bufferGold = marginAccount.swfLiquidityBuffer;
+        
+        for (const [factionId, pct] of Object.entries(marginAccount.swfStakingTargets || {})) {
+          if (pct > 0) {
+            const stakedAmount = Math.floor(bufferGold * (pct / 100));
+            if (stakedAmount > 0) {
+              stakedFactions[factionId] = stakedAmount;
+              
+              // Calculate dynamic yield rate for the faction:
+              // Base yield rate 0.04 (4%), boosted by faction reputation (0.002 or 0.2% per reputation point)
+              const factionRep = newState.factionRep?.[factionId] ?? 0;
+              const yieldBoost = Math.max(0, factionRep * 0.002);
+              const yieldRate = 0.04 + yieldBoost;
+              stakingYields[factionId] = yieldRate;
+              
+              // Passive gold yield earned this step:
+              const goldEarned = Math.floor(stakedAmount * yieldRate);
+              if (goldEarned > 0) {
+                marginAccount.collateral += goldEarned;
+                // Since yield is returned to collateral, it increases the SWF liquidity buffer too
+                marginAccount.swfLiquidityBuffer = (marginAccount.swfLiquidityBuffer ?? 0) + goldEarned;
+                
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[SWF Staking Yield] Syndicate ${syndicateId} earned ${goldEarned} gold yield from staking ${stakedAmount} gold in faction ${factionId} staking pool (Yield Rate: ${(yieldRate * 100).toFixed(1)}%).`
+                );
+              }
+              
+              // Passive reputation accruals:
+              // 1 reputation point accrued per 50 gold staked, minimum of 1 point if staked > 0
+              const repAccrued = Math.max(1, Math.floor(stakedAmount / 50));
+              if (!newState.factionRep) newState.factionRep = {};
+              newState.factionRep[factionId] = (newState.factionRep[factionId] ?? 0) + repAccrued;
+              
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[SWF Staking Reputation] Syndicate ${syndicateId} accrued +${repAccrued} reputation with faction ${factionId} from active SWF staking.`
+              );
+              
+              // Grace Period Extensions:
+              // +1 step of grace period extension for loans per 100 gold staked
+              const graceSteps = Math.floor(stakedAmount / 100);
+              if (graceSteps > 0) {
+                graceExtensions[factionId] = graceSteps;
+              }
+            }
+          }
+        }
+        
+        marginAccount.swfStakedFactions = stakedFactions;
+        marginAccount.swfStakingYields = stakingYields;
+        marginAccount.swfGracePeriodExtensions = graceExtensions;
+      } else {
+        marginAccount.swfStakedFactions = {};
+        marginAccount.swfStakingYields = {};
+        marginAccount.swfGracePeriodExtensions = {};
+      }
+
       if (marginAccount.collateral === 0 &&
           (!marginAccount.leveragedCDSIds || marginAccount.leveragedCDSIds.length === 0) &&
           (!marginAccount.leveragedSWFYieldCDOCDSIds || marginAccount.leveragedSWFYieldCDOCDSIds.length === 0) &&
@@ -4550,15 +4641,25 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           newState.journal.push(
             `[Bridge Repaid] Bridge loan ${loanId} has been fully repaid by Syndicate ${loan.borrowerSyndicateId} to Syndicate ${loan.lenderSyndicateId}.`
           );
-        } else if (newState.step > updatedLoan.dueStep) {
-          // Default!
-          updatedLoan.status = "Defaulted";
-          // Dominance penalty
-          borrower.dominance = Math.max(0, (borrower.dominance ?? 0) - 10);
-          if (!newState.journal) newState.journal = [];
-          newState.journal.push(
-            `[Bridge Defaulted] Bridge loan ${loanId} went into default as Borrower Syndicate ${loan.borrowerSyndicateId} failed to repay the remaining ${updatedLoan.remainingRepayment} gold by step ${updatedLoan.dueStep}! Borrower dominance reduced by 10.`
-          );
+        } else {
+          let factionGraceExtension = 0;
+          const borrowerSyndicateId = loan.borrowerSyndicateId;
+          const mAcc = newState.marginAccounts?.[borrowerSyndicateId];
+          if (mAcc && mAcc.swfGracePeriodExtensions) {
+            for (const steps of Object.values(mAcc.swfGracePeriodExtensions)) {
+              factionGraceExtension += steps;
+            }
+          }
+          if (newState.step > updatedLoan.dueStep + factionGraceExtension) {
+            // Default!
+            updatedLoan.status = "Defaulted";
+            // Dominance penalty
+            borrower.dominance = Math.max(0, (borrower.dominance ?? 0) - 10);
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Bridge Defaulted] Bridge loan ${loanId} went into default as Borrower Syndicate ${loan.borrowerSyndicateId} failed to repay the remaining ${updatedLoan.remainingRepayment} gold by step ${updatedLoan.dueStep}! Borrower dominance reduced by 10.`
+            );
+          }
         }
 
         newState.crossMeshBridgeLoans[loanId] = updatedLoan;

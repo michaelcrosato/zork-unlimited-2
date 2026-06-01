@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #135 (Ready for Cycle #136)
-* **Build/Test Status**: 🟢 PASS (All 595 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #136 (Ready for Cycle #137)
+* **Build/Test Status**: 🟢 PASS (All 603 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -811,16 +811,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire automated arbitrage rebalancing and auto-drawdowns into the economy ticks (`AF-135`).
 - [x] Write comprehensive integration and Gossip mesh convergence tests (`AF-135`).
 
+### Phase 114: Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions (Completed)
+- [x] Define faction SWF staking pool and grace period extension state variables inside MarginAccount (`AF-136`).
+- [x] Implement decentralized consensus actions to authorize SWF buffer staking (`AF-136`).
+- [x] Wire staking yields and reputation accruals back to margin collateral inside economy ticks (`AF-136`).
+- [x] Write robust unit and integration tests (`AF-136`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-136`
-* **Objective**: Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions.
-* **Why this matters**: Support locking/staking of unused SWF liquidity buffer gold into high-yield faction staking pools to optimize passive reputation and gold gains while maintaining liquidity safety nets.
+**Task ID**: `AF-137`
+* **Objective**: Syndicate SWF Cooperative Staking Campaigns & Faction Sovereignty Yield Multipliers.
+* **Why this matters**: Support dynamic, multi-syndicate pooled staking campaigns that boost yields dynamically when total staked amount inside a faction pool reaches mesh-wide consensus milestones, further incentivizing coalition staking.
 * **Planned Actions**:
-  1. Define faction SWF staking pool and grace period extension state variables inside MarginAccount.
-  2. Implement decentralized consensus actions to authorize SWF buffer staking.
-  3. Wire staking yields and reputation accruals back to margin collateral inside economy ticks.
+  1. Define cooperative SWF staking campaign schemas inside `GameState`.
+  2. Implement decentralized actions to propose, authorize, or join cooperative staking campaigns.
+  3. Scale staking yields and reputation boosts dynamically during economy ticks based on campaign milestone achievements.
   4. Write robust unit and integration tests.
 
 ---

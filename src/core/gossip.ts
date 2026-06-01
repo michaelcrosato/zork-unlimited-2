@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies, reconcileSWFStakingPolicies } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -2055,6 +2055,24 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfStakingPolicyVotes using LWW
+  const swfStakingPolicyVotes = { ...stateA.swfStakingPolicyVotes };
+  if (stateB.swfStakingPolicyVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfStakingPolicyVotes)) {
+      if (!swfStakingPolicyVotes[syndicateId]) {
+        swfStakingPolicyVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfStakingPolicyVotes[syndicateId] = { ...swfStakingPolicyVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfStakingPolicyVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfStakingPolicyVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   // Merge swfRebalancingAdvisorVotes using LWW
   const swfRebalancingAdvisorVotes = { ...stateA.swfRebalancingAdvisorVotes };
   if (stateB.swfRebalancingAdvisorVotes) {
@@ -3093,6 +3111,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfMarginRehypothecationRevokeVotes,
     swfMarginRebalancingPolicyVotes,
     swfYieldArbitragePolicyVotes,
+    swfStakingPolicyVotes,
     swfRebalancingAdvisorVotes,
     swfAdvisorSafetyThresholdVotes,
     swfLeverageTargetVotes,
@@ -3474,6 +3493,7 @@ export class GossipNode {
     convergedState = reconcileJointLoanDebtSettlements(convergedState, this.pack);
     convergedState = reconcileJointLoanCollateralSwaps(convergedState, this.pack);
     convergedState = reconcileJointLoanGracePeriods(convergedState, this.pack);
+    convergedState = reconcileSWFStakingPolicies(convergedState, this.pack);
     convergedState = reconcileJointLoanPenaltyWaivers(convergedState, this.pack);
     convergedState = reconcileJointLoanUnderwrites(convergedState, this.pack);
     convergedState = reconcileRehabCampaign(convergedState, this.pack);

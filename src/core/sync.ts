@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileSWFMarginRehypothecations, reconcileSWFMarginRebalancingPolicies, reconcileSWFYieldArbitragePolicies, reconcileSWFRebalancingAdvisors, reconcileSWFAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors, reconcileSponsorAuditsAndRevocations, reconcileRewardSlashing, reconcileRehabCampaign, reconcileRehabSubsidy, getSyndicateFactionStanding, isFactionAlliedToSyndicate, getSyndicateFactionLoyaltyRank, getRequiredRankForVaultLevel, isRankAtLeast, reconcileClaimLoyaltyRanks, reconcileCooperativeYieldCampaigns, reconcileFactionCdoInsurancePools, reconcileMultiFactionCdoRiskRatings } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileSWFMarginRehypothecations, reconcileSWFMarginRebalancingPolicies, reconcileSWFYieldArbitragePolicies, reconcileSWFStakingPolicies, reconcileSWFRebalancingAdvisors, reconcileSWFAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors, reconcileSponsorAuditsAndRevocations, reconcileRewardSlashing, reconcileRehabCampaign, reconcileRehabSubsidy, getSyndicateFactionStanding, isFactionAlliedToSyndicate, getSyndicateFactionLoyaltyRank, getRequiredRankForVaultLevel, isRankAtLeast, reconcileClaimLoyaltyRanks, reconcileCooperativeYieldCampaigns, reconcileFactionCdoInsurancePools, reconcileMultiFactionCdoRiskRatings } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -20265,6 +20265,148 @@ export function multiAgentStep(
           autoWithdrawalEnabled,
           timestamp,
         });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized SET_SWF_STAKING_POLICY action (AF-136)
+  if ((action as any).type === "SET_SWF_STAKING_POLICY") {
+    const { syndicateId, enabled, stakedFactions, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to set SWF staking policy.`;
+    } else if (enabled === undefined) {
+      rejectionReason = `Enabled status is required to set SWF staking policy.`;
+    } else if (enabled && (!stakedFactions || Object.keys(stakedFactions).length === 0)) {
+      rejectionReason = `Staked factions targets are required when SWF staking is enabled.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on SWF staking policy.`;
+    } else {
+      let sumPct = 0;
+      let validPcts = true;
+      for (const [factionId, pct] of Object.entries(stakedFactions || {})) {
+        if (!factionId) {
+          validPcts = false;
+          rejectionReason = `Faction ID cannot be empty.`;
+          break;
+        }
+        if (typeof pct !== "number" || pct < 0 || pct > 100 || !Number.isInteger(pct)) {
+          validPcts = false;
+          rejectionReason = `Staking target percentage for faction ${factionId} must be a non-negative integer up to 100.`;
+          break;
+        }
+        sumPct += pct;
+      }
+      if (validPcts) {
+        if (sumPct > 100) {
+          rejectionReason = `Total SWF staking target percentage (${sumPct}%) cannot exceed 100%.`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const swfStakingPolicyVotes = { ...(state.swfStakingPolicyVotes || {}) };
+      if (!swfStakingPolicyVotes[syndicateId]) {
+        swfStakingPolicyVotes[syndicateId] = {};
+      } else {
+        swfStakingPolicyVotes[syndicateId] = { ...swfStakingPolicyVotes[syndicateId] };
+      }
+
+      const existingVote = swfStakingPolicyVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        swfStakingPolicyVotes[syndicateId][agentId] = {
+          enabled,
+          stakedFactions,
+          timestamp,
+        };
+        newState.swfStakingPolicyVotes = swfStakingPolicyVotes;
+        newState = reconcileSWFStakingPolicies(newState, pack);
+
+        const currentMA = newState.marginAccounts?.[syndicateId];
+        const isEnabled = currentMA?.swfStakingEnabled || false;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Staking Policy Vote] Agent ${agentId} voted on SWF staking policy for Syndicate ${syndicateId}. Consensus enabled: ${isEnabled}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Staking policy vote cast by ${agentId} for Syndicate ${syndicateId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_staking_policy_voted" as any,
+          syndicateId,
+          voterId: agentId,
+          enabled,
+          stakedFactions,
+          timestamp,
+        } as any);
       } else {
         ok = true;
       }
