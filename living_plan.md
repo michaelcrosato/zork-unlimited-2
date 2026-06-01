@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #208 (Ready for Cycle #209)
-* **Build/Test Status**: 🟢 PASS (All 753 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #209 (Ready for Cycle #210)
+* **Build/Test Status**: 🟢 PASS (All 754 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1336,18 +1336,25 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Route any fee surpluses above the base cost to the alliance's shared sweep pool (`swfStakingSweepPool`) to stabilize the mesh treasury (`AF-210`).
 - [x] Write comprehensive Vitest integration tests inside `tests/syndicates_swf_reinvestment.test.ts` and ensure full engine compilation/autopilot validation (`AF-210`).
 
+### Phase 189: Syndicate SWF Sweep Pool Volatility Hedging Policy Automation (Completed)
+- [x] Define a `PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY` and `VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY` action schema in `types.ts` and `state.ts` (`AF-211`).
+- [x] Implement dynamic proposal and vote fees with alliance and reserve scaling (`AF-211`).
+- [x] Wire the economy tick to automatically purchase volatility insurance options when regional weather volatility indexes spike, maintaining reserves above the reserve floor (`AF-211`).
+- [x] Write comprehensive Vitest integration tests inside `tests/syndicates_swf_reinvestment.test.ts` verifying policy authorization, automated hedging triggers, and reserve balance protections (`AF-211`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-211`
-* **Objective**: Syndicate SWF Sweep Pool Yield Re-investment Automation Volatility Hedging and Dynamic Portfolio Calibration.
-* **Why this matters**: Create a volatility hedging policy that uses reserves from the sweep pool to automatically hedge CDO yields during extreme weather/market volatility events, reducing slashing risks and maintaining treasury reserves above a critical liquidity floor.
+**Task ID**: `AF-212`
+* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Oracle and Dynamic Price Speculation.
+* **Why this matters**: Introduce weather forecast oracles that dynamically adjust volatility hedging purchase sizes based on predicted weather volatility, optimizing hedging costs and increasing yield during periods of predicted stable weather.
 * **Planned Actions**:
-  1. Define a `PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY` and `VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY` action schema.
-  2. Implement an automated hedging transaction in the economy tick that uses sweep pool gold to purchase volatility insurance options when regional weather volatility indexes spike.
-  3. Write Vitest integration tests in `tests/syndicates_swf_reinvestment.test.ts` verifying policy authorization, automated hedging triggers, and reserve balance protections.
+  1. Define a `PROPOSE_WEATHER_FORECAST_ORACLE` and `VOTE_WEATHER_FORECAST_ORACLE` action schema.
+  2. Implement a forecasting mechanism in the economy tick that queries predicted weather states and reduces/increases the dynamic volatility hedging ratio based on predicted stability.
+  3. Write comprehensive Vitest integration tests in `tests/syndicates_swf_reinvestment.test.ts` verifying oracle authorization, forecasting-scaled purchases, and cost optimizations.
 
 ---
+
 
 
 ## ⚠️ Risks & Mitigation

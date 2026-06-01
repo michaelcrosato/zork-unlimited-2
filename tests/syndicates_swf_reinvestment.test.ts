@@ -2232,5 +2232,115 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       expect(state.swfStakingSweepPool).toBe(100);
     });
   });
+
+  describe("AF-211: Sweep Pool Volatility Hedging Policy", () => {
+    it("should successfully propose, vote to authorize, and tick volatility hedging", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player", "alice"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player", "alice"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+      };
+
+      // 1. Propose volatility hedging policy
+      let stepResult = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY",
+            proposalId: "hedge_prop_1",
+            syndicateId: "alpha",
+            volatilityThreshold: 60,
+            hedgingRatio: 80,
+            reserveFloor: 100,
+            timestamp: 1005,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult.ok).toBe(true);
+      state = stepResult.state;
+
+      let prop = state.sweepPoolVolatilityHedgingProposals?.["hedge_prop_1"];
+      expect(prop?.status).toBe("proposed");
+      expect(prop?.resolved).toBe(false);
+
+      // 2. Vote to authorize by Alice
+      let stepResult2 = multiAgentStep(
+        state,
+        {
+          agentId: "alice",
+          action: {
+            type: "VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY",
+            syndicateId: "alpha",
+            proposalId: "hedge_prop_1",
+            vote: true,
+            timestamp: 1020,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult2.ok).toBe(true);
+      state = stepResult2.state;
+
+      let propAfter = state.sweepPoolVolatilityHedgingProposals?.["hedge_prop_1"];
+      expect(propAfter?.status).toBe("authorized");
+      expect(propAfter?.resolved).toBe(true);
+
+      // Verify GameState fields are updated
+      expect(state.sweepPoolVolatilityHedgingThreshold).toBe(60);
+      expect(state.sweepPoolVolatilityHedgingRatio).toBe(80);
+      expect(state.sweepPoolVolatilityHedgingReserveFloor).toBe(100);
+      expect(state.sweepPoolVolatilityHedgingPolicyAuthorized).toBe(true);
+
+      // 3. Test economy tick under normal weather (volatility does not spike)
+      state.environment = {
+        weather: "clear",
+        temperature: "mild",
+        wind: "calm",
+        lastUpdatedStep: state.step,
+      };
+      state.swfStakingSweepPool = 500;
+
+      let tickedState = tickEconomy(state, mockPack);
+      // Sweep pool gold should remain untouched because clear weather is below threshold 60
+      expect(tickedState.swfStakingSweepPool).toBe(500);
+
+      // 4. Test economy tick under stormy weather (volatility spikes)
+      tickedState.environment = {
+        weather: "storm", // 50
+        temperature: "cold",
+        wind: "tempest", // 30 => total 80 >= 60 threshold!
+        lastUpdatedStep: tickedState.step,
+      };
+
+      // Spiked!
+      // Available gold = 500 - 100 (reserve floor) = 400
+      // Hedge cost = 400 * 80% = 320
+      // New sweep pool gold = 500 - 320 = 180
+      let tickedState2 = tickEconomy(tickedState, mockPack);
+      expect(tickedState2.swfStakingSweepPool).toBe(180);
+
+      // Volatility insurance pool balance should have increased by 320
+      const insurancePools = Object.values(tickedState2.swfReinsuranceOptionVolatilityInsurancePools || {});
+      expect(insurancePools.length).toBeGreaterThan(0);
+      expect(insurancePools[0].balance).toBe(320);
+    });
+  });
 });
+
 

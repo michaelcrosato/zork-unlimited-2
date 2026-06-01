@@ -2734,6 +2734,23 @@ export const SweepPoolRedistributionFeeGovernanceCapVoteSchema = z.object({
 });
 export type SweepPoolRedistributionFeeGovernanceCapVote = z.infer<typeof SweepPoolRedistributionFeeGovernanceCapVoteSchema>;
 
+export const SweepPoolVolatilityHedgingProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  volatilityThreshold: z.number().nonnegative(),
+  hedgingRatio: z.number().nonnegative().max(100),
+  reserveFloor: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SweepPoolVolatilityHedgingProposal = z.infer<typeof SweepPoolVolatilityHedgingProposalSchema>;
+
+
 
 
 
@@ -3666,6 +3683,12 @@ export const GameStateSchema = z.object({
   sweepPoolRankAdjustFeeGovernanceCapVotes: z.record(z.string(), z.record(z.string(), SweepPoolRankAdjustFeeGovernanceCapVoteSchema)).optional(),
   sweepPoolRedistributionFeeGovernanceCapProposals: z.record(z.string(), SweepPoolRedistributionFeeGovernanceCapProposalSchema).optional(),
   sweepPoolRedistributionFeeGovernanceCapVotes: z.record(z.string(), z.record(z.string(), SweepPoolRedistributionFeeGovernanceCapVoteSchema)).optional(),
+  sweepPoolVolatilityHedgingProposals: z.record(z.string(), SweepPoolVolatilityHedgingProposalSchema).optional(),
+  sweepPoolVolatilityHedgingThreshold: z.number().nonnegative().optional(),
+  sweepPoolVolatilityHedgingRatio: z.number().nonnegative().optional(),
+  sweepPoolVolatilityHedgingReserveFloor: z.number().int().nonnegative().optional(),
+  sweepPoolVolatilityHedgingPolicyAuthorized: z.boolean().optional(),
+
 
 
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
@@ -4081,6 +4104,8 @@ export const createInitialState = (options: {
     sweepPoolRankAdjustFeeGovernanceCapVotes: {},
     sweepPoolRedistributionFeeGovernanceCapProposals: {},
     sweepPoolRedistributionFeeGovernanceCapVotes: {},
+    sweepPoolVolatilityHedgingProposals: {},
+
 
 
     swfReinsuranceOptionPremiumContributions: {},
@@ -9029,6 +9054,52 @@ export function reconcileSweepPoolRedistribution(state: GameState, pack: any): G
 
   return newState;
 }
+
+export function reconcileSweepPoolVolatilityHedging(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sweepPoolVolatilityHedgingProposals: state.sweepPoolVolatilityHedgingProposals ? { ...state.sweepPoolVolatilityHedgingProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sweepPoolVolatilityHedgingProposals || {})) {
+    const proposal = newState.sweepPoolVolatilityHedgingProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, volatilityThreshold, hedgingRatio, reserveFloor } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sweepPoolVolatilityHedgingProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      // Set GameState values!
+      newState.sweepPoolVolatilityHedgingThreshold = volatilityThreshold;
+      newState.sweepPoolVolatilityHedgingRatio = hedgingRatio;
+      newState.sweepPoolVolatilityHedgingReserveFloor = reserveFloor;
+      newState.sweepPoolVolatilityHedgingPolicyAuthorized = true;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Volatility Hedging Resolved] Syndicate ${syndicateId} successfully authorized sweep pool volatility hedging policy proposal ${proposalId} (Threshold: ${volatilityThreshold}, Ratio: ${hedgingRatio}%, Reserve Floor: ${reserveFloor} gold).`
+      );
+    }
+  }
+
+  return newState;
+}
+
 
 export function reconcileSweepPoolRankAdjust(state: GameState, pack: any): GameState {
   const newState = {

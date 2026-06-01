@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -39511,6 +39511,302 @@ export function multiAgentStep(
       rejectionReason,
     };
   }
+
+  // Handle PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY action (AF-211)
+  if ((action as any).type === "PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY") {
+    const { proposalId, syndicateId, volatilityThreshold, hedgingRatio, reserveFloor, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    // Calculate dynamic proposal fee
+    const allies = Object.keys(state.syndicates || {}).filter(otherId => {
+      if (otherId === syndicateId) return false;
+      return (
+        state.syndicateAlliances?.[syndicateId]?.[otherId] === "allied" ||
+        state.syndicateAlliances?.[otherId]?.[syndicateId] === "allied"
+      );
+    });
+    const allianceCount = allies.length;
+    const proposerWarChest = syndicate?.warChest ?? 0;
+    const alliesWarChest = allies.reduce((sum, allyId) => sum + (state.syndicates?.[allyId]?.warChest ?? 0), 0);
+    const totalTreasuryReserves = proposerWarChest + alliesWarChest;
+
+    const allianceScalar = Math.max(0.5, 1.0 - allianceCount * 0.1);
+    const reserveScalar = Math.max(0.5, 1.0 - Math.floor(totalTreasuryReserves / 1000) * 0.05);
+    const dynamicFeeMultiplier = allianceScalar * reserveScalar;
+
+    const baseProposalFee = 200;
+    const rawProposalFee = Math.round(baseProposalFee * dynamicFeeMultiplier);
+    const proposalFeeCap = 300;
+    const actualProposalFee = Math.min(rawProposalFee, proposalFeeCap);
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (volatilityThreshold === undefined || typeof volatilityThreshold !== "number" || volatilityThreshold < 0) {
+      rejectionReason = `Volatility threshold must be a non-negative number.`;
+    } else if (hedgingRatio === undefined || typeof hedgingRatio !== "number" || hedgingRatio < 0 || hedgingRatio > 100) {
+      rejectionReason = `Hedging ratio must be a percentage between 0 and 100.`;
+    } else if (reserveFloor === undefined || typeof reserveFloor !== "number" || reserveFloor < 0) {
+      rejectionReason = `Reserve floor must be a non-negative number.`;
+    } else if (!syndicate) {
+      rejectionReason = `Proposing Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposing syndicate ${syndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < actualProposalFee) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover proposal fee (${actualProposalFee} gold).`;
+    } else if (state.sweepPoolVolatilityHedgingProposals?.[proposalId]) {
+      rejectionReason = `Sweep pool volatility hedging proposal ${proposalId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - actualProposalFee);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      const surplus = actualProposalFee > baseProposalFee ? actualProposalFee - baseProposalFee : 0;
+      if (surplus > 0) {
+        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + surplus;
+      }
+
+      newState.sweepPoolVolatilityHedgingProposals = newState.sweepPoolVolatilityHedgingProposals ? { ...newState.sweepPoolVolatilityHedgingProposals } : {};
+      newState.sweepPoolVolatilityHedgingProposals[proposalId] = {
+        proposalId,
+        syndicateId,
+        volatilityThreshold,
+        hedgingRatio,
+        reserveFloor,
+        status: "proposed",
+        resolved: false,
+        timestamp,
+        votes: {
+          [agentId]: { vote: true, timestamp },
+        },
+      };
+
+      newState = reconcileSweepPoolVolatilityHedging(newState, pack);
+
+      const propStatus = newState.sweepPoolVolatilityHedgingProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Volatility Hedging Proposed] Agent ${agentId} proposed volatility hedging policy ${proposalId} (Threshold: ${volatilityThreshold}, Ratio: ${hedgingRatio}%, Reserve Floor: ${reserveFloor} gold, Status: ${propStatus.toUpperCase()}, Fee: ${actualProposalFee} gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Sweep pool volatility hedging policy proposal ${proposalId} created by ${agentId} for Syndicate ${syndicateId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "sweep_pool_volatility_hedging_proposed" as any,
+        proposalId,
+        agentId,
+        syndicateId,
+        volatilityThreshold,
+        hedgingRatio,
+        reserveFloor,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY action (AF-211)
+  if ((action as any).type === "VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const proposal = state.sweepPoolVolatilityHedgingProposals?.[proposalId];
+    const syndicate = state.syndicates?.[syndicateId];
+
+    // Calculate dynamic vote fee
+    const allies = Object.keys(state.syndicates || {}).filter(otherId => {
+      if (otherId === syndicateId) return false;
+      return (
+        state.syndicateAlliances?.[syndicateId]?.[otherId] === "allied" ||
+        state.syndicateAlliances?.[otherId]?.[syndicateId] === "allied"
+      );
+    });
+    const allianceCount = allies.length;
+    const proposerWarChest = syndicate?.warChest ?? 0;
+    const alliesWarChest = allies.reduce((sum, allyId) => sum + (state.syndicates?.[allyId]?.warChest ?? 0), 0);
+    const totalTreasuryReserves = proposerWarChest + alliesWarChest;
+
+    const allianceScalar = Math.max(0.5, 1.0 - allianceCount * 0.1);
+    const reserveScalar = Math.max(0.5, 1.0 - Math.floor(totalTreasuryReserves / 1000) * 0.05);
+    const dynamicFeeMultiplier = allianceScalar * reserveScalar;
+
+    const baseVoteFee = 50;
+    const rawVoteFee = Math.round(baseVoteFee * dynamicFeeMultiplier);
+    const voteFeeCap = 100;
+    const actualVoteFee = Math.min(rawVoteFee, voteFeeCap);
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (vote === undefined || typeof vote !== "boolean") {
+      rejectionReason = `Vote flag must be a boolean.`;
+    } else if (!proposal) {
+      rejectionReason = `Sweep pool volatility hedging policy proposal ${proposalId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on this proposal.`;
+    } else if ((syndicate.warChest ?? 0) < actualVoteFee) {
+      rejectionReason = `Syndicate ${syndicateId} does not have enough gold in war chest to cover vote fee (${actualVoteFee} gold).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && proposal && syndicate) {
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedSyndicate = { ...updatedSyndicates[syndicateId] };
+      updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - actualVoteFee);
+      updatedSyndicates[syndicateId] = updatedSyndicate;
+      newState.syndicates = updatedSyndicates;
+
+      const surplus = actualVoteFee > baseVoteFee ? actualVoteFee - baseVoteFee : 0;
+      if (surplus > 0) {
+        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + surplus;
+      }
+
+      newState.sweepPoolVolatilityHedgingProposals = { ...newState.sweepPoolVolatilityHedgingProposals };
+      const updatedProposal = { ...newState.sweepPoolVolatilityHedgingProposals[proposalId] };
+      updatedProposal.votes = updatedProposal.votes ? { ...updatedProposal.votes } : {};
+      updatedProposal.votes[agentId] = { vote, timestamp };
+      newState.sweepPoolVolatilityHedgingProposals[proposalId] = updatedProposal;
+
+      newState = reconcileSweepPoolVolatilityHedging(newState, pack);
+
+      const propStatus = newState.sweepPoolVolatilityHedgingProposals?.[proposalId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Volatility Hedging Voted] Agent ${agentId} voted to ${vote ? "AUTHORIZE" : "DISPUTE"} sweep pool volatility hedging policy proposal ${proposalId} (Status: ${propStatus.toUpperCase()}, Fee: ${actualVoteFee} gold).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ Sweep pool volatility hedging policy vote cast by ${agentId} for proposal ${proposalId} (Vote: ${vote ? "Authorize" : "Dispute"}).`,
+      } as any);
+
+      customEvents.push({
+        type: "sweep_pool_volatility_hedging_voted" as any,
+        proposalId,
+        agentId,
+        vote,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
 
 
   // Handle VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP action (AF-202)

@@ -7019,6 +7019,9 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
   // AF-184: Tick SWF Volatility Pools Automated Rebalancing & Yield Optimization
   finalState = tickSWFReinsuranceOptionVolatilityPoolRebalancing(finalState);
+
+  // AF-211: Sweep Pool Volatility Hedging Trigger
+  finalState = tickSweepPoolVolatilityHedging(finalState);
   return finalState;
 }
 
@@ -8763,4 +8766,79 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
 
   return newState;
 }
+
+export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
+  const newState = {
+    ...state,
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  if (
+    newState.sweepPoolVolatilityHedgingPolicyAuthorized !== true ||
+    newState.sweepPoolVolatilityHedgingThreshold === undefined ||
+    newState.sweepPoolVolatilityHedgingRatio === undefined ||
+    newState.sweepPoolVolatilityHedgingReserveFloor === undefined
+  ) {
+    return state;
+  }
+
+  // 1. Calculate current regional weather volatility index
+  const env = newState.environment;
+  if (!env) return state;
+
+  let baseVol = 0;
+  if (env.weather === "storm") baseVol = 50;
+  else if (env.weather === "rain") baseVol = 20;
+  else if (env.weather === "fog") baseVol = 15;
+  else if (env.weather === "clear") baseVol = 5;
+
+  let windVol = 0;
+  if (env.wind === "tempest") windVol = 30;
+  else if (env.wind === "gale") windVol = 15;
+  else if (env.wind === "breezy") windVol = 5;
+
+  const currentWeatherVol = baseVol + windVol;
+
+  // 2. Check if index spikes above the threshold
+  if (currentWeatherVol >= newState.sweepPoolVolatilityHedgingThreshold) {
+    // 3. Spiked! Spend sweep pool gold above the reserve floor
+    const availableGold = Math.max(0, (newState.swfStakingSweepPool ?? 0) - newState.sweepPoolVolatilityHedgingReserveFloor);
+    const hedgeCost = Math.floor(availableGold * (newState.sweepPoolVolatilityHedgingRatio / 100));
+
+    if (hedgeCost > 0) {
+      newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) - hedgeCost;
+
+      if (!newState.swfReinsuranceOptionVolatilityInsurancePools) {
+        newState.swfReinsuranceOptionVolatilityInsurancePools = {};
+      }
+
+      const firstPoolKey = Object.keys(newState.swfReinsuranceOptionVolatilityInsurancePools)[0] || "default_weather_vol_pool";
+      if (!newState.swfReinsuranceOptionVolatilityInsurancePools[firstPoolKey]) {
+        newState.swfReinsuranceOptionVolatilityInsurancePools[firstPoolKey] = {
+          id: firstPoolKey,
+          swfYieldCdoId: "default_cdo",
+          trancheId: "senior",
+          balance: 0,
+          timestamp: newState.step,
+        };
+      }
+
+      const pool = { ...newState.swfReinsuranceOptionVolatilityInsurancePools[firstPoolKey] };
+      pool.balance = (pool.balance ?? 0) + hedgeCost;
+      pool.timestamp = newState.step;
+
+      newState.swfReinsuranceOptionVolatilityInsurancePools = {
+        ...newState.swfReinsuranceOptionVolatilityInsurancePools,
+        [firstPoolKey]: pool,
+      };
+
+      newState.journal.push(
+        `[Sweep Pool Volatility Hedging Triggered] Regional weather volatility index spiked to ${currentWeatherVol} >= Threshold ${newState.sweepPoolVolatilityHedgingThreshold}! Automatically purchased volatility insurance options by spending ${hedgeCost} gold from sweep pool reserves, maintaining reserve floor above ${newState.sweepPoolVolatilityHedgingReserveFloor} gold (New Volatility Insurance Pool ${firstPoolKey} Balance: ${pool.balance} gold).`
+      );
+    }
+  }
+
+  return newState;
+}
+
 
