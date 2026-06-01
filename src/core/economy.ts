@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -2669,6 +2669,56 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
     }
+  }
+
+  // AF-106: Secondary Reserve Yield-Bearing Vaults & Liquidity Investment Pools
+  const investments = newState.secondaryReserveInvestments;
+  if (investments) {
+    const updatedInvestments = JSON.parse(JSON.stringify(investments));
+    for (const [syndicateId, vaultInvestments] of Object.entries(updatedInvestments)) {
+      for (const [vaultId, investment] of Object.entries(vaultInvestments as Record<string, any>)) {
+        if (investment.investedGold > 0) {
+          const vaults = getSecondaryReserveVaults(newState);
+          const vault = vaults[vaultId];
+          if (!vault) continue;
+
+          // 1. Calculate passive interest yield
+          let interest = 0;
+          if (vault.interestRate > 0) {
+            interest = Math.max(1, Math.floor(investment.investedGold * vault.interestRate));
+          }
+
+          // 2. Roll for enforcer sweep risk
+          const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+          newState.seed = nextSeed;
+
+          const riskPercentage = Math.round(vault.sweepRisk * 100);
+          if (riskPercentage > 0 && sweepRoll <= riskPercentage) {
+            // Liquidated!
+            const lostGold = investment.investedGold;
+            investment.investedGold = 0;
+            investment.timestamp = newState.step;
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Enforcer Sweep] Regulators swept yield-bearing vault ${vault.name} (${vaultId}) of syndicate ${syndicateId}! Liquidated all ${lostGold} gold invested (Sweep Roll: ${sweepRoll} <= Risk: ${riskPercentage}%).`
+            );
+          } else {
+            // Earn yield!
+            if (interest > 0) {
+              investment.investedGold += interest;
+              investment.timestamp = newState.step;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Vault Yield] Syndicate ${syndicateId} earned ${interest} gold passive interest from ${vault.name} (${vaultId}) (New balance: ${investment.investedGold} gold).`
+              );
+            }
+          }
+        }
+      }
+    }
+    newState.secondaryReserveInvestments = updatedInvestments;
   }
 
   return newState;

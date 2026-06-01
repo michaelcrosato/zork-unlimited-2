@@ -1855,6 +1855,36 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge secondaryReserveVaults using LWW (Last-Write-Wins)
+  const secondaryReserveVaults = { ...stateA.secondaryReserveVaults };
+  if (stateB.secondaryReserveVaults) {
+    for (const [key, vaultB] of Object.entries(stateB.secondaryReserveVaults)) {
+      const vaultA = secondaryReserveVaults[key];
+      if (!vaultA || vaultB.timestamp > vaultA.timestamp) {
+        secondaryReserveVaults[key] = vaultB;
+      }
+    }
+  }
+
+  // Merge secondaryReserveInvestments using LWW (Last-Write-Wins)
+  const secondaryReserveInvestments = { ...stateA.secondaryReserveInvestments };
+  if (stateB.secondaryReserveInvestments) {
+    for (const [syndicateId, bInner] of Object.entries(stateB.secondaryReserveInvestments)) {
+      if (!secondaryReserveInvestments[syndicateId]) {
+        secondaryReserveInvestments[syndicateId] = { ...bInner };
+      } else {
+        const aInner = { ...secondaryReserveInvestments[syndicateId] };
+        for (const [vaultId, investB] of Object.entries(bInner)) {
+          const investA = aInner[vaultId];
+          if (!investA || investB.timestamp > investA.timestamp) {
+            aInner[vaultId] = investB;
+          }
+        }
+        secondaryReserveInvestments[syndicateId] = aInner;
+      }
+    }
+  }
+
   // Merge reserveRatioVotes using LWW (Last-Write-Wins)
   const reserveRatioVotes = { ...stateA.reserveRatioVotes };
   if (stateB.reserveRatioVotes) {
@@ -2003,6 +2033,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     secondaryReserves,
     reserveRatioVotes,
     automatedBailouts,
+    secondaryReserveVaults,
+    secondaryReserveInvestments,
   };
 }
 

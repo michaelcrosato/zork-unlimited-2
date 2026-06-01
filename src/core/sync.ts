@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -17286,6 +17286,263 @@ export function multiAgentStep(
         sourceSyndicateId,
         targetSyndicateId,
         bailoutAmount,
+        agentId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized INVEST_SECONDARY_RESERVE action (AF-106)
+  if ((action as any).type === "INVEST_SECONDARY_RESERVE") {
+    const { syndicateId, vaultId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const reserve = state.secondaryReserves?.[syndicateId];
+    const vaults = getSecondaryReserveVaults(state);
+    const vault = vaults[vaultId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to invest secondary reserves.`;
+    } else if (!vaultId) {
+      rejectionReason = `Vault ID is required to invest secondary reserves.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Investment amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!vault) {
+      rejectionReason = `Investment vault ${vaultId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot invest.`;
+    } else if (!reserve || reserve.reserveGold < amount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient secondary reserves (has ${reserve?.reserveGold ?? 0}, requested ${amount}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && reserve) {
+      // Deduct from secondary reserves
+      newState.secondaryReserves = {
+        ...(state.secondaryReserves || {}),
+        [syndicateId]: {
+          ...reserve,
+          reserveGold: reserve.reserveGold - amount,
+          timestamp,
+        },
+      };
+
+      // Add to investments
+      const groupInvestments = { ...(state.secondaryReserveInvestments?.[syndicateId] || {}) };
+      const currentInvestment = groupInvestments[vaultId];
+      groupInvestments[vaultId] = {
+        syndicateId,
+        vaultId,
+        investedGold: (currentInvestment?.investedGold ?? 0) + amount,
+        timestamp,
+      };
+
+      newState.secondaryReserveInvestments = {
+        ...(state.secondaryReserveInvestments || {}),
+        [syndicateId]: groupInvestments,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Reserve Investment] Agent ${agentId} invested ${amount} gold of secondary reserves of syndicate ${syndicateId} into vault ${vault.name} (${vaultId}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📈 Secondary reserves investment! ${syndicateId} invested ${amount} gold into yield-bearing vault ${vault.name}.`,
+      } as any);
+
+      customEvents.push({
+        type: "secondary_reserve_invested" as any,
+        syndicateId,
+        vaultId,
+        amount,
+        agentId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized WITHDRAW_SECONDARY_RESERVE action (AF-106)
+  if ((action as any).type === "WITHDRAW_SECONDARY_RESERVE") {
+    const { syndicateId, vaultId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const reserve = state.secondaryReserves?.[syndicateId];
+    const vaults = getSecondaryReserveVaults(state);
+    const vault = vaults[vaultId];
+    const currentInvestment = state.secondaryReserveInvestments?.[syndicateId]?.[vaultId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to withdraw secondary reserves.`;
+    } else if (!vaultId) {
+      rejectionReason = `Vault ID is required to withdraw secondary reserves.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Withdrawal amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!vault) {
+      rejectionReason = `Investment vault ${vaultId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot withdraw.`;
+    } else if (!currentInvestment || currentInvestment.investedGold < amount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient invested gold in vault ${vaultId} (has ${currentInvestment?.investedGold ?? 0}, requested ${amount}).`;
+    } else if (!reserve) {
+      rejectionReason = `Secondary reserve for syndicate ${syndicateId} does not exist.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && reserve && currentInvestment) {
+      // Add back to secondary reserves
+      newState.secondaryReserves = {
+        ...(state.secondaryReserves || {}),
+        [syndicateId]: {
+          ...reserve,
+          reserveGold: reserve.reserveGold + amount,
+          timestamp,
+        },
+      };
+
+      // Deduct from investments
+      const groupInvestments = { ...(state.secondaryReserveInvestments?.[syndicateId] || {}) };
+      groupInvestments[vaultId] = {
+        ...currentInvestment,
+        investedGold: currentInvestment.investedGold - amount,
+        timestamp,
+      };
+
+      newState.secondaryReserveInvestments = {
+        ...(state.secondaryReserveInvestments || {}),
+        [syndicateId]: groupInvestments,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Reserve Withdrawal] Agent ${agentId} withdrew ${amount} gold of secondary reserves of syndicate ${syndicateId} from vault ${vault.name} (${vaultId}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `📉 Secondary reserves withdrawal! ${syndicateId} withdrew ${amount} gold from vault ${vault.name}.`,
+      } as any);
+
+      customEvents.push({
+        type: "secondary_reserve_withdrawn" as any,
+        syndicateId,
+        vaultId,
+        amount,
         agentId,
         timestamp,
       });

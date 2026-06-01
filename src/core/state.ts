@@ -1004,6 +1004,41 @@ export const AutomatedBailoutSchema = z.object({
 });
 export type AutomatedBailout = z.infer<typeof AutomatedBailoutSchema>;
 
+export const SecondaryReserveVaultSchema = z.object({
+  vaultId: z.string(),
+  name: z.string(),
+  interestRate: z.number(),
+  sweepRisk: z.number(),
+  timestamp: z.number().int(),
+});
+export type SecondaryReserveVault = z.infer<typeof SecondaryReserveVaultSchema>;
+
+export const SecondaryReserveInvestmentSchema = z.object({
+  syndicateId: z.string(),
+  vaultId: z.string(),
+  investedGold: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SecondaryReserveInvestment = z.infer<typeof SecondaryReserveInvestmentSchema>;
+
+export const DEFAULT_SECONDARY_RESERVE_VAULTS: Record<string, { name: string; interestRate: number; sweepRisk: number }> = {
+  safe_savings: {
+    name: "Safe Savings Vault",
+    interestRate: 0.02,
+    sweepRisk: 0.0,
+  },
+  high_yield: {
+    name: "High-Yield Investment Fund",
+    interestRate: 0.08,
+    sweepRisk: 0.05,
+  },
+  risk_venture: {
+    name: "High-Risk Venture Pool",
+    interestRate: 0.20,
+    sweepRisk: 0.15,
+  },
+};
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1251,6 +1286,8 @@ export const GameStateSchema = z.object({
   secondaryReserves: z.record(z.string(), SecondaryReserveSchema).optional(),
   reserveRatioVotes: z.record(z.string(), z.record(z.string(), ReserveRatioVoteSchema)).optional(),
   automatedBailouts: z.record(z.string(), AutomatedBailoutSchema).optional(),
+  secondaryReserveVaults: z.record(z.string(), SecondaryReserveVaultSchema).optional(),
+  secondaryReserveInvestments: z.record(z.string(), z.record(z.string(), SecondaryReserveInvestmentSchema)).optional(),
 });
 
 
@@ -1424,8 +1461,29 @@ export const createInitialState = (options: {
     secondaryReserves: {},
     reserveRatioVotes: {},
     automatedBailouts: {},
+    secondaryReserveVaults: {},
+    secondaryReserveInvestments: {},
   };
 };
+
+export function getSecondaryReserveVaults(state: GameState): Record<string, SecondaryReserveVault> {
+  const vaults = state.secondaryReserveVaults || {};
+  if (Object.keys(vaults).length === 0) {
+    const defaultVaults: Record<string, SecondaryReserveVault> = {};
+    const timestamp = state.step;
+    for (const [vaultId, def] of Object.entries(DEFAULT_SECONDARY_RESERVE_VAULTS)) {
+      defaultVaults[vaultId] = {
+        vaultId,
+        name: def.name,
+        interestRate: def.interestRate,
+        sweepRisk: def.sweepRisk,
+        timestamp,
+      };
+    }
+    return defaultVaults;
+  }
+  return vaults;
+}
 
 
 export function getFactionRepInit(pack: any): Record<string, number> | undefined {
@@ -2170,6 +2228,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     secondaryReserves: rest.secondaryReserves ? JSON.parse(JSON.stringify(rest.secondaryReserves)) : undefined,
     reserveRatioVotes: rest.reserveRatioVotes ? JSON.parse(JSON.stringify(rest.reserveRatioVotes)) : undefined,
     automatedBailouts: rest.automatedBailouts ? JSON.parse(JSON.stringify(rest.automatedBailouts)) : undefined,
+    secondaryReserveVaults: rest.secondaryReserveVaults ? JSON.parse(JSON.stringify(rest.secondaryReserveVaults)) : undefined,
+    secondaryReserveInvestments: rest.secondaryReserveInvestments ? JSON.parse(JSON.stringify(rest.secondaryReserveInvestments)) : undefined,
   };
   return clone;
 }
