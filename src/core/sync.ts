@@ -39857,6 +39857,7 @@ export function multiAgentStep(
         syndicateId,
         anomalyStep,
         disputeStake,
+        targetOracleId: (action as any).targetOracleId,
         status: "proposed",
         resolved: false,
         timestamp,

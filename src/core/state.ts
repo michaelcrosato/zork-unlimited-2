@@ -2768,11 +2768,23 @@ export const SweepPoolWeatherForecastOracleProposalSchema = z.object({
 });
 export type SweepPoolWeatherForecastOracleProposal = z.infer<typeof SweepPoolWeatherForecastOracleProposalSchema>;
 
+export const WeatherForecastOracleSchema = z.object({
+  id: z.string(),
+  provider: z.string(),
+  stake: z.number().int().nonnegative(),
+  reputation: z.number().int().nonnegative(),
+  accuracyFloor: z.number().nonnegative(),
+  reputationThreshold: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type WeatherForecastOracle = z.infer<typeof WeatherForecastOracleSchema>;
+
 export const SweepPoolWeatherForecastOracleDisputeSchema = z.object({
   disputeId: z.string(),
   syndicateId: z.string(),
   anomalyStep: z.number().int().nonnegative(),
   disputeStake: z.number().int().nonnegative(),
+  targetOracleId: z.string().optional(),
   status: z.enum(["proposed", "authorized", "disputed"]).optional(),
   resolved: z.boolean().optional(),
   timestamp: z.number().int(),
@@ -3732,6 +3744,9 @@ export const GameStateSchema = z.object({
   weatherForecastHistory: z.record(z.string(), z.number()).optional(),
   weatherForecastAnomalies: z.array(z.number()).optional(),
   weatherForecastOracleMaliciousOverride: z.record(z.string(), z.number()).optional(),
+  weatherForecastOracles: z.record(z.string(), WeatherForecastOracleSchema).optional(),
+  weatherForecastOracleHistory: z.record(z.string(), z.record(z.string(), z.number())).optional(),
+  weatherForecastOracleIndividualOverrides: z.record(z.string(), z.record(z.string(), z.number())).optional(),
   sweepPoolWeatherForecastOracleDisputes: z.record(z.string(), SweepPoolWeatherForecastOracleDisputeSchema).optional(),
 
 
@@ -4152,6 +4167,9 @@ export const createInitialState = (options: {
     sweepPoolRedistributionFeeGovernanceCapVotes: {},
     sweepPoolVolatilityHedgingProposals: {},
     sweepPoolWeatherForecastOracleProposals: {},
+    weatherForecastOracles: {},
+    weatherForecastOracleHistory: {},
+    weatherForecastOracleIndividualOverrides: {},
 
 
 
@@ -9275,6 +9293,18 @@ export function reconcileSweepPoolWeatherForecastOracle(state: GameState, pack: 
       newState.sweepPoolWeatherForecastOracleProvider = syndicateId;
       newState.sweepPoolWeatherForecastOracleReputation = 100;
 
+      // Register in weatherForecastOracles
+      newState.weatherForecastOracles = newState.weatherForecastOracles ? { ...newState.weatherForecastOracles } : {};
+      newState.weatherForecastOracles[proposalId] = {
+        id: proposalId,
+        provider: syndicateId,
+        stake: oracleStake,
+        reputation: 100,
+        accuracyFloor: forecastAccuracyFloor,
+        reputationThreshold: oracleReputationThreshold,
+        timestamp: proposal.timestamp,
+      };
+
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Sweep Pool Weather Forecast Oracle Resolved] Syndicate ${syndicateId} successfully authorized weather forecast oracle proposal ${proposalId} (Reputation Threshold: ${oracleReputationThreshold}, Accuracy Floor: ${forecastAccuracyFloor}%, Stake: ${oracleStake} gold).`
@@ -9323,40 +9353,141 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
       const updatedSyndicate = { ...newState.syndicates[syndicateId] };
       updatedSyndicate.warChest = (updatedSyndicate.warChest ?? 0) + disputeStake;
 
-      // Confiscate active oracle stake and slash reputation
-      const activeOracleStake = newState.sweepPoolWeatherForecastOracleStake ?? 0;
-      const activeOracleProvider = newState.sweepPoolWeatherForecastOracleProvider;
+      // 1. Identify which oracles to slash
+      const oraclesToSlash: string[] = []; // List of oracle IDs (proposalIds) to slash
+      
+      const targetOracleId = dispute.targetOracleId;
+      if (targetOracleId) {
+        if (newState.weatherForecastOracles?.[targetOracleId]) {
+          oraclesToSlash.push(targetOracleId);
+        }
+      } else {
+        // Calculate actual weather volatility at anomalyStep
+        const defaultWeathers = ["clear", "rain", "fog", "storm"];
+        const temperatures = ["cold", "mild", "hot"];
+        const winds = ["calm", "breezy", "gale", "tempest"];
 
-      // Reduce reputation by 50
-      const currentRep = newState.sweepPoolWeatherForecastOracleReputation ?? 100;
-      const newRep = Math.max(0, currentRep - 50);
-      newState.sweepPoolWeatherForecastOracleReputation = newRep;
+        const interval = Math.floor(anomalyStep / 5);
+        const h1 = Math.abs(Math.imul((newState.seed ?? 12345) ^ interval, 0x6D2B79F5)) | 0;
+        const weatherIndex = h1 % defaultWeathers.length;
+
+        const h2 = Math.abs(Math.imul(h1 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+        const tempIndex = h2 % temperatures.length;
+
+        const h3 = Math.abs(Math.imul(h2 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+        const windIndex = h3 % winds.length;
+
+        const actualWeather = defaultWeathers[weatherIndex];
+        const actualWind = winds[windIndex];
+
+        let actBaseVol = 0;
+        if (actualWeather === "storm") actBaseVol = 50;
+        else if (actualWeather === "rain") actBaseVol = 20;
+        else if (actualWeather === "fog") actBaseVol = 15;
+        else if (actualWeather === "clear") actBaseVol = 5;
+
+        let actWindVol = 0;
+        if (actualWind === "tempest") actWindVol = 30;
+        else if (actualWind === "gale") actWindVol = 15;
+        else if (actualWind === "breezy") actWindVol = 5;
+
+        const actualVol = actBaseVol + actWindVol;
+
+        const anomalyStepStr = anomalyStep.toString();
+
+        // Check each registered oracle
+        if (newState.weatherForecastOracles) {
+          for (const [oId, oracle] of Object.entries(newState.weatherForecastOracles)) {
+            // Only slash active oracles that predicted incorrectly for this step
+            const oPred = newState.weatherForecastOracleHistory?.[anomalyStepStr]?.[oId] 
+                          ?? newState.weatherForecastHistory?.[anomalyStepStr];
+            if (oPred !== undefined && Math.abs(oPred - actualVol) > 20) {
+              oraclesToSlash.push(oId);
+            }
+          }
+        }
+        
+        // Fallback to legacy main oracle if no oracles registered or matched
+        if (oraclesToSlash.length === 0 && newState.sweepPoolWeatherForecastOracleAuthorized) {
+          oraclesToSlash.push("legacy");
+        }
+      }
 
       let penaltyLog = "";
-      if (activeOracleStake > 0) {
-        // 50% bounty to disputing syndicate, 50% to sweep pool
-        const bounty = Math.floor(activeOracleStake * 0.5);
-        const sweepPoolShare = activeOracleStake - bounty;
+      newState.weatherForecastOracles = newState.weatherForecastOracles ? { ...newState.weatherForecastOracles } : {};
 
-        updatedSyndicate.warChest = (updatedSyndicate.warChest ?? 0) + bounty;
-        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
+      for (const oId of oraclesToSlash) {
+        if (oId === "legacy") {
+          // Slash the legacy/main oracle
+          const activeOracleStake = newState.sweepPoolWeatherForecastOracleStake ?? 0;
+          const currentRep = newState.sweepPoolWeatherForecastOracleReputation ?? 100;
+          const newRep = Math.max(0, currentRep - 50);
+          newState.sweepPoolWeatherForecastOracleReputation = newRep;
+          
+          if (activeOracleStake > 0) {
+            const bounty = Math.floor(activeOracleStake * 0.5);
+            const sweepPoolShare = activeOracleStake - bounty;
+            updatedSyndicate.warChest = (updatedSyndicate.warChest ?? 0) + bounty;
+            newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
+            penaltyLog += `, legacy oracle stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+          }
 
-        penaltyLog = `, oracle stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+          const repThreshold = newState.sweepPoolWeatherForecastOracleReputationThreshold ?? 50;
+          if (newRep < repThreshold || newRep === 0) {
+            newState.sweepPoolWeatherForecastOracleAuthorized = false;
+            newState.sweepPoolWeatherForecastOracleStake = 0;
+            penaltyLog += " and legacy oracle was DE-AUTHORIZED";
+          }
+        } else {
+          // Slash the registered oracle
+          const oracle = { ...newState.weatherForecastOracles[oId] };
+          const activeOracleStake = oracle.stake;
+          const currentRep = oracle.reputation;
+          const newRep = Math.max(0, currentRep - 50);
+          
+          oracle.reputation = newRep;
+          oracle.stake = 0;
+          newState.weatherForecastOracles[oId] = oracle;
+
+          if (activeOracleStake > 0) {
+            const bounty = Math.floor(activeOracleStake * 0.5);
+            const sweepPoolShare = activeOracleStake - bounty;
+            updatedSyndicate.warChest = (updatedSyndicate.warChest ?? 0) + bounty;
+            newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
+            penaltyLog += `, oracle ${oId} stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+          }
+
+          const repThreshold = oracle.reputationThreshold ?? 50;
+          if (newRep < repThreshold || newRep === 0) {
+            penaltyLog += ` and oracle ${oId} was DE-AUTHORIZED`;
+          }
+
+          // If this is also the active main oracle provider, sync it
+          if (oracle.provider === newState.sweepPoolWeatherForecastOracleProvider) {
+            newState.sweepPoolWeatherForecastOracleReputation = newRep;
+            newState.sweepPoolWeatherForecastOracleStake = 0;
+            const legacyThreshold = newState.sweepPoolWeatherForecastOracleReputationThreshold ?? 50;
+            if (newRep < legacyThreshold || newRep === 0) {
+              newState.sweepPoolWeatherForecastOracleAuthorized = false;
+            }
+          }
+        }
       }
 
       newState.syndicates[syndicateId] = updatedSyndicate;
 
-      // De-authorize oracle if reputation falls below threshold or to 0
-      const repThreshold = newState.sweepPoolWeatherForecastOracleReputationThreshold ?? 50;
-      if (newRep < repThreshold || newRep === 0) {
+      // Check if all registered oracles are de-authorized
+      const allDeauthorized = Object.values(newState.weatherForecastOracles).every(
+        o => o.reputation < o.reputationThreshold || o.reputation === 0
+      );
+      if (allDeauthorized && Object.keys(newState.weatherForecastOracles).length > 0) {
         newState.sweepPoolWeatherForecastOracleAuthorized = false;
         newState.sweepPoolWeatherForecastOracleStake = 0;
-        penaltyLog += " and weather forecast oracle was DE-AUTHORIZED";
       }
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
-        `[Oracle Dispute Resolved - Slashed] Syndicate ${syndicateId} won dispute ${disputeId} targeting anomaly at step ${anomalyStep}! Disputing syndicate refunded stake of ${disputeStake} gold${penaltyLog}, oracle reputation reduced to ${newRep}.`
+        `[Oracle Dispute Resolved - Slashed] Syndicate ${syndicateId} won dispute ${disputeId} targeting anomaly at step ${anomalyStep}! Disputing syndicate refunded stake of ${disputeStake} gold${penaltyLog}.`
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       // Dismissed dispute!

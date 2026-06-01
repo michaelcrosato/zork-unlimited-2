@@ -303,4 +303,310 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     expect(state.swfStakingSweepPool).toBe(150);
     expect(state.journal?.some(j => j.includes("[Oracle Dispute Dismissed - Slashed]"))).toBe(true);
   });
+
+  it("should support multiple oracles, aggregate forecasting, and selective joint slashing during disputes (AF-216)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice", "bob", "charlie"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "charlie"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // 1. Authorize Oracle 1 (from Alpha)
+    let stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_WEATHER_FORECAST_ORACLE",
+          proposalId: "oracle_prop_1",
+          syndicateId: "alpha",
+          oracleReputationThreshold: 60,
+          forecastAccuracyFloor: 90,
+          oracleStake: 800,
+          timestamp: 1005,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult.ok).toBe(true);
+    state = stepResult.state;
+
+    let stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_WEATHER_FORECAST_ORACLE",
+          syndicateId: "alpha",
+          proposalId: "oracle_prop_1",
+          vote: true,
+          timestamp: 1020,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    // 2. Authorize Oracle 2 (from Beta)
+    let stepResult3 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "PROPOSE_WEATHER_FORECAST_ORACLE",
+          proposalId: "oracle_prop_2",
+          syndicateId: "beta",
+          oracleReputationThreshold: 50,
+          forecastAccuracyFloor: 85,
+          oracleStake: 1000,
+          timestamp: 1030,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult3.ok).toBe(true);
+    state = stepResult3.state;
+
+    let stepResult4 = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_WEATHER_FORECAST_ORACLE",
+          syndicateId: "beta",
+          proposalId: "oracle_prop_2",
+          vote: true,
+          timestamp: 1040,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult4.ok).toBe(true);
+    state = stepResult4.state;
+
+    // Verify both are registered
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]).toBeDefined();
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]).toBeDefined();
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]?.reputation).toBe(100);
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]?.reputation).toBe(100);
+
+    // 3. Setup Volatility Hedging Policy
+    state.sweepPoolVolatilityHedgingPolicyAuthorized = true;
+    state.sweepPoolVolatilityHedgingThreshold = 30;
+    state.sweepPoolVolatilityHedgingRatio = 80;
+    state.sweepPoolVolatilityHedgingReserveFloor = 100;
+    state.swfStakingSweepPool = 1000;
+
+    // Introduce weather forecast overrides for step 5
+    state.weatherForecastOracleIndividualOverrides = {
+      "5": {
+        "oracle_prop_1": 80,
+        "oracle_prop_2": 10,
+      }
+    };
+
+    // Run economy tick at step 0 to schedule prediction
+    state.environment = {
+      weather: "storm",
+      temperature: "cold",
+      wind: "tempest",
+      lastUpdatedStep: 0,
+    };
+    state.step = 0;
+
+    state = tickEconomy(state, mockPack);
+
+    // Verify the predictions saved in history
+    expect(state.weatherForecastOracleHistory?.["5"]?.["oracle_prop_1"]).toBe(80);
+    expect(state.weatherForecastOracleHistory?.["5"]?.["oracle_prop_2"]).toBe(10);
+    
+    // Weighted average: (80*100 + 10*100) / 200 = 45
+    expect(state.weatherForecastHistory?.["5"]).toBe(45);
+
+    // 4. Tick to step 5. Set actual weather to "clear"/"calm" (volatility 5)
+    state.step = 5;
+    state.environment = {
+      weather: "clear", // 5 vol
+      temperature: "mild",
+      wind: "calm", // 0 vol => total 5
+      lastUpdatedStep: 5,
+    };
+
+    state = tickEconomy(state, mockPack);
+
+    // Anomaly mismatch: Math.abs(45 - 5) = 40 > 20 -> should be registered
+    expect(state.weatherForecastAnomalies).toContain(5);
+
+    // 5. File a dispute by Beta syndicate targeting anomaly at step 5
+    let stepResult5 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "dispute_joint_1",
+          syndicateId: "beta",
+          anomalyStep: 5,
+          disputeStake: 200,
+          timestamp: 2000,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult5.ok).toBe(true);
+    state = stepResult5.state;
+
+    // Vote to authorize dispute by Charlie
+    let stepResult6 = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE",
+          syndicateId: "beta",
+          disputeId: "dispute_joint_1",
+          vote: true,
+          timestamp: 2010,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult6.ok).toBe(true);
+    state = stepResult6.state;
+
+    // Verify Dispute resolved as won
+    expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_joint_1"]?.status).toBe("authorized");
+
+    // Slashing Verification:
+    // Oracle 1 predicted 80 (actual 5, mismatch 75 > 20) -> should be slashed
+    // Oracle 2 predicted 10 (actual 5, mismatch 5 <= 20) -> should NOT be slashed
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]?.reputation).toBe(50);
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]?.stake).toBe(0);
+
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]?.reputation).toBe(100);
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]?.stake).toBe(1000);
+  });
+
+  it("should support targeted disputes that only slash a specific oracle (AF-216)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice", "bob", "charlie"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "charlie"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Propose and authorize Oracle 1 and Oracle 2
+    state.sweepPoolWeatherForecastOracleAuthorized = true;
+    state.weatherForecastOracles = {
+      "oracle_prop_1": {
+        id: "oracle_prop_1",
+        provider: "alpha",
+        stake: 800,
+        reputation: 100,
+        accuracyFloor: 90,
+        reputationThreshold: 60,
+        timestamp: 1000,
+      },
+      "oracle_prop_2": {
+        id: "oracle_prop_2",
+        provider: "beta",
+        stake: 1000,
+        reputation: 100,
+        accuracyFloor: 85,
+        reputationThreshold: 50,
+        timestamp: 1000,
+      }
+    };
+
+    // Register anomaly
+    state.weatherForecastAnomalies = [15];
+
+    // File a TARGETED dispute by Alpha targeting oracle_prop_2 specifically
+    let stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "targeted_dispute_1",
+          syndicateId: "alpha",
+          anomalyStep: 15,
+          disputeStake: 200,
+          targetOracleId: "oracle_prop_2",
+          timestamp: 2000,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult.ok).toBe(true);
+    state = stepResult.state;
+
+    // Vote to authorize dispute by Alice
+    let stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE",
+          syndicateId: "alpha",
+          disputeId: "targeted_dispute_1",
+          vote: true,
+          timestamp: 2010,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    // Verify dispute resolved as won
+    expect(state.sweepPoolWeatherForecastOracleDisputes?.["targeted_dispute_1"]?.status).toBe("authorized");
+
+    // Only oracle_prop_2 (targeted) should be slashed, oracle_prop_1 remains untouched
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]?.reputation).toBe(50);
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]?.stake).toBe(0);
+
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]?.reputation).toBe(100);
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]?.stake).toBe(800);
+  });
 });

@@ -8913,8 +8913,49 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
 
       let predictedVol = fBaseVol + fWindVol;
       const stepStr = forecastStep.toString();
-      if (newState.weatherForecastOracleMaliciousOverride?.[stepStr] !== undefined) {
-        predictedVol = newState.weatherForecastOracleMaliciousOverride[stepStr];
+
+      const activeOracles = Object.values(newState.weatherForecastOracles || {}).filter(
+        (oracle) => oracle.reputation >= oracle.reputationThreshold && oracle.reputation > 0
+      );
+
+      if (activeOracles.length > 0) {
+        let weightedSum = 0;
+        let totalRep = 0;
+        
+        if (!newState.weatherForecastOracleHistory) {
+          newState.weatherForecastOracleHistory = {};
+        }
+        if (!newState.weatherForecastOracleHistory[stepStr]) {
+          newState.weatherForecastOracleHistory[stepStr] = {};
+        }
+
+        for (const oracle of activeOracles) {
+          let oPred = fBaseVol + fWindVol;
+
+          // Check individual overrides first
+          if (newState.weatherForecastOracleIndividualOverrides?.[stepStr]?.[oracle.id] !== undefined) {
+            oPred = newState.weatherForecastOracleIndividualOverrides[stepStr][oracle.id];
+          } else if (newState.weatherForecastOracleIndividualOverrides?.[stepStr]?.[oracle.provider] !== undefined) {
+            oPred = newState.weatherForecastOracleIndividualOverrides[stepStr][oracle.provider];
+          } else if (
+            newState.weatherForecastOracleMaliciousOverride?.[stepStr] !== undefined &&
+            (oracle.provider === newState.sweepPoolWeatherForecastOracleProvider || 
+             activeOracles.indexOf(oracle) === 0)
+          ) {
+            oPred = newState.weatherForecastOracleMaliciousOverride[stepStr];
+          }
+
+          newState.weatherForecastOracleHistory[stepStr][oracle.id] = oPred;
+          weightedSum += oPred * oracle.reputation;
+          totalRep += oracle.reputation;
+        }
+
+        predictedVol = totalRep > 0 ? Math.round(weightedSum / totalRep) : (fBaseVol + fWindVol);
+      } else {
+        // Fallback to single/legacy override
+        if (newState.weatherForecastOracleMaliciousOverride?.[stepStr] !== undefined) {
+          predictedVol = newState.weatherForecastOracleMaliciousOverride[stepStr];
+        }
       }
 
       if (!newState.weatherForecastHistory) {
@@ -9020,8 +9061,49 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
 
       let predictedVol = fBaseVol + fWindVol;
       const stepStr = forecastStep.toString();
-      if (newState.weatherForecastOracleMaliciousOverride?.[stepStr] !== undefined) {
-        predictedVol = newState.weatherForecastOracleMaliciousOverride[stepStr];
+
+      const activeOracles = Object.values(newState.weatherForecastOracles || {}).filter(
+        (oracle) => oracle.reputation >= oracle.reputationThreshold && oracle.reputation > 0
+      );
+
+      if (activeOracles.length > 0) {
+        let weightedSum = 0;
+        let totalRep = 0;
+        
+        if (!newState.weatherForecastOracleHistory) {
+          newState.weatherForecastOracleHistory = {};
+        }
+        if (!newState.weatherForecastOracleHistory[stepStr]) {
+          newState.weatherForecastOracleHistory[stepStr] = {};
+        }
+
+        for (const oracle of activeOracles) {
+          let oPred = fBaseVol + fWindVol;
+
+          // Check individual overrides first
+          if (newState.weatherForecastOracleIndividualOverrides?.[stepStr]?.[oracle.id] !== undefined) {
+            oPred = newState.weatherForecastOracleIndividualOverrides[stepStr][oracle.id];
+          } else if (newState.weatherForecastOracleIndividualOverrides?.[stepStr]?.[oracle.provider] !== undefined) {
+            oPred = newState.weatherForecastOracleIndividualOverrides[stepStr][oracle.provider];
+          } else if (
+            newState.weatherForecastOracleMaliciousOverride?.[stepStr] !== undefined &&
+            (oracle.provider === newState.sweepPoolWeatherForecastOracleProvider || 
+             activeOracles.indexOf(oracle) === 0)
+          ) {
+            oPred = newState.weatherForecastOracleMaliciousOverride[stepStr];
+          }
+
+          newState.weatherForecastOracleHistory[stepStr][oracle.id] = oPred;
+          weightedSum += oPred * oracle.reputation;
+          totalRep += oracle.reputation;
+        }
+
+        predictedVol = totalRep > 0 ? Math.round(weightedSum / totalRep) : (fBaseVol + fWindVol);
+      } else {
+        // Fallback to single/legacy override
+        if (newState.weatherForecastOracleMaliciousOverride?.[stepStr] !== undefined) {
+          predictedVol = newState.weatherForecastOracleMaliciousOverride[stepStr];
+        }
       }
 
       if (!newState.weatherForecastHistory) {
