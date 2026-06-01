@@ -832,6 +832,13 @@ export const JointLoanSchema = z.object({
 });
 export type JointLoan = z.infer<typeof JointLoanSchema>;
 
+export const JointLoanCollateralSubstitutionVoteSchema = z.object({
+  removeCollateral: JointLoanCollateralSchema,
+  addCollateral: JointLoanCollateralSchema.optional(),
+  timestamp: z.number().int(),
+});
+export type JointLoanCollateralSubstitutionVote = z.infer<typeof JointLoanCollateralSubstitutionVoteSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -997,6 +1004,7 @@ export const GameStateSchema = z.object({
   jointLoanProposals: z.record(z.string(), JointLoanProposalSchema).optional(),
   jointLoans: z.record(z.string(), JointLoanSchema).optional(),
   jointLoanRefinancingVotes: z.record(z.string(), z.record(z.string(), LoanRefinancingVoteSchema)).optional(),
+  jointLoanCollateralSubstitutionVotes: z.record(z.string(), z.record(z.string(), JointLoanCollateralSubstitutionVoteSchema)).optional(),
 });
 
 
@@ -1861,6 +1869,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     jointLoanProposals: rest.jointLoanProposals ? JSON.parse(JSON.stringify(rest.jointLoanProposals)) : undefined,
     jointLoans: rest.jointLoans ? JSON.parse(JSON.stringify(rest.jointLoans)) : undefined,
     jointLoanRefinancingVotes: rest.jointLoanRefinancingVotes ? JSON.parse(JSON.stringify(rest.jointLoanRefinancingVotes)) : undefined,
+    jointLoanCollateralSubstitutionVotes: rest.jointLoanCollateralSubstitutionVotes ? JSON.parse(JSON.stringify(rest.jointLoanCollateralSubstitutionVotes)) : undefined,
     creditRecoveries: rest.creditRecoveries ? JSON.parse(JSON.stringify(rest.creditRecoveries)) : undefined,
   };
   return clone;
@@ -2682,6 +2691,122 @@ export function reconcileJointLoanRefinancings(state: GameState, pack: any): Gam
       newState.journal.push(
         `[Syndicate Bank] Joint loan ${groupId} has been restructured by consensual majority! New due step: ${fullyApprovedCombination.newDueStep}, new interest rate: ${fullyApprovedCombination.newInterestRate}%.`
       );
+    }
+  }
+
+  if (loansChanged) {
+    newState.jointLoans = updatedJointLoans;
+  }
+
+  return newState;
+}
+
+export function reconcileJointLoanCollateralSubstitutions(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    jointLoans: state.jointLoans ? { ...state.jointLoans } : {},
+  };
+
+  if (!newState.jointLoanCollateralSubstitutionVotes) {
+    newState.jointLoanCollateralSubstitutionVotes = {};
+    return newState;
+  }
+
+  const updatedJointLoans = { ...newState.jointLoans };
+  let loansChanged = false;
+
+  for (const [groupId, votes] of Object.entries(newState.jointLoanCollateralSubstitutionVotes)) {
+    const jointLoan = updatedJointLoans[groupId];
+    if (!jointLoan) continue;
+
+    const syndicate = newState.syndicates[jointLoan.syndicateId];
+    if (!syndicate) continue;
+
+    // Count votes for each unique combination of removeCollateral and addCollateral
+    const combinationCounts: Record<string, { 
+      removeCollateral: any; 
+      addCollateral: any; 
+      groupVotes: Set<string>; 
+      bankVotes: Set<string>; 
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      const removeKey = `${vote.removeCollateral.agentId}_${vote.removeCollateral.collateralType}_${vote.removeCollateral.collateralId}`;
+      const addKey = vote.addCollateral 
+        ? `${vote.addCollateral.agentId}_${vote.addCollateral.collateralType}_${vote.addCollateral.collateralId}`
+        : "none";
+      const key = `${removeKey}::${addKey}`;
+
+      if (!combinationCounts[key]) {
+        combinationCounts[key] = {
+          removeCollateral: vote.removeCollateral,
+          addCollateral: vote.addCollateral,
+          groupVotes: new Set<string>(),
+          bankVotes: new Set<string>(),
+        };
+      }
+
+      // If voter is in group, count as group vote
+      if (jointLoan.members.includes(voterId)) {
+        combinationCounts[key].groupVotes.add(voterId);
+      }
+
+      // If voter is in syndicate, count as bank vote
+      if (syndicate.members.includes(voterId)) {
+        combinationCounts[key].bankVotes.add(voterId);
+      }
+    }
+
+    // Check if any combination has a majority of group members AND syndicate bank members
+    const groupMajorityThreshold = jointLoan.members.length / 2;
+    const bankMajorityThreshold = syndicate.members.length / 2;
+
+    let fullyApprovedCombination: { removeCollateral: any; addCollateral: any; maxTimestamp: number } | undefined;
+
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.groupVotes.size > groupMajorityThreshold && combo.bankVotes.size > bankMajorityThreshold) {
+        const votersForCombo = [...combo.groupVotes, ...combo.bankVotes];
+        const timestamps = votersForCombo.map(vid => votes[vid]?.timestamp ?? 0);
+        const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : state.step;
+
+        fullyApprovedCombination = {
+          removeCollateral: combo.removeCollateral,
+          addCollateral: combo.addCollateral,
+          maxTimestamp,
+        };
+        break; // Strict majority consensus implies at most one combo can satisfy both
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      // Apply the substitution!
+      const currentCollaterals = jointLoan.collaterals.filter(c => 
+        !(c.agentId === fullyApprovedCombination!.removeCollateral.agentId && 
+          c.collateralType === fullyApprovedCombination!.removeCollateral.collateralType && 
+          c.collateralId === fullyApprovedCombination!.removeCollateral.collateralId)
+      );
+
+      if (fullyApprovedCombination.addCollateral) {
+        currentCollaterals.push(fullyApprovedCombination.addCollateral);
+      }
+
+      updatedJointLoans[groupId] = {
+        ...jointLoan,
+        collaterals: currentCollaterals,
+        timestamp: fullyApprovedCombination.maxTimestamp,
+      };
+      loansChanged = true;
+
+      // Clear the votes so they don't apply again
+      delete newState.jointLoanCollateralSubstitutionVotes[groupId];
+
+      if (!newState.journal) newState.journal = [];
+      const logMsg = fullyApprovedCombination.addCollateral
+        ? `[Syndicate Bank] Joint loan ${groupId} collateral substitution consensual majority! Removed ${fullyApprovedCombination.removeCollateral.collateralId} (${fullyApprovedCombination.removeCollateral.collateralType}), added ${fullyApprovedCombination.addCollateral.collateralId} (${fullyApprovedCombination.addCollateral.collateralType}).`
+        : `[Syndicate Bank] Joint loan ${groupId} collateral early release consensual majority! Released ${fullyApprovedCombination.removeCollateral.collateralId} (${fullyApprovedCombination.removeCollateral.collateralType}).`;
+      
+      newState.journal.push(logMsg);
     }
   }
 

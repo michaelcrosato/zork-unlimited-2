@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #92 (Ready for Cycle #93)
-* **Build/Test Status**: 🟢 PASS (All 427 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #93 (Ready for Cycle #94)
+* **Build/Test Status**: 🟢 PASS (All 431 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -536,17 +536,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire restructured due dates and consensual rate modifications to active joint loans (`AF-92`).
 - [x] Write comprehensive Vitest integration tests and merge support (`AF-92`).
 
+### Phase 93: Joint-Liability Loan Collateral Substitution and Pro-Rata Collateral Releases (Completed)
+- [x] Add schemas for joint loan collateral substitution proposals/votes in state variables (`AF-93`).
+- [x] Implement `PROPOSE_COLLATERAL_SUBSTITUTION` decentralized action reducer with group and bank majority approval consensus (`AF-93`).
+- [x] Wire pro-rata collateral release on partial loan paybacks when remaining balance is fully covered by remaining collateral (`AF-93`).
+- [x] Write comprehensive Vitest integration tests asserting consensus, substitution, pro-rata release, and Gossip mesh convergence (`AF-93`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-93`
-* **Objective**: Joint-Liability Loan Collateral Substitution and Pro-Rata Collateral Releases.
-* **Why this matters**: Support partial repayment of joint loans where members can request to release specific locked collateral assets early or substitute them with other assets of equal or greater value (`PROPOSE_COLLATERAL_SUBSTITUTION`), requiring majority approval of group members and the syndicate bank to optimize capital efficiency without reducing overall loan security.
+**Task ID**: `AF-94`
+* **Objective**: Syndicate Bank Loan Restructuring Proposals with Asset Swaps.
+* **Why this matters**: Support restructuring standard individual syndicate bank loans by allowing borrowers to swap their pledged collateral (`SWAP_INDIVIDUAL_COLLATERAL`), requiring bank majority consensus to reduce default risk while giving players a flexible mechanism to unlock safehouses/outposts needed for urgent turf operations.
 * **Planned Actions**:
-  1. Add schemas for joint loan collateral substitution proposals.
-  2. Implement `PROPOSE_COLLATERAL_SUBSTITUTION` decentralized action reducer.
-  3. Wire pro-rata collateral release on partial loan paybacks when remaining balance is fully covered by remaining collateral.
-  4. Write robust unit and integration tests.
+  1. Define schemas for individual loan collateral swap proposals.
+  2. Implement `SWAP_INDIVIDUAL_COLLATERAL` action reducer and bank majority voting consensus.
+  3. Integrate with Gossip sync and state reconciliation.
+  4. Write rigorous integration and convergence tests.
 
 ---
 

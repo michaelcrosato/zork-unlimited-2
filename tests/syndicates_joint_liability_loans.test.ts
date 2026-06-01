@@ -637,4 +637,340 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     expect(merged.jointLoanRefinancingVotes?.jgroup1?.player.newDueStep).toBe(30);
     expect(merged.jointLoanRefinancingVotes?.jgroup1?.player.newInterestRate).toBe(2);
   });
+
+  it("should handle PROPOSE_COLLATERAL_SUBSTITUTION voting, consensus and executing collateral substitution", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 100, gold_alice: 100 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "sh1",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 500
+      },
+      clearing2: {
+        id: "sh2",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 3,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 700
+      },
+    };
+
+    state.jointLoans = {
+      jgroup1: {
+        id: "jgroup1",
+        syndicateId: "blood_fangs",
+        members: ["player", "alice"],
+        collaterals: [
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" }
+        ],
+        amount: 400,
+        interestAccrued: 0,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000
+      }
+    };
+
+    // 1. Propose substitution: remove sh1 (clearing), add sh2 (clearing2)
+    const action1 = {
+      type: "PROPOSE_COLLATERAL_SUBSTITUTION",
+      groupId: "jgroup1",
+      removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+      addCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" },
+      timestamp: 1010
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
+    expect(res1.ok).toBe(true);
+    expect(res1.state.jointLoanCollateralSubstitutionVotes?.jgroup1?.player).toBeDefined();
+
+    // 2. Bob (bank member) votes for the same substitution
+    const action2 = {
+      type: "PROPOSE_COLLATERAL_SUBSTITUTION",
+      groupId: "jgroup1",
+      removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+      addCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" },
+      timestamp: 1015
+    };
+
+    let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
+    expect(res2.ok).toBe(true);
+
+    // 3. Alice (group member) votes
+    const action3 = {
+      type: "PROPOSE_COLLATERAL_SUBSTITUTION",
+      groupId: "jgroup1",
+      removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+      addCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" },
+      timestamp: 1020
+    };
+
+    let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
+    expect(res3.ok).toBe(true);
+
+    // After consensus: collateral should be substituted!
+    const loan = res3.state.jointLoans?.jgroup1;
+    expect(loan?.collaterals.length).toBe(1);
+    expect(loan?.collaterals[0].collateralId).toBe("clearing2");
+    expect(res3.state.jointLoanCollateralSubstitutionVotes?.jgroup1).toBeUndefined(); // cleared
+  });
+
+  it("should handle early release collateral substitution when remaining limit covers outstanding balance", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 100, gold_alice: 100 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "sh1",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 500
+      },
+      clearing2: {
+        id: "sh2",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 3,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 700
+      },
+    };
+
+    state.jointLoans = {
+      jgroup1: {
+        id: "jgroup1",
+        syndicateId: "blood_fangs",
+        members: ["player", "alice"],
+        collaterals: [
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" }
+        ],
+        // outstanding amount is 200. sh2 alone provides 700 limit, which is > 200, so we can release sh1!
+        amount: 200,
+        interestAccrued: 0,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000
+      }
+    };
+
+    // Propose releasing sh1 (clearing) without adding any collateral
+    const action1 = {
+      type: "PROPOSE_COLLATERAL_SUBSTITUTION",
+      groupId: "jgroup1",
+      removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+      timestamp: 1010
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
+    expect(res1.ok).toBe(true);
+
+    const action2 = {
+      type: "PROPOSE_COLLATERAL_SUBSTITUTION",
+      groupId: "jgroup1",
+      removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+      timestamp: 1015
+    };
+    let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
+
+    const action3 = {
+      type: "PROPOSE_COLLATERAL_SUBSTITUTION",
+      groupId: "jgroup1",
+      removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+      timestamp: 1020
+    };
+    let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
+
+    // After consensus: sh1 should be released, leaving only sh2 (clearing2)
+    const loan = res3.state.jointLoans?.jgroup1;
+    expect(loan?.collaterals.length).toBe(1);
+    expect(loan?.collaterals[0].collateralId).toBe("clearing2");
+  });
+
+  it("should automatically trigger pro-rata early collateral release on partial loan paybacks", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 100, gold_alice: 400 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "sh1",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 500
+      },
+      clearing2: {
+        id: "sh2",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 3,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1, // value 700 -> joint limit 700 * 1.2 = 840
+      },
+    };
+
+    state.jointLoans = {
+      jgroup1: {
+        id: "jgroup1",
+        syndicateId: "blood_fangs",
+        members: ["player", "alice"],
+        collaterals: [
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" }
+        ],
+        amount: 1000, // exceeds either limit individually
+        interestAccrued: 0,
+        borrowStep: 1,
+        dueStep: 20,
+        timestamp: 1000
+      }
+    };
+
+    // Alice pays back 300 gold -> remaining balance is 700 gold.
+    // Remaining collateral sh2 alone has value 700, limit = 700 * 1.2 = 840 gold, which is >= remaining balance of 700!
+    // So sh1 should be automatically released!
+    const actionPay = {
+      type: "PAYBACK_JOINT_LOAN",
+      groupId: "jgroup1",
+      amount: 300,
+      timestamp: 1010
+    };
+
+    let res = multiAgentStep(state, { agentId: "alice", action: actionPay as any }, mockPack);
+    expect(res.ok).toBe(true);
+
+    const loan = res.state.jointLoans?.jgroup1;
+    expect(loan).toBeDefined();
+    expect(loan?.amount).toBe(700);
+    // sh1 must be released pro-rata!
+    expect(loan?.collaterals.length).toBe(1);
+    expect(loan?.collaterals[0].collateralId).toBe("clearing2");
+  });
+
+  it("should merge jointLoanCollateralSubstitutionVotes and reconcile terms across Gossip synchronization", () => {
+    let stateA = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateA.jointLoanCollateralSubstitutionVotes = {
+      jgroup1: {
+        player: {
+          removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "sh1" },
+          timestamp: 1050,
+        }
+      }
+    };
+
+    let stateB = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateB.jointLoanCollateralSubstitutionVotes = {
+      jgroup1: {
+        player: {
+          removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "sh2" }, // different vote
+          timestamp: 1020, // older
+        }
+      }
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.jointLoanCollateralSubstitutionVotes?.jgroup1?.player.timestamp).toBe(1050);
+    expect(merged.jointLoanCollateralSubstitutionVotes?.jgroup1?.player.removeCollateral.collateralId).toBe("sh1");
+  });
 });
+

@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -1193,6 +1193,25 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge jointLoanCollateralSubstitutionVotes using LWW
+  const jointLoanCollateralSubstitutionVotes = { ...stateA.jointLoanCollateralSubstitutionVotes };
+  if (stateB.jointLoanCollateralSubstitutionVotes) {
+    for (const [groupId, bInner] of Object.entries(stateB.jointLoanCollateralSubstitutionVotes)) {
+      if (!jointLoanCollateralSubstitutionVotes[groupId]) {
+        jointLoanCollateralSubstitutionVotes[groupId] = { ...bInner };
+      } else {
+        const aInner = { ...jointLoanCollateralSubstitutionVotes[groupId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        jointLoanCollateralSubstitutionVotes[groupId] = aInner;
+      }
+    }
+  }
+
   // Merge turfCheckpoints using LWW
   const turfCheckpoints = { ...stateA.turfCheckpoints };
   if (stateB.turfCheckpoints) {
@@ -1518,6 +1537,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     jointLoanProposals,
     jointLoans,
     jointLoanRefinancingVotes,
+    jointLoanCollateralSubstitutionVotes,
   };
 }
 
@@ -1845,6 +1865,7 @@ export class GossipNode {
     convergedState = reconcileCovertCells(convergedState, this.pack);
     convergedState = reconcilePropagandaCampaigns(convergedState, this.pack);
     convergedState = reconcileJointLoanRefinancings(convergedState, this.pack);
+    convergedState = reconcileJointLoanCollateralSubstitutions(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};
