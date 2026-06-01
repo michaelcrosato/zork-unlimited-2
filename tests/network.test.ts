@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { parse as parseYaml } from "yaml";
-import { MeshNode, MeshNetwork } from "../src/core/network.js";
+import { MeshNode, MeshNetwork, NetworkDiscovery } from "../src/core/network.js";
 import { computeStateHash } from "../src/core/hash.js";
 
 const packPath = fileURLToPath(new URL("../content/parser/pack/multiplayer_forest.yaml", import.meta.url));
@@ -599,6 +599,100 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
 
     // State on B2 should NOT have converged yet!
     expect(nodeB2.localState.agents!["A"]).toBeUndefined();
+  });
+
+  it("should update lastSeen timestamps on topology records and prune stale nodes after inactivity threshold", () => {
+    // Topology: A - B - C
+    const net = new MeshNetwork();
+    net.topologyPruningThresholdMs = 2000; // 2000ms threshold
+
+    const nodeA = new MeshNode("A", pack, 42);
+    const nodeB = new MeshNode("B", pack, 42);
+    const nodeC = new MeshNode("C", pack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+
+    net.connectNodes("A", "B");
+    net.connectNodes("B", "C");
+
+    // Propagate presence
+    for (let i = 0; i < 10; i++) {
+      net.tick(80);
+    }
+
+    // Node A's discovery should know about B and C
+    expect(nodeA.discovery.getKnownNodes()).toContain("B");
+    expect(nodeA.discovery.getKnownNodes()).toContain("C");
+
+    // Verify lastSeen values are initialized (should match tick time or announcement time)
+    const recordB = nodeA.discovery.topology.get("B")!;
+    expect(recordB).toBeDefined();
+    expect(recordB.lastSeen).toBeGreaterThanOrEqual(0);
+
+    // Let's tick the network simulation forward by 1000ms.
+    // Active time goes from 800 to 1800ms. Since 1000ms < 2000ms, no node should be pruned.
+    net.tick(1000);
+    expect(nodeA.discovery.getKnownNodes()).toContain("B");
+    expect(nodeA.discovery.getKnownNodes()).toContain("C");
+
+    // Now B sends a presence update (refreshes its presence) at currentTime = 1800ms
+    nodeB.announcePresence();
+    net.tick(100); // deliver presence update, currentTime becomes 1900ms
+
+    // Node A should have updated lastSeen for B to 1800ms or 1900ms
+    const updatedRecordB = nodeA.discovery.topology.get("B")!;
+    expect(updatedRecordB.lastSeen).toBeGreaterThanOrEqual(1800);
+
+    // Node C did not refresh, so its lastSeen is still around 800ms (from the initial flood)
+    const recordC = nodeA.discovery.topology.get("C")!;
+    expect(recordC.lastSeen).toBeLessThan(1000);
+
+    // Now advance time so that C's lastSeen is older than 2000ms, but B's lastSeen is not.
+    // Cutoff time at next tick will be: currentTime - 2000ms.
+    // If we tick by 1500ms, currentTime becomes 1900 + 1500 = 3400ms.
+    // Cutoff will be 3400 - 2000 = 1400ms.
+    // Record C (lastSeen ~800ms) < 1400ms -> STALE!
+    // Record B (lastSeen ~1900ms) >= 1400ms -> ACTIVE!
+    net.tick(1500);
+
+    // Assert C has been pruned!
+    expect(nodeA.discovery.getKnownNodes()).not.toContain("C");
+    expect(nodeA.discovery.getNextHop("C")).toBeNull();
+
+    // Assert B is still known!
+    expect(nodeA.discovery.getKnownNodes()).toContain("B");
+    expect(nodeA.discovery.getNextHop("B")).toBe("B");
+  });
+
+  it("should update lastSeen even for older or duplicate presence announcements if the resolved time is newer", () => {
+    const discovery = new NetworkDiscovery("A");
+    
+    // Add initial presence
+    discovery.updateTopology({
+      nodeId: "B",
+      sequenceNumber: 5,
+      neighbors: ["A"],
+      timestamp: 100
+    }, 100);
+
+    const record1 = discovery.topology.get("B")!;
+    expect(record1.seq).toBe(5);
+    expect(record1.lastSeen).toBe(100);
+
+    // Update with older sequence number (e.g. 4) but a newer lastSeen (e.g. 200)
+    discovery.updateTopology({
+      nodeId: "B",
+      sequenceNumber: 4,
+      neighbors: ["A"],
+      timestamp: 50
+    }, 200);
+
+    // Sequence number should remain 5, but lastSeen should be updated to 200!
+    const record2 = discovery.topology.get("B")!;
+    expect(record2.seq).toBe(5);
+    expect(record2.lastSeen).toBe(200);
   });
 });
 

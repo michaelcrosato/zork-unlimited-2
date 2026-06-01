@@ -48,8 +48,8 @@ export function getPriorityForType(type: "presence" | "gossip" | "heartbeat" | "
  */
 export class NetworkDiscovery {
   public nodeId: string;
-  // Maps nodeId -> presence data (neighbors, sequence, timestamp)
-  public topology: Map<string, { neighbors: string[]; seq: number; timestamp: number }> = new Map();
+  // Maps nodeId -> presence data (neighbors, sequence, timestamp, lastSeen)
+  public topology: Map<string, { neighbors: string[]; seq: number; timestamp: number; lastSeen: number }> = new Map();
   // Maps destinationNodeId -> nextHopNodeId
   public routingTable: Map<string, string> = new Map();
 
@@ -61,9 +61,14 @@ export class NetworkDiscovery {
    * Updates the local link-state database with a presence announcement.
    * Returns true if the announcement was fresh and updated the topology, false otherwise.
    */
-  public updateTopology(announcement: PresenceAnnouncement): boolean {
+  public updateTopology(announcement: PresenceAnnouncement, lastSeen?: number): boolean {
     const current = this.topology.get(announcement.nodeId);
+    const resolvedLastSeen = lastSeen !== undefined ? lastSeen : announcement.timestamp;
+
     if (current && current.seq >= announcement.sequenceNumber) {
+      if (resolvedLastSeen > current.lastSeen) {
+        current.lastSeen = resolvedLastSeen;
+      }
       return false; // Outdated or duplicate announcement
     }
 
@@ -76,6 +81,7 @@ export class NetworkDiscovery {
       neighbors: [...announcement.neighbors],
       seq: announcement.sequenceNumber,
       timestamp: announcement.timestamp,
+      lastSeen: resolvedLastSeen,
     });
 
     this.recalculateRoutingTable();
@@ -271,15 +277,16 @@ export class MeshNode extends GossipNode {
    */
   public announcePresence(): void {
     this.presenceSeq++;
+    const currentTime = this.network ? this.network.currentTimeMs : Date.now();
     const announcement: PresenceAnnouncement = {
       nodeId: this.nodeId,
       sequenceNumber: this.presenceSeq,
       neighbors: Array.from(this.directNeighbors),
-      timestamp: Date.now(),
+      timestamp: currentTime,
     };
 
     // Update own topology
-    this.discovery.updateTopology(announcement);
+    this.discovery.updateTopology(announcement, currentTime);
 
     // Flood announcement to the active network mesh
     if (this.network) {
@@ -327,7 +334,7 @@ export class MeshNode extends GossipNode {
           const wasKnown = this.discovery.topology.has(peerId);
           const isDeparture = announcement.neighbors.length === 0;
 
-          const fresh = this.discovery.updateTopology(announcement);
+          const fresh = this.discovery.updateTopology(announcement, this.network ? this.network.currentTimeMs : Date.now());
           if (fresh) {
             if (!wasKnown && !isDeparture) {
               this.triggerPeerEvent("arrival", peerId);
@@ -342,7 +349,7 @@ export class MeshNode extends GossipNode {
             }
           }
         } else {
-          this.discovery.updateTopology(packet.payload);
+          this.discovery.updateTopology(packet.payload, this.network ? this.network.currentTimeMs : Date.now());
         }
       } else if (packet.type === "gossip") {
         const originalMessage = packet.payload as GossipMessage;
@@ -534,6 +541,31 @@ export class MeshNode extends GossipNode {
   }
 
   /**
+   * Scans the local topology and prunes any nodes whose lastSeen timestamp
+   * is older than the inactivity threshold.
+   */
+  public pruneStaleTopology(inactivityThresholdMs: number, currentTimeMs: number): void {
+    const cutoffTime = currentTimeMs - inactivityThresholdMs;
+    const staleNodeIds: string[] = [];
+
+    for (const [nodeId, record] of this.discovery.topology.entries()) {
+      // Never prune ourselves
+      if (nodeId === this.nodeId) continue;
+      
+      if (record.lastSeen < cutoffTime) {
+        staleNodeIds.push(nodeId);
+      }
+    }
+
+    if (staleNodeIds.length > 0) {
+      for (const nodeId of staleNodeIds) {
+        this.discovery.removeNode(nodeId);
+      }
+      this.discovery.recalculateRoutingTable();
+    }
+  }
+
+  /**
    * Synthesizes and routes a multi-hop Gossip delta synchronizer packet to a distant peer node.
    */
   public syncWithPeer(targetNodeId: string): boolean {
@@ -587,6 +619,9 @@ export class MeshNetwork {
   public maxPacketsPerTick?: number;
   // Controls if priority sorting is disabled (for benchmark/control comparisons)
   public disablePriorityRouting = false;
+
+  // Configurable inactivity threshold for topology pruning (0 or undefined means disabled)
+  public topologyPruningThresholdMs = 0;
 
   constructor() {}
 
@@ -734,6 +769,13 @@ export class MeshNetwork {
     // Check heartbeat timeouts on all registered nodes
     for (const node of this.nodes.values()) {
       node.checkHeartbeatTimeouts();
+    }
+
+    // Run automated periodic pruning of stale topology nodes if threshold is configured
+    if (this.topologyPruningThresholdMs !== undefined && this.topologyPruningThresholdMs > 0) {
+      for (const node of this.nodes.values()) {
+        node.pruneStaleTopology(this.topologyPruningThresholdMs, this.currentTimeMs);
+      }
     }
 
     // Trigger periodic heartbeats if enabled

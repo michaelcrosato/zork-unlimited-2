@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #18 (Ready for Cycle #19)
-* **Build/Test Status**: 🟢 PASS (All 94 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #19 (Ready for Cycle #20)
+* **Build/Test Status**: 🟢 PASS (All 96 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -91,16 +91,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Benchmark and assert state convergence speed under high packet queue depth comparing priority vs. non-priority routing (`AF-18`).
 - [x] Write robust unit and integration tests to verify priority queue behavior and state convergence speed under congestion (`AF-18`).
 
+### Phase 14: Topology Pruning & Garbage Collection (Completed)
+- [x] Add a `lastSeen` timestamp to topology link-state records in `NetworkDiscovery` (`AF-19`).
+- [x] Implement an automated periodic pruning check in `MeshNetwork` and `MeshNode` based on `topologyPruningThresholdMs` (`AF-19`).
+- [x] Recalculate routing tables upon garbage collection and assert dynamic route adjustment under silent node failures (`AF-19`).
+- [x] Write robust unit tests verifying stale node pruning, timestamp tracking, and duplicate/older sequence updates (`AF-19`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-19`
-* **Objective**: Design and implement an automated topology pruning and garbage-collection mechanism for gossip nodes to clean up stale node information after a configurable inactivity threshold.
-* **Why this matters**: In large dynamic networks, offline nodes that leave without a graceful announcement would permanently occupy memory in link-state databases, leading to memory leaks and suboptimal routing calculations.
+**Task ID**: `AF-20`
+* **Objective**: Design and implement a dynamic packet deduplication and sliding-window history tracker for `MeshNode` to prevent redundant processing and loop propagation of gossip or presence packets in dense mesh networks.
+* **Why this matters**: In highly redundant mesh topologies, flooding and multi-hop routing can cause nodes to process and forward duplicate packets, leading to exponential packet amplification, heavy memory usage, and infinite routing loops.
 * **Planned Actions**:
-  1. Add a `lastSeen` timestamp to topology link-state records in `NetworkDiscovery`.
-  2. Implement an automated periodic pruning check in `MeshNetwork` or `MeshNode` that removes nodes that haven't refreshed their presence within a set inactivity window (e.g. 5000ms).
-  3. Write robust unit tests to verify stale node topology garbage collection and routing table recalculation.
+  1. Add a `processedPacketCache` to `MeshNode` (storing recent `packetId` strings mapped to their processing timestamp, with a sliding expiration threshold).
+  2. Modify `receivePacket` to consult the cache first, silently dropping duplicate packets and preventing their forwarding or reprocessing.
+  3. Write comprehensive unit tests simulating circular network paths and high flooding packet depth to assert perfect packet deduplication and loop termination.
 
 ---
 
