@@ -639,8 +639,8 @@ export function reconcileLootClaims(state: GameState, pack: any): GameState {
   const newState = {
     ...state,
     inventory: [...state.inventory],
-    objectState: JSON.parse(JSON.stringify(state.objectState || {})),
-    agents: state.agents ? JSON.parse(JSON.stringify(state.agents)) : undefined,
+    objectState: cloneObjectState(state.objectState),
+    agents: cloneAgents(state.agents),
   };
 
   for (const [key, claim] of Object.entries(newState.lootClaims || {})) {
@@ -1003,5 +1003,111 @@ export function reconcileSyndicateTaxes(state: GameState, pack: any): GameState 
 
   return newState;
 }
+
+export function cloneMerchantInventories(inventories?: Record<string, string[]>): Record<string, string[]> | undefined {
+  if (!inventories) return undefined;
+  const clone: Record<string, string[]> = {};
+  for (const [key, value] of Object.entries(inventories)) {
+    clone[key] = [...value];
+  }
+  return clone;
+}
+
+export function cloneObjectState(objectState: Record<string, ObjectRuntime> | undefined): Record<string, ObjectRuntime> {
+  if (!objectState) return {};
+  const clone: Record<string, ObjectRuntime> = {};
+  for (const [key, value] of Object.entries(objectState)) {
+    clone[key] = {
+      ...value,
+      contents: value.contents ? [...value.contents] : undefined,
+    };
+  }
+  return clone;
+}
+
+export function cloneAgents(agents?: Record<string, AgentState>): Record<string, AgentState> | undefined {
+  if (!agents) return undefined;
+  const clone: Record<string, AgentState> = {};
+  for (const [key, value] of Object.entries(agents)) {
+    clone[key] = {
+      ...value,
+      inventory: [...value.inventory],
+    };
+  }
+  return clone;
+}
+
+export function cloneStateWithoutHistory(state: GameState): GameState {
+  const { stateHistory, ...rest } = state;
+  const clone: GameState = {
+    ...rest,
+    visited: { ...rest.visited },
+    flags: { ...rest.flags },
+    vars: { ...rest.vars },
+    inventory: [...rest.inventory],
+    objectState: cloneObjectState(rest.objectState),
+    proceduralRooms: rest.proceduralRooms ? rest.proceduralRooms.map(r => ({ ...r })) : undefined,
+    journal: [...rest.journal],
+    questStage: { ...rest.questStage },
+    environment: rest.environment ? { ...rest.environment } : undefined,
+    agents: cloneAgents(rest.agents),
+    transactionJournal: rest.transactionJournal ? rest.transactionJournal.map(t => ({ ...t })) : undefined,
+    vectorClock: rest.vectorClock ? { ...rest.vectorClock } : undefined,
+    lootClaims: rest.lootClaims ? { ...rest.lootClaims } : undefined,
+    cooperativeSyncLog: rest.cooperativeSyncLog ? [...rest.cooperativeSyncLog] : undefined,
+    merchantInventories: cloneMerchantInventories(rest.merchantInventories),
+    tradeHistory: rest.tradeHistory ? rest.tradeHistory.map(t => ({ ...t })) : undefined,
+    merchantGold: rest.merchantGold ? { ...rest.merchantGold } : undefined,
+    merchantLastRestock: rest.merchantLastRestock ? { ...rest.merchantLastRestock } : undefined,
+    merchantLastUpdated: rest.merchantLastUpdated ? { ...rest.merchantLastUpdated } : undefined,
+    npcRep: rest.npcRep ? { ...rest.npcRep } : undefined,
+    factionRep: rest.factionRep ? { ...rest.factionRep } : undefined,
+    territoryClaims: rest.territoryClaims ? { ...rest.territoryClaims } : undefined,
+    territoryControl: rest.territoryControl ? { ...rest.territoryControl } : undefined,
+    territoryAssists: rest.territoryAssists ? JSON.parse(JSON.stringify(rest.territoryAssists)) : undefined,
+    taxPolicy: rest.taxPolicy ? { ...rest.taxPolicy } : undefined,
+    taxVotes: rest.taxVotes ? JSON.parse(JSON.stringify(rest.taxVotes)) : undefined,
+    alliances: rest.alliances ? JSON.parse(JSON.stringify(rest.alliances)) : undefined,
+    allianceVotes: rest.allianceVotes ? JSON.parse(JSON.stringify(rest.allianceVotes)) : undefined,
+    tradeRoutes: rest.tradeRoutes ? JSON.parse(JSON.stringify(rest.tradeRoutes)) : undefined,
+    tradeRouteVotes: rest.tradeRouteVotes ? JSON.parse(JSON.stringify(rest.tradeRouteVotes)) : undefined,
+    tradeRoutePolicies: rest.tradeRoutePolicies ? { ...rest.tradeRoutePolicies } : undefined,
+    merchantLicenses: rest.merchantLicenses ? JSON.parse(JSON.stringify(rest.merchantLicenses)) : undefined,
+    merchantLicensings: rest.merchantLicensings ? JSON.parse(JSON.stringify(rest.merchantLicensings)) : undefined,
+    tariffVotes: rest.tariffVotes ? JSON.parse(JSON.stringify(rest.tariffVotes)) : undefined,
+    tariffPolicy: rest.tariffPolicy ? { ...rest.tariffPolicy } : undefined,
+    merchantGuilds: rest.merchantGuilds ? JSON.parse(JSON.stringify(rest.merchantGuilds)) : undefined,
+    guildMemberships: rest.guildMemberships ? JSON.parse(JSON.stringify(rest.guildMemberships)) : undefined,
+    guildVotes: rest.guildVotes ? JSON.parse(JSON.stringify(rest.guildVotes)) : undefined,
+    guildPolicies: rest.guildPolicies ? JSON.parse(JSON.stringify(rest.guildPolicies)) : undefined,
+    collectiveBargainingAgreements: rest.collectiveBargainingAgreements ? JSON.parse(JSON.stringify(rest.collectiveBargainingAgreements)) : undefined,
+    cartels: rest.cartels ? JSON.parse(JSON.stringify(rest.cartels)) : undefined,
+    cartelMemberships: rest.cartelMemberships ? JSON.parse(JSON.stringify(rest.cartelMemberships)) : undefined,
+    cartelVotes: rest.cartelVotes ? JSON.parse(JSON.stringify(rest.cartelVotes)) : undefined,
+    cartelPolicies: rest.cartelPolicies ? JSON.parse(JSON.stringify(rest.cartelPolicies)) : undefined,
+    contrabandBlacklist: rest.contrabandBlacklist ? JSON.parse(JSON.stringify(rest.contrabandBlacklist)) : undefined,
+    blackMarketPayouts: rest.blackMarketPayouts ? JSON.parse(JSON.stringify(rest.blackMarketPayouts)) : undefined,
+    bounties: rest.bounties ? JSON.parse(JSON.stringify(rest.bounties)) : undefined,
+    enforcers: rest.enforcers ? JSON.parse(JSON.stringify(rest.enforcers)) : undefined,
+    smugglingInsurance: rest.smugglingInsurance ? JSON.parse(JSON.stringify(rest.smugglingInsurance)) : undefined,
+    bribes: rest.bribes ? JSON.parse(JSON.stringify(rest.bribes)) : undefined,
+    syndicates: rest.syndicates ? JSON.parse(JSON.stringify(rest.syndicates)) : undefined,
+    productionLabs: rest.productionLabs ? JSON.parse(JSON.stringify(rest.productionLabs)) : undefined,
+    syndicateTurfClaims: rest.syndicateTurfClaims ? JSON.parse(JSON.stringify(rest.syndicateTurfClaims)) : undefined,
+    syndicateTurf: rest.syndicateTurf ? { ...rest.syndicateTurf } : undefined,
+    enforcementHeat: rest.enforcementHeat ? JSON.parse(JSON.stringify(rest.enforcementHeat)) : undefined,
+    protectionRackets: rest.protectionRackets ? JSON.parse(JSON.stringify(rest.protectionRackets)) : undefined,
+    syndicateBribes: rest.syndicateBribes ? JSON.parse(JSON.stringify(rest.syndicateBribes)) : undefined,
+    deflectionPolicies: rest.deflectionPolicies ? JSON.parse(JSON.stringify(rest.deflectionPolicies)) : undefined,
+    safehouses: rest.safehouses ? JSON.parse(JSON.stringify(rest.safehouses)) : undefined,
+    blackMarkets: rest.blackMarkets ? JSON.parse(JSON.stringify(rest.blackMarkets)) : undefined,
+    frontBusinesses: rest.frontBusinesses ? JSON.parse(JSON.stringify(rest.frontBusinesses)) : undefined,
+    turfGuards: rest.turfGuards ? JSON.parse(JSON.stringify(rest.turfGuards)) : undefined,
+    syndicateTaxVotes: rest.syndicateTaxVotes ? JSON.parse(JSON.stringify(rest.syndicateTaxVotes)) : undefined,
+  };
+  return clone;
+}
+
+
 
 
