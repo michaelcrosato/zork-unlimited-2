@@ -2844,6 +2844,21 @@ export const SWFSecurityInsurancePoolProposalSchema = z.object({
 });
 export type SWFSecurityInsurancePoolProposal = z.infer<typeof SWFSecurityInsurancePoolProposalSchema>;
 
+export const SWFSecurityInsurancePoolEmergencyDrawdownProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFSecurityInsurancePoolEmergencyDrawdownProposal = z.infer<typeof SWFSecurityInsurancePoolEmergencyDrawdownProposalSchema>;
+
+
 
 
 
@@ -3804,6 +3819,8 @@ export const GameStateSchema = z.object({
   swfSecurityInsurancePoolAllocationPercent: z.number().int().nonnegative().optional(),
   swfSecurityInsurancePoolCap: z.number().int().nonnegative().optional(),
   swfSecurityInsurancePoolProposals: z.record(z.string(), SWFSecurityInsurancePoolProposalSchema).optional(),
+  swfSecurityInsurancePoolEmergencyDrawdownAuthorized: z.boolean().optional(),
+  swfSecurityInsurancePoolEmergencyDrawdownProposals: z.record(z.string(), SWFSecurityInsurancePoolEmergencyDrawdownProposalSchema).optional(),
 
 
 
@@ -4228,6 +4245,8 @@ export const createInitialState = (options: {
     multiOracleRefundEscalationProposals: {},
     swfSecurityInsurancePool: 0,
     swfSecurityInsurancePoolProposals: {},
+    swfSecurityInsurancePoolEmergencyDrawdownAuthorized: false,
+    swfSecurityInsurancePoolEmergencyDrawdownProposals: {},
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
 
@@ -16790,6 +16809,55 @@ export function reconcileSWFSecurityInsurancePoolProposals(state: GameState, pac
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.swfSecurityInsurancePoolProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfSecurityInsurancePoolEmergencyDrawdownProposals: state.swfSecurityInsurancePoolEmergencyDrawdownProposals ? { ...state.swfSecurityInsurancePoolEmergencyDrawdownProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfSecurityInsurancePoolEmergencyDrawdownProposals)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.swfSecurityInsurancePoolEmergencyDrawdownProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      newState.swfSecurityInsurancePoolEmergencyDrawdownAuthorized = true;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Security Insurance Pool Emergency Drawdown Resolved] Syndicate ${proposal.syndicateId} authorized security insurance pool emergency drawdown proposal ${proposalId}.`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.swfSecurityInsurancePoolEmergencyDrawdownProposals[proposalId] = {
         ...proposal,
         resolved: true,
         status: "disputed",

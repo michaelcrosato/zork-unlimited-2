@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #216 (Ready for Cycle #217)
-* **Build/Test Status**: 🟢 PASS (All 768 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #217 (Ready for Cycle #218)
+* **Build/Test Status**: 🟢 PASS (All 770 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1389,16 +1389,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire automated allocation of transaction fees and penalty yields to the insurance pool (`AF-218`).
 - [x] Write comprehensive Vitest integration tests asserting pool funding, consensus parameters, and reserve stability (`AF-218`).
 
+### Phase 197: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Multi-Oracle Consensus Dynamic Security Insurance Pool Emergency Drawdowns and Liquidation Deflection (Completed)
+- [x] Define proposal and vote schemas for authorizing emergency drawdowns from the security insurance pool (`AF-219`).
+- [x] Wire `tickEconomy` to automatically draw down from the insurance pool to replenish the reinsurance options margin balance when it falls below the maintenance threshold (`AF-219`).
+- [x] Write comprehensive Vitest integration tests asserting emergency drawdown triggers, margin replenishment, and liquidation deflection (`AF-219`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-219`
-* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Multi-Oracle Consensus Dynamic Security Insurance Pool Emergency Drawdowns and Liquidation Deflection.
-* **Why this matters**: Support automatically drawing down gold from the security insurance pool to deflection margins and prevent liquidations of reinsurance options contracts when weatherproof volatility spikes are prolonged.
+**Task ID**: `AF-220`
+* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Multi-Oracle Consensus Dynamic Security Insurance Pool Emergency Drawdowns Deflection Fee Surcharges.
+* **Why this matters**: Support automatically penalizing or charging a dynamic deflection fee surcharge to syndicates that trigger emergency drawdowns, ensuring that drawing down from the pool has a strategic financial cost.
 * **Planned Actions**:
-  1. Define proposal and vote schemas for authorizing emergency drawdowns from the security insurance pool.
-  2. Wire `tickEconomy` to automatically draw down from the insurance pool to replenish the reinsurance options margin balance when it falls below the maintenance threshold.
-  3. Write comprehensive Vitest integration tests asserting emergency drawdown triggers, margin replenishment, and liquidation deflection.
+  1. Define a dynamic surcharge rate or fee penalty scaling by drawdown frequency or pool depth.
+  2. Wire `tickEconomy` to deduct the deflection fee from the syndicate's war chest or CDO shares.
+  3. Write comprehensive Vitest integration tests asserting fee deduction, margin replenishment, and strategic cost scaling.
 
 ---
 

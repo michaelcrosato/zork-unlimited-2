@@ -6032,6 +6032,23 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
+      // SWF Security Insurance Pool Emergency Drawdown to prevent margin call liquidations (AF-219)
+      if (netEquity < maintenanceRequirement && newState.swfSecurityInsurancePoolAuthorized && newState.swfSecurityInsurancePoolEmergencyDrawdownAuthorized && (newState.swfSecurityInsurancePool ?? 0) > 0) {
+        const needed = maintenanceRequirement - netEquity;
+        if (needed > 0) {
+          const drawdown = Math.min(needed, newState.swfSecurityInsurancePool ?? 0);
+          newState.swfSecurityInsurancePool = (newState.swfSecurityInsurancePool ?? 0) - drawdown;
+          marginAccount.collateral = (marginAccount.collateral ?? 0) + drawdown;
+          marginAccount.timestamp = newState.step;
+          netEquity += drawdown;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Security Insurance Pool Emergency Drawdown] Drew down ${drawdown} gold from security insurance pool to margin collateral for Syndicate ${syndicateId} to prevent margin call liquidation.`
+          );
+        }
+      }
+
       // Get the liquidation threshold and grace period parameters for the syndicate's written options (or use 1.0 if not defined/default)
       let minThreshold = 1.0;
       let gracePeriod = 0;

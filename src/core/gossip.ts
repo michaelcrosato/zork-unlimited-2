@@ -3815,6 +3815,35 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   // Merge swfStakingSweepPool using Max (AF-206)
   const swfStakingSweepPool = Math.max(stateA.swfStakingSweepPool ?? 0, stateB.swfStakingSweepPool ?? 0);
 
+  // Merge swfSecurityInsurancePool and authorized flags using Max and OR (AF-219)
+  const swfSecurityInsurancePool = Math.max(stateA.swfSecurityInsurancePool ?? 0, stateB.swfSecurityInsurancePool ?? 0);
+  const swfSecurityInsurancePoolAuthorized = stateA.swfSecurityInsurancePoolAuthorized || stateB.swfSecurityInsurancePoolAuthorized;
+  const swfSecurityInsurancePoolAllocationPercent = Math.max(stateA.swfSecurityInsurancePoolAllocationPercent ?? 0, stateB.swfSecurityInsurancePoolAllocationPercent ?? 0);
+  const swfSecurityInsurancePoolCap = Math.max(stateA.swfSecurityInsurancePoolCap ?? 0, stateB.swfSecurityInsurancePoolCap ?? 0);
+  const swfSecurityInsurancePoolEmergencyDrawdownAuthorized = stateA.swfSecurityInsurancePoolEmergencyDrawdownAuthorized || stateB.swfSecurityInsurancePoolEmergencyDrawdownAuthorized;
+
+  // Merge swfSecurityInsurancePoolProposals using LWW (AF-219)
+  const swfSecurityInsurancePoolProposals = { ...stateA.swfSecurityInsurancePoolProposals };
+  if (stateB.swfSecurityInsurancePoolProposals) {
+    for (const [proposalId, entryB] of Object.entries(stateB.swfSecurityInsurancePoolProposals)) {
+      const entryA = swfSecurityInsurancePoolProposals[proposalId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfSecurityInsurancePoolProposals[proposalId] = entryB;
+      }
+    }
+  }
+
+  // Merge swfSecurityInsurancePoolEmergencyDrawdownProposals using LWW (AF-219)
+  const swfSecurityInsurancePoolEmergencyDrawdownProposals = { ...stateA.swfSecurityInsurancePoolEmergencyDrawdownProposals };
+  if (stateB.swfSecurityInsurancePoolEmergencyDrawdownProposals) {
+    for (const [proposalId, entryB] of Object.entries(stateB.swfSecurityInsurancePoolEmergencyDrawdownProposals)) {
+      const entryA = swfSecurityInsurancePoolEmergencyDrawdownProposals[proposalId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfSecurityInsurancePoolEmergencyDrawdownProposals[proposalId] = entryB;
+      }
+    }
+  }
+
   // Merge sweepPoolRankAdjustFeeCalibrationProposals using LWW (AF-209)
   const sweepPoolRankAdjustFeeCalibrationProposals = { ...stateA.sweepPoolRankAdjustFeeCalibrationProposals };
   if (stateB.sweepPoolRankAdjustFeeCalibrationProposals) {
@@ -3893,6 +3922,13 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfStabilityPool,
     cooperativeStakingYieldSweepProposals,
     swfStakingSweepPool,
+    swfSecurityInsurancePool,
+    swfSecurityInsurancePoolAuthorized,
+    swfSecurityInsurancePoolAllocationPercent,
+    swfSecurityInsurancePoolCap,
+    swfSecurityInsurancePoolProposals,
+    swfSecurityInsurancePoolEmergencyDrawdownAuthorized,
+    swfSecurityInsurancePoolEmergencyDrawdownProposals,
     sweepPoolRankAdjustBaseProposalFee: Math.max(stateA.sweepPoolRankAdjustBaseProposalFee ?? 200, stateB.sweepPoolRankAdjustBaseProposalFee ?? 200),
     sweepPoolRankAdjustBaseVoteFee: Math.max(stateA.sweepPoolRankAdjustBaseVoteFee ?? 50, stateB.sweepPoolRankAdjustBaseVoteFee ?? 50),
     sweepPoolRankAdjustFeeCalibrationProposals,
