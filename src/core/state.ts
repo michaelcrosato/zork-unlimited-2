@@ -363,6 +363,7 @@ export const TurfGuardOutpostSchema = z.object({
   securityLevel: z.number().int().nonnegative(),
   timestamp: z.number().int(),
   turrets: z.record(z.string(), OutpostTurretSchema).optional(),
+  disabled: z.boolean().optional(),
 });
 export type TurfGuardOutpost = z.infer<typeof TurfGuardOutpostSchema>;
 
@@ -518,6 +519,22 @@ export const PeaceTreatyVoteSchema = z.object({
 });
 export type PeaceTreatyVote = z.infer<typeof PeaceTreatyVoteSchema>;
 
+export const CovertCellSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  cellLevel: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type CovertCell = z.infer<typeof CovertCellSchema>;
+
+export const PropagandaCampaignSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  level: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type PropagandaCampaign = z.infer<typeof PropagandaCampaignSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -643,6 +660,8 @@ export const GameStateSchema = z.object({
   factionWars: z.record(z.string(), z.record(z.string(), z.boolean())).optional(),
   defenseFortresses: z.record(z.string(), DefenseFortressSchema).optional(),
   peaceTreatyVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), PeaceTreatyVoteSchema))).optional(),
+  covertCells: z.record(z.string(), CovertCellSchema).optional(),
+  propagandaCampaigns: z.record(z.string(), PropagandaCampaignSchema).optional(),
 });
 
 
@@ -1444,6 +1463,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     factionWars: rest.factionWars ? JSON.parse(JSON.stringify(rest.factionWars)) : undefined,
     defenseFortresses: rest.defenseFortresses ? JSON.parse(JSON.stringify(rest.defenseFortresses)) : undefined,
     peaceTreatyVotes: rest.peaceTreatyVotes ? JSON.parse(JSON.stringify(rest.peaceTreatyVotes)) : undefined,
+    covertCells: rest.covertCells ? JSON.parse(JSON.stringify(rest.covertCells)) : undefined,
+    propagandaCampaigns: rest.propagandaCampaigns ? JSON.parse(JSON.stringify(rest.propagandaCampaigns)) : undefined,
   };
   return clone;
 }
@@ -1537,6 +1558,14 @@ export function reconcileEspionageNetworks(state: GameState, pack: any): GameSta
 }
 
 export function reconcileWiretaps(state: GameState, pack: any): GameState {
+  return state;
+}
+
+export function reconcileCovertCells(state: GameState, pack: any): GameState {
+  return state;
+}
+
+export function reconcilePropagandaCampaigns(state: GameState, pack: any): GameState {
   return state;
 }
 

@@ -496,6 +496,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       // Check if the syndicate still controls this turf
       const controllingSyndicateId = newState.syndicateTurf?.[roomId];
       if (controllingSyndicateId === outpost.syndicateId) {
+        if (outpost.disabled) continue; // Skip if disabled
         const existingGuard = turfGuards[roomId];
         const currentCount = existingGuard?.count ?? 0;
         const targetCount = outpost.securityLevel; // Recruit up to securityLevel
@@ -515,6 +516,50 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
     if (guardsChanged) {
       newState.turfGuards = turfGuards;
+    }
+  }
+
+  // Covert Cells Special Operations Sabotage Ticking (AF-73)
+  if (newState.covertCells) {
+    for (const [roomId, cell] of Object.entries(newState.covertCells)) {
+      // Periodic check: 15% * cellLevel chance of sabotage per economic tick
+      const sabotageChance = Math.min(0.8, 0.15 * cell.cellLevel);
+      const { value: roll, nextSeed } = PureRand.next(newState.seed);
+      newState.seed = nextSeed;
+
+      if (roll <= sabotageChance) {
+        // Sabotage triggered! Choose between disabling outpost or reducing heat
+        const choiceVal = Math.floor(roll * 1000);
+        const outpost = newState.turfGuardOutposts?.[roomId];
+        
+        if (outpost && outpost.syndicateId !== cell.syndicateId && choiceVal % 2 === 0) {
+          // Disable outpost!
+          newState.turfGuardOutposts = {
+            ...(newState.turfGuardOutposts || {}),
+            [roomId]: {
+              ...outpost,
+              disabled: true,
+            },
+          };
+          newState.journal.push(`[SpecialOps] Covert cell in room ${roomId} sabotaged and disabled the local hostile outpost!`);
+        } else {
+          // Reduce enforcer heat in this room
+          const currentHeatEntry = newState.enforcementHeat?.[roomId];
+          if (currentHeatEntry) {
+            const heatReduction = 20 * cell.cellLevel;
+            const newHeat = Math.max(0, currentHeatEntry.heat - heatReduction);
+            newState.enforcementHeat = {
+              ...(newState.enforcementHeat || {}),
+              [roomId]: {
+                ...currentHeatEntry,
+                heat: newHeat,
+                timestamp: newState.step,
+              },
+            };
+            newState.journal.push(`[SpecialOps] Covert cell in room ${roomId} triggered sabotage event, reducing local enforcer heat by ${heatReduction} (New heat: ${newHeat}).`);
+          }
+        }
+      }
     }
   }
 
@@ -545,6 +590,34 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       const isAtWar = newState.factionWars?.[syndicateId]?.[nativeFactionId] === true;
       if (!isAtWar) continue;
 
+      // Check if covert cell or propaganda in the room cancels/bypasses the counter-attack trigger
+      const localCell = newState.covertCells?.[roomId];
+      const propKey = `${roomId}_${syndicateId}`;
+      const localPropaganda = newState.propagandaCampaigns?.[propKey];
+
+      let bypassSiege = false;
+      if (localCell && localCell.syndicateId === syndicateId) {
+        const cellBypassProb = 0.2 * localCell.cellLevel;
+        const { value: bypassRoll, nextSeed: s1 } = PureRand.next(newState.seed);
+        newState.seed = s1;
+        if (bypassRoll <= cellBypassProb) {
+          bypassSiege = true;
+        }
+      }
+      if (localPropaganda && !bypassSiege) {
+        const propBypassProb = 0.1 * localPropaganda.level;
+        const { value: bypassRoll, nextSeed: s2 } = PureRand.next(newState.seed);
+        newState.seed = s2;
+        if (bypassRoll <= propBypassProb) {
+          bypassSiege = true;
+        }
+      }
+
+      if (bypassSiege) {
+        newState.journal.push(`[Siege] Covert cell / propaganda in room ${roomId} successfully sabotaged the ${nativeFactionId} siege plans! Counter-attack bypassed.`);
+        continue;
+      }
+
       // Base defense success rate: 20%
       const baseRate = 0.2;
 
@@ -554,7 +627,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
       // Outposts
       const outpost = newState.turfGuardOutposts?.[roomId];
-      const outpostBonus = outpost ? 0.1 * outpost.securityLevel : 0;
+      const outpostBonus = outpost && !outpost.disabled ? 0.1 * outpost.securityLevel : 0;
 
       // Syndicate pooled resources (warChest)
       const warChestBonus = Math.min(0.3, (syndicate.warChest ?? 0) / 1000);

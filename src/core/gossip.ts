@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -1077,6 +1077,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge covertCells using LWW (Last-Write-Wins)
+  const covertCells = { ...stateA.covertCells };
+  if (stateB.covertCells) {
+    for (const [roomId, entryB] of Object.entries(stateB.covertCells)) {
+      const entryA = covertCells[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        covertCells[roomId] = entryB;
+      }
+    }
+  }
+
+  // Merge propagandaCampaigns using LWW (Last-Write-Wins)
+  const propagandaCampaigns = { ...stateA.propagandaCampaigns };
+  if (stateB.propagandaCampaigns) {
+    for (const [key, entryB] of Object.entries(stateB.propagandaCampaigns)) {
+      const entryA = propagandaCampaigns[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        propagandaCampaigns[key] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -1137,6 +1159,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     smugglerGuildCbaVotes,
     smugglerGuildCbas,
     syndicateAllianceVotes,
+    covertCells,
+    propagandaCampaigns,
   };
 }
 
@@ -1459,6 +1483,8 @@ export class GossipNode {
     convergedState = reconcileWiretaps(convergedState, this.pack);
     convergedState = reconcileCartelGlobalTaxes(convergedState, this.pack);
     convergedState = reconcileSmugglerGuildCbas(convergedState, this.pack);
+    convergedState = reconcileCovertCells(convergedState, this.pack);
+    convergedState = reconcilePropagandaCampaigns(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

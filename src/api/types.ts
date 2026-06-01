@@ -71,6 +71,8 @@ export type Action =
   | { type: "LAUNCH_CAMPAIGN"; syndicateId: string; factionId: string; roomId: string; goldInvestment: number; timestamp: number }
   | { type: "BUILD_DEFENSE_FORTRESS"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "PROPOSE_PEACE_TREATY"; syndicateId: string; factionId: string; vote?: boolean; timestamp: number }
+  | { type: "ESTABLISH_COVERT_CELL"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "BROADCAST_PROPAGANDA"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 

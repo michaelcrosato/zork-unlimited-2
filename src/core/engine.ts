@@ -571,6 +571,24 @@ export function step(
         if (isAtWarWithFaction) {
           tax = tax * 4; // Factions at war charge 4x travel tax
         }
+
+        // Apply covert cell and propaganda discounts! (AF-73)
+        const activeSyndicate = agentSyndicates[0];
+        if (activeSyndicate) {
+          const localCell = state.covertCells?.[destRoomId];
+          const propKey = `${destRoomId}_${activeSyndicate.id}`;
+          const localPropaganda = state.propagandaCampaigns?.[propKey];
+
+          let discount = 0.0;
+          if (localCell && localCell.syndicateId === activeSyndicate.id) {
+            discount += 0.25 * localCell.cellLevel;
+          }
+          if (localPropaganda) {
+            discount += 0.15 * localPropaganda.level;
+          }
+          tax = Math.floor(tax * Math.max(0, 1 - discount));
+        }
+
         calculatedTax = tax;
       }
 
@@ -586,6 +604,24 @@ export function step(
           if (!isMember) {
             const dominance = syndicate.dominance ?? 50;
             calculatedExtortionToll = Math.floor(15 * (dominance / 50));
+
+            // Apply covert cell and propaganda discounts! (AF-73)
+            const agentSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
+            const activeSyndicate = agentSyndicates[0];
+            if (activeSyndicate) {
+              const localCell = state.covertCells?.[destRoomId];
+              const propKey = `${destRoomId}_${activeSyndicate.id}`;
+              const localPropaganda = state.propagandaCampaigns?.[propKey];
+
+              let discount = 0.0;
+              if (localCell && localCell.syndicateId === activeSyndicate.id) {
+                discount += 0.25 * localCell.cellLevel;
+              }
+              if (localPropaganda) {
+                discount += 0.15 * localPropaganda.level;
+              }
+              calculatedExtortionToll = Math.floor(calculatedExtortionToll * Math.max(0, 1 - discount));
+            }
           }
         }
       }
@@ -2644,14 +2680,46 @@ export function tickEnforcers(
 
         if (targetRoom) {
           if (enforcer.currentRoom !== targetRoom) {
-            const nextRoom = findNextRoom(enforcer.currentRoom, targetRoom, enforcer);
-            if (nextRoom) {
-              enforcer.currentRoom = nextRoom;
-              enforcer.timestamp = newState.step;
+            // Check if enforcer is slowed by covert cells or propaganda
+            const localCell = newState.covertCells?.[enforcer.currentRoom];
+            const targetSyndicate = enforcer.targetId ? Object.values(newState.syndicates ?? {}).find(s => s.members.includes(enforcer.targetId as string)) : undefined;
+            const targetSyndicateId = targetSyndicate?.id ?? Object.values(newState.syndicates ?? {}).find(s => s.members.includes("player"))?.id;
+            
+            const propKey = targetSyndicateId ? `${enforcer.currentRoom}_${targetSyndicateId}` : undefined;
+            const localPropaganda = propKey ? newState.propagandaCampaigns?.[propKey] : undefined;
+            
+            let slowChance = 0;
+            if (localCell && targetSyndicateId && localCell.syndicateId === targetSyndicateId) {
+              slowChance += 0.25 * localCell.cellLevel;
+            }
+            if (localPropaganda) {
+              slowChance += 0.15 * localPropaganda.level;
+            }
+            
+            let slowed = false;
+            if (slowChance > 0) {
+              const { value: slowRoll, nextSeed: s3 } = PureRand.next(newState.seed);
+              newState.seed = s3;
+              if (slowRoll <= slowChance) {
+                slowed = true;
+              }
+            }
+
+            if (slowed) {
               events.push({
                 type: "narration",
-                text: `[Enforcement] Smuggling Bounty Hunter ${enforcer.name} is pursuing target ${enforcer.targetId} and has moved to ${nextRoom}.`
+                text: `[Enforcement] Smuggling Bounty Hunter ${enforcer.name}'s pursuit is slowed by local covert operations/propaganda in ${enforcer.currentRoom}!`
               } as any);
+            } else {
+              const nextRoom = findNextRoom(enforcer.currentRoom, targetRoom, enforcer);
+              if (nextRoom) {
+                enforcer.currentRoom = nextRoom;
+                enforcer.timestamp = newState.step;
+                events.push({
+                  type: "narration",
+                  text: `[Enforcement] Smuggling Bounty Hunter ${enforcer.name} is pursuing target ${enforcer.targetId} and has moved to ${nextRoom}.`
+                } as any);
+              }
             }
           }
 

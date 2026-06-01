@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -8560,6 +8560,296 @@ export function multiAgentStep(
           warActive: activeWar,
         });
       }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ESTABLISH_COVERT_CELL action (AF-73)
+  if ((action as any).type === "ESTABLISH_COVERT_CELL") {
+    const { roomId, syndicateId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 150;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const findPackRoom = (p: any, rid: string) => {
+      if (p.rooms) {
+        return p.rooms.find((r: any) => r.id === rid);
+      }
+      if (p.scenes) {
+        return p.scenes.find((s: any) => s.id === rid);
+      }
+      return undefined;
+    };
+
+    const roomDef = findPackRoom(pack, roomId);
+    const roomExists = !!roomDef;
+    const syndicate = state.syndicates?.[syndicateId];
+    const nativeFactionId = roomDef?.faction;
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to establish a covert cell.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to establish a covert cell.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Covert cell cost ${cost} must be a non-negative integer.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!nativeFactionId) {
+      rejectionReason = `Room ${roomId} must have a native faction to establish a covert cell.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.territoryControl?.[roomId] === syndicateId) {
+      rejectionReason = `Syndicate already controls this territory; cannot establish a covert cell.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to establish covert cell costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const covertCells = { ...(state.covertCells || {}) };
+      const existingCell = covertCells[roomId];
+      const newLevel = existingCell ? existingCell.cellLevel + 1 : 1;
+
+      covertCells[roomId] = {
+        roomId,
+        syndicateId,
+        cellLevel: newLevel,
+        timestamp,
+      };
+      newState.covertCells = covertCells;
+
+      if (!newState.journal) newState.journal = [];
+      if (existingCell) {
+        newState.journal.push(`[Syndicate] Upgraded covert cell in room ${roomId} to level ${newLevel} for ${cost} gold by agent ${agentId}.`);
+      } else {
+        newState.journal.push(`[Syndicate] Established covert cell in room ${roomId} at level 1 for ${cost} gold by agent ${agentId}.`);
+      }
+
+      customEvents.push({
+        type: "cartel_covert_cell_established",
+        agentId,
+        roomId,
+        syndicateId,
+        cellLevel: newLevel,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BROADCAST_PROPAGANDA action (AF-73)
+  if ((action as any).type === "BROADCAST_PROPAGANDA") {
+    const { roomId, syndicateId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 100;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const findPackRoom = (p: any, rid: string) => {
+      if (p.rooms) {
+        return p.rooms.find((r: any) => r.id === rid);
+      }
+      if (p.scenes) {
+        return p.scenes.find((s: any) => s.id === rid);
+      }
+      return undefined;
+    };
+
+    const roomDef = findPackRoom(pack, roomId);
+    const roomExists = !!roomDef;
+    const syndicate = state.syndicates?.[syndicateId];
+    const nativeFactionId = roomDef?.faction;
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to broadcast propaganda.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to broadcast propaganda.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Propaganda cost ${cost} must be a non-negative integer.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to broadcast propaganda costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const campaigns = { ...(state.propagandaCampaigns || {}) };
+      const key = `${roomId}_${syndicateId}`;
+      const existing = campaigns[key];
+      const newLevel = existing ? existing.level + 1 : 1;
+
+      campaigns[key] = {
+        roomId,
+        syndicateId,
+        level: newLevel,
+        timestamp,
+      };
+      newState.propagandaCampaigns = campaigns;
+
+      // Increase syndicate dominance by 5 (up to max 150)
+      const currentDom = syndicate.dominance ?? 50;
+      const newDom = Math.min(150, currentDom + 5);
+      newState.syndicates = {
+        ...(newState.syndicates || {}),
+        [syndicateId]: {
+          ...syndicate,
+          dominance: newDom,
+        },
+      };
+
+      // Increase faction reputation with room's native faction by 5 if present
+      if (nativeFactionId) {
+        const currentRep = newState.factionRep?.[nativeFactionId] ?? 0;
+        newState.factionRep = {
+          ...(newState.factionRep || {}),
+          [nativeFactionId]: currentRep + 5,
+        };
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Broadcasted conquest propaganda in room ${roomId} (Level: ${newLevel}) for ${cost} gold by agent ${agentId}. Syndicate dominance increased to ${newDom}.`);
+
+      customEvents.push({
+        type: "conquest_propaganda_broadcasted",
+        agentId,
+        roomId,
+        syndicateId,
+        level: newLevel,
+        dominance: newDom,
+        cost,
+      });
     }
 
     newState.step += 1;
