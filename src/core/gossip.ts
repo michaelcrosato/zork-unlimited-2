@@ -1775,6 +1775,75 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge syndicateDefaults taking maximum (since defaults are monotonic)
+  const syndicateDefaults = { ...stateA.syndicateDefaults };
+  if (stateB.syndicateDefaults) {
+    for (const [syndId, countB] of Object.entries(stateB.syndicateDefaults)) {
+      const countA = syndicateDefaults[syndId] ?? 0;
+      syndicateDefaults[syndId] = Math.max(countA, countB);
+    }
+  }
+
+  // Merge reinsuranceRiskRatings using LWW
+  const reinsuranceRiskRatings = { ...stateA.reinsuranceRiskRatings };
+  if (stateB.reinsuranceRiskRatings) {
+    for (const [key, ratingB] of Object.entries(stateB.reinsuranceRiskRatings)) {
+      const ratingA = reinsuranceRiskRatings[key];
+      if (!ratingA || ratingB.timestamp > ratingA.timestamp) {
+        reinsuranceRiskRatings[key] = ratingB;
+      }
+    }
+  }
+
+  // Merge reinsuranceRiskRatingVotes using LWW
+  const reinsuranceRiskRatingVotes = { ...stateA.reinsuranceRiskRatingVotes };
+  if (stateB.reinsuranceRiskRatingVotes) {
+    for (const [pairKey, bInner] of Object.entries(stateB.reinsuranceRiskRatingVotes)) {
+      if (!reinsuranceRiskRatingVotes[pairKey]) {
+        reinsuranceRiskRatingVotes[pairKey] = { ...bInner };
+      } else {
+        const aInner = { ...reinsuranceRiskRatingVotes[pairKey] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        reinsuranceRiskRatingVotes[pairKey] = aInner;
+      }
+    }
+  }
+
+  // Merge reinsuranceLiquidityAudits using LWW
+  const reinsuranceLiquidityAudits = { ...stateA.reinsuranceLiquidityAudits };
+  if (stateB.reinsuranceLiquidityAudits) {
+    for (const [key, auditB] of Object.entries(stateB.reinsuranceLiquidityAudits)) {
+      const auditA = reinsuranceLiquidityAudits[key];
+      if (!auditA || auditB.timestamp > auditA.timestamp) {
+        reinsuranceLiquidityAudits[key] = auditB;
+      }
+    }
+  }
+
+  // Merge reinsuranceLiquidityAuditVotes using LWW
+  const reinsuranceLiquidityAuditVotes = { ...stateA.reinsuranceLiquidityAuditVotes };
+  if (stateB.reinsuranceLiquidityAuditVotes) {
+    for (const [auditId, bInner] of Object.entries(stateB.reinsuranceLiquidityAuditVotes)) {
+      if (!reinsuranceLiquidityAuditVotes[auditId]) {
+        reinsuranceLiquidityAuditVotes[auditId] = { ...bInner };
+      } else {
+        const aInner = { ...reinsuranceLiquidityAuditVotes[auditId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        reinsuranceLiquidityAuditVotes[auditId] = aInner;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -1885,6 +1954,11 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     interestSubsidyVotes,
     reinsuranceCollateralPledges,
     reinsuranceCollateralVotes,
+    syndicateDefaults,
+    reinsuranceRiskRatings,
+    reinsuranceRiskRatingVotes,
+    reinsuranceLiquidityAudits,
+    reinsuranceLiquidityAuditVotes,
   };
 }
 

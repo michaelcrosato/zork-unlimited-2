@@ -1189,4 +1189,403 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     expect(merged.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.active).toBe(true);
     expect(merged.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.timestamp).toBe(1030);
   });
+
+  it("should handle PROPOSE_RISK_RATING validations, double-majority consensus, and scale premium multipliers (AF-104)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+      shadow_brokers: {
+        id: "shadow_brokers",
+        name: "Shadow Brokers",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    // Active reinsurance contract
+    state.reinsuranceContracts = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        maxLiquidityLimit: 500,
+        active: true,
+        borrowedAfromB: 0,
+        borrowedBfromA: 0,
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Initial defaults count is 0, so risk rating must be "low"
+    // Proposing "medium" should be rejected
+    const invalidAct = {
+      type: "PROPOSE_RISK_RATING",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      riskRating: "medium",
+      targetState: true,
+      timestamp: 1000,
+    };
+    let res1 = multiAgentStep(state, { agentId: "player", action: invalidAct as any }, mockPack);
+    expect(res1.ok).toBe(false);
+    expect(res1.rejectionReason).toContain("expected: low");
+
+    // 2. Proposing "low" should be accepted
+    const validAct = {
+      type: "PROPOSE_RISK_RATING",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      riskRating: "low",
+      targetState: true,
+      timestamp: 1000,
+    };
+    let res2 = multiAgentStep(state, { agentId: "player", action: validAct as any }, mockPack);
+    expect(res2.ok).toBe(true);
+    // Consensus not reached yet (double majority needed: bob hasn't voted)
+    expect(res2.state.reinsuranceRiskRatings?.["blood_fangs:shadow_brokers"]?.active).toBeFalsy();
+
+    // 3. Bob (from shadow_brokers) votes FOR it
+    let res3 = multiAgentStep(res2.state, { agentId: "bob", action: validAct as any }, mockPack);
+    expect(res3.ok).toBe(true);
+    expect(res3.state.reinsuranceRiskRatings?.["blood_fangs:shadow_brokers"]?.active).toBe(true);
+    expect(res3.state.reinsuranceRiskRatings?.["blood_fangs:shadow_brokers"]?.riskRating).toBe("low");
+
+    // 4. Simulate a history of 1 default. Proposing "medium" should be accepted now!
+    state.syndicateDefaults = { blood_fangs: 1 };
+    const medAct = {
+      type: "PROPOSE_RISK_RATING",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      riskRating: "medium",
+      targetState: true,
+      timestamp: 1050,
+    };
+    let res4 = multiAgentStep(state, { agentId: "player", action: medAct as any }, mockPack);
+    expect(res4.ok).toBe(true);
+    let res5 = multiAgentStep(res4.state, { agentId: "bob", action: medAct as any }, mockPack);
+    expect(res5.ok).toBe(true);
+    expect(res5.state.reinsuranceRiskRatings?.["blood_fangs:shadow_brokers"]?.riskRating).toBe("medium");
+
+    // 5. Test premium multiplier calculation in tickEconomy under "medium" risk rating and 1 historical default.
+    // Base partner pool gold = 200 (less than 250 -> base multiplier = 1.5).
+    // Medium risk rating markup = +0.2.
+    // 1 default markup = +0.1.
+    // Final multiplier should be 1.5 + 0.2 + 0.1 = 1.8.
+    res5.state.jointLoanInsurancePools = {
+      blood_fangs: { syndicateId: "blood_fangs", poolGold: 0, premiumRate: 10, timestamp: 1000 },
+      shadow_brokers: { syndicateId: "shadow_brokers", poolGold: 200, premiumRate: 10, timestamp: 1000 },
+    };
+    res5.state.agentPremiumPolicies = {
+      player_group1: { agentId: "player", syndicateId: "blood_fangs", groupId: "group1", premiumPaid: 30, active: true, timestamp: 1000 },
+    };
+    res5.state.jointLoans = {
+      group1: {
+        id: "group1",
+        syndicateId: "blood_fangs",
+        members: ["player"],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "sh_player" }],
+        amount: 100,
+        interestAccrued: 0,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000,
+      },
+    };
+    res5.state.safehouses = {
+      sh_player: { id: "sh_player", roomId: "clearing", ownerId: "player", syndicateId: "blood_fangs", level: 2, stashCapacity: 10, stashItems: [], timestamp: 1000 },
+    };
+    res5.state.step = 15; // Past due step 10 -> Triggers Default!
+
+    let ticked = tickEconomy(res5.state, mockPack);
+
+    // Remaining due = 100 + 5 (interest) = 105.
+    // Borrowed amount = 105.
+    // Owed amount charged with 1.8x multiplier = Math.ceil(105 * 1.8) = 189 gold.
+    const contract = ticked.reinsuranceContracts?.["blood_fangs:shadow_brokers"];
+    expect(contract?.borrowedAfromB).toBe(189);
+  });
+
+  it("should handle REQUEST_LIQUIDITY_AUDIT validations, consensus, evaluate audit status, and adjust multipliers (AF-104)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+      shadow_brokers: {
+        id: "shadow_brokers",
+        name: "Shadow Brokers",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.reinsuranceContracts = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        maxLiquidityLimit: 500,
+        active: true,
+        borrowedAfromB: 0,
+        borrowedBfromA: 0,
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Audit B's pool which has 100 gold (< 150 -> should FAIL)
+    state.jointLoanInsurancePools = {
+      blood_fangs: { syndicateId: "blood_fangs", poolGold: 0, premiumRate: 10, timestamp: 1000 },
+      shadow_brokers: { syndicateId: "shadow_brokers", poolGold: 100, premiumRate: 10, timestamp: 1000 },
+    };
+
+    const auditAct = {
+      type: "REQUEST_LIQUIDITY_AUDIT",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      auditStep: 5,
+      targetState: true,
+      timestamp: 1000,
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: auditAct as any }, mockPack);
+    expect(res1.ok).toBe(true);
+    let res2 = multiAgentStep(res1.state, { agentId: "bob", action: auditAct as any }, mockPack);
+    expect(res2.ok).toBe(true);
+
+    const activeAudit = res2.state.reinsuranceLiquidityAudits?.["blood_fangs:shadow_brokers:5"];
+    expect(activeAudit?.active).toBe(true);
+    expect(activeAudit?.status).toBe("failed"); // 100 < 150
+    expect(activeAudit?.verifiedLiquidity).toBe(100);
+
+    // 2. Failed audit on B (shadow_brokers is auditee, blood_fangs is borrower. Wait!)
+    // Let's test the opposite: auditing blood_fangs's pool (borrower A) which has 80 gold (< 150 -> FAILED)
+    // When blood_fangs borrows from shadow_brokers, we levy a +0.5 penalty!
+    const auditActA = {
+      type: "REQUEST_LIQUIDITY_AUDIT",
+      syndicateIdA: "shadow_brokers",
+      syndicateIdB: "blood_fangs",
+      auditStep: 5,
+      targetState: true,
+      timestamp: 1000,
+    };
+    res2.state.jointLoanInsurancePools!.blood_fangs.poolGold = 80;
+
+    let auditRes1 = multiAgentStep(res2.state, { agentId: "player", action: auditActA as any }, mockPack);
+    let auditRes2 = multiAgentStep(auditRes1.state, { agentId: "bob", action: auditActA as any }, mockPack);
+    expect(auditRes2.ok).toBe(true);
+    expect(auditRes2.state.reinsuranceLiquidityAudits?.["shadow_brokers:blood_fangs:5"]?.status).toBe("failed");
+
+    // 3. Fallback borrowing with failed audit:
+    // Partner pool (shadow_brokers) poolGold = 200 (multiplier base = 1.5).
+    // Audit penalty on blood_fangs = +0.5.
+    // Total multiplier = 1.5 + 0.5 = 2.0.
+    auditRes2.state.jointLoanInsurancePools!.blood_fangs.poolGold = 0;
+    auditRes2.state.agentPremiumPolicies = {
+      player_group1: { agentId: "player", syndicateId: "blood_fangs", groupId: "group1", premiumPaid: 30, active: true, timestamp: 1000 },
+    };
+    auditRes2.state.jointLoans = {
+      group1: {
+        id: "group1",
+        syndicateId: "blood_fangs",
+        members: ["player"],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "sh_player" }],
+        amount: 100,
+        interestAccrued: 0,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000,
+      },
+    };
+    auditRes2.state.safehouses = {
+      sh_player: { id: "sh_player", roomId: "clearing", ownerId: "player", syndicateId: "blood_fangs", level: 2, stashCapacity: 10, stashItems: [], timestamp: 1000 },
+    };
+    auditRes2.state.step = 15; // past due
+
+    let tickedFail = tickEconomy(auditRes2.state, mockPack);
+    // Remaining due = 105, but partner pool shadow_brokers only has 100 gold, so we borrow exactly 100.
+    // Charged with 2.0x multiplier = Math.ceil(100 * 2.0) = 200 gold.
+    expect(tickedFail.reinsuranceContracts?.["blood_fangs:shadow_brokers"]?.borrowedAfromB).toBe(200);
+
+    // 4. Now let's try a PASSED audit (poolGold = 200 >= 150).
+    // Gives -0.1 discount!
+    // Base multiplier = 1.5. Audit discount = -0.1. Total multiplier = 1.4.
+    let statePass = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "bob"],
+    });
+
+    statePass.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+      shadow_brokers: {
+        id: "shadow_brokers",
+        name: "Shadow Brokers",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    statePass.reinsuranceContracts = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        maxLiquidityLimit: 500,
+        active: true,
+        borrowedAfromB: 0,
+        borrowedBfromA: 0,
+        timestamp: 1000,
+      },
+    };
+
+    statePass.jointLoanInsurancePools = {
+      blood_fangs: { syndicateId: "blood_fangs", poolGold: 200, premiumRate: 10, timestamp: 1000 },
+      shadow_brokers: { syndicateId: "shadow_brokers", poolGold: 200, premiumRate: 10, timestamp: 1000 },
+    };
+
+    const passedAuditAct = {
+      type: "REQUEST_LIQUIDITY_AUDIT",
+      syndicateIdA: "shadow_brokers",
+      syndicateIdB: "blood_fangs",
+      auditStep: 20, // New step
+      targetState: true,
+      timestamp: 1200,
+    };
+    let auditRes3 = multiAgentStep(statePass, { agentId: "player", action: passedAuditAct as any }, mockPack);
+    let auditRes4 = multiAgentStep(auditRes3.state, { agentId: "bob", action: passedAuditAct as any }, mockPack);
+    expect(auditRes4.state.reinsuranceLiquidityAudits?.["shadow_brokers:blood_fangs:20"]?.status).toBe("passed");
+
+    // Set blood_fangs poolGold back to 0 for fallback borrow trigger
+    auditRes4.state.jointLoanInsurancePools!.blood_fangs.poolGold = 0;
+    auditRes4.state.agentPremiumPolicies = {
+      player_group1: { agentId: "player", syndicateId: "blood_fangs", groupId: "group1", premiumPaid: 30, active: true, timestamp: 1000 },
+    };
+    auditRes4.state.jointLoans = {
+      group1: {
+        id: "group1",
+        syndicateId: "blood_fangs",
+        members: ["player"],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "sh_player" }],
+        amount: 100,
+        interestAccrued: 0,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000,
+      },
+    };
+    auditRes4.state.safehouses = {
+      sh_player: { id: "sh_player", roomId: "clearing", ownerId: "player", syndicateId: "blood_fangs", level: 2, stashCapacity: 10, stashItems: [], timestamp: 1000 },
+    };
+    auditRes4.state.step = 25; // past due
+
+    let tickedPass = tickEconomy(auditRes4.state, mockPack);
+    // Remaining due = 105.
+    // Charged with 1.4x multiplier = Math.ceil(105 * 1.4) = 147 gold.
+    expect(tickedPass.reinsuranceContracts?.["blood_fangs:shadow_brokers"]?.borrowedAfromB).toBe(147);
+  });
+
+  it("should merge reinsuranceRiskRatings and reinsuranceLiquidityAudits in Gossip LWW sync (AF-104)", () => {
+    let stateA = createInitialState({ seed: 1, start: "clearing" });
+    let stateB = createInitialState({ seed: 1, start: "clearing" });
+
+    stateA.reinsuranceRiskRatings = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        riskRating: "low",
+        active: false,
+        timestamp: 1000,
+      },
+    };
+    stateB.reinsuranceRiskRatings = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        riskRating: "medium",
+        active: true,
+        timestamp: 1050,
+      },
+    };
+
+    stateA.reinsuranceLiquidityAudits = {
+      "shadow_brokers:blood_fangs:5": {
+        id: "shadow_brokers:blood_fangs:5",
+        syndicateIdA: "shadow_brokers",
+        syndicateIdB: "blood_fangs",
+        auditStep: 5,
+        verifiedLiquidity: 100,
+        status: "failed",
+        active: false,
+        timestamp: 1000,
+      },
+    };
+    stateB.reinsuranceLiquidityAudits = {
+      "shadow_brokers:blood_fangs:5": {
+        id: "shadow_brokers:blood_fangs:5",
+        syndicateIdA: "shadow_brokers",
+        syndicateIdB: "blood_fangs",
+        auditStep: 5,
+        verifiedLiquidity: 200,
+        status: "passed",
+        active: true,
+        timestamp: 1060,
+      },
+    };
+
+    stateA.syndicateDefaults = { blood_fangs: 1 };
+    stateB.syndicateDefaults = { blood_fangs: 2 };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+
+    expect(merged.reinsuranceRiskRatings?.["blood_fangs:shadow_brokers"]?.active).toBe(true);
+    expect(merged.reinsuranceRiskRatings?.["blood_fangs:shadow_brokers"]?.riskRating).toBe("medium");
+    expect(merged.reinsuranceRiskRatings?.["blood_fangs:shadow_brokers"]?.timestamp).toBe(1050);
+
+    expect(merged.reinsuranceLiquidityAudits?.["shadow_brokers:blood_fangs:5"]?.active).toBe(true);
+    expect(merged.reinsuranceLiquidityAudits?.["shadow_brokers:blood_fangs:5"]?.status).toBe("passed");
+    expect(merged.reinsuranceLiquidityAudits?.["shadow_brokers:blood_fangs:5"]?.timestamp).toBe(1060);
+
+    expect(merged.syndicateDefaults?.blood_fangs).toBe(2);
+  });
 });
+

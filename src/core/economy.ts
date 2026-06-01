@@ -2165,8 +2165,21 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       // 2. Check for default / enforcer debt-recovery sweep
       if (newState.step > updatedJointLoan.dueStep + (updatedJointLoan.gracePeriodSteps ?? 0)) {
         // Increment group defaults counter
-        if (!newState.groupDefaults) newState.groupDefaults = {};
+        if (!newState.groupDefaults) {
+          newState.groupDefaults = {};
+        } else {
+          newState.groupDefaults = { ...newState.groupDefaults };
+        }
         newState.groupDefaults[groupId] = (newState.groupDefaults[groupId] ?? 0) + 1;
+
+        // Increment syndicate defaults counter (AF-104)
+        if (!newState.syndicateDefaults) {
+          newState.syndicateDefaults = {};
+        } else {
+          newState.syndicateDefaults = { ...newState.syndicateDefaults };
+        }
+        const syndId = updatedJointLoan.syndicateId;
+        newState.syndicateDefaults[syndId] = (newState.syndicateDefaults[syndId] ?? 0) + 1;
 
         // Debt-recovery sweep!
         const totalDue = updatedJointLoan.amount + updatedJointLoan.interestAccrued;
@@ -2292,6 +2305,39 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                         } else if (partnerPool.poolGold < 500) {
                           multiplier = 1.2;
                         }
+
+                        // Apply risk rating markup (AF-104)
+                        const pairKey = [primarySyndId, partnerSyndId].sort().join(":");
+                        const activeRiskRating = newState.reinsuranceRiskRatings?.[pairKey];
+                        let riskRatingMarkup = 0.0;
+                        if (activeRiskRating && activeRiskRating.active) {
+                          if (activeRiskRating.riskRating === "high") {
+                            riskRatingMarkup = 0.4;
+                          } else if (activeRiskRating.riskRating === "medium") {
+                            riskRatingMarkup = 0.2;
+                          }
+                        }
+
+                        // Apply historical defaults markup (AF-104)
+                        const borrowDefaults = state.syndicateDefaults?.[primarySyndId] ?? 0;
+                        const defaultsMarkup = borrowDefaults * 0.1;
+
+                        // Apply liquidity audit adjustment (AF-104)
+                        let auditAdjustment = 0.0;
+                        if (newState.reinsuranceLiquidityAudits) {
+                          for (const audit of Object.values(newState.reinsuranceLiquidityAudits)) {
+                            if (audit.active && audit.syndicateIdB === primarySyndId) {
+                              if (audit.status === "failed") {
+                                auditAdjustment = 0.5;
+                              } else if (audit.status === "passed") {
+                                auditAdjustment = -0.1;
+                              }
+                            }
+                          }
+                        }
+
+                        multiplier += riskRatingMarkup + defaultsMarkup + auditAdjustment;
+                        multiplier = Math.max(0.5, Math.round(multiplier * 10) / 10);
 
                         const scaledOwed = Math.ceil(borrowAmount * multiplier);
 

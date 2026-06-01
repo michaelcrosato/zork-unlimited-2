@@ -946,6 +946,41 @@ export const ReinsuranceCollateralPledgeSchema = z.object({
 });
 export type ReinsuranceCollateralPledge = z.infer<typeof ReinsuranceCollateralPledgeSchema>;
 
+export const ReinsuranceRiskRatingVoteSchema = z.object({
+  targetState: z.boolean(),
+  riskRating: z.enum(["low", "medium", "high"]),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceRiskRatingVote = z.infer<typeof ReinsuranceRiskRatingVoteSchema>;
+
+export const ReinsuranceRiskRatingSchema = z.object({
+  id: z.string(), // contractId / pairKey (syndicateIdA:syndicateIdB)
+  syndicateIdA: z.string(),
+  syndicateIdB: z.string(),
+  riskRating: z.enum(["low", "medium", "high"]),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceRiskRating = z.infer<typeof ReinsuranceRiskRatingSchema>;
+
+export const ReinsuranceLiquidityAuditVoteSchema = z.object({
+  targetState: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceLiquidityAuditVote = z.infer<typeof ReinsuranceLiquidityAuditVoteSchema>;
+
+export const ReinsuranceLiquidityAuditSchema = z.object({
+  id: z.string(), // syndicateIdA:syndicateIdB:auditStep
+  syndicateIdA: z.string(),
+  syndicateIdB: z.string(),
+  auditStep: z.number().int().nonnegative(),
+  verifiedLiquidity: z.number().int().nonnegative(),
+  status: z.enum(["pending", "passed", "failed"]),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ReinsuranceLiquidityAudit = z.infer<typeof ReinsuranceLiquidityAuditSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1185,6 +1220,11 @@ export const GameStateSchema = z.object({
   interestSubsidyVotes: z.record(z.string(), z.record(z.string(), InterestSubsidyVoteSchema)).optional(),
   reinsuranceCollateralPledges: z.record(z.string(), ReinsuranceCollateralPledgeSchema).optional(),
   reinsuranceCollateralVotes: z.record(z.string(), z.record(z.string(), ReinsuranceCollateralVoteSchema)).optional(),
+  syndicateDefaults: z.record(z.string(), z.number().int()).optional(),
+  reinsuranceRiskRatings: z.record(z.string(), ReinsuranceRiskRatingSchema).optional(),
+  reinsuranceRiskRatingVotes: z.record(z.string(), z.record(z.string(), ReinsuranceRiskRatingVoteSchema)).optional(),
+  reinsuranceLiquidityAudits: z.record(z.string(), ReinsuranceLiquidityAuditSchema).optional(),
+  reinsuranceLiquidityAuditVotes: z.record(z.string(), z.record(z.string(), ReinsuranceLiquidityAuditVoteSchema)).optional(),
 });
 
 
@@ -1350,6 +1390,11 @@ export const createInitialState = (options: {
     interestSubsidyVotes: {},
     reinsuranceCollateralPledges: {},
     reinsuranceCollateralVotes: {},
+    syndicateDefaults: {},
+    reinsuranceRiskRatings: {},
+    reinsuranceRiskRatingVotes: {},
+    reinsuranceLiquidityAudits: {},
+    reinsuranceLiquidityAuditVotes: {},
   };
 };
 
@@ -2088,6 +2133,11 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     interestSubsidyVotes: rest.interestSubsidyVotes ? JSON.parse(JSON.stringify(rest.interestSubsidyVotes)) : undefined,
     reinsuranceCollateralPledges: rest.reinsuranceCollateralPledges ? JSON.parse(JSON.stringify(rest.reinsuranceCollateralPledges)) : undefined,
     reinsuranceCollateralVotes: rest.reinsuranceCollateralVotes ? JSON.parse(JSON.stringify(rest.reinsuranceCollateralVotes)) : undefined,
+    syndicateDefaults: rest.syndicateDefaults ? { ...rest.syndicateDefaults } : undefined,
+    reinsuranceRiskRatings: rest.reinsuranceRiskRatings ? JSON.parse(JSON.stringify(rest.reinsuranceRiskRatings)) : undefined,
+    reinsuranceRiskRatingVotes: rest.reinsuranceRiskRatingVotes ? JSON.parse(JSON.stringify(rest.reinsuranceRiskRatingVotes)) : undefined,
+    reinsuranceLiquidityAudits: rest.reinsuranceLiquidityAudits ? JSON.parse(JSON.stringify(rest.reinsuranceLiquidityAudits)) : undefined,
+    reinsuranceLiquidityAuditVotes: rest.reinsuranceLiquidityAuditVotes ? JSON.parse(JSON.stringify(rest.reinsuranceLiquidityAuditVotes)) : undefined,
   };
   return clone;
 }
@@ -4124,6 +4174,159 @@ export function reconcileReinsuranceCollateral(state: GameState, pack: any): Gam
           ...existingPledge,
           active: false,
           timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), existingPledge.timestamp),
+        };
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileReinsuranceRiskRatings(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    reinsuranceRiskRatings: { ...(state.reinsuranceRiskRatings || {}) },
+  };
+
+  if (!newState.reinsuranceRiskRatingVotes) {
+    newState.reinsuranceRiskRatingVotes = {};
+  }
+
+  for (const [pairKey, votes] of Object.entries(newState.reinsuranceRiskRatingVotes)) {
+    const parts = pairKey.split(":");
+    if (parts.length !== 2) continue;
+    const [syndicateIdA, syndicateIdB] = parts;
+
+    const syndA = newState.syndicates?.[syndicateIdA];
+    const syndB = newState.syndicates?.[syndicateIdB];
+    if (!syndA || !syndB) continue;
+
+    let yesA = 0;
+    let noA = 0;
+    for (const member of syndA.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesA++;
+        else noA++;
+      }
+    }
+
+    let yesB = 0;
+    let noB = 0;
+    for (const member of syndB.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesB++;
+        else noB++;
+      }
+    }
+
+    const approvedA = yesA > 0 && yesA >= noA;
+    const approvedB = yesB > 0 && yesB >= noB;
+    const isApproved = approvedA && approvedB;
+
+    if (isApproved) {
+      let maxRatingVal = 0;
+      let consensusRating: "low" | "medium" | "high" = "medium";
+      for (const v of Object.values(votes)) {
+        if (v.targetState) {
+          const val = v.riskRating === "high" ? 3 : v.riskRating === "medium" ? 2 : 1;
+          if (val > maxRatingVal) {
+            maxRatingVal = val;
+            consensusRating = v.riskRating;
+          }
+        }
+      }
+
+      newState.reinsuranceRiskRatings[pairKey] = {
+        id: pairKey,
+        syndicateIdA,
+        syndicateIdB,
+        riskRating: consensusRating,
+        active: true,
+        timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+      };
+    } else {
+      const existing = newState.reinsuranceRiskRatings[pairKey];
+      if (existing) {
+        newState.reinsuranceRiskRatings[pairKey] = {
+          ...existing,
+          active: false,
+          timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), existing.timestamp),
+        };
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileReinsuranceLiquidityAudits(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    reinsuranceLiquidityAudits: { ...(state.reinsuranceLiquidityAudits || {}) },
+  };
+
+  if (!newState.reinsuranceLiquidityAuditVotes) {
+    newState.reinsuranceLiquidityAuditVotes = {};
+  }
+
+  for (const [auditId, votes] of Object.entries(newState.reinsuranceLiquidityAuditVotes)) {
+    const parts = auditId.split(":");
+    if (parts.length !== 3) continue;
+    const [syndicateIdA, syndicateIdB, auditStepStr] = parts;
+    const auditStep = parseInt(auditStepStr, 10);
+
+    const syndA = newState.syndicates?.[syndicateIdA];
+    const syndB = newState.syndicates?.[syndicateIdB];
+    if (!syndA || !syndB) continue;
+
+    let yesA = 0;
+    let noA = 0;
+    for (const member of syndA.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesA++;
+        else noA++;
+      }
+    }
+
+    let yesB = 0;
+    let noB = 0;
+    for (const member of syndB.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesB++;
+        else noB++;
+      }
+    }
+
+    const approvedA = yesA > 0 && yesA >= noA;
+    const approvedB = yesB > 0 && yesB >= noB;
+    const isApproved = approvedA && approvedB;
+
+    if (isApproved) {
+      const pool = newState.jointLoanInsurancePools?.[syndicateIdB];
+      const poolGold = pool ? pool.poolGold : 0;
+      const status = poolGold >= 150 ? "passed" : "failed";
+
+      newState.reinsuranceLiquidityAudits[auditId] = {
+        id: auditId,
+        syndicateIdA,
+        syndicateIdB,
+        auditStep,
+        verifiedLiquidity: poolGold,
+        status,
+        active: true,
+        timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+      };
+    } else {
+      const existing = newState.reinsuranceLiquidityAudits[auditId];
+      if (existing) {
+        newState.reinsuranceLiquidityAudits[auditId] = {
+          ...existing,
+          active: false,
+          timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), existing.timestamp),
         };
       }
     }

@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -14968,6 +14968,264 @@ export function multiAgentStep(
           syndicateIdB,
           collateralType,
           collateralId,
+          agentId,
+          targetState: votedState,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_RISK_RATING action (AF-104)
+  if ((action as any).type === "PROPOSE_RISK_RATING") {
+    const { syndicateIdA, syndicateIdB, riskRating, targetState, timestamp } = action as any;
+    const votedState = targetState !== false;
+    const pairKey = [syndicateIdA || "", syndicateIdB || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndA = state.syndicates?.[syndicateIdA];
+    const syndB = state.syndicates?.[syndicateIdB];
+    const contract = state.reinsuranceContracts?.[pairKey];
+
+    if (!syndicateIdA || !syndicateIdB) {
+      rejectionReason = `Both syndicateIdA and syndicateIdB are required to propose a reinsurance risk rating.`;
+    } else if (!syndA) {
+      rejectionReason = `Syndicate ${syndicateIdA} does not exist.`;
+    } else if (!syndB) {
+      rejectionReason = `Syndicate ${syndicateIdB} does not exist.`;
+    } else if (!contract || !contract.active) {
+      rejectionReason = `Active reinsurance contract does not exist between ${syndicateIdA} and ${syndicateIdB}.`;
+    } else if (riskRating !== "low" && riskRating !== "medium" && riskRating !== "high") {
+      rejectionReason = `Risk rating must be 'low', 'medium', or 'high'.`;
+    } else if (!syndA.members.includes(agentId) && !syndB.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of either syndicate A or B.`;
+    } else {
+      // Validate that the proposed risk rating matches the borrowing syndicate's actual historical default count.
+      // We assume syndicateIdA is the borrowing syndicate whose risk rating is being proposed under this contract relationship.
+      const defaults = state.syndicateDefaults?.[syndicateIdA] ?? 0;
+      let expectedRating: "low" | "medium" | "high" = "low";
+      if (defaults >= 3) {
+        expectedRating = "high";
+      } else if (defaults >= 1) {
+        expectedRating = "medium";
+      }
+
+      if (riskRating !== expectedRating) {
+        rejectionReason = `Proposed risk rating ${riskRating} does not match the borrowing syndicate's historic default count of ${defaults} (expected: ${expectedRating}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const reinsuranceRiskRatingVotes = { ...(state.reinsuranceRiskRatingVotes || {}) };
+      if (!reinsuranceRiskRatingVotes[pairKey]) {
+        reinsuranceRiskRatingVotes[pairKey] = {};
+      } else {
+        reinsuranceRiskRatingVotes[pairKey] = { ...reinsuranceRiskRatingVotes[pairKey] };
+      }
+
+      const existingVote = reinsuranceRiskRatingVotes[pairKey][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        reinsuranceRiskRatingVotes[pairKey][agentId] = {
+          targetState: votedState,
+          riskRating,
+          timestamp,
+        };
+        newState.reinsuranceRiskRatingVotes = reinsuranceRiskRatingVotes;
+        newState = reconcileReinsuranceRiskRatings(newState, pack);
+
+        const activeRating = newState.reinsuranceRiskRatings?.[pairKey]?.active ?? false;
+        const currentRating = newState.reinsuranceRiskRatings?.[pairKey]?.riskRating ?? riskRating;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Reinsurance Risk Rating] Agent ${agentId} voted ${votedState ? "FOR" : "AGAINST"} risk rating ${riskRating} for contract between ${syndicateIdA} and ${syndicateIdB} (Status: ${activeRating ? "ACTIVE" : "PENDING/INACTIVE"}, Consensual Rating: ${currentRating}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `📊 Reinsurance risk rating vote cast by ${agentId} for ${syndicateIdA} & ${syndicateIdB} (Rating: ${riskRating}, Active: ${activeRating}).`,
+        } as any);
+
+        customEvents.push({
+          type: "reinsurance_risk_rating_proposed" as any,
+          syndicateIdA,
+          syndicateIdB,
+          agentId,
+          riskRating,
+          targetState: votedState,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized REQUEST_LIQUIDITY_AUDIT action (AF-104)
+  if ((action as any).type === "REQUEST_LIQUIDITY_AUDIT") {
+    const { syndicateIdA, syndicateIdB, auditStep, targetState, timestamp } = action as any;
+    const votedState = targetState !== false;
+    const stepVal = auditStep !== undefined ? auditStep : state.step;
+    const auditId = `${syndicateIdA}:${syndicateIdB}:${stepVal}`;
+    const pairKey = [syndicateIdA || "", syndicateIdB || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndA = state.syndicates?.[syndicateIdA];
+    const syndB = state.syndicates?.[syndicateIdB];
+    const contract = state.reinsuranceContracts?.[pairKey];
+
+    if (!syndicateIdA || !syndicateIdB) {
+      rejectionReason = `Both syndicateIdA and syndicateIdB are required to request a reinsurance liquidity audit.`;
+    } else if (!syndA) {
+      rejectionReason = `Syndicate ${syndicateIdA} does not exist.`;
+    } else if (!syndB) {
+      rejectionReason = `Syndicate ${syndicateIdB} does not exist.`;
+    } else if (!contract || !contract.active) {
+      rejectionReason = `Active reinsurance contract does not exist between ${syndicateIdA} and ${syndicateIdB}.`;
+    } else if (!Number.isInteger(stepVal) || stepVal < 0) {
+      rejectionReason = `Audit step must be a non-negative integer.`;
+    } else if (!syndA.members.includes(agentId) && !syndB.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of either syndicate A or B.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const reinsuranceLiquidityAuditVotes = { ...(state.reinsuranceLiquidityAuditVotes || {}) };
+      if (!reinsuranceLiquidityAuditVotes[auditId]) {
+        reinsuranceLiquidityAuditVotes[auditId] = {};
+      } else {
+        reinsuranceLiquidityAuditVotes[auditId] = { ...reinsuranceLiquidityAuditVotes[auditId] };
+      }
+
+      const existingVote = reinsuranceLiquidityAuditVotes[auditId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        reinsuranceLiquidityAuditVotes[auditId][agentId] = {
+          targetState: votedState,
+          timestamp,
+        };
+        newState.reinsuranceLiquidityAuditVotes = reinsuranceLiquidityAuditVotes;
+        newState = reconcileReinsuranceLiquidityAudits(newState, pack);
+
+        const activeAudit = newState.reinsuranceLiquidityAudits?.[auditId]?.active ?? false;
+        const auditStatus = newState.reinsuranceLiquidityAudits?.[auditId]?.status ?? "pending";
+        const verifiedLiq = newState.reinsuranceLiquidityAudits?.[auditId]?.verifiedLiquidity ?? 0;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Reinsurance Audit] Agent ${agentId} voted ${votedState ? "FOR" : "AGAINST"} liquidity audit ${auditId} (Status: ${activeAudit ? "ACTIVE" : "PENDING/INACTIVE"}, Verified Gold: ${verifiedLiq}, Result: ${auditStatus.toUpperCase()}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🔍 Reinsurance liquidity audit vote cast by ${agentId} (Audit: ${auditId}, Active: ${activeAudit}, Status: ${auditStatus}).`,
+        } as any);
+
+        customEvents.push({
+          type: "reinsurance_liquidity_audit_proposed" as any,
+          syndicateIdA,
+          syndicateIdB,
+          auditStep: stepVal,
           agentId,
           targetState: votedState,
           timestamp,
