@@ -2037,6 +2037,24 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfYieldArbitragePolicyVotes using LWW
+  const swfYieldArbitragePolicyVotes = { ...stateA.swfYieldArbitragePolicyVotes };
+  if (stateB.swfYieldArbitragePolicyVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfYieldArbitragePolicyVotes)) {
+      if (!swfYieldArbitragePolicyVotes[syndicateId]) {
+        swfYieldArbitragePolicyVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfYieldArbitragePolicyVotes[syndicateId] = { ...swfYieldArbitragePolicyVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfYieldArbitragePolicyVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfYieldArbitragePolicyVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   // Merge swfRebalancingAdvisorVotes using LWW
   const swfRebalancingAdvisorVotes = { ...stateA.swfRebalancingAdvisorVotes };
   if (stateB.swfRebalancingAdvisorVotes) {
@@ -3074,6 +3092,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfMarginRehypothecationVotes,
     swfMarginRehypothecationRevokeVotes,
     swfMarginRebalancingPolicyVotes,
+    swfYieldArbitragePolicyVotes,
     swfRebalancingAdvisorVotes,
     swfAdvisorSafetyThresholdVotes,
     swfLeverageTargetVotes,

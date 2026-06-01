@@ -3614,8 +3614,81 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       const swfReserveRatio = marginAccount.swfFractionalReserveRatio ?? 10;
       marginAccount.swfFractionalReserveHeld = Math.floor(marginAccount.collateral * (swfReserveRatio / 100));
 
-      // AF-133: Auto-rebalance if SWF rebalancing is enabled
-      if (marginAccount.swfRebalancingEnabled && marginAccount.collateral > 0) {
+      // AF-135: Automated Arbitrage Rebalancing & Auto-Drawdowns
+      if (marginAccount.swfArbitrageEnabled && marginAccount.collateral > 0) {
+        const vaults = getSecondaryReserveVaults(newState);
+        let targetToRedistribute = 0;
+        const activeTargets = { ...(marginAccount.swfVaultTargets || {}) };
+        
+        for (const [vaultId, pct] of Object.entries(activeTargets)) {
+          const vault = vaults[vaultId];
+          if (!vault) continue;
+          
+          // Compute effective yield
+          const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[vaultId];
+          let effectiveInterestRate = vault.interestRate;
+          if (sponsorPolicy) {
+            const factionRep = newState.factionRep?.[sponsorPolicy.factionId] ?? 0;
+            const repBoost = factionRep > 0 ? (factionRep * 0.005) : 0;
+            effectiveInterestRate = vault.interestRate * (1.0 + repBoost + (sponsorPolicy.rewardRate * 0.2));
+          }
+          
+          const yieldThreshold = marginAccount.swfYieldThresholds?.[vaultId] ?? 0;
+          if (effectiveInterestRate < yieldThreshold) {
+            targetToRedistribute += pct;
+            activeTargets[vaultId] = 0;
+            
+            // Auto-withdrawal
+            if (marginAccount.swfAutoWithdrawalEnabled) {
+              const currentAllocated = marginAccount.swfVaultAllocations?.[vaultId] ?? 0;
+              if (currentAllocated > 0) {
+                if (marginAccount.swfVaultAllocations) {
+                  marginAccount.swfVaultAllocations[vaultId] = 0;
+                }
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[SWF Auto-Withdrawal] Yield of vault ${vaultId} (${effectiveInterestRate.toFixed(4)}) fell below threshold (${yieldThreshold}). Automatically withdrew ${currentAllocated} gold back to SWF liquidity buffer.`
+                );
+              }
+            }
+          }
+        }
+        
+        if (targetToRedistribute > 0) {
+          // Find the best vault above threshold
+          let bestVaultId: string | undefined = undefined;
+          let bestYield = -1;
+          for (const [vaultId, vault] of Object.entries(vaults)) {
+            const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[vaultId];
+            let effectiveInterestRate = vault.interestRate;
+            if (sponsorPolicy) {
+              const factionRep = newState.factionRep?.[sponsorPolicy.factionId] ?? 0;
+              const repBoost = factionRep > 0 ? (factionRep * 0.005) : 0;
+              effectiveInterestRate = vault.interestRate * (1.0 + repBoost + (sponsorPolicy.rewardRate * 0.2));
+            }
+            
+            const yieldThreshold = marginAccount.swfYieldThresholds?.[vaultId] ?? 0;
+            if (effectiveInterestRate >= yieldThreshold && effectiveInterestRate > bestYield) {
+              bestYield = effectiveInterestRate;
+              bestVaultId = vaultId;
+            }
+          }
+          
+          if (bestVaultId) {
+            activeTargets[bestVaultId] = (activeTargets[bestVaultId] ?? 0) + targetToRedistribute;
+            marginAccount.swfVaultTargets = activeTargets;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Arbitrage Rebalancing] Reallocated ${targetToRedistribute}% vault targets to highest yielding vault ${bestVaultId} (Yield: ${bestYield.toFixed(4)}).`
+            );
+          } else {
+            marginAccount.swfVaultTargets = activeTargets;
+          }
+        }
+      }
+
+      // AF-133: Auto-rebalance if SWF rebalancing or SWF yield arbitrage is enabled
+      if ((marginAccount.swfRebalancingEnabled || marginAccount.swfArbitrageEnabled) && marginAccount.collateral > 0) {
         const collateral = marginAccount.collateral;
         const targetBuffer = Math.floor(collateral * ((marginAccount.swfLiquidityBufferRatio ?? 0) / 100));
         

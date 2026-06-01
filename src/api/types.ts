@@ -144,6 +144,7 @@ export type Action =
   | { type: "AUTHORIZE_SWF_MARGIN_REHYPOTHECATION"; syndicateId: string; vaultId: string; percentage: number; timestamp: number }
   | { type: "REVOKE_SWF_MARGIN_REHYPOTHECATION"; syndicateId: string; timestamp: number }
   | { type: "SET_SWF_MARGIN_REBALANCING_POLICY"; syndicateId: string; enabled: boolean; vaultTargets: Record<string, number>; liquidityBufferRatio: number; bufferTriggerRatio: number; timestamp: number }
+  | { type: "SET_SWF_YIELD_ARBITRAGE_POLICY"; syndicateId: string; enabled: boolean; yieldThresholds: Record<string, number>; autoWithdrawalEnabled: boolean; timestamp: number }
   | { type: "REBALANCE_SWF_MARGIN_COLLATERAL"; syndicateId: string; timestamp: number }
   | { type: "DEPLOY_SWF_REBALANCING_ADVISOR"; syndicateId: string; enabled: boolean; timestamp: number }
   | { type: "SET_SWF_ADVISOR_SAFETY_THRESHOLD"; syndicateId: string; threshold: number; timestamp: number }

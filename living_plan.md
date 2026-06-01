@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #134 (Ready for Cycle #135)
-* **Build/Test Status**: 🟢 PASS (All 591 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #135 (Ready for Cycle #136)
+* **Build/Test Status**: 🟢 PASS (All 595 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -805,14 +805,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 113: Syndicate SWF Yield Arbitrage & Dynamic Liquidity Buffer Auto-Withdrawals (Completed)
+- [x] Define dynamic yield thresholds and auto-withdrawal policy schemas in GameState (`AF-135`).
+- [x] Implement decentralized consensus actions to configure SWF yield arbitrage parameters (`AF-135`).
+- [x] Wire automated arbitrage rebalancing and auto-drawdowns into the economy ticks (`AF-135`).
+- [x] Write comprehensive integration and Gossip mesh convergence tests (`AF-135`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-135`
-* **Objective**: Syndicate SWF Leverage Yield Arbitrage & Dynamic Liquidity Buffer Auto-Withdrawals.
-* **Why this matters**: Support automatic rebalancing adjustments to dynamically withdraw/deposit SWF rehypothecated vault funds to optimize arbitrage spreads across multiple secondary reserve vaults based on custom yield thresholds and liquidity buffers.
+**Task ID**: `AF-136`
+* **Objective**: Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions.
+* **Why this matters**: Support locking/staking of unused SWF liquidity buffer gold into high-yield faction staking pools to optimize passive reputation and gold gains while maintaining liquidity safety nets.
 * **Planned Actions**:
-  1. Define dynamic yield thresholds and auto-withdrawal policy schemas in GameState.
-  2. Implement decentralized consensus actions to configure SWF yield arbitrage parameters.
-  3. Wire automated arbitrage rebalancing and auto-drawdowns into the economy ticks.
+  1. Define faction SWF staking pool and grace period extension state variables inside MarginAccount.
+  2. Implement decentralized consensus actions to authorize SWF buffer staking.
+  3. Wire staking yields and reputation accruals back to margin collateral inside economy ticks.
   4. Write robust unit and integration tests.
 
 ---
