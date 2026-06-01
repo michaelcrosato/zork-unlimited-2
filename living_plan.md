@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #86 (Ready for Cycle #87)
-* **Build/Test Status**: 🟢 PASS (All 407 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #87 (Ready for Cycle #88)
+* **Build/Test Status**: 🟢 PASS (All 412 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -501,17 +501,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement dynamic bank deposit capacities scaling based on upgrades and enforcer heat pressure (`AF-86`).
 - [x] Wire interest rate payouts and consensus arbitrations to distribute passive income or charge non-members transaction fees (`AF-86`).
 - [x] Write comprehensive Vitest integration tests (`AF-86`).
+- [x] Add `BORROW_SYNDICATE_BANK`, `PAYBACK_SYNDICATE_BANK`, and `LIQUIDATE_COLLATERAL` decentralized actions (`AF-87`).
+- [x] Implement dynamic borrowing capacities scaling based on dominance, standing, and collateral values (`AF-87`).
+- [x] Wire periodic loan interest accruals and enforcer-led debt recovery sweeps on default inside economy ticks (`AF-87`).
+- [x] Write comprehensive Vitest integration tests (`AF-87`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-87`
-* **Objective**: Smuggler Syndicate Cartel Bank Loans, Collateral-Gated borrowing, and Enforcer Debt-Recovery sweeps.
-* **Why this matters**: Introduce advanced syndicate credit mechanics, enabling agents/players to borrow gold from the syndicate bank, locking owned safehouse assets or outposts as collateral, scaling loan limits by syndicate dominance/standing, and triggering enforcer collections or asset liquidation if loans default (remain unpaid after a certain number of steps/ticks).
+**Task ID**: `AF-88`
+* **Objective**: Smuggler Syndicate Cartel Deposit Insurance, Credit Rating Score, and Mesh-Wide Default Alert Gossip.
+* **Why this matters**: Introduce dynamic deposit insurance policies to protect member bank deposits from enforcer sweeps, calculate dynamic credit ratings for agents based on borrowing repayment history, and broadcast mesh-wide default alerts to black-list defaulted agents from borrowing at other cartel banks.
 * **Planned Actions**:
-  1. Add `BORROW_SYNDICATE_BANK`, `PAYBACK_SYNDICATE_BANK`, and `LIQUIDATE_COLLATERAL` decentralized actions.
-  2. Implement dynamic borrowing capacities scaling based on syndicate dominance, reputation, and collateral values.
-  3. Wire periodic loan interest accruals and enforcer-led debt collection sweeps on default inside economy ticks.
+  1. Define deposit insurance states and agent credit rating scores in state schemas.
+  2. Support `PURCHASE_DEPOSIT_INSURANCE` action and decrease sweep loss rates for insured members.
+  3. Scale borrowing capacities by player credit rating score and broadcast debt default alerts across the Gossip mesh.
   4. Write comprehensive Vitest integration tests.
 
 ---

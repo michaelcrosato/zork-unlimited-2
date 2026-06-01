@@ -1947,6 +1947,95 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Periodic Syndicate Bank Loan Ticking & Debt-Recovery (AF-87)
+  if (newState.syndicateBanks) {
+    newState.syndicateBanks = { ...newState.syndicateBanks };
+    for (const [syndicateId, bank] of Object.entries(newState.syndicateBanks)) {
+      if (bank.loans && Object.keys(bank.loans).length > 0) {
+        const loans = { ...bank.loans };
+        let loansChanged = false;
+
+        for (const [agentId, loan] of Object.entries(loans)) {
+          // 1. Accrue loan interest
+          const baseRate = bank.interestRate ?? 5;
+          const loanRate = Math.max(5, baseRate);
+          const interest = Math.floor((loan.amount * loanRate) / 100);
+
+          let updatedLoan = {
+            ...loan,
+            interestAccrued: loan.interestAccrued + interest,
+            timestamp: newState.step,
+          };
+          loans[agentId] = updatedLoan;
+          loansChanged = true;
+
+          // 2. Check for default / enforcer debt-recovery sweep
+          if (newState.step > updatedLoan.dueStep) {
+            // Debt-recovery sweep!
+            const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+            const agentGold = newState.vars[goldKey] ?? 0;
+            const totalDue = updatedLoan.amount + updatedLoan.interestAccrued;
+
+            let collected = 0;
+            let remainingDue = totalDue;
+
+            if (agentGold >= totalDue) {
+              newState.vars[goldKey] = agentGold - totalDue;
+              collected = totalDue;
+              remainingDue = 0;
+            } else {
+              newState.vars[goldKey] = 0;
+              collected = agentGold;
+              remainingDue = totalDue - collected;
+            }
+
+            // Asset liquidation
+            if (updatedLoan.collateralType === "safehouse") {
+              if (newState.safehouses) {
+                newState.safehouses = { ...newState.safehouses };
+                delete newState.safehouses[updatedLoan.collateralId];
+              }
+            } else if (updatedLoan.collateralType === "outpost") {
+              if (newState.turfGuardOutposts) {
+                newState.turfGuardOutposts = { ...newState.turfGuardOutposts };
+                delete newState.turfGuardOutposts[updatedLoan.collateralId];
+              }
+              if (newState.turfGuards) {
+                newState.turfGuards = { ...newState.turfGuards };
+                delete newState.turfGuards[updatedLoan.collateralId];
+              }
+            }
+
+            // Increase enforcer heat in the collateral's room (collateralId is the roomId for safehouses and outposts)
+            if (newState.enforcementHeat) {
+              newState.enforcementHeat = { ...newState.enforcementHeat };
+              const currentHeat = newState.enforcementHeat[updatedLoan.collateralId]?.heat ?? 0;
+              newState.enforcementHeat[updatedLoan.collateralId] = {
+                roomId: updatedLoan.collateralId,
+                heat: currentHeat + 15,
+                timestamp: newState.step,
+              };
+            }
+
+            newState.journal.push(
+              `[Debt Recovery] Loan for agent ${agentId} is in default! Enforcers swept agent's gold, collecting ${collected} gold (Remaining due: ${remainingDue}). Liquidated collateral ${updatedLoan.collateralType} ${updatedLoan.collateralId}.`
+            );
+
+            delete loans[agentId];
+          }
+        }
+
+        if (loansChanged) {
+          newState.syndicateBanks[syndicateId] = {
+            ...bank,
+            loans,
+            timestamp: newState.step,
+          };
+        }
+      }
+    }
+  }
+
   return newState;
 }
 

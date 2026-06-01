@@ -586,6 +586,18 @@ export const FactionInfiltrationSchema = z.object({
 });
 export type FactionInfiltration = z.infer<typeof FactionInfiltrationSchema>;
 
+export const SyndicateLoanSchema = z.object({
+  agentId: z.string(),
+  amount: z.number().int().nonnegative(),
+  collateralType: z.enum(["safehouse", "outpost"]),
+  collateralId: z.string(),
+  interestAccrued: z.number().int().nonnegative(),
+  borrowStep: z.number().int().nonnegative(),
+  dueStep: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SyndicateLoan = z.infer<typeof SyndicateLoanSchema>;
+
 export const SyndicateBankSchema = z.object({
   syndicateId: z.string(),
   balances: z.record(z.string(), z.number().int().nonnegative()),
@@ -593,6 +605,7 @@ export const SyndicateBankSchema = z.object({
   vaultUpgradeLevel: z.number().int().nonnegative().optional(),
   withdrawalTariff: z.number().int().nonnegative().optional(),
   interestRate: z.number().int().nonnegative().optional(),
+  loans: z.record(z.string(), SyndicateLoanSchema).optional(),
 });
 export type SyndicateBank = z.infer<typeof SyndicateBankSchema>;
 
@@ -1756,6 +1769,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     stashItemOwners: rest.stashItemOwners ? { ...rest.stashItemOwners } : undefined,
     safehouseRentVotes: rest.safehouseRentVotes ? JSON.parse(JSON.stringify(rest.safehouseRentVotes)) : undefined,
     safehouseRentPolicies: rest.safehouseRentPolicies ? { ...rest.safehouseRentPolicies } : undefined,
+    syndicateBanks: rest.syndicateBanks ? JSON.parse(JSON.stringify(rest.syndicateBanks)) : undefined,
   };
   return clone;
 }
@@ -2223,5 +2237,50 @@ export function reconcileBankInterestRates(state: GameState, pack: any): GameSta
   }
 
   return newState;
+}
+
+export function isCollateralLocked(state: GameState, collateralType: "safehouse" | "outpost", collateralId: string): boolean {
+  if (!state.syndicateBanks) return false;
+  for (const bank of Object.values(state.syndicateBanks)) {
+    if (bank.loans) {
+      for (const loan of Object.values(bank.loans)) {
+        if (loan.collateralType === collateralType && loan.collateralId === collateralId) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+export function getSyndicateLoanLimit(
+  state: GameState,
+  syndicateId: string,
+  agentId: string,
+  collateralType: "safehouse" | "outpost",
+  collateralId: string
+): number {
+  const syndicate = state.syndicates?.[syndicateId];
+  if (!syndicate) return 0;
+
+  const dominance = syndicate.dominance ?? 50;
+  const standing = state.npcRep?.[agentId] ?? 100;
+
+  let collateralValue = 0;
+  if (collateralType === "safehouse") {
+    const safehouse = state.safehouses?.[collateralId];
+    if (safehouse) {
+      collateralValue = (safehouse.level * 200) + ((safehouse.storageUpgradeLevel ?? 0) * 100);
+    }
+  } else if (collateralType === "outpost") {
+    const outpost = state.turfGuardOutposts?.[collateralId];
+    if (outpost) {
+      collateralValue = (outpost.securityLevel * 150) + (Object.keys(outpost.turrets || {}).length * 100);
+    }
+  }
+
+  const scale = (dominance / 50) * (standing / 100);
+  const rawLimit = collateralValue * Math.max(0.5, scale);
+  return Math.floor(rawLimit);
 }
 

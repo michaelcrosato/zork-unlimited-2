@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -11827,6 +11827,481 @@ export function multiAgentStep(
           timestamp,
         });
       }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BORROW_SYNDICATE_BANK action (AF-87)
+  if ((action as any).type === "BORROW_SYNDICATE_BANK") {
+    const { syndicateId, amount, collateralType, collateralId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to borrow from bank.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Borrow amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot borrow from bank.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} is not established.`;
+    } else if (bank.loans?.[agentId]) {
+      rejectionReason = `Agent ${agentId} already has an active loan with syndicate ${syndicateId} bank.`;
+    } else if (collateralType !== "safehouse" && collateralType !== "outpost") {
+      rejectionReason = `Invalid collateral type ${collateralType}. Must be safehouse or outpost.`;
+    } else if (!collateralId) {
+      rejectionReason = `Collateral ID is required.`;
+    } else {
+      // Validate collateral existence and ownership/control
+      let collateralValid = false;
+      if (collateralType === "safehouse") {
+        const safehouse = state.safehouses?.[collateralId];
+        if (safehouse && (safehouse.syndicateId === syndicateId || safehouse.ownerId === agentId)) {
+          collateralValid = true;
+        } else {
+          rejectionReason = `Safehouse ${collateralId} does not exist or is not owned/controlled by syndicate ${syndicateId} or agent ${agentId}.`;
+        }
+      } else if (collateralType === "outpost") {
+        const outpost = state.turfGuardOutposts?.[collateralId];
+        if (outpost && outpost.syndicateId === syndicateId) {
+          collateralValid = true;
+        } else {
+          rejectionReason = `Outpost ${collateralId} does not exist or is not controlled by syndicate ${syndicateId}.`;
+        }
+      }
+
+      if (collateralValid) {
+        if (isCollateralLocked(state, collateralType, collateralId)) {
+          rejectionReason = `Collateral ${collateralId} is already locked in another active loan.`;
+        } else {
+          // Check borrowing limit
+          const limit = getSyndicateLoanLimit(state, syndicateId, agentId, collateralType, collateralId);
+          if (amount > limit) {
+            rejectionReason = `Requested borrow amount ${amount} exceeds the collateral loan limit of ${limit} gold.`;
+          } else {
+            ok = true;
+          }
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && bank && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Add borrowed gold to agent
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold + amount,
+      };
+
+      // Create loan record
+      const loan = {
+        agentId,
+        amount,
+        collateralType,
+        collateralId,
+        interestAccrued: 0,
+        borrowStep: state.step,
+        dueStep: state.step + 15,
+        timestamp,
+      };
+
+      const syndicateBanks = { ...(state.syndicateBanks || {}) };
+      const loans = { ...(bank.loans || {}) };
+      loans[agentId] = loan;
+      syndicateBanks[syndicateId] = {
+        ...bank,
+        loans,
+        timestamp,
+      };
+      newState.syndicateBanks = syndicateBanks;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate Bank] Agent ${agentId} borrowed ${amount} gold from Syndicate ${syndicateId} bank. Collateral: ${collateralType} ${collateralId}. Due at step ${loan.dueStep}.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `🏦 Agent ${agentId} borrowed ${amount} gold from syndicate bank, locking ${collateralType} in ${collateralId} as collateral.`,
+      } as any);
+
+      customEvents.push({
+        type: "syndicate_bank_borrowed" as any,
+        syndicateId,
+        agentId,
+        amount,
+        collateralType,
+        collateralId,
+        dueStep: loan.dueStep,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PAYBACK_SYNDICATE_BANK action (AF-87)
+  if ((action as any).type === "PAYBACK_SYNDICATE_BANK") {
+    const { syndicateId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+    const loan = bank?.loans?.[agentId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to pay back bank loan.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Payback amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} does not exist.`;
+    } else if (!loan) {
+      rejectionReason = `Agent ${agentId} has no active loan with syndicate ${syndicateId} bank.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < amount) {
+        rejectionReason = `Insufficient gold to payback loan (requires ${amount}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && bank && loan) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold from agent
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - amount,
+      };
+
+      const newLoan = { ...loan };
+      let finalAmount = loan.amount;
+      let finalInterest = loan.interestAccrued;
+
+      if (amount >= finalInterest) {
+        const left = amount - finalInterest;
+        finalInterest = 0;
+        finalAmount = Math.max(0, finalAmount - left);
+      } else {
+        finalInterest -= amount;
+      }
+
+      newLoan.amount = finalAmount;
+      newLoan.interestAccrued = finalInterest;
+      newLoan.timestamp = timestamp;
+
+      const syndicateBanks = { ...(state.syndicateBanks || {}) };
+      const loans = { ...(bank.loans || {}) };
+
+      if (newLoan.amount === 0) {
+        delete loans[agentId];
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} fully paid back loan to Syndicate ${syndicateId} bank. Collateral ${loan.collateralId} is unlocked.`);
+        customEvents.push({
+          type: "narration",
+          text: `🏦 Agent ${agentId} fully paid back bank loan of ${amount} gold. Collateral ${loan.collateralId} has been unlocked.`,
+        } as any);
+      } else {
+        loans[agentId] = newLoan;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} partially paid back ${amount} gold to Syndicate ${syndicateId} bank. Remaining principal: ${newLoan.amount}, interest: ${newLoan.interestAccrued}.`);
+        customEvents.push({
+          type: "narration",
+          text: `🏦 Agent ${agentId} partially paid back bank loan. Paid ${amount} gold. Remaining due: ${newLoan.amount + newLoan.interestAccrued}.`,
+        } as any);
+      }
+
+      syndicateBanks[syndicateId] = {
+        ...bank,
+        loans,
+        timestamp,
+      };
+      newState.syndicateBanks = syndicateBanks;
+
+      customEvents.push({
+        type: "syndicate_bank_paid_back" as any,
+        syndicateId,
+        agentId,
+        amount,
+        remainingPrincipal: newLoan.amount,
+        remainingInterest: newLoan.interestAccrued,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LIQUIDATE_COLLATERAL action (AF-87)
+  if ((action as any).type === "LIQUIDATE_COLLATERAL") {
+    const { syndicateId, targetAgentId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+    const loan = bank?.loans?.[targetAgentId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to liquidate collateral.`;
+    } else if (!targetAgentId) {
+      rejectionReason = `Target agent ID is required to liquidate collateral.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} does not exist.`;
+    } else if (!loan) {
+      rejectionReason = `Target agent ${targetAgentId} has no active loan with syndicate ${syndicateId} bank.`;
+    } else if (state.step <= loan.dueStep) {
+      rejectionReason = `Loan is not in default (due at step ${loan.dueStep}, current step ${state.step}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && bank && loan) {
+      const syndicateBanks = { ...(state.syndicateBanks || {}) };
+      const loans = { ...(bank.loans || {}) };
+
+      delete loans[targetAgentId];
+
+      syndicateBanks[syndicateId] = {
+        ...bank,
+        loans,
+        timestamp,
+      };
+      newState.syndicateBanks = syndicateBanks;
+
+      // Seize target agent's gold to cover the debt
+      const targetGoldKey = targetAgentId === "player" ? "gold" : `gold_${targetAgentId}`;
+      const targetGold = state.vars[targetGoldKey] ?? 0;
+      const totalDue = loan.amount + loan.interestAccrued;
+      let collected = 0;
+      let remainingDue = totalDue;
+
+      if (targetGold >= totalDue) {
+        newState.vars = {
+          ...newState.vars,
+          [targetGoldKey]: targetGold - totalDue,
+        };
+        collected = totalDue;
+        remainingDue = 0;
+      } else {
+        newState.vars = {
+          ...newState.vars,
+          [targetGoldKey]: 0,
+        };
+        collected = targetGold;
+        remainingDue = totalDue - collected;
+      }
+
+      // Liquidate the collateral
+      if (loan.collateralType === "safehouse") {
+        if (newState.safehouses) {
+          newState.safehouses = { ...newState.safehouses };
+          delete newState.safehouses[loan.collateralId];
+        }
+      } else if (loan.collateralType === "outpost") {
+        if (newState.turfGuardOutposts) {
+          newState.turfGuardOutposts = { ...newState.turfGuardOutposts };
+          delete newState.turfGuardOutposts[loan.collateralId];
+        }
+        if (newState.turfGuards) {
+          newState.turfGuards = { ...newState.turfGuards };
+          delete newState.turfGuards[loan.collateralId];
+        }
+      }
+
+      // Increase enforcer heat in the collateral's room (collateralId is the roomId for safehouses and outposts)
+      if (newState.enforcementHeat) {
+        newState.enforcementHeat = { ...newState.enforcementHeat };
+        const currentHeat = newState.enforcementHeat[loan.collateralId]?.heat ?? 0;
+        newState.enforcementHeat[loan.collateralId] = {
+          roomId: loan.collateralId,
+          heat: currentHeat + 15,
+          timestamp: newState.step,
+        };
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate Bank] Agent ${agentId} triggered liquidation of defaulted loan for ${targetAgentId}. Seized ${collected} gold, remaining debt ${remainingDue}. Liquidated ${loan.collateralType} ${loan.collateralId}.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `⚖️ Enforcers and Syndicate liquidated collateral ${loan.collateralId} for defaulted loan of ${targetAgentId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "syndicate_collateral_liquidated" as any,
+        syndicateId,
+        targetAgentId,
+        collateralType: loan.collateralType,
+        collateralId: loan.collateralId,
+        collectedGold: collected,
+        remainingDue,
+        timestamp,
+      });
     }
 
     newState.step += 1;
