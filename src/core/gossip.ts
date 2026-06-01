@@ -825,8 +825,25 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   if (stateB.turfGuardOutposts) {
     for (const [roomId, entryB] of Object.entries(stateB.turfGuardOutposts)) {
       const entryA = turfGuardOutposts[roomId];
-      if (!entryA || entryB.timestamp > entryA.timestamp) {
+      if (!entryA) {
         turfGuardOutposts[roomId] = entryB;
+      } else if (entryB.timestamp > entryA.timestamp) {
+        turfGuardOutposts[roomId] = entryB;
+      } else if (entryB.timestamp === entryA.timestamp) {
+        const mergedTurrets = { ...(entryA.turrets || {}) };
+        if (entryB.turrets) {
+          for (const [turretId, turretB] of Object.entries(entryB.turrets)) {
+            const turretA = mergedTurrets[turretId];
+            if (!turretA || turretB.timestamp > turretA.timestamp) {
+              mergedTurrets[turretId] = turretB;
+            }
+          }
+        }
+        turfGuardOutposts[roomId] = {
+          ...entryA,
+          securityLevel: Math.max(entryA.securityLevel, entryB.securityLevel),
+          turrets: mergedTurrets,
+        };
       }
     }
   }

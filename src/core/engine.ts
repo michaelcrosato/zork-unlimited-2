@@ -1976,7 +1976,17 @@ export function tickProductionLabs(
 
           const outpost = newState.turfGuardOutposts?.[roomId];
           const guards = newState.turfGuards?.[roomId]?.count ?? 0;
-          const defenseScore = (updatedLab.defense ?? 0) + updatedLab.level * 10 + (guards * 15) + (outpost ? outpost.securityLevel * 25 : 0);
+          
+          let turretDefenseBonus = 0;
+          let turretCount = 0;
+          if (outpost && outpost.turrets) {
+            for (const turret of Object.values(outpost.turrets)) {
+              turretDefenseBonus += turret.firepower + turret.armor;
+              turretCount++;
+            }
+          }
+
+          const defenseScore = (updatedLab.defense ?? 0) + updatedLab.level * 10 + (guards * 15) + (outpost ? outpost.securityLevel * 25 : 0) + turretDefenseBonus;
 
           // Increase enforcement heat in the room due to active raid
           const oldHeat = updatedHeat[roomId]?.heat ?? 0;
@@ -1989,13 +1999,19 @@ export function tickProductionLabs(
 
           if (defenseScore >= raidStrength) {
             // Raid successfully defended!
+            let repelText = outpost
+              ? `[Syndicate] Syndicate defenders, ${guards} hired turf guards, and Defense Outpost successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`
+              : (guards > 0
+                ? `[Syndicate] Syndicate defenders and ${guards} hired turf guards successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`
+                : `[Syndicate] Syndicate defenders successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`);
+
+            if (outpost && turretCount > 0) {
+              repelText = `[Syndicate] Syndicate defenders, ${guards} hired turf guards, and Defense Outpost with ${turretCount} tactical turrets successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`;
+            }
+
             events.push({
               type: "narration",
-              text: outpost
-                ? `[Syndicate] Syndicate defenders, ${guards} hired turf guards, and Defense Outpost successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`
-                : (guards > 0
-                  ? `[Syndicate] Syndicate defenders and ${guards} hired turf guards successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`
-                  : `[Syndicate] Syndicate defenders successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`),
+              text: repelText,
             } as any);
           } else {
             // Raid succeeded! Confiscate all stored contraband and damage the facility (downgrade level)

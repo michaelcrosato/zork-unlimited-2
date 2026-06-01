@@ -311,13 +311,25 @@ export const TurfCheckpointSchema = z.object({
 });
 export type TurfCheckpoint = z.infer<typeof TurfCheckpointSchema>;
 
+export const OutpostTurretSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  firepower: z.number().int().nonnegative(),
+  armor: z.number().int().nonnegative(),
+  premiumRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type OutpostTurret = z.infer<typeof OutpostTurretSchema>;
+
 export const TurfGuardOutpostSchema = z.object({
   roomId: z.string(),
   syndicateId: z.string(),
   securityLevel: z.number().int().nonnegative(),
   timestamp: z.number().int(),
+  turrets: z.record(z.string(), OutpostTurretSchema).optional(),
 });
 export type TurfGuardOutpost = z.infer<typeof TurfGuardOutpostSchema>;
+
 
 
 export const CrimeSyndicateSchema = z.object({

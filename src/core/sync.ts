@@ -4724,6 +4724,7 @@ export function multiAgentStep(
         syndicateId,
         securityLevel: newLevel,
         timestamp,
+        turrets: existingOutpost ? existingOutpost.turrets : undefined,
       };
       newState.turfGuardOutposts = turfGuardOutposts;
 
@@ -4740,6 +4741,147 @@ export function multiAgentStep(
         roomId,
         syndicateId,
         securityLevel: newLevel,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CONSTRUCT_TURRET action (AF-57)
+  if ((action as any).type === "CONSTRUCT_TURRET") {
+    const { roomId, syndicateId, turretId, turretType, timestamp } = action as any;
+    const defaultCost = turretType === "heavy_armored" ? 150 : (turretType === "tactical_defense" ? 200 : 100);
+    const cost = (action as any).cost ?? defaultCost;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const roomExists = "rooms" in pack
+      ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
+      : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
+    const syndicate = state.syndicates?.[syndicateId];
+    const outpost = state.turfGuardOutposts?.[roomId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to construct a turret.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to construct a turret.`;
+    } else if (!turretId) {
+      rejectionReason = `Turret ID is required to construct a turret.`;
+    } else if (!turretType) {
+      rejectionReason = `Turret type is required to construct a turret.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Turret construction cost ${cost} must be a non-negative integer.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.syndicateTurf?.[roomId] !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} does not control the turf in room ${roomId}.`;
+    } else if (!outpost) {
+      rejectionReason = `Room ${roomId} does not have an established turf guard outpost.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to construct turret costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate && outpost) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const turfGuardOutposts = { ...(state.turfGuardOutposts || {}) };
+      const outpostEntry = { ...turfGuardOutposts[roomId] };
+      const turrets = { ...(outpostEntry.turrets || {}) };
+
+      const firepower = turretType === "heavy_armored" ? 20 : (turretType === "tactical_defense" ? 50 : 10);
+      const armor = turretType === "heavy_armored" ? 40 : (turretType === "tactical_defense" ? 10 : 5);
+      const premiumRate = turretType === "heavy_armored" ? 0.1 : (turretType === "tactical_defense" ? 0.2 : 0.05);
+
+      turrets[turretId] = {
+        id: turretId,
+        type: turretType,
+        firepower,
+        armor,
+        premiumRate,
+        timestamp,
+      };
+      outpostEntry.turrets = turrets;
+      turfGuardOutposts[roomId] = outpostEntry;
+      newState.turfGuardOutposts = turfGuardOutposts;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Constructed ${turretType} turret ${turretId} in room ${roomId} outpost for ${cost} gold by agent ${agentId}.`);
+
+      customEvents.push({
+        type: "turf_turret_constructed",
+        agentId,
+        roomId,
+        syndicateId,
+        turretId,
+        turretType,
         cost,
       });
     }

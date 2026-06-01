@@ -659,7 +659,17 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             const guards = newState.turfGuards?.[front.roomId]?.count ?? 0;
             let sweepDefended = false;
             let sweepStrength = 0;
-            let defenseScore = guards * 15 + (outpost ? outpost.securityLevel * 25 : 0);
+
+            let totalFirepower = 0;
+            let totalArmor = 0;
+            if (outpost && outpost.turrets) {
+              for (const turret of Object.values(outpost.turrets)) {
+                totalFirepower += turret.firepower;
+                totalArmor += turret.armor;
+              }
+            }
+
+            let defenseScore = guards * 15 + (outpost ? outpost.securityLevel * 25 : 0) + totalFirepower + totalArmor;
 
             if (guards > 0 || outpost) {
               const { value: rolledStrength, nextSeed } = PureRand.nextInt(newState.seed, 1, 50);
@@ -672,7 +682,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
             if (sweepDefended) {
               if (outpost) {
-                newState.journal.push(`[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards and Defense Outpost (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`);
+                let msg = `[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards and Defense Outpost (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`;
+                if (totalFirepower > 0) {
+                  msg = `[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled! Tactical turrets struck down enforcer forces with high firepower (Firepower: ${totalFirepower}, Armor: ${totalArmor}, Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`;
+                }
+                newState.journal.push(msg);
               } else {
                 newState.journal.push(`[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`);
               }
@@ -683,10 +697,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 };
               }
             } else {
-              const confiscatedDirty = dirty;
-              const confiscatedClean = Math.floor(clean / 2);
-              dirty = 0;
-              clean = clean - confiscatedClean;
+              const damageReductionFactor = Math.max(0.1, 1 - (totalArmor / 100));
+              const confiscatedDirty = Math.floor(dirty * damageReductionFactor);
+              const confiscatedClean = Math.floor(Math.floor(clean / 2) * damageReductionFactor);
+              dirty -= confiscatedDirty;
+              clean -= confiscatedClean;
 
               // Reset room heat
               if (newState.enforcementHeat?.[front.roomId]) {
@@ -694,6 +709,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                   ...newState.enforcementHeat[front.roomId],
                   heat: 0,
                 };
+              }
+
+              if (totalFirepower > 0 || totalArmor > 0) {
+                newState.journal.push(`[Syndicate] Tactical turrets fired upon enforcers, striking down enforcer forces and mitigating sweep losses by ${Math.round((1 - damageReductionFactor) * 100)}% using heavy armor (Firepower: ${totalFirepower}, Armor: ${totalArmor}).`);
               }
 
               if (guards > 0) {
@@ -768,6 +787,37 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
                 newState.vars["totalTurfTaxesCollected"] = (newState.vars["totalTurfTaxesCollected"] ?? 0) + actualPayout;
                 newState.journal.push(`[Syndicate] Syndicate ${controllingSyndicateId} collected ${actualPayout} gold in turf taxes from front business ${front.id} in room ${front.roomId} (Guards: ${guardsCount}, Distributed ${share} gold to each member).`);
+              }
+            }
+
+            // Collect dynamic security premiums via tactical turrets
+            const localOutpost = newState.turfGuardOutposts?.[front.roomId];
+            let totalPremiumRate = 0;
+            if (localOutpost && localOutpost.turrets) {
+              for (const turret of Object.values(localOutpost.turrets)) {
+                totalPremiumRate += (turret as any).premiumRate;
+              }
+            }
+
+            if (totalPremiumRate > 0 && clean > 0) {
+              const securityPremium = Math.floor(clean * totalPremiumRate);
+              if (securityPremium > 0) {
+                clean -= securityPremium;
+                frontUpdated = true;
+
+                // Distribute collected premium among syndicate members
+                const members = controllingSyndicate.members ?? [];
+                const premiumShare = members.length > 0 ? Math.floor(securityPremium / members.length) : 0;
+                if (premiumShare > 0) {
+                  if (!newState.vars) newState.vars = {};
+                  for (const member of members) {
+                    const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                    newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + premiumShare;
+                  }
+                }
+
+                newState.vars["totalSecurityPremiumsCollected"] = (newState.vars["totalSecurityPremiumsCollected"] ?? 0) + securityPremium;
+                newState.journal.push(`[Syndicate] Syndicate ${controllingSyndicateId} collected ${securityPremium} gold in dynamic security premiums from front business ${front.id} in room ${front.roomId} via tactical turrets (Premium Rate: ${totalPremiumRate * 100}%, Distributed ${premiumShare} gold to each member).`);
               }
             }
           }

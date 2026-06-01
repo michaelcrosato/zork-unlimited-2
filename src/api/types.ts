@@ -42,7 +42,8 @@ export type Action =
   | { type: "ADJUST_TURF_BRIBE"; syndicateId: string; amount: number; timestamp: number }
   | { type: "ADJUST_TURF_WAIVER"; syndicateId: string; threshold: number; timestamp: number }
   | { type: "ESTABLISH_CHECKPOINT"; roomId: string; syndicateId: string; timestamp: number }
-  | { type: "ESTABLISH_OUTPOST"; roomId: string; syndicateId: string; cost?: number; timestamp: number };
+  | { type: "ESTABLISH_OUTPOST"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "CONSTRUCT_TURRET"; roomId: string; syndicateId: string; turretId: string; turretType: string; cost?: number; timestamp: number };
 
 
 
