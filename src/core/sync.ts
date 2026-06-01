@@ -50695,7 +50695,7 @@ export function multiAgentStep(
 
   // Handle PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY action (AF-247)
   if ((action as any).type === "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY") {
-    const { proposalId, cdoId, syndicateId, spreadPenaltyMultiplier, spreadPenaltyThresholdPercent, timestamp } = action as any;
+    const { proposalId, cdoId, syndicateId, spreadPenaltyMultiplier, spreadPenaltyThresholdPercent, factionStandingDiscounts, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -50735,6 +50735,8 @@ export function multiAgentStep(
       rejectionReason = `Valid spread penalty multiplier (>= 1) is required.`;
     } else if (spreadPenaltyThresholdPercent === undefined || typeof spreadPenaltyThresholdPercent !== "number" || spreadPenaltyThresholdPercent < 0 || spreadPenaltyThresholdPercent > 1) {
       rejectionReason = `Valid spread penalty threshold percent (0 <= percent <= 1) is required.`;
+    } else if (factionStandingDiscounts !== undefined && (typeof factionStandingDiscounts !== "object" || factionStandingDiscounts === null || Object.entries(factionStandingDiscounts).some(([k, v]) => typeof k !== "string" || k === "" || typeof v !== "number" || v < 0 || v > 1))) {
+      rejectionReason = `Valid faction standing discounts are required.`;
     } else if (!pool) {
       rejectionReason = `CDO pool ${cdoId} does not exist.`;
     } else if (!syndicate) {
@@ -50771,6 +50773,7 @@ export function multiAgentStep(
         syndicateId,
         spreadPenaltyMultiplier,
         spreadPenaltyThresholdPercent,
+        factionStandingDiscounts,
         status: "proposed",
         resolved: false,
         proposerId: agentId,

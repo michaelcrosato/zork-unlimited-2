@@ -3061,6 +3061,7 @@ export const SovereignDebtCDSCDOPoolSchema = z.object({
   yieldHedgingOptionMaxSpread: z.number().min(0).optional(),
   yieldHedgingOptionSpreadPenaltyMultiplier: z.number().min(1.0).optional(),
   yieldHedgingOptionSpreadPenaltyThresholdPercent: z.number().min(0.0).max(1.0).optional(),
+  yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts: z.record(z.string(), z.number().min(0.0).max(1.0)).optional(),
 });
 export type SovereignDebtCDSCDOPool = z.infer<typeof SovereignDebtCDSCDOPoolSchema>;
 
@@ -3414,6 +3415,7 @@ export const SovereignDebtCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposalSch
   syndicateId: z.string(),
   spreadPenaltyMultiplier: z.number().min(1.0),
   spreadPenaltyThresholdPercent: z.number().min(0.0).max(1.0),
+  factionStandingDiscounts: z.record(z.string(), z.number().min(0.0).max(1.0)).optional(),
   status: z.enum(["proposed", "authorized", "disputed"]).optional(),
   resolved: z.boolean().optional(),
   proposerId: z.string(),
@@ -19233,6 +19235,7 @@ export function reconcileCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposals(st
       if (pool) {
         pool.yieldHedgingOptionSpreadPenaltyMultiplier = proposal.spreadPenaltyMultiplier;
         pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = proposal.spreadPenaltyThresholdPercent;
+        pool.yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts = proposal.factionStandingDiscounts;
       }
 
       if (!newState.journal) newState.journal = [];

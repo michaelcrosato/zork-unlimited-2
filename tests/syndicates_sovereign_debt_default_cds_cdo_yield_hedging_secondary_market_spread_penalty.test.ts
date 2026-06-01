@@ -538,5 +538,151 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     expect(marketSpread).toBeDefined();
     expect(marketSpread!.spread).toBeCloseTo(240);
   });
+
+  it("should apply faction standing-gated deflection discounts to spread penalties during defaults (AF-250)", () => {
+    let state = setupState();
+
+    // 1. Propose spread penalty policy with factionStandingDiscounts
+    let res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "spread_penalty_policy_discount",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        spreadPenaltyMultiplier: 2.5,
+        spreadPenaltyThresholdPercent: 0.20,
+        factionStandingDiscounts: {
+          faction_a: 0.25,
+          faction_b: 0.40,
+        },
+        timestamp: 1100,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Vote to authorize proposal
+    let voteRes = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        syndicateId: "alpha",
+        proposalId: "spread_penalty_policy_discount",
+        vote: true,
+        timestamp: 1120,
+      } as any,
+    }, mockPack);
+    expect(voteRes.ok).toBe(true);
+    state = voteRes.state;
+
+    // Verify Copied to Pool
+    const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
+    expect(pool.yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts).toEqual({
+      faction_a: 0.25,
+      faction_b: 0.40,
+    });
+
+    // 2. Set default alert active
+    state.sovereignDebtDefaultAlerts = {
+      alert_1: {
+        proposalId: "alert_1",
+        syndicateId: "alpha",
+        targetSyndicateId: "beta",
+        sovereignDebtAmount: 5000,
+        status: "authorized",
+        resolved: false,
+        proposerId: "bob",
+        timestamp: 1000,
+      },
+    };
+
+    // 3. Set up active option contract owned by alpha
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        premiumPaid: 200,
+        coverageAmount: 2000,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: state.step + 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Listing has askPrice 1200, bid has bidPrice 1150 -> raw spread is 50
+    state.cdsCdoYieldHedgingOptionListings = {
+      opt_1: {
+        listingId: "opt_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+        votes: {},
+      },
+    };
+
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_opt_1: {
+        bidId: "bid_opt_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 1150,
+        status: "active",
+        timestamp: 1000,
+        votes: {},
+      },
+    };
+
+    // Case A: High standing with faction_a only (reputation = 60 >= 50)
+    // baseMultiplier = 2.5, discount = 25% (0.25)
+    // expected multiplier = 1.0 + (2.5 - 1.0) * (1.0 - 0.25) = 2.125
+    // expected spread = 50 * 2.125 = 106.25
+    const stateAInit = JSON.parse(JSON.stringify(state));
+    stateAInit.factionRep = {
+      faction_a: 60,
+      faction_b: 20,
+    };
+
+    let stateA = tickEconomy(stateAInit, mockPack);
+    let spreadA = stateA.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadA).toBeCloseTo(106.25);
+
+    // Case B: High standing with BOTH faction_a and faction_b (reputation = 60, 70 >= 50)
+    // baseMultiplier = 2.5, total discount = 0.25 + 0.40 = 0.65
+    // expected multiplier = 1.0 + (2.5 - 1.0) * (1.0 - 0.65) = 1.525
+    // expected spread = 50 * 1.525 = 76.25
+    const stateBInit = JSON.parse(JSON.stringify(state));
+    stateBInit.factionRep = {
+      faction_a: 60,
+      faction_b: 70,
+    };
+
+    let stateB = tickEconomy(stateBInit, mockPack);
+    let spreadB = stateB.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadB).toBeCloseTo(76.25);
+
+    // Case C: Allied to faction_a via alliances instead of reputation score
+    // baseMultiplier = 2.5, discount = 25% (0.25)
+    // expected multiplier = 1.0 + (2.5 - 1.0) * (1.0 - 0.25) = 2.125
+    // expected spread = 50 * 2.125 = 106.25
+    const stateCInit = JSON.parse(JSON.stringify(state));
+    stateCInit.factionRep = {
+      faction_a: 20,
+      faction_b: 20,
+    };
+    stateCInit.alliances = {
+      alpha: {
+        faction_a: "allied",
+      },
+    };
+
+    let stateC = tickEconomy(stateCInit, mockPack);
+    let spreadC = stateC.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadC).toBeCloseTo(106.25);
+  });
 });
 

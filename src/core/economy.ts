@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool, SWFReinsuranceOptionCrossSyndicatePool, getSyndicateFactionStanding, distributeOptionFeeDividends } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool, SWFReinsuranceOptionCrossSyndicatePool, getSyndicateFactionStanding, distributeOptionFeeDividends, isFactionAlliedToSyndicate } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -7853,6 +7853,22 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         }
 
         effectiveMultiplier = effectiveMultiplier * (1.0 + localHeatFactor + regionalVol);
+
+        // Apply faction standing-gated deflection discount (AF-250)
+        if (pool.yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts) {
+          let totalDiscount = 0;
+          for (const [factionId, discount] of Object.entries(pool.yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts)) {
+            const standing = getSyndicateFactionStanding(newState, option.syndicateId, factionId);
+            const isAllied = isFactionAlliedToSyndicate(newState, option.syndicateId, factionId) || standing >= 50;
+            if (isAllied) {
+              totalDiscount += discount;
+            }
+          }
+          if (totalDiscount > 0) {
+            const cappedDiscount = Math.min(1.0, totalDiscount);
+            effectiveMultiplier = 1.0 + (effectiveMultiplier - 1.0) * (1.0 - cappedDiscount);
+          }
+        }
       }
 
       let spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
