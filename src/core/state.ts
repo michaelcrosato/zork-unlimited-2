@@ -595,6 +595,7 @@ export const SyndicateLoanSchema = z.object({
   borrowStep: z.number().int().nonnegative(),
   dueStep: z.number().int().nonnegative(),
   timestamp: z.number().int(),
+  refinancedInterestRate: z.number().int().nonnegative().optional(),
 });
 export type SyndicateLoan = z.infer<typeof SyndicateLoanSchema>;
 
@@ -776,6 +777,22 @@ export const DefaultAlertSchema = z.object({
 });
 export type DefaultAlert = z.infer<typeof DefaultAlertSchema>;
 
+export const LoanRefinancingVoteSchema = z.object({
+  newDueStep: z.number().int().nonnegative(),
+  newInterestRate: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type LoanRefinancingVote = z.infer<typeof LoanRefinancingVoteSchema>;
+
+export const CreditRecoverySchema = z.object({
+  agentId: z.string(),
+  startStep: z.number().int().nonnegative(),
+  lastRecoveryStep: z.number().int().nonnegative(),
+  targetScore: z.number().int().nonnegative(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type CreditRecovery = z.infer<typeof CreditRecoverySchema>;
 
 
 export const GameStateSchema = z.object({
@@ -937,6 +954,8 @@ export const GameStateSchema = z.object({
   depositInsurance: z.record(z.string(), z.record(z.string(), DepositInsuranceSchema)).optional(),
   creditRatings: z.record(z.string(), z.number().int()).optional(),
   defaultAlerts: z.record(z.string(), DefaultAlertSchema).optional(),
+  loanRefinancingVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), LoanRefinancingVoteSchema))).optional(),
+  creditRecoveries: z.record(z.string(), CreditRecoverySchema).optional(),
 });
 
 
@@ -1879,6 +1898,81 @@ export function reconcileEnforcerDefunding(state: GameState, pack: any): GameSta
       ...syndicate,
       enforcerDefundingRate: consensusRate,
     };
+  }
+
+  return newState;
+}
+
+export function reconcileLoanRefinancings(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    syndicateBanks: state.syndicateBanks ? { ...state.syndicateBanks } : {},
+  };
+
+  if (!newState.loanRefinancingVotes) {
+    newState.loanRefinancingVotes = {};
+  }
+
+  for (const [syndicateId, borrowerVotes] of Object.entries(newState.loanRefinancingVotes)) {
+    const bank = newState.syndicateBanks[syndicateId];
+    if (!bank || !bank.loans) continue;
+
+    const updatedLoans = { ...bank.loans };
+    let loansChanged = false;
+
+    for (const [borrowerId, votes] of Object.entries(borrowerVotes)) {
+      const loan = updatedLoans[borrowerId];
+      if (!loan) continue;
+
+      const dueStepCounts: Record<number, number> = {};
+      const rateCounts: Record<number, number> = {};
+
+      for (const vote of Object.values(votes)) {
+        dueStepCounts[vote.newDueStep] = (dueStepCounts[vote.newDueStep] ?? 0) + 1;
+        rateCounts[vote.newInterestRate] = (rateCounts[vote.newInterestRate] ?? 0) + 1;
+      }
+
+      let maxDueCount = 0;
+      let consensusDueStep = loan.dueStep;
+      const uniqueDueSteps = Object.keys(dueStepCounts).map(Number).sort((a, b) => b - a);
+      for (const step of uniqueDueSteps) {
+        const count = dueStepCounts[step];
+        if (count > maxDueCount) {
+          maxDueCount = count;
+          consensusDueStep = step;
+        }
+      }
+
+      let maxRateCount = 0;
+      let consensusInterestRate = loan.refinancedInterestRate ?? 5;
+      const uniqueRates = Object.keys(rateCounts).map(Number).sort((a, b) => b - a);
+      for (const rate of uniqueRates) {
+        const count = rateCounts[rate];
+        if (count > maxRateCount) {
+          maxRateCount = count;
+          consensusInterestRate = rate;
+        }
+      }
+
+      if (Object.keys(votes).length > 0) {
+        updatedLoans[borrowerId] = {
+          ...loan,
+          dueStep: consensusDueStep,
+          refinancedInterestRate: consensusInterestRate,
+          timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+        };
+        loansChanged = true;
+      }
+    }
+
+    if (loansChanged) {
+      newState.syndicateBanks[syndicateId] = {
+        ...bank,
+        loans: updatedLoans,
+        timestamp: newState.step,
+      };
+    }
   }
 
   return newState;

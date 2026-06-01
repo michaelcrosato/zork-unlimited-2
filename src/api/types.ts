@@ -112,7 +112,10 @@ export type Action =
   | { type: "DEPLOY_TUNNEL_DRONE"; droneId: string; syndicateId: string; tunnelId: string; cargoCapacity: number; cost?: number; timestamp: number }
   | { type: "UPGRADE_SAFEHOUSE_STORAGE"; roomId: string; cost?: number; timestamp: number }
   | { type: "ESTABLISH_STORAGE_RENT"; roomId: string; rentRate: number; timestamp: number }
-  | { type: "VOTE_STORAGE_RENT_RATE"; roomId: string; rate: number; timestamp: number };
+  | { type: "VOTE_STORAGE_RENT_RATE"; roomId: string; rate: number; timestamp: number }
+  | { type: "PROPOSE_LOAN_REFINANCING"; syndicateId: string; targetAgentId: string; newDueStep: number; newInterestRate: number; vote?: boolean; timestamp: number }
+  | { type: "DECLARE_CARTEL_BANKRUPTCY"; syndicateId: string; timestamp: number };
+
 
 
 

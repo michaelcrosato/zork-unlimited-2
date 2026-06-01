@@ -2014,8 +2014,8 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
         for (const [agentId, loan] of Object.entries(loans)) {
           // 1. Accrue loan interest
-          const baseRate = bank.interestRate ?? 5;
-          const loanRate = Math.max(5, baseRate);
+          const baseRate = loan.refinancedInterestRate !== undefined ? loan.refinancedInterestRate : (bank.interestRate ?? 5);
+          const loanRate = Math.max(0, baseRate);
           const interest = Math.floor((loan.amount * loanRate) / 100);
 
           let updatedLoan = {
@@ -2104,6 +2104,38 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           newState.syndicateBanks[syndicateId] = {
             ...bank,
             loans,
+            timestamp: newState.step,
+          };
+        }
+      }
+    }
+  }
+
+  // 3. Gradual credit rating recovery over step ticks (AF-89)
+  if (newState.creditRecoveries) {
+    newState.creditRecoveries = { ...newState.creditRecoveries };
+    for (const [agentId, recovery] of Object.entries(newState.creditRecoveries)) {
+      if (recovery.active) {
+        const stepsPassed = newState.step - recovery.lastRecoveryStep;
+        if (stepsPassed > 0) {
+          if (!newState.creditRatings) {
+            newState.creditRatings = {};
+          } else {
+            newState.creditRatings = { ...newState.creditRatings };
+          }
+          const currentRating = newState.creditRatings[agentId] ?? 100;
+          if (currentRating < recovery.targetScore) {
+            const newRating = Math.min(recovery.targetScore, currentRating + stepsPassed * 5);
+            newState.creditRatings[agentId] = newRating;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(`[Credit Recovery] Agent ${agentId} credit rating recovered to ${newRating} (+${stepsPassed * 5} points).`);
+          }
+
+          const stillActive = (newState.creditRatings[agentId] ?? 100) < recovery.targetScore;
+          newState.creditRecoveries[agentId] = {
+            ...recovery,
+            lastRecoveryStep: newState.step,
+            active: stillActive,
             timestamp: newState.step,
           };
         }

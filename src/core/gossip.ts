@@ -1087,6 +1087,44 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge loanRefinancingVotes using LWW
+  const loanRefinancingVotes = { ...stateA.loanRefinancingVotes };
+  if (stateB.loanRefinancingVotes) {
+    for (const [syndicateId, bInner] of Object.entries(stateB.loanRefinancingVotes)) {
+      if (!loanRefinancingVotes[syndicateId]) {
+        loanRefinancingVotes[syndicateId] = { ...bInner };
+      } else {
+        const aInner = { ...loanRefinancingVotes[syndicateId] };
+        for (const [borrowerId, bVotes] of Object.entries(bInner)) {
+          if (!aInner[borrowerId]) {
+            aInner[borrowerId] = { ...bVotes };
+          } else {
+            const aVotes = { ...aInner[borrowerId] };
+            for (const [voterId, voteB] of Object.entries(bVotes)) {
+              const voteA = aVotes[voterId];
+              if (!voteA || voteB.timestamp > voteA.timestamp) {
+                aVotes[voterId] = voteB;
+              }
+            }
+            aInner[borrowerId] = aVotes;
+          }
+        }
+        loanRefinancingVotes[syndicateId] = aInner;
+      }
+    }
+  }
+
+  // Merge creditRecoveries using LWW
+  const creditRecoveries = { ...stateA.creditRecoveries };
+  if (stateB.creditRecoveries) {
+    for (const [agentId, entryB] of Object.entries(stateB.creditRecoveries)) {
+      const entryA = creditRecoveries[agentId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        creditRecoveries[agentId] = entryB;
+      }
+    }
+  }
+
   // Merge turfCheckpoints using LWW
   const turfCheckpoints = { ...stateA.turfCheckpoints };
   if (stateB.turfCheckpoints) {
@@ -1406,6 +1444,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     depositInsurance,
     creditRatings,
     defaultAlerts,
+    loanRefinancingVotes,
+    creditRecoveries,
   };
 }
 

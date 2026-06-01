@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -12458,6 +12458,262 @@ export function multiAgentStep(
         collateralId: loan.collateralId,
         collectedGold: collected,
         remainingDue,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_LOAN_REFINANCING action (AF-89)
+  if ((action as any).type === "PROPOSE_LOAN_REFINANCING") {
+    const { syndicateId, targetAgentId, newDueStep, newInterestRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+    const loan = bank?.loans?.[targetAgentId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to propose loan refinancing.`;
+    } else if (!targetAgentId) {
+      rejectionReason = `Target agent ID is required to propose loan refinancing.`;
+    } else if (newDueStep === undefined || newDueStep <= 0 || !Number.isInteger(newDueStep)) {
+      rejectionReason = `New due step must be a positive integer.`;
+    } else if (newInterestRate === undefined || newInterestRate < 0 || !Number.isInteger(newInterestRate)) {
+      rejectionReason = `New interest rate must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on refinancing.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} is not established.`;
+    } else if (!loan) {
+      rejectionReason = `Target agent ${targetAgentId} has no active loan to refinance.`;
+    } else if (newDueStep <= loan.borrowStep) {
+      rejectionReason = `Proposed due step ${newDueStep} must be after loan borrow step ${loan.borrowStep}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && bank && loan) {
+      const loanRefinancingVotes = { ...(state.loanRefinancingVotes || {}) };
+      if (!loanRefinancingVotes[syndicateId]) {
+        loanRefinancingVotes[syndicateId] = {};
+      } else {
+        loanRefinancingVotes[syndicateId] = { ...loanRefinancingVotes[syndicateId] };
+      }
+
+      if (!loanRefinancingVotes[syndicateId][targetAgentId]) {
+        loanRefinancingVotes[syndicateId][targetAgentId] = {};
+      } else {
+        loanRefinancingVotes[syndicateId][targetAgentId] = { ...loanRefinancingVotes[syndicateId][targetAgentId] };
+      }
+
+      const existingVote = loanRefinancingVotes[syndicateId][targetAgentId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        loanRefinancingVotes[syndicateId][targetAgentId][agentId] = {
+          newDueStep,
+          newInterestRate,
+          timestamp,
+        };
+        newState.loanRefinancingVotes = loanRefinancingVotes;
+        newState = reconcileLoanRefinancings(newState, pack);
+
+        const updatedLoan = newState.syndicateBanks?.[syndicateId]?.loans?.[targetAgentId];
+        const currentDue = updatedLoan?.dueStep ?? newDueStep;
+        const currentRate = updatedLoan?.refinancedInterestRate ?? newInterestRate;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} voted for refinancing agent ${targetAgentId}'s loan in syndicate ${syndicateId} (New consensus due: ${currentDue}, rate: ${currentRate}%).`);
+
+        customEvents.push({
+          type: "loan_refinancing_proposed" as any,
+          agentId,
+          syndicateId,
+          targetAgentId,
+          newDueStep,
+          newInterestRate,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DECLARE_CARTEL_BANKRUPTCY action (AF-89)
+  if ((action as any).type === "DECLARE_CARTEL_BANKRUPTCY") {
+    const { syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to declare bankruptcy.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot declare bankruptcy.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      if (newState.syndicateBanks?.[syndicateId]?.loans) {
+        const bank = newState.syndicateBanks[syndicateId];
+        const loans = { ...bank.loans };
+        delete loans[agentId];
+        newState.syndicateBanks = {
+          ...newState.syndicateBanks,
+          [syndicateId]: {
+            ...bank,
+            loans,
+            timestamp,
+          },
+        };
+      }
+
+      if (newState.defaultAlerts) {
+        newState.defaultAlerts = { ...newState.defaultAlerts };
+        delete newState.defaultAlerts[`${agentId}_${syndicateId}`];
+      }
+
+      if (!newState.creditRatings) newState.creditRatings = {};
+      const currentRating = state.creditRatings?.[agentId] ?? 100;
+      newState.creditRatings[agentId] = Math.max(50, currentRating);
+
+      if (!newState.creditRecoveries) {
+        newState.creditRecoveries = {};
+      }
+      newState.creditRecoveries = {
+        ...newState.creditRecoveries,
+        [agentId]: {
+          agentId,
+          startStep: state.step,
+          lastRecoveryStep: state.step,
+          targetScore: 100,
+          active: true,
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Cartel Bankruptcy] Agent ${agentId} declared cartel bankruptcy. Restructured defaulted loan with syndicate ${syndicateId}, default alerts cleared, and set up credit recovery.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `⚖️ Agent ${agentId} declared cartel bankruptcy! Debts restructured and credit rating recovery initialized.`,
+      } as any);
+
+      customEvents.push({
+        type: "cartel_bankruptcy_declared" as any,
+        agentId,
+        syndicateId,
         timestamp,
       });
     }
