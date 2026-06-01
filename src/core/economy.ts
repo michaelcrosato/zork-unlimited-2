@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -3527,64 +3527,130 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         ];
 
         for (const tranche of tranchesOrdered) {
-          if (remainingLoss <= 0) break;
           const oldTotal = tranche.totalShares;
-          const loss = Math.min(remainingLoss, oldTotal);
-          remainingLoss -= loss;
+          let loss = 0;
+          if (remainingLoss > 0) {
+            loss = Math.min(remainingLoss, oldTotal);
+            remainingLoss -= loss;
+          }
 
           const newTotal = oldTotal - loss;
           tranche.totalShares = newTotal;
 
+          // Record default correlation log (AF-145)
+          if (!newState.swfCDODefaultCorrelationLogs) {
+            newState.swfCDODefaultCorrelationLogs = [];
+          }
+          newState.swfCDODefaultCorrelationLogs.push({
+            cdoId,
+            trancheId: tranche.trancheId,
+            defaulted: loss > 0,
+            timestamp: newState.step,
+          });
+
           for (const [syndicateId, ownedShares] of Object.entries(tranche.ownership)) {
+            let oldOwnedShares = ownedShares;
+            let newOwnedShares = 0;
             if (oldTotal > 0) {
-              tranche.ownership[syndicateId] = Math.max(0, Math.round(ownedShares * (newTotal / oldTotal)));
+              newOwnedShares = Math.max(0, Math.round(ownedShares * (newTotal / oldTotal)));
+              tranche.ownership[syndicateId] = newOwnedShares;
             } else {
               tranche.ownership[syndicateId] = 0;
             }
-          }
 
-          if (!newState.journal) newState.journal = [];
-          newState.journal.push(
-            `[SWF Yield CDO Write-Down] CDO ${cdoId} tranche ${tranche.trancheId} written down by -${loss} shares due to asset defaults.`
-          );
+            // Process Reinsurance Payout if syndicate has active reinsurance! (AF-145)
+            const lossShares = oldOwnedShares - newOwnedShares;
+            if (lossShares > 0 && newState.swfYieldCDOTrancheReinsurancePolicies) {
+              newState.swfYieldCDOTrancheReinsurancePolicies = { ...newState.swfYieldCDOTrancheReinsurancePolicies };
+              for (const [policyId, policy] of Object.entries(newState.swfYieldCDOTrancheReinsurancePolicies)) {
+                if (policy.active && policy.syndicateId === syndicateId && policy.swfYieldCdoId === cdoId && policy.trancheId === tranche.trancheId) {
+                  const updatedPolicy = { ...policy };
+                  const fractionWrittenDown = oldTotal > 0 ? loss / oldTotal : 1.0;
+                  const payoutGold = Math.round(updatedPolicy.coverageAmount * fractionWrittenDown);
 
-          // Automatic SWF Yield CDO CDS settlement resolution
-          if (newState.swfYieldCDOCDSs) {
-            newState.swfYieldCDOCDSs = { ...newState.swfYieldCDOCDSs };
-            for (const [cdsId, cds] of Object.entries(newState.swfYieldCDOCDSs)) {
-              if (cds.active && cds.swfYieldCdoId === cdoId && cds.trancheId === tranche.trancheId) {
-                const updatedCds = { ...cds };
-                const payout = Math.min(updatedCds.notionalValue, oldTotal > 0 ? Math.round(loss * (updatedCds.notionalValue / oldTotal)) : 0);
-                if (payout > 0) {
-                  if (!newState.syndicates) newState.syndicates = {};
-                  const writerSyndicate = newState.syndicates[updatedCds.writerSyndicateId];
-                  const buyerSyndicate = newState.syndicates[updatedCds.buyerSyndicateId];
-                  if (writerSyndicate && buyerSyndicate) {
-                    const actualPaid = Math.min(payout, writerSyndicate.warChest ?? 0);
-                    
-                    newState.syndicates[updatedCds.writerSyndicateId] = {
-                      ...writerSyndicate,
-                      warChest: Math.max(0, (writerSyndicate.warChest ?? 0) - actualPaid),
-                    };
-                    newState.syndicates[updatedCds.buyerSyndicateId] = {
-                      ...buyerSyndicate,
-                      warChest: (buyerSyndicate.warChest ?? 0) + actualPaid,
-                    };
+                  if (payoutGold > 0) {
+                    if (!newState.syndicates) newState.syndicates = {};
+                    const syndicate = newState.syndicates[syndicateId];
+                    if (syndicate) {
+                      newState.syndicates[syndicateId] = {
+                        ...syndicate,
+                        warChest: (syndicate.warChest ?? 0) + payoutGold,
+                      };
+                      updatedPolicy.coverageAmount = Math.max(0, updatedPolicy.coverageAmount - payoutGold);
+                      if (updatedPolicy.coverageAmount <= 0) {
+                        updatedPolicy.active = false;
+                      }
+                      updatedPolicy.timestamp = newState.step;
+                      newState.swfYieldCDOTrancheReinsurancePolicies[policyId] = updatedPolicy;
 
-                    newState.journal.push(`[SWF Yield CDO CDS Payout] CDS ${cdsId} triggered: writer Syndicate ${updatedCds.writerSyndicateId} paid ${actualPaid} gold to buyer Syndicate ${updatedCds.buyerSyndicateId} compensating for tranche ${updatedCds.trancheId} write-down of -${loss} shares.`);
-                    
-                    updatedCds.notionalValue = Math.max(0, updatedCds.notionalValue - payout);
-                    if (updatedCds.notionalValue <= 0) {
-                      updatedCds.active = false;
-                      newState.journal.push(`[SWF Yield CDO CDS Settled] CDS ${cdsId} fully settled and deactivated.`);
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[SWF Reinsurance Payout] Reinsurance policy ${policyId} triggered for Syndicate ${syndicateId}: paid ${payoutGold} gold payout protecting tranche ${tranche.trancheId} holdings (Remaining coverage: ${updatedPolicy.coverageAmount}).`
+                      );
                     }
-                    updatedCds.timestamp = newState.step;
-                    newState.swfYieldCDOCDSs[cdsId] = updatedCds;
                   }
                 }
               }
             }
           }
+
+          if (loss > 0) {
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Yield CDO Write-Down] CDO ${cdoId} tranche ${tranche.trancheId} written down by -${loss} shares due to asset defaults.`
+            );
+
+            // Automatic SWF Yield CDO CDS settlement resolution
+            if (newState.swfYieldCDOCDSs) {
+              newState.swfYieldCDOCDSs = { ...newState.swfYieldCDOCDSs };
+              for (const [cdsId, cds] of Object.entries(newState.swfYieldCDOCDSs)) {
+                if (cds.active && cds.swfYieldCdoId === cdoId && cds.trancheId === tranche.trancheId) {
+                  const updatedCds = { ...cds };
+                  const payout = Math.min(updatedCds.notionalValue, oldTotal > 0 ? Math.round(loss * (updatedCds.notionalValue / oldTotal)) : 0);
+                  if (payout > 0) {
+                    if (!newState.syndicates) newState.syndicates = {};
+                    const writerSyndicate = newState.syndicates[updatedCds.writerSyndicateId];
+                    const buyerSyndicate = newState.syndicates[updatedCds.buyerSyndicateId];
+                    if (writerSyndicate && buyerSyndicate) {
+                      const actualPaid = Math.min(payout, writerSyndicate.warChest ?? 0);
+                      
+                      newState.syndicates[updatedCds.writerSyndicateId] = {
+                        ...writerSyndicate,
+                        warChest: Math.max(0, (writerSyndicate.warChest ?? 0) - actualPaid),
+                      };
+                      newState.syndicates[updatedCds.buyerSyndicateId] = {
+                        ...buyerSyndicate,
+                        warChest: (buyerSyndicate.warChest ?? 0) + actualPaid,
+                      };
+
+                      newState.journal.push(`[SWF Yield CDO CDS Payout] CDS ${cdsId} triggered: writer Syndicate ${updatedCds.writerSyndicateId} paid ${actualPaid} gold to buyer Syndicate ${updatedCds.buyerSyndicateId} compensating for tranche ${updatedCds.trancheId} write-down of -${loss} shares.`);
+                      
+                      updatedCds.notionalValue = Math.max(0, updatedCds.notionalValue - payout);
+                      if (updatedCds.notionalValue <= 0) {
+                        updatedCds.active = false;
+                        newState.journal.push(`[SWF Yield CDO CDS Settled] CDS ${cdsId} fully settled and deactivated.`);
+                      }
+                      updatedCds.timestamp = newState.step;
+                      newState.swfYieldCDOCDSs[cdsId] = updatedCds;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else {
+        // Log clean (no defaults) for all tranches (AF-145)
+        for (const trancheId of ["senior", "mezzanine", "equity"] as const) {
+          if (!newState.swfCDODefaultCorrelationLogs) {
+            newState.swfCDODefaultCorrelationLogs = [];
+          }
+          newState.swfCDODefaultCorrelationLogs.push({
+            cdoId,
+            trancheId,
+            defaulted: false,
+            timestamp: newState.step,
+          });
         }
       }
 
@@ -5117,7 +5183,39 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
-  return newState;
+  // Periodic SWF Yield CDO Tranche Reinsurance Premium Deductions (AF-145)
+  if (newState.swfYieldCDOTrancheReinsurancePolicies && Object.keys(newState.swfYieldCDOTrancheReinsurancePolicies).length > 0) {
+    newState.swfYieldCDOTrancheReinsurancePolicies = { ...newState.swfYieldCDOTrancheReinsurancePolicies };
+    for (const [policyId, policy] of Object.entries(newState.swfYieldCDOTrancheReinsurancePolicies)) {
+      if (policy.active) {
+        const updatedPolicy = { ...policy };
+        const premium = Math.max(1, Math.floor(updatedPolicy.coverageAmount * updatedPolicy.premiumRate));
+        if (!newState.syndicates) newState.syndicates = {};
+        const syndicate = newState.syndicates[updatedPolicy.syndicateId];
+        if (syndicate) {
+          const actualPaid = Math.min(premium, syndicate.warChest ?? 0);
+          
+          newState.syndicates[updatedPolicy.syndicateId] = {
+            ...syndicate,
+            warChest: Math.max(0, (syndicate.warChest ?? 0) - actualPaid),
+          };
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[SWF Reinsurance Premium] Syndicate ${updatedPolicy.syndicateId} paid ${actualPaid} gold premium to global market for SWF Reinsurance policy ${policyId}.`);
+          
+          if (actualPaid < premium) {
+            updatedPolicy.active = false;
+            newState.journal.push(`[SWF Reinsurance Terminated] Reinsurance policy ${policyId} terminated due to insufficient premium payment from Syndicate ${updatedPolicy.syndicateId}.`);
+          }
+          updatedPolicy.timestamp = newState.step;
+          newState.swfYieldCDOTrancheReinsurancePolicies[policyId] = updatedPolicy;
+        }
+      }
+    }
+  }
+
+  // Recalculate dynamic risk ratings for SWF CDOs
+  return recalculateSWFYieldCDORiskRatings(newState);
 }
 
 /**

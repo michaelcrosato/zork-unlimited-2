@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool } from "./state.js";
 export interface MultiAgentAction {
@@ -31399,6 +31399,270 @@ export function multiAgentStep(
         [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
       };
     }
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BUY_SWF_YIELD_CDO_TRANCHE_REINSURANCE action (AF-145)
+  if ((action as any).type === "BUY_SWF_YIELD_CDO_TRANCHE_REINSURANCE") {
+    const { proposalId, syndicateId, swfYieldCdoId, trancheId, coverageAmount, premiumRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to buy SWF Yield CDO Tranche Reinsurance.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `SWF Yield CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (coverageAmount === undefined || coverageAmount <= 0) {
+      rejectionReason = `Coverage amount must be greater than 0.`;
+    } else if (premiumRate === undefined || premiumRate <= 0) {
+      rejectionReason = `Premium rate must be greater than 0.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `SWF Yield CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on reinsurance purchase.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && cdo) {
+      const swfYieldCDOTrancheReinsuranceProposals = { ...(state.swfYieldCDOTrancheReinsuranceProposals || {}) };
+      if (!swfYieldCDOTrancheReinsuranceProposals[proposalId]) {
+        swfYieldCDOTrancheReinsuranceProposals[proposalId] = {
+          id: proposalId,
+          syndicateId,
+          swfYieldCdoId,
+          trancheId,
+          coverageAmount,
+          premiumRate,
+          timestamp,
+          resolved: false,
+          votes: {},
+        };
+      } else {
+        swfYieldCDOTrancheReinsuranceProposals[proposalId] = {
+          ...swfYieldCDOTrancheReinsuranceProposals[proposalId],
+          votes: { ...(swfYieldCDOTrancheReinsuranceProposals[proposalId].votes || {}) },
+        };
+      }
+
+      const existingVote = swfYieldCDOTrancheReinsuranceProposals[proposalId].votes?.[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        swfYieldCDOTrancheReinsuranceProposals[proposalId].votes![agentId] = {
+          vote: true,
+          timestamp,
+        };
+        newState.swfYieldCDOTrancheReinsuranceProposals = swfYieldCDOTrancheReinsuranceProposals;
+        newState = reconcileSWFYieldCDOTrancheReinsurance(newState, pack);
+
+        const isResolved = newState.swfYieldCDOTrancheReinsuranceProposals?.[proposalId]?.resolved ?? false;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Vote] Agent ${agentId} voted to purchase SWF CDO reinsurance policy ${proposalId} for Syndicate ${syndicateId} on CDO ${swfYieldCdoId} tranche ${trancheId} (Coverage: ${coverageAmount}, Status: ${isResolved ? "RESOLVED" : "PENDING"}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF CDO reinsurance purchase vote cast by ${agentId} for Syndicate ${syndicateId} (Policy: ${proposalId}).`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_reinsurance_purchase_voted" as any,
+          syndicateId,
+          agentId,
+          proposalId,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CONFIGURE_SWF_YIELD_CDO_RISK_RATING_MODEL action (AF-145)
+  if ((action as any).type === "CONFIGURE_SWF_YIELD_CDO_RISK_RATING_MODEL") {
+    const { proposalId, proposerSyndicateId, defaultCorrelationWeight, collateralRatioWeight, baseRiskMultiplier, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[proposerSyndicateId];
+
+    if (!proposerSyndicateId) {
+      rejectionReason = `Proposer Syndicate ID is required to configure SWF Yield CDO Risk Rating Model.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (defaultCorrelationWeight === undefined || defaultCorrelationWeight < 0) {
+      rejectionReason = `defaultCorrelationWeight must be non-negative.`;
+    } else if (collateralRatioWeight === undefined || collateralRatioWeight < 0) {
+      rejectionReason = `collateralRatioWeight must be non-negative.`;
+    } else if (baseRiskMultiplier === undefined || baseRiskMultiplier < 0) {
+      rejectionReason = `baseRiskMultiplier must be non-negative.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${proposerSyndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${proposerSyndicateId} and cannot vote on risk rating model.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const swfYieldCDORiskRatingModelProposals = { ...(state.swfYieldCDORiskRatingModelProposals || {}) };
+      if (!swfYieldCDORiskRatingModelProposals[proposalId]) {
+        swfYieldCDORiskRatingModelProposals[proposalId] = {
+          id: proposalId,
+          proposerSyndicateId,
+          defaultCorrelationWeight,
+          collateralRatioWeight,
+          baseRiskMultiplier,
+          timestamp,
+          resolved: false,
+          votes: {},
+        };
+      } else {
+        swfYieldCDORiskRatingModelProposals[proposalId] = {
+          ...swfYieldCDORiskRatingModelProposals[proposalId],
+          votes: { ...(swfYieldCDORiskRatingModelProposals[proposalId].votes || {}) },
+        };
+      }
+
+      const existingVote = swfYieldCDORiskRatingModelProposals[proposalId].votes?.[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        swfYieldCDORiskRatingModelProposals[proposalId].votes![agentId] = {
+          vote: true,
+          timestamp,
+        };
+        newState.swfYieldCDORiskRatingModelProposals = swfYieldCDORiskRatingModelProposals;
+        newState = reconcileSWFYieldCDORiskRatingModels(newState, pack);
+
+        const isResolved = newState.swfYieldCDORiskRatingModelProposals?.[proposalId]?.resolved ?? false;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Risk Model Vote] Agent ${agentId} voted to configure SWF Yield CDO risk rating model ${proposalId} for Syndicate ${proposerSyndicateId} (Status: ${isResolved ? "RESOLVED" : "PENDING"}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF CDO risk rating model vote cast by ${agentId} for Syndicate ${proposerSyndicateId} (Model Proposal: ${proposalId}).`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_risk_rating_model_voted" as any,
+          proposerSyndicateId,
+          agentId,
+          proposalId,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
     return {
       state: newState,
       events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],

@@ -1997,6 +1997,78 @@ export const SovereignBondVolatilityPositionSchema = z.object({
 export type SovereignBondVolatilityPosition = z.infer<typeof SovereignBondVolatilityPositionSchema>;
 
 
+export const SWFYieldCDOTrancheReinsurancePolicySchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  coverageAmount: z.number().int().nonnegative(),
+  premiumRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type SWFYieldCDOTrancheReinsurancePolicy = z.infer<typeof SWFYieldCDOTrancheReinsurancePolicySchema>;
+
+export const SWFYieldCDOTrancheReinsuranceProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  coverageAmount: z.number().int().nonnegative(),
+  premiumRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFYieldCDOTrancheReinsuranceProposal = z.infer<typeof SWFYieldCDOTrancheReinsuranceProposalSchema>;
+
+export const SWFYieldCDOTrancheRiskRatingSchema = z.object({
+  id: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  riskRating: z.enum(["AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "D"]),
+  collateralizationRatio: z.number(),
+  defaultCorrelation: z.number(),
+  timestamp: z.number().int(),
+});
+export type SWFYieldCDOTrancheRiskRating = z.infer<typeof SWFYieldCDOTrancheRiskRatingSchema>;
+
+export const SWFYieldCDORiskRatingModelSchema = z.object({
+  id: z.string(),
+  defaultCorrelationWeight: z.number(),
+  collateralRatioWeight: z.number(),
+  baseRiskMultiplier: z.number(),
+  timestamp: z.number().int(),
+});
+export type SWFYieldCDORiskRatingModel = z.infer<typeof SWFYieldCDORiskRatingModelSchema>;
+
+export const SWFYieldCDORiskRatingModelProposalSchema = z.object({
+  id: z.string(),
+  proposerSyndicateId: z.string(),
+  defaultCorrelationWeight: z.number(),
+  collateralRatioWeight: z.number(),
+  baseRiskMultiplier: z.number(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFYieldCDORiskRatingModelProposal = z.infer<typeof SWFYieldCDORiskRatingModelProposalSchema>;
+
+export const SWFCDODefaultCorrelationLogSchema = z.object({
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  defaulted: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SWFCDODefaultCorrelationLog = z.infer<typeof SWFCDODefaultCorrelationLogSchema>;
+
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -2416,6 +2488,13 @@ export const GameStateSchema = z.object({
     hedgedRatio: z.number().nonnegative().max(100),
     timestamp: z.number().int(),
   }))).optional(),
+
+  swfYieldCDOTrancheReinsurancePolicies: z.record(z.string(), SWFYieldCDOTrancheReinsurancePolicySchema).optional(),
+  swfYieldCDOTrancheReinsuranceProposals: z.record(z.string(), SWFYieldCDOTrancheReinsuranceProposalSchema).optional(),
+  swfYieldCDOTrancheRiskRatings: z.record(z.string(), SWFYieldCDOTrancheRiskRatingSchema).optional(),
+  swfYieldCDORiskRatingModels: z.record(z.string(), SWFYieldCDORiskRatingModelSchema).optional(),
+  swfYieldCDORiskRatingModelProposals: z.record(z.string(), SWFYieldCDORiskRatingModelProposalSchema).optional(),
+  swfCDODefaultCorrelationLogs: z.array(SWFCDODefaultCorrelationLogSchema).optional(),
 });
 
 
@@ -2684,6 +2763,12 @@ export const createInitialState = (options: {
     openSovereignBondVolatilityVotes: {},
     closeSovereignBondVolatilityVotes: {},
     configureVolatilityHedgedBufferVotes: {},
+    swfYieldCDOTrancheReinsurancePolicies: {},
+    swfYieldCDOTrancheReinsuranceProposals: {},
+    swfYieldCDOTrancheRiskRatings: {},
+    swfYieldCDORiskRatingModels: {},
+    swfYieldCDORiskRatingModelProposals: {},
+    swfCDODefaultCorrelationLogs: [],
   };
 };
 
@@ -3535,6 +3620,12 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfRiskPoolProposals: rest.swfRiskPoolProposals ? JSON.parse(JSON.stringify(rest.swfRiskPoolProposals)) : undefined,
     swfYieldCDOs: rest.swfYieldCDOs ? JSON.parse(JSON.stringify(rest.swfYieldCDOs)) : undefined,
     swfYieldCDOProposals: rest.swfYieldCDOProposals ? JSON.parse(JSON.stringify(rest.swfYieldCDOProposals)) : undefined,
+    swfYieldCDOTrancheReinsurancePolicies: rest.swfYieldCDOTrancheReinsurancePolicies ? JSON.parse(JSON.stringify(rest.swfYieldCDOTrancheReinsurancePolicies)) : undefined,
+    swfYieldCDOTrancheReinsuranceProposals: rest.swfYieldCDOTrancheReinsuranceProposals ? JSON.parse(JSON.stringify(rest.swfYieldCDOTrancheReinsuranceProposals)) : undefined,
+    swfYieldCDOTrancheRiskRatings: rest.swfYieldCDOTrancheRiskRatings ? JSON.parse(JSON.stringify(rest.swfYieldCDOTrancheRiskRatings)) : undefined,
+    swfYieldCDORiskRatingModels: rest.swfYieldCDORiskRatingModels ? JSON.parse(JSON.stringify(rest.swfYieldCDORiskRatingModels)) : undefined,
+    swfYieldCDORiskRatingModelProposals: rest.swfYieldCDORiskRatingModelProposals ? JSON.parse(JSON.stringify(rest.swfYieldCDORiskRatingModelProposals)) : undefined,
+    swfCDODefaultCorrelationLogs: rest.swfCDODefaultCorrelationLogs ? JSON.parse(JSON.stringify(rest.swfCDODefaultCorrelationLogs)) : undefined,
   };
   return clone;
 }
@@ -10212,6 +10303,195 @@ export function reconcileVolatilityHedgedReserveBuffers(state: GameState, pack: 
 
   return newState;
 }
+
+export function reconcileSWFYieldCDOTrancheReinsurance(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfYieldCDOTrancheReinsuranceProposals: state.swfYieldCDOTrancheReinsuranceProposals ? { ...state.swfYieldCDOTrancheReinsuranceProposals } : {},
+    swfYieldCDOTrancheReinsurancePolicies: state.swfYieldCDOTrancheReinsurancePolicies ? { ...state.swfYieldCDOTrancheReinsurancePolicies } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.swfYieldCDOTrancheReinsuranceProposals || {})) {
+    const proposal = newState.swfYieldCDOTrancheReinsuranceProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, swfYieldCdoId, trancheId, coverageAmount, premiumRate, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    const votes = proposal.votes || {};
+    const yesVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (yesVotes.length > members.length / 2) {
+      // Majority consensus reached! Purchase the reinsurance policy.
+      newState.swfYieldCDOTrancheReinsurancePolicies![proposalId] = {
+        id: proposalId,
+        syndicateId,
+        swfYieldCdoId,
+        trancheId,
+        coverageAmount,
+        premiumRate,
+        timestamp,
+        active: true,
+      };
+
+      newState.swfYieldCDOTrancheReinsuranceProposals![proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Purchased] Syndicate ${syndicateId} successfully purchased SWF CDO Reinsurance policy ${proposalId} protecting tranche ${trancheId} holdings of CDO ${swfYieldCdoId} (Coverage: ${coverageAmount}).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFYieldCDORiskRatingModels(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfYieldCDORiskRatingModelProposals: state.swfYieldCDORiskRatingModelProposals ? { ...state.swfYieldCDORiskRatingModelProposals } : {},
+    swfYieldCDORiskRatingModels: state.swfYieldCDORiskRatingModels ? { ...state.swfYieldCDORiskRatingModels } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.swfYieldCDORiskRatingModelProposals || {})) {
+    const proposal = newState.swfYieldCDORiskRatingModelProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { proposerSyndicateId, defaultCorrelationWeight, collateralRatioWeight, baseRiskMultiplier, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[proposerSyndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    const votes = proposal.votes || {};
+    const yesVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (yesVotes.length > members.length / 2) {
+      // Majority consensus reached! Configure the risk rating model for this syndicate.
+      newState.swfYieldCDORiskRatingModels![proposerSyndicateId] = {
+        id: proposerSyndicateId,
+        defaultCorrelationWeight,
+        collateralRatioWeight,
+        baseRiskMultiplier,
+        timestamp,
+      };
+
+      newState.swfYieldCDORiskRatingModelProposals![proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      newState.swfYieldCDORiskRatingModels = { ...newState.swfYieldCDORiskRatingModels };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Risk Model Configured] Syndicate ${proposerSyndicateId} successfully configured risk rating model (Correlation Weight: ${defaultCorrelationWeight}, Collateral Weight: ${collateralRatioWeight}, Multiplier: ${baseRiskMultiplier}).`
+      );
+      
+      // Recalculate dynamic risk ratings
+      return recalculateSWFYieldCDORiskRatings(newState);
+    }
+  }
+
+  return newState;
+}
+
+export function recalculateSWFYieldCDORiskRatings(state: GameState): GameState {
+  const newState = {
+    ...state,
+    swfYieldCDOTrancheRiskRatings: state.swfYieldCDOTrancheRiskRatings ? { ...state.swfYieldCDOTrancheRiskRatings } : {},
+  };
+
+  if (!newState.swfYieldCDOs || Object.keys(newState.swfYieldCDOs).length === 0) {
+    return newState;
+  }
+
+  const defaultModel = {
+    defaultCorrelationWeight: 1.0,
+    collateralRatioWeight: 1.0,
+    baseRiskMultiplier: 1.0,
+  };
+
+  for (const [cdoId, cdo] of Object.entries(newState.swfYieldCDOs)) {
+    // Get the model for the CDO's creator syndicate, or default
+    const model = newState.swfYieldCDORiskRatingModels?.[cdo.creatorSyndicateId] ?? defaultModel;
+
+    const tranchesList: ("senior" | "mezzanine" | "equity")[] = ["senior", "mezzanine", "equity"];
+    for (const trancheId of tranchesList) {
+      const tranche = cdo.tranches[trancheId];
+      if (!tranche) continue;
+
+      // 1. Structural Collateralization Ratio
+      let collateralRatio = 0;
+      if (trancheId === "senior") {
+        collateralRatio = cdo.totalValue / Math.max(1, tranche.totalShares);
+      } else if (trancheId === "mezzanine") {
+        collateralRatio = Math.max(0, cdo.totalValue - (cdo.tranches.senior?.totalShares ?? 0)) / Math.max(1, tranche.totalShares);
+      } else {
+        collateralRatio = Math.max(0, cdo.totalValue - (cdo.tranches.senior?.totalShares ?? 0) - (cdo.tranches.mezzanine?.totalShares ?? 0)) / Math.max(1, tranche.totalShares);
+      }
+
+      // 2. Historical Default Correlation
+      const cdoLogs = (newState.swfCDODefaultCorrelationLogs || []).filter(l => l.cdoId === cdoId && l.trancheId === trancheId);
+      const totalLogs = cdoLogs.length;
+      const defaultedLogs = cdoLogs.filter(l => l.defaulted === true).length;
+      const defaultCorrelation = totalLogs > 0 ? defaultedLogs / totalLogs : 0.0;
+
+      // 3. Combined Rating Score
+      const ratingScore = (collateralRatio * model.collateralRatioWeight) - (defaultCorrelation * model.defaultCorrelationWeight * model.baseRiskMultiplier);
+
+      // Map rating score to standard AAA-D ratings
+      let riskRating: "AAA" | "AA" | "A" | "BBB" | "BB" | "B" | "CCC" | "CC" | "C" | "D" = "D";
+      if (tranche.totalShares <= 0) {
+        riskRating = "D";
+      } else if (ratingScore >= 2.0) {
+        riskRating = "AAA";
+      } else if (ratingScore >= 1.5) {
+        riskRating = "AA";
+      } else if (ratingScore >= 1.2) {
+        riskRating = "A";
+      } else if (ratingScore >= 1.0) {
+        riskRating = "BBB";
+      } else if (ratingScore >= 0.8) {
+        riskRating = "BB";
+      } else if (ratingScore >= 0.5) {
+        riskRating = "B";
+      } else if (ratingScore >= 0.3) {
+        riskRating = "CCC";
+      } else if (ratingScore >= 0.1) {
+        riskRating = "CC";
+      } else if (ratingScore > 0.0) {
+        riskRating = "C";
+      } else {
+        riskRating = "D";
+      }
+
+      const ratingId = `${cdoId}_${trancheId}`;
+      newState.swfYieldCDOTrancheRiskRatings[ratingId] = {
+        id: ratingId,
+        swfYieldCdoId: cdoId,
+        trancheId,
+        riskRating,
+        collateralizationRatio: collateralRatio,
+        defaultCorrelation,
+        timestamp: newState.step,
+      };
+    }
+  }
+
+  return newState;
+}
+
 
 
 
