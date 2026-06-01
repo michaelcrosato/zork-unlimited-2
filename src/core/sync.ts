@@ -922,7 +922,7 @@ export function multiAgentStep(
 
   // Handle decentralized DEFINE_MERCHANT_LICENSING action
   if ((action as any).type === "DEFINE_MERCHANT_LICENSING") {
-    const { factionId, licenseCost, tariffRate, timestamp } = action as any;
+    const { factionId, licenseCost, tariffRate, timestamp, tariffWaiverThreshold, tariffDiscountThreshold } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -934,6 +934,10 @@ export function multiAgentStep(
       rejectionReason = `Proposed license cost ${licenseCost} must be a non-negative integer.`;
     } else if (tariffRate < 0 || !Number.isInteger(tariffRate)) {
       rejectionReason = `Proposed tariff rate ${tariffRate} must be a non-negative integer.`;
+    } else if (tariffWaiverThreshold !== undefined && !Number.isInteger(tariffWaiverThreshold)) {
+      rejectionReason = `Proposed tariff waiver threshold must be an integer.`;
+    } else if (tariffDiscountThreshold !== undefined && !Number.isInteger(tariffDiscountThreshold)) {
+      rejectionReason = `Proposed tariff discount threshold must be an integer.`;
     } else {
       ok = true;
     }
@@ -952,6 +956,8 @@ export function multiAgentStep(
           tariffRate,
           definedBy: agentId,
           timestamp,
+          ...(tariffWaiverThreshold !== undefined ? { tariffWaiverThreshold } : {}),
+          ...(tariffDiscountThreshold !== undefined ? { tariffDiscountThreshold } : {}),
         };
         newState.merchantLicensings = merchantLicensings;
 

@@ -56,12 +56,26 @@ export function calculateTradePrice(
   if (controllingFactionId) {
     const hasLicense = state.merchantLicenses?.[traderId]?.includes(controllingFactionId) || false;
     if (!hasLicense) {
-      const tariffRate = state.tariffPolicy?.[controllingFactionId] ?? state.merchantLicensings?.[controllingFactionId]?.tariffRate ?? 0;
+      const licensing = state.merchantLicensings?.[controllingFactionId];
+      const tariffRate = state.tariffPolicy?.[controllingFactionId] ?? licensing?.tariffRate ?? 0;
       if (tariffRate > 0) {
-        if (isBuy) {
-          multiplier *= (1.0 + tariffRate / 100.0);
-        } else {
-          multiplier *= Math.max(0.1, 1.0 - tariffRate / 100.0);
+        const factionRep = state.factionRep?.[controllingFactionId] ?? 0;
+        const waiverThreshold = licensing?.tariffWaiverThreshold ?? 20;
+        const discountThreshold = licensing?.tariffDiscountThreshold ?? 10;
+
+        let effectiveTariffRate = tariffRate;
+        if (factionRep >= waiverThreshold) {
+          effectiveTariffRate = 0;
+        } else if (factionRep >= discountThreshold) {
+          effectiveTariffRate = tariffRate / 2;
+        }
+
+        if (effectiveTariffRate > 0) {
+          if (isBuy) {
+            multiplier *= (1.0 + effectiveTariffRate / 100.0);
+          } else {
+            multiplier *= Math.max(0.1, 1.0 - effectiveTariffRate / 100.0);
+          }
         }
       }
     }
@@ -204,4 +218,56 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   }
 
   return newState;
+}
+
+/**
+ * Resolves the faction for an NPC by first checking npc.faction,
+ * then falling back to the room's faction where the NPC is defined in the pack,
+ * and finally falling back to the state's territory control.
+ */
+export function getFactionForNpc(state: GameState, npcId: string, pack: any): string | undefined {
+  if (!pack) {
+    console.log("getFactionForNpc: pack is falsy!");
+    return undefined;
+  }
+  const npc = pack.npcs?.find((n: any) => n.id === npcId);
+  if (!npc) {
+    console.log("getFactionForNpc: npc not found for id:", npcId, "available npcs:", JSON.stringify(pack.npcs?.map((n: any) => n.id)));
+    return undefined;
+  }
+  if (npc.faction) return npc.faction;
+  
+  // Find room containing this NPC in the pack definition
+  const room = pack.rooms?.find((r: any) => r.npcs?.includes(npcId));
+  if (room && room.faction) return room.faction;
+
+  // Fallback to room controlling faction if npc is in the current room
+  if (state.current && pack.rooms?.find((r: any) => r.id === state.current)?.npcs?.includes(npcId)) {
+    return state.territoryControl?.[state.current];
+  }
+  return undefined;
+}
+
+/**
+ * Calculates dynamic trade transaction count and gold volume caps for a given faction
+ * based on the player's reputation with that faction.
+ */
+export function getMerchantTradeCaps(state: GameState, factionId: string): { maxTransactions: number; maxGoldVolume: number } {
+  const rep = state.factionRep?.[factionId] ?? 0;
+  if (rep < 0) {
+    // Hostile standing
+    return { maxTransactions: 1, maxGoldVolume: 50 };
+  } else if (rep < 10) {
+    // Neutral standing
+    return {
+      maxTransactions: 3 + Math.floor(rep / 2),
+      maxGoldVolume: 150 + rep * 10
+    };
+  } else {
+    // Friendly / Allied standing
+    return {
+      maxTransactions: 10 + Math.floor(rep / 5),
+      maxGoldVolume: 500 + rep * 20
+    };
+  }
 }

@@ -7,7 +7,7 @@ import { computeStateHashShort } from "./hash.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack, ParserRoom, ParserObject, ParserNPC } from "../parser/schema.js";
 import { PureRand } from "./rng.js";
-import { calculateTradePrice, checkReputationTrade, getMerchantGold, tickEconomy } from "./economy.js";
+import { calculateTradePrice, checkReputationTrade, getMerchantGold, tickEconomy, getFactionForNpc, getMerchantTradeCaps } from "./economy.js";
 
 /**
  * Pure engine step transition function.
@@ -1066,6 +1066,45 @@ export function step(
       const itemObj = findObjectInPack(action.item);
       const baseCost = itemObj?.cost ?? 10;
       const itemCost = calculateTradePrice(newState, npc, itemObj, baseCost, true);
+
+      // Check faction trade limits and caps (AF-36)
+      const npcFactionId = getFactionForNpc(newState, npc.id, parserPack);
+      if (npcFactionId) {
+        const prevTrades = newState.tradeHistory?.filter(t => 
+          getFactionForNpc(newState, t.npcId, parserPack) === npcFactionId &&
+          (t.action === "buy" || t.action === "sell")
+        ) ?? [];
+        const totalGoldVolume = prevTrades.reduce((sum, t) => sum + t.gold, 0);
+        const caps = getMerchantTradeCaps(newState, npcFactionId);
+
+        console.log("ENGINE DIAGNOSTIC BUY CAPS:", {
+          npcId: npc.id,
+          npcFactionId,
+          prevTradesLength: prevTrades.length,
+          prevTrades: JSON.stringify(prevTrades),
+          caps,
+          factionRep: JSON.stringify(newState.factionRep)
+        });
+
+        if (prevTrades.length >= caps.maxTransactions) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `Trade limit reached for faction ${npcFactionId}. Maximum transactions: ${caps.maxTransactions}.` }],
+            ok: false,
+            rejectionReason: `Trade limit reached.`,
+          };
+        }
+
+        if (totalGoldVolume + itemCost > caps.maxGoldVolume) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `Trade volume limit reached for faction ${npcFactionId}. Maximum gold volume: ${caps.maxGoldVolume} (current: ${totalGoldVolume}, attempted: ${itemCost}).` }],
+            ok: false,
+            rejectionReason: `Trade volume limit reached.`,
+          };
+        }
+      }
+
       const playerGold = newState.vars["gold"] ?? 0;
 
       if (playerGold < itemCost) {
@@ -1170,6 +1209,35 @@ export function step(
 
       const baseCost = itemObj?.cost ?? 10;
       const itemPayout = calculateTradePrice(newState, npc, itemObj, baseCost, false);
+
+      // Check faction trade limits and caps (AF-36)
+      const npcFactionId = getFactionForNpc(newState, npc.id, parserPack);
+      if (npcFactionId) {
+        const prevTrades = newState.tradeHistory?.filter(t => 
+          getFactionForNpc(newState, t.npcId, parserPack) === npcFactionId &&
+          (t.action === "buy" || t.action === "sell")
+        ) ?? [];
+        const totalGoldVolume = prevTrades.reduce((sum, t) => sum + t.gold, 0);
+        const caps = getMerchantTradeCaps(newState, npcFactionId);
+
+        if (prevTrades.length >= caps.maxTransactions) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `Trade limit reached for faction ${npcFactionId}. Maximum transactions: ${caps.maxTransactions}.` }],
+            ok: false,
+            rejectionReason: `Trade limit reached.`,
+          };
+        }
+
+        if (totalGoldVolume + itemPayout > caps.maxGoldVolume) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `Trade volume limit reached for faction ${npcFactionId}. Maximum gold volume: ${caps.maxGoldVolume} (current: ${totalGoldVolume}, attempted: ${itemPayout}).` }],
+            ok: false,
+            rejectionReason: `Trade volume limit reached.`,
+          };
+        }
+      }
 
       // Check Merchant Gold Limit
       const mGold = getMerchantGold(newState, npc);

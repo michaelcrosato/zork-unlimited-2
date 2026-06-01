@@ -110,6 +110,8 @@ export const MerchantLicensingSchema = z.object({
   tariffRate: z.number().int().nonnegative(),
   definedBy: z.string(),
   timestamp: z.number().int(),
+  tariffWaiverThreshold: z.number().int().optional(),
+  tariffDiscountThreshold: z.number().int().optional(),
 });
 export type MerchantLicensing = z.infer<typeof MerchantLicensingSchema>;
 
