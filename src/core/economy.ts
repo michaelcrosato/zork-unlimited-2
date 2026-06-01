@@ -1034,6 +1034,40 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     journal: [...state.journal],
   };
 
+  // Wire grace ticks for volatility floor panic override early cancellation grace period (AF-197)
+  if (newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals) {
+    newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals = { ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals };
+    for (const [cancelId, cancelProp] of Object.entries(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals)) {
+      if (cancelProp.status === "authorized" && cancelProp.remainingGraceSteps !== undefined) {
+        if (cancelProp.remainingGraceSteps > 0) {
+          const newRemaining = cancelProp.remainingGraceSteps - 1;
+          newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[cancelId] = {
+            ...cancelProp,
+            remainingGraceSteps: newRemaining,
+          };
+          
+          const targetOverride = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.[cancelProp.targetProposalId];
+          if (targetOverride) {
+            newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals = {
+              ...newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals,
+              [cancelProp.targetProposalId]: {
+                ...targetOverride,
+                cooldownEndStep: newRemaining > 0 ? newState.step + newRemaining : undefined,
+                timestamp: newState.step,
+              }
+            };
+            if (newRemaining === 0) {
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[SWF Reinsurance Option Volatility Floor Panic Override Extension Cancellation Grace Ended] Grace period ended for cancellation ${cancelId}. Panic override ${cancelProp.targetProposalId} has been terminated early.`
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
   // SWF Reinsurance Option Order Book Volume Tracking (AF-150) & Depths (AF-151)
   let afterMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
   afterMetrics = tickVolatilityInsuranceRebalancing(afterMetrics);

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #194 (Ready for Cycle #195)
-* **Build/Test Status**: 🟢 PASS (All 720 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #195 (Ready for Cycle #196)
+* **Build/Test Status**: 🟢 PASS (All 723 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1232,23 +1232,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire consensus extensions to dynamically extend `cooldownEndStep` in the active panic override state (`AF-195`).
 - [x] Write comprehensive Vitest unit and integration tests asserting consensus updates and mesh convergence (`AF-195`).
 
-### Phase 174: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Voting (Completed)
-- [x] Define proposal and voting structures inside GameState schemas for panic override extension cancellations (`AF-196`).
-- [x] Implement `PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION` and `VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION` actions and consensus state transitions (`AF-196`).
-- [x] Wire consensus cancellations to terminate the active panic override/cooldown early (clear `cooldownEndStep`) (`AF-196`).
-- [x] Write comprehensive Vitest unit and integration tests asserting consensus updates and mesh convergence (`AF-196`).
+### Phase 175: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Voting Settlement Grace Period Arbitration (Completed)
+- [x] Define proposal and voting structures inside GameState schemas for early cancellation grace periods (`AF-197`).
+- [x] Implement `PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE` and `VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE` actions and consensus state transitions (`AF-197`).
+- [x] Wire grace ticks to dynamically schedule the cooldown early termination date inside the economy step (`AF-197`).
+- [x] Write comprehensive Vitest unit and integration tests asserting consensus updates, grace period delays, and mesh convergence (`AF-197`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-197`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Voting Settlement Grace Period Arbitration.
-* **Why this matters**: Enables syndicates to vote to establish a brief delay/grace period before early panic override termination becomes active, giving members a structured window to adjust their leverage and trading strategies.
+**Task ID**: `AF-198`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Enforcement.
+* **Why this matters**: Automatically terminates the early cancellation grace period early if pool liquidity falls below a critical threshold during the grace period, safeguarding options traders from immediate liquidity crunches.
 * **Planned Actions**:
-  1. Define proposal and voting structures inside GameState schemas for early cancellation grace periods.
-  2. Implement `PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE` and `VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE` actions and consensus state transitions.
-  3. Wire grace ticks to dynamically schedule the cooldown early termination date inside the economy step.
-  4. Write comprehensive Vitest unit and integration tests asserting consensus updates, grace period delays, and mesh convergence.
+  1. Define proposal and voting structures inside GameState schemas for grace period minimum liquidity thresholds.
+  2. Implement `PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY` and `VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY` actions and consensus state transitions.
+  3. Wire liquidity checks to the economy tick to instantly cancel the grace period if the active pool's reserves drop below the consensus threshold.
+  4. Write comprehensive Vitest unit and integration tests asserting consensus updates, liquidity breaches, and mesh convergence.
 
 ---
 

@@ -2390,6 +2390,7 @@ export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellati
   status: z.enum(["proposed", "disputed", "authorized"]),
   proposerId: z.string(),
   timestamp: z.number().int(),
+  remainingGraceSteps: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposal = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposalSchema>;
 
@@ -2399,6 +2400,26 @@ export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellati
   timestamp: z.number().int(),
 });
 export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVoteSchema>;
+
+export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  targetProposalId: z.string(),
+  graceDuration: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposal = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposalSchema>;
+
+export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVoteSchema>;
 
 
 
@@ -3342,6 +3363,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposalSchema).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVoteSchema)).optional(),
+  swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposalSchema).optional(),
+  swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVoteSchema)).optional(),
 
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
   swfReinsuranceOptionVolatilityInsurancePolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePolicySchema).optional(),
@@ -3712,6 +3735,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes: {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals: {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes: {},
 
     swfReinsuranceOptionPremiumContributions: {},
     swfReinsuranceOptionVolatilityInsurancePolicies: {},
@@ -4788,6 +4813,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes)) : undefined,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals)) : undefined,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes)) : undefined,
 
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
     swfReinsuranceOptionVolatilityInsurancePolicies: rest.swfReinsuranceOptionVolatilityInsurancePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePolicies)) : undefined,
@@ -14588,6 +14615,7 @@ export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensi
     swfReinsuranceOptionVolatilityFloorPanicOverrideProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals } : {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals } : {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes } : {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals } : {},
     syndicates: state.syndicates ? { ...state.syndicates } : {},
   };
 
@@ -14628,19 +14656,119 @@ export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensi
     }
 
     const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+    let remainingGraceSteps = proposal.remainingGraceSteps;
 
     if (newlyAuthorized) {
       const targetProposal = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[proposal.targetProposalId];
       if (targetProposal && targetProposal.status === "authorized") {
-        newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[proposal.targetProposalId] = {
-          ...targetProposal,
-          cooldownEndStep: undefined, // Terminate early by clearing cooldownEndStep
-          timestamp: Math.max(targetProposal.timestamp, newState.step),
-        };
+        let graceDuration: number | undefined;
+        if (newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals) {
+          for (const graceProp of Object.values(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals)) {
+            if (graceProp.targetProposalId === proposalId && graceProp.status === "authorized") {
+              graceDuration = graceProp.graceDuration;
+              break;
+            }
+          }
+        }
+
+        if (graceDuration !== undefined) {
+          remainingGraceSteps = graceDuration;
+          newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[proposal.targetProposalId] = {
+            ...targetProposal,
+            cooldownEndStep: newState.step + graceDuration,
+            timestamp: Math.max(targetProposal.timestamp, newState.step),
+          };
+        } else {
+          newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[proposal.targetProposalId] = {
+            ...targetProposal,
+            cooldownEndStep: undefined, // Terminate early by clearing cooldownEndStep
+            timestamp: Math.max(targetProposal.timestamp, newState.step),
+          };
+        }
       }
     }
 
     newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[proposalId] = {
+      ...proposal,
+      status,
+      remainingGraceSteps,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals } : {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals } : {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals } : {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+
+    let newlyAuthorized = false;
+    if (authorizeVoters.size > totalMembers / 2) {
+      if (status !== "authorized") {
+        newlyAuthorized = true;
+      }
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+
+    if (newlyAuthorized) {
+      const targetCancelProp = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[proposal.targetProposalId];
+      if (targetCancelProp) {
+        newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[proposal.targetProposalId] = {
+          ...targetCancelProp,
+          remainingGraceSteps: proposal.graceDuration,
+        };
+
+        if (targetCancelProp.status === "authorized") {
+          const overrideProp = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[targetCancelProp.targetProposalId];
+          if (overrideProp) {
+            newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[targetCancelProp.targetProposalId] = {
+              ...overrideProp,
+              cooldownEndStep: newState.step + proposal.graceDuration,
+              timestamp: Math.max(overrideProp.timestamp, newState.step),
+            };
+          }
+        }
+      }
+    }
+
+    newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals[proposalId] = {
       ...proposal,
       status,
       timestamp: Math.max(maxTimestamp, newState.step),
