@@ -2524,6 +2524,38 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge cooperativeStakingYieldSweepProposals using LWW (Last-Write-Wins) (AF-206)
+  const cooperativeStakingYieldSweepProposals = { ...stateA.cooperativeStakingYieldSweepProposals };
+  if (stateB.cooperativeStakingYieldSweepProposals) {
+    for (const [propId, propB] of Object.entries(stateB.cooperativeStakingYieldSweepProposals)) {
+      const propA = cooperativeStakingYieldSweepProposals[propId];
+      if (!propA) {
+        cooperativeStakingYieldSweepProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          cooperativeStakingYieldSweepProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          cooperativeStakingYieldSweepProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
   // Merge rehabSubsidyProposals using LWW (Last-Write-Wins)
 
   const rehabSubsidyProposals = { ...stateA.rehabSubsidyProposals };
@@ -3779,6 +3811,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   // Merge swfStabilityPool using Max (AF-204)
   const swfStabilityPool = Math.max(stateA.swfStabilityPool ?? 0, stateB.swfStabilityPool ?? 0);
 
+  // Merge swfStakingSweepPool using Max (AF-206)
+  const swfStakingSweepPool = Math.max(stateA.swfStakingSweepPool ?? 0, stateB.swfStakingSweepPool ?? 0);
+
   // Merge auditLogs
   const auditLogs = [...(stateA.auditLogs || [])];
   if (stateB.auditLogs) {
@@ -3844,6 +3879,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cooperativeRehabSubsidyProposals,
     slashedCDOTrancheShares,
     swfStabilityPool,
+    cooperativeStakingYieldSweepProposals,
+    swfStakingSweepPool,
 
 
     swfReinsuranceOptionPremiumContributions,

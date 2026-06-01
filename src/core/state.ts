@@ -2627,6 +2627,23 @@ export const CooperativeRehabSubsidyProposalSchema = z.object({
 });
 export type CooperativeRehabSubsidyProposal = z.infer<typeof CooperativeRehabSubsidyProposalSchema>;
 
+export const CooperativeStakingYieldSweepProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  factionId: z.string(),
+  criticalThreshold: z.number().int().nonnegative(),
+  sweepPercentage: z.number().int().min(0).max(100),
+  status: z.enum(["proposed", "authorized"]).optional(),
+  resolved: z.boolean().optional(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type CooperativeStakingYieldSweepProposal = z.infer<typeof CooperativeStakingYieldSweepProposalSchema>;
+
 
 
 export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
@@ -3538,6 +3555,8 @@ export const GameStateSchema = z.object({
   cooperativeRehabSubsidyProposals: z.record(z.string(), CooperativeRehabSubsidyProposalSchema).optional(),
   slashedCDOTrancheShares: z.record(z.string(), z.record(z.string(), z.record(z.string(), z.number().int().nonnegative()))).optional(),
   swfStabilityPool: z.number().int().nonnegative().optional(),
+  cooperativeStakingYieldSweepProposals: z.record(z.string(), CooperativeStakingYieldSweepProposalSchema).optional(),
+  swfStakingSweepPool: z.number().int().nonnegative().optional(),
 
 
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
@@ -3933,6 +3952,8 @@ export const createInitialState = (options: {
     cooperativeRehabSubsidyProposals: {},
     slashedCDOTrancheShares: {},
     swfStabilityPool: 0,
+    cooperativeStakingYieldSweepProposals: {},
+    swfStakingSweepPool: 0,
 
 
     swfReinsuranceOptionPremiumContributions: {},
@@ -5034,6 +5055,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cooperativeRehabSubsidyProposals: rest.cooperativeRehabSubsidyProposals ? JSON.parse(JSON.stringify(rest.cooperativeRehabSubsidyProposals)) : undefined,
     slashedCDOTrancheShares: rest.slashedCDOTrancheShares ? JSON.parse(JSON.stringify(rest.slashedCDOTrancheShares)) : undefined,
     swfStabilityPool: rest.swfStabilityPool,
+    cooperativeStakingYieldSweepProposals: rest.cooperativeStakingYieldSweepProposals ? JSON.parse(JSON.stringify(rest.cooperativeStakingYieldSweepProposals)) : undefined,
+    swfStakingSweepPool: rest.swfStakingSweepPool,
 
 
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
@@ -8778,6 +8801,45 @@ export function reconcileCooperativeRehabSubsidy(state: GameState, pack: any): G
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Cooperative Rehab Subsidy Resolved] Syndicate ${proposingSyndicateId} successfully authorized cooperative rehab subsidy proposal ${proposalId} to sponsor Syndicate ${targetSyndicateId} for rehab proposal ${targetRehabProposalId} at ${subsidyPercentage}% with faction ${factionId}.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCooperativeStakingYieldSweep(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cooperativeStakingYieldSweepProposals: state.cooperativeStakingYieldSweepProposals ? { ...state.cooperativeStakingYieldSweepProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.cooperativeStakingYieldSweepProposals || {})) {
+    const proposal = newState.cooperativeStakingYieldSweepProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, targetSyndicateId, factionId, criticalThreshold, sweepPercentage } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.cooperativeStakingYieldSweepProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Cooperative Staking Yield Sweep Resolved] Syndicate ${syndicateId} successfully authorized cooperative staking yield sweep proposal ${proposalId} to pool with Syndicate ${targetSyndicateId} for faction ${factionId} (Threshold: ${criticalThreshold}, Sweep: ${sweepPercentage}%).`
       );
     }
   }

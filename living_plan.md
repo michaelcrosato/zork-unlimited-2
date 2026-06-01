@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #203 (Ready for Cycle #204)
-* **Build/Test Status**: 🟢 PASS (All 742 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #204 (Ready for Cycle #205)
+* **Build/Test Status**: 🟢 PASS (All 744 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1299,14 +1299,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 184: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation Campaign Subsidies and Cooperative Mesh-Wide Staking Cross-Mesh Yield Compounding and Automated Liquidity Pool Sweeps (Completed)
+- [x] Define cooperative yield sweep proposals schema and shared sweep pool in `GameState` (`AF-206`).
+- [x] Implement decentralized `PROPOSE_COOPERATIVE_STAKING_YIELD_SWEEP` and `VOTE_COOPERATIVE_STAKING_YIELD_SWEEP` actions (`AF-206`).
+- [x] Wire the economy tick to sweep dynamic staking yields to the shared stabilization pool when faction standing falls below critical threshold (`AF-206`).
+- [x] Write comprehensive Vitest unit and integration tests inside `tests/syndicates_swf_reinvestment.test.ts` (`AF-206`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-206`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation Campaign Subsidies and Cooperative Mesh-Wide Staking Cross-Mesh Yield Compounding and Automated Liquidity Pool Sweeps.
-* **Why this matters**: Allow allied syndicates to pool their cooperative staking yields across the P2P Gossip mesh, automatically sweeping excess staking yields into a shared stabilization pool when faction standing falls below a critical threshold.
+**Task ID**: `AF-207`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation Campaign Subsidies and Cooperative Mesh-Wide Staking Cross-Mesh Yield Compounding and Automated Liquidity Pool Sweeps Sweep Redistribution and Alliance Stability Pool Yield Auto-Compounding.
+* **Why this matters**: Allow swept staking yields in the shared sweep stabilization pool to be redistributed proportionally to allied syndicates as war chest gold or auto-compounded back into their respective SWF staking targets based on their mesh participation rank.
 * **Planned Actions**:
-  1. Define a shared stabilization pool and automatic yield sweeping schema in the GameState.
-  2. Implement `PROPOSE_COOPERATIVE_STAKING_YIELD_SWEEP` and `VOTE_COOPERATIVE_STAKING_YIELD_SWEEP` actions.
-  3. Wire the economy tick to automatically transfer yields from individual syndicate staking targets into the shared pool on critical standing drop.
+  1. Define a redistribution threshold and participation rank parameters in the GameState.
+  2. Implement `PROPOSE_SWEEP_POOL_REDISTRIBUTION` and `VOTE_SWEEP_POOL_REDISTRIBUTION` consensus actions.
+  3. Wire the economy tick to auto-compound or distribute sweep gold back to allied syndicates on successful standing recovery.
   4. Write comprehensive Vitest integration tests and merge support.
 
 ---

@@ -1152,5 +1152,203 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(state.slashedCDOTrancheShares?.alpha?.cdo_1?.senior).toBe(150);
     expect(state.swfYieldCDOs?.cdo_1?.tranches?.senior?.ownership?.alpha).toBe(850);
   });
+
+  it("should support proposing and voting on cooperative yield sweep policies between allied syndicates", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    // Configure two allied syndicates
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Establish mutual alliance between alpha and beta
+    state.syndicateAlliances = {
+      alpha: {
+        beta: "allied",
+      },
+      beta: {
+        alpha: "allied",
+      },
+    };
+
+    // Propose cooperative yield sweep policy: alpha pools with beta, faction rangers, threshold 50, sweep 80%
+    const stepResult1 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_COOPERATIVE_STAKING_YIELD_SWEEP",
+          proposalId: "sweep_prop_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          factionId: "rangers",
+          criticalThreshold: 50,
+          sweepPercentage: 80,
+          timestamp: 1010,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult1.ok).toBe(true);
+    state = stepResult1.state;
+
+    // Check proposal exists
+    const prop = state.cooperativeStakingYieldSweepProposals?.["sweep_prop_1"];
+    expect(prop).toBeDefined();
+    expect(prop?.status).toBe("proposed");
+    expect(prop?.votes?.["player"]?.vote).toBe(true);
+    // Proposal fee deducted: 10000 - 200 = 9800
+    expect(state.syndicates?.alpha?.warChest).toBe(9800);
+
+    // Try to propose duplicate, should fail
+    const dupResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_COOPERATIVE_STAKING_YIELD_SWEEP",
+          proposalId: "sweep_prop_1",
+          syndicateId: "alpha",
+          targetSyndicateId: "beta",
+          factionId: "rangers",
+          criticalThreshold: 50,
+          sweepPercentage: 80,
+          timestamp: 1011,
+        } as any,
+      },
+      mockPack
+    );
+    expect(dupResult.ok).toBe(false);
+
+    // Vote to authorize by alice (majority of alpha: members are player and alice, so 2 members, majority is > 1 which is 2)
+    // Vote fee: 50 gold.
+    const stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_COOPERATIVE_STAKING_YIELD_SWEEP",
+          syndicateId: "alpha",
+          proposalId: "sweep_prop_1",
+          vote: true,
+          timestamp: 1020,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    // Verify authorized and resolved
+    const propAfter = state.cooperativeStakingYieldSweepProposals?.["sweep_prop_1"];
+    expect(propAfter?.status).toBe("authorized");
+    expect(propAfter?.resolved).toBe(true);
+    // Warchest deducted: 9800 - 50 = 9750
+    expect(state.syndicates?.alpha?.warChest).toBe(9750);
+  });
+
+  it("should automatically sweep excess staking yields into the shared pool on economy tick when standing falls below critical threshold", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: [],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Configure margin account with staking enabled for alpha
+    state.marginAccounts = {
+      alpha: {
+        syndicateId: "alpha",
+        collateral: 1000,
+        timestamp: 1000,
+        swfStakingEnabled: true,
+        swfStakingTargets: {
+          rangers: 100, // 100% of buffer = 600 gold
+        },
+        swfLiquidityBuffer: 600,
+      },
+    };
+
+    // Set faction standing for rangers at 30 (which is below the threshold of 50)
+    state.factionRep = {
+      rangers: 30,
+    };
+
+    // Setup an authorized sweep policy between alpha and beta
+    state.cooperativeStakingYieldSweepProposals = {
+      "sweep_prop_1": {
+        proposalId: "sweep_prop_1",
+        syndicateId: "alpha",
+        targetSyndicateId: "beta",
+        factionId: "rangers",
+        criticalThreshold: 50,
+        sweepPercentage: 75,
+        status: "authorized",
+        resolved: true,
+        timestamp: 1000,
+      },
+    };
+
+    // Staked gold = 600
+    // Rangers rep = 30 -> yieldRate = 0.04 + 30 * 0.002 = 0.10 (10%)
+    // Gold earned = 600 * 0.10 = 60 gold.
+    // Faction standing (30) < critical threshold (50) -> Sweep triggers!
+    // Swept gold = Math.floor(60 * 0.75) = 45 gold.
+    // Net gold earned = 60 - 45 = 15 gold.
+    // Final collateral = 1000 + 15 = 1015 gold.
+    // Final swfStakingSweepPool = 45 gold.
+
+    const afterState = tickEconomy(state, mockPack);
+
+    const ma = afterState.marginAccounts?.alpha;
+    expect(ma?.collateral).toBe(1015);
+    expect(afterState.swfStakingSweepPool).toBe(45);
+
+    // Verify sweep journal
+    expect(afterState.journal).toContain(
+      "[SWF Staking Sweep] Swept 45 gold from Syndicate alpha yield into the shared stabilization pool due to standing 30 falling below threshold 50 with faction rangers."
+    );
+  });
 });
 

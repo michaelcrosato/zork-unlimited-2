@@ -1,8 +1,8 @@
 # 🤖 AI Autopilot Living Report
 
-* **Last Updated**: 2026-06-01T14:10:46.795Z
+* **Last Updated**: 2026-06-01T14:14:38.034Z
 * **Autopilot Cycle**: #1
-* **Cycle Duration**: 23.6 seconds
+* **Cycle Duration**: 23.2 seconds
 * **Build Status**: 🟢 PASS
 * **Tests Status**: 🟢 PASS
 
@@ -23,12 +23,12 @@ Clean compilation.
 
 ### Unit Tests Log
 ```
-✓ tests/dialogue_gating_trade_incentives.test.ts (5 tests) 8ms
+✓ should validate the trade pack without errors  8397ms
 
  Test Files  160 passed (160)
-      Tests  742 passed (742)
-   Start at  07:10:34
-   Duration  10.83s (transform 43.85s, setup 0ms, import 198.90s, tests 34.99s, environment 29ms)
+      Tests  744 passed (744)
+   Start at  07:14:25
+   Duration  10.66s (transform 41.40s, setup 0ms, import 191.98s, tests 34.53s, environment 24ms)
 ```
 
 ---

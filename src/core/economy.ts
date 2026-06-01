@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool, SWFReinsuranceOptionCrossSyndicatePool } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool, SWFReinsuranceOptionCrossSyndicatePool, getSyndicateFactionStanding } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -5032,14 +5032,49 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               // Passive gold yield earned this step:
               const goldEarned = Math.floor(stakedAmount * yieldRate);
               if (goldEarned > 0) {
-                marginAccount.collateral += goldEarned;
-                // Since yield is returned to collateral, it increases the SWF liquidity buffer too
-                marginAccount.swfLiquidityBuffer = (marginAccount.swfLiquidityBuffer ?? 0) + goldEarned;
-                
-                if (!newState.journal) newState.journal = [];
-                newState.journal.push(
-                  `[SWF Staking Yield] Syndicate ${syndicateId} earned ${goldEarned} gold yield from staking ${stakedAmount} gold in faction ${factionId} staking pool (Yield Rate: ${(yieldRate * 100).toFixed(1)}%)${campaignBoostMsg}.`
-                );
+                let sweptGold = 0;
+                let netGoldEarned = goldEarned;
+
+                let sweepPolicyToUse: any = null;
+                if (newState.cooperativeStakingYieldSweepProposals) {
+                  for (const prop of Object.values(newState.cooperativeStakingYieldSweepProposals)) {
+                    if (
+                      prop.status === "authorized" &&
+                      prop.factionId === factionId &&
+                      (prop.syndicateId === syndicateId || prop.targetSyndicateId === syndicateId)
+                    ) {
+                      const standing = getSyndicateFactionStanding(newState, syndicateId, factionId);
+                      if (standing < prop.criticalThreshold) {
+                        sweepPolicyToUse = prop;
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                if (sweepPolicyToUse) {
+                  const sweepPct = sweepPolicyToUse.sweepPercentage ?? 100;
+                  sweptGold = Math.floor(goldEarned * (sweepPct / 100));
+                  netGoldEarned = goldEarned - sweptGold;
+                }
+
+                if (sweptGold > 0) {
+                  newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweptGold;
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[SWF Staking Sweep] Swept ${sweptGold} gold from Syndicate ${syndicateId} yield into the shared stabilization pool due to standing ${getSyndicateFactionStanding(newState, syndicateId, factionId)} falling below threshold ${sweepPolicyToUse.criticalThreshold} with faction ${factionId}.`
+                  );
+                }
+
+                if (netGoldEarned > 0) {
+                  marginAccount.collateral += netGoldEarned;
+                  marginAccount.swfLiquidityBuffer = (marginAccount.swfLiquidityBuffer ?? 0) + netGoldEarned;
+
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[SWF Staking Yield] Syndicate ${syndicateId} earned ${netGoldEarned} gold yield from staking ${stakedAmount} gold in faction ${factionId} staking pool (Yield Rate: ${(yieldRate * 100).toFixed(1)}%)${campaignBoostMsg}.`
+                  );
+                }
               }
               
               // Passive reputation accruals:
