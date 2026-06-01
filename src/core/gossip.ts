@@ -2023,6 +2023,70 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge sponsorAuditProposals using LWW (Last-Write-Wins)
+  const sponsorAuditProposals = { ...stateA.sponsorAuditProposals };
+  if (stateB.sponsorAuditProposals) {
+    for (const [propId, propB] of Object.entries(stateB.sponsorAuditProposals)) {
+      const propA = sponsorAuditProposals[propId];
+      if (!propA) {
+        sponsorAuditProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          sponsorAuditProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          sponsorAuditProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
+  // Merge sponsorRevocationProposals using LWW (Last-Write-Wins)
+  const sponsorRevocationProposals = { ...stateA.sponsorRevocationProposals };
+  if (stateB.sponsorRevocationProposals) {
+    for (const [propId, propB] of Object.entries(stateB.sponsorRevocationProposals)) {
+      const propA = sponsorRevocationProposals[propId];
+      if (!propA) {
+        sponsorRevocationProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          sponsorRevocationProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          sponsorRevocationProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
   // Merge creditDefaultSwapVotes using LWW (Last-Write-Wins)
   const creditDefaultSwapVotes = { ...stateA.creditDefaultSwapVotes };
   if (stateB.creditDefaultSwapVotes) {
@@ -2213,6 +2277,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     marginRebalancingPolicyVotes,
     factionSponsorProposals,
     factionSponsorPolicies,
+    sponsorAuditProposals,
+    sponsorRevocationProposals,
   };
 }
 

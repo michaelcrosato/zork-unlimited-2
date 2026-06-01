@@ -143,7 +143,11 @@ export type Action =
   | { type: "LOCK_REHYPOTHECATED_COLLATERAL"; syndicateId: string; vaultId: string; amount: number; durationEpochs: number; factionId: string; timestamp: number }
   | { type: "CLAIM_LIQUIDITY_MINING_REWARDS"; syndicateId: string; positionId: string; timestamp: number }
   | { type: "PROPOSE_FACTION_SPONSOR"; proposalId: string; syndicateId: string; vaultId: string; factionId: string; rewardRate: number; minLockTerms: number; timestamp: number }
-  | { type: "VOTE_FACTION_SPONSOR"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_FACTION_SPONSOR"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_SPONSOR_AUDIT"; auditId: string; syndicateId: string; vaultId: string; factionId: string; timestamp: number }
+  | { type: "PROPOSE_SPONSOR_REVOCATION"; revocationId: string; syndicateId: string; vaultId: string; factionId: string; timestamp: number }
+  | { type: "VOTE_SPONSOR_AUDIT"; syndicateId: string; auditId: string; vote: boolean; timestamp: number }
+  | { type: "VOTE_SPONSOR_REVOCATION"; syndicateId: string; revocationId: string; vote: boolean; timestamp: number };
 
 
 

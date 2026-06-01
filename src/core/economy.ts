@@ -625,6 +625,60 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     journal: [...state.journal],
   };
 
+  // Epoch audits & faction sponsor revocations (AF-116)
+  const isEpochEnd = newState.step > 0 && newState.step % 5 === 0;
+  if (isEpochEnd && newState.sponsorAuditProposals) {
+    newState.sponsorAuditProposals = { ...newState.sponsorAuditProposals };
+    newState.factionSponsorPolicies = newState.factionSponsorPolicies ? { ...newState.factionSponsorPolicies } : {};
+
+    for (const [auditId, audit] of Object.entries(newState.sponsorAuditProposals)) {
+      if (audit.resolved && !audit.executed) {
+        const { syndicateId, vaultId, factionId } = audit;
+        const reserves = newState.factionReservePools?.[factionId] ?? 10000;
+        const reputation = newState.factionRep?.[factionId] ?? 0;
+
+        const sponsorPolicy = newState.factionSponsorPolicies[syndicateId]?.[vaultId];
+        if (sponsorPolicy) {
+          if (reserves <= 0) {
+            // Revoke!
+            if (newState.factionSponsorPolicies[syndicateId]) {
+              newState.factionSponsorPolicies[syndicateId] = { ...newState.factionSponsorPolicies[syndicateId] };
+              delete newState.factionSponsorPolicies[syndicateId][vaultId];
+              if (Object.keys(newState.factionSponsorPolicies[syndicateId]).length === 0) {
+                delete newState.factionSponsorPolicies[syndicateId];
+              }
+            }
+            newState.journal.push(
+              `[Sponsor Audit Revoked] Sponsoring policy for vault ${vaultId} sponsored by ${factionId} has been revoked (Faction reserves depleted: ${reserves} <= 0).`
+            );
+          } else if (reputation < 10) {
+            // Rate penalty: halve the reward rate!
+            if (newState.factionSponsorPolicies[syndicateId]) {
+              newState.factionSponsorPolicies[syndicateId] = {
+                ...newState.factionSponsorPolicies[syndicateId],
+                [vaultId]: {
+                  ...sponsorPolicy,
+                  rewardRate: sponsorPolicy.rewardRate * 0.5,
+                },
+              };
+            }
+            newState.journal.push(
+              `[Sponsor Audit Penalty] Sponsoring policy reward rate for vault ${vaultId} sponsored by ${factionId} has been reduced by 50% due to low reputation (${reputation} < 10). New rate: ${sponsorPolicy.rewardRate * 0.5}.`
+            );
+          } else {
+            newState.journal.push(
+              `[Sponsor Audit Passed] Sponsoring policy for vault ${vaultId} sponsored by ${factionId} passed audit checks (Reserves: ${reserves}, Reputation: ${reputation}).`
+            );
+          }
+        }
+        newState.sponsorAuditProposals[auditId] = {
+          ...audit,
+          executed: true,
+        };
+      }
+    }
+  }
+
   // Automatic Turf Guard Recruitment from Outposts (AF-56)
   if (newState.turfGuardOutposts) {
     const turfGuards = newState.turfGuards ? { ...newState.turfGuards } : {};

@@ -1113,6 +1113,36 @@ export const FactionSponsorPolicySchema = z.object({
 });
 export type FactionSponsorPolicy = z.infer<typeof FactionSponsorPolicySchema>;
 
+export const SponsorAuditProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  vaultId: z.string(),
+  factionId: z.string(),
+  timestamp: z.number().int(),
+  resolved: z.boolean().optional(),
+  executed: z.boolean().optional(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SponsorAuditProposal = z.infer<typeof SponsorAuditProposalSchema>;
+
+export const SponsorRevocationProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  vaultId: z.string(),
+  factionId: z.string(),
+  timestamp: z.number().int(),
+  resolved: z.boolean().optional(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SponsorRevocationProposal = z.infer<typeof SponsorRevocationProposalSchema>;
+
+
 
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
@@ -1482,6 +1512,8 @@ export const GameStateSchema = z.object({
   }))).optional(),
   factionSponsorProposals: z.record(z.string(), FactionSponsorProposalSchema).optional(),
   factionSponsorPolicies: z.record(z.string(), z.record(z.string(), FactionSponsorPolicySchema)).optional(),
+  sponsorAuditProposals: z.record(z.string(), SponsorAuditProposalSchema).optional(),
+  sponsorRevocationProposals: z.record(z.string(), SponsorRevocationProposalSchema).optional(),
 });
 
 
@@ -1681,6 +1713,8 @@ export const createInitialState = (options: {
     claimLiquidityRewardsVotes: {},
     factionSponsorProposals: {},
     factionSponsorPolicies: {},
+    sponsorAuditProposals: {},
+    sponsorRevocationProposals: {},
   };
 };
 
@@ -2466,6 +2500,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     claimLiquidityRewardsVotes: rest.claimLiquidityRewardsVotes ? JSON.parse(JSON.stringify(rest.claimLiquidityRewardsVotes)) : undefined,
     factionSponsorProposals: rest.factionSponsorProposals ? JSON.parse(JSON.stringify(rest.factionSponsorProposals)) : undefined,
     factionSponsorPolicies: rest.factionSponsorPolicies ? JSON.parse(JSON.stringify(rest.factionSponsorPolicies)) : undefined,
+    sponsorAuditProposals: rest.sponsorAuditProposals ? JSON.parse(JSON.stringify(rest.sponsorAuditProposals)) : undefined,
+    sponsorRevocationProposals: rest.sponsorRevocationProposals ? JSON.parse(JSON.stringify(rest.sponsorRevocationProposals)) : undefined,
   };
   return clone;
 }
@@ -5454,6 +5490,80 @@ export function reconcileFactionSponsors(state: GameState, pack: any): GameState
           `[Faction Sponsor Resolved] Syndicate ${syndicateId} resolved sponsoring policy for vault ${vaultId}: sponsored by ${factionId} with reward rate ${rewardRate} and min lock of ${minLockTerms} epochs.`
         );
       }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSponsorAuditsAndRevocations(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sponsorAuditProposals: state.sponsorAuditProposals ? { ...state.sponsorAuditProposals } : {},
+    sponsorRevocationProposals: state.sponsorRevocationProposals ? { ...state.sponsorRevocationProposals } : {},
+    factionSponsorPolicies: state.factionSponsorPolicies ? { ...state.factionSponsorPolicies } : {},
+  };
+
+  // Reconcile Audit Proposals
+  for (const auditId of Object.keys(newState.sponsorAuditProposals || {})) {
+    const proposal = newState.sponsorAuditProposals?.[auditId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, vaultId, factionId, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sponsorAuditProposals[auditId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sponsor Audit Approved] Syndicate ${syndicateId} resolved to audit sponsor policy for vault ${vaultId} sponsored by ${factionId}.`
+      );
+    }
+  }
+
+  // Reconcile Revocation Proposals
+  for (const revocationId of Object.keys(newState.sponsorRevocationProposals || {})) {
+    const proposal = newState.sponsorRevocationProposals?.[revocationId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, vaultId, factionId, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sponsorRevocationProposals[revocationId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      // Perform immediate revocation! (Delete from policies)
+      if (newState.factionSponsorPolicies[syndicateId] && newState.factionSponsorPolicies[syndicateId][vaultId]) {
+        delete newState.factionSponsorPolicies[syndicateId][vaultId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sponsor Revocation Resolved] Syndicate ${syndicateId} resolved sponsor revocation policy for vault ${vaultId}: sponsored by ${factionId} has been revoked.`
+      );
     }
   }
 

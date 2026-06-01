@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #115 (Ready for Cycle #116)
-* **Build/Test Status**: 🟢 PASS (All 502 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #116 (Ready for Cycle #117)
+* **Build/Test Status**: 🟢 PASS (All 508 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -688,18 +688,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire majority-consensus faction sponsoring resolution and reward adjustments inside tickEconomy (`AF-115`).
 - [x] Write comprehensive Vitest integration and P2P mesh convergence tests (`AF-115`).
 
+### Phase 94: Syndicate Bank Leverage Liquidity Mining Governance Epoch Audits & Faction Sponsor Revocations (Completed)
+- [x] Define audit and revocation proposals and states in GameState (`AF-116`).
+- [x] Implement `PROPOSE_SPONSOR_AUDIT` and `PROPOSE_SPONSOR_REVOCATION` decentralized consensus actions (`AF-116`).
+- [x] Wire periodic epoch audit checking, sponsor reserve verification, and automatic revocation/rate penalty reductions inside tickEconomy (`AF-116`).
+- [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-116`).
+
 ---
 
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-116`
-* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance Epoch Audits & Faction Sponsor Revocations.
-* **Why this matters**: Allow syndicates to propose and vote to audit sponsor policies at the end of each epoch, triggering faction sponsor revocations or premium adjustments if a sponsoring faction's reserves are depleted or if faction reputation drops below a threshold, ensuring secure risk-capped economic growth in cooperative P2P environments.
+**Task ID**: `AF-117`
+* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing & Faction Sponsoring Penalties under Malicious Mesh Routing.
+* **Why this matters**: Allow faction sponsors or syndicates to propose and vote to slash locked position rewards or levy strategic tariffs if a node is caught routing duplicate packets or participating in failed mesh discovery loops, establishing absolute trust boundaries under byzantine behaviors in decentralised P2P environments.
 * **Planned Actions**:
-  1. Define audit and revocation proposals and states in GameState.
-  2. Implement `PROPOSE_SPONSOR_AUDIT` and `PROPOSE_SPONSOR_REVOCATION` decentralized consensus actions.
-  3. Wire periodic epoch audit checking, sponsor reserve verification, and automatic revocation/rate penalty reductions inside tickEconomy.
-  4. Write comprehensive Vitest integration and mesh convergence tests.
+  1. Define slashing proposals, malicious actor lists, and slashing rates in GameState.
+  2. Implement `PROPOSE_REWARD_SLASH` decentralized consensus actions.
+  3. Wire reward slashing to dynamic liquidity mining reward claims inside reconcileClaimLiquidityRewards, reducing payouts by consensual slashing rate if target syndicate or members are flagged as malicious.
+  4. Write comprehensive Vitest integration and mesh convergence tests under high packet congestion.
 
 ---
 
