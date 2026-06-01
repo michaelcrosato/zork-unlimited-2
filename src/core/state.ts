@@ -402,6 +402,26 @@ export const WiretapSchema = z.object({
 export type Wiretap = z.infer<typeof WiretapSchema>;
 
 
+export const IntelReportSchema = z.object({
+  id: z.string(),
+  type: z.enum(["wiretap_log", "transaction_map", "raid_schedule"]),
+  roomId: z.string(),
+  value: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type IntelReport = z.infer<typeof IntelReportSchema>;
+
+export const IntelTransactionSchema = z.object({
+  id: z.string(),
+  agentId: z.string(),
+  type: z.enum(["buy", "sell"]),
+  reportId: z.string(),
+  gold: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type IntelTransaction = z.infer<typeof IntelTransactionSchema>;
+
+
 export const CrimeSyndicateSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -413,6 +433,8 @@ export const CrimeSyndicateSchema = z.object({
   turfBribeCost: z.number().int().nonnegative().optional(),
   turfWaiverThreshold: z.number().int().optional(),
   undercoverAgents: z.array(z.string()).optional(),
+  intelStock: z.record(z.string(), IntelReportSchema).optional(),
+  intelTransactions: z.array(IntelTransactionSchema).optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
 

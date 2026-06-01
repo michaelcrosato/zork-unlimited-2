@@ -6445,6 +6445,406 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized SELL_INTEL_REPORT action (AF-65)
+  if ((action as any).type === "SELL_INTEL_REPORT") {
+    const { syndicateId, reportId, gold, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const currentRoomId = agentId === "player" ? state.current : (state.agents?.[agentId]?.current ?? state.current);
+
+    let hasBlackMarketMerchant = false;
+    const p = pack as any;
+    if (p) {
+      if ("rooms" in p) {
+        const room = p.rooms.find((r: any) => r.id === currentRoomId);
+        if (room && room.npcs && room.npcs.length > 0) {
+          hasBlackMarketMerchant = true;
+        }
+      } else {
+        const scene = p.scenes.find((s: any) => s.id === currentRoomId);
+        if (scene && scene.npcs && scene.npcs.length > 0) {
+          hasBlackMarketMerchant = true;
+        }
+      }
+    }
+    if (!hasBlackMarketMerchant && state.blackMarkets) {
+      if (Object.values(state.blackMarkets).some(b => b.roomId === currentRoomId)) {
+        hasBlackMarketMerchant = true;
+      }
+    }
+    if (!hasBlackMarketMerchant && state.safehouses) {
+      if (Object.values(state.safehouses).some(s => s.roomId === currentRoomId)) {
+        hasBlackMarketMerchant = true;
+      }
+    }
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to sell an intelligence report.`;
+    } else if (!reportId) {
+      rejectionReason = `Report ID is required to sell an intelligence report.`;
+    } else if (gold < 0 || !Number.isInteger(gold)) {
+      rejectionReason = `Gold reward ${gold} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!syndicate.intelStock?.[reportId]) {
+      rejectionReason = `Intel report ${reportId} does not exist in syndicate ${syndicateId} stock.`;
+    } else if (!hasBlackMarketMerchant) {
+      rejectionReason = `No black market merchant or safehouse/front business present in room ${currentRoomId}. Intel trading requires a black market presence.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Add gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold + gold,
+      };
+
+      const report = syndicate.intelStock![reportId];
+      const intelStock = { ...(syndicate.intelStock || {}) };
+      delete intelStock[reportId];
+
+      const tx = {
+        id: `tx_${timestamp}_${state.step}`,
+        agentId,
+        type: "sell" as const,
+        reportId,
+        gold,
+        timestamp,
+      };
+      const intelTransactions = [...(syndicate.intelTransactions || []), tx];
+
+      // strategic benefits!
+      let reputationBoost = 0;
+      let dominanceBoost = 0;
+      let heatReduction = 0;
+      if (report.type === "wiretap_log") {
+        dominanceBoost = 5;
+        reputationBoost = 10;
+      } else if (report.type === "transaction_map") {
+        dominanceBoost = 10;
+      } else if (report.type === "raid_schedule") {
+        heatReduction = 20;
+        // Bribe deflection policy
+        if (!newState.deflectionPolicies) newState.deflectionPolicies = {};
+        newState.deflectionPolicies[currentRoomId] = {
+          roomId: currentRoomId,
+          syndicateId,
+          active: true,
+          cost: 0,
+          timestamp,
+        };
+      }
+
+      newState.syndicates = {
+        ...newState.syndicates,
+        [syndicateId]: {
+          ...syndicate,
+          intelStock,
+          intelTransactions,
+          dominance: (syndicate.dominance ?? 50) + dominanceBoost,
+          timestamp,
+        },
+      };
+
+      if (reputationBoost > 0) {
+        if (!newState.npcRep) newState.npcRep = {};
+        // Boost npcRep for npcs in current room
+        const currentNpcs: string[] = [];
+        if (p) {
+          if ("rooms" in p) {
+            const room = p.rooms.find((r: any) => r.id === currentRoomId);
+            if (room && room.npcs) currentNpcs.push(...room.npcs);
+          } else {
+            const scene = p.scenes.find((s: any) => s.id === currentRoomId);
+            if (scene && scene.npcs) currentNpcs.push(...scene.npcs);
+          }
+        }
+        for (const npcId of currentNpcs) {
+          newState.npcRep[npcId] = (newState.npcRep[npcId] ?? 0) + reputationBoost;
+        }
+      }
+
+      if (heatReduction > 0 && newState.enforcementHeat?.[currentRoomId]) {
+        newState.enforcementHeat = {
+          ...newState.enforcementHeat,
+          [currentRoomId]: {
+            ...newState.enforcementHeat[currentRoomId],
+            heat: Math.max(0, newState.enforcementHeat[currentRoomId].heat - heatReduction),
+            timestamp,
+          },
+        };
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Sold intel report ${reportId} (type: ${report.type}) for syndicate ${syndicateId} for ${gold} gold by agent ${agentId}.`);
+
+      customEvents.push({
+        type: "intel_report_sold",
+        agentId,
+        syndicateId,
+        reportId,
+        intelType: report.type,
+        gold,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BUY_INTEL_REPORT action (AF-65)
+  if ((action as any).type === "BUY_INTEL_REPORT") {
+    const { syndicateId, reportId, intelType, roomId, cost, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const currentRoomId = agentId === "player" ? state.current : (state.agents?.[agentId]?.current ?? state.current);
+
+    let hasBlackMarketMerchant = false;
+    const p = pack as any;
+    if (p) {
+      if ("rooms" in p) {
+        const room = p.rooms.find((r: any) => r.id === currentRoomId);
+        if (room && room.npcs && room.npcs.length > 0) {
+          hasBlackMarketMerchant = true;
+        }
+      } else {
+        const scene = p.scenes.find((s: any) => s.id === currentRoomId);
+        if (scene && scene.npcs && scene.npcs.length > 0) {
+          hasBlackMarketMerchant = true;
+        }
+      }
+    }
+    if (!hasBlackMarketMerchant && state.blackMarkets) {
+      if (Object.values(state.blackMarkets).some(b => b.roomId === currentRoomId)) {
+        hasBlackMarketMerchant = true;
+      }
+    }
+    if (!hasBlackMarketMerchant && state.safehouses) {
+      if (Object.values(state.safehouses).some(s => s.roomId === currentRoomId)) {
+        hasBlackMarketMerchant = true;
+      }
+    }
+
+    const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+    const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to buy an intelligence report.`;
+    } else if (!reportId) {
+      rejectionReason = `Report ID is required to buy an intelligence report.`;
+    } else if (!intelType || !["wiretap_log", "transaction_map", "raid_schedule"].includes(intelType)) {
+      rejectionReason = `Intel type ${intelType} must be one of: wiretap_log, transaction_map, raid_schedule.`;
+    } else if (!roomId) {
+      rejectionReason = `Room ID is required to buy an intelligence report.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Intel report cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (syndicate.intelStock?.[reportId]) {
+      rejectionReason = `Intel report ${reportId} already exists in syndicate stock.`;
+    } else if (!hasBlackMarketMerchant) {
+      rejectionReason = `No black market merchant or safehouse/front business present in room ${currentRoomId}. Intel trading requires a black market presence.`;
+    } else if (currentGold < cost) {
+      rejectionReason = `Insufficient gold to buy intel report costing ${cost} (requires ${cost}, has ${currentGold}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const report = {
+        id: reportId,
+        type: intelType,
+        roomId,
+        value: Math.floor(cost * 1.5),
+        timestamp,
+      };
+
+      const intelStock = { ...(syndicate.intelStock || {}) };
+      intelStock[reportId] = report;
+
+      const tx = {
+        id: `tx_${timestamp}_${state.step}`,
+        agentId,
+        type: "buy" as const,
+        reportId,
+        gold: cost,
+        timestamp,
+      };
+      const intelTransactions = [...(syndicate.intelTransactions || []), tx];
+
+      newState.syndicates = {
+        ...newState.syndicates,
+        [syndicateId]: {
+          ...syndicate,
+          intelStock,
+          intelTransactions,
+          timestamp,
+        },
+      };
+
+      // strategic benefits!
+      if (intelType === "raid_schedule") {
+        const raidWarnings = { ...(state.raidWarnings || {}) };
+        raidWarnings[roomId] = {
+          roomId,
+          syndicateId,
+          scheduledStep: state.step + 5,
+          active: true,
+          timestamp,
+        };
+        newState.raidWarnings = raidWarnings;
+      } else if (intelType === "wiretap_log") {
+        if (!newState.wiretaps) newState.wiretaps = {};
+        newState.wiretaps[roomId] = {
+          roomId,
+          syndicateId,
+          cost: 0,
+          timestamp,
+        };
+      } else if (intelType === "transaction_map") {
+        if (!newState.espionageNetworks) newState.espionageNetworks = {};
+        newState.espionageNetworks[roomId] = {
+          roomId,
+          syndicateId,
+          cost: 0,
+          timestamp,
+        };
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Purchased intel report ${reportId} (type: ${intelType}) for syndicate ${syndicateId} for ${cost} gold by agent ${agentId}.`);
+
+      customEvents.push({
+        type: "intel_report_purchased",
+        agentId,
+        syndicateId,
+        reportId,
+        intelType,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
 
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
