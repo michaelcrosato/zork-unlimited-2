@@ -663,6 +663,58 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Black Ops Safehouse Ticking (AF-79)
+  if (newState.blackOpsSafehouses) {
+    const turfGuards = newState.turfGuards ? { ...newState.turfGuards } : {};
+    const deflectionPolicies = newState.deflectionPolicies ? { ...newState.deflectionPolicies } : {};
+    let guardsChanged = false;
+    let deflectionsChanged = false;
+
+    for (const [safehouseId, safehouse] of Object.entries(newState.blackOpsSafehouses)) {
+      if (!safehouse.active) continue;
+      const roomId = safehouse.roomId;
+      const syndicateId = safehouse.syndicateId;
+
+      // 1. Automatically recruit elite guards (up to count 5)
+      const existingGuard = turfGuards[roomId];
+      const currentCount = existingGuard?.count ?? 0;
+      const targetCount = 5;
+      if (currentCount < targetCount) {
+        const newCount = currentCount + 1;
+        turfGuards[roomId] = {
+          roomId,
+          syndicateId,
+          count: newCount,
+          cost: existingGuard?.cost ?? 0,
+          timestamp: newState.step,
+        };
+        guardsChanged = true;
+        newState.journal.push(`[BlackOps] Black Ops Safehouse ${safehouseId} in room ${roomId} automatically recruited elite Turf Guard (Count: ${newCount}/${targetCount}).`);
+      }
+
+      // 2. Automatically establish deflection policies
+      const existingPolicy = deflectionPolicies[roomId];
+      if (!existingPolicy || !existingPolicy.active) {
+        deflectionPolicies[roomId] = {
+          roomId,
+          syndicateId,
+          cost: 0,
+          timestamp: newState.step,
+          active: true,
+        };
+        deflectionsChanged = true;
+        newState.journal.push(`[BlackOps] Black Ops Safehouse ${safehouseId} in room ${roomId} automatically established enforcer deflection policy.`);
+      }
+    }
+
+    if (guardsChanged) {
+      newState.turfGuards = turfGuards;
+    }
+    if (deflectionsChanged) {
+      newState.deflectionPolicies = deflectionPolicies;
+    }
+  }
+
   // Arbitrage Contracts Ticking (AF-78)
   if (newState.arbitrageContracts) {
     newState.arbitrageContracts = { ...newState.arbitrageContracts };

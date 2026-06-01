@@ -84,6 +84,9 @@ export type Action =
   | { type: "ESTABLISH_SHADOW_MARKET"; shadowMarketId: string; roomId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "LAUNCH_ARBITRAGE_CONTRACT"; contractId: string; syndicateId: string; startRoomId: string; endRoomId: string; profitSpread: number; cost?: number; timestamp: number }
   | { type: "SABOTAGE_UNDERWRITER"; roomId: string; targetSyndicateId: string; cost?: number; timestamp: number }
+  | { type: "ESTABLISH_BLACK_OPS_SAFEHOUSE"; safehouseId: string; roomId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "PROPOSE_SHADOW_ALLIANCE"; syndicateId: string; factionId: string; targetState?: "allied" | "hostile" | "neutral"; timestamp: number }
+  | { type: "INFILTRATE_ENFORCER_SWEEP"; syndicateId: string; cost?: number; timestamp: number }
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number };
 
 

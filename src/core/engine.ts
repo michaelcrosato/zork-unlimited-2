@@ -579,6 +579,28 @@ export function step(
         } else if (hasHostileAlliance) {
           tax = tax * 2; // Hostile factions pay double tax
         }
+
+        // Shadow alliance scaling (AF-79)
+        let hasAlliedShadowAlliance = false;
+        let hasHostileShadowAlliance = false;
+        if (state.shadowAlliances) {
+          const agentSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
+          for (const s of agentSyndicates) {
+            const relation = state.shadowAlliances[s.id]?.[factionId];
+            if (relation === "allied") {
+              hasAlliedShadowAlliance = true;
+            } else if (relation === "hostile") {
+              hasHostileShadowAlliance = true;
+            }
+          }
+        }
+
+        if (hasAlliedShadowAlliance) {
+          tax = 0; // Waive taxes in allied shadow territories
+        } else if (hasHostileShadowAlliance) {
+          tax = tax * 2; // Double-tax hostile faction regions
+        }
+
         // Faction War scaling (AF-71)
         const agentSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
         const isAtWarWithFaction = factionId && agentSyndicates.some(s => state.factionWars?.[s.id]?.[factionId] === true);
@@ -2351,6 +2373,24 @@ export function tickSmugglingConvoys(
           tax = 0;
         } else if (hasHostileAlliance) {
           tax = tax * 2;
+        }
+
+        // Shadow alliance scaling for convoy (AF-79)
+        let hasAlliedShadowAlliance = false;
+        let hasHostileShadowAlliance = false;
+        if (newState.shadowAlliances && convoy.syndicateId) {
+          const relation = newState.shadowAlliances[convoy.syndicateId]?.[factionId];
+          if (relation === "allied") {
+            hasAlliedShadowAlliance = true;
+          } else if (relation === "hostile") {
+            hasHostileShadowAlliance = true;
+          }
+        }
+
+        if (hasAlliedShadowAlliance) {
+          tax = 0; // Waive taxes in allied shadow territories
+        } else if (hasHostileShadowAlliance) {
+          tax = tax * 2; // Double-tax hostile faction regions
         }
         
         const hasLicense = newState.merchantLicenses?.[convoy.syndicateId]?.includes(factionId) === true || newState.merchantLicenses?.[organizerId]?.includes(factionId) === true;

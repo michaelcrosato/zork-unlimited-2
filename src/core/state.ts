@@ -621,6 +621,16 @@ export const UnderwriterSabotageSchema = z.object({
 });
 export type UnderwriterSabotage = z.infer<typeof UnderwriterSabotageSchema>;
 
+export const BlackOpsSafehouseSchema = z.object({
+  id: z.string(),
+  roomId: z.string(),
+  syndicateId: z.string(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type BlackOpsSafehouse = z.infer<typeof BlackOpsSafehouseSchema>;
+
+
 
 export const GameStateSchema = z.object({
   // identity / determinism
@@ -758,6 +768,9 @@ export const GameStateSchema = z.object({
   shadowMarkets: z.record(z.string(), ShadowMarketSchema).optional(),
   arbitrageContracts: z.record(z.string(), ArbitrageContractSchema).optional(),
   underwriterSabotages: z.record(z.string(), UnderwriterSabotageSchema).optional(),
+  blackOpsSafehouses: z.record(z.string(), BlackOpsSafehouseSchema).optional(),
+  shadowAlliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
+  shadowAllianceVotes: z.record(z.string(), z.record(z.string(), AllianceVoteSchema)).optional(),
 });
 
 
@@ -889,6 +902,9 @@ export const createInitialState = (options: {
     shadowMarkets: {},
     arbitrageContracts: {},
     underwriterSabotages: {},
+    blackOpsSafehouses: {},
+    shadowAlliances: {},
+    shadowAllianceVotes: {},
   };
 };
 
@@ -1581,6 +1597,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     shadowMarkets: rest.shadowMarkets ? JSON.parse(JSON.stringify(rest.shadowMarkets)) : undefined,
     arbitrageContracts: rest.arbitrageContracts ? JSON.parse(JSON.stringify(rest.arbitrageContracts)) : undefined,
     underwriterSabotages: rest.underwriterSabotages ? JSON.parse(JSON.stringify(rest.underwriterSabotages)) : undefined,
+    blackOpsSafehouses: rest.blackOpsSafehouses ? JSON.parse(JSON.stringify(rest.blackOpsSafehouses)) : undefined,
+    shadowAlliances: rest.shadowAlliances ? JSON.parse(JSON.stringify(rest.shadowAlliances)) : undefined,
+    shadowAllianceVotes: rest.shadowAllianceVotes ? JSON.parse(JSON.stringify(rest.shadowAllianceVotes)) : undefined,
   };
   return clone;
 }
@@ -1831,3 +1850,50 @@ export function getEnforcerDefundingRate(state: GameState, targetId?: string): n
   }
   return maxRate;
 }
+
+export function reconcileShadowAlliances(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    shadowAlliances: { ...(state.shadowAlliances || {}) },
+  };
+
+  if (!newState.shadowAllianceVotes) {
+    newState.shadowAllianceVotes = {};
+  }
+
+  // Clear and rebuild alliances from scratch to ensure consistency
+  newState.shadowAlliances = {};
+
+  for (const [pairKey, votes] of Object.entries(newState.shadowAllianceVotes)) {
+    const parts = pairKey.split(":");
+    if (parts.length !== 2) continue;
+    const [syndicateId, factionId] = parts;
+
+    const counts: Record<string, number> = { allied: 0, hostile: 0, neutral: 0 };
+    for (const vote of Object.values(votes)) {
+      counts[vote.targetState] = (counts[vote.targetState] ?? 0) + 1;
+    }
+
+    let maxCount = -1;
+    let consensusState: "allied" | "hostile" | "neutral" = "neutral";
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort states priority: "allied" > "hostile" > "neutral"
+    const statesPriority: ("allied" | "hostile" | "neutral")[] = ["allied", "hostile", "neutral"];
+    for (const s of statesPriority) {
+      const count = counts[s] ?? 0;
+      if (count > maxCount) {
+        maxCount = count;
+        consensusState = s;
+      }
+    }
+
+    if (!newState.shadowAlliances[syndicateId]) {
+      newState.shadowAlliances[syndicateId] = {};
+    }
+    newState.shadowAlliances[syndicateId][factionId] = consensusState;
+  }
+
+  return newState;
+}
+
