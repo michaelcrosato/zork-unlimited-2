@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #239 (Ready for Cycle #240)
-* **Build/Test Status**: 🟢 PASS (All 829 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #240 (Ready for Cycle #241)
+* **Build/Test Status**: 🟢 PASS (All 828 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1564,15 +1564,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 221: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Transaction Fee Dividends and Staking Pool Yield Sweep (Completed)
+- [x] Define secondary options trade transaction fee and staking pool dividend structures in GameState (`AF-243`).
+- [x] Implement a decentralized proposal and voting consensus action for Option secondary market fee policies (`AF-243`).
+- [x] Wire the economy tick to levy transaction fees on successful options trades, deposit them into the staking pool, and distribute dividends deterministically (`AF-243`).
+- [x] Write comprehensive Vitest unit and integration tests inside `tests/syndicates_sovereign_debt_default_cds_cdo_yield_hedging_secondary_market_fees.test.ts` (`AF-243`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-243`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Transaction Fee Dividends and Staking Pool Yield Sweep.
-* **Why this matters**: Implement a system to levy a customizable transaction fee on secondary option trades. Syndicates can vote on the fee percentage. The accumulated fees are deterministically swept to a staking pool and distributed as dividends to staked syndicate members, creating direct incentives for high trading volume and liquidity provision.
+**Task ID**: `AF-244`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Transaction Fee Policy Adjustments and dynamic volatility premium thresholds.
+* **Why this matters**: Support dynamic fee adjusting proposals and voting on fee policies with custom volatility scales, ensuring robust economic stabilization under high mesh partition stress.
 * **Planned Actions**:
-  1. Define secondary options trade transaction fee and staking pool dividend structures in GameState.
-  2. Implement a decentralized proposal and voting consensus action for Option secondary market fee policies.
-  3. Wire the economy tick to levy transaction fees on successful options trades, deposit them into the staking pool, and distribute dividends deterministically.
-  4. Write comprehensive Vitest unit and integration tests.
+  1. Define dynamic fee adjustment policies and voting consensus schemas in GameState.
+  2. Wire secondary market fee scaling to partition rates and regional stability indexes.
+  3. Write comprehensive unit and integration tests.
 
 ---
 
