@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -7670,6 +7670,228 @@ export function multiAgentStep(
       state: newState,
       events: ok
         ? [{ type: "bounty_resources_pooled", syndicateId, targetId, goldAmount, contributor: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_SYNDICATE_ALLIANCE action (AF-69)
+  if ((action as any).type === "PROPOSE_SYNDICATE_ALLIANCE") {
+    const { syndicateIdA, syndicateIdB, targetState, timestamp } = action as any;
+    const pairKey = [syndicateIdA || "", syndicateIdB || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndA = state.syndicates?.[syndicateIdA];
+    const syndB = state.syndicates?.[syndicateIdB];
+
+    if (!syndicateIdA || !syndicateIdB) {
+      rejectionReason = `Both syndicateIdA and syndicateIdB are required.`;
+    } else if (!syndA) {
+      rejectionReason = `Syndicate ${syndicateIdA} does not exist.`;
+    } else if (!syndB) {
+      rejectionReason = `Syndicate ${syndicateIdB} does not exist.`;
+    } else if (syndicateIdA === syndicateIdB) {
+      rejectionReason = `Cannot form alliance with the same syndicate.`;
+    } else if (!syndA.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateIdA}.`;
+    } else if (targetState && !["allied", "hostile", "neutral"].includes(targetState)) {
+      rejectionReason = `Proposed alliance state ${targetState} must be allied, hostile, or neutral.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const syndicateAllianceVotes = { ...(state.syndicateAllianceVotes || {}) };
+      if (!syndicateAllianceVotes[pairKey]) {
+        syndicateAllianceVotes[pairKey] = {};
+      } else {
+        syndicateAllianceVotes[pairKey] = { ...syndicateAllianceVotes[pairKey] };
+      }
+
+      const votedState = targetState ?? "allied";
+
+      const existingVote = syndicateAllianceVotes[pairKey][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        syndicateAllianceVotes[pairKey][agentId] = {
+          targetState: votedState,
+          timestamp,
+        };
+        newState.syndicateAllianceVotes = syndicateAllianceVotes;
+        newState = reconcileSyndicateAlliances(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "syndicate_alliance_proposed", syndicateIdA, syndicateIdB, targetState: targetState ?? "allied", voter: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized SHARE_ESPIONAGE_DATA action (AF-69)
+  if ((action as any).type === "SHARE_ESPIONAGE_DATA") {
+    const { syndicateId, targetSyndicateId, roomId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndA = state.syndicates?.[syndicateId];
+    const syndB = state.syndicates?.[targetSyndicateId];
+    const isAllied = state.syndicateAlliances?.[syndicateId]?.[targetSyndicateId] === "allied" ||
+                     state.syndicateAlliances?.[targetSyndicateId]?.[syndicateId] === "allied";
+
+    const hasEspionage = state.espionageNetworks?.[roomId]?.syndicateId === syndicateId && state.espionageNetworks?.[roomId]?.status !== "sabotaged";
+    const hasWiretap = state.wiretaps?.[roomId]?.syndicateId === syndicateId && state.wiretaps?.[roomId]?.status !== "sabotaged";
+
+    if (!syndicateId || !targetSyndicateId || !roomId) {
+      rejectionReason = `syndicateId, targetSyndicateId, and roomId are all required.`;
+    } else if (!syndA) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndB) {
+      rejectionReason = `Syndicate ${targetSyndicateId} does not exist.`;
+    } else if (!isAllied) {
+      rejectionReason = `Syndicates ${syndicateId} and ${targetSyndicateId} are not allied. Espionage sharing requires an active alliance.`;
+    } else if (!syndA.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!hasEspionage && !hasWiretap) {
+      rejectionReason = `Syndicate ${syndicateId} does not have an active espionage network or wiretap in room ${roomId} to share.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok && syndA && syndB) {
+      const targetSynd = { ...syndB };
+      const targetStock = { ...(targetSynd.intelStock || {}) };
+
+      // Copy any intelStock reports from source syndicate to target syndicate's stock
+      const sourceStock = syndA.intelStock || {};
+      for (const [reportId, report] of Object.entries(sourceStock)) {
+        if (report.roomId === roomId) {
+          targetStock[reportId] = {
+            ...report,
+            timestamp,
+          };
+        }
+      }
+
+      // Also ensure we generate at least one default shared report if they don't have one, to represent the shared data
+      const defaultReportId = `shared_intel_${roomId}_${timestamp}`;
+      if (!targetStock[defaultReportId]) {
+        targetStock[defaultReportId] = {
+          id: defaultReportId,
+          type: hasWiretap ? "wiretap_log" : "transaction_map",
+          roomId,
+          value: 75,
+          timestamp,
+        };
+      }
+
+      targetSynd.intelStock = targetStock;
+      newState.syndicates = {
+        ...newState.syndicates,
+        [targetSyndicateId]: targetSynd,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Syndicate ${syndicateId} shared espionage data in room ${roomId} with allied syndicate ${targetSyndicateId}.`);
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "espionage_data_shared", syndicateId, targetSyndicateId, roomId, sender: agentId } as any]
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

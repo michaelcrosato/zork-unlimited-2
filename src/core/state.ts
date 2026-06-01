@@ -623,6 +623,8 @@ export const GameStateSchema = z.object({
   wiretaps: z.record(z.string(), WiretapSchema).optional(),
   cartelGlobalTaxVotes: z.record(z.string(), z.record(z.string(), TaxVoteSchema)).optional(),
   cartelGlobalTaxPolicy: z.record(z.string(), z.number()).optional(),
+  syndicateAlliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
+  syndicateAllianceVotes: z.record(z.string(), z.record(z.string(), AllianceVoteSchema)).optional(),
 });
 
 
@@ -740,6 +742,8 @@ export const createInitialState = (options: {
     raidWarnings: {},
     cartelGlobalTaxVotes: {},
     cartelGlobalTaxPolicy: {},
+    syndicateAlliances: {},
+    syndicateAllianceVotes: {},
   };
 };
 
@@ -973,6 +977,58 @@ export function reconcileAlliances(state: GameState, pack: any): GameState {
       newState.alliances[factionB] = {};
     }
     newState.alliances[factionB][factionA] = consensusState;
+  }
+
+  return newState;
+}
+
+export function reconcileSyndicateAlliances(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicateAlliances: { ...(state.syndicateAlliances || {}) },
+  };
+
+  if (!newState.syndicateAllianceVotes) {
+    newState.syndicateAllianceVotes = {};
+  }
+
+  // Clear and rebuild alliances from scratch to ensure consistency
+  newState.syndicateAlliances = {};
+
+  for (const [pairKey, votes] of Object.entries(newState.syndicateAllianceVotes)) {
+    const parts = pairKey.split(":");
+    if (parts.length !== 2) continue;
+    const [syndicateIdA, syndicateIdB] = parts;
+
+    const counts: Record<string, number> = { allied: 0, hostile: 0, neutral: 0 };
+    for (const vote of Object.values(votes)) {
+      counts[vote.targetState] = (counts[vote.targetState] ?? 0) + 1;
+    }
+
+    let maxCount = -1;
+    let consensusState: "allied" | "hostile" | "neutral" = "neutral";
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort states priority: "allied" > "hostile" > "neutral"
+    const statesPriority: ("allied" | "hostile" | "neutral")[] = ["allied", "hostile", "neutral"];
+    for (const s of statesPriority) {
+      const count = counts[s] ?? 0;
+      if (count > maxCount) {
+        maxCount = count;
+        consensusState = s;
+      }
+    }
+
+    // Set symmetrically
+    if (!newState.syndicateAlliances[syndicateIdA]) {
+      newState.syndicateAlliances[syndicateIdA] = {};
+    }
+    newState.syndicateAlliances[syndicateIdA][syndicateIdB] = consensusState;
+
+    if (!newState.syndicateAlliances[syndicateIdB]) {
+      newState.syndicateAlliances[syndicateIdB] = {};
+    }
+    newState.syndicateAlliances[syndicateIdB][syndicateIdA] = consensusState;
   }
 
   return newState;
@@ -1314,6 +1370,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     raidWarnings: rest.raidWarnings ? JSON.parse(JSON.stringify(rest.raidWarnings)) : undefined,
     cartelGlobalTaxVotes: rest.cartelGlobalTaxVotes ? JSON.parse(JSON.stringify(rest.cartelGlobalTaxVotes)) : undefined,
     cartelGlobalTaxPolicy: rest.cartelGlobalTaxPolicy ? { ...rest.cartelGlobalTaxPolicy } : undefined,
+    syndicateAlliances: rest.syndicateAlliances ? JSON.parse(JSON.stringify(rest.syndicateAlliances)) : undefined,
+    syndicateAllianceVotes: rest.syndicateAllianceVotes ? JSON.parse(JSON.stringify(rest.syndicateAllianceVotes)) : undefined,
   };
   return clone;
 }

@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -362,6 +362,24 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
           const voteA = allianceVotes[pairKey][agentId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             allianceVotes[pairKey][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge syndicate alliance votes using LWW (Last-Write-Wins)
+  const syndicateAllianceVotes = { ...stateA.syndicateAllianceVotes };
+  if (stateB.syndicateAllianceVotes) {
+    for (const [pairKey, bVotes] of Object.entries(stateB.syndicateAllianceVotes)) {
+      if (!syndicateAllianceVotes[pairKey]) {
+        syndicateAllianceVotes[pairKey] = { ...bVotes };
+      } else {
+        syndicateAllianceVotes[pairKey] = { ...syndicateAllianceVotes[pairKey] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = syndicateAllianceVotes[pairKey][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            syndicateAllianceVotes[pairKey][agentId] = voteB;
           }
         }
       }
@@ -1118,6 +1136,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     smugglerGuildMemberships,
     smugglerGuildCbaVotes,
     smugglerGuildCbas,
+    syndicateAllianceVotes,
   };
 }
 
@@ -1408,6 +1427,7 @@ export class GossipNode {
 
     // Reconcile alliances to ensure dynamic mutual alliances/dissolutions converge perfectly across the mesh
     convergedState = reconcileAlliances(convergedState, this.pack);
+    convergedState = reconcileSyndicateAlliances(convergedState, this.pack);
 
     // Reconcile trade routes to ensure consensual trade routes and taxes converge perfectly across the mesh
     convergedState = reconcileTradeRoutes(convergedState, this.pack);

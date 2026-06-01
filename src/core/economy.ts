@@ -296,46 +296,82 @@ export function calculateTradePrice(
       const pressureMultiplier = 1.0 + (pressure * 0.02);
       multiplier *= pressureMultiplier;
 
-      // Allied Syndicate Member contraband pricing discount/bonus
-      let isAlliedSyndicateMember = false;
-      if (state.syndicates && npc?.id) {
-        // 1. Check if they belong to the same syndicate
-        for (const syndicate of Object.values(state.syndicates)) {
-          if (syndicate.members.includes(traderId) && syndicate.members.includes(npc.id)) {
-            isAlliedSyndicateMember = true;
-            break;
+      // Allied Syndicate Member contraband pricing discount/bonus or Safehouse Black Market Strategic scaling
+      if (isSafehouse && state.safehouses && state.syndicates) {
+        const safehouse = state.safehouses[state.current];
+        if (safehouse) {
+          const ownerSyndicateId = safehouse.syndicateId;
+          const traderSyndicates = Object.values(state.syndicates).filter(s => s.members.includes(traderId));
+          
+          let isOwnerMember = traderSyndicates.some(s => s.id === ownerSyndicateId);
+          let isAlliedSyndicate = false;
+          
+          if (!isOwnerMember) {
+            for (const ts of traderSyndicates) {
+              if (state.syndicateAlliances?.[ts.id]?.[ownerSyndicateId] === "allied" ||
+                  state.syndicateAlliances?.[ownerSyndicateId]?.[ts.id] === "allied") {
+                isAlliedSyndicate = true;
+                break;
+              }
+            }
+          }
+          
+          if (isOwnerMember) {
+            if (isBuy) {
+              multiplier *= 0.80; // 20% strategic discount
+            } else {
+              multiplier *= 1.20; // 20% strategic premium
+            }
+          } else if (isAlliedSyndicate) {
+            if (isBuy) {
+              multiplier *= 0.90; // 10% strategic discount (scaled)
+            } else {
+              multiplier *= 1.10; // 10% strategic premium (scaled)
+            }
           }
         }
-        // 2. Check if player belongs to a syndicate allied with NPC's faction/syndicate
-        if (!isAlliedSyndicateMember) {
-          const npcFaction = npc.faction;
-          if (npcFaction) {
-            const playerSyndicates = Object.values(state.syndicates).filter(s => s.members.includes(traderId));
-            for (const playerSynd of playerSyndicates) {
-              if (state.alliances?.[playerSynd.id]?.[npcFaction] === "allied" || 
-                  state.alliances?.[npcFaction]?.[playerSynd.id] === "allied") {
+      } else {
+        // Default contraband pricing logic
+        let isAlliedSyndicateMember = false;
+        if (state.syndicates && npc?.id) {
+          // 1. Check if they belong to the same syndicate
+          for (const syndicate of Object.values(state.syndicates)) {
+            if (syndicate.members.includes(traderId) && syndicate.members.includes(npc.id)) {
+              isAlliedSyndicateMember = true;
+              break;
+            }
+          }
+          // 2. Check if player belongs to a syndicate allied with NPC's faction/syndicate
+          if (!isAlliedSyndicateMember) {
+            const npcFaction = npc.faction;
+            if (npcFaction) {
+              const playerSyndicates = Object.values(state.syndicates).filter(s => s.members.includes(traderId));
+              for (const playerSynd of playerSyndicates) {
+                if (state.alliances?.[playerSynd.id]?.[npcFaction] === "allied" || 
+                    state.alliances?.[npcFaction]?.[playerSynd.id] === "allied") {
+                  isAlliedSyndicateMember = true;
+                  break;
+                }
+              }
+            }
+          }
+          // 3. Check direct faction alliances
+          if (!isAlliedSyndicateMember && npc.faction && state.alliances) {
+            for (const [otherFaction, rep] of Object.entries(state.factionRep || {})) {
+              if (rep > 0 && state.alliances[npc.faction]?.[otherFaction] === "allied") {
                 isAlliedSyndicateMember = true;
                 break;
               }
             }
           }
         }
-        // 3. Check direct faction alliances
-        if (!isAlliedSyndicateMember && npc.faction && state.alliances) {
-          for (const [otherFaction, rep] of Object.entries(state.factionRep || {})) {
-            if (rep > 0 && state.alliances[npc.faction]?.[otherFaction] === "allied") {
-              isAlliedSyndicateMember = true;
-              break;
-            }
-          }
-        }
-      }
 
-      if (isAlliedSyndicateMember) {
-        if (isBuy) {
-          multiplier *= 0.80; // 20% strategic discount for purchase
-        } else {
-          multiplier *= 1.20; // 20% strategic premium for selling
+        if (isAlliedSyndicateMember) {
+          if (isBuy) {
+            multiplier *= 0.80; // 20% strategic discount for purchase
+          } else {
+            multiplier *= 1.20; // 20% strategic premium for selling
+          }
         }
       }
     }

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #68 (Ready for Cycle #69)
-* **Build/Test Status**: 🟢 PASS (All 309 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #69 (Ready for Cycle #70)
+* **Build/Test Status**: 🟢 PASS (All 312 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -408,16 +408,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Integrate with movement border toll checks and enforcer ticks (`AF-68`).
 - [x] Write comprehensive integration tests verifying strategic overrides and mesh-wide sync (`AF-68`).
 
+### Phase 63: Smuggler Syndicate Cartel Alliances, Dynamic Strategic Pricing, and Mutual Espionage Sharing (Completed)
+- [x] Add `PROPOSE_SYNDICATE_ALLIANCE` decentralized action (`AF-69`).
+- [x] Add `SHARE_ESPIONAGE_DATA` decentralized action (`AF-69`).
+- [x] Wire allied syndicate status to safehouse black market strategic discount scaling (20% for owning member, 10% for allied syndicate member) (`AF-69`).
+- [x] Write comprehensive integration tests verifying alliances, safehouse black market trading, and espionage sharing (`AF-69`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-69`
-* **Objective**: Smuggler Syndicate Cartel Alliances, Dynamic Strategic Pricing, and Mutual Espionage Sharing.
-* **Why this matters**: Support forming alliances between rival smuggler syndicates, strategic pricing benefits at black markets controlled by allied syndicates, and wiretap intelligence sharing dynamically across allied nodes in the mesh.
+**Task ID**: `AF-70`
+* **Objective**: Smuggler Syndicate Cartel War Chests, Dynamic Faction Bribes, and Cooperative Turf Guard Recruiting.
+* **Why this matters**: Support pooling syndicate resources into a central cartel war chest, paying dynamic bribes to faction border patrol agents, and cooperatively recruiting turf guards across allied syndicates using the pooled war chest.
 * **Planned Actions**:
-  1. Add `PROPOSE_SYNDICATE_ALLIANCE` decentralized action.
-  2. Add `SHARE_ESPIONAGE_DATA` decentralized action.
-  3. Wire allied syndicate status to safehouse black market strategic discount scaling.
+  1. Add `CONTRIBUTE_WAR_CHEST` and `PAY_FACTION_BRIBE` decentralized actions.
+  2. Implement cooperative recruitment of turf guards using cartel war chest gold.
+  3. Wire cartel war chests and faction bribes to traversal border checks and enforcer heat calculations.
   4. Write comprehensive integration tests.
 
 ---

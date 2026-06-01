@@ -1537,10 +1537,22 @@ export function step(
       }
 
       const syndicate = state.syndicates?.[safehouse.syndicateId];
-      if (!syndicate || !syndicate.members.includes(agentId)) {
+      let isAuthorized = syndicate?.members.includes(agentId) || false;
+      if (!isAuthorized && state.syndicates) {
+        const traderSyndicates = Object.values(state.syndicates).filter(s => s.members.includes(agentId));
+        for (const ts of traderSyndicates) {
+          if (state.syndicateAlliances?.[ts.id]?.[safehouse.syndicateId] === "allied" ||
+              state.syndicateAlliances?.[safehouse.syndicateId]?.[ts.id] === "allied") {
+            isAuthorized = true;
+            break;
+          }
+        }
+      }
+
+      if (!isAuthorized) {
         return {
           state,
-          events: [{ type: "rejected", reason: `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId}.` }],
+          events: [{ type: "rejected", reason: `Agent ${agentId} is not a member of or allied with the syndicate owning the safehouse in ${roomId}.` }],
           ok: false,
           rejectionReason: `Unauthorized to trade at this safehouse.`,
         };
