@@ -1263,6 +1263,40 @@ export const CooperativeYieldCampaignProposalSchema = z.object({
 });
 export type CooperativeYieldCampaignProposal = z.infer<typeof CooperativeYieldCampaignProposalSchema>;
 
+export const CooperativeSWFStakingCampaignMilestoneSchema = z.object({
+  targetAmount: z.number().int().positive(),
+  yieldMultiplier: z.number().positive(),
+  repMultiplier: z.number().positive(),
+});
+export type CooperativeSWFStakingCampaignMilestone = z.infer<typeof CooperativeSWFStakingCampaignMilestoneSchema>;
+
+export const CooperativeSWFStakingCampaignSchema = z.object({
+  id: z.string(),
+  factionId: z.string(),
+  creatorSyndicateId: z.string(),
+  campaignName: z.string(),
+  milestones: z.array(CooperativeSWFStakingCampaignMilestoneSchema),
+  participants: z.array(z.string()),
+  stakedAmounts: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  timestamp: z.number().int(),
+});
+export type CooperativeSWFStakingCampaign = z.infer<typeof CooperativeSWFStakingCampaignSchema>;
+
+export const CooperativeSWFStakingCampaignProposalSchema = z.object({
+  id: z.string(),
+  factionId: z.string(),
+  creatorSyndicateId: z.string(),
+  campaignName: z.string(),
+  milestones: z.array(CooperativeSWFStakingCampaignMilestoneSchema),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type CooperativeSWFStakingCampaignProposal = z.infer<typeof CooperativeSWFStakingCampaignProposalSchema>;
+
 export const FactionCdoInsurancePoolProposalSchema = z.object({
   id: z.string(),
   syndicateId: z.string(),
@@ -2086,6 +2120,12 @@ export const GameStateSchema = z.object({
     stakedFactions: z.record(z.string(), z.number().int().nonnegative().max(100)),
     timestamp: z.number().int(),
   }))).optional(),
+  cooperativeSWFStakingCampaigns: z.record(z.string(), CooperativeSWFStakingCampaignSchema).optional(),
+  cooperativeSWFStakingCampaignProposals: z.record(z.string(), CooperativeSWFStakingCampaignProposalSchema).optional(),
+  cooperativeSWFStakingCampaignJoinVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })))).optional(),
   swfRebalancingAdvisorVotes: z.record(z.string(), z.record(z.string(), z.object({
     enabled: z.boolean(),
     timestamp: z.number().int(),
@@ -7086,6 +7126,91 @@ export function reconcileCooperativeYieldCampaigns(state: GameState, pack: any):
       newState.journal.push(
         `[Cooperative Yield Campaign Resolved] Syndicate ${syndicateId} established yield campaign ${campaignName} for CDO ${cdoId} sponsored by ${factionId}.`
       );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCooperativeSWFStakingCampaigns(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cooperativeSWFStakingCampaignProposals: state.cooperativeSWFStakingCampaignProposals ? { ...state.cooperativeSWFStakingCampaignProposals } : {},
+    cooperativeSWFStakingCampaigns: state.cooperativeSWFStakingCampaigns ? { ...state.cooperativeSWFStakingCampaigns } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cooperativeSWFStakingCampaignJoinVotes: state.cooperativeSWFStakingCampaignJoinVotes ? { ...state.cooperativeSWFStakingCampaignJoinVotes } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.cooperativeSWFStakingCampaignProposals || {})) {
+    const proposal = newState.cooperativeSWFStakingCampaignProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { creatorSyndicateId, factionId, campaignName, milestones, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[creatorSyndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.cooperativeSWFStakingCampaignProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      newState.cooperativeSWFStakingCampaigns[proposalId] = {
+        id: proposalId,
+        factionId,
+        creatorSyndicateId,
+        campaignName,
+        milestones,
+        participants: [creatorSyndicateId],
+        stakedAmounts: {},
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Cooperative SWF Staking Campaign Resolved] Syndicate ${creatorSyndicateId} established staking campaign ${campaignName} for faction ${factionId}.`
+      );
+    }
+  }
+
+  for (const [syndicateId, campaignsObj] of Object.entries(newState.cooperativeSWFStakingCampaignJoinVotes || {})) {
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+
+    for (const [campaignId, votes] of Object.entries(campaignsObj)) {
+      const campaign = newState.cooperativeSWFStakingCampaigns?.[campaignId];
+      if (!campaign) continue;
+
+      if (campaign.participants.includes(syndicateId)) continue;
+
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+
+      if (trueVotes.length > totalMembers / 2) {
+        campaign.participants = [...campaign.participants, syndicateId];
+        newState.cooperativeSWFStakingCampaigns[campaignId] = { ...campaign };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Cooperative SWF Staking Campaign Joined] Syndicate ${syndicateId} joined staking campaign ${campaign.campaignName} by majority vote.`
+        );
+
+        if (newState.cooperativeSWFStakingCampaignJoinVotes[syndicateId]) {
+          const updatedJoinVotes = { ...newState.cooperativeSWFStakingCampaignJoinVotes[syndicateId] };
+          delete updatedJoinVotes[campaignId];
+          newState.cooperativeSWFStakingCampaignJoinVotes[syndicateId] = updatedJoinVotes;
+        }
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileSWFMarginRehypothecations, reconcileSWFMarginRebalancingPolicies, reconcileSWFYieldArbitragePolicies, reconcileSWFStakingPolicies, reconcileSWFRebalancingAdvisors, reconcileSWFAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors, reconcileSponsorAuditsAndRevocations, reconcileRewardSlashing, reconcileRehabCampaign, reconcileRehabSubsidy, getSyndicateFactionStanding, isFactionAlliedToSyndicate, getSyndicateFactionLoyaltyRank, getRequiredRankForVaultLevel, isRankAtLeast, reconcileClaimLoyaltyRanks, reconcileCooperativeYieldCampaigns, reconcileFactionCdoInsurancePools, reconcileMultiFactionCdoRiskRatings } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations, reconcileMarginRebalancingPolicies, reconcileRebalancingAdvisors, reconcileAdvisorSafetyThresholds, reconcileSWFMarginRehypothecations, reconcileSWFMarginRebalancingPolicies, reconcileSWFYieldArbitragePolicies, reconcileSWFStakingPolicies, reconcileSWFRebalancingAdvisors, reconcileSWFAdvisorSafetyThresholds, reconcileLockedCollateral, reconcileClaimLiquidityRewards, reconcileFactionSponsors, reconcileSponsorAuditsAndRevocations, reconcileRewardSlashing, reconcileRehabCampaign, reconcileRehabSubsidy, getSyndicateFactionStanding, isFactionAlliedToSyndicate, getSyndicateFactionLoyaltyRank, getRequiredRankForVaultLevel, isRankAtLeast, reconcileClaimLoyaltyRanks, reconcileCooperativeYieldCampaigns, reconcileCooperativeSWFStakingCampaigns, reconcileFactionCdoInsurancePools, reconcileMultiFactionCdoRiskRatings } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -24083,6 +24083,385 @@ export function multiAgentStep(
     if (ok) {
       newState = tickProductionLabs(newState, customEvents, pack);
 
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_COOPERATIVE_SWF_STAKING_CAMPAIGN action (AF-137)
+  if ((action as any).type === "PROPOSE_COOPERATIVE_SWF_STAKING_CAMPAIGN") {
+    const { proposalId, syndicateId, campaignName, factionId, milestones, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!campaignName) {
+      rejectionReason = `Campaign name is required.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required.`;
+    } else if (!milestones || !Array.isArray(milestones) || milestones.length === 0) {
+      rejectionReason = `Milestones are required and must be a non-empty array.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot propose cooperative SWF staking campaign.`;
+    } else {
+      let validMilestones = true;
+      for (const m of milestones) {
+        if (!m || typeof m !== "object") {
+          validMilestones = false;
+          rejectionReason = `Invalid milestone format.`;
+          break;
+        }
+        if (m.targetAmount === undefined || m.targetAmount <= 0 || !Number.isInteger(m.targetAmount)) {
+          validMilestones = false;
+          rejectionReason = `Milestone target amount must be a positive integer.`;
+          break;
+        }
+        if (m.yieldMultiplier === undefined || m.yieldMultiplier <= 0) {
+          validMilestones = false;
+          rejectionReason = `Milestone yield multiplier must be positive.`;
+          break;
+        }
+        if (m.repMultiplier === undefined || m.repMultiplier <= 0) {
+          validMilestones = false;
+          rejectionReason = `Milestone rep multiplier must be positive.`;
+          break;
+        }
+      }
+      if (validMilestones) {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const proposals = { ...(state.cooperativeSWFStakingCampaignProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          factionId,
+          creatorSyndicateId: syndicateId,
+          campaignName,
+          milestones,
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.cooperativeSWFStakingCampaignProposals = proposals;
+        newState = reconcileCooperativeSWFStakingCampaigns(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Cooperative SWF Staking Campaign Proposed] Agent ${agentId} proposed staking campaign ${campaignName} for faction ${factionId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Cooperative SWF staking campaign proposal created by ${agentId} for faction ${factionId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "cooperative_swf_staking_campaign_proposed" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          campaignName,
+          factionId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_COOPERATIVE_SWF_STAKING_CAMPAIGN action (AF-137)
+  if ((action as any).type === "VOTE_COOPERATIVE_SWF_STAKING_CAMPAIGN") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.cooperativeSWFStakingCampaignProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `Cooperative SWF staking campaign proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on cooperative SWF staking campaign proposal.`;
+    } else if (proposal.creatorSyndicateId !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} is not the creator of proposal ${proposalId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.cooperativeSWFStakingCampaignProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.cooperativeSWFStakingCampaignProposals = proposalsCopy;
+        newState = reconcileCooperativeSWFStakingCampaigns(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Cooperative SWF Staking Campaign Voted] Agent ${agentId} voted ${vote ? "FOR" : "AGAINST"} SWF staking campaign proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Cooperative SWF staking campaign vote cast by ${agentId} for proposal ${proposalId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "cooperative_swf_staking_campaign_voted" as any,
+          syndicateId,
+          proposalId,
+          agentId,
+          vote,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_JOIN_COOPERATIVE_SWF_STAKING_CAMPAIGN action (AF-137)
+  if ((action as any).type === "VOTE_JOIN_COOPERATIVE_SWF_STAKING_CAMPAIGN") {
+    const { syndicateId, campaignId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const campaigns = state.cooperativeSWFStakingCampaigns || {};
+    const campaign = campaigns[campaignId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!campaignId) {
+      rejectionReason = `Campaign ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!campaign) {
+      rejectionReason = `Cooperative SWF staking campaign ${campaignId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to join cooperative SWF staking campaign.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && campaign) {
+      const joinVotesCopy = { ...(state.cooperativeSWFStakingCampaignJoinVotes || {}) };
+      if (!joinVotesCopy[syndicateId]) {
+        joinVotesCopy[syndicateId] = {};
+      } else {
+        joinVotesCopy[syndicateId] = { ...joinVotesCopy[syndicateId] };
+      }
+      if (!joinVotesCopy[syndicateId][campaignId]) {
+        joinVotesCopy[syndicateId][campaignId] = {};
+      } else {
+        joinVotesCopy[syndicateId][campaignId] = { ...joinVotesCopy[syndicateId][campaignId] };
+      }
+
+      const existingVote = joinVotesCopy[syndicateId][campaignId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        joinVotesCopy[syndicateId][campaignId][agentId] = { vote, timestamp };
+        newState.cooperativeSWFStakingCampaignJoinVotes = joinVotesCopy;
+        newState = reconcileCooperativeSWFStakingCampaigns(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Cooperative SWF Staking Campaign Join Voted] Agent ${agentId} voted ${vote ? "FOR" : "AGAINST"} joining campaign ${campaignId} for Syndicate ${syndicateId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Joint campaign join vote cast by ${agentId} for Syndicate ${syndicateId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "cooperative_swf_staking_campaign_join_voted" as any,
+          syndicateId,
+          campaignId,
+          agentId,
+          vote,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
       const cloned = cloneStateWithoutHistory(state);
       history.push(cloned);

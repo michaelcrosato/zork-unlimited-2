@@ -2181,6 +2181,79 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge cooperativeSWFStakingCampaigns using LWW with union of participants
+  const cooperativeSWFStakingCampaigns = { ...stateA.cooperativeSWFStakingCampaigns };
+  if (stateB.cooperativeSWFStakingCampaigns) {
+    for (const [campId, campB] of Object.entries(stateB.cooperativeSWFStakingCampaigns)) {
+      const campA = cooperativeSWFStakingCampaigns[campId];
+      if (!campA) {
+        cooperativeSWFStakingCampaigns[campId] = { ...campB };
+      } else {
+        if (campB.timestamp > campA.timestamp) {
+          cooperativeSWFStakingCampaigns[campId] = { ...campB };
+        } else if (campB.timestamp === campA.timestamp) {
+          const participants = Array.from(new Set([...campA.participants, ...campB.participants]));
+          cooperativeSWFStakingCampaigns[campId] = {
+            ...campA,
+            participants,
+          };
+        }
+      }
+    }
+  }
+
+  // Merge cooperativeSWFStakingCampaignProposals using LWW
+  const cooperativeSWFStakingCampaignProposals = { ...stateA.cooperativeSWFStakingCampaignProposals };
+  if (stateB.cooperativeSWFStakingCampaignProposals) {
+    for (const [propId, propB] of Object.entries(stateB.cooperativeSWFStakingCampaignProposals)) {
+      const propA = cooperativeSWFStakingCampaignProposals[propId];
+      if (!propA) {
+        cooperativeSWFStakingCampaignProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        cooperativeSWFStakingCampaignProposals[propId] = {
+          ...propA,
+          resolved: propA.resolved || propB.resolved,
+          timestamp: Math.max(propA.timestamp, propB.timestamp),
+          votes: mergedVotes,
+        };
+      }
+    }
+  }
+
+  // Merge cooperativeSWFStakingCampaignJoinVotes using LWW
+  const cooperativeSWFStakingCampaignJoinVotes = { ...stateA.cooperativeSWFStakingCampaignJoinVotes };
+  if (stateB.cooperativeSWFStakingCampaignJoinVotes) {
+    for (const [syndicateId, bCampaigns] of Object.entries(stateB.cooperativeSWFStakingCampaignJoinVotes)) {
+      if (!cooperativeSWFStakingCampaignJoinVotes[syndicateId]) {
+        cooperativeSWFStakingCampaignJoinVotes[syndicateId] = { ...bCampaigns };
+      } else {
+        cooperativeSWFStakingCampaignJoinVotes[syndicateId] = { ...cooperativeSWFStakingCampaignJoinVotes[syndicateId] };
+        for (const [campId, bVotes] of Object.entries(bCampaigns)) {
+          if (!cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId]) {
+            cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId] = { ...bVotes };
+          } else {
+            cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId] = { ...cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId] };
+            for (const [agentId, voteB] of Object.entries(bVotes)) {
+              const voteA = cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId][agentId];
+              if (!voteA || voteB.timestamp > voteA.timestamp) {
+                cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId][agentId] = voteB;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Merge factionSponsorProposals using LWW (Last-Write-Wins)
   const factionSponsorProposals = { ...stateA.factionSponsorProposals };
   if (stateB.factionSponsorProposals) {
@@ -3162,6 +3235,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfRiskPoolProposals,
     swfYieldCDOs,
     swfYieldCDOProposals,
+    cooperativeSWFStakingCampaigns,
+    cooperativeSWFStakingCampaignProposals,
+    cooperativeSWFStakingCampaignJoinVotes,
   };
 }
 

@@ -4109,6 +4109,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       }
 
       // AF-136: Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions
+      // AF-137: Syndicate SWF Cooperative Staking Campaigns & Faction Sovereignty Yield Multipliers
       if (marginAccount.swfStakingEnabled && marginAccount.collateral > 0 && marginAccount.swfLiquidityBuffer !== undefined && marginAccount.swfLiquidityBuffer > 0) {
         const stakedFactions: Record<string, number> = {};
         const stakingYields: Record<string, number> = {};
@@ -4126,7 +4127,49 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               // Base yield rate 0.04 (4%), boosted by faction reputation (0.002 or 0.2% per reputation point)
               const factionRep = newState.factionRep?.[factionId] ?? 0;
               const yieldBoost = Math.max(0, factionRep * 0.002);
-              const yieldRate = 0.04 + yieldBoost;
+              let yieldRate = 0.04 + yieldBoost;
+
+              let yieldMultiplier = 1.0;
+              let repMultiplier = 1.0;
+              let campaignBoostMsg = "";
+
+              const activeCampaigns = newState.cooperativeSWFStakingCampaigns || {};
+              const campaign = Object.values(activeCampaigns).find(c => c.factionId === factionId && c.participants.includes(syndicateId));
+              if (campaign) {
+                let totalStakedAmount = 0;
+                const participantStakedMap: Record<string, number> = {};
+                for (const pId of campaign.participants) {
+                  const pMA = newState.marginAccounts?.[pId];
+                  if (pMA && pMA.swfStakingEnabled && pMA.swfLiquidityBuffer !== undefined && pMA.swfLiquidityBuffer > 0) {
+                    const pPct = pMA.swfStakingTargets?.[factionId] ?? 0;
+                    const pStaked = Math.floor(pMA.swfLiquidityBuffer * (pPct / 100));
+                    if (pStaked > 0) {
+                      totalStakedAmount += pStaked;
+                      participantStakedMap[pId] = pStaked;
+                    }
+                  }
+                }
+                campaign.stakedAmounts = participantStakedMap;
+                if (!newState.cooperativeSWFStakingCampaigns) {
+                  newState.cooperativeSWFStakingCampaigns = {};
+                }
+                newState.cooperativeSWFStakingCampaigns[campaign.id] = { ...campaign };
+
+                let highestAchievedMilestoneTarget = 0;
+                for (const m of campaign.milestones) {
+                  if (totalStakedAmount >= m.targetAmount && m.targetAmount > highestAchievedMilestoneTarget) {
+                    highestAchievedMilestoneTarget = m.targetAmount;
+                    yieldMultiplier = m.yieldMultiplier;
+                    repMultiplier = m.repMultiplier;
+                  }
+                }
+
+                if (highestAchievedMilestoneTarget > 0) {
+                  campaignBoostMsg = ` (Cooperative Boost: ${yieldMultiplier}x yield, ${repMultiplier}x rep from campaign ${campaign.campaignName})`;
+                }
+              }
+
+              yieldRate = yieldRate * yieldMultiplier;
               stakingYields[factionId] = yieldRate;
               
               // Passive gold yield earned this step:
@@ -4138,19 +4181,19 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 
                 if (!newState.journal) newState.journal = [];
                 newState.journal.push(
-                  `[SWF Staking Yield] Syndicate ${syndicateId} earned ${goldEarned} gold yield from staking ${stakedAmount} gold in faction ${factionId} staking pool (Yield Rate: ${(yieldRate * 100).toFixed(1)}%).`
+                  `[SWF Staking Yield] Syndicate ${syndicateId} earned ${goldEarned} gold yield from staking ${stakedAmount} gold in faction ${factionId} staking pool (Yield Rate: ${(yieldRate * 100).toFixed(1)}%)${campaignBoostMsg}.`
                 );
               }
               
               // Passive reputation accruals:
-              // 1 reputation point accrued per 50 gold staked, minimum of 1 point if staked > 0
-              const repAccrued = Math.max(1, Math.floor(stakedAmount / 50));
+              const baseRepAccrued = Math.max(1, Math.floor(stakedAmount / 50));
+              const repAccrued = Math.max(1, Math.round(baseRepAccrued * repMultiplier));
               if (!newState.factionRep) newState.factionRep = {};
               newState.factionRep[factionId] = (newState.factionRep[factionId] ?? 0) + repAccrued;
               
               if (!newState.journal) newState.journal = [];
               newState.journal.push(
-                `[SWF Staking Reputation] Syndicate ${syndicateId} accrued +${repAccrued} reputation with faction ${factionId} from active SWF staking.`
+                `[SWF Staking Reputation] Syndicate ${syndicateId} accrued +${repAccrued} reputation with faction ${factionId} from active SWF staking${campaignBoostMsg ? " (Boosted)" : ""}.`
               );
               
               // Grace Period Extensions:
