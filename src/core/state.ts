@@ -50,6 +50,8 @@ export const TerritoryClaimSchema = z.object({
   claimedBy: z.string(),
   factionId: z.string(),
   timestamp: z.number().int(),
+  assistants: z.array(z.string()).optional(),
+  allianceDefense: z.number().int().optional(),
 });
 
 export type TerritoryClaim = z.infer<typeof TerritoryClaimSchema>;
@@ -124,6 +126,7 @@ export const GameStateSchema = z.object({
   factionRep: z.record(z.string(), z.number()).optional(),
   territoryClaims: z.record(z.string(), TerritoryClaimSchema).optional(),
   territoryControl: z.record(z.string(), z.string()).optional(),
+  territoryAssists: z.record(z.string(), z.record(z.string(), z.array(z.string()))).optional(),
   taxPolicy: z.record(z.string(), z.number()).optional(),
   taxVotes: z.record(z.string(), z.record(z.string(), TaxVoteSchema)).optional(),
   alliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
@@ -192,6 +195,7 @@ export const createInitialState = (options: {
     factionRep: options.factionRepInit ?? {},
     territoryClaims: {},
     territoryControl: options.territoryControlInit ?? {},
+    territoryAssists: {},
     taxPolicy: {},
     taxVotes: {},
     alliances: {},

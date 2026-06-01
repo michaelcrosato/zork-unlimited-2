@@ -164,6 +164,7 @@ export const ParserPackSchema = z.object({
     departure: z.string().optional(),
     sync: z.string().optional(),
     territory_conquest: z.string().optional(),
+    alliance_battle: z.string().optional(),
   }).optional(),
 });
 

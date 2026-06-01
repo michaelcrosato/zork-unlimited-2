@@ -310,24 +310,45 @@ export function multiAgentStep(
     let ok = false;
     let rejectionReason: string | undefined;
 
-    if (
-      !existingClaim ||
-      timestamp > existingClaim.timestamp ||
-      (timestamp === existingClaim.timestamp && agentId.localeCompare(existingClaim.claimedBy) < 0)
-    ) {
+    if (!existingClaim) {
       ok = true;
+    } else if (existingClaim.factionId === factionId) {
+      // Re-claiming by same faction (normal LWW)
+      if (
+        timestamp > existingClaim.timestamp ||
+        (timestamp === existingClaim.timestamp && agentId.localeCompare(existingClaim.claimedBy) < 0)
+      ) {
+        ok = true;
+      } else {
+        rejectionReason = `Territory ${roomId} already claimed by ${existingClaim.claimedBy} for faction ${existingClaim.factionId} with a newer/equal timestamp.`;
+      }
     } else {
-      rejectionReason = `Territory ${roomId} already claimed by ${existingClaim.claimedBy} for faction ${existingClaim.factionId} with a newer/equal timestamp.`;
+      // Conquest: different faction. Calculate cooperative defense and assists
+      const D_old = existingClaim.allianceDefense || 1;
+      const numAssistants = state.territoryAssists?.[roomId]?.[factionId]?.length || 0;
+      const effectiveTimestamp = timestamp - (D_old - 1) * 1000 + numAssistants * 1000;
+
+      if (
+        effectiveTimestamp > existingClaim.timestamp ||
+        (effectiveTimestamp === existingClaim.timestamp && agentId.localeCompare(existingClaim.claimedBy) < 0)
+      ) {
+        ok = true;
+      } else {
+        rejectionReason = `Territory ${roomId} already claimed by ${existingClaim.claimedBy} for faction ${existingClaim.factionId} with a stronger defense/timestamp.`;
+      }
     }
 
     let newState = { ...state };
     if (ok) {
+      const assistants = newState.territoryAssists?.[roomId]?.[factionId] || [];
       const territoryClaims = {
         ...(state.territoryClaims || {}),
         [roomId]: {
           claimedBy: agentId,
           factionId,
           timestamp,
+          assistants,
+          allianceDefense: 1 + assistants.length,
         },
       };
       newState.territoryClaims = territoryClaims;
@@ -373,6 +394,108 @@ export function multiAgentStep(
       state: newState,
       events: ok 
         ? [{ type: "territory_claimed", roomId, factionId, claimedBy: agentId } as any] 
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ASSIST_CONQUEST action
+  if ((action as any).type === "ASSIST_CONQUEST") {
+    const { roomId, factionId, assistingFactionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const isValidRoom = (pack as any).rooms?.some((r: any) => r.id === roomId);
+    const isValidFaction = (pack as any).factions?.some((f: any) => f.id === factionId);
+    const isValidAssistingFaction = (pack as any).factions?.some((f: any) => f.id === assistingFactionId);
+
+    if (!isValidRoom) {
+      rejectionReason = `Room ${roomId} is not valid in the content pack.`;
+    } else if (!isValidFaction) {
+      rejectionReason = `Faction ${factionId} is not a valid faction in the content pack.`;
+    } else if (!isValidAssistingFaction) {
+      rejectionReason = `Assisting faction ${assistingFactionId} is not a valid faction in the content pack.`;
+    } else {
+      // Check if assistingFactionId is allied with factionId, or is the same faction
+      const isAllied = factionId === assistingFactionId || 
+        (state.alliances?.[factionId]?.[assistingFactionId] === "allied");
+      if (!isAllied) {
+        rejectionReason = `Faction ${assistingFactionId} is not allied with ${factionId}.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const territoryAssists = { ...(state.territoryAssists || {}) };
+      if (!territoryAssists[roomId]) {
+        territoryAssists[roomId] = {};
+      } else {
+        territoryAssists[roomId] = { ...territoryAssists[roomId] };
+      }
+
+      const assistants = [...(territoryAssists[roomId][factionId] || [])];
+      if (!assistants.includes(agentId)) {
+        assistants.push(agentId);
+      }
+      territoryAssists[roomId][factionId] = assistants;
+      newState.territoryAssists = territoryAssists;
+
+      // Update the active claim if it currently belongs to factionId
+      const existingClaim = newState.territoryClaims?.[roomId];
+      if (existingClaim && existingClaim.factionId === factionId) {
+        newState.territoryClaims = {
+          ...(newState.territoryClaims || {}),
+          [roomId]: {
+            ...existingClaim,
+            assistants,
+            allianceDefense: 1 + assistants.length,
+          },
+        };
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "conquest_assisted", roomId, factionId, assistingFactionId, assistedBy: agentId } as any]
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

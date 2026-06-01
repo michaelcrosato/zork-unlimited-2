@@ -316,6 +316,16 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
         } else if (claimB.timestamp === claimA.timestamp) {
           if (claimB.claimedBy.localeCompare(claimA.claimedBy) < 0) {
             territoryClaims[roomId] = claimB;
+          } else if (claimB.claimedBy === claimA.claimedBy && claimB.factionId === claimA.factionId) {
+            const assistants = Array.from(new Set([
+              ...(claimA.assistants || []),
+              ...(claimB.assistants || []),
+            ]));
+            territoryClaims[roomId] = {
+              ...claimA,
+              assistants,
+              allianceDefense: 1 + assistants.length,
+            };
           }
         }
       }
@@ -358,12 +368,30 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge territory assists (union of assistant lists for each room & faction)
+  const territoryAssists = { ...stateA.territoryAssists };
+  if (stateB.territoryAssists) {
+    for (const [roomId, bFactions] of Object.entries(stateB.territoryAssists)) {
+      if (!territoryAssists[roomId]) {
+        territoryAssists[roomId] = { ...bFactions };
+      } else {
+        territoryAssists[roomId] = { ...territoryAssists[roomId] };
+        for (const [factionId, assistantsB] of Object.entries(bFactions)) {
+          const assistantsA = territoryAssists[roomId][factionId] || [];
+          const mergedAssistants = Array.from(new Set([...assistantsA, ...assistantsB]));
+          territoryAssists[roomId][factionId] = mergedAssistants;
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
     journal,
     lootClaims,
     territoryClaims,
+    territoryAssists,
     taxVotes,
     allianceVotes,
   };
@@ -663,20 +691,47 @@ export class GossipNode {
     for (const [roomId, newFactionId] of Object.entries(newControl)) {
       const oldFactionId = oldControl[roomId];
       if (newFactionId !== oldFactionId) {
-        let template = "";
-        if (this.pack && this.pack.network_templates) {
-          template = this.pack.network_templates.territory_conquest || "";
+        const oldClaim = this.localState.territoryClaims?.[roomId];
+        const newClaim = convergedState.territoryClaims?.[roomId];
+        
+        const oldAssistants = oldClaim?.assistants || [];
+        const newAssistants = newClaim?.assistants || [];
+        const isAllianceBattle = oldFactionId && (oldAssistants.length > 0 || newAssistants.length > 0);
+
+        let formattedText = "";
+        if (isAllianceBattle) {
+          let template = "";
+          if (this.pack && this.pack.network_templates) {
+            template = this.pack.network_templates.alliance_battle || "";
+          }
+          if (!template) {
+            template = "[ALLIANCE BATTLE] {roomId} has been captured by the allied forces of {newFaction}! (Defended by: {oldFaction})";
+          }
+          const oldFactionStr = oldFactionId || "none";
+          const newAssistantsStr = newAssistants.length > 0 ? newAssistants.join(", ") : "none";
+          const oldAssistantsStr = oldAssistants.length > 0 ? oldAssistants.join(", ") : "none";
+          formattedText = template
+            .replace(/{roomId}/g, roomId)
+            .replace(/{newFaction}/g, newFactionId)
+            .replace(/{oldFaction}/g, oldFactionStr)
+            .replace(/{newAssistants}/g, newAssistantsStr)
+            .replace(/{oldAssistants}/g, oldAssistantsStr);
+        } else {
+          let template = "";
+          if (this.pack && this.pack.network_templates) {
+            template = this.pack.network_templates.territory_conquest || "";
+          }
+          if (!template) {
+            template = "Control of territory {roomId} has shifted from {oldFactionId} to {factionId}!";
+          }
+          const oldFactionStr = oldFactionId || "none";
+          formattedText = template
+            .replace(/{roomId}/g, roomId)
+            .replace(/{factionId}/g, newFactionId)
+            .replace(/{oldFactionId}/g, oldFactionStr)
+            .replace(/{oldFaction}/g, oldFactionStr)
+            .replace(/{newFaction}/g, newFactionId);
         }
-        if (!template) {
-          template = "Control of territory {roomId} has shifted from {oldFactionId} to {factionId}!";
-        }
-        const oldFactionStr = oldFactionId || "none";
-        const formattedText = template
-          .replace(/{roomId}/g, roomId)
-          .replace(/{factionId}/g, newFactionId)
-          .replace(/{oldFactionId}/g, oldFactionStr)
-          .replace(/{oldFaction}/g, oldFactionStr)
-          .replace(/{newFaction}/g, newFactionId);
 
         if (!convergedState.journal) {
           convergedState.journal = [];

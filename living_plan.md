@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #32 (Ready for Cycle #33)
-* **Build/Test Status**: 🟢 PASS (All 144 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #33 (Ready for Cycle #34)
+* **Build/Test Status**: 🟢 PASS (All 147 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -172,16 +172,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire alliance state to scale tax policies (e.g. allied factions pay no travel tax or reduced tax, while hostile factions pay double tax!) (`AF-32`).
 - [x] Write comprehensive unit and integration tests asserting presence alliances, proposals, consensus tie-breaking, P2P mesh sync convergence, and strategic pricing effects (`AF-32`).
 
+### Phase 28: Alliance-Based Territory Conquest & Cooperative Defense (Completed)
+- [x] Add assistants and allianceDefense to TerritoryClaim Schema (`AF-33`).
+- [x] Implement ASSIST_CONQUEST action with allied faction requirements check (`AF-33`).
+- [x] Enforce LWW conquest timestamp penalties and assistants bonuses (`AF-33`).
+- [x] Detect and generate custom narration alerts for alliance battles (`AF-33`).
+- [x] Write comprehensive integration tests verifying cooperative defense, conquest, and mesh gossip convergence (`AF-33`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-33`
-* **Objective**: Implement dynamic decentralized alliance-based cooperative defense and territory conquest goals.
-* **Why this matters**: Having allied nodes defend territories or cooperatively conquer neutral/hostile territories across the P2P gossip mesh expands the tactical gameplay to a true decentralized strategy.
+**Task ID**: `AF-34`
+* **Objective**: Implement decentralized faction-controlled trade route tax collection mesh.
+* **Why this matters**: Allowing factions to establish trade routes and levy automated tolls on other players/agents that traverse their connected rooms creates a truly dynamic decentralized RPG economy.
 * **Planned Actions**:
-  1. Add cooperative assistance/alliance defense variables to room control claims.
-  2. Implement `ASSIST_CONQUEST` actions that allow allied factions to secure territorial claims faster or with less penalty.
-  3. Wire dynamic narrative alerts for alliance battles.
+  1. Define faction-controlled route structures and register connected room sequences in state.
+  2. Add transaction effects to lock or toll traversal when crossing hostile trade routes.
+  3. Propagate trade route definitions and consensus tax shares across the Gossip mesh.
   4. Write comprehensive integration tests.
 
 ---

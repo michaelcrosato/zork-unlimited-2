@@ -27,7 +27,10 @@ export type Action =
   | { type: "FLEE" }
   | { type: "VOTE_TAX_RATE"; factionId: string; rate: number; timestamp: number }
   | { type: "PROPOSE_ALLIANCE"; factionA: string; factionB: string; targetState?: "allied" | "hostile" | "neutral"; timestamp: number }
-  | { type: "DISSOLVE_ALLIANCE"; factionA: string; factionB: string; timestamp: number };
+  | { type: "DISSOLVE_ALLIANCE"; factionA: string; factionB: string; timestamp: number }
+  | { type: "CLAIM_TERRITORY"; roomId: string; factionId: string; timestamp: number }
+  | { type: "ASSIST_CONQUEST"; roomId: string; factionId: string; assistingFactionId: string; timestamp: number };
+
 
 
 export type StepResult = {
