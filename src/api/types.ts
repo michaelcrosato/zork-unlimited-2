@@ -192,7 +192,8 @@ export type Action =
   | { type: "ADJUST_SWF_REINSURANCE_OPTION_MARGIN"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; liquidationThreshold: number; penaltyRate: number; timestamp: number }
   | { type: "ADJUST_SWF_REINSURANCE_OPTION_STRESS_TEST"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; simulatedVolatilityShock: number; simulatedLiquidityShock: number; reserveMultiplier: number; timestamp: number }
   | { type: "ADJUST_SWF_REINSURANCE_OPTION_DELTA_HEDGING"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; targetDelta: number; rebalancingPriceTolerance: number; timestamp: number }
-  | { type: "ADJUST_SWF_REINSURANCE_OPTION_STRESS_TEST_DELTA_HEDGING"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; stressDeltaTarget: number; stressVolatilityThreshold: number; safetyCapitalReallocationLimit: number; timestamp: number };
+  | { type: "ADJUST_SWF_REINSURANCE_OPTION_STRESS_TEST_DELTA_HEDGING"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; stressDeltaTarget: number; stressVolatilityThreshold: number; safetyCapitalReallocationLimit: number; timestamp: number }
+  | { type: "ADJUST_SWF_REINSURANCE_OPTION_STRESS_TEST_DELTA_CROSS_HEDGING"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; stressVolatilityThreshold: number; stressHedgeWeightMultiplier: number; safeguardCapitalReserveLimit: number; timestamp: number };
 
 
 

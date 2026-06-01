@@ -5094,6 +5094,76 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           const multiCrossPolicy = newState.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios?.[crossPolicyKey];
           const crossPolicy = newState.swfReinsuranceOptionCrossHedgingPolicies?.[crossPolicyKey];
 
+          // Stress-Test-Aware Delta-Cross Hedging & Capital Safeguard Allocations (AF-163)
+          const stressCrossPolicy = newState.swfReinsuranceOptionStressTestDeltaCrossHedgingPolicies?.[crossPolicyKey];
+          let hedgeMultiplier = 1.0;
+
+          if (stressCrossPolicy) {
+            const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
+            const avgVolatility = activeBonds.length > 0
+              ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+              : 15.0;
+
+            const stressPolicy = newState.swfReinsuranceOptionStressTestPolicies?.[crossPolicyKey];
+            const stressVolatility = avgVolatility + (stressPolicy ? stressPolicy.simulatedVolatilityShock : 0.0);
+
+            if (stressVolatility >= stressCrossPolicy.stressVolatilityThreshold) {
+              hedgeMultiplier = stressCrossPolicy.stressHedgeWeightMultiplier;
+
+              // Perform automatic safeguard capital locking/shifting
+              if (!newState.swfSafeguardCapitalReserves) {
+                newState.swfSafeguardCapitalReserves = {};
+              }
+              if (!newState.swfSafeguardCapitalReserves[crossPolicyKey]) {
+                newState.swfSafeguardCapitalReserves[crossPolicyKey] = {
+                  syndicateId,
+                  swfYieldCdoId: opt.swfYieldCdoId,
+                  trancheId: opt.trancheId,
+                  lockedGold: 0,
+                  timestamp: newState.step,
+                };
+              }
+              const safeguard = newState.swfSafeguardCapitalReserves[crossPolicyKey];
+              const currentLocked = safeguard.lockedGold;
+              const targetLocked = stressCrossPolicy.safeguardCapitalReserveLimit;
+
+              if (currentLocked < targetLocked) {
+                const needed = targetLocked - currentLocked;
+                const syndicate = newState.syndicates?.[syndicateId];
+                if (syndicate) {
+                  const shiftAmount = Math.min(syndicate.warChest ?? 0, needed);
+                  if (shiftAmount > 0) {
+                    syndicate.warChest = (syndicate.warChest ?? 0) - shiftAmount;
+                    safeguard.lockedGold += shiftAmount;
+                    safeguard.timestamp = newState.step;
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[Capital Safeguard Lock] Syndicate ${syndicateId} locked ${shiftAmount} gold into safeguard capital reserve due to high volatility stress (Stress Volatility: ${stressVolatility.toFixed(2)}% >= Threshold: ${stressCrossPolicy.stressVolatilityThreshold.toFixed(2)}%, Safeguard Reserve: ${safeguard.lockedGold}/${targetLocked} gold).`
+                    );
+                  }
+                }
+              }
+            } else {
+              // Volatility is below threshold, automatically unlock/draw down safeguard capital reserve
+              const safeguard = newState.swfSafeguardCapitalReserves?.[crossPolicyKey];
+              if (safeguard && safeguard.lockedGold > 0) {
+                const unlockAmount = safeguard.lockedGold;
+                const syndicate = newState.syndicates?.[syndicateId];
+                if (syndicate) {
+                  syndicate.warChest = (syndicate.warChest ?? 0) + unlockAmount;
+                  safeguard.lockedGold = 0;
+                  safeguard.timestamp = newState.step;
+
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[Capital Safeguard Unlock] Syndicate ${syndicateId} unlocked ${unlockAmount} gold from safeguard capital reserve back to warChest as volatility subsided (Stress Volatility: ${stressVolatility.toFixed(2)}% < Threshold: ${stressCrossPolicy.stressVolatilityThreshold.toFixed(2)}%).`
+                  );
+                }
+              }
+            }
+          }
+
           if (multiCrossPolicy && multiCrossPolicy.assets && multiCrossPolicy.assets.length > 0) {
             const spotRate = getCDOTrancheReinsurancePremiumRate(newState, opt.swfYieldCdoId, opt.trancheId);
             let delta = 0.5;
@@ -5104,8 +5174,9 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             }
 
             for (const asset of multiCrossPolicy.assets) {
+              const multipliedWeight = asset.hedgeWeight * hedgeMultiplier;
               const targetHolding = Math.floor(
-                delta * opt.size * asset.correlationCoefficient * asset.hedgeWeight
+                delta * opt.size * asset.correlationCoefficient * multipliedWeight
               );
 
               if (newState.swfYieldCDOs && newState.swfYieldCDOs[asset.correlatedAssetId]) {
@@ -5237,6 +5308,47 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
+      // Capital Safeguard Reserve Payback to prevent margin call liquidations (AF-163)
+      const requiredDynamicBuffer = Math.round(aggregatePendingValue * 0.20);
+      if ((netEquity < maintenanceRequirement || (aggregatePendingValue > 0 && (syndicate?.warChest ?? 0) < requiredDynamicBuffer)) && newState.swfSafeguardCapitalReserves) {
+        for (const [safeguardKey, safeguard] of Object.entries(newState.swfSafeguardCapitalReserves)) {
+          if (safeguard.syndicateId === syndicateId && safeguard.lockedGold > 0) {
+            let needed = 0;
+            if (netEquity < maintenanceRequirement) {
+              needed = maintenanceRequirement - netEquity;
+            } else if (aggregatePendingValue > 0 && (syndicate?.warChest ?? 0) < requiredDynamicBuffer) {
+              needed = requiredDynamicBuffer - (syndicate?.warChest ?? 0);
+            }
+
+            if (needed > 0) {
+              const payback = Math.min(needed, safeguard.lockedGold);
+              safeguard.lockedGold -= payback;
+              safeguard.timestamp = newState.step;
+
+              if (netEquity < maintenanceRequirement) {
+                marginAccount.collateral = (marginAccount.collateral ?? 0) + payback;
+                marginAccount.timestamp = newState.step;
+                netEquity += payback;
+                
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[Capital Safeguard Margin Deficit Payback] Shifted ${payback} gold from capital safeguard reserve to margin collateral for Syndicate ${syndicateId} to prevent margin call liquidation.`
+                );
+              } else {
+                if (syndicate) {
+                  syndicate.warChest = (syndicate.warChest ?? 0) + payback;
+
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[Capital Safeguard War Chest Payback] Shifted ${payback} gold from capital safeguard reserve to war chest for Syndicate ${syndicateId} to prevent margin call due to order book dynamic buffer deficit.`
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+
       // Get the liquidation threshold for the syndicate's written options (or use 1.0 if not defined/default)
       let minThreshold = 1.0;
       if (newState.swfReinsuranceOptionsContracts) {
@@ -5252,13 +5364,13 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       }
 
       // If netEquity < maintenanceRequirement * minThreshold or warChest drops below required dynamic buffer, trigger a MARGIN CALL!
-      const requiredDynamicBuffer = Math.round(aggregatePendingValue * 0.20);
-      const triggerDueToDynamicBuffer = aggregatePendingValue > 0 && warChest < requiredDynamicBuffer;
+      const currentWarChest = syndicate?.warChest ?? 0;
+      const triggerDueToDynamicBuffer = aggregatePendingValue > 0 && currentWarChest < requiredDynamicBuffer;
       const triggerDueToMarginDeficit = netEquity < maintenanceRequirement * minThreshold;
 
       if (triggerDueToMarginDeficit || triggerDueToDynamicBuffer) {
         if (triggerDueToDynamicBuffer) {
-          newState.journal.push(`[Margin Call] Syndicate ${syndicateId} war chest (${warChest} gold) fell below required dynamic buffer of ${requiredDynamicBuffer} gold (20% of aggregate pending SWF options limit order book value ${aggregatePendingValue} gold). Triggering automatic liquidation.`);
+          newState.journal.push(`[Margin Call] Syndicate ${syndicateId} war chest (${currentWarChest} gold) fell below required dynamic buffer of ${requiredDynamicBuffer} gold (20% of aggregate pending SWF options limit order book value ${aggregatePendingValue} gold). Triggering automatic liquidation.`);
         } else {
           newState.journal.push(`[Margin Call] Syndicate ${syndicateId} margin balance fell below maintenance threshold! Net Equity: ${netEquity}, Required: ${maintenanceRequirement} (Threshold Mult: ${minThreshold.toFixed(4)}). Triggering automatic liquidation.`);
         }
