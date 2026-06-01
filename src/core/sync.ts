@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -181,8 +181,7 @@ export function multiAgentStep(
           // Successfully merged and re-applied all transactions!
           // Maintain history on finalState
           const history = state.stateHistory ? [...state.stateHistory] : [];
-          const clonedPriorState = JSON.parse(JSON.stringify(state));
-          delete clonedPriorState.stateHistory;
+          const clonedPriorState = cloneStateWithoutHistory(state);
           history.push(clonedPriorState);
           if (history.length > 50) {
             history.shift();
@@ -266,8 +265,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -362,8 +360,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -465,8 +462,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -557,8 +553,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -702,8 +697,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -792,8 +786,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -882,8 +875,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -987,8 +979,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1077,8 +1068,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1181,8 +1171,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1271,8 +1260,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1352,8 +1340,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1449,8 +1436,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1546,8 +1532,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1674,8 +1659,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1765,8 +1749,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1874,8 +1857,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -1952,8 +1934,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2033,8 +2014,7 @@ export function multiAgentStep(
     // Maintain history on successful steps
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2110,8 +2090,7 @@ export function multiAgentStep(
 
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2190,8 +2169,7 @@ export function multiAgentStep(
 
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2277,8 +2255,7 @@ export function multiAgentStep(
 
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2373,8 +2350,7 @@ export function multiAgentStep(
 
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2465,8 +2441,7 @@ export function multiAgentStep(
 
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2543,8 +2518,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2659,8 +2633,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2764,8 +2737,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2867,8 +2839,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -2974,8 +2945,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -3221,8 +3191,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -3372,8 +3341,7 @@ export function multiAgentStep(
     newState.step += 1;
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -3497,8 +3465,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -3612,8 +3579,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -3731,8 +3697,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -3846,8 +3811,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -3963,8 +3927,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -4074,8 +4037,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -4202,8 +4164,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -4318,8 +4279,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -4435,8 +4395,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -4560,8 +4519,7 @@ export function multiAgentStep(
       newState = tickProductionLabs(newState, customEvents, pack);
 
       const history = state.stateHistory ? [...state.stateHistory] : [];
-      const clonedPriorState = JSON.parse(JSON.stringify(state));
-      delete clonedPriorState.stateHistory;
+      const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);
       if (history.length > 50) {
         history.shift();
@@ -4659,8 +4617,7 @@ export function multiAgentStep(
   // Maintain history on successful steps
   if (stepResult.ok) {
     const history = state.stateHistory ? [...state.stateHistory] : [];
-    const clonedPriorState = JSON.parse(JSON.stringify(state));
-    delete clonedPriorState.stateHistory;
+    const clonedPriorState = cloneStateWithoutHistory(state);
     history.push(clonedPriorState);
     if (history.length > 50) {
       history.shift();
