@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -1849,6 +1849,59 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               newState.journal.push(`[Underground Railroad] Tunnel transport drone ${droneId} in tunnel ${drone.tunnelId} automated contraband transport safely, bypassing surface sweeps. Distributed profit of ${profit} gold (${share} gold per member) to syndicate ${drone.syndicateId}.`);
             }
           }
+        }
+      }
+    }
+  }
+
+  // Periodic Safehouse Storage Rent & Over-limit Penalties Ticking (AF-85)
+  if (newState.safehouses) {
+    for (const [roomId, safehouse] of Object.entries(newState.safehouses)) {
+      const syndicate = newState.syndicates?.[safehouse.syndicateId];
+      if (!syndicate) continue;
+
+      // 1. Non-member storage rent
+      const rentRate = safehouse.storageRentRate ?? newState.safehouseRentPolicies?.[roomId] ?? 0;
+      if (rentRate > 0) {
+        for (const itemId of safehouse.stashItems) {
+          const itemOwner = newState.stashItemOwners?.[itemId];
+          // If owner is known and is not in the syndicate members, charge rent!
+          if (itemOwner && !syndicate.members.includes(itemOwner)) {
+            const ownerGoldKey = itemOwner === "player" ? "gold" : `gold_${itemOwner}`;
+            const currentGold = newState.vars[ownerGoldKey] ?? 0;
+            const paidRent = Math.min(currentGold, rentRate);
+            if (paidRent > 0) {
+              newState.vars[ownerGoldKey] = currentGold - paidRent;
+
+              // Distribute profits to syndicate members
+              const members = syndicate.members ?? [];
+              const share = members.length > 0 ? Math.floor(paidRent / members.length) : 0;
+              if (share > 0) {
+                for (const member of members) {
+                  const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                  newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+                }
+              }
+              newState.journal.push(`[Safehouse Rent] Charged non-member agent ${itemOwner} ${paidRent} gold rent for storing item ${itemId} in room ${roomId}. Distributed to syndicate ${safehouse.syndicateId} members.`);
+            }
+          }
+        }
+      }
+
+      // 2. Over-limit penalty
+      const dynamicCap = getSafehouseStorageCapacity(newState, roomId);
+      if (safehouse.stashItems.length > dynamicCap) {
+        const overLimitCount = safehouse.stashItems.length - dynamicCap;
+        const penaltyRate = 20; // 20 gold per over-limit item per tick
+        const totalPenalty = overLimitCount * penaltyRate;
+
+        // Charge safehouse owner
+        const ownerGoldKey = safehouse.ownerId === "player" ? "gold" : `gold_${safehouse.ownerId}`;
+        const currentGold = newState.vars[ownerGoldKey] ?? 0;
+        const paidPenalty = Math.min(currentGold, totalPenalty);
+        if (paidPenalty > 0) {
+          newState.vars[ownerGoldKey] = currentGold - paidPenalty;
+          newState.journal.push(`[Safehouse Penalty] Safehouse in room ${roomId} is over capacity (${safehouse.stashItems.length}/${dynamicCap}). Charged owner ${safehouse.ownerId} a penalty of ${paidPenalty} gold for over-limit storage.`);
         }
       }
     }

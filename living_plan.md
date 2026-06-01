@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #84 (Ready for Cycle #85)
-* **Build/Test Status**: 🟢 PASS (All 396 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #85 (Ready for Cycle #86)
+* **Build/Test Status**: 🟢 PASS (All 402 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -492,16 +492,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Deploy automated Tunnel Transport Drones that generate passive contraband smuggling profits for the owning syndicate (`AF-84`).
 - [x] Write comprehensive Vitest integration tests for all railroad features (`AF-84`).
 
+- [x] Add `UPGRADE_SAFEHOUSE_STORAGE`, `ESTABLISH_STORAGE_RENT`, and `VOTE_STORAGE_RENT_RATE` decentralized actions (`AF-85`).
+- [x] Implement dynamic safehouse contraband storage capacity scaling based on upgrades and dynamic regional supply limits (`AF-85`).
+- [x] Wire storage rent charges and voting arbitrations to distribute rent profits to the syndicate and penalize over-limit storage (`AF-85`).
+- [x] Write comprehensive Vitest integration tests (`AF-85`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-85`
-* **Objective**: Smuggler Syndicate Cartel Contraband Safehouse Storage Upgrades, Dynamic Regional Supply Caps, and Cartel Storage Rent Arbitration.
-* **Why this matters**: Introduce advanced safehouse storage mechanics for smuggling syndicates, enabling them to expand storage capacity, adjust dynamic regional supply limits, levy storage rents on non-members, and execute consensual storage rent votes and consensus arbitrations.
+**Task ID**: `AF-86`
+* **Objective**: Smuggler Syndicate Cartel Bank Vault Upgrades, Dynamic Syndicate Deposit Capacities, and Cartel Interest Rate consensus arbitration.
+* **Why this matters**: Further expand the syndicate banking mechanics, enabling syndicates to construct and upgrade bank vaults, dynamically scale deposit capacities, levy withdrawal tariffs on non-members, and execute consensual interest rate consensus voting arbitrations.
 * **Planned Actions**:
-  1. Add `UPGRADE_SAFEHOUSE_STORAGE`, `ESTABLISH_STORAGE_RENT`, and `VOTE_STORAGE_RENT_RATE` decentralized actions.
-  2. Implement dynamic safehouse contraband storage capacity scaling based on upgrades and dynamic regional supply limits.
-  3. Wire storage rent charges and voting arbitrations to distribute rent profits to the syndicate and penalize over-limit storage.
+  1. Add `UPGRADE_BANK_VAULT`, `ESTABLISH_WITHDRAWAL_TARIFF`, and `VOTE_INTEREST_RATE` decentralized actions.
+  2. Implement dynamic vault deposit capacities scaling based on upgrades and enforcer heat pressure.
+  3. Wire interest rate payouts and consensus arbitrations to distribute passive income or charge non-members transaction fees.
   4. Write comprehensive Vitest integration tests.
 
 ---

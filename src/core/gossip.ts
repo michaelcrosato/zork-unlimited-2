@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -718,6 +718,36 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     ...(stateB.cartelGlobalTaxPolicy || {}),
   };
 
+  // Merge safehouseRentVotes using LWW (Last-Write-Wins)
+  const safehouseRentVotes = { ...stateA.safehouseRentVotes };
+  if (stateB.safehouseRentVotes) {
+    for (const [roomId, bVotes] of Object.entries(stateB.safehouseRentVotes)) {
+      if (!safehouseRentVotes[roomId]) {
+        safehouseRentVotes[roomId] = { ...bVotes };
+      } else {
+        safehouseRentVotes[roomId] = { ...safehouseRentVotes[roomId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = safehouseRentVotes[roomId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            safehouseRentVotes[roomId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge safehouseRentPolicies
+  const safehouseRentPolicies = {
+    ...(stateA.safehouseRentPolicies || {}),
+    ...(stateB.safehouseRentPolicies || {}),
+  };
+
+  // Merge stashItemOwners
+  const stashItemOwners = {
+    ...(stateA.stashItemOwners || {}),
+    ...(stateB.stashItemOwners || {}),
+  };
+
   // Merge contrabandBlacklist using LWW (Last-Write-Wins)
   const contrabandBlacklist = { ...stateA.contrabandBlacklist };
   if (stateB.contrabandBlacklist) {
@@ -1293,6 +1323,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     decoyConvoys,
     tradeExchangeRates,
     auditMitigations,
+    safehouseRentVotes,
+    safehouseRentPolicies,
+    stashItemOwners,
   };
 }
 
@@ -1614,6 +1647,7 @@ export class GossipNode {
     convergedState = reconcileEspionageNetworks(convergedState, this.pack);
     convergedState = reconcileWiretaps(convergedState, this.pack);
     convergedState = reconcileCartelGlobalTaxes(convergedState, this.pack);
+    convergedState = reconcileSafehouseRentRates(convergedState, this.pack);
     convergedState = reconcileSmugglerGuildCbas(convergedState, this.pack);
     convergedState = reconcileCovertCells(convergedState, this.pack);
     convergedState = reconcilePropagandaCampaigns(convergedState, this.pack);

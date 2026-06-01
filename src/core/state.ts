@@ -273,6 +273,12 @@ export const DeflectionPolicySchema = z.object({
 });
 export type DeflectionPolicy = z.infer<typeof DeflectionPolicySchema>;
 
+export const SafehouseRentVoteSchema = z.object({
+  rate: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SafehouseRentVote = z.infer<typeof SafehouseRentVoteSchema>;
+
 export const SyndicateSafehouseSchema = z.object({
   id: z.string(),
   roomId: z.string(),
@@ -282,6 +288,8 @@ export const SyndicateSafehouseSchema = z.object({
   stashCapacity: z.number().int().nonnegative(),
   stashItems: z.array(z.string()),
   timestamp: z.number().int(),
+  storageUpgradeLevel: z.number().int().nonnegative().optional(),
+  storageRentRate: z.number().int().nonnegative().optional(),
 });
 export type SyndicateSafehouse = z.infer<typeof SyndicateSafehouseSchema>;
 
@@ -882,6 +890,9 @@ export const GameStateSchema = z.object({
   syndicateBanks: z.record(z.string(), SyndicateBankSchema).optional(),
   tradeExchangeRates: z.record(z.string(), TradeExchangeRateSchema).optional(),
   auditMitigations: z.record(z.string(), AuditMitigationSchema).optional(),
+  stashItemOwners: z.record(z.string(), z.string()).optional(),
+  safehouseRentVotes: z.record(z.string(), z.record(z.string(), SafehouseRentVoteSchema)).optional(),
+  safehouseRentPolicies: z.record(z.string(), z.number()).optional(),
 });
 
 
@@ -1025,6 +1036,9 @@ export const createInitialState = (options: {
     contrabandTunnels: {},
     tunnelTolls: {},
     tunnelDrones: {},
+    stashItemOwners: {},
+    safehouseRentVotes: {},
+    safehouseRentPolicies: {},
   };
 };
 
@@ -1728,6 +1742,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     contrabandTunnels: rest.contrabandTunnels ? JSON.parse(JSON.stringify(rest.contrabandTunnels)) : undefined,
     tunnelTolls: rest.tunnelTolls ? JSON.parse(JSON.stringify(rest.tunnelTolls)) : undefined,
     tunnelDrones: rest.tunnelDrones ? JSON.parse(JSON.stringify(rest.tunnelDrones)) : undefined,
+    stashItemOwners: rest.stashItemOwners ? { ...rest.stashItemOwners } : undefined,
+    safehouseRentVotes: rest.safehouseRentVotes ? JSON.parse(JSON.stringify(rest.safehouseRentVotes)) : undefined,
+    safehouseRentPolicies: rest.safehouseRentPolicies ? { ...rest.safehouseRentPolicies } : undefined,
   };
   return clone;
 }
@@ -2063,5 +2080,65 @@ export function reconcileTariffExemptions(state: GameState, pack: any): GameStat
   }
 
   return newState;
+}
+
+export function reconcileSafehouseRentRates(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    safehouses: state.safehouses ? { ...state.safehouses } : {},
+    safehouseRentPolicies: state.safehouseRentPolicies ? { ...state.safehouseRentPolicies } : {},
+  };
+
+  if (!newState.safehouseRentVotes) {
+    newState.safehouseRentVotes = {};
+  }
+
+  for (const [roomId, votes] of Object.entries(newState.safehouseRentVotes)) {
+    const safehouse = newState.safehouses?.[roomId];
+    if (!safehouse) continue;
+
+    const syndicate = newState.syndicates?.[safehouse.syndicateId];
+    if (!syndicate) continue;
+
+    // Only count votes from current members of the syndicate
+    const counts: Record<number, number> = {};
+    for (const [agentId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(agentId)) {
+        counts[vote.rate] = (counts[vote.rate] ?? 0) + 1;
+      }
+    }
+
+    let maxCount = 0;
+    let consensusRate = newState.safehouseRentPolicies[roomId] ?? 0;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort rates descending to prefer higher rates.
+    const uniqueRates = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = counts[rate];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    newState.safehouseRentPolicies[roomId] = consensusRate;
+    // Mutate the cloned safehouse to keep it in sync
+    newState.safehouses[roomId] = {
+      ...safehouse,
+      storageRentRate: consensusRate,
+    };
+  }
+
+  return newState;
+}
+
+export function getSafehouseStorageCapacity(state: GameState, roomId: string): number {
+  const safehouse = state.safehouses?.[roomId];
+  if (!safehouse) return 0;
+  const baseCap = safehouse.stashCapacity ?? (safehouse.level * 5);
+  const upgradeBonus = (safehouse.storageUpgradeLevel ?? 0) * 10;
+  const regionalSupplyCap = Math.max(2, 20 - (state.enforcementHeat?.[roomId]?.heat ?? 0));
+  return baseCap + upgradeBonus + regionalSupplyCap;
 }
 

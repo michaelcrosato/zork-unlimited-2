@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -3873,15 +3873,16 @@ export function multiAgentStep(
       rejectionReason = `No safehouse exists in room ${roomId}.`;
     } else {
       const syndicate = state.syndicates?.[safehouse.syndicateId];
-      if (!syndicate || !syndicate.members.includes(agentId)) {
-        rejectionReason = `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId}.`;
+      if (!syndicate) {
+        rejectionReason = `Syndicate ${safehouse.syndicateId} does not exist.`;
       } else {
         // Check if agent has item in inventory
         const agentInv = agentId === "player" ? state.inventory : state.agents?.[agentId]?.inventory ?? [];
+        const dynamicCapacity = getSafehouseStorageCapacity(state, roomId);
         if (!agentInv.includes(itemId)) {
           rejectionReason = `Agent ${agentId} does not possess item ${itemId} to deposit.`;
-        } else if (safehouse.stashItems.length >= safehouse.stashCapacity) {
-          rejectionReason = `Safehouse stash in ${roomId} is at capacity (${safehouse.stashCapacity}/${safehouse.stashCapacity}).`;
+        } else if (safehouse.stashItems.length >= dynamicCapacity) {
+          rejectionReason = `Safehouse stash in ${roomId} is at capacity (${safehouse.stashItems.length}/${dynamicCapacity}).`;
         } else {
           ok = true;
         }
@@ -3911,6 +3912,12 @@ export function multiAgentStep(
         timestamp,
       };
       newState.safehouses = safehouses;
+
+      // Track item owner
+      newState.stashItemOwners = {
+        ...(newState.stashItemOwners || {}),
+        [itemId]: agentId,
+      };
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(`[Syndicate] Agent ${agentId} deposited ${itemId} into safehouse stash in ${roomId}.`);
@@ -3989,10 +3996,12 @@ export function multiAgentStep(
       rejectionReason = `No safehouse exists in room ${roomId}.`;
     } else {
       const syndicate = state.syndicates?.[safehouse.syndicateId];
-      if (!syndicate || !syndicate.members.includes(agentId)) {
-        rejectionReason = `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId}.`;
-      } else if (!safehouse.stashItems.includes(itemId)) {
+      const isMember = syndicate?.members.includes(agentId) ?? false;
+      const itemOwner = state.stashItemOwners?.[itemId];
+      if (!safehouse.stashItems.includes(itemId)) {
         rejectionReason = `Safehouse stash in ${roomId} does not contain item ${itemId}.`;
+      } else if (!isMember && itemOwner !== agentId) {
+        rejectionReason = `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId} and does not own item ${itemId}.`;
       } else {
         ok = true;
       }
@@ -4020,6 +4029,13 @@ export function multiAgentStep(
           inventory: [...agents[agentId].inventory, itemId],
         };
         newState.agents = agents;
+      }
+
+      // Remove from stashItemOwners
+      if (newState.stashItemOwners) {
+        const stashItemOwners = { ...newState.stashItemOwners };
+        delete stashItemOwners[itemId];
+        newState.stashItemOwners = stashItemOwners;
       }
 
       if (!newState.journal) newState.journal = [];
@@ -11869,6 +11885,348 @@ export function multiAgentStep(
         cost,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized UPGRADE_SAFEHOUSE_STORAGE action (AF-85)
+  if ((action as any).type === "UPGRADE_SAFEHOUSE_STORAGE") {
+    const { roomId, cost: costParam, timestamp } = action as any;
+    const cost = costParam ?? 150;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const safehouse = state.safehouses?.[roomId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to upgrade safehouse storage.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Safehouse storage upgrade cost ${cost} must be a non-negative integer.`;
+    } else if (!safehouse) {
+      rejectionReason = `No safehouse exists in room ${roomId}.`;
+    } else {
+      const syndicate = state.syndicates?.[safehouse.syndicateId];
+      if (!syndicate || !syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId}.`;
+      } else {
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        if (currentGold < cost) {
+          rejectionReason = `Insufficient gold to upgrade safehouse storage (requires ${cost}, has ${currentGold}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && safehouse) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const nextUpgradeLevel = (safehouse.storageUpgradeLevel ?? 0) + 1;
+      const safehouses = { ...(state.safehouses || {}) };
+      safehouses[roomId] = {
+        ...safehouse,
+        storageUpgradeLevel: nextUpgradeLevel,
+        timestamp,
+      };
+      newState.safehouses = safehouses;
+
+      // Recalculate dynamic capacity
+      const newCap = getSafehouseStorageCapacity(newState, roomId);
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Safehouse] Agent ${agentId} upgraded Safehouse in room ${roomId} storage to level ${nextUpgradeLevel} for ${cost} gold. New capacity: ${newCap}.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `📦 Safehouse storage upgraded to level ${nextUpgradeLevel}! Capacity expanded to ${newCap} contraband items.`,
+      } as any);
+
+      customEvents.push({
+        type: "safehouse_storage_upgraded" as any,
+        roomId,
+        syndicateId: safehouse.syndicateId,
+        storageLevel: nextUpgradeLevel,
+        newCapacity: newCap,
+        cost,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ESTABLISH_STORAGE_RENT action (AF-85)
+  if ((action as any).type === "ESTABLISH_STORAGE_RENT") {
+    const { roomId, rentRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const safehouse = state.safehouses?.[roomId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to establish storage rent.`;
+    } else if (rentRate === undefined || rentRate < 0 || !Number.isInteger(rentRate)) {
+      rejectionReason = `Storage rent rate must be a non-negative integer.`;
+    } else if (!safehouse) {
+      rejectionReason = `No safehouse exists in room ${roomId}.`;
+    } else {
+      const syndicate = state.syndicates?.[safehouse.syndicateId];
+      if (!syndicate || !syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId}.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && safehouse) {
+      const safehouses = { ...(state.safehouses || {}) };
+      safehouses[roomId] = {
+        ...safehouse,
+        storageRentRate: rentRate,
+        timestamp,
+      };
+      newState.safehouses = safehouses;
+
+      const safehouseRentPolicies = { ...(state.safehouseRentPolicies || {}) };
+      safehouseRentPolicies[roomId] = rentRate;
+      newState.safehouseRentPolicies = safehouseRentPolicies;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Safehouse] Agent ${agentId} established storage rent rate of ${rentRate} gold per tick in room ${roomId}.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Storage rent rate for safehouse in room ${roomId} has been established at ${rentRate} gold per tick for non-members.`,
+      } as any);
+
+      customEvents.push({
+        type: "storage_rent_established" as any,
+        roomId,
+        rentRate,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_STORAGE_RENT_RATE action (AF-85)
+  if ((action as any).type === "VOTE_STORAGE_RENT_RATE") {
+    const { roomId, rate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const safehouse = state.safehouses?.[roomId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to vote on storage rent rate.`;
+    } else if (rate === undefined || rate < 0 || !Number.isInteger(rate)) {
+      rejectionReason = `Proposed storage rent rate must be a non-negative integer.`;
+    } else if (!safehouse) {
+      rejectionReason = `No safehouse exists in room ${roomId}.`;
+    } else {
+      const syndicate = state.syndicates?.[safehouse.syndicateId];
+      if (!syndicate || !syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of the syndicate owning the safehouse in ${roomId} and cannot vote.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && safehouse) {
+      const safehouseRentVotes = { ...(state.safehouseRentVotes || {}) };
+      if (!safehouseRentVotes[roomId]) {
+        safehouseRentVotes[roomId] = {};
+      } else {
+        safehouseRentVotes[roomId] = { ...safehouseRentVotes[roomId] };
+      }
+
+      const existingVote = safehouseRentVotes[roomId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        safehouseRentVotes[roomId][agentId] = {
+          rate,
+          timestamp,
+        };
+        newState.safehouseRentVotes = safehouseRentVotes;
+        newState = reconcileSafehouseRentRates(newState, pack);
+
+        const newRentRate = newState.safehouseRentPolicies?.[roomId] ?? 0;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Safehouse] Agent ${agentId} voted for storage rent rate ${rate} in safehouse ${roomId}. Reconciled rate is now ${newRentRate}.`);
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Storage rent rate vote cast by ${agentId} for ${rate} gold. Reconciled rate is now ${newRentRate} gold per tick.`,
+        } as any);
+
+        customEvents.push({
+          type: "safehouse_rent_voted" as any,
+          roomId,
+          agentId,
+          rate,
+          reconciledRate: newRentRate,
+          timestamp,
+        });
+      }
     }
 
     newState.step += 1;

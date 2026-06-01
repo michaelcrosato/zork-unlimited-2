@@ -101,7 +101,10 @@ export type Action =
   | { type: "DEPLOY_INTERCEPTOR_DECOY"; decoyId: string; syndicateId: string; routeId: string; cost?: number; timestamp: number }
   | { type: "CONSTRUCT_CONTRABAND_TUNNEL"; tunnelId: string; syndicateId: string; fromRoomId: string; toRoomId: string; cost?: number; timestamp: number }
   | { type: "ESTABLISH_TUNNEL_TOLL"; tunnelId: string; syndicateId: string; tollAmount: number; timestamp: number }
-  | { type: "DEPLOY_TUNNEL_DRONE"; droneId: string; syndicateId: string; tunnelId: string; cargoCapacity: number; cost?: number; timestamp: number };
+  | { type: "DEPLOY_TUNNEL_DRONE"; droneId: string; syndicateId: string; tunnelId: string; cargoCapacity: number; cost?: number; timestamp: number }
+  | { type: "UPGRADE_SAFEHOUSE_STORAGE"; roomId: string; cost?: number; timestamp: number }
+  | { type: "ESTABLISH_STORAGE_RENT"; roomId: string; rentRate: number; timestamp: number }
+  | { type: "VOTE_STORAGE_RENT_RATE"; roomId: string; rate: number; timestamp: number };
 
 
 
