@@ -2675,6 +2675,22 @@ export const SweepPoolRankAdjustProposalSchema = z.object({
 });
 export type SweepPoolRankAdjustProposal = z.infer<typeof SweepPoolRankAdjustProposalSchema>;
 
+export const SweepPoolRankAdjustFeeCalibrationProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetProposalFee: z.number().int().nonnegative(),
+  targetVoteFee: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SweepPoolRankAdjustFeeCalibrationProposal = z.infer<typeof SweepPoolRankAdjustFeeCalibrationProposalSchema>;
+
+
 
 
 export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
@@ -3593,6 +3609,9 @@ export const GameStateSchema = z.object({
   sweepPoolRedistributionProposals: z.record(z.string(), SweepPoolRedistributionProposalSchema).optional(),
   sweepPoolRankAdjustProposals: z.record(z.string(), SweepPoolRankAdjustProposalSchema).optional(),
   sweepPoolAutoCompound: z.boolean().optional(),
+  sweepPoolRankAdjustBaseProposalFee: z.number().int().nonnegative().optional(),
+  sweepPoolRankAdjustBaseVoteFee: z.number().int().nonnegative().optional(),
+  sweepPoolRankAdjustFeeCalibrationProposals: z.record(z.string(), SweepPoolRankAdjustFeeCalibrationProposalSchema).optional(),
 
 
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
@@ -3995,6 +4014,9 @@ export const createInitialState = (options: {
     sweepPoolRedistributionProposals: {},
     sweepPoolRankAdjustProposals: {},
     sweepPoolAutoCompound: false,
+    sweepPoolRankAdjustBaseProposalFee: 200,
+    sweepPoolRankAdjustBaseVoteFee: 50,
+    sweepPoolRankAdjustFeeCalibrationProposals: {},
 
 
     swfReinsuranceOptionPremiumContributions: {},
@@ -5098,6 +5120,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfStabilityPool: rest.swfStabilityPool,
     cooperativeStakingYieldSweepProposals: rest.cooperativeStakingYieldSweepProposals ? JSON.parse(JSON.stringify(rest.cooperativeStakingYieldSweepProposals)) : undefined,
     swfStakingSweepPool: rest.swfStakingSweepPool,
+    sweepPoolRankAdjustBaseProposalFee: rest.sweepPoolRankAdjustBaseProposalFee,
+    sweepPoolRankAdjustBaseVoteFee: rest.sweepPoolRankAdjustBaseVoteFee,
+    sweepPoolRankAdjustFeeCalibrationProposals: rest.sweepPoolRankAdjustFeeCalibrationProposals ? JSON.parse(JSON.stringify(rest.sweepPoolRankAdjustFeeCalibrationProposals)) : undefined,
 
 
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
@@ -8967,6 +8992,59 @@ export function reconcileSweepPoolRankAdjust(state: GameState, pack: any): GameS
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Sweep Pool Rank Adjust Resolved] Syndicate ${syndicateId} successfully authorized sweep pool rank adjust proposal ${proposalId} setting Syndicate ${targetSyndicateId} rank to ${targetRank}.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSweepPoolRankAdjustFeeCalibrations(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sweepPoolRankAdjustFeeCalibrationProposals: state.sweepPoolRankAdjustFeeCalibrationProposals ? { ...state.sweepPoolRankAdjustFeeCalibrationProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sweepPoolRankAdjustFeeCalibrationProposals || {})) {
+    const proposal = newState.sweepPoolRankAdjustFeeCalibrationProposals?.[proposalId];
+    if (!proposal || proposal.resolved || proposal.status === "authorized") continue;
+
+    const { syndicateId, targetProposalFee, targetVoteFee } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (falseVotes.length > 0) {
+      newState.sweepPoolRankAdjustFeeCalibrationProposals[proposalId] = {
+        ...proposal,
+        status: "disputed",
+      };
+    }
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sweepPoolRankAdjustFeeCalibrationProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      newState.sweepPoolRankAdjustBaseProposalFee = targetProposalFee;
+      newState.sweepPoolRankAdjustBaseVoteFee = targetVoteFee;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Rank Adjust Fee Calibration Resolved] Syndicate ${syndicateId} successfully authorized fee calibration proposal ${proposalId} setting base proposal fee to ${targetProposalFee} and base vote fee to ${targetVoteFee}.`
       );
     }
   }

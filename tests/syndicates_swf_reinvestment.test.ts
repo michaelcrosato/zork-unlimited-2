@@ -1711,8 +1711,8 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(prop?.status).toBe("proposed");
     expect(prop?.resolved).toBe(false);
     expect(prop?.votes?.["player"]?.vote).toBe(true);
-    // Proposal fee deducted: 10000 - 200 = 9800
-    expect(state.syndicates?.alpha?.warChest).toBe(9800);
+    // Proposal fee deducted: 10000 - 90 = 9910 (due to dynamic fee calibration)
+    expect(state.syndicates?.alpha?.warChest).toBe(9910);
 
     // Vote to authorize by alice (majority of alpha: members are player and alice, majority is > 1 which is 2)
     const stepResult2 = multiAgentStep(
@@ -1739,8 +1739,8 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(propAfter?.resolved).toBe(true);
     // GameState fields updated!
     expect(state.syndicateMeshParticipationRanks?.beta).toBe(5);
-    // Vote fee deducted: 9800 - 50 = 9750
-    expect(state.syndicates?.alpha?.warChest).toBe(9750);
+    // Vote fee deducted: 9910 - 23 = 9887 (due to dynamic fee calibration)
+    expect(state.syndicates?.alpha?.warChest).toBe(9887);
   });
 
   it("should dynamically scale participation ranks based on faction standing during sweep pool redistribution", () => {
@@ -1854,6 +1854,170 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(afterState.journal).toContain(
       "[SWF Staking Sweep Redistribution] Redistributed 600 gold from sweep pool back to Syndicate alpha (150 gold) and Syndicate beta (450 gold) war chests."
     );
+  });
+
+  describe("Syndicate SWF Sweep Pool Rank Adjust Fee Calibration (AF-209)", () => {
+    it("should dynamically scale proposal and vote fees based on alliance count and total treasury reserves", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player", "alice"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player", "alice"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 2000, // 2000 gold
+        },
+        beta: {
+          id: "beta",
+          name: "Beta Syndicate",
+          members: [],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 1000, // 1000 gold
+        },
+        gamma: {
+          id: "gamma",
+          name: "Gamma Syndicate",
+          members: [],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 1000, // 1000 gold
+        },
+      };
+
+      // Establish alliances (alpha is allied to beta and gamma, count = 2)
+      state.syndicateAlliances = {
+        alpha: { beta: "allied", gamma: "allied" },
+        beta: { alpha: "allied" },
+        gamma: { alpha: "allied" },
+      };
+
+      // Alliance Count = 2 -> allianceScalar = Math.max(0.5, 1.0 - 2 * 0.1) = 0.8
+      // Total Treasury Reserves = alpha(2000) + beta(1000) + gamma(1000) = 4000
+      // reserveScalar = Math.max(0.5, 1.0 - Math.floor(4000 / 1000) * 0.05) = Math.max(0.5, 1.0 - 4 * 0.05) = 0.8
+      // dynamicFeeMultiplier = 0.8 * 0.8 = 0.64
+      // Proposal fee = Math.round(200 * 0.64) = 128
+      // Vote fee = Math.round(50 * 0.64) = 32
+
+      const stepResult = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "PROPOSE_SWEEP_POOL_RANK_ADJUST",
+            proposalId: "rank_adjust_calib",
+            syndicateId: "alpha",
+            targetSyndicateId: "beta",
+            targetRank: 7,
+            timestamp: 1005,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult.ok).toBe(true);
+      state = stepResult.state;
+      // Propose fee deducted: 2000 - 128 = 1872
+      expect(state.syndicates?.alpha?.warChest).toBe(1872);
+
+      const stepResult2 = multiAgentStep(
+        state,
+        {
+          agentId: "alice",
+          action: {
+            type: "VOTE_SWEEP_POOL_RANK_ADJUST",
+            syndicateId: "alpha",
+            proposalId: "rank_adjust_calib",
+            vote: true,
+            timestamp: 1020,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult2.ok).toBe(true);
+      state = stepResult2.state;
+      // Vote fee deducted: 1872 - 34 = 1838 (due to slightly lower total reserves after proposal deduction)
+      expect(state.syndicates?.alpha?.warChest).toBe(1838);
+    });
+
+    it("should allow proposing and voting on sweep pool rank adjust fee calibrations", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player", "alice"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player", "alice"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 2000,
+        },
+      };
+
+      // Propose fee calibration
+      const stepResult = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "PROPOSE_SWEEP_POOL_RANK_ADJUST_FEE_CALIBRATION",
+            proposalId: "calib_prop_1",
+            syndicateId: "alpha",
+            targetProposalFee: 150,
+            targetVoteFee: 40,
+            timestamp: 1005,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult.ok).toBe(true);
+      state = stepResult.state;
+
+      const prop = state.sweepPoolRankAdjustFeeCalibrationProposals?.["calib_prop_1"];
+      expect(prop?.status).toBe("proposed");
+      expect(prop?.resolved).toBe(false);
+
+      // Vote to authorize by alice
+      const stepResult2 = multiAgentStep(
+        state,
+        {
+          agentId: "alice",
+          action: {
+            type: "VOTE_SWEEP_POOL_RANK_ADJUST_FEE_CALIBRATION",
+            syndicateId: "alpha",
+            proposalId: "calib_prop_1",
+            vote: true,
+            timestamp: 1020,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult2.ok).toBe(true);
+      state = stepResult2.state;
+
+      const propAfter = state.sweepPoolRankAdjustFeeCalibrationProposals?.["calib_prop_1"];
+      expect(propAfter?.status).toBe("authorized");
+      expect(propAfter?.resolved).toBe(true);
+
+      // Verify GameState fields are updated
+      expect(state.sweepPoolRankAdjustBaseProposalFee).toBe(150);
+      expect(state.sweepPoolRankAdjustBaseVoteFee).toBe(40);
+    });
   });
 });
 

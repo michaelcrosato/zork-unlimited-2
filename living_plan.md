@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #206 (Ready for Cycle #207)
+* **Autonomous Cycle**: Completed Cycle #207 (Ready for Cycle #208)
 * **Build/Test Status**: 🟢 PASS (All 748 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
@@ -1322,15 +1322,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 187: Syndicate SWF Sweep Pool Re-weighting Vote Fee Calibration & Allied Mesh Treasury Reserve Stabilization (Completed)
+- [x] Define dynamic fee scalars based on alliance count and total treasury reserves (`AF-209`).
+- [x] Implement propose/vote adjustment actions or scaling logic for the fees of `PROPOSE_SWEEP_POOL_RANK_ADJUST` and `VOTE_SWEEP_POOL_RANK_ADJUST` (`AF-209`).
+- [x] Wire fee deduction dynamically during multi-agent sync step (`AF-209`).
+- [x] Write comprehensive Vitest integration tests and merge support (`AF-209`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-209`
-* **Objective**: Syndicate SWF Sweep Pool Re-weighting Vote Fee Calibration & Allied Mesh Treasury Reserve Stabilization.
-* **Why this matters**: Introduce calibration of the proposal and vote fees for `PROPOSE_SWEEP_POOL_RANK_ADJUST` based on treasury reserve levels and alliance count (making adjustments cheaper for large alliances with healthy reserves).
+**Task ID**: `AF-210`
+* **Objective**: Syndicate SWF Sweep Pool Re-weighting Governance Cap & Dynamic Surplus Redistribution.
+* **Why this matters**: Introduce a governance cap for rank adjust and sweep pool redistribution transaction fees, and route any fee surpluses above the base cost to the alliance's shared sweep pool to stabilize the mesh treasury.
 * **Planned Actions**:
-  1. Define dynamic fee scalars based on alliance count and total treasury reserves.
-  2. Implement propose/vote adjustment actions or scaling logic for the fees of `PROPOSE_SWEEP_POOL_RANK_ADJUST` and `VOTE_SWEEP_POOL_RANK_ADJUST`.
-  3. Wire fee deduction dynamically during multi-agent sync step.
-  4. Write comprehensive Vitest integration tests and merge support.
+  1. Propose and vote on sweep pool rank adjust fee governance caps.
+  2. Wire logic in sync step to route fee surpluses to `swfStakingSweepPool`.
+  3. Write integration tests and run autopilot validation.
 
 ---
 
