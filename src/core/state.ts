@@ -3012,6 +3012,13 @@ export const SovereignDebtCDSCDOTrancheSchema = z.object({
   totalValue: z.number().int().nonnegative(),
   sharesOwned: z.record(z.string(), z.number().int().nonnegative()),
   timestamp: z.number().int(),
+  marginRequirement: z.number().int().nonnegative().optional(),
+  maintenanceThreshold: z.number().int().nonnegative().optional(),
+  marginCollateral: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  autocallTriggerLevel: z.number().int().nonnegative().optional(),
+  autocallCoupon: z.number().int().nonnegative().optional(),
+  autocallPaid: z.record(z.string(), z.boolean()).optional(),
+  marginCallActive: z.record(z.string(), z.boolean()).optional(),
 });
 export type SovereignDebtCDSCDOTranche = z.infer<typeof SovereignDebtCDSCDOTrancheSchema>;
 
@@ -3130,6 +3137,35 @@ export const SovereignDebtCDSCDOTrancheMarketSpreadSchema = z.object({
   timestamp: z.number().int(),
 });
 export type SovereignDebtCDSCDOTrancheMarketSpread = z.infer<typeof SovereignDebtCDSCDOTrancheMarketSpreadSchema>;
+
+export const SovereignDebtCDSCDOTrancheMarginAdjustmentSchema = z.object({
+  adjustmentId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  syndicateId: z.string(),
+  amount: z.number().int(),
+  status: z.enum(["proposed", "approved", "rejected"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOTrancheMarginAdjustment = z.infer<typeof SovereignDebtCDSCDOTrancheMarginAdjustmentSchema>;
+
+export const SovereignDebtCDSCDOAutocallTriggerSchema = z.object({
+  triggerId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  syndicateId: z.string(),
+  status: z.enum(["proposed", "approved", "rejected"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOAutocallTrigger = z.infer<typeof SovereignDebtCDSCDOAutocallTriggerSchema>;
 
 
 
@@ -4122,6 +4158,8 @@ export const GameStateSchema = z.object({
   cdsCdoTrancheListings: z.record(z.string(), SovereignDebtCDSCDOTrancheListingSchema).optional(),
   cdsCdoTrancheBids: z.record(z.string(), SovereignDebtCDSCDOTrancheBidSchema).optional(),
   cdsCdoTrancheMarketSpreads: z.record(z.string(), SovereignDebtCDSCDOTrancheMarketSpreadSchema).optional(),
+  cdsCdoTrancheMarginAdjustments: z.record(z.string(), SovereignDebtCDSCDOTrancheMarginAdjustmentSchema).optional(),
+  cdsCdoAutocallTriggers: z.record(z.string(), SovereignDebtCDSCDOAutocallTriggerSchema).optional(),
 
 
 
@@ -4580,6 +4618,8 @@ export const createInitialState = (options: {
     cdsCdoTrancheListings: {},
     cdsCdoTrancheBids: {},
     cdsCdoTrancheMarketSpreads: {},
+    cdsCdoTrancheMarginAdjustments: {},
+    cdsCdoAutocallTriggers: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5764,6 +5804,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoTrancheListings: rest.cdsCdoTrancheListings ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheListings)) : undefined,
     cdsCdoTrancheBids: rest.cdsCdoTrancheBids ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheBids)) : undefined,
     cdsCdoTrancheMarketSpreads: rest.cdsCdoTrancheMarketSpreads ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheMarketSpreads)) : undefined,
+    cdsCdoTrancheMarginAdjustments: rest.cdsCdoTrancheMarginAdjustments ? JSON.parse(JSON.stringify(rest.cdsCdoTrancheMarginAdjustments)) : undefined,
+    cdsCdoAutocallTriggers: rest.cdsCdoAutocallTriggers ? JSON.parse(JSON.stringify(rest.cdsCdoAutocallTriggers)) : undefined,
 
   };
   return clone;
@@ -17915,6 +17957,170 @@ export function reconcileSovereignDebtCDSCDOTranches(state: GameState, pack: any
         newState.journal.push(
           `[CDS CDO Tranche Bid Active] Syndicate ${bid.bidderSyndicateId} placed an active bid of ${bid.bidPrice} gold on CDO ${bid.cdoId} tranche ${bid.trancheId}.`
         );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtCDSCDOTrancheMarginAdjustments(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoTrancheMarginAdjustments: state.cdsCdoTrancheMarginAdjustments ? { ...state.cdsCdoTrancheMarginAdjustments } : {},
+  };
+
+  if (newState.cdsCdoTrancheMarginAdjustments) {
+    for (const [adjId, adj] of Object.entries(newState.cdsCdoTrancheMarginAdjustments)) {
+      if (adj.status !== "proposed") continue;
+      const syndicate = newState.syndicates[adj.syndicateId];
+      if (!syndicate) continue;
+      const votes = adj.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > syndicate.members.length / 2;
+      if (passed) {
+        // Apply adjustment
+        const pool = newState.sovereignDebtCDSCDOPools[adj.cdoId];
+        if (pool) {
+          const tranche = pool.tranches[adj.trancheId];
+          if (tranche) {
+            const currentCollateral = tranche.marginCollateral?.[adj.syndicateId] ?? 0;
+            const newCollateral = currentCollateral + adj.amount;
+            
+            // Check if withdrawal breaches maintenance threshold
+            if (adj.amount < 0 && tranche.maintenanceThreshold !== undefined && newCollateral < tranche.maintenanceThreshold) {
+              adj.status = "rejected";
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(`[CDS CDO Tranche Margin Adjustment Rejected] Withdrawal of ${-adj.amount} gold would breach maintenance threshold for ${adj.syndicateId}.`);
+              continue;
+            }
+
+            // Deduct / add from warChest
+            if (adj.amount > 0) {
+              // Deposit
+              if ((syndicate.warChest ?? 0) < adj.amount) {
+                adj.status = "rejected";
+                continue;
+              }
+              syndicate.warChest = (syndicate.warChest ?? 0) - adj.amount;
+            } else {
+              // Withdraw
+              syndicate.warChest = (syndicate.warChest ?? 0) - adj.amount; // amount is negative, so this adds gold to warChest
+            }
+
+            // Update tranche
+            const updatedTranche = {
+              ...tranche,
+              marginCollateral: {
+                ...(tranche.marginCollateral || {}),
+                [adj.syndicateId]: Math.max(0, newCollateral),
+              },
+              timestamp: adj.timestamp,
+            };
+            
+            // If depositing/withdrawing clears an active margin call, reset it!
+            if (newCollateral >= (tranche.maintenanceThreshold ?? 0)) {
+              if (updatedTranche.marginCallActive?.[adj.syndicateId]) {
+                updatedTranche.marginCallActive = {
+                  ...updatedTranche.marginCallActive,
+                  [adj.syndicateId]: false,
+                };
+              }
+            }
+
+            pool.tranches[adj.trancheId] = updatedTranche;
+            pool.timestamp = adj.timestamp;
+            newState.sovereignDebtCDSCDOPools[adj.cdoId] = pool;
+
+            adj.status = "approved";
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDS CDO Tranche Margin Adjustment Approved] Syndicate ${adj.syndicateId} adjusted margin by ${adj.amount} gold in CDO ${adj.cdoId} tranche ${adj.trancheId}.`
+            );
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtCDSCDOAutocallTriggers(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoAutocallTriggers: state.cdsCdoAutocallTriggers ? { ...state.cdsCdoAutocallTriggers } : {},
+    sovereignDebtCDSContracts: state.sovereignDebtCDSContracts ? { ...state.sovereignDebtCDSContracts } : {},
+  };
+
+  if (newState.cdsCdoAutocallTriggers) {
+    for (const [trigId, trig] of Object.entries(newState.cdsCdoAutocallTriggers)) {
+      if (trig.status !== "proposed") continue;
+      const syndicate = newState.syndicates[trig.syndicateId];
+      if (!syndicate) continue;
+      const votes = trig.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > syndicate.members.length / 2;
+      if (passed) {
+        const pool = newState.sovereignDebtCDSCDOPools[trig.cdoId];
+        if (pool) {
+          const tranche = pool.tranches[trig.trancheId];
+          if (tranche) {
+            // Check if already paid
+            if (tranche.autocallPaid?.[trig.syndicateId]) {
+              trig.status = "rejected";
+              continue;
+            }
+
+            // Calculate current total defaults for the CDO pool
+            const poolCDSContracts = Object.values(newState.sovereignDebtCDSContracts || {}).filter(c => c.cdoId === trig.cdoId);
+            const totalDefaults = poolCDSContracts
+              .filter(c => c.status === "settled")
+              .reduce((sum, c) => sum + (c.notionalValue ?? 0), 0);
+
+            const triggerLevel = tranche.autocallTriggerLevel ?? 0;
+            const coupon = tranche.autocallCoupon ?? 0;
+            const shares = tranche.sharesOwned[trig.syndicateId] ?? 0;
+
+            if (totalDefaults < triggerLevel && shares > 0) {
+              // Calculate scaled payout: coupon * (shares / totalValue)
+              const trancheTotal = tranche.totalValue || 1;
+              const payout = Math.floor(coupon * (shares / trancheTotal));
+
+              // Pay coupon
+              syndicate.warChest = (syndicate.warChest ?? 0) + payout;
+
+              // Update tranche
+              const updatedTranche = {
+                ...tranche,
+                autocallPaid: {
+                  ...(tranche.autocallPaid || {}),
+                  [trig.syndicateId]: true,
+                },
+                timestamp: trig.timestamp,
+              };
+              pool.tranches[trig.trancheId] = updatedTranche;
+              pool.timestamp = trig.timestamp;
+              newState.sovereignDebtCDSCDOPools[trig.cdoId] = pool;
+
+              trig.status = "approved";
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[CDS CDO Autocall Approved] Syndicate ${trig.syndicateId} triggered autocall on CDO ${trig.cdoId} tranche ${trig.trancheId}, receiving ${payout} gold payout.`
+              );
+            } else {
+              trig.status = "rejected";
+            }
+          }
+        }
       }
     }
   }

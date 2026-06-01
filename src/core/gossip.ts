@@ -4071,6 +4071,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge cdsCdoTrancheMarginAdjustments using LWW
+  const cdsCdoTrancheMarginAdjustments = { ...stateA.cdsCdoTrancheMarginAdjustments };
+  if (stateB.cdsCdoTrancheMarginAdjustments) {
+    for (const [id, valB] of Object.entries(stateB.cdsCdoTrancheMarginAdjustments)) {
+      const valA = cdsCdoTrancheMarginAdjustments[id];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        cdsCdoTrancheMarginAdjustments[id] = valB;
+      }
+    }
+  }
+
+  // Merge cdsCdoAutocallTriggers using LWW
+  const cdsCdoAutocallTriggers = { ...stateA.cdsCdoAutocallTriggers };
+  if (stateB.cdsCdoAutocallTriggers) {
+    for (const [id, valB] of Object.entries(stateB.cdsCdoAutocallTriggers)) {
+      const valA = cdsCdoAutocallTriggers[id];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        cdsCdoAutocallTriggers[id] = valB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -4088,6 +4110,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cdsCdoTrancheListings,
     cdsCdoTrancheBids,
     cdsCdoTrancheMarketSpreads,
+    cdsCdoTrancheMarginAdjustments,
+    cdsCdoAutocallTriggers,
     swfReinsuranceOptionOrderBookDepths,
     swfReinsuranceOptionPenaltyWaiverProposals,
     swfReinsuranceOptionPenaltyWaiverVotes,

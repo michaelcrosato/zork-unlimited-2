@@ -259,7 +259,9 @@ export type Action =
   | { type: "CREATE_CDS_CDO_POOL"; cdoId: string; creatorSyndicateId: string; cdsIds: string[]; timestamp: number }
   | { type: "INVEST_IN_CDO_TRANCHE"; cdoId: string; investorSyndicateId: string; trancheId: string; amount: number; timestamp: number }
   | { type: "LIST_CDS_CDO_TRANCHE_FOR_SALE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; sellerSyndicateId: string; sharesAmount: number; askPrice: number; timestamp: number }
-  | { type: "BID_ON_CDS_CDO_TRANCHE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; bidderSyndicateId: string; sharesAmount: number; bidPrice: number; timestamp: number };
+  | { type: "BID_ON_CDS_CDO_TRANCHE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; bidderSyndicateId: string; sharesAmount: number; bidPrice: number; timestamp: number }
+  | { type: "ADJUST_CDS_CDO_TRANCHE_MARGIN"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; syndicateId: string; amount: number; timestamp: number }
+  | { type: "TRIGGER_CDO_AUTOCALL"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; syndicateId: string; timestamp: number };
 
 
 

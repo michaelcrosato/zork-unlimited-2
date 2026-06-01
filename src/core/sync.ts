@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -47559,6 +47559,274 @@ export function multiAgentStep(
       } else {
         ok = true;
       }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle ADJUST_CDS_CDO_TRANCHE_MARGIN action (AF-232)
+  if ((action as any).type === "ADJUST_CDS_CDO_TRANCHE_MARGIN") {
+    const { cdoId, trancheId, syndicateId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignDebtCDSCDOPools?.[cdoId];
+    const syndicate = state.syndicates?.[syndicateId];
+    const tranche = pool?.tranches[trancheId as "senior" | "mezzanine" | "equity"];
+
+    if (!cdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid Tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (amount === undefined || typeof amount !== "number" || amount === 0) {
+      rejectionReason = `Valid non-zero margin adjustment amount is required.`;
+    } else if (!pool) {
+      rejectionReason = `CDO pool ${cdoId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist in CDO ${cdoId}.`;
+    } else if (amount > 0 && (syndicate.warChest ?? 0) < amount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient funds in war chest (${syndicate.warChest ?? 0} gold) to deposit ${amount} gold margin.`;
+    } else if (amount < 0 && ((tranche.marginCollateral?.[syndicateId] ?? 0) < -amount)) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient margin collateral deposited (${tranche.marginCollateral?.[syndicateId] ?? 0} gold) to withdraw ${-amount} gold.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsCdoTrancheMarginAdjustments = newState.cdsCdoTrancheMarginAdjustments ? { ...newState.cdsCdoTrancheMarginAdjustments } : {};
+      const adjId = `${cdoId}_${trancheId}_${syndicateId}_${amount}`;
+      const existingAdj = newState.cdsCdoTrancheMarginAdjustments[adjId];
+
+      if (!existingAdj || existingAdj.status !== "proposed") {
+        newState.cdsCdoTrancheMarginAdjustments[adjId] = {
+          adjustmentId: adjId,
+          cdoId,
+          trancheId,
+          syndicateId,
+          amount,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsCdoTrancheMarginAdjustments[adjId] = {
+        ...newState.cdsCdoTrancheMarginAdjustments[adjId],
+        votes: newState.cdsCdoTrancheMarginAdjustments[adjId].votes ? { ...newState.cdsCdoTrancheMarginAdjustments[adjId].votes } : {},
+      };
+
+      newState.cdsCdoTrancheMarginAdjustments[adjId].votes = {
+        ...newState.cdsCdoTrancheMarginAdjustments[adjId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileSovereignDebtCDSCDOTrancheMarginAdjustments(newState, pack);
+
+      const adjStatus = newState.cdsCdoTrancheMarginAdjustments?.[adjId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDS CDO Tranche Margin Adjustment Vote] Agent ${agentId} voted to adjust margin by ${amount} gold on CDO ${cdoId} tranche ${trancheId} (Status: ${adjStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Agent ${agentId} voted to adjust margin by ${amount} gold on CDO ${cdoId} tranche ${trancheId} by ${syndicateId} (Status: ${adjStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "adjust_cds_cdo_tranche_margin" as any,
+        cdoId,
+        trancheId,
+        syndicateId,
+        amount,
+        status: adjStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle TRIGGER_CDO_AUTOCALL action (AF-232)
+  if ((action as any).type === "TRIGGER_CDO_AUTOCALL") {
+    const { cdoId, trancheId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const pool = state.sovereignDebtCDSCDOPools?.[cdoId];
+    const syndicate = state.syndicates?.[syndicateId];
+    const tranche = pool?.tranches[trancheId as "senior" | "mezzanine" | "equity"];
+
+    if (!cdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid Tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!pool) {
+      rejectionReason = `CDO pool ${cdoId} does not exist.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist in CDO ${cdoId}.`;
+    } else if (tranche.autocallPaid?.[syndicateId]) {
+      rejectionReason = `Autocall payout has already been paid/claimed for syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsCdoAutocallTriggers = newState.cdsCdoAutocallTriggers ? { ...newState.cdsCdoAutocallTriggers } : {};
+      const triggerId = `${cdoId}_${trancheId}_${syndicateId}`;
+      const existingTrig = newState.cdsCdoAutocallTriggers[triggerId];
+
+      if (!existingTrig || existingTrig.status !== "proposed") {
+        newState.cdsCdoAutocallTriggers[triggerId] = {
+          triggerId,
+          cdoId,
+          trancheId,
+          syndicateId,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsCdoAutocallTriggers[triggerId] = {
+        ...newState.cdsCdoAutocallTriggers[triggerId],
+        votes: newState.cdsCdoAutocallTriggers[triggerId].votes ? { ...newState.cdsCdoAutocallTriggers[triggerId].votes } : {},
+      };
+
+      newState.cdsCdoAutocallTriggers[triggerId].votes = {
+        ...newState.cdsCdoAutocallTriggers[triggerId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileSovereignDebtCDSCDOAutocallTriggers(newState, pack);
+
+      const triggerStatus = newState.cdsCdoAutocallTriggers?.[triggerId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDS CDO Autocall Trigger Vote] Agent ${agentId} voted to trigger autocall on CDO ${cdoId} tranche ${trancheId} (Status: ${triggerStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🔔 Agent ${agentId} voted to trigger autocall on CDO ${cdoId} tranche ${trancheId} by ${syndicateId} (Status: ${triggerStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "trigger_cdo_autocall" as any,
+        cdoId,
+        trancheId,
+        syndicateId,
+        status: triggerStatus,
+        timestamp,
+      });
     }
 
     newState.step += 1;
