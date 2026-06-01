@@ -199,7 +199,11 @@ export type Action =
   | { type: "ADJUST_SWF_REINSURANCE_OPTION_STRESS_TEST_DELTA_CROSS_HEDGING"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; stressVolatilityThreshold: number; stressHedgeWeightMultiplier: number; safeguardCapitalReserveLimit: number; timestamp: number }
   | { type: "ADJUST_SWF_TRANCHE_LEVERAGE_TARGET"; syndicateId: string; trancheId: "senior" | "mezzanine" | "equity"; target: number; timestamp: number }
   | { type: "ADJUST_SWF_REINSURANCE_OPTION_CROSS_MESH_ARBITRAGE"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; arbitrageSpreadThreshold: number; maxArbitrageVolume: number; timestamp: number }
-  | { type: "ADJUST_ARBITRAGE_FEE_SURCHARGE"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; maxLatencyHedgedOverhead: number; timestamp: number };
+  | { type: "ADJUST_ARBITRAGE_FEE_SURCHARGE"; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; maxLatencyHedgedOverhead: number; timestamp: number }
+  | { type: "CONTRIBUTE_SWF_REINSURANCE_OPTION_CROSS_SYNDICATE_POOL"; poolId: string; syndicateId: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; amount: number; timestamp: number }
+  | { type: "REQUEST_SWF_REINSURANCE_OPTION_PEER_LENDING"; requestId: string; borrowerSyndicateId: string; lenderSyndicateId?: string; poolId?: string; swfYieldCdoId: string; trancheId: "senior" | "mezzanine" | "equity"; amount: number; interestRate: number; termSteps: number; timestamp: number }
+  | { type: "VOTE_SWF_REINSURANCE_OPTION_PEER_LENDING"; requestId: string; syndicateId: string; vote: boolean; timestamp: number }
+  | { type: "PAYBACK_SWF_REINSURANCE_OPTION_PEER_LENDING"; requestId: string; amount: number; timestamp: number };
 
 
 

@@ -2294,6 +2294,40 @@ export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
 });
 export type SWFReinsuranceOptionVolatilityInsurancePool = z.infer<typeof SWFReinsuranceOptionVolatilityInsurancePoolSchema>;
 
+export const SWFReinsuranceOptionCrossSyndicatePoolSchema = z.object({
+  id: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  syndicateContributions: z.record(z.string(), z.number().int().nonnegative()),
+  totalBalance: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionCrossSyndicatePool = z.infer<typeof SWFReinsuranceOptionCrossSyndicatePoolSchema>;
+
+export const SWFReinsuranceOptionPeerLendingRequestSchema = z.object({
+  id: z.string(),
+  borrowerSyndicateId: z.string(),
+  lenderSyndicateId: z.string().optional(),
+  poolId: z.string().optional(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  amount: z.number().int().positive(),
+  interestRate: z.number().nonnegative(),
+  termSteps: z.number().int().positive(),
+  approved: z.boolean(),
+  resolved: z.boolean(),
+  startStep: z.number().int().nonnegative().optional(),
+  dueStep: z.number().int().nonnegative().optional(),
+  remainingRepayment: z.number().int().nonnegative().optional(),
+  status: z.enum(["Pending", "Approved", "Active", "Repaid", "Defaulted"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFReinsuranceOptionPeerLendingRequest = z.infer<typeof SWFReinsuranceOptionPeerLendingRequestSchema>;
+
 export const SWFReinsuranceOptionStressTestPolicySchema = z.object({
   swfYieldCdoId: z.string(),
   trancheId: z.enum(["senior", "mezzanine", "equity"]),
@@ -3077,6 +3111,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionVolatilityInsurancePolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePolicySchema).optional(),
   adjustSWFReinsuranceOptionVolatilityInsuranceVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityInsuranceVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityInsurancePools: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePoolSchema).optional(),
+  swfReinsuranceOptionCrossSyndicatePools: z.record(z.string(), SWFReinsuranceOptionCrossSyndicatePoolSchema).optional(),
+  swfReinsuranceOptionPeerLendingRequests: z.record(z.string(), SWFReinsuranceOptionPeerLendingRequestSchema).optional(),
   swfReinsuranceOptionStressTestPolicies: z.record(z.string(), SWFReinsuranceOptionStressTestPolicySchema).optional(),
   adjustSWFReinsuranceOptionStressTestVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionStressTestVoteSchema)).optional(),
   swfReinsuranceOptionHedgingPolicies: z.record(z.string(), SWFReinsuranceOptionHedgingPolicySchema).optional(),
@@ -3423,6 +3459,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionVolatilityInsurancePolicies: {},
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: {},
     swfReinsuranceOptionVolatilityInsurancePools: {},
+    swfReinsuranceOptionCrossSyndicatePools: {},
+    swfReinsuranceOptionPeerLendingRequests: {},
     swfReinsuranceOptionStressTestPolicies: {},
     adjustSWFReinsuranceOptionStressTestVotes: {},
     swfReinsuranceOptionHedgingPolicies: {},
@@ -4475,6 +4513,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionVolatilityInsurancePolicies: rest.swfReinsuranceOptionVolatilityInsurancePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePolicies)) : undefined,
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes)) : undefined,
     swfReinsuranceOptionVolatilityInsurancePools: rest.swfReinsuranceOptionVolatilityInsurancePools ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePools)) : undefined,
+    swfReinsuranceOptionCrossSyndicatePools: rest.swfReinsuranceOptionCrossSyndicatePools ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionCrossSyndicatePools)) : undefined,
+    swfReinsuranceOptionPeerLendingRequests: rest.swfReinsuranceOptionPeerLendingRequests ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPeerLendingRequests)) : undefined,
     swfReinsuranceOptionStressTestPolicies: rest.swfReinsuranceOptionStressTestPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionStressTestPolicies)) : undefined,
     adjustSWFReinsuranceOptionStressTestVotes: rest.adjustSWFReinsuranceOptionStressTestVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionStressTestVotes)) : undefined,
     swfReinsuranceOptionHedgingPolicies: rest.swfReinsuranceOptionHedgingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionHedgingPolicies)) : undefined,
@@ -13563,6 +13603,137 @@ export function reconcileSWFMultiFundReinsurance(state: GameState, pack: any): G
           `[SWF Multi-Fund Reinsurance Pool Established] Established multi-fund pool ${poolId} for syndicates ${group.syndicateIds.join(", ")} (Total Reserve: ${newState.swfMultiFundReinsurancePools![poolId].totalReserve} gold, Volatility Hedge Ratio: ${group.volatilityHedgeRatio.toFixed(2)}x, Target Yield Rate: ${group.targetYieldRate.toFixed(2)}%).`
         );
         break;
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionPeerLending(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionPeerLendingRequests: state.swfReinsuranceOptionPeerLendingRequests ? { ...state.swfReinsuranceOptionPeerLendingRequests } : {},
+    swfReinsuranceOptionCrossSyndicatePools: state.swfReinsuranceOptionCrossSyndicatePools ? { ...state.swfReinsuranceOptionCrossSyndicatePools } : {},
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const requestId of Object.keys(newState.swfReinsuranceOptionPeerLendingRequests || {})) {
+    const request = newState.swfReinsuranceOptionPeerLendingRequests?.[requestId];
+    if (!request || request.resolved) continue;
+
+    const { borrowerSyndicateId, lenderSyndicateId, poolId, amount, interestRate, termSteps, swfYieldCdoId, trancheId, timestamp } = request;
+    const borrower = newState.syndicates?.[borrowerSyndicateId];
+    if (!borrower) continue;
+
+    const votes = request.votes || {};
+
+    if (lenderSyndicateId) {
+      const lender = newState.syndicates?.[lenderSyndicateId];
+      if (!lender) continue;
+
+      const lenderMembers = lender.members;
+      const lenderTrueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => lenderMembers.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+
+      // Majority of lender members must approve
+      if (lenderTrueVotes.length > lenderMembers.length / 2) {
+        const lenderGold = lender.warChest ?? 0;
+        if (lenderGold >= amount) {
+          // Resolve proposal
+          request.resolved = true;
+          request.approved = true;
+          request.status = "Active";
+          request.startStep = newState.step;
+          request.dueStep = newState.step + termSteps;
+          request.remainingRepayment = amount + Math.floor(amount * (interestRate / 100));
+
+          // Transfer funds
+          lender.warChest = lenderGold - amount;
+          if (!newState.marginAccounts[borrowerSyndicateId]) {
+            newState.marginAccounts[borrowerSyndicateId] = {
+              syndicateId: borrowerSyndicateId,
+              collateral: 0,
+              timestamp: newState.step,
+            };
+          }
+          newState.marginAccounts[borrowerSyndicateId].collateral = (newState.marginAccounts[borrowerSyndicateId].collateral ?? 0) + amount;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Option Peer Lending Approved] Syndicate ${lenderSyndicateId} approved peer lending loan ${requestId} of ${amount} gold to Syndicate ${borrowerSyndicateId} at ${interestRate}% for ${termSteps} steps.`
+          );
+        } else {
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Option Peer Lending Failed] Lender Syndicate ${lenderSyndicateId} has insufficient reserves (${lenderGold} < ${amount}) to resolve request ${requestId}.`
+          );
+        }
+      }
+    } else if (poolId) {
+      const pool = newState.swfReinsuranceOptionCrossSyndicatePools?.[poolId];
+      if (!pool) continue;
+
+      // Pool voting: majority of members across all participating contributing syndicates (excluding borrower)
+      const poolSyndicates = Object.keys(pool.syndicateContributions);
+      const participatingMembers: string[] = [];
+      for (const sId of poolSyndicates) {
+        if (sId === borrowerSyndicateId) continue;
+        const syndicate = newState.syndicates?.[sId];
+        if (syndicate) {
+          participatingMembers.push(...syndicate.members);
+        }
+      }
+
+      const poolTrueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => participatingMembers.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+
+      // Require majority approval
+      const requiredVotes = participatingMembers.length > 0 ? participatingMembers.length / 2 : -1;
+      if (poolTrueVotes.length > requiredVotes) {
+        const poolGold = pool.totalBalance ?? 0;
+        if (poolGold >= amount) {
+          // Resolve proposal
+          request.resolved = true;
+          request.approved = true;
+          request.status = "Active";
+          request.startStep = newState.step;
+          request.dueStep = newState.step + termSteps;
+          request.remainingRepayment = amount + Math.floor(amount * (interestRate / 100));
+
+          // Transfer funds
+          pool.totalBalance = poolGold - amount;
+          // Deduct from syndicateContributions proportionally
+          for (const sId of Object.keys(pool.syndicateContributions)) {
+            const currentContrib = pool.syndicateContributions[sId] ?? 0;
+            if (poolGold > 0) {
+              const deduction = Math.min(currentContrib, Math.floor(amount * (currentContrib / poolGold)));
+              pool.syndicateContributions[sId] = Math.max(0, currentContrib - deduction);
+            }
+          }
+
+          if (!newState.marginAccounts[borrowerSyndicateId]) {
+            newState.marginAccounts[borrowerSyndicateId] = {
+              syndicateId: borrowerSyndicateId,
+              collateral: 0,
+              timestamp: newState.step,
+            };
+          }
+          newState.marginAccounts[borrowerSyndicateId].collateral = (newState.marginAccounts[borrowerSyndicateId].collateral ?? 0) + amount;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Option Peer Lending Approved] Shared Pool ${poolId} approved peer lending loan ${requestId} of ${amount} gold to Syndicate ${borrowerSyndicateId} at ${interestRate}% for ${termSteps} steps.`
+          );
+        } else {
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Option Peer Lending Failed] Shared Pool ${poolId} has insufficient reserves (${poolGold} < ${amount}) to resolve request ${requestId}.`
+          );
+        }
       }
     }
   }

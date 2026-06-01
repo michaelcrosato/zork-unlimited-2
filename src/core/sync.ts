@@ -9,7 +9,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -34230,6 +34230,526 @@ export function multiAgentStep(
       ok,
       rejectionReason,
     };
+  }
+
+  // Handle CONTRIBUTE_SWF_REINSURANCE_OPTION_CROSS_SYNDICATE_POOL action (AF-183)
+  if ((action as any).type === "CONTRIBUTE_SWF_REINSURANCE_OPTION_CROSS_SYNDICATE_POOL") {
+    const { poolId, syndicateId, swfYieldCdoId, trancheId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!poolId) {
+      rejectionReason = `Pool ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if ((syndicate.warChest ?? 0) < amount) {
+      rejectionReason = `Syndicate ${syndicateId} has insufficient reserves in warChest (${syndicate.warChest ?? 0} < ${amount}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      newState.syndicates = {
+        ...newState.syndicates,
+        [syndicateId]: {
+          ...syndicate,
+          warChest: (syndicate.warChest ?? 0) - amount,
+        },
+      };
+
+      const pools = { ...(state.swfReinsuranceOptionCrossSyndicatePools || {}) };
+      const currentPool = pools[poolId] || {
+        id: poolId,
+        swfYieldCdoId,
+        trancheId,
+        syndicateContributions: {},
+        totalBalance: 0,
+        timestamp,
+      };
+
+      const contribs = { ...(currentPool.syndicateContributions || {}) };
+      contribs[syndicateId] = (contribs[syndicateId] ?? 0) + amount;
+
+      pools[poolId] = {
+        ...currentPool,
+        syndicateContributions: contribs,
+        totalBalance: (currentPool.totalBalance ?? 0) + amount,
+        timestamp: Math.max(timestamp, currentPool.timestamp),
+      };
+
+      newState.swfReinsuranceOptionCrossSyndicatePools = pools;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Option Cross-Syndicate Contribution] Agent ${agentId} contributed ${amount} gold from Syndicate ${syndicateId} warChest to Option Volatility Pool ${poolId}.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Syndicate ${syndicateId} contributed ${amount} gold to Option Volatility Pool ${poolId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_option_cross_syndicate_contributed" as any,
+        poolId,
+        syndicateId,
+        amount,
+        agentId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) history.shift();
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock, [agentId]: (newState.vectorClock[agentId] ?? 0) + 1 };
+    }
+    return { state: newState, events: customEvents, ok, rejectionReason };
+  }
+
+  // Handle REQUEST_SWF_REINSURANCE_OPTION_PEER_LENDING action (AF-183)
+  if ((action as any).type === "REQUEST_SWF_REINSURANCE_OPTION_PEER_LENDING") {
+    const { requestId, borrowerSyndicateId, lenderSyndicateId, poolId, swfYieldCdoId, trancheId, amount, interestRate, termSteps, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const borrower = state.syndicates?.[borrowerSyndicateId];
+    const lender = lenderSyndicateId ? state.syndicates?.[lenderSyndicateId] : undefined;
+    const pool = poolId ? state.swfReinsuranceOptionCrossSyndicatePools?.[poolId] : undefined;
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!requestId) {
+      rejectionReason = `Request ID is required.`;
+    } else if (!borrowerSyndicateId) {
+      rejectionReason = `Borrower Syndicate ID is required.`;
+    } else if (!lenderSyndicateId && !poolId) {
+      rejectionReason = `Lender Syndicate ID or Pool ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Amount must be a positive integer.`;
+    } else if (interestRate === undefined || interestRate < 0) {
+      rejectionReason = `Interest rate must be non-negative.`;
+    } else if (termSteps === undefined || termSteps <= 0 || !Number.isInteger(termSteps)) {
+      rejectionReason = `Term steps must be a positive integer.`;
+    } else if (!borrower) {
+      rejectionReason = `Borrower Syndicate ${borrowerSyndicateId} does not exist.`;
+    } else if (lenderSyndicateId && !lender) {
+      rejectionReason = `Lender Syndicate ${lenderSyndicateId} does not exist.`;
+    } else if (poolId && !pool) {
+      rejectionReason = `Volatility Pool ${poolId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!borrower.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of borrower syndicate ${borrowerSyndicateId}.`;
+    } else {
+      // Validate high risk triggers or general liquidity pressure
+      const marginAcc = state.marginAccounts?.[borrowerSyndicateId];
+      const activeBonds = Object.values(state.yieldVolatilityIndexes || {});
+      const avgVolatility = activeBonds.length > 0
+        ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+        : 15.0;
+
+      const isHighVol = avgVolatility >= 18.0;
+      const isPruned = (marginAcc?.prunedRoutesCount ?? 0) >= 1;
+      const isLowHeadroom = marginAcc ? (marginAcc.collateral ?? 0) < 2000 : true;
+
+      if (!isHighVol && !isPruned && !isLowHeadroom) {
+        rejectionReason = `No active high risk triggers or liquidity pressure (Volatility: ${avgVolatility.toFixed(2)}%, Pruned count: ${marginAcc?.prunedRoutesCount ?? 0}, Collateral: ${marginAcc?.collateral ?? 0}) to justify request.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      const requests = { ...(state.swfReinsuranceOptionPeerLendingRequests || {}) };
+      const existingRequest = requests[requestId];
+      if (!existingRequest || timestamp > existingRequest.timestamp) {
+        const votes: Record<string, { vote: boolean, timestamp: number }> = {};
+        votes[agentId] = { vote: true, timestamp };
+
+        requests[requestId] = {
+          id: requestId,
+          borrowerSyndicateId,
+          lenderSyndicateId,
+          poolId,
+          swfYieldCdoId,
+          trancheId,
+          amount,
+          interestRate,
+          termSteps,
+          approved: false,
+          resolved: false,
+          status: "Pending",
+          timestamp,
+          votes,
+        };
+
+        newState.swfReinsuranceOptionPeerLendingRequests = requests;
+        newState = reconcileSWFReinsuranceOptionPeerLending(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Peer Lending Proposed] Agent ${agentId} proposed peer margin lending request ${requestId} for ${amount} gold to Syndicate ${borrowerSyndicateId} at ${interestRate}% for ${termSteps} steps.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Reinsurance Option peer margin lending request proposed by ${agentId} for request ${requestId} (${borrowerSyndicateId} requests ${amount} gold).`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_reinsurance_option_peer_lending_proposed" as any,
+          requestId,
+          borrowerSyndicateId,
+          lenderSyndicateId,
+          poolId,
+          amount,
+          interestRate,
+          termSteps,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) history.shift();
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock, [agentId]: (newState.vectorClock[agentId] ?? 0) + 1 };
+    }
+    return { state: newState, events: customEvents, ok, rejectionReason };
+  }
+
+  // Handle VOTE_SWF_REINSURANCE_OPTION_PEER_LENDING action (AF-183)
+  if ((action as any).type === "VOTE_SWF_REINSURANCE_OPTION_PEER_LENDING") {
+    const { requestId, syndicateId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const requests = state.swfReinsuranceOptionPeerLendingRequests || {};
+    const request = requests[requestId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!requestId) {
+      rejectionReason = `Request ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!request) {
+      rejectionReason = `Peer margin lending request ${requestId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      // Check if syndicate is involved
+      const isLender = request.lenderSyndicateId === syndicateId;
+      const isBorrower = request.borrowerSyndicateId === syndicateId;
+      let isPoolParticipant = false;
+      if (request.poolId && state.swfReinsuranceOptionCrossSyndicatePools?.[request.poolId]) {
+        const pool = state.swfReinsuranceOptionCrossSyndicatePools[request.poolId];
+        isPoolParticipant = Object.keys(pool.syndicateContributions).includes(syndicateId);
+      }
+
+      if (!isLender && !isBorrower && !isPoolParticipant) {
+        rejectionReason = `Syndicate ${syndicateId} is not involved in request ${requestId} and cannot vote.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && request) {
+      const requestsCopy = { ...(state.swfReinsuranceOptionPeerLendingRequests || {}) };
+      const currentReq = { ...requestsCopy[requestId] };
+      const votes = currentReq.votes ? { ...currentReq.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentReq.votes = votes;
+        requestsCopy[requestId] = currentReq;
+
+        newState.swfReinsuranceOptionPeerLendingRequests = requestsCopy;
+        newState = reconcileSWFReinsuranceOptionPeerLending(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Peer Lending Voted] Agent ${agentId} in syndicate ${syndicateId} voted ${vote ? "YES" : "NO"} on request ${requestId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Vote cast by ${agentId} in syndicate ${syndicateId} on request ${requestId}: ${vote ? "YES" : "NO"}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_reinsurance_option_peer_lending_voted" as any,
+          requestId,
+          syndicateId,
+          vote,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) history.shift();
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock, [agentId]: (newState.vectorClock[agentId] ?? 0) + 1 };
+    }
+    return { state: newState, events: customEvents, ok, rejectionReason };
+  }
+
+  // Handle PAYBACK_SWF_REINSURANCE_OPTION_PEER_LENDING action (AF-183)
+  if ((action as any).type === "PAYBACK_SWF_REINSURANCE_OPTION_PEER_LENDING") {
+    const { requestId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const requests = state.swfReinsuranceOptionPeerLendingRequests || {};
+    const request = requests[requestId];
+
+    if (!requestId) {
+      rejectionReason = `Request ID is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Amount must be a positive integer.`;
+    } else if (!request) {
+      rejectionReason = `Peer margin lending request ${requestId} does not exist.`;
+    } else if (request.status !== "Active") {
+      rejectionReason = `Peer margin lending request ${requestId} is not active (status: ${request.status}).`;
+    } else {
+      const borrower = state.syndicates?.[request.borrowerSyndicateId];
+      if (!borrower) {
+        rejectionReason = `Borrower Syndicate ${request.borrowerSyndicateId} does not exist.`;
+      } else if (!borrower.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of borrower syndicate ${request.borrowerSyndicateId}.`;
+      } else if ((borrower.warChest ?? 0) < amount) {
+        rejectionReason = `Borrower Syndicate ${request.borrowerSyndicateId} has insufficient reserves in warChest (${borrower.warChest ?? 0} < ${amount}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && request) {
+      const requestsCopy = { ...(state.swfReinsuranceOptionPeerLendingRequests || {}) };
+      const currentReq = { ...requestsCopy[requestId] };
+
+      const borrowerId = currentReq.borrowerSyndicateId;
+      const borrower = { ...newState.syndicates?.[borrowerId] } as any;
+
+      // Deduct from borrower warChest
+      borrower.warChest = (borrower.warChest ?? 0) - amount;
+      newState.syndicates = {
+        ...newState.syndicates,
+        [borrowerId]: borrower,
+      };
+
+      const remaining = currentReq.remainingRepayment ?? 0;
+      const repaid = Math.min(amount, remaining);
+      currentReq.remainingRepayment = Math.max(0, remaining - repaid);
+
+      if (currentReq.remainingRepayment === 0) {
+        currentReq.status = "Repaid";
+      }
+      currentReq.timestamp = timestamp;
+      requestsCopy[requestId] = currentReq;
+      newState.swfReinsuranceOptionPeerLendingRequests = requestsCopy;
+
+      // Transfer back to lender or pool
+      if (currentReq.lenderSyndicateId) {
+        const lenderId = currentReq.lenderSyndicateId;
+        const lender = { ...newState.syndicates?.[lenderId] } as any;
+        lender.warChest = (lender.warChest ?? 0) + repaid;
+        newState.syndicates = {
+          ...newState.syndicates,
+          [lenderId]: lender,
+        };
+      } else if (currentReq.poolId) {
+        const poolId = currentReq.poolId;
+        const pool = { ...newState.swfReinsuranceOptionCrossSyndicatePools?.[poolId] } as any;
+        pool.totalBalance = (pool.totalBalance ?? 0) + repaid;
+        // Restore syndicateContributions proportionally or equally
+        const numContribs = Object.keys(pool.syndicateContributions).length;
+        if (numContribs > 0) {
+          const share = Math.floor(repaid / numContribs);
+          for (const sId of Object.keys(pool.syndicateContributions)) {
+            pool.syndicateContributions[sId] = (pool.syndicateContributions[sId] ?? 0) + share;
+          }
+        }
+        newState.swfReinsuranceOptionCrossSyndicatePools = {
+          ...newState.swfReinsuranceOptionCrossSyndicatePools,
+          [poolId]: pool,
+        };
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Option Peer Lending Repaid] Syndicate ${borrowerId} repaid ${repaid} gold for request ${requestId} (Remaining: ${currentReq.remainingRepayment} gold, Status: ${currentReq.status}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Syndicate ${borrowerId} repaid ${repaid} gold on peer lending request ${requestId}.`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_option_peer_lending_repaid" as any,
+        requestId,
+        borrowerSyndicateId: borrowerId,
+        amount: repaid,
+        remainingRepayment: currentReq.remainingRepayment,
+        status: currentReq.status,
+        agentId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) history.shift();
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock, [agentId]: (newState.vectorClock[agentId] ?? 0) + 1 };
+    }
+    return { state: newState, events: customEvents, ok, rejectionReason };
   }
 
   // Handle ADJUST_SWF_REINSURANCE_OPTION_CROSS_MESH_ARBITRAGE action (AF-176)

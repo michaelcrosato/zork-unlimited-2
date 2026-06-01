@@ -6616,7 +6616,49 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // AF-183: Tick SWF Reinsurance Option Peer Lending
+  finalState = tickSWFReinsuranceOptionPeerLending(finalState);
   return finalState;
+}
+
+export function tickSWFReinsuranceOptionPeerLending(state: GameState): GameState {
+  if (!state.swfReinsuranceOptionPeerLendingRequests) return state;
+
+  const newState = {
+    ...state,
+    swfReinsuranceOptionPeerLendingRequests: { ...state.swfReinsuranceOptionPeerLendingRequests },
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    creditRatings: state.creditRatings ? { ...state.creditRatings } : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  for (const [requestId, request] of Object.entries(newState.swfReinsuranceOptionPeerLendingRequests)) {
+    if (request.status !== "Active") continue;
+
+    const borrowerId = request.borrowerSyndicateId;
+
+    // Check if loan is due and unpaid
+    if (newState.step >= (request.dueStep ?? 0)) {
+      if ((request.remainingRepayment ?? 0) > 0) {
+        // Default!
+        request.status = "Defaulted";
+        request.resolved = true;
+
+        // Apply credit rating drop penalty
+        const rating = newState.creditRatings[borrowerId] ?? 10;
+        newState.creditRatings[borrowerId] = Math.max(0, rating - 2);
+
+        newState.journal.push(
+          `[SWF Reinsurance Option Peer Lending Default] Syndicate ${borrowerId} defaulted on peer lending loan ${requestId} (due step: ${request.dueStep}, remaining repayment: ${request.remainingRepayment} gold). Credit rating dropped to ${newState.creditRatings[borrowerId]}.`
+        );
+      } else {
+        request.status = "Repaid";
+        request.resolved = true;
+      }
+    }
+  }
+
+  return newState;
 }
 
 export function tickSWFMultiFundReinsurance(state: GameState): GameState {
