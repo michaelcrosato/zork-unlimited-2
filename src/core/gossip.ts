@@ -1378,6 +1378,47 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge contagionShields using LWW
+  const contagionShields = { ...stateA.contagionShields };
+  if (stateB.contagionShields) {
+    for (const [key, entryB] of Object.entries(stateB.contagionShields)) {
+      const entryA = contagionShields[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        contagionShields[key] = entryB;
+      }
+    }
+  }
+
+  // Merge contagionShieldVotes using LWW
+  const contagionShieldVotes = { ...stateA.contagionShieldVotes };
+  if (stateB.contagionShieldVotes) {
+    for (const [pairKey, bInner] of Object.entries(stateB.contagionShieldVotes)) {
+      if (!contagionShieldVotes[pairKey]) {
+        contagionShieldVotes[pairKey] = { ...bInner };
+      } else {
+        const aInner = { ...contagionShieldVotes[pairKey] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = voteB;
+          }
+        }
+        contagionShieldVotes[pairKey] = aInner;
+      }
+    }
+  }
+
+  // Merge reinsurancePricingMultipliers using LWW
+  const reinsurancePricingMultipliers = { ...stateA.reinsurancePricingMultipliers };
+  if (stateB.reinsurancePricingMultipliers) {
+    for (const [key, entryB] of Object.entries(stateB.reinsurancePricingMultipliers)) {
+      const entryA = reinsurancePricingMultipliers[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        reinsurancePricingMultipliers[key] = entryB;
+      }
+    }
+  }
+
   // Merge reinsuranceContracts using LWW
   const reinsuranceContracts = { ...stateA.reinsuranceContracts };
   if (stateB.reinsuranceContracts) {
@@ -1777,6 +1818,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     reinsuranceVotes,
     reinsuranceTransferVotes,
     executedReinsuranceTransfers,
+    contagionShields,
+    contagionShieldVotes,
+    reinsurancePricingMultipliers,
   };
 }
 

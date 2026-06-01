@@ -361,7 +361,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
 
     // Assert contract borrowed balances updated
     const contract = ticked.reinsuranceContracts?.["blood_fangs:shadow_brokers"];
-    expect(contract?.borrowedAfromB).toBe(265);
+    expect(contract?.borrowedAfromB).toBe(318);
     expect(contract?.borrowedBfromA).toBe(0);
   });
 
@@ -420,5 +420,366 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
 
     expect(merged.reinsuranceVotes?.["blood_fangs:shadow_brokers"]?.player?.maxLiquidityLimit).toBe(300);
     expect(merged.reinsuranceVotes?.["blood_fangs:shadow_brokers"]?.player?.timestamp).toBe(1050);
+  });
+
+  it("should handle PROPOSE_CONTAGION_SHIELD validations, double-majority voting, and shield activation", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+      shadow_brokers: {
+        id: "shadow_brokers",
+        name: "Shadow Brokers",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    // Validations
+    // 1. Invalid syndicate Id
+    const act1 = {
+      type: "PROPOSE_CONTAGION_SHIELD",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "wrong_syndicate",
+      targetState: true,
+      timestamp: 1000,
+    };
+    let res1 = multiAgentStep(state, { agentId: "player", action: act1 as any }, mockPack);
+    expect(res1.ok).toBe(false);
+    expect(res1.rejectionReason).toContain("does not exist");
+
+    // 2. Same syndicate
+    const act2 = {
+      type: "PROPOSE_CONTAGION_SHIELD",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "blood_fangs",
+      targetState: true,
+      timestamp: 1000,
+    };
+    let res2 = multiAgentStep(state, { agentId: "player", action: act2 as any }, mockPack);
+    expect(res2.ok).toBe(false);
+    expect(res2.rejectionReason).toContain("Cannot form contagion shield with the same syndicate");
+
+    // 3. Non-member agent
+    let res3 = multiAgentStep(state, { agentId: "charlie", action: act1 as any }, mockPack);
+    expect(res3.ok).toBe(false);
+
+    // Voting and consensus
+    const actVote = {
+      type: "PROPOSE_CONTAGION_SHIELD",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      targetState: true,
+      timestamp: 1000,
+    };
+
+    // player (blood_fangs) votes YES
+    let res4 = multiAgentStep(state, { agentId: "player", action: actVote as any }, mockPack);
+    expect(res4.ok).toBe(true);
+    const pairKey = "blood_fangs:shadow_brokers";
+    expect(res4.state.contagionShields?.[pairKey]).toBeUndefined();
+
+    // bob (shadow_brokers) votes YES
+    let res5 = multiAgentStep(res4.state, { agentId: "bob", action: actVote as any }, mockPack);
+    expect(res5.ok).toBe(true);
+    // Double majority reached
+    expect(res5.state.contagionShields?.[pairKey]?.active).toBe(true);
+
+    // Vote false to deactivate
+    const actFalse = {
+      type: "PROPOSE_CONTAGION_SHIELD",
+      syndicateIdA: "blood_fangs",
+      syndicateIdB: "shadow_brokers",
+      targetState: false,
+      timestamp: 1010,
+    };
+    let res6 = multiAgentStep(res5.state, { agentId: "player", action: actFalse as any }, mockPack);
+    let res7 = multiAgentStep(res6.state, { agentId: "bob", action: actFalse as any }, mockPack);
+    expect(res7.state.contagionShields?.[pairKey]?.active).toBe(false);
+  });
+
+  it("should dynamically scale premium multipliers during fallback borrowing sweeps in tickEconomy", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000, gold_alice: 0, gold_bob: 0 },
+      agentsInit: ["alice"],
+    });
+
+    state.step = 10;
+    state.journal = [];
+
+    // Setup syndicates and active loan with default
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+      },
+      shadow_brokers: {
+        id: "shadow_brokers",
+        name: "Shadow Brokers",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+      },
+    };
+
+    // Primary pool (blood_fangs) has 0 gold
+    state.jointLoanInsurancePools = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        poolGold: 0,
+        premiumRate: 10,
+        timestamp: 1000,
+      },
+      shadow_brokers: {
+        syndicateId: "shadow_brokers",
+        poolGold: 180, // Low liquidity (< 250) -> 1.5x multiplier
+        premiumRate: 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Active policy for alice
+    state.agentPremiumPolicies = {
+      "alice_group_1": {
+        agentId: "alice",
+        syndicateId: "blood_fangs",
+        groupId: "group_1",
+        premiumPaid: 10,
+        active: true,
+        timestamp: 1000,
+      },
+    };
+
+    // Reinsurance contract
+    state.reinsuranceContracts = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        maxLiquidityLimit: 500,
+        active: true,
+        borrowedAfromB: 0,
+        borrowedBfromA: 0,
+        timestamp: 1000,
+      },
+    };
+
+    // Active joint loan in default
+    state.jointLoans = {
+      "group_1": {
+        id: "group_1",
+        syndicateId: "blood_fangs",
+        members: ["alice"],
+        collaterals: [],
+        amount: 100,
+        interestAccrued: 0,
+        borrowStep: 2,
+        dueStep: 5,
+        timestamp: 1000,
+      },
+    };
+
+    // Default occurred (step 10 > dueStep 5)
+    // Run tickEconomy
+    const ticked = tickEconomy(state, mockPack);
+
+    // Reinsurance fallback should borrow 100 gold from shadow_brokers + 5% interest = 105.
+    // Since shadow_brokers gold is 180 (< 250), it is a low liquidity pool, triggering a 1.5x multiplier.
+    // Charged owed should be Math.ceil(105 * 1.5) = 158 gold.
+    const contract = ticked.reinsuranceContracts?.["blood_fangs:shadow_brokers"];
+    expect(contract?.borrowedAfromB).toBe(158);
+    expect(ticked.jointLoanInsurancePools?.shadow_brokers?.poolGold).toBe(75); // 180 - 105
+
+    // Pricing multiplier saved
+    expect(ticked.reinsurancePricingMultipliers?.["blood_fangs:shadow_brokers"]?.multiplier).toBe(1.5);
+  });
+
+  it("should check contagion shield and freeze reinsurance calls when active and partner pool is highly leveraged", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000, gold_alice: 0, gold_bob: 0 },
+      agentsInit: ["alice"],
+    });
+
+    state.step = 10;
+    state.journal = [];
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+      },
+      shadow_brokers: {
+        id: "shadow_brokers",
+        name: "Shadow Brokers",
+        members: ["bob"],
+        definedBy: "bob",
+        timestamp: 1000,
+      },
+    };
+
+    state.jointLoanInsurancePools = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        poolGold: 0,
+        premiumRate: 10,
+        timestamp: 1000,
+      },
+      shadow_brokers: {
+        syndicateId: "shadow_brokers",
+        poolGold: 100, // < 150 -> highly leveraged!
+        premiumRate: 10,
+        timestamp: 1000,
+      },
+    };
+
+    state.agentPremiumPolicies = {
+      "alice_group_1": {
+        agentId: "alice",
+        syndicateId: "blood_fangs",
+        groupId: "group_1",
+        premiumPaid: 10,
+        active: true,
+        timestamp: 1000,
+      },
+    };
+
+    state.reinsuranceContracts = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        maxLiquidityLimit: 500,
+        active: true,
+        borrowedAfromB: 0,
+        borrowedBfromA: 0,
+        timestamp: 1000,
+      },
+    };
+
+    // Active contagion shield
+    state.contagionShields = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        active: true,
+        timestamp: 1000,
+      },
+    };
+
+    state.jointLoans = {
+      "group_1": {
+        id: "group_1",
+        syndicateId: "blood_fangs",
+        members: ["alice"],
+        collaterals: [],
+        amount: 100,
+        interestAccrued: 0,
+        borrowStep: 2,
+        dueStep: 5,
+        timestamp: 1000,
+      },
+    };
+
+    // Run tickEconomy
+    const ticked = tickEconomy(state, mockPack);
+
+    // Call should be frozen. borrowedAfromB remains 0, partner pool gold remains 100
+    expect(ticked.reinsuranceContracts?.["blood_fangs:shadow_brokers"]?.borrowedAfromB).toBe(0);
+    expect(ticked.jointLoanInsurancePools?.shadow_brokers?.poolGold).toBe(100);
+
+    const logEntry = ticked.journal.find(j => j.includes("[Contagion Shield] Reinsurance call"));
+    expect(logEntry).toBeDefined();
+  });
+
+  it("should converge contagionShields, contagionShieldVotes, and reinsurancePricingMultipliers via Gossip LWW merge", () => {
+    let stateA = createInitialState({ seed: 1, start: "clearing" });
+    let stateB = createInitialState({ seed: 1, start: "clearing" });
+
+    stateA.contagionShields = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        active: false,
+        timestamp: 1000,
+      },
+    };
+    stateB.contagionShields = {
+      "blood_fangs:shadow_brokers": {
+        id: "blood_fangs:shadow_brokers",
+        syndicateIdA: "blood_fangs",
+        syndicateIdB: "shadow_brokers",
+        active: true, // Newer status
+        timestamp: 1020,
+      },
+    };
+
+    stateA.contagionShieldVotes = {
+      "blood_fangs:shadow_brokers": {
+        player: {
+          targetState: false,
+          timestamp: 1050, // Newer vote
+        },
+      },
+    };
+    stateB.contagionShieldVotes = {
+      "blood_fangs:shadow_brokers": {
+        player: {
+          targetState: true,
+          timestamp: 1010,
+        },
+      },
+    };
+
+    stateA.reinsurancePricingMultipliers = {
+      "blood_fangs:shadow_brokers": {
+        contractId: "blood_fangs:shadow_brokers",
+        multiplier: 1.2,
+        timestamp: 1000,
+      },
+    };
+    stateB.reinsurancePricingMultipliers = {
+      "blood_fangs:shadow_brokers": {
+        contractId: "blood_fangs:shadow_brokers",
+        multiplier: 1.5, // Newer multiplier
+        timestamp: 1030,
+      },
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+
+    expect(merged.contagionShields?.["blood_fangs:shadow_brokers"]?.active).toBe(true);
+    expect(merged.contagionShields?.["blood_fangs:shadow_brokers"]?.timestamp).toBe(1020);
+
+    expect(merged.contagionShieldVotes?.["blood_fangs:shadow_brokers"]?.player?.targetState).toBe(false);
+    expect(merged.contagionShieldVotes?.["blood_fangs:shadow_brokers"]?.player?.timestamp).toBe(1050);
+
+    expect(merged.reinsurancePricingMultipliers?.["blood_fangs:shadow_brokers"]?.multiplier).toBe(1.5);
+    expect(merged.reinsurancePricingMultipliers?.["blood_fangs:shadow_brokers"]?.timestamp).toBe(1030);
   });
 });

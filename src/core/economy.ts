@@ -2230,6 +2230,23 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                   const partnerPool = newState.jointLoanInsurancePools?.[partnerSyndId];
 
                   if (partnerPool && partnerPool.poolGold > 0) {
+                    // Contagion Shield Check
+                    const pairKey = [primarySyndId, partnerSyndId].sort().join(":");
+                    const shield = newState.contagionShields?.[pairKey];
+                    if (shield && shield.active) {
+                      const hasActiveLoans = Object.values(newState.jointLoans || {}).some(
+                        loan => loan.syndicateId === partnerSyndId && loan.amount > 0
+                      );
+                      const isHighlyLeveraged = partnerPool.poolGold < 150 || hasActiveLoans;
+
+                      if (isHighlyLeveraged) {
+                        newState.journal.push(
+                          `[Contagion Shield] Reinsurance call from primary pool ${primarySyndId} to partner pool ${partnerSyndId} frozen via active shield (Partner Pool Gold: ${partnerPool.poolGold}, Active Loans: ${hasActiveLoans}).`
+                        );
+                        continue; // Skip borrowing from this partner pool!
+                      }
+                    }
+
                     const isAtoB = (primarySyndId === contract.syndicateIdA);
                     const currentBorrowed = isAtoB ? contract.borrowedAfromB : contract.borrowedBfromA;
                     const maxBorrowable = Math.max(0, contract.maxLiquidityLimit - currentBorrowed);
@@ -2243,12 +2260,32 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                         updatedPartnerPool.timestamp = newState.step;
                         newState.jointLoanInsurancePools![partnerSyndId] = updatedPartnerPool;
 
-                        // Record on contract
+                        // Calculate dynamic premium multiplier based on partner pool liquidity depth
+                        let multiplier = 1.0;
+                        if (partnerPool.poolGold < 250) {
+                          multiplier = 1.5;
+                        } else if (partnerPool.poolGold < 500) {
+                          multiplier = 1.2;
+                        }
+
+                        const scaledOwed = Math.ceil(borrowAmount * multiplier);
+
+                        // Save the pricing multiplier in GameState
+                        if (!newState.reinsurancePricingMultipliers) {
+                          newState.reinsurancePricingMultipliers = {};
+                        }
+                        newState.reinsurancePricingMultipliers[contractId] = {
+                          contractId,
+                          multiplier,
+                          timestamp: newState.step,
+                        };
+
+                        // Record on contract (adds scaledOwed containing the premium)
                         const updatedContract = { ...contract };
                         if (isAtoB) {
-                          updatedContract.borrowedAfromB += borrowAmount;
+                          updatedContract.borrowedAfromB += scaledOwed;
                         } else {
-                          updatedContract.borrowedBfromA += borrowAmount;
+                          updatedContract.borrowedBfromA += scaledOwed;
                         }
                         updatedContract.timestamp = newState.step;
                         newState.reinsuranceContracts[contractId] = updatedContract;
@@ -2266,7 +2303,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                         coveragePaid += borrowAmount;
 
                         newState.journal.push(
-                          `[Reinsurance Fallback] Primary pool ${primarySyndId} borrowed ${borrowAmount} gold from partner pool ${partnerSyndId} via contract ${contractId} (Borrowed so far: ${isAtoB ? updatedContract.borrowedAfromB : updatedContract.borrowedBfromA}/${contract.maxLiquidityLimit}).`
+                          `[Reinsurance Fallback] Primary pool ${primarySyndId} borrowed ${borrowAmount} gold from partner pool ${partnerSyndId} via contract ${contractId} at dynamic premium multiplier ${multiplier}x (Charged: ${scaledOwed} gold, Borrowed so far: ${isAtoB ? updatedContract.borrowedAfromB : updatedContract.borrowedBfromA}/${contract.maxLiquidityLimit}).`
                         );
                       }
                     }

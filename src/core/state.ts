@@ -890,6 +890,28 @@ export const ReinsuranceTransferVoteSchema = z.object({
 });
 export type ReinsuranceTransferVote = z.infer<typeof ReinsuranceTransferVoteSchema>;
 
+export const ContagionShieldVoteSchema = z.object({
+  targetState: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ContagionShieldVote = z.infer<typeof ContagionShieldVoteSchema>;
+
+export const ContagionShieldSchema = z.object({
+  id: z.string(),
+  syndicateIdA: z.string(),
+  syndicateIdB: z.string(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ContagionShield = z.infer<typeof ContagionShieldSchema>;
+
+export const ReinsurancePricingMultiplierSchema = z.object({
+  contractId: z.string(),
+  multiplier: z.number(),
+  timestamp: z.number().int(),
+});
+export type ReinsurancePricingMultiplier = z.infer<typeof ReinsurancePricingMultiplierSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -1122,6 +1144,9 @@ export const GameStateSchema = z.object({
   reinsuranceVotes: z.record(z.string(), z.record(z.string(), ReinsuranceVoteSchema)).optional(),
   reinsuranceTransferVotes: z.record(z.string(), z.record(z.string(), ReinsuranceTransferVoteSchema)).optional(),
   executedReinsuranceTransfers: z.record(z.string(), z.boolean()).optional(),
+  contagionShields: z.record(z.string(), ContagionShieldSchema).optional(),
+  contagionShieldVotes: z.record(z.string(), z.record(z.string(), ContagionShieldVoteSchema)).optional(),
+  reinsurancePricingMultipliers: z.record(z.string(), ReinsurancePricingMultiplierSchema).optional(),
 });
 
 
@@ -1280,6 +1305,9 @@ export const createInitialState = (options: {
     reinsuranceVotes: {},
     reinsuranceTransferVotes: {},
     executedReinsuranceTransfers: {},
+    contagionShields: {},
+    contagionShieldVotes: {},
+    reinsurancePricingMultipliers: {},
   };
 };
 
@@ -2011,6 +2039,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     reinsuranceVotes: rest.reinsuranceVotes ? JSON.parse(JSON.stringify(rest.reinsuranceVotes)) : undefined,
     reinsuranceTransferVotes: rest.reinsuranceTransferVotes ? JSON.parse(JSON.stringify(rest.reinsuranceTransferVotes)) : undefined,
     executedReinsuranceTransfers: rest.executedReinsuranceTransfers ? { ...rest.executedReinsuranceTransfers } : undefined,
+    contagionShields: rest.contagionShields ? JSON.parse(JSON.stringify(rest.contagionShields)) : undefined,
+    contagionShieldVotes: rest.contagionShieldVotes ? JSON.parse(JSON.stringify(rest.contagionShieldVotes)) : undefined,
+    reinsurancePricingMultipliers: rest.reinsurancePricingMultipliers ? JSON.parse(JSON.stringify(rest.reinsurancePricingMultipliers)) : undefined,
   };
   return clone;
 }
@@ -3722,6 +3753,75 @@ export function reconcileReinsurancePools(state: GameState, pack: any): GameStat
           ...existingContract,
           active: false,
           timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), existingContract.timestamp),
+        };
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileContagionShields(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    contagionShields: { ...(state.contagionShields || {}) },
+  };
+
+  if (!newState.contagionShieldVotes) {
+    newState.contagionShieldVotes = {};
+  }
+
+  for (const [pairKey, votes] of Object.entries(newState.contagionShieldVotes)) {
+    const parts = pairKey.split(":");
+    if (parts.length !== 2) continue;
+    const [syndicateIdA, syndicateIdB] = parts;
+
+    const syndA = newState.syndicates?.[syndicateIdA];
+    const syndB = newState.syndicates?.[syndicateIdB];
+    if (!syndA || !syndB) continue;
+
+    // Count votes for syndicate A
+    let yesA = 0;
+    let noA = 0;
+    for (const member of syndA.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesA++;
+        else noA++;
+      }
+    }
+
+    // Count votes for syndicate B
+    let yesB = 0;
+    let noB = 0;
+    for (const member of syndB.members) {
+      const v = votes[member];
+      if (v) {
+        if (v.targetState) yesB++;
+        else noB++;
+      }
+    }
+
+    // Double majority approval
+    const approvedA = yesA > 0 && yesA >= noA;
+    const approvedB = yesB > 0 && yesB >= noB;
+    const isApproved = approvedA && approvedB;
+
+    if (isApproved) {
+      newState.contagionShields[pairKey] = {
+        id: pairKey,
+        syndicateIdA,
+        syndicateIdB,
+        active: true,
+        timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+      };
+    } else {
+      const existingShield = newState.contagionShields[pairKey];
+      if (existingShield) {
+        newState.contagionShields[pairKey] = {
+          ...existingShield,
+          active: false,
+          timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), existingShield.timestamp),
         };
       }
     }

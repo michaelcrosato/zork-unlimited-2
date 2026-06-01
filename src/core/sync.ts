@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -14590,6 +14590,121 @@ export function multiAgentStep(
           syndicateIdB,
           agentId,
           maxLiquidityLimit,
+          targetState: votedState,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = { ...newState.vectorClock };
+      newState.vectorClock[agentId] = (newState.vectorClock[agentId] ?? 0) + 1;
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_CONTAGION_SHIELD action (AF-102)
+  if ((action as any).type === "PROPOSE_CONTAGION_SHIELD") {
+    const { syndicateIdA, syndicateIdB, targetState, timestamp } = action as any;
+    const votedState = targetState !== false; // Defaults to true if undefined
+    const pairKey = [syndicateIdA || "", syndicateIdB || ""].sort().join(":");
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndA = state.syndicates?.[syndicateIdA];
+    const syndB = state.syndicates?.[syndicateIdB];
+
+    if (!syndicateIdA || !syndicateIdB) {
+      rejectionReason = `Both syndicateIdA and syndicateIdB are required to propose a contagion shield.`;
+    } else if (!syndA) {
+      rejectionReason = `Syndicate ${syndicateIdA} does not exist.`;
+    } else if (!syndB) {
+      rejectionReason = `Syndicate ${syndicateIdB} does not exist.`;
+    } else if (syndicateIdA === syndicateIdB) {
+      rejectionReason = `Cannot form contagion shield with the same syndicate.`;
+    } else if (!syndA.members.includes(agentId) && !syndB.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of either syndicate A or B.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const contagionShieldVotes = { ...(state.contagionShieldVotes || {}) };
+      if (!contagionShieldVotes[pairKey]) {
+        contagionShieldVotes[pairKey] = {};
+      } else {
+        contagionShieldVotes[pairKey] = { ...contagionShieldVotes[pairKey] };
+      }
+
+      const existingVote = contagionShieldVotes[pairKey][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        contagionShieldVotes[pairKey][agentId] = {
+          targetState: votedState,
+          timestamp,
+        };
+        newState.contagionShieldVotes = contagionShieldVotes;
+        newState = reconcileContagionShields(newState, pack);
+
+        const activeShield = newState.contagionShields?.[pairKey]?.active ?? false;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Contagion Shield] Agent ${agentId} voted ${votedState ? "FOR" : "AGAINST"} contagion shield between ${syndicateIdA} and ${syndicateIdB} (Status: ${activeShield ? "ACTIVE" : "PENDING/INACTIVE"}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🛡️ Contagion shield vote cast by ${agentId} for ${syndicateIdA} & ${syndicateIdB} (Active: ${activeShield}).`,
+        } as any);
+
+        customEvents.push({
+          type: "contagion_shield_proposed" as any,
+          syndicateIdA,
+          syndicateIdB,
+          agentId,
           targetState: votedState,
           timestamp,
         });
