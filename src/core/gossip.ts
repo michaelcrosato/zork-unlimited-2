@@ -1114,6 +1114,33 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge debtSettlementVotes using LWW
+  const debtSettlementVotes = { ...stateA.debtSettlementVotes };
+  if (stateB.debtSettlementVotes) {
+    for (const [syndicateId, bInner] of Object.entries(stateB.debtSettlementVotes)) {
+      if (!debtSettlementVotes[syndicateId]) {
+        debtSettlementVotes[syndicateId] = { ...bInner };
+      } else {
+        const aInner = { ...debtSettlementVotes[syndicateId] };
+        for (const [borrowerId, bVotes] of Object.entries(bInner)) {
+          if (!aInner[borrowerId]) {
+            aInner[borrowerId] = { ...bVotes };
+          } else {
+            const aVotes = { ...aInner[borrowerId] };
+            for (const [voterId, voteB] of Object.entries(bVotes)) {
+              const voteA = aVotes[voterId];
+              if (!voteA || voteB.timestamp > voteA.timestamp) {
+                aVotes[voterId] = voteB;
+              }
+            }
+            aInner[borrowerId] = aVotes;
+          }
+        }
+        debtSettlementVotes[syndicateId] = aInner;
+      }
+    }
+  }
+
   // Merge creditRecoveries using LWW
   const creditRecoveries = { ...stateA.creditRecoveries };
   if (stateB.creditRecoveries) {
@@ -1446,6 +1473,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     defaultAlerts,
     loanRefinancingVotes,
     creditRecoveries,
+    debtSettlementVotes,
   };
 }
 

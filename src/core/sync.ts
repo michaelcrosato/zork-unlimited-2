@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -12587,6 +12587,135 @@ export function multiAgentStep(
           newInterestRate,
           timestamp,
         });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_DEBT_SETTLEMENT action (AF-90)
+  if ((action as any).type === "PROPOSE_DEBT_SETTLEMENT") {
+    const { syndicateId, targetAgentId, settlementAmount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+    const loan = bank?.loans?.[targetAgentId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to propose debt settlement.`;
+    } else if (!targetAgentId) {
+      rejectionReason = `Target agent ID is required to propose debt settlement.`;
+    } else if (settlementAmount === undefined || settlementAmount < 0 || !Number.isInteger(settlementAmount)) {
+      rejectionReason = `Settlement amount must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on debt settlement.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} is not established.`;
+    } else if (!loan) {
+      rejectionReason = `Target agent ${targetAgentId} has no active loan to settle.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && bank && loan) {
+      const debtSettlementVotes = { ...(state.debtSettlementVotes || {}) };
+      if (!debtSettlementVotes[syndicateId]) {
+        debtSettlementVotes[syndicateId] = {};
+      } else {
+        debtSettlementVotes[syndicateId] = { ...debtSettlementVotes[syndicateId] };
+      }
+
+      if (!debtSettlementVotes[syndicateId][targetAgentId]) {
+        debtSettlementVotes[syndicateId][targetAgentId] = {};
+      } else {
+        debtSettlementVotes[syndicateId][targetAgentId] = { ...debtSettlementVotes[syndicateId][targetAgentId] };
+      }
+
+      const existingVote = debtSettlementVotes[syndicateId][targetAgentId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        debtSettlementVotes[syndicateId][targetAgentId][agentId] = {
+          settlementAmount,
+          timestamp,
+        };
+        newState.debtSettlementVotes = debtSettlementVotes;
+        newState = reconcileDebtSettlements(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate Bank] Agent ${agentId} voted for debt settlement of agent ${targetAgentId}'s loan in syndicate ${syndicateId} (Amount: ${settlementAmount} gold).`);
+
+        customEvents.push({
+          type: "debt_settlement_proposed" as any,
+          agentId,
+          syndicateId,
+          targetAgentId,
+          settlementAmount,
+          timestamp,
+        });
+
+        // Add a narration event if the settlement was successfully agreed and paid
+        const loanRemaining = newState.syndicateBanks?.[syndicateId]?.loans?.[targetAgentId];
+        if (!loanRemaining) {
+          customEvents.push({
+            type: "narration",
+            text: `🤝 Debt settlement agreed and paid! Agent ${targetAgentId}'s loan in syndicate ${syndicateId} has been settled for ${settlementAmount} gold. Collateral has been released.`,
+          } as any);
+        }
       } else {
         ok = true;
       }

@@ -784,6 +784,12 @@ export const LoanRefinancingVoteSchema = z.object({
 });
 export type LoanRefinancingVote = z.infer<typeof LoanRefinancingVoteSchema>;
 
+export const DebtSettlementVoteSchema = z.object({
+  settlementAmount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type DebtSettlementVote = z.infer<typeof DebtSettlementVoteSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -956,6 +962,7 @@ export const GameStateSchema = z.object({
   defaultAlerts: z.record(z.string(), DefaultAlertSchema).optional(),
   loanRefinancingVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), LoanRefinancingVoteSchema))).optional(),
   creditRecoveries: z.record(z.string(), CreditRecoverySchema).optional(),
+  debtSettlementVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), DebtSettlementVoteSchema))).optional(),
 });
 
 
@@ -1963,6 +1970,105 @@ export function reconcileLoanRefinancings(state: GameState, pack: any): GameStat
           timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
         };
         loansChanged = true;
+      }
+    }
+
+    if (loansChanged) {
+      newState.syndicateBanks[syndicateId] = {
+        ...bank,
+        loans: updatedLoans,
+        timestamp: newState.step,
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileDebtSettlements(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    syndicateBanks: state.syndicateBanks ? { ...state.syndicateBanks } : {},
+    defaultAlerts: state.defaultAlerts ? { ...state.defaultAlerts } : {},
+    creditRatings: state.creditRatings ? { ...state.creditRatings } : {},
+    vars: state.vars ? { ...state.vars } : {},
+  };
+
+  if (!newState.debtSettlementVotes) {
+    newState.debtSettlementVotes = {};
+  }
+
+  for (const [syndicateId, borrowerVotes] of Object.entries(newState.debtSettlementVotes)) {
+    const bank = newState.syndicateBanks[syndicateId];
+    if (!bank || !bank.loans) continue;
+
+    const syndicate = newState.syndicates[syndicateId];
+    if (!syndicate) continue;
+
+    const updatedLoans = { ...bank.loans };
+    let loansChanged = false;
+
+    for (const [borrowerId, votes] of Object.entries(borrowerVotes)) {
+      const loan = updatedLoans[borrowerId];
+      if (!loan) continue;
+
+      // Only count votes from current members of the syndicate
+      const amountCounts: Record<number, number> = {};
+      for (const [voterId, vote] of Object.entries(votes)) {
+        if (syndicate.members.includes(voterId)) {
+          amountCounts[vote.settlementAmount] = (amountCounts[vote.settlementAmount] ?? 0) + 1;
+        }
+      }
+
+      const totalMembers = syndicate.members.length;
+      let maxCount = 0;
+      let consensusAmount = 0;
+
+      // Sort descending to prefer higher settlement amount (more favorable to the bank) on tie
+      const uniqueAmounts = Object.keys(amountCounts).map(Number).sort((a, b) => b - a);
+      for (const amt of uniqueAmounts) {
+        const count = amountCounts[amt];
+        if (count > maxCount) {
+          maxCount = count;
+          consensusAmount = amt;
+        }
+      }
+
+      // Check for majority approval: votes for the consensus amount > total members / 2
+      const isApproved = maxCount > totalMembers / 2;
+
+      if (isApproved) {
+        // Agreed! Check if the borrower has enough gold to pay the consensus amount
+        const goldKey = borrowerId === "player" ? "gold" : `gold_${borrowerId}`;
+        const currentGold = newState.vars[goldKey] ?? (borrowerId === "player" ? 0 : 100);
+
+        if (currentGold >= consensusAmount) {
+          // Paid! Deduct gold, delete the loan, clear default alert, restore credit score.
+          newState.vars = {
+            ...newState.vars,
+            [goldKey]: currentGold - consensusAmount,
+          };
+
+          delete updatedLoans[borrowerId];
+          loansChanged = true;
+
+          // Clear default alert
+          const alertKey = `${borrowerId}_${syndicateId}`;
+          delete newState.defaultAlerts[alertKey];
+
+          // Restore credit score: increase rating by 15 (just like fully paying back, or maybe more since they settled)
+          const currentRating = newState.creditRatings[borrowerId] ?? 100;
+          newState.creditRatings[borrowerId] = Math.min(200, currentRating + 15);
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Syndicate Bank] Debt settlement agreed and paid for agent ${borrowerId} in syndicate ${syndicateId} bank. Paid ${consensusAmount} gold. Collateral ${loan.collateralId} is released/unlocked.`
+          );
+
+          // Clear the settlement votes for this borrower so they don't apply again
+          delete borrowerVotes[borrowerId];
+        }
       }
     }
 

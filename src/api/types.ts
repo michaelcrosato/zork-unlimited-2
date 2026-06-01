@@ -114,7 +114,8 @@ export type Action =
   | { type: "ESTABLISH_STORAGE_RENT"; roomId: string; rentRate: number; timestamp: number }
   | { type: "VOTE_STORAGE_RENT_RATE"; roomId: string; rate: number; timestamp: number }
   | { type: "PROPOSE_LOAN_REFINANCING"; syndicateId: string; targetAgentId: string; newDueStep: number; newInterestRate: number; vote?: boolean; timestamp: number }
-  | { type: "DECLARE_CARTEL_BANKRUPTCY"; syndicateId: string; timestamp: number };
+  | { type: "DECLARE_CARTEL_BANKRUPTCY"; syndicateId: string; timestamp: number }
+  | { type: "PROPOSE_DEBT_SETTLEMENT"; syndicateId: string; targetAgentId: string; settlementAmount: number; timestamp: number };
 
 
 

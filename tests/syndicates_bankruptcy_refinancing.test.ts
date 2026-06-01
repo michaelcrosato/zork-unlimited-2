@@ -365,4 +365,166 @@ describe("Smuggler Syndicate Cartel Bankruptcy Restructuring, Loan Refinancing, 
     expect(merged.creditRecoveries?.["player"]?.timestamp).toBe(1050);
     expect(merged.creditRecoveries?.["player"]?.lastRecoveryStep).toBe(15);
   });
+
+  it("should propose debt settlements, achieve consensus majority, automatically deduct gold and release collateral, and clear default alerts", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 300, gold_alice: 100 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+        interestRate: 10,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "sh1",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 1,
+        stashCapacity: 5,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 0,
+      },
+    };
+
+    // 1. Establish a loan of 100 gold
+    const borrowRes = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BORROW_SYNDICATE_BANK",
+          syndicateId: "blood_fangs",
+          amount: 100,
+          collateralType: "safehouse",
+          collateralId: "clearing",
+          timestamp: 1005,
+        },
+      },
+      mockPack
+    );
+    expect(borrowRes.ok).toBe(true);
+    let stateWithLoan = borrowRes.state;
+
+    // Set player's rating and create default alert to simulate distressed defaulted borrower
+    if (!stateWithLoan.creditRatings) stateWithLoan.creditRatings = {};
+    stateWithLoan.creditRatings["player"] = 40;
+
+    stateWithLoan.defaultAlerts = {
+      player_blood_fangs: {
+        agentId: "player",
+        syndicateId: "blood_fangs",
+        defaultStep: 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Verify collateral is locked
+    expect(isCollateralLocked(stateWithLoan, "safehouse", "clearing")).toBe(true);
+
+    // 2. Propose debt settlements
+    // Player proposes settling for 50 gold (not majority yet, just 1 vote)
+    const vote1 = multiAgentStep(
+      stateWithLoan,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_DEBT_SETTLEMENT",
+          syndicateId: "blood_fangs",
+          targetAgentId: "player",
+          settlementAmount: 50,
+          timestamp: 1010,
+        },
+      },
+      mockPack
+    );
+    expect(vote1.ok).toBe(true);
+
+    // Collateral is still locked, loan still active, default alert still present
+    expect(vote1.state.syndicateBanks?.["blood_fangs"]?.loans?.["player"]).toBeDefined();
+    expect(isCollateralLocked(vote1.state, "safehouse", "clearing")).toBe(true);
+    expect(vote1.state.defaultAlerts?.["player_blood_fangs"]).toBeDefined();
+
+    // Alice also votes for 50 gold settlement (constitutes majority: 2 out of 3 members)
+    const vote2 = multiAgentStep(
+      vote1.state,
+      {
+        agentId: "alice",
+        action: {
+          type: "PROPOSE_DEBT_SETTLEMENT",
+          syndicateId: "blood_fangs",
+          targetAgentId: "player",
+          settlementAmount: 50,
+          timestamp: 1015,
+        },
+      },
+      mockPack
+    );
+    expect(vote2.ok).toBe(true);
+
+    const finalState = vote2.state;
+    // Loan should be fully settled, deleted, gold deducted, and collateral unlocked/released!
+    expect(finalState.syndicateBanks?.["blood_fangs"]?.loans?.["player"]).toBeUndefined();
+    expect(isCollateralLocked(finalState, "safehouse", "clearing")).toBe(false);
+
+    // Gold deducted from player: started with 300, borrowed 100 -> 400. Settle for 50 -> 350.
+    expect(finalState.vars["gold"]).toBe(350);
+
+    // Default alert cleared!
+    expect(finalState.defaultAlerts?.["player_blood_fangs"]).toBeUndefined();
+
+    // Credit rating recovered by +15: 40 + 15 = 55.
+    expect(finalState.creditRatings?.["player"]).toBe(55);
+  });
+
+  it("should merge debtSettlementVotes in Gossip mesh", () => {
+    let nodeA = createInitialState({ seed: 12345, start: "clearing" });
+    nodeA.debtSettlementVotes = {
+      blood_fangs: {
+        player: {
+          alice: {
+            settlementAmount: 50,
+            timestamp: 1050,
+          },
+        },
+      },
+    };
+
+    let nodeB = createInitialState({ seed: 12345, start: "clearing" });
+    nodeB.debtSettlementVotes = {
+      blood_fangs: {
+        player: {
+          alice: {
+            settlementAmount: 100,
+            timestamp: 1020, // older vote
+          },
+        },
+      },
+    };
+
+    const merged = mergeMonotonicStateFields(nodeB, nodeA);
+    expect(merged.debtSettlementVotes?.["blood_fangs"]?.["player"]?.["alice"]?.timestamp).toBe(1050);
+    expect(merged.debtSettlementVotes?.["blood_fangs"]?.["player"]?.["alice"]?.settlementAmount).toBe(50);
+  });
 });
