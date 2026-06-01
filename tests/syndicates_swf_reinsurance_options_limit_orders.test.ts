@@ -483,4 +483,175 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
     const marginCallJournal = tick3.journal.find(j => j.includes("fell below required dynamic buffer of 22 gold"));
     expect(marginCallJournal).toBeDefined();
   });
+
+  it("should calculate order book depth metrics and scale reinsurance premiums dynamically based on supply/demand imbalance (AF-151)", () => {
+    let state = createInitialState({
+      seed: 11111,
+      start: "clearing",
+      varsInit: { gold: 20000 },
+      agentsInit: ["player", "alice", "bob", "carol"],
+    });
+
+    // 1. Setup syndicates
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "carol"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Setup dummy CDO
+    state.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: {},
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.20,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    // Verify initially depth metrics are clean
+    let tickInit = tickEconomy(state, mockPack);
+    const depthInit = tickInit.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
+    expect(depthInit).toBeDefined();
+    expect(depthInit?.buyVolume).toBe(0);
+    expect(depthInit?.sellVolume).toBe(0);
+    expect(depthInit?.imbalance).toBe(0);
+    expect(depthInit?.spreadAdjustment).toBe(1.0);
+    expect(depthInit?.bidAskSpread).toBe(0);
+
+    // 2. Submit Buy Limit Order (Alpha wants to BUY Call Option, Strike: 0.03, Size: 500, Price: 150 gold) -> BUY Demand
+    const buyOrderAction = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "buy_depth_order",
+      syndicateId: "alpha",
+      orderType: "buy",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 500,
+      limitPrice: 150,
+      timestamp: 1001,
+    };
+
+    let res = multiAgentStep(state, { agentId: "player", action: buyOrderAction as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "alice", action: buyOrderAction as any }, mockPack);
+    state = res.state;
+
+    // Verify Buy Order is Open
+    expect(state.swfReinsuranceOptionLimitOrders?.["buy_depth_order"]?.status).toBe("Open");
+
+    // 3. Tick economy to evaluate sell scarcity:
+    // buyVolume = 150, sellVolume = 0. imbalance = 150.
+    // spreadAdjustment = 1.0 + (150 / 150) * 0.5 = 1.5.
+    let tickScarcity = tickEconomy(state, mockPack);
+    const depthScarcity = tickScarcity.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
+    expect(depthScarcity?.buyVolume).toBe(150);
+    expect(depthScarcity?.sellVolume).toBe(0);
+    expect(depthScarcity?.imbalance).toBe(150);
+    expect(depthScarcity?.spreadAdjustment).toBe(1.5);
+    expect(depthScarcity?.bidAskSpread).toBe(0);
+
+    // Verify journal notification logged
+    const scarcityLog = tickScarcity.journal.find(j => j.includes("[SWF Reinsurance Option Pricing Adjustment]") && j.includes("1.5000x") && j.includes("sell volume scarcity"));
+    expect(scarcityLog).toBeDefined();
+
+    // 4. Submit Sell Limit Order (Beta wants to SELL Call Option, Strike: 0.03, Size: 500, Price: 250 gold) -> SELL Supply
+    // High price so no match happens immediately
+    const sellOrderAction = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "sell_depth_order",
+      syndicateId: "beta",
+      orderType: "sell",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 500,
+      limitPrice: 250,
+      timestamp: 1002,
+    };
+
+    res = multiAgentStep(state, { agentId: "bob", action: sellOrderAction as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "carol", action: sellOrderAction as any }, mockPack);
+    state = res.state;
+
+    // Tick economy to evaluate coexistence (both buy and sell orders are open, no match because buy limit < sell limit):
+    // buyVolume = 150, sellVolume = 250. imbalance = 150 - 250 = -100.
+    // spreadAdjustment = 1.0 + (-100 / 400) * 0.5 = 1.0 - 0.125 = 0.875.
+    // bidAskSpread = lowestSellPrice (250) - highestBuyPrice (150) = 100 gold.
+    let tickCoexist = tickEconomy(state, mockPack);
+    const depthCoexist = tickCoexist.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
+    expect(depthCoexist?.buyVolume).toBe(150);
+    expect(depthCoexist?.sellVolume).toBe(250);
+    expect(depthCoexist?.imbalance).toBe(-100);
+    expect(depthCoexist?.spreadAdjustment).toBe(0.875);
+    expect(depthCoexist?.bidAskSpread).toBe(100);
+
+    const coexistLog = tickCoexist.journal.find(j => j.includes("[SWF Reinsurance Option Pricing Adjustment]") && j.includes("0.8750x") && j.includes("sell volume abundance"));
+    expect(coexistLog).toBeDefined();
+
+    // 5. Verify that cancel/fill updates recalculate depths correctly
+    // Let's cancel the buy order
+    const cancelBuyAction = {
+      type: "CANCEL_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "buy_depth_order",
+      syndicateId: "alpha",
+      timestamp: 1003,
+    };
+    res = multiAgentStep(state, { agentId: "player", action: cancelBuyAction as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "alice", action: cancelBuyAction as any }, mockPack);
+    state = res.state;
+
+    // buyVolume = 0, sellVolume = 250. imbalance = -250.
+    // spreadAdjustment = 1.0 + (-250 / 250) * 0.5 = 0.5.
+    let tickCancel = tickEconomy(state, mockPack);
+    const depthCancel = tickCancel.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
+    expect(depthCancel?.buyVolume).toBe(0);
+    expect(depthCancel?.sellVolume).toBe(250);
+    expect(depthCancel?.imbalance).toBe(-250);
+    expect(depthCancel?.spreadAdjustment).toBe(0.5);
+    expect(depthCancel?.bidAskSpread).toBe(0);
+  });
 });
+

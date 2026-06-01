@@ -2103,6 +2103,16 @@ export const SWFReinsuranceOptionLimitOrderSchema = z.object({
 });
 export type SWFReinsuranceOptionLimitOrder = z.infer<typeof SWFReinsuranceOptionLimitOrderSchema>;
 
+export const SWFReinsuranceOptionOrderBookDepthSchema = z.object({
+  buyVolume: z.number().int().nonnegative(),
+  sellVolume: z.number().int().nonnegative(),
+  imbalance: z.number(),
+  spreadAdjustment: z.number(),
+  bidAskSpread: z.number().int().nonnegative(),
+});
+export type SWFReinsuranceOptionOrderBookDepth = z.infer<typeof SWFReinsuranceOptionOrderBookDepthSchema>;
+
+
 export const VolatilityHedgedPremiumPolicySchema = z.object({
   swfYieldCdoId: z.string(),
   volatilityReserve: z.number().int().nonnegative(),
@@ -2655,6 +2665,7 @@ export const GameStateSchema = z.object({
   }))).optional(),
   swfReinsuranceOptionLimitOrders: z.record(z.string(), SWFReinsuranceOptionLimitOrderSchema).optional(),
   swfReinsuranceOptionOrderBookVolumes: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  swfReinsuranceOptionOrderBookDepths: z.record(z.string(), SWFReinsuranceOptionOrderBookDepthSchema).optional(),
   submitSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
     orderId: z.string(),
     orderType: z.enum(["buy", "sell"]),
@@ -2963,6 +2974,7 @@ export const createInitialState = (options: {
     exerciseSWFReinsuranceOptionVotes: {},
     swfReinsuranceOptionLimitOrders: {},
     swfReinsuranceOptionOrderBookVolumes: {},
+    swfReinsuranceOptionOrderBookDepths: {},
     submitSWFReinsuranceOptionLimitOrderVotes: {},
     cancelSWFReinsuranceOptionLimitOrderVotes: {},
   };
@@ -3840,6 +3852,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     exerciseSWFReinsuranceOptionVotes: rest.exerciseSWFReinsuranceOptionVotes ? JSON.parse(JSON.stringify(rest.exerciseSWFReinsuranceOptionVotes)) : undefined,
     swfReinsuranceOptionLimitOrders: rest.swfReinsuranceOptionLimitOrders ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionLimitOrders)) : undefined,
     swfReinsuranceOptionOrderBookVolumes: rest.swfReinsuranceOptionOrderBookVolumes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionOrderBookVolumes)) : undefined,
+    swfReinsuranceOptionOrderBookDepths: rest.swfReinsuranceOptionOrderBookDepths ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionOrderBookDepths)) : undefined,
     submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
   };
@@ -11033,7 +11046,11 @@ export function getCDOTrancheReinsurancePremiumRate(state: GameState, cdoId: str
     : 15.0;
 
   const volMultiplier = 1.0 + (avgVolatility * volatilityHedgeMultiplier) / Math.max(1.0, volatilityReserve / 100);
-  return basePremiumRate * ratingMult * volMultiplier;
+  let rate = basePremiumRate * ratingMult * volMultiplier;
+  if (state.swfReinsuranceOptionOrderBookDepths?.[ratingId]) {
+    rate *= state.swfReinsuranceOptionOrderBookDepths[ratingId].spreadAdjustment;
+  }
+  return rate;
 }
 
 export function reconcileSWFReinsuranceFuturesContracts(state: GameState, pack: any): GameState {

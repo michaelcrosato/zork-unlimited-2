@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -660,6 +660,101 @@ function findOptimalAdvisorAllocations(
 }
 
 /**
+ * Recalculates SWF Reinsurance Option Order Book Volumes and Depths (AF-151).
+ */
+export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionOrderBookVolumes: state.swfReinsuranceOptionOrderBookVolumes ? { ...state.swfReinsuranceOptionOrderBookVolumes } : {},
+    swfReinsuranceOptionOrderBookDepths: state.swfReinsuranceOptionOrderBookDepths ? { ...state.swfReinsuranceOptionOrderBookDepths } : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  if (newState.swfYieldCDOs) {
+    for (const cdoId of Object.keys(newState.swfYieldCDOs)) {
+      for (const trancheId of ["senior", "mezzanine", "equity"]) {
+        const key = `${cdoId}_${trancheId}`;
+        newState.swfReinsuranceOptionOrderBookVolumes![key] = 0;
+        if (!newState.swfReinsuranceOptionOrderBookDepths![key]) {
+          newState.swfReinsuranceOptionOrderBookDepths![key] = {
+            buyVolume: 0,
+            sellVolume: 0,
+            imbalance: 0,
+            spreadAdjustment: 1.0,
+            bidAskSpread: 0,
+          };
+        }
+      }
+    }
+  }
+
+  const allOpenOrders = Object.values(newState.swfReinsuranceOptionLimitOrders || {}).filter(
+    (o) => o.status === "Open"
+  );
+
+  // Group by CDO/tranche key
+  const groupedOrders: Record<string, typeof allOpenOrders> = {};
+  if (newState.swfYieldCDOs) {
+    for (const cdoId of Object.keys(newState.swfYieldCDOs)) {
+      for (const trancheId of ["senior", "mezzanine", "equity"]) {
+        groupedOrders[`${cdoId}_${trancheId}`] = [];
+      }
+    }
+  }
+
+  for (const order of allOpenOrders) {
+    const key = `${order.swfYieldCdoId}_${order.trancheId}`;
+    if (!groupedOrders[key]) groupedOrders[key] = [];
+    groupedOrders[key].push(order);
+  }
+
+  for (const [key, orders] of Object.entries(groupedOrders)) {
+    const totalVolume = orders.reduce((sum, o) => sum + o.limitPrice, 0);
+    newState.swfReinsuranceOptionOrderBookVolumes![key] = totalVolume;
+
+    const buyOrders = orders.filter((o) => o.orderType === "buy");
+    const sellOrders = orders.filter((o) => o.orderType === "sell");
+
+    const buyVolume = buyOrders.reduce((sum, o) => sum + o.limitPrice, 0);
+    const sellVolume = sellOrders.reduce((sum, o) => sum + o.limitPrice, 0);
+    const imbalance = buyVolume - sellVolume;
+
+    const highestBuyPrice = buyOrders.length > 0 ? Math.max(...buyOrders.map((o) => o.limitPrice)) : 0;
+    const lowestSellPrice = sellOrders.length > 0 ? Math.min(...sellOrders.map((o) => o.limitPrice)) : 0;
+    const bidAskSpread = (highestBuyPrice > 0 && lowestSellPrice > 0) ? Math.max(0, lowestSellPrice - highestBuyPrice) : 0;
+
+    let spreadAdjustment = 1.0;
+    if (buyVolume + sellVolume > 0) {
+      spreadAdjustment = 1.0 + (imbalance / (buyVolume + sellVolume)) * 0.5;
+    }
+    spreadAdjustment = Math.round(spreadAdjustment * 10000) / 10000;
+
+    const oldDepth = state.swfReinsuranceOptionOrderBookDepths?.[key];
+    const oldAdjustment = oldDepth ? oldDepth.spreadAdjustment : 1.0;
+
+    newState.swfReinsuranceOptionOrderBookDepths![key] = {
+      buyVolume,
+      sellVolume,
+      imbalance,
+      spreadAdjustment,
+      bidAskSpread,
+    };
+
+    if (spreadAdjustment !== oldAdjustment) {
+      const reason = spreadAdjustment > 1.0 
+        ? "sell volume scarcity" 
+        : (spreadAdjustment < 1.0 ? "sell volume abundance" : "balanced volume");
+      
+      newState.journal.push(
+        `[SWF Reinsurance Option Pricing Adjustment] CDO Tranche ${key} premium rate adjusted by multiplier ${spreadAdjustment.toFixed(4)}x due to ${reason} (Buy Vol: ${buyVolume}, Sell Vol: ${sellVolume}, Spread: ${bidAskSpread} gold).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+/**
  * Handles merchant restocking logic on every step.
  */
 export function tickEconomy(state: GameState, pack: any): GameState {
@@ -675,23 +770,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     journal: [...state.journal],
   };
 
-  // SWF Reinsurance Option Order Book Volume Tracking (AF-150)
-  newState.swfReinsuranceOptionOrderBookVolumes = {};
-  if (newState.swfYieldCDOs) {
-    for (const cdoId of Object.keys(newState.swfYieldCDOs)) {
-      for (const trancheId of ["senior", "mezzanine", "equity"]) {
-        const key = `${cdoId}_${trancheId}`;
-        newState.swfReinsuranceOptionOrderBookVolumes[key] = 0;
-      }
-    }
-  }
-  const allOpenOrders = Object.values(newState.swfReinsuranceOptionLimitOrders || {}).filter(
-    (o) => o.status === "Open"
-  );
-  for (const order of allOpenOrders) {
-    const key = `${order.swfYieldCdoId}_${order.trancheId}`;
-    newState.swfReinsuranceOptionOrderBookVolumes[key] = (newState.swfReinsuranceOptionOrderBookVolumes[key] ?? 0) + order.limitPrice;
-  }
+  // SWF Reinsurance Option Order Book Volume Tracking (AF-150) & Depths (AF-151)
+  const afterMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
+  newState.swfReinsuranceOptionOrderBookVolumes = afterMetrics.swfReinsuranceOptionOrderBookVolumes;
+  newState.swfReinsuranceOptionOrderBookDepths = afterMetrics.swfReinsuranceOptionOrderBookDepths;
+  newState.journal = afterMetrics.journal;
 
   // Dynamic Volatility Index (VIX-style) calculation (AF-144)
   const activeBonds = new Set<string>();
@@ -5680,23 +5763,11 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
     }
   }
 
-  // Recalculate SWF Reinsurance Option Order Book Volumes after matching (AF-150)
-  newState.swfReinsuranceOptionOrderBookVolumes = {};
-  if (newState.swfYieldCDOs) {
-    for (const cdoId of Object.keys(newState.swfYieldCDOs)) {
-      for (const trancheId of ["senior", "mezzanine", "equity"]) {
-        const key = `${cdoId}_${trancheId}`;
-        newState.swfReinsuranceOptionOrderBookVolumes[key] = 0;
-      }
-    }
-  }
-  const remainingOpenOrders = Object.values(newState.swfReinsuranceOptionLimitOrders || {}).filter(
-    (o) => o.status === "Open"
-  );
-  for (const order of remainingOpenOrders) {
-    const key = `${order.swfYieldCdoId}_${order.trancheId}`;
-    newState.swfReinsuranceOptionOrderBookVolumes[key] = (newState.swfReinsuranceOptionOrderBookVolumes[key] ?? 0) + order.limitPrice;
-  }
+  // Recalculate SWF Reinsurance Option Order Book Volumes & Depths after matching (AF-150 / AF-151)
+  const afterMatchMetrics = recalculateReinsuranceOptionOrderBookMetrics(newState);
+  newState.swfReinsuranceOptionOrderBookVolumes = afterMatchMetrics.swfReinsuranceOptionOrderBookVolumes;
+  newState.swfReinsuranceOptionOrderBookDepths = afterMatchMetrics.swfReinsuranceOptionOrderBookDepths;
+  newState.journal = afterMatchMetrics.journal;
 
   return newState;
 }
