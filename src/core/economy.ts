@@ -687,6 +687,39 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           }
         }
 
+        // Find which syndicate currently controls the room turf where this front business operates
+        const controllingSyndicateId = newState.syndicateTurf?.[front.roomId];
+        if (controllingSyndicateId) {
+          const controllingSyndicate = newState.syndicates?.[controllingSyndicateId];
+          if (controllingSyndicate) {
+            const taxRate = controllingSyndicate.turfTaxRate ?? 0;
+            if (taxRate > 0) {
+              const guardsCount = newState.turfGuards?.[front.roomId]?.count ?? 0;
+              // Tax scales by local turf guard security presence: taxRate * (1 + guardsCount)
+              const taxAmount = taxRate * (1 + guardsCount);
+              const actualPayout = Math.min(taxAmount, clean);
+              if (actualPayout > 0) {
+                clean -= actualPayout;
+                frontUpdated = true;
+
+                // Distribute collected gold among syndicate members
+                const members = controllingSyndicate.members ?? [];
+                const share = members.length > 0 ? Math.floor(actualPayout / members.length) : 0;
+                if (share > 0) {
+                  if (!newState.vars) newState.vars = {};
+                  for (const member of members) {
+                    const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                    newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+                  }
+                }
+
+                newState.vars["totalTurfTaxesCollected"] = (newState.vars["totalTurfTaxesCollected"] ?? 0) + actualPayout;
+                newState.journal.push(`[Syndicate] Syndicate ${controllingSyndicateId} collected ${actualPayout} gold in turf taxes from front business ${front.id} in room ${front.roomId} (Guards: ${guardsCount}, Distributed ${share} gold to each member).`);
+              }
+            }
+          }
+        }
+
         if (frontUpdated) {
           updatedFronts[merchantId] = {
             ...front,

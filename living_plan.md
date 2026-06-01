@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #52 (Ready for Cycle #53)
-* **Build/Test Status**: 🟢 PASS (All 227 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #53 (Ready for Cycle #54)
+* **Build/Test Status**: 🟢 PASS (All 238 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -312,17 +312,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire guard presence to lower enforcer raid success rate or provide turf defence combat bonuses (`AF-52`).
 - [x] Write comprehensive integration tests verifying validations, lab/front sweep defenses, turf wars, and gossip sync (`AF-52`).
 
+### Phase 47: Crime Syndicate Turf Tax & Automatic Collections (Completed)
+- [x] Add `turfTaxRate` to CrimeSyndicate state schema (`AF-53`).
+- [x] Implement `ADJUST_TURF_TAX` decentralized consensus vote action with descending tie-breaker majority consensus arbitration (`AF-53`).
+- [x] Wire periodic passive tax generation inside `tickEconomy` collecting from front businesses in rooms controlled by a syndicate, scaling by local turf guard security presence, and automatically distributing shares to syndicate members (`AF-53`).
+- [x] Write comprehensive Vitest integration tests asserting consensus tie-breaking, guard multipliers, member distributions, and gossip mesh convergence (`AF-53`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-53`
-* **Objective**: Crime Syndicate Turf Tax & Automatic Gold Laundering Collections.
-* **Why this matters**: Introduce turf-wide automated tax collection where crime syndicates can demand passive gold payouts from all front businesses operating in rooms they control, automatically distributing the earnings to the syndicate members.
+**Task ID**: `AF-54`
+* **Objective**: Crime Syndicate Turf Contraband Checkpoints & Automatic Bribe Extortions.
+* **Why this matters**: Introduce turf-wide enforcer checkpoints and contraband security scans where syndicates can set custom contraband tariffs or demand automated bribes from players/agents traversing their controlled territory with contraband in their inventory.
 * **Planned Actions**:
-  1. Add `turfTaxRate` to CrimeSyndicate state schema.
-  2. Implement `ADJUST_TURF_TAX` decentralized consensus vote action.
-  3. Wire periodic passive tax generation inside `tickEconomy` scaling by local turf guard security presence.
-  4. Write comprehensive integration tests.
+  1. Define Turf Contraband Checkpoint and Bribe Cost schemas.
+  2. Implement `ADJUST_TURF_BRIBE` decentralized consensus vote action.
+  3. Wire traversal checks to automatically intercept agents carrying contraband in hostile turf, levying consensus bribe tolls or triggering enforcer skirmishes.
+  4. Write comprehensive integration tests verifying checkpoints, bribe scales, and mesh convergence.
 
 ---
 
