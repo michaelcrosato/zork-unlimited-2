@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -23381,6 +23381,368 @@ export function multiAgentStep(
         goldPrice,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ADJUST_STABILIZATION_POLICY action (AF-126)
+  if ((action as any).type === "ADJUST_STABILIZATION_POLICY" || (action as any).type === "VOTE_STABILIZATION_POLICY") {
+    const { syndicateId, factionId, consensualDeficitMargin, stabilizationInjectionAmount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required.`;
+    } else if (consensualDeficitMargin === undefined || consensualDeficitMargin < 0 || !Number.isInteger(consensualDeficitMargin)) {
+      rejectionReason = `Consensual deficit margin must be a non-negative integer.`;
+    } else if (stabilizationInjectionAmount === undefined || stabilizationInjectionAmount < 0 || !Number.isInteger(stabilizationInjectionAmount)) {
+      rejectionReason = `Stabilization injection amount must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on stabilization policy.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const antiDeficitStabilizationVotes = { ...(state.antiDeficitStabilizationVotes || {}) };
+      if (!antiDeficitStabilizationVotes[syndicateId]) {
+        antiDeficitStabilizationVotes[syndicateId] = {};
+      } else {
+        antiDeficitStabilizationVotes[syndicateId] = { ...antiDeficitStabilizationVotes[syndicateId] };
+      }
+
+      const existingVote = antiDeficitStabilizationVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        antiDeficitStabilizationVotes[syndicateId][agentId] = {
+          factionId,
+          consensualDeficitMargin,
+          stabilizationInjectionAmount,
+          timestamp,
+        };
+
+        newState.antiDeficitStabilizationVotes = antiDeficitStabilizationVotes;
+        newState = reconcileAntiDeficitStabilizationPolicies(newState, pack);
+
+        const policy = newState.antiDeficitStabilizationPolicies?.[syndicateId];
+        const newConsensusFaction = policy?.factionId ?? "unaligned";
+        const newConsensusMargin = policy?.consensualDeficitMargin ?? 300;
+        const newConsensusInjection = policy?.stabilizationInjectionAmount ?? 100;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Stabilization Voted] Agent ${agentId} voted for stabilization policy (faction: ${factionId}, margin: ${consensualDeficitMargin}, injection: ${stabilizationInjectionAmount}) in syndicate ${syndicateId}. Consensus: faction ${newConsensusFaction}, margin ${newConsensusMargin}, injection ${newConsensusInjection}.`
+        );
+
+        customEvents.push({
+          type: "stabilization_policy_voted" as any,
+          agentId,
+          syndicateId,
+          factionId,
+          consensualDeficitMargin,
+          stabilizationInjectionAmount,
+          consensusFactionId: newConsensusFaction,
+          consensusMargin: newConsensusMargin,
+          consensusInjection: newConsensusInjection,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized TRIGGER_LIQUIDITY_AUDIT action (AF-126)
+  if ((action as any).type === "TRIGGER_LIQUIDITY_AUDIT") {
+    const { syndicateId, auditStep, timestamp } = action as any;
+    const stepVal = auditStep !== undefined ? auditStep : state.step;
+    const auditId = `${syndicateId}:${stepVal}`;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to trigger a liquidity pool audit.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!Number.isInteger(stepVal) || stepVal < 0) {
+      rejectionReason = `Audit step must be a non-negative integer.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const liquidityPoolAuditVotes = { ...(state.liquidityPoolAuditVotes || {}) };
+      if (!liquidityPoolAuditVotes[auditId]) {
+        liquidityPoolAuditVotes[auditId] = {};
+      } else {
+        liquidityPoolAuditVotes[auditId] = { ...liquidityPoolAuditVotes[auditId] };
+      }
+
+      const existingVote = liquidityPoolAuditVotes[auditId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        liquidityPoolAuditVotes[auditId][agentId] = {
+          auditStep: stepVal,
+          timestamp,
+        };
+        newState.liquidityPoolAuditVotes = liquidityPoolAuditVotes;
+        newState = reconcileAntiDeficitStabilizationPolicies(newState, pack);
+
+        const audit = newState.liquidityPoolAudits?.[auditId];
+        const status = audit?.status ?? "pending";
+        const auditedGold = audit?.auditedGold ?? 0;
+        const deficitAmount = audit?.deficitAmount ?? 0;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Liquidity Audit Voted] Agent ${agentId} voted to trigger audit ${auditId} (Status: ${status.toUpperCase()}, Audited Gold: ${auditedGold}, Deficit: ${deficitAmount}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🔍 Liquidity pool audit vote cast by ${agentId} for syndicate ${syndicateId} (Audit: ${auditId}, Status: ${status}).`,
+        } as any);
+
+        customEvents.push({
+          type: "liquidity_audit_voted" as any,
+          agentId,
+          syndicateId,
+          auditId,
+          status,
+          auditedGold,
+          deficitAmount,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized AUTHORIZE_STABILIZATION_TRANSFER action (AF-126)
+  if ((action as any).type === "AUTHORIZE_STABILIZATION_TRANSFER" || (action as any).type === "VOTE_STABILIZATION_TRANSFER") {
+    const { syndicateId, factionId, amount, timestamp } = action as any;
+    const transferId = `${syndicateId}:${timestamp}`;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to authorize a stabilization transfer.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Transfer amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const stabilizationTransferVotes = { ...(state.stabilizationTransferVotes || {}) };
+      if (!stabilizationTransferVotes[transferId]) {
+        stabilizationTransferVotes[transferId] = {};
+      } else {
+        stabilizationTransferVotes[transferId] = { ...stabilizationTransferVotes[transferId] };
+      }
+
+      const existingVote = stabilizationTransferVotes[transferId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        stabilizationTransferVotes[transferId][agentId] = {
+          factionId,
+          amount,
+          timestamp,
+        };
+        newState.stabilizationTransferVotes = stabilizationTransferVotes;
+
+        const poolBefore = newState.jointLoanInsurancePools?.[syndicateId]?.poolGold ?? 0;
+
+        newState = reconcileAntiDeficitStabilizationPolicies(newState, pack);
+
+        const poolAfter = newState.jointLoanInsurancePools?.[syndicateId]?.poolGold ?? 0;
+        const executed = poolAfter > poolBefore;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Stabilization Transfer Voted] Agent ${agentId} voted for stabilization transfer of ${amount} gold from faction ${factionId}. Executed: ${executed}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `💸 Stabilization transfer vote cast by ${agentId} (Amount: ${amount}, Faction: ${factionId}, Executed: ${executed}).`,
+        } as any);
+
+        customEvents.push({
+          type: "stabilization_transfer_voted" as any,
+          agentId,
+          syndicateId,
+          factionId,
+          amount,
+          executed,
+        });
+      }
     }
 
     newState.step += 1;

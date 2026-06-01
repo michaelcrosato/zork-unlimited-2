@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -2314,6 +2314,85 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge liquidityPoolAudits using LWW (Last-Write-Wins)
+  const liquidityPoolAudits = { ...stateA.liquidityPoolAudits };
+  if (stateB.liquidityPoolAudits) {
+    for (const [auditId, auditB] of Object.entries(stateB.liquidityPoolAudits)) {
+      const auditA = liquidityPoolAudits[auditId];
+      if (!auditA || auditB.timestamp > auditA.timestamp) {
+        liquidityPoolAudits[auditId] = { ...auditB };
+      }
+    }
+  }
+
+  // Merge antiDeficitStabilizationPolicies using LWW (Last-Write-Wins)
+  const antiDeficitStabilizationPolicies = { ...stateA.antiDeficitStabilizationPolicies };
+  if (stateB.antiDeficitStabilizationPolicies) {
+    for (const [syndicateId, policyB] of Object.entries(stateB.antiDeficitStabilizationPolicies)) {
+      const policyA = antiDeficitStabilizationPolicies[syndicateId];
+      if (!policyA || policyB.timestamp > policyA.timestamp) {
+        antiDeficitStabilizationPolicies[syndicateId] = { ...policyB };
+      }
+    }
+  }
+
+  // Merge antiDeficitStabilizationVotes using LWW (Last-Write-Wins)
+  const antiDeficitStabilizationVotes = { ...stateA.antiDeficitStabilizationVotes };
+  if (stateB.antiDeficitStabilizationVotes) {
+    for (const [syndicateId, bInner] of Object.entries(stateB.antiDeficitStabilizationVotes)) {
+      if (!antiDeficitStabilizationVotes[syndicateId]) {
+        antiDeficitStabilizationVotes[syndicateId] = { ...bInner };
+      } else {
+        const aInner = { ...antiDeficitStabilizationVotes[syndicateId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = { ...voteB };
+          }
+        }
+        antiDeficitStabilizationVotes[syndicateId] = aInner;
+      }
+    }
+  }
+
+  // Merge liquidityPoolAuditVotes using LWW (Last-Write-Wins)
+  const liquidityPoolAuditVotes = { ...stateA.liquidityPoolAuditVotes };
+  if (stateB.liquidityPoolAuditVotes) {
+    for (const [auditId, bInner] of Object.entries(stateB.liquidityPoolAuditVotes)) {
+      if (!liquidityPoolAuditVotes[auditId]) {
+        liquidityPoolAuditVotes[auditId] = { ...bInner };
+      } else {
+        const aInner = { ...liquidityPoolAuditVotes[auditId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = { ...voteB };
+          }
+        }
+        liquidityPoolAuditVotes[auditId] = aInner;
+      }
+    }
+  }
+
+  // Merge stabilizationTransferVotes using LWW (Last-Write-Wins)
+  const stabilizationTransferVotes = { ...stateA.stabilizationTransferVotes };
+  if (stateB.stabilizationTransferVotes) {
+    for (const [transferId, bInner] of Object.entries(stateB.stabilizationTransferVotes)) {
+      if (!stabilizationTransferVotes[transferId]) {
+        stabilizationTransferVotes[transferId] = { ...bInner };
+      } else {
+        const aInner = { ...stabilizationTransferVotes[transferId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = { ...voteB };
+          }
+        }
+        stabilizationTransferVotes[transferId] = aInner;
+      }
+    }
+  }
+
   // Merge reserveSweepPolicies using LWW (Last-Write-Wins)
   const reserveSweepPolicies = { ...stateA.reserveSweepPolicies };
   if (stateB.reserveSweepPolicies) {
@@ -2669,6 +2748,11 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     reserveSweepContestVotes,
     maliciousActors,
     slashingRates,
+    liquidityPoolAudits,
+    antiDeficitStabilizationPolicies,
+    antiDeficitStabilizationVotes,
+    liquidityPoolAuditVotes,
+    stabilizationTransferVotes,
   };
 }
 
@@ -3004,6 +3088,7 @@ export class GossipNode {
     convergedState = reconcileJointLoanUnderwrites(convergedState, this.pack);
     convergedState = reconcileRehabCampaign(convergedState, this.pack);
     convergedState = reconcileClaimLoyaltyRanks(convergedState, this.pack);
+    convergedState = reconcileAntiDeficitStabilizationPolicies(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

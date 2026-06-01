@@ -3819,6 +3819,60 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Automated stabilization checks in tickEconomy (AF-126)
+  if (newState.antiDeficitStabilizationPolicies) {
+    newState.antiDeficitStabilizationPolicies = { ...newState.antiDeficitStabilizationPolicies };
+    newState.liquidityPoolAudits = newState.liquidityPoolAudits ? { ...newState.liquidityPoolAudits } : {};
+    newState.factionReservePools = newState.factionReservePools ? { ...newState.factionReservePools } : {};
+    newState.jointLoanInsurancePools = newState.jointLoanInsurancePools ? { ...newState.jointLoanInsurancePools } : {};
+
+    for (const [syndicateId, policy] of Object.entries(newState.antiDeficitStabilizationPolicies)) {
+      if (!policy.active || policy.factionId === "unaligned") continue;
+
+      const pool = newState.jointLoanInsurancePools[syndicateId];
+      const poolGold = pool ? pool.poolGold : 0;
+      const margin = policy.consensualDeficitMargin;
+
+      if (poolGold < margin) {
+        // Automatically trigger mutual faction stabilization injection!
+        const factionId = policy.factionId;
+        const factionReserves = newState.factionReservePools[factionId] ?? 10000;
+        const targetInjection = policy.stabilizationInjectionAmount;
+        const actualInjection = Math.min(factionReserves, targetInjection);
+
+        if (actualInjection > 0) {
+          newState.factionReservePools[factionId] = factionReserves - actualInjection;
+          if (!pool) {
+            newState.jointLoanInsurancePools[syndicateId] = {
+              syndicateId,
+              poolGold: actualInjection,
+              premiumRate: 10,
+              timestamp: Date.now(),
+            };
+          } else {
+            pool.poolGold += actualInjection;
+          }
+
+          const auditId = `${syndicateId}:tick:${newState.step}`;
+          const deficit = margin - poolGold;
+          newState.liquidityPoolAudits[auditId] = {
+            auditId,
+            syndicateId,
+            auditedGold: poolGold,
+            deficitAmount: deficit,
+            status: "Stabilized",
+            timestamp: Date.now(),
+          };
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Anti-Deficit Stabilization] Automated stabilization triggered for syndicate ${syndicateId} using faction ${factionId} reserves. Injected ${actualInjection} gold (Pool gold went from ${poolGold} to ${(pool?.poolGold ?? actualInjection)}).`
+          );
+        }
+      }
+    }
+  }
+
   return newState;
 }
 

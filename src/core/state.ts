@@ -1392,6 +1392,47 @@ export const ReserveSweepContestVoteSchema = z.object({
 });
 export type ReserveSweepContestVote = z.infer<typeof ReserveSweepContestVoteSchema>;
 
+export const LiquidityPoolAuditSchema = z.object({
+  auditId: z.string(),
+  syndicateId: z.string(),
+  auditedGold: z.number().int().nonnegative(),
+  deficitAmount: z.number().int().nonnegative(),
+  status: z.enum(["Healthy", "Deficit", "Stabilized"]),
+  timestamp: z.number().int(),
+});
+export type LiquidityPoolAudit = z.infer<typeof LiquidityPoolAuditSchema>;
+
+export const AntiDeficitStabilizationPolicySchema = z.object({
+  syndicateId: z.string(),
+  factionId: z.string(),
+  consensualDeficitMargin: z.number().int().nonnegative(),
+  stabilizationInjectionAmount: z.number().int().nonnegative(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type AntiDeficitStabilizationPolicy = z.infer<typeof AntiDeficitStabilizationPolicySchema>;
+
+export const AntiDeficitStabilizationVoteSchema = z.object({
+  factionId: z.string(),
+  consensualDeficitMargin: z.number().int().nonnegative(),
+  stabilizationInjectionAmount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type AntiDeficitStabilizationVote = z.infer<typeof AntiDeficitStabilizationVoteSchema>;
+
+export const LiquidityPoolAuditVoteSchema = z.object({
+  auditStep: z.number().int(),
+  timestamp: z.number().int(),
+});
+export type LiquidityPoolAuditVote = z.infer<typeof LiquidityPoolAuditVoteSchema>;
+
+export const StabilizationTransferVoteSchema = z.object({
+  factionId: z.string(),
+  amount: z.number().int().positive(),
+  timestamp: z.number().int(),
+});
+export type StabilizationTransferVote = z.infer<typeof StabilizationTransferVoteSchema>;
+
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
   totalLocked: z.number().int().nonnegative(),
@@ -1783,6 +1824,11 @@ export const GameStateSchema = z.object({
   reserveSweepContestVotes: z.record(z.string(), z.record(z.string(), ReserveSweepContestVoteSchema)).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
+  liquidityPoolAudits: z.record(z.string(), LiquidityPoolAuditSchema).optional(),
+  antiDeficitStabilizationPolicies: z.record(z.string(), AntiDeficitStabilizationPolicySchema).optional(),
+  antiDeficitStabilizationVotes: z.record(z.string(), z.record(z.string(), AntiDeficitStabilizationVoteSchema)).optional(),
+  liquidityPoolAuditVotes: z.record(z.string(), z.record(z.string(), LiquidityPoolAuditVoteSchema)).optional(),
+  stabilizationTransferVotes: z.record(z.string(), z.record(z.string(), StabilizationTransferVoteSchema)).optional(),
 });
 
 
@@ -1997,6 +2043,11 @@ export const createInitialState = (options: {
     reserveSweepPolicies: {},
     reserveSweepVotes: {},
     reserveSweepContestVotes: {},
+    liquidityPoolAudits: {},
+    antiDeficitStabilizationPolicies: {},
+    antiDeficitStabilizationVotes: {},
+    liquidityPoolAuditVotes: {},
+    stabilizationTransferVotes: {},
   };
 };
 
@@ -2805,6 +2856,11 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     reserveSweepContestVotes: rest.reserveSweepContestVotes ? JSON.parse(JSON.stringify(rest.reserveSweepContestVotes)) : undefined,
     maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
     slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
+    liquidityPoolAudits: rest.liquidityPoolAudits ? JSON.parse(JSON.stringify(rest.liquidityPoolAudits)) : undefined,
+    antiDeficitStabilizationPolicies: rest.antiDeficitStabilizationPolicies ? JSON.parse(JSON.stringify(rest.antiDeficitStabilizationPolicies)) : undefined,
+    antiDeficitStabilizationVotes: rest.antiDeficitStabilizationVotes ? JSON.parse(JSON.stringify(rest.antiDeficitStabilizationVotes)) : undefined,
+    liquidityPoolAuditVotes: rest.liquidityPoolAuditVotes ? JSON.parse(JSON.stringify(rest.liquidityPoolAuditVotes)) : undefined,
+    stabilizationTransferVotes: rest.stabilizationTransferVotes ? JSON.parse(JSON.stringify(rest.stabilizationTransferVotes)) : undefined,
   };
   return clone;
 }
@@ -6602,6 +6658,214 @@ export function reconcileReserveSweeps(state: GameState, pack: any): GameState {
             `[Reserve Sweep Contested] Syndicate ${syndicateId} successfully contested and deactivated the active sweep (Total funds ${totalFunds} >= margin ${policy.sweepMargin}).`
           );
         }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileAntiDeficitStabilizationPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    antiDeficitStabilizationPolicies: state.antiDeficitStabilizationPolicies ? { ...state.antiDeficitStabilizationPolicies } : {},
+    antiDeficitStabilizationVotes: state.antiDeficitStabilizationVotes ? { ...state.antiDeficitStabilizationVotes } : {},
+    liquidityPoolAudits: state.liquidityPoolAudits ? { ...state.liquidityPoolAudits } : {},
+    liquidityPoolAuditVotes: state.liquidityPoolAuditVotes ? { ...state.liquidityPoolAuditVotes } : {},
+    stabilizationTransferVotes: state.stabilizationTransferVotes ? { ...state.stabilizationTransferVotes } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+    jointLoanInsurancePools: state.jointLoanInsurancePools ? { ...state.jointLoanInsurancePools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  // Reconcile stabilization policy parameters from votes
+  for (const [syndicateId, votes] of Object.entries(newState.antiDeficitStabilizationVotes || {})) {
+    const syndicate = state.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const factionCounts: Record<string, number> = {};
+    const marginCounts: Record<number, number> = {};
+    const injectionCounts: Record<number, number> = {};
+
+    for (const vote of Object.values(votes)) {
+      factionCounts[vote.factionId] = (factionCounts[vote.factionId] ?? 0) + 1;
+      marginCounts[vote.consensualDeficitMargin] = (marginCounts[vote.consensualDeficitMargin] ?? 0) + 1;
+      injectionCounts[vote.stabilizationInjectionAmount] = (injectionCounts[vote.stabilizationInjectionAmount] ?? 0) + 1;
+    }
+
+    let maxFactionCount = 0;
+    let consensusFactionId = newState.antiDeficitStabilizationPolicies[syndicateId]?.factionId ?? "unaligned";
+    const uniqueFactionIds = Object.keys(factionCounts).sort((a, b) => b.localeCompare(a));
+    for (const fId of uniqueFactionIds) {
+      const count = factionCounts[fId];
+      if (count > maxFactionCount) {
+        maxFactionCount = count;
+        consensusFactionId = fId;
+      }
+    }
+
+    let maxMarginCount = 0;
+    let consensusMargin = newState.antiDeficitStabilizationPolicies[syndicateId]?.consensualDeficitMargin ?? 300;
+    const uniqueMargins = Object.keys(marginCounts).map(Number).sort((a, b) => b - a);
+    for (const margin of uniqueMargins) {
+      const count = marginCounts[margin];
+      if (count > maxMarginCount) {
+        maxMarginCount = count;
+        consensusMargin = margin;
+      }
+    }
+
+    let maxInjectionCount = 0;
+    let consensusInjection = newState.antiDeficitStabilizationPolicies[syndicateId]?.stabilizationInjectionAmount ?? 100;
+    const uniqueInjections = Object.keys(injectionCounts).map(Number).sort((a, b) => b - a);
+    for (const injection of uniqueInjections) {
+      const count = injectionCounts[injection];
+      if (count > maxInjectionCount) {
+        maxInjectionCount = count;
+        consensusInjection = injection;
+      }
+    }
+
+    const currentPolicy = newState.antiDeficitStabilizationPolicies[syndicateId];
+    newState.antiDeficitStabilizationPolicies[syndicateId] = {
+      syndicateId,
+      factionId: consensusFactionId,
+      consensualDeficitMargin: consensusMargin,
+      stabilizationInjectionAmount: consensusInjection,
+      active: currentPolicy?.active ?? true,
+      timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), currentPolicy?.timestamp ?? 0),
+    };
+  }
+
+  // Reconcile liquidity pool audit votes
+  for (const [auditId, votes] of Object.entries(newState.liquidityPoolAuditVotes || {})) {
+    const parts = auditId.split(":");
+    if (parts.length !== 2) continue;
+    const [syndicateId, auditStepStr] = parts;
+    const auditStep = parseInt(auditStepStr, 10);
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votingMembers = Object.keys(votes).filter(voterId => syndicate.members.includes(voterId));
+    
+    if (votingMembers.length >= totalMembers / 2) {
+      const pool = newState.jointLoanInsurancePools?.[syndicateId];
+      const poolGold = pool ? pool.poolGold : 0;
+      const policy = newState.antiDeficitStabilizationPolicies?.[syndicateId];
+      const margin = policy?.consensualDeficitMargin ?? 300;
+      const deficit = Math.max(0, margin - poolGold);
+      const status = deficit > 0 ? "Deficit" : "Healthy";
+
+      newState.liquidityPoolAudits[auditId] = {
+        auditId,
+        syndicateId,
+        auditedGold: poolGold,
+        deficitAmount: deficit,
+        status,
+        timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+      };
+
+      // Automatically trigger mutual faction stabilization injection if Deficit
+      if (status === "Deficit" && policy && policy.active && policy.factionId !== "unaligned") {
+        const factionId = policy.factionId;
+        const factionReserves = newState.factionReservePools?.[factionId] ?? 10000;
+        const targetInjection = policy.stabilizationInjectionAmount;
+        const actualInjection = Math.min(factionReserves, targetInjection);
+
+        if (actualInjection > 0) {
+          newState.factionReservePools[factionId] = factionReserves - actualInjection;
+          if (!pool) {
+            newState.jointLoanInsurancePools[syndicateId] = {
+              syndicateId,
+              poolGold: actualInjection,
+              premiumRate: 10,
+              timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+            };
+          } else {
+            pool.poolGold += actualInjection;
+          }
+
+          newState.liquidityPoolAudits[auditId].status = "Stabilized";
+          
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Anti-Deficit Stabilization] Automated stabilization triggered for syndicate ${syndicateId} using faction ${factionId} reserves. Injected ${actualInjection} gold (Pool gold went from ${poolGold} to ${(pool?.poolGold ?? actualInjection)}).`
+          );
+        }
+      }
+    }
+  }
+
+  // Reconcile one-off stabilization transfer votes
+  for (const [transferId, votes] of Object.entries(newState.stabilizationTransferVotes || {})) {
+    const parts = transferId.split(":");
+    if (parts.length !== 2) continue;
+    const [syndicateId, voteTimestampStr] = parts;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votingMembers = Object.keys(votes).filter(voterId => syndicate.members.includes(voterId));
+
+    if (votingMembers.length >= totalMembers / 2) {
+      const amountCounts: Record<number, number> = {};
+      const factionCounts: Record<string, number> = {};
+      for (const vote of Object.values(votes)) {
+        amountCounts[vote.amount] = (amountCounts[vote.amount] ?? 0) + 1;
+        factionCounts[vote.factionId] = (factionCounts[vote.factionId] ?? 0) + 1;
+      }
+
+      let maxAmountCount = 0;
+      let consensusAmount = 0;
+      const uniqueAmounts = Object.keys(amountCounts).map(Number).sort((a, b) => b - a);
+      for (const amount of uniqueAmounts) {
+        const count = amountCounts[amount];
+        if (count > maxAmountCount) {
+          maxAmountCount = count;
+          consensusAmount = amount;
+        }
+      }
+
+      let maxFactionCount = 0;
+      let consensusFactionId = "";
+      const uniqueFactionIds = Object.keys(factionCounts).sort((a, b) => b.localeCompare(a));
+      for (const fId of uniqueFactionIds) {
+        const count = factionCounts[fId];
+        if (count > maxFactionCount) {
+          maxFactionCount = count;
+          consensusFactionId = fId;
+        }
+      }
+
+      if (consensusAmount > 0 && consensusFactionId) {
+        const factionReserves = newState.factionReservePools?.[consensusFactionId] ?? 10000;
+        const actualInjection = Math.min(factionReserves, consensusAmount);
+
+        if (actualInjection > 0) {
+          newState.factionReservePools[consensusFactionId] = factionReserves - actualInjection;
+          const pool = newState.jointLoanInsurancePools?.[syndicateId];
+
+          if (!pool) {
+            newState.jointLoanInsurancePools[syndicateId] = {
+              syndicateId,
+              poolGold: actualInjection,
+              premiumRate: 10,
+              timestamp: Math.max(...Object.values(votes).map(v => v.timestamp)),
+            };
+          } else {
+            pool.poolGold += actualInjection;
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Stabilization Transfer] Consensual stabilization transfer of ${actualInjection} gold executed from faction ${consensusFactionId} reserves to syndicate ${syndicateId} insurance pool.`
+          );
+        }
+
+        delete newState.stabilizationTransferVotes[transferId];
       }
     }
   }
