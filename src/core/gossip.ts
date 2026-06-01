@@ -2127,6 +2127,32 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfTrancheLeverageTargetVotes using LWW
+  const swfTrancheLeverageTargetVotes = { ...stateA.swfTrancheLeverageTargetVotes };
+  if (stateB.swfTrancheLeverageTargetVotes) {
+    for (const [syndicateId, bAgentVotes] of Object.entries(stateB.swfTrancheLeverageTargetVotes)) {
+      if (!swfTrancheLeverageTargetVotes[syndicateId]) {
+        swfTrancheLeverageTargetVotes[syndicateId] = { ...bAgentVotes };
+      } else {
+        swfTrancheLeverageTargetVotes[syndicateId] = { ...swfTrancheLeverageTargetVotes[syndicateId] };
+        for (const [agentId, bTrancheVotes] of Object.entries(bAgentVotes)) {
+          if (!swfTrancheLeverageTargetVotes[syndicateId][agentId]) {
+            swfTrancheLeverageTargetVotes[syndicateId][agentId] = { ...bTrancheVotes };
+          } else {
+            swfTrancheLeverageTargetVotes[syndicateId][agentId] = { ...swfTrancheLeverageTargetVotes[syndicateId][agentId] };
+            for (const [trancheId, voteB] of Object.entries(bTrancheVotes)) {
+              const tid = trancheId as "senior" | "mezzanine" | "equity";
+              const voteA = swfTrancheLeverageTargetVotes[syndicateId][agentId][tid];
+              if (!voteA || voteB.timestamp > voteA.timestamp) {
+                swfTrancheLeverageTargetVotes[syndicateId][agentId][tid] = voteB;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Merge swfFractionalReserveRatioVotes using LWW
   const swfFractionalReserveRatioVotes = { ...stateA.swfFractionalReserveRatioVotes };
   if (stateB.swfFractionalReserveRatioVotes) {
@@ -3232,6 +3258,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfRebalancingAdvisorVotes,
     swfAdvisorSafetyThresholdVotes,
     swfLeverageTargetVotes,
+    swfTrancheLeverageTargetVotes,
     swfFractionalReserveRatioVotes,
     claimSWFLiquidityRewardsVotes,
     lockedSWFCollateralVotes,

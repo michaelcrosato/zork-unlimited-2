@@ -1819,6 +1819,9 @@ export const MarginAccountSchema = z.object({
   swfAdvisorSafetyThreshold: z.number().nonnegative().optional(),
   swfLeverageFactor: z.number().positive().optional(),
   swfLeverageTarget: z.number().positive().optional(),
+  swfTrancheLeverageTargets: z.record(z.enum(["senior", "mezzanine", "equity"]), z.number().positive()).optional(),
+  swfTrancheLeverageFactors: z.record(z.enum(["senior", "mezzanine", "equity"]), z.number().positive()).optional(),
+  swfCDSLiquidityMatchingEnabled: z.boolean().optional(),
   swfFractionalReserveRatio: z.number().int().nonnegative().max(100).optional(),
   swfFractionalReserveHeld: z.number().int().nonnegative().optional(),
   swfLiquidityMiningMultiplier: z.number().positive().optional(),
@@ -2739,6 +2742,10 @@ export const GameStateSchema = z.object({
     target: z.number().positive(),
     timestamp: z.number().int(),
   }))).optional(),
+  swfTrancheLeverageTargetVotes: z.record(z.string(), z.record(z.string(), z.record(z.enum(["senior", "mezzanine", "equity"]), z.object({
+    target: z.number().positive(),
+    timestamp: z.number().int(),
+  })))).optional(),
   swfFractionalReserveRatioVotes: z.record(z.string(), z.record(z.string(), z.object({
     ratio: z.number().int().nonnegative().max(100),
     timestamp: z.number().int(),
@@ -3116,6 +3123,7 @@ export const createInitialState = (options: {
     swfRebalancingAdvisorVotes: {},
     swfAdvisorSafetyThresholdVotes: {},
     swfLeverageTargetVotes: {},
+    swfTrancheLeverageTargetVotes: {},
     swfFractionalReserveRatioVotes: {},
     claimSWFLiquidityRewardsVotes: {},
     lockedSWFCollateralVotes: {},
@@ -4027,6 +4035,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfRebalancingAdvisorVotes: rest.swfRebalancingAdvisorVotes ? JSON.parse(JSON.stringify(rest.swfRebalancingAdvisorVotes)) : undefined,
     swfAdvisorSafetyThresholdVotes: rest.swfAdvisorSafetyThresholdVotes ? JSON.parse(JSON.stringify(rest.swfAdvisorSafetyThresholdVotes)) : undefined,
     swfLeverageTargetVotes: rest.swfLeverageTargetVotes ? JSON.parse(JSON.stringify(rest.swfLeverageTargetVotes)) : undefined,
+    swfTrancheLeverageTargetVotes: rest.swfTrancheLeverageTargetVotes ? JSON.parse(JSON.stringify(rest.swfTrancheLeverageTargetVotes)) : undefined,
     swfFractionalReserveRatioVotes: rest.swfFractionalReserveRatioVotes ? JSON.parse(JSON.stringify(rest.swfFractionalReserveRatioVotes)) : undefined,
     claimSWFLiquidityRewardsVotes: rest.claimSWFLiquidityRewardsVotes ? JSON.parse(JSON.stringify(rest.claimSWFLiquidityRewardsVotes)) : undefined,
     lockedSWFCollateralVotes: rest.lockedSWFCollateralVotes ? JSON.parse(JSON.stringify(rest.lockedSWFCollateralVotes)) : undefined,
@@ -9473,6 +9482,94 @@ export function reconcileSWFLeverageTargets(state: GameState, pack: any): GameSt
       newState.journal.push(
         `[SWF Leverage Target] Syndicate ${syndicateId} adjusted SWF Leverage Target to ${approvedTarget.target} by consensus majority.`
       );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFTrancheLeverageTargets(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfTrancheLeverageTargetVotes: state.swfTrancheLeverageTargetVotes ? { ...state.swfTrancheLeverageTargetVotes } : {},
+  };
+
+  if (!newState.marginAccounts) return newState;
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const agentVotes = newState.swfTrancheLeverageTargetVotes?.[syndicateId] || {};
+
+    const tranches: Array<"senior" | "mezzanine" | "equity"> = ["senior", "mezzanine", "equity"];
+    const updatedTargets: Record<string, number> = { ...(marginAccount.swfTrancheLeverageTargets || {}) };
+    let changed = false;
+    let latestTimestamp = marginAccount.timestamp;
+
+    for (const trancheId of tranches) {
+      const targetCounts: Record<number, {
+        target: number;
+        voters: Set<string>;
+        timestamps: number[];
+      }> = {};
+
+      for (const [voterId, trancheVotes] of Object.entries(agentVotes)) {
+        if (syndicate.members.includes(voterId)) {
+          const vote = trancheVotes[trancheId];
+          if (vote) {
+            const t = vote.target;
+            if (!targetCounts[t]) {
+              targetCounts[t] = { target: t, voters: new Set<string>(), timestamps: [] };
+            }
+            targetCounts[t].voters.add(voterId);
+            targetCounts[t].timestamps.push(vote.timestamp);
+          }
+        }
+      }
+
+      let approvedTarget: any = undefined;
+      for (const info of Object.values(targetCounts)) {
+        if (info.voters.size > totalMembers / 2) {
+          approvedTarget = info;
+          break;
+        }
+      }
+
+      if (approvedTarget) {
+        updatedTargets[trancheId] = approvedTarget.target;
+        changed = true;
+        latestTimestamp = Math.max(latestTimestamp, ...approvedTarget.timestamps);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Tranche Leverage Target] Syndicate ${syndicateId} adjusted SWF ${trancheId} Tranche Leverage Target to ${approvedTarget.target} by consensus majority.`
+        );
+      }
+    }
+
+    if (changed) {
+      const updatedFactors = { ...(marginAccount.swfTrancheLeverageFactors || {}) };
+      for (const [trancheId, target] of Object.entries(updatedTargets)) {
+        const tid = trancheId as "senior" | "mezzanine" | "equity";
+        updatedFactors[tid] = target;
+      }
+
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfTrancheLeverageTargets: updatedTargets as any,
+        swfTrancheLeverageFactors: updatedFactors as any,
+        timestamp: Math.max(latestTimestamp, newState.step),
+      };
+
+      if (newState.swfTrancheLeverageTargetVotes) {
+        delete newState.swfTrancheLeverageTargetVotes[syndicateId];
+      }
     }
   }
 

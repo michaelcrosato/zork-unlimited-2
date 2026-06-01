@@ -1120,4 +1120,211 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
     expect(merged.swfLeverageTargetVotes?.writer_corp?.player?.target).toBe(3.5);
     expect(merged.swfFractionalReserveRatioVotes?.writer_corp?.player?.ratio).toBe(25);
   });
+
+  it("should support adjusting SWF tranche leverage target action with majority consensus", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 100,
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Vote to adjust SWF senior tranche leverage target to 4.0
+    const trancheLeverageAct1 = {
+      type: "ADJUST_SWF_TRANCHE_LEVERAGE_TARGET",
+      syndicateId: "writer_corp",
+      trancheId: "senior",
+      target: 4.0,
+      timestamp: 1001,
+    };
+    let res = multiAgentStep(state, { agentId: "player", action: trancheLeverageAct1 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 1 vote out of 3 is not majority
+    expect(state.marginAccounts?.writer_corp?.swfTrancheLeverageTargets?.senior).toBeUndefined();
+
+    const trancheLeverageAct2 = {
+      type: "ADJUST_SWF_TRANCHE_LEVERAGE_TARGET",
+      syndicateId: "writer_corp",
+      trancheId: "senior",
+      target: 4.0,
+      timestamp: 1002,
+    };
+    res = multiAgentStep(state, { agentId: "alice", action: trancheLeverageAct2 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 2 votes out of 3 is majority
+    expect(state.marginAccounts?.writer_corp?.swfTrancheLeverageTargets?.senior).toBe(4.0);
+    expect(state.marginAccounts?.writer_corp?.swfTrancheLeverageFactors?.senior).toBe(4.0);
+  });
+
+  it("should apply tranche-specific leverage factors to maintenance requirements inside tickEconomy", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+      buyer_corp: {
+        id: "buyer_corp",
+        name: "Buyer Corporation",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 100,
+        swfTrancheLeverageTargets: { senior: 4.0, mezzanine: 2.0, equity: 1.0 },
+        swfTrancheLeverageFactors: { senior: 4.0, mezzanine: 2.0, equity: 1.0 },
+        timestamp: 1000,
+      },
+    };
+
+    // SWF CDO CDS on mezzanine tranche
+    state.swfYieldCDOCDSs = {
+      swf_cds_1: {
+        id: "swf_cds_1",
+        buyerSyndicateId: "buyer_corp",
+        writerSyndicateId: "writer_corp",
+        swfYieldCdoId: "swf_cdo_1",
+        trancheId: "mezzanine",
+        notionalValue: 200, // 20% maintenance = 40. Leveraged at mezzanine = 2.0x, so actual maintenance component = 40 / 2 = 20.
+        premiumRate: 0.01,
+        timestamp: 1000,
+        active: true,
+        marginEnabled: true,
+      },
+    };
+    state.marginAccounts.writer_corp.leveragedSWFYieldCDOCDSIds = ["swf_cds_1"];
+
+    state = tickEconomy(state, mockPack);
+
+    // Maintenance requirement is 20, collateral is 100 (well above maintenance), so CDS stays active.
+    expect(state.swfYieldCDOCDSs?.swf_cds_1?.active).toBe(true);
+  });
+
+  it("should support automated SWF CDS liquidity matching inside tickEconomy", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      buyer_corp: {
+        id: "buyer_corp",
+        name: "Buyer Corporation",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 100,
+        swfCDSLiquidityMatchingEnabled: true,
+        timestamp: 1000,
+      },
+    };
+
+    // Buyer corp casts a BUY vote
+    state.swfYieldCDOCDSVotes = {
+      swf_cds_1: {
+        player: {
+          cdsId: "swf_cds_1",
+          buyerSyndicateId: "buyer_corp",
+          writerSyndicateId: "writer_corp",
+          swfYieldCdoId: "swf_cdo_1",
+          trancheId: "senior",
+          notionalValue: 100,
+          premiumRate: 0.05,
+          side: "buyer",
+          timestamp: 1001,
+          marginEnabled: false,
+        },
+      },
+    };
+
+    // Tick economy should automatically match unmatched buy vote with writer_corp
+    state = tickEconomy(state, mockPack);
+
+    // It should be successfully matched and reconciled to active CDS!
+    expect(state.swfYieldCDOCDSs?.swf_cds_1).toBeDefined();
+    expect(state.swfYieldCDOCDSs?.swf_cds_1?.active).toBe(true);
+    expect(state.swfYieldCDOCDSs?.swf_cds_1?.writerSyndicateId).toBe("writer_corp");
+  });
+
+  it("should merge swfTrancheLeverageTargetVotes correctly during Gossip merging", () => {
+    const stateA = createInitialState({ seed: 1, start: "clearing" });
+    const stateB = createInitialState({ seed: 2, start: "clearing" });
+
+    stateA.swfTrancheLeverageTargetVotes = {
+      writer_corp: {
+        player: {
+          senior: { target: 2.5, timestamp: 100 },
+        } as any,
+      },
+    };
+    stateB.swfTrancheLeverageTargetVotes = {
+      writer_corp: {
+        player: {
+          senior: { target: 4.5, timestamp: 200 },
+        } as any,
+      },
+    };
+
+    const merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.swfTrancheLeverageTargetVotes?.writer_corp?.player?.senior?.target).toBe(4.5);
+  });
 });

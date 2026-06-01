@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -758,7 +758,7 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
  * Handles merchant restocking logic on every step.
  */
 export function tickEconomy(state: GameState, pack: any): GameState {
-  const newState = {
+  let newState = {
     ...state,
     seed: state.seed,
     merchantGold: state.merchantGold ? { ...state.merchantGold } : {},
@@ -3933,6 +3933,15 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       marginAccount.swfLeverageFactor = Math.min(targetLeverage, reputationMultiplier);
       marginAccount.swfLiquidityMiningMultiplier = reputationMultiplier;
 
+      // AF-165: Compute tranche-specific leverage factors scaled by reputation
+      if (marginAccount.swfTrancheLeverageTargets) {
+        const factors = { ...(marginAccount.swfTrancheLeverageFactors || {}) } as any;
+        for (const [trancheId, target] of Object.entries(marginAccount.swfTrancheLeverageTargets)) {
+          factors[trancheId] = Math.min(target, reputationMultiplier);
+        }
+        marginAccount.swfTrancheLeverageFactors = factors;
+      }
+
       const swfReserveRatio = marginAccount.swfFractionalReserveRatio ?? 10;
       marginAccount.swfFractionalReserveHeld = Math.floor(marginAccount.collateral * (swfReserveRatio / 100));
 
@@ -4641,6 +4650,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       marginAccount.leveragedCDSIds = stillActiveCDSIds;
 
       let sumSwfCdsNotional = 0;
+      let swfCdsComponent = 0;
       const activeSwfCDSIds = marginAccount.leveragedSWFYieldCDOCDSIds || [];
       const stillActiveSwfCDSIds: string[] = [];
 
@@ -4649,6 +4659,8 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         if (cds && cds.active) {
           sumSwfCdsNotional += cds.notionalValue;
           stillActiveSwfCDSIds.push(cdsId);
+          const trancheLeverage = marginAccount.swfTrancheLeverageFactors?.[cds.trancheId] ?? marginAccount.swfLeverageFactor ?? 1.0;
+          swfCdsComponent += Math.round((0.20 * cds.notionalValue) / trancheLeverage);
         }
       }
       marginAccount.leveragedSWFYieldCDOCDSIds = stillActiveSwfCDSIds;
@@ -4736,7 +4748,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       }
 
       const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
-      const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
+      // swfCdsComponent is already calculated above per tranche
       const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
 
       // Calculate SWF Reinsurance Option Limit Order Book exposure and dynamic scale factor (AF-150)
@@ -5982,8 +5994,84 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   // Match SWF Reinsurance Option Limit Orders
   const matchedState = matchSWFReinsuranceOptionLimitOrders(newState);
 
-  // Recalculate dynamic risk ratings for SWF CDOs
-  return recalculateSWFYieldCDORiskRatings(matchedState);
+  // AF-165: Automated SWF CDS Liquidity Matching & Arbitrage Allocation
+  let finalState = recalculateSWFYieldCDORiskRatings(matchedState);
+  if (finalState.swfYieldCDOCDSVotes) {
+    const swfYieldCDOCDSVotes = { ...finalState.swfYieldCDOCDSVotes };
+    let matchedAny = false;
+
+    for (const [cdsId, votes] of Object.entries(swfYieldCDOCDSVotes)) {
+      const votesObj = { ...votes } as any;
+      const buyerVotes = Object.values(votesObj).filter((v: any) => v.side === "buyer");
+      const writerVotes = Object.values(votesObj).filter((v: any) => v.side === "writer");
+
+      if (buyerVotes.length > 0 && writerVotes.length === 0) {
+        const latestBuyerVote = buyerVotes.reduce((latest: any, current: any) => current.timestamp > latest.timestamp ? current : latest, buyerVotes[0]) as any;
+        for (const [syndicateId, marginAccount] of Object.entries(finalState.marginAccounts || {})) {
+          if (syndicateId === latestBuyerVote.buyerSyndicateId) continue;
+          if (marginAccount.swfCDSLiquidityMatchingEnabled) {
+            if (latestBuyerVote.marginEnabled && (!finalState.marginAccounts || !finalState.marginAccounts[syndicateId])) {
+              continue;
+            }
+            votesObj[`auto_writer_${syndicateId}`] = {
+              cdsId,
+              buyerSyndicateId: latestBuyerVote.buyerSyndicateId,
+              writerSyndicateId: syndicateId,
+              swfYieldCdoId: latestBuyerVote.swfYieldCdoId,
+              trancheId: latestBuyerVote.trancheId,
+              notionalValue: latestBuyerVote.notionalValue,
+              premiumRate: latestBuyerVote.premiumRate,
+              side: "writer",
+              timestamp: finalState.step,
+              marginEnabled: latestBuyerVote.marginEnabled || false,
+            };
+            swfYieldCDOCDSVotes[cdsId] = votesObj;
+            matchedAny = true;
+
+            if (!finalState.journal) finalState.journal = [];
+            finalState.journal.push(
+              `[Automated CDS Liquidity Match] Syndicate ${syndicateId} automatically matched unmatched CDS Buy Vote ${cdsId} as Writer (Notional: ${latestBuyerVote.notionalValue}, Premium: ${latestBuyerVote.premiumRate.toFixed(4)}).`
+            );
+            break;
+          }
+        }
+      } else if (writerVotes.length > 0 && buyerVotes.length === 0) {
+        const latestWriterVote = writerVotes.reduce((latest: any, current: any) => current.timestamp > latest.timestamp ? current : latest, writerVotes[0]) as any;
+        for (const [syndicateId, marginAccount] of Object.entries(finalState.marginAccounts || {})) {
+          if (syndicateId === latestWriterVote.writerSyndicateId) continue;
+          if (marginAccount.swfCDSLiquidityMatchingEnabled) {
+            votesObj[`auto_buyer_${syndicateId}`] = {
+              cdsId,
+              buyerSyndicateId: syndicateId,
+              writerSyndicateId: latestWriterVote.writerSyndicateId,
+              swfYieldCdoId: latestWriterVote.swfYieldCdoId,
+              trancheId: latestWriterVote.trancheId,
+              notionalValue: latestWriterVote.notionalValue,
+              premiumRate: latestWriterVote.premiumRate,
+              side: "buyer",
+              timestamp: finalState.step,
+              marginEnabled: latestWriterVote.marginEnabled || false,
+            };
+            swfYieldCDOCDSVotes[cdsId] = votesObj;
+            matchedAny = true;
+
+            if (!finalState.journal) finalState.journal = [];
+            finalState.journal.push(
+              `[Automated CDS Liquidity Match] Syndicate ${syndicateId} automatically matched unmatched CDS Write Vote ${cdsId} as Buyer (Notional: ${latestWriterVote.notionalValue}, Premium: ${latestWriterVote.premiumRate.toFixed(4)}).`
+            );
+            break;
+          }
+        }
+      }
+    }
+
+    if (matchedAny) {
+      finalState.swfYieldCDOCDSVotes = swfYieldCDOCDSVotes;
+      finalState = reconcileSWFYieldCDOCDSs(finalState, pack);
+    }
+  }
+
+  return finalState;
 }
 
 /**
