@@ -11,7 +11,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
       id: "swf_cross_mesh_arbitrage_pack",
       title: "Cross-Mesh Reinsurance Options Arbitrage Test Pack",
       start_room: "clearing",
-      vars_init: { gold: 20000 },
+      vars_init: { gold: 20000, gold_A: 5000, gold_B: 5000 },
       flags_init: [],
     },
     rooms: [
@@ -250,28 +250,42 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     net.registerNode(nodeB);
     
     // Nodes start disconnected (simulating a network partition)
-    // Configure identical CDOs & Syndicates
-    const baseState = (node: MeshNode) => {
-      node.localState.syndicates = {
-        alpha: { id: "alpha", name: "Alpha Syndicate", members: ["A", "B"], definedBy: "A", timestamp: 1000, warChest: 1000 },
-      };
-      node.localState.swfYieldCDOs = {
-        cdo_1: {
-          id: "cdo_1",
-          creatorSyndicateId: "alpha",
-          assets: [],
-          totalValue: 5000,
-          tranches: {
-            senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
-            mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-            equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
-          },
-          timestamp: 1000,
+    // Configure CDO & Syndicate on A
+
+    nodeA.executeLocalAction({
+      type: "CREATE_SYNDICATE",
+      id: "alpha",
+      name: "Alpha Syndicate",
+      members: ["A", "B"],
+      timestamp: 1000,
+    });
+
+    nodeA.executeLocalAction({
+      type: "CONTRIBUTE_WAR_CHEST",
+      syndicateId: "alpha",
+      amount: 1000,
+      timestamp: 1010,
+    });
+
+    nodeA.localState.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
+          mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
-      };
+        timestamp: 1000,
+      },
     };
-    baseState(nodeA);
-    baseState(nodeB);
+
+    nodeB.localState.swfYieldCDOs = JSON.parse(JSON.stringify(nodeA.localState.swfYieldCDOs));
+
+    // Sync syndicate and CDO from A to B so B has them
+    nodeB.receiveGossip(nodeA.generateGossipMessageFor("B"));
 
     // A votes to adjust policy
     nodeA.executeLocalAction({
@@ -337,6 +351,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     }
 
     // Spreads should now be converged to the mid value: (50 + 10) / 2 = 30
+
     const finalA = nodeA.localState.swfReinsuranceOptionOrderBookDepths?.cdo_1_senior?.bidAskSpread;
     const finalB = nodeB.localState.swfReinsuranceOptionOrderBookDepths?.cdo_1_senior?.bidAskSpread;
     expect(finalA).toBe(30);

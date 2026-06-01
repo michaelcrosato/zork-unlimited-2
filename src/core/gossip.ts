@@ -1,4 +1,5 @@
 import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies, reconcileSWFStakingPolicies } from "./state.js";
+import { reconcileSWFReinsuranceOptionCrossMeshArbitrage } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -3119,9 +3120,37 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  const swfReinsuranceOptionOrderBookDepths = { ...stateA.swfReinsuranceOptionOrderBookDepths };
+  if (stateB.swfReinsuranceOptionOrderBookDepths) {
+    for (const [key, valB] of Object.entries(stateB.swfReinsuranceOptionOrderBookDepths)) {
+      const valA = swfReinsuranceOptionOrderBookDepths[key];
+      if (!valA) {
+        swfReinsuranceOptionOrderBookDepths[key] = valB;
+      } else {
+        swfReinsuranceOptionOrderBookDepths[key] = {
+          ...valA,
+          ...valB,
+          bidAskSpread: valB.bidAskSpread < valA.bidAskSpread ? valB.bidAskSpread : valA.bidAskSpread,
+        };
+      }
+    }
+  }
+
+  const swfReinsuranceOptionCrossMeshArbitrageRoutes = { ...stateA.swfReinsuranceOptionCrossMeshArbitrageRoutes };
+  if (stateB.swfReinsuranceOptionCrossMeshArbitrageRoutes) {
+    for (const [key, valB] of Object.entries(stateB.swfReinsuranceOptionCrossMeshArbitrageRoutes)) {
+      const valA = swfReinsuranceOptionCrossMeshArbitrageRoutes[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        swfReinsuranceOptionCrossMeshArbitrageRoutes[key] = valB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
+    swfReinsuranceOptionOrderBookDepths,
+    swfReinsuranceOptionCrossMeshArbitrageRoutes,
     journal,
     blackOpsSafehouses,
     interceptorDecoys,
@@ -3324,7 +3353,8 @@ export function reconstructState(
   seed: number,
   pack: any,
   transactions: Transaction[],
-  allAgentIds: string[]
+  allAgentIds: string[],
+  initialCDOs?: any
 ): GameState {
   // Deterministically sort the agents alphabetically to ensure identical hash generation across nodes
   const sortedAgentIds = Array.from(new Set(allAgentIds)).sort();
@@ -3338,6 +3368,10 @@ export function reconstructState(
     factionRepInit: getFactionRepInit(pack),
     territoryControlInit: getTerritoryControlInit(pack),
   });
+
+  if (initialCDOs) {
+    state.swfYieldCDOs = JSON.parse(JSON.stringify(initialCDOs));
+  }
 
   // Replay all transactions in order (omitting sequence/hash constraints to allow resolution)
   for (const tx of transactions) {
@@ -3584,7 +3618,7 @@ export class GossipNode {
     ]));
 
     // 5. Reconstruct converged GameState from transactions and the full list of agents
-    let convergedState = reconstructState(this.seed, this.pack, mergedTxs, allAgentIds);
+    let convergedState = reconstructState(this.seed, this.pack, mergedTxs, allAgentIds, this.localState.swfYieldCDOs);
 
     // Overwrite the transaction journal with the original canonical merged transactions to preserve timestamps/hashes
     convergedState.transactionJournal = mergedTxs;
@@ -3650,6 +3684,7 @@ export class GossipNode {
     convergedState = reconcileRehabCampaign(convergedState, this.pack);
     convergedState = reconcileClaimLoyaltyRanks(convergedState, this.pack);
     convergedState = reconcileAntiDeficitStabilizationPolicies(convergedState, this.pack);
+    convergedState = reconcileSWFReinsuranceOptionCrossMeshArbitrage(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};
