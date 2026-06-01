@@ -3801,7 +3801,39 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     for (const [cdsId, cds] of Object.entries(newState.swfYieldCDOCDSs)) {
       if (cds.active) {
         const updatedCds = { ...cds };
-        const premium = Math.max(1, Math.floor(updatedCds.notionalValue * updatedCds.premiumRate));
+
+        // 1. Dynamic Leverage Scaling
+        const writerMarginAccount = newState.marginAccounts?.[updatedCds.writerSyndicateId];
+        let targetLeverage = 1.0;
+        let reputationMultiplier = 1.0;
+        let leverageFactor = 1.0;
+        
+        if (writerMarginAccount) {
+          targetLeverage = writerMarginAccount.swfTrancheLeverageTargets?.[updatedCds.trancheId] ?? writerMarginAccount.swfLeverageTarget ?? 1.0;
+          leverageFactor = writerMarginAccount.swfTrancheLeverageFactors?.[updatedCds.trancheId] ?? writerMarginAccount.swfLeverageFactor ?? 1.0;
+          
+          const activeVaultId = writerMarginAccount.swfRehypothecationVaultId || (writerMarginAccount.swfVaultAllocations ? Object.keys(writerMarginAccount.swfVaultAllocations)[0] : undefined);
+          const sponsorPolicy = activeVaultId ? newState.factionSponsorPolicies?.[updatedCds.writerSyndicateId]?.[activeVaultId] : undefined;
+          const factionId = sponsorPolicy?.factionId;
+          const factionRep = factionId ? (newState.factionRep?.[factionId] ?? 0) : 0;
+          reputationMultiplier = 1.0 + Math.max(0, factionRep * 0.05);
+        }
+        
+        updatedCds.dynamicLeverageFactor = Math.min(targetLeverage, reputationMultiplier * leverageFactor);
+        
+        // 2. Yield Rebalancing Multiplier from CDO Tranche Risk Rating
+        const ratingId = `${updatedCds.swfYieldCdoId}_${updatedCds.trancheId}`;
+        const riskRating = newState.swfYieldCDOTrancheRiskRatings?.[ratingId]?.riskRating ?? "BBB";
+        
+        const riskRatingsMap: Record<string, number> = {
+          "AAA": 0.8, "AA": 0.9, "A": 1.0, "BBB": 1.1, "BB": 1.2, "B": 1.3, "CCC": 1.5, "CC": 1.7, "C": 1.9, "D": 2.5
+        };
+        const riskFactor = riskRatingsMap[riskRating] ?? 1.0;
+        updatedCds.yieldRebalancingMultiplier = riskFactor * (updatedCds.dynamicLeverageFactor ?? 1.0);
+
+        const premium = (updatedCds.marginEnabled && updatedCds.yieldRebalancingMultiplier)
+          ? Math.max(1, Math.floor(updatedCds.notionalValue * updatedCds.premiumRate * updatedCds.yieldRebalancingMultiplier))
+          : Math.max(1, Math.floor(updatedCds.notionalValue * updatedCds.premiumRate));
         if (!newState.syndicates) newState.syndicates = {};
         const buyerSyndicate = newState.syndicates[updatedCds.buyerSyndicateId];
         const writerSyndicate = newState.syndicates[updatedCds.writerSyndicateId];
@@ -3818,12 +3850,31 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           };
 
           if (!newState.journal) newState.journal = [];
-          newState.journal.push(`[SWF Yield CDO CDS Premium] Syndicate ${updatedCds.buyerSyndicateId} paid ${actualPaid} gold premium to Syndicate ${updatedCds.writerSyndicateId} for SWF Yield CDO CDS ${cdsId}.`);
+          const journalMsg = (updatedCds.marginEnabled && updatedCds.yieldRebalancingMultiplier)
+            ? `[SWF Yield CDO CDS Premium] Syndicate ${updatedCds.buyerSyndicateId} paid ${actualPaid} gold premium (scaled by yield rebalancing multiplier ${updatedCds.yieldRebalancingMultiplier.toFixed(4)}) to Syndicate ${updatedCds.writerSyndicateId} for SWF Yield CDO CDS ${cdsId}.`
+            : `[SWF Yield CDO CDS Premium] Syndicate ${updatedCds.buyerSyndicateId} paid ${actualPaid} gold premium to Syndicate ${updatedCds.writerSyndicateId} for SWF Yield CDO CDS ${cdsId}.`;
+          newState.journal.push(journalMsg);
           
           if (actualPaid < premium) {
             updatedCds.active = false;
             newState.journal.push(`[SWF Yield CDO CDS Terminated] CDS ${cdsId} terminated due to insufficient premium payment from Syndicate ${updatedCds.buyerSyndicateId}.`);
           }
+
+          // 3. Arbitrage Profit Distribution for allocated arbitrage liquidity
+          if (updatedCds.arbitrageLiquidityAllocated && updatedCds.arbitrageLiquidityAllocated > 0) {
+            const arbitrageRate = 0.05; // 5% base rate
+            const profit = Math.floor(updatedCds.arbitrageLiquidityAllocated * arbitrageRate * reputationMultiplier);
+            if (profit > 0) {
+              newState.syndicates[updatedCds.writerSyndicateId] = {
+                ...newState.syndicates[updatedCds.writerSyndicateId]!,
+                warChest: (newState.syndicates[updatedCds.writerSyndicateId]!.warChest ?? 0) + profit,
+              };
+              newState.journal.push(
+                `[Arbitrage Profit] Syndicate ${updatedCds.writerSyndicateId} earned ${profit} gold profit on ${updatedCds.arbitrageLiquidityAllocated} allocated arbitrage liquidity for CDS ${cdsId}.`
+              );
+            }
+          }
+
           updatedCds.timestamp = newState.step;
           newState.swfYieldCDOCDSs[cdsId] = updatedCds;
         }
@@ -6013,6 +6064,21 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             if (latestBuyerVote.marginEnabled && (!finalState.marginAccounts || !finalState.marginAccounts[syndicateId])) {
               continue;
             }
+            
+            const syndicate = finalState.syndicates?.[syndicateId];
+            const availableLiquidity = Math.min(
+              latestBuyerVote.notionalValue,
+              marginAccount.swfLiquidityBuffer ?? marginAccount.collateral ?? (syndicate?.warChest ?? 0)
+            );
+            
+            if (syndicate && availableLiquidity > 0) {
+              if (!finalState.syndicates) finalState.syndicates = {};
+              finalState.syndicates[syndicateId] = {
+                ...syndicate,
+                warChest: Math.max(0, (syndicate.warChest ?? 0) - availableLiquidity),
+              };
+            }
+
             votesObj[`auto_writer_${syndicateId}`] = {
               cdsId,
               buyerSyndicateId: latestBuyerVote.buyerSyndicateId,
@@ -6024,13 +6090,14 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               side: "writer",
               timestamp: finalState.step,
               marginEnabled: latestBuyerVote.marginEnabled || false,
+              arbitrageLiquidityAllocated: availableLiquidity,
             };
             swfYieldCDOCDSVotes[cdsId] = votesObj;
             matchedAny = true;
 
             if (!finalState.journal) finalState.journal = [];
             finalState.journal.push(
-              `[Automated CDS Liquidity Match] Syndicate ${syndicateId} automatically matched unmatched CDS Buy Vote ${cdsId} as Writer (Notional: ${latestBuyerVote.notionalValue}, Premium: ${latestBuyerVote.premiumRate.toFixed(4)}).`
+              `[Automated CDS Liquidity Match] Syndicate ${syndicateId} automatically matched unmatched CDS Buy Vote ${cdsId} as Writer (Notional: ${latestBuyerVote.notionalValue}, Premium: ${latestBuyerVote.premiumRate.toFixed(4)}, Arbitrage Liquidity Allocated: ${availableLiquidity}).`
             );
             break;
           }
@@ -6040,6 +6107,21 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         for (const [syndicateId, marginAccount] of Object.entries(finalState.marginAccounts || {})) {
           if (syndicateId === latestWriterVote.writerSyndicateId) continue;
           if (marginAccount.swfCDSLiquidityMatchingEnabled) {
+            
+            const syndicate = finalState.syndicates?.[syndicateId];
+            const availableLiquidity = Math.min(
+              latestWriterVote.notionalValue,
+              marginAccount.swfLiquidityBuffer ?? marginAccount.collateral ?? (syndicate?.warChest ?? 0)
+            );
+            
+            if (syndicate && availableLiquidity > 0) {
+              if (!finalState.syndicates) finalState.syndicates = {};
+              finalState.syndicates[syndicateId] = {
+                ...syndicate,
+                warChest: Math.max(0, (syndicate.warChest ?? 0) - availableLiquidity),
+              };
+            }
+
             votesObj[`auto_buyer_${syndicateId}`] = {
               cdsId,
               buyerSyndicateId: syndicateId,
@@ -6051,13 +6133,14 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               side: "buyer",
               timestamp: finalState.step,
               marginEnabled: latestWriterVote.marginEnabled || false,
+              arbitrageLiquidityAllocated: availableLiquidity,
             };
             swfYieldCDOCDSVotes[cdsId] = votesObj;
             matchedAny = true;
 
             if (!finalState.journal) finalState.journal = [];
             finalState.journal.push(
-              `[Automated CDS Liquidity Match] Syndicate ${syndicateId} automatically matched unmatched CDS Write Vote ${cdsId} as Buyer (Notional: ${latestWriterVote.notionalValue}, Premium: ${latestWriterVote.premiumRate.toFixed(4)}).`
+              `[Automated CDS Liquidity Match] Syndicate ${syndicateId} automatically matched unmatched CDS Write Vote ${cdsId} as Buyer (Notional: ${latestWriterVote.notionalValue}, Premium: ${latestWriterVote.premiumRate.toFixed(4)}, Arbitrage Liquidity Allocated: ${availableLiquidity}).`
             );
             break;
           }

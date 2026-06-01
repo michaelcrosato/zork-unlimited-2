@@ -1748,6 +1748,9 @@ export const SWFYieldCDOCDSSchema = z.object({
   timestamp: z.number().int(),
   active: z.boolean(),
   marginEnabled: z.boolean().optional(),
+  dynamicLeverageFactor: z.number().positive().optional(),
+  arbitrageLiquidityAllocated: z.number().int().nonnegative().optional(),
+  yieldRebalancingMultiplier: z.number().positive().optional(),
 });
 export type SWFYieldCDOCDS = z.infer<typeof SWFYieldCDOCDSSchema>;
 
@@ -1774,6 +1777,9 @@ export const SWFYieldCDOCDSVoteSchema = z.object({
   side: z.enum(["buyer", "writer"]),
   timestamp: z.number().int(),
   marginEnabled: z.boolean().optional(),
+  dynamicLeverageFactor: z.number().positive().optional(),
+  arbitrageLiquidityAllocated: z.number().int().nonnegative().optional(),
+  yieldRebalancingMultiplier: z.number().positive().optional(),
 });
 export type SWFYieldCDOCDSVote = z.infer<typeof SWFYieldCDOCDSVoteSchema>;
 
@@ -7491,6 +7497,33 @@ export function reconcileSWFYieldCDOCDSs(state: GameState, pack: any): GameState
         const marginEnabled = latestBuyerVote.marginEnabled || false;
 
         if (!existingCds || latestTimestamp > existingCds.timestamp) {
+          const writerMarginAccount = newState.marginAccounts?.[latestWriterVote.writerSyndicateId];
+          let targetLeverage = 1.0;
+          let reputationMultiplier = 1.0;
+          let leverageFactor = 1.0;
+          
+          if (writerMarginAccount) {
+            targetLeverage = writerMarginAccount.swfTrancheLeverageTargets?.[latestBuyerVote.trancheId] ?? writerMarginAccount.swfLeverageTarget ?? 1.0;
+            leverageFactor = writerMarginAccount.swfTrancheLeverageFactors?.[latestBuyerVote.trancheId] ?? writerMarginAccount.swfLeverageFactor ?? 1.0;
+            
+            const activeVaultId = writerMarginAccount.swfRehypothecationVaultId || (writerMarginAccount.swfVaultAllocations ? Object.keys(writerMarginAccount.swfVaultAllocations)[0] : undefined);
+            const sponsorPolicy = activeVaultId ? newState.factionSponsorPolicies?.[latestWriterVote.writerSyndicateId]?.[activeVaultId] : undefined;
+            const factionId = sponsorPolicy?.factionId;
+            const factionRep = factionId ? (newState.factionRep?.[factionId] ?? 0) : 0;
+            reputationMultiplier = 1.0 + Math.max(0, factionRep * 0.05);
+          }
+          
+          const calculatedDynamicLeverage = Math.min(targetLeverage, reputationMultiplier * leverageFactor);
+          
+          const ratingId = `${latestBuyerVote.swfYieldCdoId}_${latestBuyerVote.trancheId}`;
+          const riskRating = newState.swfYieldCDOTrancheRiskRatings?.[ratingId]?.riskRating ?? "BBB";
+          
+          const riskRatingsMap: Record<string, number> = {
+            "AAA": 0.8, "AA": 0.9, "A": 1.0, "BBB": 1.1, "BB": 1.2, "B": 1.3, "CCC": 1.5, "CC": 1.7, "C": 1.9, "D": 2.5
+          };
+          const riskFactor = riskRatingsMap[riskRating] ?? 1.0;
+          const calculatedYieldMultiplier = riskFactor * calculatedDynamicLeverage;
+
           newState.swfYieldCDOCDSs[cdsId] = {
             id: cdsId,
             buyerSyndicateId: latestBuyerVote.buyerSyndicateId,
@@ -7502,6 +7535,9 @@ export function reconcileSWFYieldCDOCDSs(state: GameState, pack: any): GameState
             timestamp: latestTimestamp,
             active: true,
             marginEnabled: marginEnabled,
+            dynamicLeverageFactor: latestBuyerVote.dynamicLeverageFactor ?? latestWriterVote.dynamicLeverageFactor ?? existingCds?.dynamicLeverageFactor ?? calculatedDynamicLeverage,
+            arbitrageLiquidityAllocated: latestBuyerVote.arbitrageLiquidityAllocated ?? latestWriterVote.arbitrageLiquidityAllocated ?? existingCds?.arbitrageLiquidityAllocated,
+            yieldRebalancingMultiplier: latestBuyerVote.yieldRebalancingMultiplier ?? latestWriterVote.yieldRebalancingMultiplier ?? existingCds?.yieldRebalancingMultiplier ?? calculatedYieldMultiplier,
           };
 
           if (marginEnabled) {
