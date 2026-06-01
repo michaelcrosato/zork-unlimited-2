@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #223 (Ready for Cycle #224)
-* **Build/Test Status**: 🟢 PASS (All 777 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #224 (Ready for Cycle #225)
+* **Build/Test Status**: 🟢 PASS (All 779 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1439,15 +1439,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 204: Syndicate SWF Sovereign Debt Default Alerts & Faction Reputation Penalties under Partition (Completed)
+- [x] Define sovereign debt default alert schemas inside `GameStateSchema` or similar (`AF-226`).
+- [x] Implement `PROPOSE_DEFAULT_ALERT` and `RESOLVE_DEFAULT_ALERT` decentralized consensus actions (`AF-226`).
+- [x] Wire periodic enforcer penalty calculations inside the economy ticks to deduct faction reputation upon defaults (`AF-226`).
+- [x] Write comprehensive Vitest integration tests asserting default alert broadcasts, reputation penalties, and strategic pricing effects upon recovery (`AF-226`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-226`
-* **Objective**: Syndicate SWF Sovereign Debt Default Alerts & Faction Reputation Penalties under Partition.
-* **Why this matters**: Support broadcasting faction-wide default alerts and applying dynamic reputation penalties to syndicates that fail to service their sovereign wealth fund yield commitments or deflection surcharges, adjusting strategic pricing scales dynamically across all meshes upon convergence.
+**Task ID**: `AF-227`
+* **Objective**: Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty Waiver Proposals.
+* **Why this matters**: Support proposing grace period extensions and default penalty waivers for default alerts, allowing target syndicates to temporarily bypass reputation and pricing penalties, propagating waiver states and grace periods dynamically across all mesh nodes.
 * **Planned Actions**:
-  1. Define sovereign debt default alert schemas inside `GameStateSchema` or similar.
-  2. Implement `PROPOSE_DEFAULT_ALERT` and `RESOLVE_DEFAULT_ALERT` decentralized consensus actions.
-  3. Wire periodic enforcer penalty calculations inside the economy ticks to deduct faction reputation upon defaults.
-  4. Write comprehensive Vitest integration tests asserting default alert broadcasts, reputation penalties, and strategic pricing effects upon recovery.
+  1. Define grace period and penalty waiver proposal schemas inside `GameStateSchema` or similar.
+  2. Implement `PROPOSE_DEFAULT_GRACE_PERIOD` and `PROPOSE_DEFAULT_PENALTY_WAIVER` decentralized consensus actions.
+  3. Wire the economy tick to defer enforcer reputation penalties and pricing penalty markups/markdowns when active grace periods or authorized waivers are in effect.
+  4. Write comprehensive Vitest integration tests asserting grace periods, waivers, and pricing overrides upon convergence.
 
 ---
 
