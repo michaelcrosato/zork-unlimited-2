@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #40 (Ready for Cycle #41)
-* **Build/Test Status**: 🟢 PASS (All 180 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #41 (Ready for Cycle #42)
+* **Build/Test Status**: 🟢 PASS (All 183 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -222,15 +222,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 35: Smuggling Bounty Hunters & Dynamic Enforcement Agents (Completed)
+- [x] Define Bounty Hunter and Enforcement Agent AI behavior and state schemas (`AF-41`).
+- [x] Implement ambush narration events and pursuit mechanisms with BFS pathfinding (`AF-41`).
+- [x] Support P2P mesh synchronization of bounty tracking lists and bounty payouts (`AF-41`).
+- [x] Write comprehensive Vitest integration tests for hunters, ambushes, and mesh-wide bounty convergence (`AF-41`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-41`
-* **Objective**: Implement Smuggling Bounty Hunters and Dynamic Enforcement Agents.
-* **Why this matters**: Introduce active Enforcement Agents and Smuggling Bounty Hunters that dynamically track players or other agents carrying contraband, triggering ambush events and reputation-based combat checks.
+**Task ID**: `AF-42`
+* **Objective**: Implement Cartel Smuggling Insurance and Bribe Mechanics.
+* **Why this matters**: Allow players or agents to purchase Smuggling Insurance from the Cartel or pay gold bribes to Enforcement Agents to avoid confiscation/combat when caught smuggling contraband.
 * **Planned Actions**:
-  1. Define Bounty Hunter and Enforcement Agent AI behavior and state schemas.
-  2. Implement ambush narration events and pursuit mechanisms.
-  3. Support P2P mesh synchronization of bounty tracking lists and bounty payouts.
-  4. Write comprehensive Vitest integration tests for hunters, ambushes, and mesh-wide bounty convergence.
+  1. Define Bribe and Smuggling Insurance state schemas and properties.
+  2. Implement bribe reducers and conditional checks in the movement border check.
+  3. Support P2P mesh synchronization of active smuggling insurance policies and transaction bribes.
+  4. Write comprehensive Vitest integration tests for bribes, cartel insurance, and mesh-wide convergence.
 
 ---
 

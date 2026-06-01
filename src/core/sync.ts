@@ -2078,6 +2078,249 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized DECLARE_BOUNTY action
+  if ((action as any).type === "DECLARE_BOUNTY") {
+    const { targetId, amount, timestamp } = action as any;
+    let ok = true;
+    let rejectionReason: string | undefined;
+
+    if (amount < 0 || !Number.isInteger(amount)) {
+      ok = false;
+      rejectionReason = `Bounty amount ${amount} must be a non-negative integer.`;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const bounties = { ...(state.bounties || {}) };
+      const existing = bounties[targetId];
+      if (!existing || timestamp > existing.timestamp) {
+        bounties[targetId] = {
+          targetId,
+          amount,
+          active: true,
+          timestamp,
+        };
+        newState.bounties = bounties;
+      }
+    }
+
+    newState.step += 1;
+
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "bounty_declared", targetId, amount, declaredBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CLAIM_BOUNTY_PAYOUT action
+  if ((action as any).type === "CLAIM_BOUNTY_PAYOUT") {
+    const { targetId, claimantId, timestamp } = action as any;
+    let ok = true;
+    let rejectionReason: string | undefined;
+
+    const bounty = state.bounties?.[targetId];
+    if (!bounty || !bounty.active) {
+      ok = false;
+      rejectionReason = `No active bounty found for target ${targetId}.`;
+    }
+
+    let newState = { ...state };
+    if (ok && bounty) {
+      const bounties = { ...(state.bounties || {}) };
+      bounties[targetId] = {
+        ...bounty,
+        active: false,
+        timestamp,
+      };
+      newState.bounties = bounties;
+
+      const goldReward = bounty.amount;
+      if (claimantId === "player") {
+        newState.vars["gold"] = (newState.vars["gold"] ?? 0) + goldReward;
+      } else if (newState.agents?.[claimantId]) {
+        // Optionally update claimant agent's gold registry if ever modeled, but currently log in journal
+      }
+    }
+
+    newState.step += 1;
+
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "bounty_claimed", targetId, claimantId, reward: bounty!.amount } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized UPDATE_ENFORCER action
+  if ((action as any).type === "UPDATE_ENFORCER") {
+    const { enforcerId, currentRoom, targetId, status, timestamp, hp, max_hp, attack, defense, gold, xp } = action as any;
+    let ok = true;
+    let rejectionReason: string | undefined;
+
+    const isValidRoom = (pack as any).rooms?.some((r: any) => r.id === currentRoom);
+    if (!isValidRoom) {
+      ok = false;
+      rejectionReason = `Room ${currentRoom} is not a valid room.`;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const enforcers = { ...(state.enforcers || {}) };
+      const existing = enforcers[enforcerId];
+      if (!existing || timestamp > existing.timestamp) {
+        enforcers[enforcerId] = {
+          id: enforcerId,
+          name: existing?.name ?? (action as any).name ?? `Agent ${enforcerId}`,
+          factionId: existing?.factionId ?? (action as any).factionId,
+          currentRoom,
+          targetId: targetId !== undefined ? targetId : existing?.targetId,
+          status: status !== undefined ? status : (existing?.status ?? "idle"),
+          isBountyHunter: existing?.isBountyHunter ?? ((action as any).isBountyHunter ?? false),
+          timestamp,
+          hp: hp !== undefined ? hp : existing?.hp,
+          max_hp: max_hp !== undefined ? max_hp : existing?.max_hp,
+          attack: attack !== undefined ? attack : existing?.attack,
+          defense: defense !== undefined ? defense : existing?.defense,
+          gold: gold !== undefined ? gold : existing?.gold,
+          xp: xp !== undefined ? xp : existing?.xp,
+        };
+        newState.enforcers = enforcers;
+      }
+    }
+
+    newState.step += 1;
+
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "enforcer_updated", enforcerId, currentRoom, status } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

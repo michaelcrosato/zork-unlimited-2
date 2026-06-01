@@ -223,7 +223,10 @@ export function step(
     }
 
     if (action.type !== "LOOK" && action.type !== "INSPECT" && action.type !== "INVENTORY") {
-      const enemy = parserPack.npcs.find((n) => n.id === activeCombatNpcId);
+      let enemy = parserPack.npcs.find((n) => n.id === activeCombatNpcId);
+      if (!enemy && newState.enforcers?.[activeCombatNpcId]) {
+        enemy = newState.enforcers[activeCombatNpcId] as any;
+      }
       if (!enemy) {
         newState.flags[`in_combat_with_${activeCombatNpcId}`] = false;
       } else {
@@ -352,6 +355,25 @@ export function step(
           newState.vars["xp"] = (newState.vars["xp"] ?? 0) + xpEarned;
 
           combatLog += `🏆 VICTORY! You have defeated the ${enemy.name}! You earn ${goldEarned} gold and ${xpEarned} XP.`;
+
+          if (newState.enforcers?.[enemy.id]) {
+            newState.enforcers[enemy.id] = {
+              ...newState.enforcers[enemy.id],
+              status: "defeated",
+              timestamp: newState.step,
+            };
+            const targetId = newState.enforcers[enemy.id].targetId;
+            if (targetId && newState.bounties?.[targetId]?.active) {
+              const reward = newState.bounties[targetId].amount;
+              newState.vars["gold"] = (newState.vars["gold"] ?? 0) + reward;
+              newState.bounties[targetId] = {
+                ...newState.bounties[targetId],
+                active: false,
+                timestamp: newState.step,
+              };
+              combatLog += `\n💰 Bounty claimed! You earn an additional ${reward} gold for resolving the bounty on ${targetId}.`;
+            }
+          }
         }
 
         if (playerHp <= 0) {
@@ -371,6 +393,7 @@ export function step(
         });
 
         newState.step += 1;
+        newState = tickEnforcers(newState, events, pack);
         newState = tickEconomy(newState, pack);
         newState = tickEnvironment(newState, events, pack);
         return { state: newState, events, ok: true };
@@ -1437,6 +1460,7 @@ export function step(
   }
 
   newState.step += 1;
+  newState = tickEnforcers(newState, events, pack);
   newState = tickEconomy(newState, pack);
   newState = tickEnvironment(newState, events, pack);
   return {
@@ -1586,4 +1610,185 @@ function tickEnvironment(
   }
 
   return state;
+}
+
+function tickEnforcers(
+  state: GameState,
+  events: GameEvent[],
+  pack?: CYOAPack | ParserPack
+): GameState {
+  if (!pack || !("rooms" in pack) || !state.enforcers || Object.keys(state.enforcers).length === 0) {
+    return state;
+  }
+
+  const parserPack = pack as ParserPack;
+  let newState = { ...state };
+  if (newState.enforcers) {
+    newState.enforcers = { ...newState.enforcers };
+  }
+  if (newState.vars) {
+    newState.vars = { ...newState.vars };
+  }
+  if (newState.flags) {
+    newState.flags = { ...newState.flags };
+  }
+
+  // Helper BFS room-to-room pathfinder
+  const findNextRoom = (fromRoom: string, toRoom: string): string | null => {
+    if (fromRoom === toRoom) return null;
+    const queue: string[][] = [[fromRoom]];
+    const visited = new Set<string>([fromRoom]);
+
+    const getExits = (roomId: string) => {
+      const r = parserPack.rooms.find(x => x.id === roomId);
+      const exits: string[] = [];
+      if (r?.exits) {
+        for (const e of r.exits) {
+          exits.push(e.to);
+        }
+      }
+      if (newState.proceduralRooms) {
+        const pr = newState.proceduralRooms.find((x: any) => x.id === roomId);
+        if (pr?.exits) {
+          for (const e of pr.exits) {
+            exits.push(e.to);
+          }
+        }
+      }
+      return exits;
+    };
+
+    while (queue.length > 0) {
+      const path = queue.shift()!;
+      const current = path[path.length - 1];
+      if (current === toRoom) {
+        return path[1] ?? null;
+      }
+      for (const neighbor of getExits(current)) {
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          queue.push([...path, neighbor]);
+        }
+      }
+    }
+    return null;
+  };
+
+  for (const [id, enforcer] of Object.entries(newState.enforcers ?? {})) {
+    if (enforcer.status === "defeated") continue;
+
+    // 1. Smuggling Bounty Hunters (Pursuit Mechanism)
+    if (enforcer.isBountyHunter) {
+      if (enforcer.status === "pursuing" && enforcer.targetId) {
+        let targetRoom: string | undefined = undefined;
+        if (enforcer.targetId === "player") {
+          targetRoom = newState.current;
+        } else if (newState.agents?.[enforcer.targetId]) {
+          targetRoom = newState.agents[enforcer.targetId].current;
+        }
+
+        if (targetRoom) {
+          if (enforcer.currentRoom !== targetRoom) {
+            const nextRoom = findNextRoom(enforcer.currentRoom, targetRoom);
+            if (nextRoom) {
+              enforcer.currentRoom = nextRoom;
+              enforcer.timestamp = newState.step;
+              events.push({
+                type: "narration",
+                text: `[Enforcement] Smuggling Bounty Hunter ${enforcer.name} is pursuing target ${enforcer.targetId} and has moved to ${nextRoom}.`
+              } as any);
+            }
+          }
+
+          if (enforcer.currentRoom === targetRoom) {
+            if (enforcer.targetId === "player") {
+              const activeCombat = Object.keys(newState.flags).some(
+                (f) => f.startsWith("in_combat_with_") && newState.flags[f]
+              );
+              if (!activeCombat && !newState.ended) {
+                events.push({
+                  type: "narration",
+                  text: `💥 Ambush! Smuggling Bounty Hunter ${enforcer.name} corners you in ${enforcer.currentRoom} for your active bounty!`
+                } as any);
+                newState.flags[`in_combat_with_${enforcer.id}`] = true;
+                newState.vars[`npc_hp_${enforcer.id}`] = enforcer.hp ?? 20;
+              }
+            } else {
+              const { value: fightRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+              newState.seed = nextSeed;
+              if (fightRoll > 50) {
+                enforcer.status = "defeated";
+                enforcer.timestamp = newState.step;
+                events.push({
+                  type: "narration",
+                  text: `🛡️ Agent ${enforcer.targetId} was ambushed by Bounty Hunter ${enforcer.name} in ${enforcer.currentRoom} but successfully defeated them!`
+                } as any);
+                
+                if (newState.bounties?.[enforcer.targetId]) {
+                  newState.bounties[enforcer.targetId] = {
+                    ...newState.bounties[enforcer.targetId],
+                    active: false,
+                    timestamp: newState.step,
+                  };
+                }
+              } else {
+                events.push({
+                  type: "narration",
+                  text: `💥 Agent ${enforcer.targetId} was ambushed by Bounty Hunter ${enforcer.name} in ${enforcer.currentRoom} and was defeated!`
+                } as any);
+                enforcer.status = "idle";
+                enforcer.timestamp = newState.step;
+              }
+            }
+          }
+        }
+      }
+    }
+    // 2. Faction Enforcement Agents (Static checkpoint check)
+    else {
+      if (newState.current === enforcer.currentRoom) {
+        const contraband = getContrabandInInventory(newState, parserPack);
+        if (contraband.length > 0) {
+          const activeCombat = Object.keys(newState.flags).some(
+            (f) => f.startsWith("in_combat_with_") && newState.flags[f]
+          );
+          if (!activeCombat && !newState.ended) {
+            const factionId = enforcer.factionId ?? "rangers";
+            const rep = newState.factionRep?.[factionId] ?? 0;
+
+            if (rep >= 10) {
+              events.push({
+                type: "narration",
+                text: `👮 Enforcement Agent ${enforcer.name} stops you, but recognizes your allied standing with ${factionId} and lets you pass with a warning.`
+              } as any);
+            } else if (rep < 0) {
+              events.push({
+                type: "narration",
+                text: `💥 Ambush! Enforcement Agent ${enforcer.name} detects contraband (${contraband.join(", ")}) in your inventory and attacks due to your hostile standing with ${factionId}!`
+              } as any);
+              newState.flags[`in_combat_with_${enforcer.id}`] = true;
+              newState.vars[`npc_hp_${enforcer.id}`] = enforcer.hp ?? 20;
+            } else {
+              const inventoryFilter = newState.inventory.filter(itemId => !contraband.includes(itemId));
+              let val = 0;
+              for (const itemId of contraband) {
+                const obj = parserPack.objects?.find((o: any) => o.id === itemId);
+                val += obj?.cost ?? 10;
+              }
+              const fine = Math.round(val * 1.0) || 20;
+              newState.inventory = inventoryFilter;
+              newState.vars["gold"] = Math.max(0, (newState.vars["gold"] ?? 0) - fine);
+              
+              events.push({
+                type: "narration",
+                text: `👮 Enforcement Agent ${enforcer.name} stops you and confiscates your contraband (${contraband.join(", ")}). You are fined ${fine} gold.`
+              } as any);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
 }

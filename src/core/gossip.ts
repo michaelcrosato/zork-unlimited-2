@@ -643,6 +643,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge bounties using LWW (Last-Write-Wins)
+  const bounties = { ...stateA.bounties };
+  if (stateB.bounties) {
+    for (const [targetId, entryB] of Object.entries(stateB.bounties)) {
+      const entryA = bounties[targetId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        bounties[targetId] = entryB;
+      }
+    }
+  }
+
+  // Merge enforcers using LWW (Last-Write-Wins)
+  const enforcers = { ...stateA.enforcers };
+  if (stateB.enforcers) {
+    for (const [enforcerId, entryB] of Object.entries(stateB.enforcers)) {
+      const entryA = enforcers[enforcerId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        enforcers[enforcerId] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -670,6 +692,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cartelVotes,
     contrabandBlacklist,
     blackMarketPayouts,
+    bounties,
+    enforcers,
   };
 }
 

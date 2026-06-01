@@ -180,6 +180,32 @@ export const BlackMarketPayoutEntrySchema = z.object({
 });
 export type BlackMarketPayoutEntry = z.infer<typeof BlackMarketPayoutEntrySchema>;
 
+export const BountySchema = z.object({
+  targetId: z.string(),
+  amount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type Bounty = z.infer<typeof BountySchema>;
+
+export const EnforcerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  factionId: z.string().optional(),
+  currentRoom: z.string(),
+  targetId: z.string().optional(),
+  status: z.enum(["idle", "pursuing", "defeated"]),
+  isBountyHunter: z.boolean(),
+  timestamp: z.number().int(),
+  hp: z.number().optional(),
+  max_hp: z.number().optional(),
+  attack: z.number().optional(),
+  defense: z.number().optional(),
+  gold: z.number().optional(),
+  xp: z.number().optional(),
+});
+export type Enforcer = z.infer<typeof EnforcerSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -257,6 +283,10 @@ export const GameStateSchema = z.object({
   // contraband smuggling economy (AF-40)
   contrabandBlacklist: z.record(z.string(), ContrabandBlacklistEntrySchema).optional(),
   blackMarketPayouts: z.record(z.string(), BlackMarketPayoutEntrySchema).optional(),
+
+  // Smuggling Bounty Hunters & Enforcement Agents (AF-41)
+  bounties: z.record(z.string(), BountySchema).optional(),
+  enforcers: z.record(z.string(), EnforcerSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -341,6 +371,8 @@ export const createInitialState = (options: {
     cartelPolicies: {},
     contrabandBlacklist: {},
     blackMarketPayouts: {},
+    bounties: {},
+    enforcers: {},
   };
 };
 
