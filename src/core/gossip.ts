@@ -2073,6 +2073,78 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfLeverageTargetVotes using LWW
+  const swfLeverageTargetVotes = { ...stateA.swfLeverageTargetVotes };
+  if (stateB.swfLeverageTargetVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfLeverageTargetVotes)) {
+      if (!swfLeverageTargetVotes[syndicateId]) {
+        swfLeverageTargetVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfLeverageTargetVotes[syndicateId] = { ...swfLeverageTargetVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfLeverageTargetVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfLeverageTargetVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge swfFractionalReserveRatioVotes using LWW
+  const swfFractionalReserveRatioVotes = { ...stateA.swfFractionalReserveRatioVotes };
+  if (stateB.swfFractionalReserveRatioVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.swfFractionalReserveRatioVotes)) {
+      if (!swfFractionalReserveRatioVotes[syndicateId]) {
+        swfFractionalReserveRatioVotes[syndicateId] = { ...bVotes };
+      } else {
+        swfFractionalReserveRatioVotes[syndicateId] = { ...swfFractionalReserveRatioVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = swfFractionalReserveRatioVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            swfFractionalReserveRatioVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge claimSWFLiquidityRewardsVotes using LWW
+  const claimSWFLiquidityRewardsVotes = { ...stateA.claimSWFLiquidityRewardsVotes };
+  if (stateB.claimSWFLiquidityRewardsVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.claimSWFLiquidityRewardsVotes)) {
+      if (!claimSWFLiquidityRewardsVotes[syndicateId]) {
+        claimSWFLiquidityRewardsVotes[syndicateId] = { ...bVotes };
+      } else {
+        claimSWFLiquidityRewardsVotes[syndicateId] = { ...claimSWFLiquidityRewardsVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = claimSWFLiquidityRewardsVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            claimSWFLiquidityRewardsVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge lockedSWFCollateralVotes using LWW
+  const lockedSWFCollateralVotes = { ...stateA.lockedSWFCollateralVotes };
+  if (stateB.lockedSWFCollateralVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.lockedSWFCollateralVotes)) {
+      if (!lockedSWFCollateralVotes[syndicateId]) {
+        lockedSWFCollateralVotes[syndicateId] = { ...bVotes };
+      } else {
+        lockedSWFCollateralVotes[syndicateId] = { ...lockedSWFCollateralVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = lockedSWFCollateralVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            lockedSWFCollateralVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   // Merge factionSponsorProposals using LWW (Last-Write-Wins)
   const factionSponsorProposals = { ...stateA.factionSponsorProposals };
   if (stateB.factionSponsorProposals) {
@@ -3004,6 +3076,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfMarginRebalancingPolicyVotes,
     swfRebalancingAdvisorVotes,
     swfAdvisorSafetyThresholdVotes,
+    swfLeverageTargetVotes,
+    swfFractionalReserveRatioVotes,
+    claimSWFLiquidityRewardsVotes,
+    lockedSWFCollateralVotes,
     factionSponsorProposals,
     factionSponsorPolicies,
     sponsorAuditProposals,

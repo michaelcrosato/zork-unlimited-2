@@ -3600,11 +3600,32 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         marginAccount.vaultAllocations = vaultAllocations;
       }
 
+      // AF-134: Dynamic Leverage Factor & Fractional Reserve held computation
+      const activeVaultId = marginAccount.swfRehypothecationVaultId || (marginAccount.swfVaultAllocations ? Object.keys(marginAccount.swfVaultAllocations)[0] : undefined);
+      const sponsorPolicy = activeVaultId ? newState.factionSponsorPolicies?.[syndicateId]?.[activeVaultId] : undefined;
+      const factionId = sponsorPolicy?.factionId;
+      const factionRep = factionId ? (newState.factionRep?.[factionId] ?? 0) : 0;
+      const reputationMultiplier = 1.0 + Math.max(0, factionRep * 0.05);
+      const targetLeverage = marginAccount.swfLeverageTarget ?? 1.0;
+      
+      marginAccount.swfLeverageFactor = Math.min(targetLeverage, reputationMultiplier);
+      marginAccount.swfLiquidityMiningMultiplier = reputationMultiplier;
+
+      const swfReserveRatio = marginAccount.swfFractionalReserveRatio ?? 10;
+      marginAccount.swfFractionalReserveHeld = Math.floor(marginAccount.collateral * (swfReserveRatio / 100));
+
       // AF-133: Auto-rebalance if SWF rebalancing is enabled
       if (marginAccount.swfRebalancingEnabled && marginAccount.collateral > 0) {
         const collateral = marginAccount.collateral;
         const targetBuffer = Math.floor(collateral * ((marginAccount.swfLiquidityBufferRatio ?? 0) / 100));
-        const targetRehypothecated = collateral - targetBuffer;
+        
+        // Respect Fractional Reserve Ratio
+        const maxRehypothecatable = Math.max(0, collateral - (marginAccount.swfFractionalReserveHeld ?? 0));
+        let targetRehypothecated = collateral - targetBuffer;
+        if (targetRehypothecated > maxRehypothecatable) {
+          targetRehypothecated = maxRehypothecatable;
+        }
+
         const vaultAllocations: Record<string, number> = {};
 
         for (const [vaultId, pct] of Object.entries(marginAccount.swfVaultTargets || {})) {
@@ -3832,7 +3853,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 let interest = 0;
                 if (vault.interestRate > 0) {
                   const currentEpoch = Math.floor(newState.step / 5);
-                  const activeLocks = (marginAccount.lockedPositions ?? [])
+                  const activeLocks = (marginAccount.swfLockedPositions ?? [])
                     .filter(p => p.vaultId === vaultId && currentEpoch < p.endEpoch && !p.claimed);
 
                   const totalLocked = activeLocks.reduce((sum, p) => sum + p.amount, 0);
@@ -3901,7 +3922,13 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           const vaults = getSecondaryReserveVaults(newState);
           const vault = vaults[marginAccount.swfRehypothecationVaultId];
           if (vault) {
-            const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.swfRehypothecationPercentage / 100));
+            const swfReserveRatio = marginAccount.swfFractionalReserveRatio ?? 10;
+            const swfReserveAmount = Math.floor(marginAccount.collateral * (swfReserveRatio / 100));
+            const maxRehypothecatable = Math.max(0, marginAccount.collateral - swfReserveAmount);
+            const rehypothecatedAmount = Math.min(
+              Math.floor(marginAccount.collateral * (marginAccount.swfRehypothecationPercentage / 100)),
+              maxRehypothecatable
+            );
             if (rehypothecatedAmount > 0) {
               const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
               newState.seed = nextSeed;
@@ -3920,7 +3947,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 if (vault.interestRate > 0) {
                   const vaultId = marginAccount.swfRehypothecationVaultId;
                   const currentEpoch = Math.floor(newState.step / 5);
-                  const activeLocks = (marginAccount.lockedPositions ?? [])
+                  const activeLocks = (marginAccount.swfLockedPositions ?? [])
                     .filter(p => p.vaultId === vaultId && currentEpoch < p.endEpoch && !p.claimed);
 
                   const totalLocked = activeLocks.reduce((sum, p) => sum + p.amount, 0);
@@ -4072,7 +4099,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
-      let maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium + swfRehypothecationPremium);
+      const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
+      const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
+      const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
+      let maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent;
 
       // AF-112: Preemptive Drawdown Loop to prevent margin call liquidations
       if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
@@ -4111,7 +4141,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 }
               }
               rehypothecationPremium = tempPremium;
-              maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium + swfRehypothecationPremium);
+              const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
+              const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
+              const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
+              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent;
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!
@@ -4162,7 +4195,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 }
               }
               swfRehypothecationPremium = tempPremium;
-              maintenanceRequirement = Math.round((0.20 * (sumCdsNotional + sumSwfCdsNotional)) + (0.10 * sumBorrowedAmount) + rehypothecationPremium + swfRehypothecationPremium);
+              const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
+              const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
+              const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
+              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent;
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!

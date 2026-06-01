@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -27370,6 +27370,495 @@ export function multiAgentStep(
         agentId,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ADJUST_SWF_LEVERAGE_TARGET action (AF-134)
+  if ((action as any).type === "ADJUST_SWF_LEVERAGE_TARGET") {
+    const { syndicateId, target, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to adjust SWF leverage target.`;
+    } else if (target === undefined || target <= 0) {
+      rejectionReason = `SWF leverage target must be greater than 0.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on SWF leverage target.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const swfLeverageTargetVotes = { ...(state.swfLeverageTargetVotes || {}) };
+      if (!swfLeverageTargetVotes[syndicateId]) {
+        swfLeverageTargetVotes[syndicateId] = {};
+      } else {
+        swfLeverageTargetVotes[syndicateId] = { ...swfLeverageTargetVotes[syndicateId] };
+      }
+
+      const existingVote = swfLeverageTargetVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        swfLeverageTargetVotes[syndicateId][agentId] = {
+          target,
+          timestamp,
+        };
+        newState.swfLeverageTargetVotes = swfLeverageTargetVotes;
+        newState = reconcileSWFLeverageTargets(newState, pack);
+
+        const currentMA = newState.marginAccounts?.[syndicateId];
+        const newTarget = currentMA?.swfLeverageTarget ?? 1.0;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Leverage Target Vote] Agent ${agentId} voted to adjust SWF leverage target for Syndicate ${syndicateId} to ${target}. Consensus target: ${newTarget}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF leverage target vote cast by ${agentId} for Syndicate ${syndicateId} (Target: ${target}).`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_leverage_target_voted" as any,
+          syndicateId,
+          agentId,
+          target,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ADJUST_SWF_FRACTIONAL_RESERVE_RATIO action (AF-134)
+  if ((action as any).type === "ADJUST_SWF_FRACTIONAL_RESERVE_RATIO") {
+    const { syndicateId, ratio, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to adjust SWF fractional reserve ratio.`;
+    } else if (ratio === undefined || ratio < 0 || ratio > 100 || !Number.isInteger(ratio)) {
+      rejectionReason = `SWF fractional reserve ratio must be an integer between 0 and 100.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on SWF fractional reserve ratio.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const swfFractionalReserveRatioVotes = { ...(state.swfFractionalReserveRatioVotes || {}) };
+      if (!swfFractionalReserveRatioVotes[syndicateId]) {
+        swfFractionalReserveRatioVotes[syndicateId] = {};
+      } else {
+        swfFractionalReserveRatioVotes[syndicateId] = { ...swfFractionalReserveRatioVotes[syndicateId] };
+      }
+
+      const existingVote = swfFractionalReserveRatioVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        swfFractionalReserveRatioVotes[syndicateId][agentId] = {
+          ratio,
+          timestamp,
+        };
+        newState.swfFractionalReserveRatioVotes = swfFractionalReserveRatioVotes;
+        newState = reconcileSWFFractionalReserveRatios(newState, pack);
+
+        const currentMA = newState.marginAccounts?.[syndicateId];
+        const newRatio = currentMA?.swfFractionalReserveRatio ?? 10;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Fractional Reserve Ratio Vote] Agent ${agentId} voted to adjust SWF fractional reserve ratio for Syndicate ${syndicateId} to ${ratio}%. Consensus ratio: ${newRatio}%.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF fractional reserve ratio vote cast by ${agentId} for Syndicate ${syndicateId} (Ratio: ${ratio}%).`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_fractional_reserve_ratio_voted" as any,
+          syndicateId,
+          agentId,
+          ratio,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LOCK_SWF_REHYPOTHECATED_COLLATERAL action (AF-134)
+  if ((action as any).type === "LOCK_SWF_REHYPOTHECATED_COLLATERAL") {
+    const { syndicateId, vaultId, amount, durationEpochs, factionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+    const vaults = getSecondaryReserveVaults(state);
+    const vault = vaults[vaultId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to lock SWF rehypothecated collateral.`;
+    } else if (!vaultId) {
+      rejectionReason = `Vault ID is required to lock SWF rehypothecated collateral.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Lock amount must be a positive integer.`;
+    } else if (durationEpochs === undefined || durationEpochs <= 0 || !Number.isInteger(durationEpochs)) {
+      rejectionReason = `Lock duration must be a positive integer of epochs.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required to lock SWF rehypothecated collateral.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on locking SWF collateral.`;
+    } else if (!vault) {
+      rejectionReason = `Vault ${vaultId} does not exist.`;
+    } else {
+      const sponsorPolicy = state.factionSponsorPolicies?.[syndicateId]?.[vaultId];
+      if (sponsorPolicy) {
+        if (factionId !== sponsorPolicy.factionId) {
+          rejectionReason = `Cannot lock rehypothecated collateral with faction ${factionId}. Vault ${vaultId} is sponsored by faction ${sponsorPolicy.factionId} for Syndicate ${syndicateId}.`;
+        } else if (durationEpochs < sponsorPolicy.minLockTerms) {
+          rejectionReason = `Lock duration ${durationEpochs} epochs is less than the required minimum of ${sponsorPolicy.minLockTerms} epochs for vault ${vaultId} under Syndicate ${syndicateId}'s sponsoring policy.`;
+        } else {
+          ok = true;
+        }
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const lockedSWFCollateralVotes = { ...(state.lockedSWFCollateralVotes || {}) };
+      if (!lockedSWFCollateralVotes[syndicateId]) {
+        lockedSWFCollateralVotes[syndicateId] = {};
+      } else {
+        lockedSWFCollateralVotes[syndicateId] = { ...lockedSWFCollateralVotes[syndicateId] };
+      }
+
+      const existingVote = lockedSWFCollateralVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        lockedSWFCollateralVotes[syndicateId][agentId] = {
+          vaultId,
+          amount,
+          durationEpochs,
+          factionId,
+          timestamp,
+        };
+        newState.lockedSWFCollateralVotes = lockedSWFCollateralVotes;
+        newState = reconcileSWFLockedCollateral(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Locked Collateral Vote] Agent ${agentId} voted to lock SWF ${amount} gold in vault ${vaultId} for ${durationEpochs} epochs with faction ${factionId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Locked collateral vote cast by ${agentId} for Syndicate ${syndicateId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_locked_collateral_voted" as any,
+          syndicateId,
+          agentId,
+          vaultId,
+          amount,
+          durationEpochs,
+          factionId,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CLAIM_SWF_LIQUIDITY_MINING_REWARDS action (AF-134)
+  if ((action as any).type === "CLAIM_SWF_LIQUIDITY_MINING_REWARDS") {
+    const { syndicateId, positionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to claim SWF liquidity mining rewards.`;
+    } else if (!positionId) {
+      rejectionReason = `Position ID is required to claim SWF liquidity mining rewards.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on claiming SWF rewards.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const claimSWFLiquidityRewardsVotes = { ...(state.claimSWFLiquidityRewardsVotes || {}) };
+      if (!claimSWFLiquidityRewardsVotes[syndicateId]) {
+        claimSWFLiquidityRewardsVotes[syndicateId] = {};
+      } else {
+        claimSWFLiquidityRewardsVotes[syndicateId] = { ...claimSWFLiquidityRewardsVotes[syndicateId] };
+      }
+
+      const existingVote = claimSWFLiquidityRewardsVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        claimSWFLiquidityRewardsVotes[syndicateId][agentId] = {
+          positionId,
+          timestamp,
+        };
+        newState.claimSWFLiquidityRewardsVotes = claimSWFLiquidityRewardsVotes;
+        newState = reconcileSWFClaimLiquidityRewards(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Claim Liquidity Rewards Vote] Agent ${agentId} voted to claim SWF rewards for position ${positionId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Claim liquidity rewards vote cast by ${agentId} for Syndicate ${syndicateId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_claim_liquidity_rewards_voted" as any,
+          syndicateId,
+          agentId,
+          positionId,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
     }
 
     newState.step += 1;

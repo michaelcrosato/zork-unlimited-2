@@ -1719,6 +1719,12 @@ export const MarginAccountSchema = z.object({
   swfVaultAllocations: z.record(z.string(), z.number().int().nonnegative()).optional(),
   swfAdvisorEnabled: z.boolean().optional(),
   swfAdvisorSafetyThreshold: z.number().nonnegative().optional(),
+  swfLeverageFactor: z.number().positive().optional(),
+  swfLeverageTarget: z.number().positive().optional(),
+  swfFractionalReserveRatio: z.number().int().nonnegative().max(100).optional(),
+  swfFractionalReserveHeld: z.number().int().nonnegative().optional(),
+  swfLiquidityMiningMultiplier: z.number().positive().optional(),
+  swfLockedPositions: z.array(LockedLiquidityPositionSchema).optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -2128,6 +2134,25 @@ export const GameStateSchema = z.object({
   swfRiskPoolProposals: z.record(z.string(), SWFRiskPoolProposalSchema).optional(),
   swfYieldCDOs: z.record(z.string(), SWFYieldCDOSchema).optional(),
   swfYieldCDOProposals: z.record(z.string(), SWFYieldCDOPackageProposalSchema).optional(),
+  swfLeverageTargetVotes: z.record(z.string(), z.record(z.string(), z.object({
+    target: z.number().positive(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  swfFractionalReserveRatioVotes: z.record(z.string(), z.record(z.string(), z.object({
+    ratio: z.number().int().nonnegative().max(100),
+    timestamp: z.number().int(),
+  }))).optional(),
+  claimSWFLiquidityRewardsVotes: z.record(z.string(), z.record(z.string(), z.object({
+    positionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  lockedSWFCollateralVotes: z.record(z.string(), z.record(z.string(), z.object({
+    vaultId: z.string(),
+    amount: z.number().int().positive(),
+    durationEpochs: z.number().int().positive(),
+    factionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -2320,6 +2345,10 @@ export const createInitialState = (options: {
     swfMarginRebalancingPolicyVotes: {},
     swfRebalancingAdvisorVotes: {},
     swfAdvisorSafetyThresholdVotes: {},
+    swfLeverageTargetVotes: {},
+    swfFractionalReserveRatioVotes: {},
+    claimSWFLiquidityRewardsVotes: {},
+    lockedSWFCollateralVotes: {},
     lockedLiquidityPositions: {},
     lockedLiquidityEpochPools: {},
     factionReservePools: {
@@ -3154,6 +3183,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfMarginRebalancingPolicyVotes: rest.swfMarginRebalancingPolicyVotes ? JSON.parse(JSON.stringify(rest.swfMarginRebalancingPolicyVotes)) : undefined,
     swfRebalancingAdvisorVotes: rest.swfRebalancingAdvisorVotes ? JSON.parse(JSON.stringify(rest.swfRebalancingAdvisorVotes)) : undefined,
     swfAdvisorSafetyThresholdVotes: rest.swfAdvisorSafetyThresholdVotes ? JSON.parse(JSON.stringify(rest.swfAdvisorSafetyThresholdVotes)) : undefined,
+    swfLeverageTargetVotes: rest.swfLeverageTargetVotes ? JSON.parse(JSON.stringify(rest.swfLeverageTargetVotes)) : undefined,
+    swfFractionalReserveRatioVotes: rest.swfFractionalReserveRatioVotes ? JSON.parse(JSON.stringify(rest.swfFractionalReserveRatioVotes)) : undefined,
+    claimSWFLiquidityRewardsVotes: rest.claimSWFLiquidityRewardsVotes ? JSON.parse(JSON.stringify(rest.claimSWFLiquidityRewardsVotes)) : undefined,
+    lockedSWFCollateralVotes: rest.lockedSWFCollateralVotes ? JSON.parse(JSON.stringify(rest.lockedSWFCollateralVotes)) : undefined,
     lockedLiquidityPositions: rest.lockedLiquidityPositions ? JSON.parse(JSON.stringify(rest.lockedLiquidityPositions)) : undefined,
     lockedLiquidityEpochPools: rest.lockedLiquidityEpochPools ? JSON.parse(JSON.stringify(rest.lockedLiquidityEpochPools)) : undefined,
     factionReservePools: rest.factionReservePools ? JSON.parse(JSON.stringify(rest.factionReservePools)) : undefined,
@@ -8336,6 +8369,418 @@ export function reconcileSWFYieldCDOs(state: GameState, pack: any): GameState {
         newState.journal.push(
           `[SWF Yield CDO Packaging Failed] Proposer Syndicate ${proposerSyndicateId} has insufficient owned shares of packed yield tokens to resolve proposal ${proposalId}.`
         );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFLeverageTargets(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfLeverageTargetVotes: state.swfLeverageTargetVotes ? { ...state.swfLeverageTargetVotes } : {},
+  };
+
+  if (!newState.marginAccounts) return newState;
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = newState.swfLeverageTargetVotes?.[syndicateId] || {};
+
+    const targetCounts: Record<number, {
+      target: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const t = vote.target;
+        if (!targetCounts[t]) {
+          targetCounts[t] = { target: t, voters: new Set<string>(), timestamps: [] };
+        }
+        targetCounts[t].voters.add(voterId);
+        targetCounts[t].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let approvedTarget: any = undefined;
+    for (const info of Object.values(targetCounts)) {
+      if (info.voters.size > totalMembers / 2) {
+        approvedTarget = info;
+        break;
+      }
+    }
+
+    if (approvedTarget) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfLeverageTarget: approvedTarget.target,
+        swfLeverageFactor: approvedTarget.target,
+        timestamp: Math.max(...approvedTarget.timestamps, newState.step),
+      };
+
+      if (newState.swfLeverageTargetVotes) {
+        delete newState.swfLeverageTargetVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Leverage Target] Syndicate ${syndicateId} adjusted SWF Leverage Target to ${approvedTarget.target} by consensus majority.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFFractionalReserveRatios(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfFractionalReserveRatioVotes: state.swfFractionalReserveRatioVotes ? { ...state.swfFractionalReserveRatioVotes } : {},
+  };
+
+  if (!newState.marginAccounts) return newState;
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = newState.swfFractionalReserveRatioVotes?.[syndicateId] || {};
+
+    const ratioCounts: Record<number, {
+      ratio: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const r = vote.ratio;
+        if (!ratioCounts[r]) {
+          ratioCounts[r] = { ratio: r, voters: new Set<string>(), timestamps: [] };
+        }
+        ratioCounts[r].voters.add(voterId);
+        ratioCounts[r].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let approvedRatio: any = undefined;
+    for (const info of Object.values(ratioCounts)) {
+      if (info.voters.size > totalMembers / 2) {
+        approvedRatio = info;
+        break;
+      }
+    }
+
+    if (approvedRatio) {
+      const reserveHeld = Math.floor(marginAccount.collateral * (approvedRatio.ratio / 100));
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfFractionalReserveRatio: approvedRatio.ratio,
+        swfFractionalReserveHeld: reserveHeld,
+        timestamp: Math.max(...approvedRatio.timestamps, newState.step),
+      };
+
+      if (newState.swfFractionalReserveRatioVotes) {
+        delete newState.swfFractionalReserveRatioVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Fractional Reserve Ratio] Syndicate ${syndicateId} adjusted SWF Fractional Reserve Ratio to ${approvedRatio.ratio}% by consensus majority.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFLockedCollateral(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    lockedSWFCollateralVotes: state.lockedSWFCollateralVotes ? { ...state.lockedSWFCollateralVotes } : {},
+    lockedLiquidityPositions: state.lockedLiquidityPositions ? { ...state.lockedLiquidityPositions } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+  };
+
+  if (!newState.marginAccounts) return newState;
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.lockedSWFCollateralVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      vaultId: string;
+      amount: number;
+      durationEpochs: number;
+      factionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.vaultId}::${vote.amount}::${vote.durationEpochs}::${vote.factionId}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            vaultId: vote.vaultId,
+            amount: vote.amount,
+            durationEpochs: vote.durationEpochs,
+            factionId: vote.factionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      const { vaultId, amount, durationEpochs, factionId } = fullyApprovedCombination;
+
+      const reserveRatio = marginAccount.swfFractionalReserveRatio ?? 10;
+      const reserveAmount = Math.floor(marginAccount.collateral * (reserveRatio / 100));
+      const maxRehypothecatable = Math.max(0, marginAccount.collateral - reserveAmount);
+
+      let totalRehypothecated = 0;
+      if (marginAccount.swfRebalancingEnabled) {
+        totalRehypothecated = marginAccount.swfVaultAllocations?.[vaultId] ?? 0;
+      } else if (marginAccount.swfRehypothecationAuthorized && marginAccount.swfRehypothecationVaultId === vaultId) {
+        totalRehypothecated = Math.floor(marginAccount.collateral * ((marginAccount.swfRehypothecationPercentage ?? 0) / 100));
+      }
+      totalRehypothecated = Math.min(totalRehypothecated, maxRehypothecatable);
+
+      const currentEpoch = Math.floor(newState.step / 5);
+      const existingPositions = marginAccount.swfLockedPositions ?? [];
+      const activeLocked = existingPositions
+        .filter(p => p.vaultId === vaultId && currentEpoch < p.endEpoch && !p.claimed)
+        .reduce((sum, p) => sum + p.amount, 0);
+
+      const unlockedRehypothecated = totalRehypothecated - activeLocked;
+
+      if (amount <= unlockedRehypothecated) {
+        const startEpoch = currentEpoch;
+        const endEpoch = startEpoch + durationEpochs;
+        const positionId = `swf_lock_${syndicateId}_${vaultId}_${newState.step}`;
+
+        const newPosition: LockedLiquidityPosition = {
+          id: positionId,
+          syndicateId,
+          vaultId,
+          amount,
+          startEpoch,
+          durationEpochs,
+          endEpoch,
+          factionId,
+          claimed: false,
+          timestamp: newState.step,
+        };
+
+        const updatedPositions = [...existingPositions, newPosition];
+
+        newState.marginAccounts[syndicateId] = {
+          ...marginAccount,
+          swfLockedPositions: updatedPositions,
+          timestamp: newState.step,
+        };
+
+        if (!newState.lockedLiquidityPositions) newState.lockedLiquidityPositions = {};
+        const globalPositions = newState.lockedLiquidityPositions[syndicateId] ?? [];
+        newState.lockedLiquidityPositions[syndicateId] = [...globalPositions, newPosition];
+
+        if (!newState.factionReservePools) newState.factionReservePools = {};
+        if (newState.factionReservePools[factionId] === undefined) {
+          newState.factionReservePools[factionId] = 10000;
+        }
+
+        if (newState.lockedSWFCollateralVotes) {
+          delete newState.lockedSWFCollateralVotes[syndicateId];
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Locked Liquidity] Syndicate ${syndicateId} locked ${amount} gold of SWF rehypothecated collateral in vault ${vaultId} for ${durationEpochs} epochs with faction ${factionId}.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Locked Liquidity Failed] Syndicate ${syndicateId} failed to lock ${amount} gold in SWF vault ${vaultId} (Insufficient unlocked SWF rehypothecated collateral: ${unlockedRehypothecated} < ${amount}).`
+        );
+        if (newState.lockedSWFCollateralVotes) {
+          delete newState.lockedSWFCollateralVotes[syndicateId];
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFClaimLiquidityRewards(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    claimSWFLiquidityRewardsVotes: state.claimSWFLiquidityRewardsVotes ? { ...state.claimSWFLiquidityRewardsVotes } : {},
+    lockedLiquidityPositions: state.lockedLiquidityPositions ? { ...state.lockedLiquidityPositions } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+    factionRep: state.factionRep ? { ...state.factionRep } : {},
+    maliciousActors: state.maliciousActors ? { ...state.maliciousActors } : {},
+    slashingRates: state.slashingRates ? { ...state.slashingRates } : {},
+  };
+
+  if (!newState.marginAccounts) return newState;
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.claimSWFLiquidityRewardsVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      positionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = vote.positionId;
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            positionId: vote.positionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      const { positionId } = fullyApprovedCombination;
+      const positions = marginAccount.swfLockedPositions || [];
+      const posIndex = positions.findIndex(p => p.id === positionId);
+      const position = posIndex !== -1 ? positions[posIndex] : undefined;
+
+      const currentEpoch = Math.floor(newState.step / 5);
+
+      if (position && !position.claimed && currentEpoch >= position.endEpoch) {
+        const duration = position.durationEpochs;
+        const amount = position.amount;
+        const factionId = position.factionId;
+
+        const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[position.vaultId];
+        const rewardRate = sponsorPolicy ? sponsorPolicy.rewardRate : 0.05;
+
+        const standingRep = newState.factionRep?.[factionId] ?? 0;
+        const standingMultiplier = 1.0 + Math.max(0, standingRep * 0.01);
+        const leverageMultiplier = marginAccount.swfLeverageFactor ?? 1.0;
+
+        const rewardBase = Math.floor(amount * rewardRate * duration * leverageMultiplier * standingMultiplier);
+
+        let finalRewardBase = rewardBase;
+        const isMalicious = !!(
+          newState.maliciousActors?.[syndicateId] ||
+          (syndicate.members && syndicate.members.some(memberId => newState.maliciousActors?.[memberId]))
+        );
+        if (isMalicious) {
+          const slashRate = newState.slashingRates?.[syndicateId] ?? 0.5;
+          finalRewardBase = Math.floor(rewardBase * (1 - slashRate));
+        }
+
+        const factionReserves = newState.factionReservePools?.[factionId] ?? 10000;
+        const rewardPaid = Math.min(factionReserves, finalRewardBase);
+
+        if (!newState.factionReservePools) newState.factionReservePools = {};
+        newState.factionReservePools[factionId] = factionReserves - rewardPaid;
+
+        syndicate.warChest = (syndicate.warChest ?? 0) + rewardPaid;
+
+        const reputationBonus = Math.round(5 * duration * leverageMultiplier);
+        if (!newState.factionRep) newState.factionRep = {};
+        newState.factionRep[factionId] = (newState.factionRep[factionId] ?? 0) + reputationBonus;
+
+        const updatedPosition = {
+          ...position,
+          claimed: true,
+          timestamp: newState.step,
+        };
+
+        positions[posIndex] = updatedPosition;
+        marginAccount.swfLockedPositions = [...positions];
+
+        if (newState.lockedLiquidityPositions?.[syndicateId]) {
+          const gPosIndex = newState.lockedLiquidityPositions[syndicateId].findIndex(p => p.id === positionId);
+          if (gPosIndex !== -1) {
+            newState.lockedLiquidityPositions[syndicateId][gPosIndex] = updatedPosition;
+          }
+        }
+
+        if (newState.claimSWFLiquidityRewardsVotes) {
+          delete newState.claimSWFLiquidityRewardsVotes[syndicateId];
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Claim Liquidity Rewards] Syndicate ${syndicateId} claimed SWF rewards for position ${positionId}. Earned ${rewardPaid} gold and +${reputationBonus} reputation with ${factionId}.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        if (!position) {
+          newState.journal.push(`[SWF Claim Liquidity Rewards Failed] Position ${positionId} not found.`);
+        } else if (position.claimed) {
+          newState.journal.push(`[SWF Claim Liquidity Rewards Failed] Position ${positionId} already claimed.`);
+        } else {
+          newState.journal.push(`[SWF Claim Liquidity Rewards Failed] Position ${positionId} has not matured yet (Current epoch: ${currentEpoch} < End epoch: ${position.endEpoch}).`);
+        }
+        if (newState.claimSWFLiquidityRewardsVotes) {
+          delete newState.claimSWFLiquidityRewardsVotes[syndicateId];
+        }
       }
     }
   }

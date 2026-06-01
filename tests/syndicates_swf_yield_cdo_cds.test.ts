@@ -846,4 +846,278 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
     expect(merged.swfMarginRehypothecationVotes?.writer_corp?.player?.vaultId).toBe("gold_vault");
     expect(merged.swfMarginRehypothecationVotes?.writer_corp?.player?.percentage).toBe(60);
   });
+
+  it("should support dynamic leverage targets and fractional reserve ratios adjust actions with majority consensus", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 100,
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Vote to adjust SWF leverage target to 3.0
+    const leverageAct1 = {
+      type: "ADJUST_SWF_LEVERAGE_TARGET",
+      syndicateId: "writer_corp",
+      target: 3.0,
+      timestamp: 1001,
+    };
+    let res = multiAgentStep(state, { agentId: "player", action: leverageAct1 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 1 vote out of 3 is not majority
+    expect(state.marginAccounts?.writer_corp?.swfLeverageTarget).toBeUndefined();
+
+    const leverageAct2 = {
+      type: "ADJUST_SWF_LEVERAGE_TARGET",
+      syndicateId: "writer_corp",
+      target: 3.0,
+      timestamp: 1002,
+    };
+    res = multiAgentStep(state, { agentId: "alice", action: leverageAct2 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 2 votes out of 3 is majority
+    expect(state.marginAccounts?.writer_corp?.swfLeverageTarget).toBe(3.0);
+    expect(state.marginAccounts?.writer_corp?.swfLeverageFactor).toBe(3.0);
+
+    // 2. Vote to adjust SWF fractional reserve ratio to 20%
+    const reserveAct1 = {
+      type: "ADJUST_SWF_FRACTIONAL_RESERVE_RATIO",
+      syndicateId: "writer_corp",
+      ratio: 20,
+      timestamp: 1003,
+    };
+    res = multiAgentStep(state, { agentId: "player", action: reserveAct1 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 1 vote is not majority
+    expect(state.marginAccounts?.writer_corp?.swfFractionalReserveRatio).toBeUndefined();
+
+    const reserveAct2 = {
+      type: "ADJUST_SWF_FRACTIONAL_RESERVE_RATIO",
+      syndicateId: "writer_corp",
+      ratio: 20,
+      timestamp: 1004,
+    };
+    res = multiAgentStep(state, { agentId: "bob", action: reserveAct2 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+    // 2 votes is majority
+    expect(state.marginAccounts?.writer_corp?.swfFractionalReserveRatio).toBe(20);
+    expect(state.marginAccounts?.writer_corp?.swfFractionalReserveHeld).toBe(20); // 100 * 20%
+  });
+
+  it("should respect fractional reserve ratios during rebalancing and manual rehypothecations in tickEconomy", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 100,
+        swfRehypothecationAuthorized: true,
+        swfRehypothecationVaultId: "iron_vault",
+        swfRehypothecationPercentage: 100, // Wants 100% rehypothecated
+        swfFractionalReserveRatio: 30, // But requires 30% reserve
+        timestamp: 1000,
+      },
+    };
+
+    state.secondaryReserveVaults = {
+      iron_vault: {
+        vaultId: "iron_vault",
+        name: "Iron Vault",
+        interestRate: 0.10,
+        sweepRisk: 0.0,
+        timestamp: 1000,
+      },
+    };
+
+    // Process tick
+    state = tickEconomy(state, mockPack);
+
+    // Reserved amount = 30%. Max rehypothecatable = 70%.
+    // So actual rehypothecatedAmount = 70.
+    // Yield earned: 70 * 10% = 7 interest. Returned to collateral: Math.floor(7 * 0.8) = 5 gold.
+    expect(state.marginAccounts?.writer_corp?.swfFractionalReserveHeld).toBe(30);
+    expect(state.marginAccounts?.writer_corp?.collateral).toBe(105);
+  });
+
+  it("should support locking SWF rehypothecated collateral and claiming rewards with leverage scaling", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      writer_corp: {
+        id: "writer_corp",
+        name: "Writer Corporation",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+        warChest: 1000,
+      },
+    };
+
+    state.marginAccounts = {
+      writer_corp: {
+        syndicateId: "writer_corp",
+        collateral: 100,
+        swfRehypothecationAuthorized: true,
+        swfRehypothecationVaultId: "iron_vault",
+        swfRehypothecationPercentage: 100,
+        swfFractionalReserveRatio: 10, // 10% reserve (10 gold), leaving 90 rehypothecatable
+        swfLeverageTarget: 2.0,
+        swfLeverageFactor: 2.0,
+        timestamp: 1000,
+      },
+    };
+
+    state.secondaryReserveVaults = {
+      iron_vault: {
+        vaultId: "iron_vault",
+        name: "Iron Vault",
+        interestRate: 0.10,
+        sweepRisk: 0.0,
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Vote to lock SWF collateral (50 gold, 2 epochs)
+    const lockAct1 = {
+      type: "LOCK_SWF_REHYPOTHECATED_COLLATERAL",
+      syndicateId: "writer_corp",
+      vaultId: "iron_vault",
+      amount: 50,
+      durationEpochs: 2,
+      factionId: "rangers",
+      timestamp: 1001,
+    };
+    let res = multiAgentStep(state, { agentId: "player", action: lockAct1 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    const lockAct2 = {
+      type: "LOCK_SWF_REHYPOTHECATED_COLLATERAL",
+      syndicateId: "writer_corp",
+      vaultId: "iron_vault",
+      amount: 50,
+      durationEpochs: 2,
+      factionId: "rangers",
+      timestamp: 1002,
+    };
+    res = multiAgentStep(state, { agentId: "alice", action: lockAct2 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Confirms locked positions are registered
+    const lockedPos = state.marginAccounts?.writer_corp?.swfLockedPositions?.[0];
+    expect(lockedPos).toBeDefined();
+    expect(lockedPos?.amount).toBe(50);
+    expect(lockedPos?.factionId).toBe("rangers");
+
+    // 2. Advance epochs so the lock matures
+    state.step += 15; // 3 epochs
+
+    // 3. Claim rewards by majority
+    const claimAct1 = {
+      type: "CLAIM_SWF_LIQUIDITY_MINING_REWARDS",
+      syndicateId: "writer_corp",
+      positionId: lockedPos!.id,
+      timestamp: 1020,
+    };
+    res = multiAgentStep(state, { agentId: "player", action: claimAct1 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    const claimAct2 = {
+      type: "CLAIM_SWF_LIQUIDITY_MINING_REWARDS",
+      syndicateId: "writer_corp",
+      positionId: lockedPos!.id,
+      timestamp: 1021,
+    };
+    res = multiAgentStep(state, { agentId: "alice", action: claimAct2 as any }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Verify claim succeeded and marked as claimed
+    const finalPos = state.marginAccounts?.writer_corp?.swfLockedPositions?.[0];
+    expect(finalPos?.claimed).toBe(true);
+
+    // Initial war chest was 1000.
+    // Reward formula: amount (50) * rewardRate (0.05) * duration (2) * leverageFactor (2.0) = 10 gold.
+    expect(state.syndicates?.writer_corp?.warChest).toBe(1010);
+  });
+
+  it("should merge new SWF votes correctly during Gossip state merging", () => {
+    const stateA = createInitialState({ seed: 1, start: "clearing" });
+    const stateB = createInitialState({ seed: 2, start: "clearing" });
+
+    stateA.swfLeverageTargetVotes = {
+      writer_corp: {
+        player: { target: 2.5, timestamp: 100 },
+      },
+    };
+    stateB.swfLeverageTargetVotes = {
+      writer_corp: {
+        player: { target: 3.5, timestamp: 200 }, // Newer!
+      },
+    };
+
+    stateA.swfFractionalReserveRatioVotes = {
+      writer_corp: {
+        player: { ratio: 15, timestamp: 300 },
+      },
+    };
+    stateB.swfFractionalReserveRatioVotes = {
+      writer_corp: {
+        player: { ratio: 25, timestamp: 400 }, // Newer!
+      },
+    };
+
+    const merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.swfLeverageTargetVotes?.writer_corp?.player?.target).toBe(3.5);
+    expect(merged.swfFractionalReserveRatioVotes?.writer_corp?.player?.ratio).toBe(25);
+  });
 });
