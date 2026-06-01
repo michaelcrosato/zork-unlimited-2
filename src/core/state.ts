@@ -477,6 +477,7 @@ export const CrimeSyndicateSchema = z.object({
   intelStock: z.record(z.string(), IntelReportSchema).optional(),
   intelTransactions: z.array(IntelTransactionSchema).optional(),
   ringleader: z.string().optional(),
+  smugglingRingleader: z.string().optional(),
   warChest: z.number().int().nonnegative().optional(),
   enforcerDefundingRate: z.number().optional(),
 });
@@ -669,8 +670,19 @@ export const BlackOpsSafehouseSchema = z.object({
   syndicateId: z.string(),
   timestamp: z.number().int(),
   active: z.boolean(),
+  defenses: z.number().int().nonnegative().optional(),
+  storedContraband: z.number().int().nonnegative().optional(),
 });
 export type BlackOpsSafehouse = z.infer<typeof BlackOpsSafehouseSchema>;
+
+export const InterceptorDecoySchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  routeId: z.string(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type InterceptorDecoy = z.infer<typeof InterceptorDecoySchema>;
 export const TradeExchangeRateSchema = z.object({
   syndicateId: z.string(),
   baseRate: z.number(),
@@ -826,6 +838,7 @@ export const GameStateSchema = z.object({
   arbitrageContracts: z.record(z.string(), ArbitrageContractSchema).optional(),
   underwriterSabotages: z.record(z.string(), UnderwriterSabotageSchema).optional(),
   blackOpsSafehouses: z.record(z.string(), BlackOpsSafehouseSchema).optional(),
+  interceptorDecoys: z.record(z.string(), InterceptorDecoySchema).optional(),
   shadowAlliances: z.record(z.string(), z.record(z.string(), AllianceRelationshipSchema)).optional(),
   shadowAllianceVotes: z.record(z.string(), z.record(z.string(), AllianceVoteSchema)).optional(),
   treatyInfiltrators: z.record(z.string(), TreatyInfiltratorSchema).optional(),
@@ -968,6 +981,7 @@ export const createInitialState = (options: {
     arbitrageContracts: {},
     underwriterSabotages: {},
     blackOpsSafehouses: {},
+    interceptorDecoys: {},
     shadowAlliances: {},
     shadowAllianceVotes: {},
     treatyInfiltrators: {},
@@ -1668,6 +1682,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     arbitrageContracts: rest.arbitrageContracts ? JSON.parse(JSON.stringify(rest.arbitrageContracts)) : undefined,
     underwriterSabotages: rest.underwriterSabotages ? JSON.parse(JSON.stringify(rest.underwriterSabotages)) : undefined,
     blackOpsSafehouses: rest.blackOpsSafehouses ? JSON.parse(JSON.stringify(rest.blackOpsSafehouses)) : undefined,
+    interceptorDecoys: rest.interceptorDecoys ? JSON.parse(JSON.stringify(rest.interceptorDecoys)) : undefined,
     shadowAlliances: rest.shadowAlliances ? JSON.parse(JSON.stringify(rest.shadowAlliances)) : undefined,
     shadowAllianceVotes: rest.shadowAllianceVotes ? JSON.parse(JSON.stringify(rest.shadowAllianceVotes)) : undefined,
     tariffExemptionVotes: rest.tariffExemptionVotes ? JSON.parse(JSON.stringify(rest.tariffExemptionVotes)) : undefined,

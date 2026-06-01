@@ -1165,10 +1165,34 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge blackOpsSafehouses using LWW (Last-Write-Wins)
+  const blackOpsSafehouses = { ...stateA.blackOpsSafehouses };
+  if (stateB.blackOpsSafehouses) {
+    for (const [id, entryB] of Object.entries(stateB.blackOpsSafehouses)) {
+      const entryA = blackOpsSafehouses[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        blackOpsSafehouses[id] = entryB;
+      }
+    }
+  }
+
+  // Merge interceptorDecoys using LWW (Last-Write-Wins)
+  const interceptorDecoys = { ...stateA.interceptorDecoys };
+  if (stateB.interceptorDecoys) {
+    for (const [id, entryB] of Object.entries(stateB.interceptorDecoys)) {
+      const entryA = interceptorDecoys[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        interceptorDecoys[id] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
     journal,
+    blackOpsSafehouses,
+    interceptorDecoys,
     lootClaims,
     territoryClaims,
     territoryAssists,

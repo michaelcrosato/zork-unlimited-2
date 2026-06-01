@@ -95,8 +95,10 @@ export type Action =
   | { type: "INFILTRATE_FACTION_NETWORK"; syndicateId: string; factionId: string; cost?: number; timestamp: number }
   | { type: "DEPOSIT_SYNDICATE_BANK"; syndicateId: string; agentId: string; amount: number; timestamp: number }
   | { type: "MINT_COUNTERFEIT_GOLD"; syndicateId: string; agentId: string; amount: number; cost?: number; timestamp: number }
-  | { type: "TRADE_EXCHANGE_RATE"; syndicateId: string; baseRate: number; timestamp: number }
-  | { type: "ESTABLISH_AUDIT_MITIGATION"; roomId: string; syndicateId: string; cost?: number; timestamp: number };
+  | { type: "ESTABLISH_AUDIT_MITIGATION"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
+  | { type: "APPOINT_SMUGGLING_RINGLEADER"; syndicateId: string; ringleaderId: string; timestamp: number }
+  | { type: "UPGRADE_SAFEHOUSE_DEFENSES"; safehouseId: string; upgradeCost?: number; timestamp: number }
+  | { type: "DEPLOY_INTERCEPTOR_DECOY"; decoyId: string; syndicateId: string; routeId: string; cost?: number; timestamp: number };
 
 
 

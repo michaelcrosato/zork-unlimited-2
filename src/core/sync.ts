@@ -11697,6 +11697,353 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized APPOINT_SMUGGLING_RINGLEADER action (AF-83)
+  if ((action as any).type === "APPOINT_SMUGGLING_RINGLEADER") {
+    const { syndicateId, ringleaderId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to appoint a smuggling ringleader.`;
+    } else if (!ringleaderId) {
+      rejectionReason = `Ringleader ID is required to appoint a smuggling ringleader.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!syndicate.members.includes(ringleaderId)) {
+      rejectionReason = `Proposed smuggling ringleader ${ringleaderId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const existingRingleader = syndicate.smugglingRingleader;
+
+      newState.syndicates = {
+        ...newState.syndicates,
+        [syndicateId]: {
+          ...syndicate,
+          smugglingRingleader: ringleaderId,
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] ${agentId} appointed ${ringleaderId} as the smuggling ringleader of syndicate ${syndicateId}.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `👑 ${ringleaderId} has been appointed as the smuggling ringleader for syndicate ${syndicateId}! They can now coordinate multi-convoy networks.`,
+      } as any);
+
+      customEvents.push({
+        type: "smuggling_ringleader_appointed" as any,
+        syndicateId,
+        ringleaderId,
+        previousRingleader: existingRingleader,
+      } as any);
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized UPGRADE_SAFEHOUSE_DEFENSES action (AF-83)
+  if ((action as any).type === "UPGRADE_SAFEHOUSE_DEFENSES") {
+    const { safehouseId, upgradeCost, timestamp } = action as any;
+    const cost = upgradeCost ?? 500;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const safehouse = state.blackOpsSafehouses?.[safehouseId];
+
+    if (!safehouseId) {
+      rejectionReason = `Safehouse ID is required to upgrade defenses.`;
+    } else if (!safehouse) {
+      rejectionReason = `Black Ops Safehouse ${safehouseId} does not exist.`;
+    } else {
+      const syndicateId = safehouse.syndicateId;
+      const syndicate = state.syndicates?.[syndicateId];
+      if (!syndicate) {
+        rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+      } else if (!syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+      } else {
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        if (currentGold < cost) {
+          rejectionReason = `Insufficient gold to upgrade safehouse defenses costing ${cost} (requires ${cost}, has ${currentGold}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && safehouse) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const nextDefenses = (safehouse.defenses ?? 0) + 1;
+      const blackOpsSafehouses = { ...(state.blackOpsSafehouses || {}) };
+      blackOpsSafehouses[safehouseId] = {
+        ...safehouse,
+        defenses: nextDefenses,
+        timestamp,
+      };
+      newState.blackOpsSafehouses = blackOpsSafehouses;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[BlackOps] Agent ${agentId} upgraded Black Ops Safehouse ${safehouseId} defenses to level ${nextDefenses} for ${cost} gold.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `🛡️ Black Ops Safehouse ${safehouseId} defenses upgraded to level ${nextDefenses}! Contraband is now safer from enforcer sweeps.`,
+      } as any);
+
+      customEvents.push({
+        type: "safehouse_defenses_upgraded" as any,
+        safehouseId,
+        syndicateId: safehouse.syndicateId,
+        defenses: nextDefenses,
+        cost,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEPLOY_INTERCEPTOR_DECOY action (AF-83)
+  if ((action as any).type === "DEPLOY_INTERCEPTOR_DECOY") {
+    const { decoyId, syndicateId, routeId, cost: actionCost, timestamp } = action as any;
+    const cost = actionCost ?? 300;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const route = state.tradeRoutes?.[routeId];
+
+    if (!decoyId) {
+      rejectionReason = `Decoy ID is required to deploy an interceptor decoy.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to deploy an interceptor decoy.`;
+    } else if (!routeId) {
+      rejectionReason = `Route ID is required to deploy an interceptor decoy.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!route) {
+      rejectionReason = `Trade Route ${routeId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to deploy interceptor decoy costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const interceptorDecoys = { ...(state.interceptorDecoys || {}) };
+      interceptorDecoys[decoyId] = {
+        id: decoyId,
+        syndicateId,
+        routeId,
+        active: true,
+        timestamp,
+      };
+      newState.interceptorDecoys = interceptorDecoys;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[InterceptorDecoy] Agent ${agentId} deployed Interceptor Decoy ${decoyId} on route ${routeId} costing ${cost} gold.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `🤫 Interceptor Decoy ${decoyId} deployed on route ${routeId}! It will automatically mislead the next border patrol intercepting your smuggling activities.`,
+      } as any);
+
+      customEvents.push({
+        type: "interceptor_decoy_deployed" as any,
+        decoyId,
+        syndicateId,
+        routeId,
+        cost,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

@@ -791,6 +791,11 @@ export function step(
         if (roll < detectionChance) {
           // Caught!
           const borderFactionId = factionId || hostileRouteFactionId;
+
+          // Check for active interceptor decoy deflection!
+          const activeDecoy = Object.values(newState.interceptorDecoys || {}).find(
+            d => d.syndicateId === (agentSyndicate?.id) && d.active
+          );
           
           const hasInsurance = newState.smugglingInsurance?.[agentId]?.active === true;
           const factionBribe = borderFactionId ? newState.bribes?.[borderFactionId] : undefined;
@@ -799,7 +804,14 @@ export function step(
           const updatedAgentSynd = agentSyndicate ? newState.syndicates?.[agentSyndicate.id] : undefined;
           const hasWarChestBribe = updatedAgentSynd && (updatedAgentSynd.warChest ?? 0) >= 50;
 
-          if (hasInsurance) {
+          if (activeDecoy) {
+            activeDecoy.active = false;
+            events.push({
+              type: "narration",
+              text: `👮 Caught smuggling at the border! Fortunately, your syndicate's active Interceptor Decoy ${activeDecoy.id} misled the border patrol, allowing you to pass safely undetected!`,
+            });
+            isSmugglingBypassed = true;
+          } else if (hasInsurance) {
             // Avoid confiscation and fines!
             if (newState.smugglingInsurance?.[agentId]) {
               newState.smugglingInsurance[agentId] = {
@@ -2393,276 +2405,305 @@ export function tickSmugglingConvoys(
     const route = newState.tradeRoutes?.[convoy.routeId];
     if (!route || !route.rooms || route.rooms.length === 0) continue;
 
-    const updatedConvoy = { ...convoy };
-    const nextRoomIndex = updatedConvoy.currentRoomIndex + 1;
+    const syndicate = newState.syndicates?.[convoy.syndicateId];
+    const hasRingleader = syndicate?.smugglingRingleader !== undefined;
+    const speed = hasRingleader ? 2 : 1;
 
-    if (nextRoomIndex >= route.rooms.length) {
-      // Reached destination! Payout
-      const syndicate = newState.syndicates?.[convoy.syndicateId];
-      const dominance = syndicate?.dominance ?? 0;
-      const dominanceBonus = Math.floor(dominance * 1.5);
-      
-      // Check if destination has active black market
-      const destRoom = route.rooms[route.rooms.length - 1];
-      const destHasBlackMarket = newState.blackMarkets?.[destRoom] !== undefined;
-      const baseValue = destHasBlackMarket ? 200 : 150;
-      const payoutGold = updatedConvoy.cargo * baseValue + dominanceBonus;
+    let updatedConvoy = { ...convoy };
 
-      const members = syndicate?.members || [convoy.definedBy];
-      const share = members.length > 0 ? Math.floor(payoutGold / members.length) : 0;
-      if (share > 0) {
-        if (!newState.vars) newState.vars = {};
-        for (const member of members) {
-          const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
-          newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
-        }
-      }
+    for (let stepIdx = 0; stepIdx < speed; stepIdx++) {
+      if (updatedConvoy.status !== "en_route") break;
 
-      newState.vars["totalConvoyPayouts"] = (newState.vars["totalConvoyPayouts"] ?? 0) + payoutGold;
-      updatedConvoy.status = "completed";
-      updatedConvoy.currentRoomIndex = route.rooms.length - 1;
+      const nextRoomIndex = updatedConvoy.currentRoomIndex + 1;
 
-      if (!newState.journal) newState.journal = [];
-      newState.journal.push(`[Syndicate] Smuggling convoy ${convoyId} successfully completed its route, delivering ${convoy.cargo} cargo. Total payout: ${payoutGold} gold (Distributed ${share} gold to each member).`);
-
-      events.push({
-        type: "narration",
-        text: `💰 Smuggling convoy ${convoyId} arrived at destination! Delivered ${convoy.cargo} cargo, earning ${payoutGold} gold.`,
-      } as any);
-
-      events.push({
-        type: "smuggling_convoy_completed" as any,
-        convoyId,
-        syndicateId: convoy.syndicateId,
-        payoutGold,
-        share,
-      } as any);
-    } else {
-      // Move to next room
-      const destRoomId = route.rooms[nextRoomIndex];
-      const factionId = newState.territoryControl?.[destRoomId];
-      let toll = 0;
-
-      if (factionId) {
-        const organizerId = convoy.definedBy;
-        const rep = newState.factionRep?.[factionId] ?? 0;
-        let tax = 5;
-        if (rep < 0) {
-          tax = 20;
-        } else if (rep < 10) {
-          tax = 10;
-        }
-        const rateMultiplier = newState.taxPolicy?.[factionId];
-        if (rateMultiplier !== undefined) {
-          tax = tax * rateMultiplier;
-        }
+      if (nextRoomIndex >= route.rooms.length) {
+        // Reached destination! Payout
+        const dominance = syndicate?.dominance ?? 0;
+        const dominanceBonus = Math.floor(dominance * 1.5);
         
-        let hasAlliedAlliance = false;
-        let hasHostileAlliance = false;
-        if (newState.alliances && newState.factionRep) {
-          for (const [otherFactionId, otherRep] of Object.entries(newState.factionRep)) {
-            if (otherFactionId !== factionId && otherRep >= 10) {
-              const relation = newState.alliances[factionId]?.[otherFactionId];
-              if (relation === "allied") {
-                hasAlliedAlliance = true;
-              } else if (relation === "hostile") {
-                hasHostileAlliance = true;
-              }
-            }
-          }
-        }
-        if (hasAlliedAlliance) {
-          tax = 0;
-        } else if (hasHostileAlliance) {
-          tax = tax * 2;
-        }
+        // Check if destination has active black market
+        const destRoom = route.rooms[route.rooms.length - 1];
+        const destHasBlackMarket = newState.blackMarkets?.[destRoom] !== undefined;
+        const baseValue = destHasBlackMarket ? 200 : 150;
+        const payoutGold = updatedConvoy.cargo * baseValue + dominanceBonus;
 
-        // Shadow alliance scaling for convoy (AF-79)
-        let hasAlliedShadowAlliance = false;
-        let hasHostileShadowAlliance = false;
-        if (newState.shadowAlliances && convoy.syndicateId) {
-          const relation = newState.shadowAlliances[convoy.syndicateId]?.[factionId];
-          if (relation === "allied") {
-            hasAlliedShadowAlliance = true;
-          } else if (relation === "hostile") {
-            hasHostileShadowAlliance = true;
+        const members = syndicate?.members || [convoy.definedBy];
+        const share = members.length > 0 ? Math.floor(payoutGold / members.length) : 0;
+        if (share > 0) {
+          if (!newState.vars) newState.vars = {};
+          for (const member of members) {
+            const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+            newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
           }
         }
 
-        if (hasAlliedShadowAlliance) {
-          tax = 0; // Waive taxes in allied shadow territories
-        } else if (hasHostileShadowAlliance) {
-          tax = tax * 2; // Double-tax hostile faction regions
-        }
-        
-        const hasLicense = newState.merchantLicenses?.[convoy.syndicateId]?.includes(factionId) === true || newState.merchantLicenses?.[organizerId]?.includes(factionId) === true;
-        if (!hasLicense) {
-          tax += 15;
-        }
-        toll = tax * convoy.cargo;
+        newState.vars["totalConvoyPayouts"] = (newState.vars["totalConvoyPayouts"] ?? 0) + payoutGold;
+        updatedConvoy.status = "completed";
+        updatedConvoy.currentRoomIndex = route.rooms.length - 1;
 
-        // Apply Cartel Global Tax if active for this faction
-        let cartelTax = 0;
-        if (newState.cartels) {
-          for (const cartel of Object.values(newState.cartels)) {
-            if (cartel.factionId === factionId) {
-              const globalTax = newState.cartelGlobalTaxPolicy?.[cartel.id] ?? 0;
-              cartelTax = Math.max(cartelTax, globalTax);
-            }
-          }
-        }
-        toll += cartelTax * convoy.cargo;
-
-        // Check for Smuggler Guild CBA override for smuggling convoy crossing tolls!
-        let hasConvoyCbaOverride = false;
-        let convoyCbaToll = toll;
-        if (newState.smugglerGuilds && newState.smugglerGuildCbas) {
-          for (const guildId of Object.keys(newState.smugglerGuilds)) {
-            const guild = newState.smugglerGuilds[guildId];
-            if (guild.syndicateId === convoy.syndicateId) {
-              const cbaKey = `${guildId}:${convoy.routeId}`;
-              const cba = newState.smugglerGuildCbas[cbaKey];
-              if (cba !== undefined) {
-                hasConvoyCbaOverride = true;
-                convoyCbaToll = cba.agreedToll * convoy.cargo;
-              }
-            }
-          }
-        }
-        if (hasConvoyCbaOverride) {
-          toll = convoyCbaToll;
-        }
-      }
-
-      if (toll > 0) {
-        const organizerId = convoy.definedBy;
-        const goldKey = organizerId === "player" ? "gold" : `gold_${organizerId}`;
-        const currentGold = newState.vars[goldKey] ?? (organizerId === "player" ? 0 : 100);
-        newState.vars[goldKey] = Math.max(0, currentGold - toll);
         if (!newState.journal) newState.journal = [];
-        newState.journal.push(`[Syndicate] Convoy ${convoyId} paid ${toll} gold in faction/cartel tolls to ${factionId} at room ${destRoomId}.`);
-      }
+        newState.journal.push(`[Syndicate] Smuggling convoy ${convoyId} successfully completed its route, delivering ${convoy.cargo} cargo. Total payout: ${payoutGold} gold (Distributed ${share} gold to each member).`);
 
-      // Check ambush risk
-      const heat = newState.enforcementHeat?.[destRoomId]?.heat ?? 0;
-      let ambushChance = 10;
-      ambushChance += heat * 2;
-      if (factionId && newState.factionRep?.[factionId] !== undefined && newState.factionRep[factionId] < 0) {
-        ambushChance += 15;
-      }
-      const weather = newState.environment?.weather || "clear";
-      if (weather === "storm" || weather === "blizzard" || weather === "rain") {
-        ambushChance += 10;
-      }
+        events.push({
+          type: "narration",
+          text: `💰 Smuggling convoy ${convoyId} arrived at destination! Delivered ${convoy.cargo} cargo, earning ${payoutGold} gold.`,
+        } as any);
 
-      const outpost = newState.turfGuardOutposts?.[destRoomId];
-      if (outpost && outpost.syndicateId === convoy.syndicateId) {
-        ambushChance -= outpost.securityLevel * 5;
-      }
-      const guards = newState.turfGuards?.[destRoomId]?.count ?? 0;
-      ambushChance -= guards * 3;
+        events.push({
+          type: "smuggling_convoy_completed" as any,
+          convoyId,
+          syndicateId: convoy.syndicateId,
+          payoutGold,
+          share,
+        } as any);
+      } else {
+        // Move to next room
+        const destRoomId: string = route.rooms[nextRoomIndex];
+        const factionId = newState.territoryControl?.[destRoomId];
+        let toll = 0;
 
-      // Dreadnought Convoy automated defensive turrets reduce ambush risk (AF-80)
-      if (convoy.isDreadnought) {
-        ambushChance -= 20;
-      }
-      
-      ambushChance = Math.max(5, Math.min(80, ambushChance));
+        if (factionId) {
+          const organizerId = convoy.definedBy;
+          const rep = newState.factionRep?.[factionId] ?? 0;
+          let tax = 5;
+          if (rep < 0) {
+            tax = 20;
+          } else if (rep < 10) {
+            tax = 10;
+          }
+          const rateMultiplier = newState.taxPolicy?.[factionId];
+          if (rateMultiplier !== undefined) {
+            tax = tax * rateMultiplier;
+          }
+          
+          let hasAlliedAlliance = false;
+          let hasHostileAlliance = false;
+          if (newState.alliances && newState.factionRep) {
+            for (const [otherFactionId, otherRep] of Object.entries(newState.factionRep)) {
+              if (otherFactionId !== factionId && otherRep >= 10) {
+                const relation = newState.alliances[factionId]?.[otherFactionId];
+                if (relation === "allied") {
+                  hasAlliedAlliance = true;
+                } else if (relation === "hostile") {
+                  hasHostileAlliance = true;
+                }
+              }
+            }
+          }
+          if (hasAlliedAlliance) {
+            tax = 0;
+          } else if (hasHostileAlliance) {
+            tax = tax * 2;
+          }
 
-      const { value: ambushRoll, nextSeed } = PureRand.nextInt(currentSeed, 1, 100);
-      currentSeed = nextSeed;
+          // Shadow alliance scaling for convoy (AF-79)
+          let hasAlliedShadowAlliance = false;
+          let hasHostileShadowAlliance = false;
+          if (newState.shadowAlliances && convoy.syndicateId) {
+            const relation = newState.shadowAlliances[convoy.syndicateId]?.[factionId];
+            if (relation === "allied") {
+              hasAlliedShadowAlliance = true;
+            } else if (relation === "hostile") {
+              hasHostileShadowAlliance = true;
+            }
+          }
 
-      if (ambushRoll <= ambushChance) {
-        // AMBUSH! Check turrets
-        let deflected = false;
-        if (outpost && outpost.syndicateId === convoy.syndicateId && outpost.turrets && Object.keys(outpost.turrets).length > 0) {
-          deflected = true;
-          if (!newState.journal) newState.journal = [];
-          newState.journal.push(`[Syndicate] Convoy ${convoyId} was ambushed in room ${destRoomId}, but the syndicate outpost's tactical turrets struck down the ambushers and defended the convoy!`);
-          events.push({
-            type: "narration",
-            text: `💥 Convoy ${convoyId} was ambushed in ${destRoomId}, but tactical turrets successfully defended it!`,
-          } as any);
+          if (hasAlliedShadowAlliance) {
+            tax = 0; // Waive taxes in allied shadow territories
+          } else if (hasHostileShadowAlliance) {
+            tax = tax * 2; // Double-tax hostile faction regions
+          }
+          
+          const hasLicense = newState.merchantLicenses?.[convoy.syndicateId]?.includes(factionId) === true || newState.merchantLicenses?.[organizerId]?.includes(factionId) === true;
+          if (!hasLicense) {
+            tax += 15;
+          }
+          toll = tax * convoy.cargo;
+
+          // Apply Cartel Global Tax if active for this faction
+          let cartelTax = 0;
+          if (newState.cartels) {
+            for (const cartel of Object.values(newState.cartels)) {
+              if (cartel.factionId === factionId) {
+                const globalTax = newState.cartelGlobalTaxPolicy?.[cartel.id] ?? 0;
+                cartelTax = Math.max(cartelTax, globalTax);
+              }
+            }
+          }
+          toll += cartelTax * convoy.cargo;
+
+          // Check for Smuggler Guild CBA override for smuggling convoy crossing tolls!
+          let hasConvoyCbaOverride = false;
+          let convoyCbaToll = toll;
+          if (newState.smugglerGuilds && newState.smugglerGuildCbas) {
+            for (const guildId of Object.keys(newState.smugglerGuilds)) {
+              const guild = newState.smugglerGuilds[guildId];
+              if (guild.syndicateId === convoy.syndicateId) {
+                const cbaKey = `${guildId}:${convoy.routeId}`;
+                const cba = newState.smugglerGuildCbas[cbaKey];
+                if (cba !== undefined) {
+                  hasConvoyCbaOverride = true;
+                  convoyCbaToll = cba.agreedToll * convoy.cargo;
+                }
+              }
+            }
+          }
+          if (hasConvoyCbaOverride) {
+            toll = convoyCbaToll;
+          }
         }
 
-        // Dreadnought Convoy defense turret counter-strike math (AF-80)
-        if (!deflected && convoy.isDreadnought) {
-          const { value: csRoll, nextSeed: nextSeed2 } = PureRand.nextInt(currentSeed, 1, 100);
-          currentSeed = nextSeed2;
-          const csSuccessChance = Math.max(20, 75 - heat * 5);
-          if (csRoll <= csSuccessChance) {
+        if (toll > 0) {
+          if (hasRingleader) {
+            toll = Math.round(toll * 0.8); // Coordination toll reduction
+          }
+          const organizerId = convoy.definedBy;
+          const goldKey = organizerId === "player" ? "gold" : `gold_${organizerId}`;
+          const currentGold = newState.vars[goldKey] ?? (organizerId === "player" ? 0 : 100);
+          newState.vars[goldKey] = Math.max(0, currentGold - toll);
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[Syndicate] Convoy ${convoyId} paid ${toll} gold in faction/cartel tolls to ${factionId} at room ${destRoomId}.`);
+        }
+
+        // Check ambush risk
+        const heat = newState.enforcementHeat?.[destRoomId]?.heat ?? 0;
+        let ambushChance = 10;
+        ambushChance += heat * 2;
+        if (factionId && newState.factionRep?.[factionId] !== undefined && newState.factionRep[factionId] < 0) {
+          ambushChance += 15;
+        }
+        const weather = newState.environment?.weather || "clear";
+        if (weather === "storm" || weather === "blizzard" || weather === "rain") {
+          ambushChance += 10;
+        }
+
+        const outpost = newState.turfGuardOutposts?.[destRoomId];
+        if (outpost && outpost.syndicateId === convoy.syndicateId) {
+          ambushChance -= outpost.securityLevel * 5;
+        }
+        const guards = newState.turfGuards?.[destRoomId]?.count ?? 0;
+        ambushChance -= guards * 3;
+
+        // Dreadnought Convoy automated defensive turrets reduce ambush risk (AF-80)
+        if (convoy.isDreadnought) {
+          ambushChance -= 20;
+        }
+
+        if (hasRingleader) {
+          ambushChance = Math.round(ambushChance * 0.7); // Coordination ambush risk reduction
+        }
+        
+        ambushChance = Math.max(5, Math.min(80, ambushChance));
+
+        const { value: ambushRoll, nextSeed } = PureRand.nextInt(currentSeed, 1, 100);
+        currentSeed = nextSeed;
+
+        if (ambushRoll <= ambushChance) {
+          // AMBUSH! Check turrets
+          let deflected = false;
+          if (outpost && outpost.syndicateId === convoy.syndicateId && outpost.turrets && Object.keys(outpost.turrets).length > 0) {
             deflected = true;
             if (!newState.journal) newState.journal = [];
-            newState.journal.push(`[Syndicate] Dreadnought convoy ${convoyId} was ambushed in room ${destRoomId}, but its heavy automated defensive turrets counter-strike successfully, obliterating the ambushers!`);
+            newState.journal.push(`[Syndicate] Convoy ${convoyId} was ambushed in room ${destRoomId}, but the syndicate outpost's tactical turrets struck down the ambushers and defended the convoy!`);
             events.push({
               type: "narration",
-              text: `💥 Dreadnought convoy ${convoyId} was ambushed in ${destRoomId}, but its heavy automated defensive turrets counter-struck and obliterated the ambushers!`,
+              text: `💥 Convoy ${convoyId} was ambushed in ${destRoomId}, but tactical turrets successfully defended it!`,
             } as any);
           }
-        }
 
-        if (!deflected) {
-          updatedConvoy.status = "ambushed";
-          updatedConvoy.currentRoomIndex = nextRoomIndex;
-          if (!newState.journal) newState.journal = [];
-          newState.journal.push(`[Syndicate] Convoy ${convoyId} was ambushed and destroyed by enforcers/pirates in room ${destRoomId}! All cargo was lost.`);
-          events.push({
-            type: "narration",
-            text: `🚨 Oh no! Smuggling convoy ${convoyId} was ambushed and destroyed in ${destRoomId}! All cargo was lost.`,
-          } as any);
-          events.push({
-            type: "smuggling_convoy_ambushed" as any,
-            convoyId,
-            room: destRoomId,
-          } as any);
-
-          // Convoy loss insurance dynamic compensation claim (AF-59)
-          const insurance = newState.convoyInsurance?.[convoyId];
-          if (insurance && insurance.active) {
-            const updatedInsurance = { ...insurance, active: false };
-            newState.convoyInsurance = {
-              ...newState.convoyInsurance,
-              [convoyId]: updatedInsurance,
-            };
-
-            const syndicate = newState.syndicates?.[convoy.syndicateId];
-            const members = syndicate?.members || [convoy.definedBy];
-            const coverage = insurance.coverageAmount;
-            const share = members.length > 0 ? Math.floor(coverage / members.length) : 0;
-
-            if (share > 0) {
-              if (!newState.vars) newState.vars = {};
-              for (const member of members) {
-                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
-                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
-              }
+          // Dreadnought Convoy defense turret counter-strike math (AF-80)
+          if (!deflected && convoy.isDreadnought) {
+            const { value: csRoll, nextSeed: nextSeed2 } = PureRand.nextInt(currentSeed, 1, 100);
+            currentSeed = nextSeed2;
+            const csSuccessChance = Math.max(20, 75 - heat * 5);
+            if (csRoll <= csSuccessChance) {
+              deflected = true;
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(`[Syndicate] Dreadnought convoy ${convoyId} was ambushed in room ${destRoomId}, but its heavy automated defensive turrets counter-strike successfully, obliterating the ambushers!`);
+              events.push({
+                type: "narration",
+                text: `💥 Dreadnought convoy ${convoyId} was ambushed in ${destRoomId}, but its heavy automated defensive turrets counter-struck and obliterated the ambushers!`,
+              } as any);
             }
+          }
 
-            newState.vars["totalConvoyInsurancePayouts"] = (newState.vars["totalConvoyInsurancePayouts"] ?? 0) + coverage;
-            newState.journal.push(`[Syndicate] Insurance claim processed for convoy ${convoyId}. Paid out ${coverage} gold dynamic loss compensation (Distributed ${share} gold to each member).`);
-            
+          // Check for active interceptor decoy deflection!
+          const activeDecoy = Object.values(newState.interceptorDecoys || {}).find(
+            d => d.syndicateId === convoy.syndicateId && d.active && d.routeId === convoy.routeId
+          );
+          if (!deflected && activeDecoy) {
+            activeDecoy.active = false;
+            deflected = true;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(`[Syndicate] Convoy ${convoyId} was ambushed in room ${destRoomId}, but the active Interceptor Decoy ${activeDecoy.id} misled the ambushers, protecting the convoy!`);
             events.push({
               type: "narration",
-              text: `🛡️ Smuggling Convoy Insurance Policy triggered! Paid out ${coverage} gold in dynamic loss compensation to the syndicate.`,
+              text: `💥 Convoy ${convoyId} was ambushed in ${destRoomId}, but interceptor decoy ${activeDecoy.id} successfully misled the patrol and protected it!`,
             } as any);
-            
+          }
+
+          if (!deflected) {
+            updatedConvoy.status = "ambushed";
+            updatedConvoy.currentRoomIndex = nextRoomIndex;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(`[Syndicate] Convoy ${convoyId} was ambushed and destroyed by enforcers/pirates in room ${destRoomId}! All cargo was lost.`);
             events.push({
-              type: "smuggling_convoy_insurance_claimed" as any,
-              convoyId,
-              syndicateId: convoy.syndicateId,
-              payoutGold: coverage,
-              share,
+              type: "narration",
+              text: `🚨 Oh no! Smuggling convoy ${convoyId} was ambushed and destroyed in ${destRoomId}! All cargo was lost.`,
             } as any);
+            events.push({
+              type: "smuggling_convoy_ambushed" as any,
+              convoyId,
+              room: destRoomId,
+            } as any);
+
+            // Convoy loss insurance dynamic compensation claim (AF-59)
+            const insurance = newState.convoyInsurance?.[convoyId];
+            if (insurance && insurance.active) {
+              const updatedInsurance = { ...insurance, active: false };
+              newState.convoyInsurance = {
+                ...newState.convoyInsurance,
+                [convoyId]: updatedInsurance,
+              };
+
+              const members = syndicate?.members || [convoy.definedBy];
+              const coverage = insurance.coverageAmount;
+              const share = members.length > 0 ? Math.floor(coverage / members.length) : 0;
+
+              if (share > 0) {
+                if (!newState.vars) newState.vars = {};
+                for (const member of members) {
+                  const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                  newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+                }
+              }
+
+              newState.vars["totalConvoyInsurancePayouts"] = (newState.vars["totalConvoyInsurancePayouts"] ?? 0) + coverage;
+              newState.journal.push(`[Syndicate] Insurance claim processed for convoy ${convoyId}. Paid out ${coverage} gold dynamic loss compensation (Distributed ${share} gold to each member).`);
+              
+              events.push({
+                type: "narration",
+                text: `🛡️ Smuggling Convoy Insurance Policy triggered! Paid out ${coverage} gold in dynamic loss compensation to the syndicate.`,
+              } as any);
+              
+              events.push({
+                type: "smuggling_convoy_insurance_claimed" as any,
+                convoyId,
+                syndicateId: convoy.syndicateId,
+                payoutGold: coverage,
+                share,
+              } as any);
+            }
+          } else {
+            updatedConvoy.currentRoomIndex = nextRoomIndex;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(`[Syndicate] Convoy ${convoyId} successfully traversed through room ${destRoomId} (survived ambush).`);
           }
         } else {
           updatedConvoy.currentRoomIndex = nextRoomIndex;
           if (!newState.journal) newState.journal = [];
-          newState.journal.push(`[Syndicate] Convoy ${convoyId} successfully traversed through room ${destRoomId} (survived ambush).`);
+          newState.journal.push(`[Syndicate] Convoy ${convoyId} successfully traversed through room ${destRoomId}.`);
         }
-      } else {
-        updatedConvoy.currentRoomIndex = nextRoomIndex;
-        if (!newState.journal) newState.journal = [];
-        newState.journal.push(`[Syndicate] Convoy ${convoyId} successfully traversed through room ${destRoomId}.`);
       }
     }
 
@@ -3510,6 +3551,87 @@ function tickUndercoverAgents(
                   type: "narration",
                   text: `🚨 [Raid] Enforcers raided the safehouse in ${roomId}, confiscating ${itemCount} items!`
                 } as any);
+              }
+              
+              if (!newState.enforcementHeat) newState.enforcementHeat = {};
+              newState.enforcementHeat[roomId] = {
+                roomId: roomId,
+                heat: 100,
+                timestamp: newState.step,
+              };
+            }
+          }
+        }
+
+        // Raid all black ops safehouses owned by this syndicate (AF-83)
+        if (newState.blackOpsSafehouses) {
+          for (const [safehouseId, safehouse] of Object.entries(newState.blackOpsSafehouses)) {
+            if (safehouse.syndicateId === agent.syndicateId && safehouse.active) {
+              const roomId = safehouse.roomId;
+              
+              const hasWarning = Object.values(newState.raidWarnings || {}).some(
+                w => w.roomId === roomId && w.active && w.scheduledStep === newState.step
+              );
+
+              if (hasWarning) {
+                newState.journal.push(
+                  `[Syndicate] Pre-emptive raid warning was active! Black Ops Safehouse ${safehouseId} in room ${roomId} was successfully evacuated before the raid. No contraband was confiscated!`
+                );
+                events.push({
+                  type: "narration",
+                  text: `🚨 [Raid] Black Ops Safehouse ${safehouseId} was raided, but thanks to the informant's warning, it was evacuated in time!`,
+                } as any);
+              } else {
+                // Determine sweep strength
+                const { value: sweepStrength, nextSeed } = PureRand.nextInt(newState.seed, 1, 50);
+                newState.seed = nextSeed;
+
+                // Defense score based on guards and safehouse defenses
+                const guards = newState.turfGuards?.[roomId]?.count ?? 0;
+                const defenses = safehouse.defenses ?? 0;
+                const defenseScore = defenses * 30 + guards * 10;
+
+                if (defenseScore >= sweepStrength) {
+                  // Repelled!
+                  newState.journal.push(
+                    `[Syndicate] Black Ops Safehouse ${safehouseId} successfully repelled the enforcer sweep/raid (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`
+                  );
+                  events.push({
+                    type: "narration",
+                    text: `🛡️ Black Ops Safehouse ${safehouseId} repelled the enforcer raid! (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})`,
+                  } as any);
+                } else {
+                  // Capture chance and damage reduction factor from defenses
+                  const defensesLevel = safehouse.defenses ?? 0;
+                  const captureChance = Math.max(0.1, 0.9 - defensesLevel * 0.25);
+                  const damageReductionFactor = Math.max(0.2, 1.0 - defensesLevel * 0.2);
+
+                  // Confiscate contraband
+                  const storedContraband = safehouse.storedContraband ?? 0;
+                  const { value: rolledCaptureChance, nextSeed: nextSeed2 } = PureRand.nextInt(newState.seed, 1, 100);
+                  newState.seed = nextSeed2;
+
+                  let confiscated = 0;
+                  if (rolledCaptureChance <= captureChance * 100) {
+                    confiscated = Math.round(storedContraband * damageReductionFactor);
+                  }
+
+                  const remainingContraband = Math.max(0, storedContraband - confiscated);
+                  
+                  newState.blackOpsSafehouses[safehouseId] = {
+                    ...safehouse,
+                    storedContraband: remainingContraband,
+                    timestamp: newState.step,
+                  };
+
+                  newState.journal.push(
+                    `[Syndicate] Black Ops Safehouse ${safehouseId} in room ${roomId} was raided by enforcer sweep! Confiscated ${confiscated} contraband (defenses shielded ${storedContraband - confiscated} units).`
+                  );
+                  events.push({
+                    type: "narration",
+                    text: `🚨 [Raid] Enforcers raided Black Ops Safehouse ${safehouseId}! Confiscated ${confiscated} contraband items (defenses shielded the rest).`,
+                  } as any);
+                }
               }
               
               if (!newState.enforcementHeat) newState.enforcementHeat = {};

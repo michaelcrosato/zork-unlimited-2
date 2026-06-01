@@ -718,6 +718,62 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         deflectionsChanged = true;
         newState.journal.push(`[BlackOps] Black Ops Safehouse ${safehouseId} in room ${roomId} automatically established enforcer deflection policy.`);
       }
+
+      // 3. Dynamic enforcer sweep on black ops safehouses containing contraband! (AF-83)
+      const currentHeat = newState.enforcementHeat?.[roomId]?.heat ?? 0;
+      const storedContraband = safehouse.storedContraband ?? 0;
+      if (storedContraband > 0 && currentHeat >= 25) {
+        // Enforcer Sweep triggers!
+        const { value: sweepStrength, nextSeed } = PureRand.nextInt(newState.seed, 1, 50);
+        newState.seed = nextSeed;
+
+        const currentGuards = turfGuards[roomId]?.count ?? 0;
+        const defenses = safehouse.defenses ?? 0;
+        const defenseScore = defenses * 30 + currentGuards * 10;
+
+        if (defenseScore >= sweepStrength) {
+          // Repelled!
+          newState.journal.push(
+            `[BlackOps] Black Ops Safehouse ${safehouseId} successfully repelled dynamic enforcer sweep (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`
+          );
+        } else {
+          // Sweep succeeded! Apply custom defenses damage reduction and capture chance
+          const captureChance = Math.max(0.1, 0.9 - defenses * 0.25);
+          const damageReductionFactor = Math.max(0.2, 1.0 - defenses * 0.2);
+
+          const { value: rolledCapture, nextSeed: nextSeed2 } = PureRand.nextInt(newState.seed, 1, 100);
+          newState.seed = nextSeed2;
+
+          let confiscated = 0;
+          if (rolledCapture <= captureChance * 100) {
+            confiscated = Math.round(storedContraband * damageReductionFactor);
+          }
+
+          const remainingContraband = Math.max(0, storedContraband - confiscated);
+
+          // Update safehouse contraband
+          newState.blackOpsSafehouses = {
+            ...(newState.blackOpsSafehouses || {}),
+            [safehouseId]: {
+              ...safehouse,
+              storedContraband: remainingContraband,
+              timestamp: newState.step,
+            }
+          };
+
+          // Reset room heat since enforcers successfully swept/raided the safehouse
+          if (newState.enforcementHeat?.[roomId]) {
+            newState.enforcementHeat[roomId] = {
+              ...newState.enforcementHeat[roomId],
+              heat: 0,
+            };
+          }
+
+          newState.journal.push(
+            `[BlackOps] Dynamic enforcer sweep raided Black Ops Safehouse ${safehouseId} in room ${roomId}! Confiscated ${confiscated} contraband (defenses shielded ${storedContraband - confiscated} units).`
+          );
+        }
+      }
     }
 
     if (guardsChanged) {
