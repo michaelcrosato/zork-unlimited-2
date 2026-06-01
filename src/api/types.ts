@@ -127,7 +127,9 @@ export type Action =
   | { type: "PROPOSE_JOINT_LOAN_PENALTY_WAIVER"; groupId: string; reducedInterestRate: number; waivePenalty: boolean; timestamp: number }
   | { type: "PROPOSE_JOINT_LOAN_CREDIT_UNDERWRITE"; groupId: string; syndicateId: string; members: string[]; timestamp: number }
   | { type: "PACKAGE_LOAN_CDO"; cdoId: string; creatorSyndicateId: string; assets: Array<{ type: "loan" | "investment"; syndicateId: string; assetId: string }>; timestamp: number }
-  | { type: "TRADE_CDO_TRANCHE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; sellerSyndicateId: string; buyerSyndicateId: string; amount: number; goldPrice: number; timestamp: number };
+  | { type: "TRADE_CDO_TRANCHE"; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; sellerSyndicateId: string; buyerSyndicateId: string; amount: number; goldPrice: number; timestamp: number }
+  | { type: "BUY_CREDIT_DEFAULT_SWAP"; cdsId: string; buyerSyndicateId: string; writerSyndicateId: string; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; notionalValue: number; premiumRate: number; timestamp: number }
+  | { type: "WRITE_CREDIT_DEFAULT_SWAP"; cdsId: string; writerSyndicateId: string; buyerSyndicateId: string; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; notionalValue: number; premiumRate: number; timestamp: number };
 
 
 

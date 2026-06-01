@@ -2928,12 +2928,85 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               }
             }
             newState.journal.push(`[CDO Write-Down] CDO ${cdoId} tranche ${tranche.trancheId} written down by -${loss} gold due to defaults (New value: ${newTotal}).`);
+
+            // Automatic CDS settlement resolution
+            if (newState.creditDefaultSwaps) {
+              newState.creditDefaultSwaps = { ...newState.creditDefaultSwaps };
+              for (const [cdsId, cds] of Object.entries(newState.creditDefaultSwaps)) {
+                if (cds.active && cds.cdoId === cdoId && cds.trancheId === tranche.trancheId) {
+                  const updatedCds = { ...cds };
+                  const payout = Math.min(updatedCds.notionalValue, oldTotal > 0 ? Math.round(loss * (updatedCds.notionalValue / oldTotal)) : 0);
+                  if (payout > 0) {
+                    if (!newState.syndicates) newState.syndicates = {};
+                    const writerSyndicate = newState.syndicates[updatedCds.writerSyndicateId];
+                    const buyerSyndicate = newState.syndicates[updatedCds.buyerSyndicateId];
+                    if (writerSyndicate && buyerSyndicate) {
+                      const actualPaid = Math.min(payout, writerSyndicate.warChest ?? 0);
+                      
+                      newState.syndicates[updatedCds.writerSyndicateId] = {
+                        ...writerSyndicate,
+                        warChest: Math.max(0, (writerSyndicate.warChest ?? 0) - actualPaid),
+                      };
+                      newState.syndicates[updatedCds.buyerSyndicateId] = {
+                        ...buyerSyndicate,
+                        warChest: (buyerSyndicate.warChest ?? 0) + actualPaid,
+                      };
+
+                      newState.journal.push(`[CDS Payout] CDS ${cdsId} triggered: writer Syndicate ${updatedCds.writerSyndicateId} paid ${actualPaid} gold to buyer Syndicate ${updatedCds.buyerSyndicateId} compensating for tranche ${updatedCds.trancheId} write-down of -${loss} gold.`);
+                      
+                      updatedCds.notionalValue = Math.max(0, updatedCds.notionalValue - payout);
+                      if (updatedCds.notionalValue <= 0) {
+                        updatedCds.active = false;
+                        newState.journal.push(`[CDS Settled] CDS ${cdsId} fully settled and deactivated.`);
+                      }
+                      updatedCds.timestamp = newState.step;
+                      newState.creditDefaultSwaps[cdsId] = updatedCds;
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
 
       updatedCdo.totalValue = updatedCdo.tranches.senior.totalValue + updatedCdo.tranches.mezzanine.totalValue + updatedCdo.tranches.equity.totalValue;
       newState.cdos[cdoId] = updatedCdo;
+    }
+  }
+
+  // Periodic Credit Default Swaps (CDS) Premium Deductions
+  if (newState.creditDefaultSwaps && Object.keys(newState.creditDefaultSwaps).length > 0) {
+    newState.creditDefaultSwaps = { ...newState.creditDefaultSwaps };
+    for (const [cdsId, cds] of Object.entries(newState.creditDefaultSwaps)) {
+      if (cds.active) {
+        const updatedCds = { ...cds };
+        const premium = Math.max(1, Math.floor(updatedCds.notionalValue * updatedCds.premiumRate));
+        if (!newState.syndicates) newState.syndicates = {};
+        const buyerSyndicate = newState.syndicates[updatedCds.buyerSyndicateId];
+        const writerSyndicate = newState.syndicates[updatedCds.writerSyndicateId];
+        if (buyerSyndicate && writerSyndicate) {
+          const actualPaid = Math.min(premium, buyerSyndicate.warChest ?? 0);
+          
+          newState.syndicates[updatedCds.buyerSyndicateId] = {
+            ...buyerSyndicate,
+            warChest: Math.max(0, (buyerSyndicate.warChest ?? 0) - actualPaid),
+          };
+          newState.syndicates[updatedCds.writerSyndicateId] = {
+            ...writerSyndicate,
+            warChest: (writerSyndicate.warChest ?? 0) + actualPaid,
+          };
+
+          newState.journal.push(`[CDS Premium] Syndicate ${updatedCds.buyerSyndicateId} paid ${actualPaid} gold premium to Syndicate ${updatedCds.writerSyndicateId} for CDS ${cdsId}.`);
+          
+          if (actualPaid < premium) {
+            updatedCds.active = false;
+            newState.journal.push(`[CDS Terminated] CDS ${cdsId} terminated due to insufficient premium payment from Syndicate ${updatedCds.buyerSyndicateId}.`);
+          }
+          updatedCds.timestamp = newState.step;
+          newState.creditDefaultSwaps[cdsId] = updatedCds;
+        }
+      }
     }
   }
 

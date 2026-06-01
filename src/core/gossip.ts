@@ -1896,6 +1896,36 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge creditDefaultSwaps using LWW (Last-Write-Wins)
+  const creditDefaultSwaps = { ...stateA.creditDefaultSwaps };
+  if (stateB.creditDefaultSwaps) {
+    for (const [key, cdsB] of Object.entries(stateB.creditDefaultSwaps)) {
+      const cdsA = creditDefaultSwaps[key];
+      if (!cdsA || cdsB.timestamp > cdsA.timestamp) {
+        creditDefaultSwaps[key] = cdsB;
+      }
+    }
+  }
+
+  // Merge creditDefaultSwapVotes using LWW (Last-Write-Wins)
+  const creditDefaultSwapVotes = { ...stateA.creditDefaultSwapVotes };
+  if (stateB.creditDefaultSwapVotes) {
+    for (const [cdsId, bInner] of Object.entries(stateB.creditDefaultSwapVotes)) {
+      if (!creditDefaultSwapVotes[cdsId]) {
+        creditDefaultSwapVotes[cdsId] = { ...bInner };
+      } else {
+        const aInner = { ...creditDefaultSwapVotes[cdsId] };
+        for (const [agentId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[agentId] = voteB;
+          }
+        }
+        creditDefaultSwapVotes[cdsId] = aInner;
+      }
+    }
+  }
+
   // Merge reserveRatioVotes using LWW (Last-Write-Wins)
   const reserveRatioVotes = { ...stateA.reserveRatioVotes };
   if (stateB.reserveRatioVotes) {
@@ -2047,6 +2077,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     secondaryReserveVaults,
     secondaryReserveInvestments,
     cdos,
+    creditDefaultSwaps,
+    creditDefaultSwapVotes,
   };
 }
 

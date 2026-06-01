@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -17906,6 +17906,296 @@ export function multiAgentStep(
         goldPrice,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BUY_CREDIT_DEFAULT_SWAP action (AF-108)
+  if ((action as any).type === "BUY_CREDIT_DEFAULT_SWAP") {
+    const { cdsId, buyerSyndicateId, writerSyndicateId, cdoId, trancheId, notionalValue, premiumRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+    const writerSyndicate = state.syndicates?.[writerSyndicateId];
+    const cdo = state.cdos?.[cdoId];
+    const tranche = cdo?.tranches?.[trancheId as "senior" | "mezzanine" | "equity"];
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required to buy Credit Default Swap.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (!writerSyndicateId) {
+      rejectionReason = `Writer Syndicate ID is required.`;
+    } else if (!cdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId) {
+      rejectionReason = `Tranche ID is required.`;
+    } else if (notionalValue === undefined || notionalValue <= 0 || !Number.isInteger(notionalValue)) {
+      rejectionReason = `Notional value must be a positive integer.`;
+    } else if (premiumRate === undefined || premiumRate <= 0) {
+      rejectionReason = `Premium rate must be a positive number.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (!writerSyndicate) {
+      rejectionReason = `Writer syndicate ${writerSyndicateId} does not exist.`;
+    } else if (buyerSyndicateId === writerSyndicateId) {
+      rejectionReason = `Buyer and writer syndicates must be different.`;
+    } else if (!buyerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of buyer syndicate ${buyerSyndicateId}.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${cdoId} does not exist.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist in CDO ${cdoId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      const creditDefaultSwapVotes = { ...(state.creditDefaultSwapVotes || {}) };
+      if (!creditDefaultSwapVotes[cdsId]) {
+        creditDefaultSwapVotes[cdsId] = {};
+      } else {
+        creditDefaultSwapVotes[cdsId] = { ...creditDefaultSwapVotes[cdsId] };
+      }
+
+      const existingVote = creditDefaultSwapVotes[cdsId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        creditDefaultSwapVotes[cdsId][agentId] = {
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          cdoId,
+          trancheId,
+          notionalValue,
+          premiumRate,
+          side: "buyer",
+          timestamp,
+        };
+        newState.creditDefaultSwapVotes = creditDefaultSwapVotes;
+        newState = reconcileCreditDefaultSwaps(newState, pack);
+
+        const activeCds = newState.creditDefaultSwaps?.[cdsId]?.active ?? false;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDS Buy Vote] Agent ${agentId} voted to BUY CDS ${cdsId} from Syndicate ${writerSyndicateId} on CDO ${cdoId} tranche ${trancheId} with notional ${notionalValue} (Status: ${activeCds ? "ACTIVE" : "PENDING"}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🛡️ CDS buy vote cast by ${agentId} for ${cdsId} (Notional: ${notionalValue}, Active: ${activeCds}).`,
+        } as any);
+
+        customEvents.push({
+          type: "cds_bought" as any,
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          cdoId,
+          trancheId,
+          notionalValue,
+          premiumRate,
+          active: activeCds,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized WRITE_CREDIT_DEFAULT_SWAP action (AF-108)
+  if ((action as any).type === "WRITE_CREDIT_DEFAULT_SWAP") {
+    const { cdsId, writerSyndicateId, buyerSyndicateId, cdoId, trancheId, notionalValue, premiumRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+    const writerSyndicate = state.syndicates?.[writerSyndicateId];
+    const cdo = state.cdos?.[cdoId];
+    const tranche = cdo?.tranches?.[trancheId as "senior" | "mezzanine" | "equity"];
+
+    if (!cdsId) {
+      rejectionReason = `CDS ID is required to write Credit Default Swap.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (!writerSyndicateId) {
+      rejectionReason = `Writer Syndicate ID is required.`;
+    } else if (!cdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId) {
+      rejectionReason = `Tranche ID is required.`;
+    } else if (notionalValue === undefined || notionalValue <= 0 || !Number.isInteger(notionalValue)) {
+      rejectionReason = `Notional value must be a positive integer.`;
+    } else if (premiumRate === undefined || premiumRate <= 0) {
+      rejectionReason = `Premium rate must be a positive number.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (!writerSyndicate) {
+      rejectionReason = `Writer syndicate ${writerSyndicateId} does not exist.`;
+    } else if (buyerSyndicateId === writerSyndicateId) {
+      rejectionReason = `Buyer and writer syndicates must be different.`;
+    } else if (!writerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of writer syndicate ${writerSyndicateId}.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${cdoId} does not exist.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist in CDO ${cdoId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      const creditDefaultSwapVotes = { ...(state.creditDefaultSwapVotes || {}) };
+      if (!creditDefaultSwapVotes[cdsId]) {
+        creditDefaultSwapVotes[cdsId] = {};
+      } else {
+        creditDefaultSwapVotes[cdsId] = { ...creditDefaultSwapVotes[cdsId] };
+      }
+
+      const existingVote = creditDefaultSwapVotes[cdsId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        creditDefaultSwapVotes[cdsId][agentId] = {
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          cdoId,
+          trancheId,
+          notionalValue,
+          premiumRate,
+          side: "writer",
+          timestamp,
+        };
+        newState.creditDefaultSwapVotes = creditDefaultSwapVotes;
+        newState = reconcileCreditDefaultSwaps(newState, pack);
+
+        const activeCds = newState.creditDefaultSwaps?.[cdsId]?.active ?? false;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDS Write Vote] Agent ${agentId} voted to WRITE CDS ${cdsId} to Syndicate ${buyerSyndicateId} on CDO ${cdoId} tranche ${trancheId} with notional ${notionalValue} (Status: ${activeCds ? "ACTIVE" : "PENDING"}).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🛡️ CDS write vote cast by ${agentId} for ${cdsId} (Notional: ${notionalValue}, Active: ${activeCds}).`,
+        } as any);
+
+        customEvents.push({
+          type: "cds_written" as any,
+          cdsId,
+          buyerSyndicateId,
+          writerSyndicateId,
+          cdoId,
+          trancheId,
+          notionalValue,
+          premiumRate,
+          active: activeCds,
+          timestamp,
+        });
+      }
     }
 
     newState.step += 1;

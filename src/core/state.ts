@@ -1051,6 +1051,32 @@ export const CDOSchema = z.object({
 });
 export type CDO = z.infer<typeof CDOSchema>;
 
+export const CreditDefaultSwapSchema = z.object({
+  id: z.string(),
+  buyerSyndicateId: z.string(),
+  writerSyndicateId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  notionalValue: z.number().int().positive(),
+  premiumRate: z.number(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type CreditDefaultSwap = z.infer<typeof CreditDefaultSwapSchema>;
+
+export const CDSVoteSchema = z.object({
+  cdsId: z.string(),
+  buyerSyndicateId: z.string(),
+  writerSyndicateId: z.string(),
+  cdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  notionalValue: z.number().int().positive(),
+  premiumRate: z.number(),
+  side: z.enum(["buyer", "writer"]),
+  timestamp: z.number().int(),
+});
+export type CDSVote = z.infer<typeof CDSVoteSchema>;
+
 export const DEFAULT_SECONDARY_RESERVE_VAULTS: Record<string, { name: string; interestRate: number; sweepRisk: number }> = {
   safe_savings: {
     name: "Safe Savings Vault",
@@ -1319,6 +1345,8 @@ export const GameStateSchema = z.object({
   secondaryReserveVaults: z.record(z.string(), SecondaryReserveVaultSchema).optional(),
   secondaryReserveInvestments: z.record(z.string(), z.record(z.string(), SecondaryReserveInvestmentSchema)).optional(),
   cdos: z.record(z.string(), CDOSchema).optional(),
+  creditDefaultSwaps: z.record(z.string(), CreditDefaultSwapSchema).optional(),
+  creditDefaultSwapVotes: z.record(z.string(), z.record(z.string(), CDSVoteSchema)).optional(),
 });
 
 
@@ -1494,6 +1522,8 @@ export const createInitialState = (options: {
     automatedBailouts: {},
     secondaryReserveVaults: {},
     secondaryReserveInvestments: {},
+    creditDefaultSwaps: {},
+    creditDefaultSwapVotes: {},
   };
 };
 
@@ -2262,6 +2292,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     secondaryReserveVaults: rest.secondaryReserveVaults ? JSON.parse(JSON.stringify(rest.secondaryReserveVaults)) : undefined,
     secondaryReserveInvestments: rest.secondaryReserveInvestments ? JSON.parse(JSON.stringify(rest.secondaryReserveInvestments)) : undefined,
     cdos: rest.cdos ? JSON.parse(JSON.stringify(rest.cdos)) : undefined,
+    creditDefaultSwaps: rest.creditDefaultSwaps ? JSON.parse(JSON.stringify(rest.creditDefaultSwaps)) : undefined,
+    creditDefaultSwapVotes: rest.creditDefaultSwapVotes ? JSON.parse(JSON.stringify(rest.creditDefaultSwapVotes)) : undefined,
   };
   return clone;
 }
@@ -4500,6 +4532,54 @@ export function reconcileReserveRatios(state: GameState, pack: any): GameState {
       reserveRatio: consensusRatio,
       timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), currentReserve?.timestamp ?? 0),
     };
+  }
+
+  return newState;
+}
+
+export function reconcileCreditDefaultSwaps(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    creditDefaultSwaps: state.creditDefaultSwaps ? { ...state.creditDefaultSwaps } : {},
+  };
+
+  if (!newState.creditDefaultSwapVotes) {
+    newState.creditDefaultSwapVotes = {};
+  }
+
+  for (const [cdsId, votes] of Object.entries(newState.creditDefaultSwapVotes)) {
+    const buyerVotes = Object.values(votes).filter(v => v.side === "buyer");
+    const writerVotes = Object.values(votes).filter(v => v.side === "writer");
+
+    if (buyerVotes.length > 0 && writerVotes.length > 0) {
+      const latestBuyerVote = buyerVotes.reduce((latest, current) => current.timestamp > latest.timestamp ? current : latest, buyerVotes[0]);
+      const latestWriterVote = writerVotes.reduce((latest, current) => current.timestamp > latest.timestamp ? current : latest, writerVotes[0]);
+
+      if (
+        latestBuyerVote.buyerSyndicateId === latestWriterVote.buyerSyndicateId &&
+        latestBuyerVote.writerSyndicateId === latestWriterVote.writerSyndicateId &&
+        latestBuyerVote.cdoId === latestWriterVote.cdoId &&
+        latestBuyerVote.trancheId === latestWriterVote.trancheId &&
+        latestBuyerVote.notionalValue === latestWriterVote.notionalValue &&
+        latestBuyerVote.premiumRate === latestWriterVote.premiumRate
+      ) {
+        const latestTimestamp = Math.max(latestBuyerVote.timestamp, latestWriterVote.timestamp);
+        const existingCds = newState.creditDefaultSwaps[cdsId];
+        if (!existingCds || latestTimestamp > existingCds.timestamp) {
+          newState.creditDefaultSwaps[cdsId] = {
+            id: cdsId,
+            buyerSyndicateId: latestBuyerVote.buyerSyndicateId,
+            writerSyndicateId: latestBuyerVote.writerSyndicateId,
+            cdoId: latestBuyerVote.cdoId,
+            trancheId: latestBuyerVote.trancheId,
+            notionalValue: latestBuyerVote.notionalValue,
+            premiumRate: latestBuyerVote.premiumRate,
+            timestamp: latestTimestamp,
+            active: true,
+          };
+        }
+      }
+    }
   }
 
   return newState;
