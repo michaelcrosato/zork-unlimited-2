@@ -5309,8 +5309,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Match SWF Reinsurance Option Limit Orders
+  const matchedState = matchSWFReinsuranceOptionLimitOrders(newState);
+
   // Recalculate dynamic risk ratings for SWF CDOs
-  return recalculateSWFYieldCDORiskRatings(newState);
+  return recalculateSWFYieldCDORiskRatings(matchedState);
 }
 
 /**
@@ -5518,5 +5521,125 @@ export function getCounterfeitExchangeRate(
 
   // Bound exchange rate between 0.1 and 2.0
   return Math.max(0.1, Math.min(2.0, rate));
+}
+
+export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionLimitOrders: state.swfReinsuranceOptionLimitOrders ? { ...state.swfReinsuranceOptionLimitOrders } : {},
+    swfReinsuranceOptionsContracts: state.swfReinsuranceOptionsContracts ? { ...state.swfReinsuranceOptionsContracts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  const openOrders = Object.values(newState.swfReinsuranceOptionLimitOrders).filter(
+    (o) => o.status === "Open"
+  );
+
+  const buyOrders = openOrders.filter((o) => o.orderType === "buy");
+  const sellOrders = openOrders.filter((o) => o.orderType === "sell");
+
+  // Sort buy orders descending by limit price (highest buy first), then by timestamp ascending (earlier first)
+  buyOrders.sort((a, b) => {
+    if (b.limitPrice !== a.limitPrice) return b.limitPrice - a.limitPrice;
+    return a.timestamp - b.timestamp;
+  });
+
+  // Sort sell orders ascending by limit price (lowest sell first), then by timestamp ascending (earlier first)
+  sellOrders.sort((a, b) => {
+    if (a.limitPrice !== b.limitPrice) return a.limitPrice - b.limitPrice;
+    return a.timestamp - b.timestamp;
+  });
+
+  for (const buyOrder of buyOrders) {
+    if (buyOrder.status !== "Open") continue;
+
+    for (const sellOrder of sellOrders) {
+      if (sellOrder.status !== "Open") continue;
+
+      // Check if parameters match
+      if (
+        buyOrder.swfYieldCdoId === sellOrder.swfYieldCdoId &&
+        buyOrder.trancheId === sellOrder.trancheId &&
+        buyOrder.optionType === sellOrder.optionType &&
+        buyOrder.strikePremiumRate === sellOrder.strikePremiumRate &&
+        buyOrder.size === sellOrder.size &&
+        buyOrder.limitPrice >= sellOrder.limitPrice
+      ) {
+        // Price overlap!
+        // Execution price: earlier timestamp is maker price
+        const executionPrice =
+          buyOrder.timestamp <= sellOrder.timestamp
+            ? buyOrder.limitPrice
+            : sellOrder.limitPrice;
+
+        const buyer = newState.syndicates[buyOrder.syndicateId];
+        const seller = newState.syndicates[sellOrder.syndicateId];
+
+        if (!buyer) continue;
+        if (!seller) continue;
+
+        // Check buyer warChest
+        if ((buyer.warChest ?? 0) < executionPrice) {
+          continue; // Buyer doesn't have enough gold, skip this match
+        }
+
+        // Check if secondary sale (transferring existing option contract)
+        if (sellOrder.contractId) {
+          const contract = newState.swfReinsuranceOptionsContracts[sellOrder.contractId];
+          if (!contract || !contract.active || contract.syndicateId !== sellOrder.syndicateId) {
+            // Sell order is invalid (contract no longer active or held by seller), cancel it
+            sellOrder.status = "Cancelled";
+            newState.swfReinsuranceOptionLimitOrders[sellOrder.id] = { ...sellOrder };
+            continue;
+          }
+
+          // Transfer contract ownership
+          newState.swfReinsuranceOptionsContracts[sellOrder.contractId] = {
+            ...contract,
+            syndicateId: buyOrder.syndicateId, // new holder
+            timestamp: newState.step,
+          };
+        } else {
+          // Write/create new option contract
+          const optionId = `opt_limit_${Object.keys(newState.swfReinsuranceOptionsContracts).length + 1}`;
+          newState.swfReinsuranceOptionsContracts[optionId] = {
+            id: optionId,
+            syndicateId: buyOrder.syndicateId, // buyer/holder
+            writerSyndicateId: sellOrder.syndicateId, // seller/writer
+            swfYieldCdoId: buyOrder.swfYieldCdoId,
+            trancheId: buyOrder.trancheId,
+            optionType: buyOrder.optionType,
+            strikePremiumRate: buyOrder.strikePremiumRate,
+            size: buyOrder.size,
+            timestamp: newState.step,
+            active: true,
+          };
+        }
+
+        // Transfer gold
+        buyer.warChest = (buyer.warChest ?? 0) - executionPrice;
+        seller.warChest = (seller.warChest ?? 0) + executionPrice;
+
+        newState.syndicates[buyOrder.syndicateId] = { ...buyer };
+        newState.syndicates[sellOrder.syndicateId] = { ...seller };
+
+        // Mark orders filled
+        buyOrder.status = "Filled";
+        sellOrder.status = "Filled";
+
+        newState.swfReinsuranceOptionLimitOrders[buyOrder.id] = { ...buyOrder };
+        newState.swfReinsuranceOptionLimitOrders[sellOrder.id] = { ...sellOrder };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Limit Match] Matched Buy Order ${buyOrder.id} (Syndicate ${buyOrder.syndicateId}) and Sell Order ${sellOrder.id} (Syndicate ${sellOrder.syndicateId}) at execution price ${executionPrice} gold (CDO: ${buyOrder.swfYieldCdoId}, Tranche: ${buyOrder.trancheId}, Strike: ${buyOrder.strikePremiumRate.toFixed(4)}, Size: ${buyOrder.size}, Contract: ${sellOrder.contractId ? sellOrder.contractId : "New"}).`
+        );
+
+        break; // Match found for this buy order, move to next buy order
+      }
+    }
+  }
+
+  return newState;
 }
 

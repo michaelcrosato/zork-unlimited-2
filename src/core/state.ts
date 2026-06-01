@@ -2087,6 +2087,22 @@ export const SWFReinsuranceOptionsListingSchema = z.object({
 });
 export type SWFReinsuranceOptionsListing = z.infer<typeof SWFReinsuranceOptionsListingSchema>;
 
+export const SWFReinsuranceOptionLimitOrderSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  orderType: z.enum(["buy", "sell"]),
+  contractId: z.string().optional(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  optionType: z.enum(["call", "put"]),
+  strikePremiumRate: z.number().nonnegative(),
+  size: z.number().int().positive(),
+  limitPrice: z.number().int().positive(),
+  status: z.enum(["Open", "Filled", "Cancelled"]),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionLimitOrder = z.infer<typeof SWFReinsuranceOptionLimitOrderSchema>;
+
 export const VolatilityHedgedPremiumPolicySchema = z.object({
   swfYieldCdoId: z.string(),
   volatilityReserve: z.number().int().nonnegative(),
@@ -2637,6 +2653,23 @@ export const GameStateSchema = z.object({
     contractId: z.string(),
     timestamp: z.number().int(),
   }))).optional(),
+  swfReinsuranceOptionLimitOrders: z.record(z.string(), SWFReinsuranceOptionLimitOrderSchema).optional(),
+  submitSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
+    orderId: z.string(),
+    orderType: z.enum(["buy", "sell"]),
+    contractId: z.string().optional(),
+    swfYieldCdoId: z.string(),
+    trancheId: z.enum(["senior", "mezzanine", "equity"]),
+    optionType: z.enum(["call", "put"]),
+    strikePremiumRate: z.number(),
+    size: z.number().int().positive(),
+    limitPrice: z.number().int().positive(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  cancelSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
+    orderId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -2927,6 +2960,9 @@ export const createInitialState = (options: {
     bidSWFReinsuranceOptionVotes: {},
     executeSWFReinsuranceOptionSaleVotes: {},
     exerciseSWFReinsuranceOptionVotes: {},
+    swfReinsuranceOptionLimitOrders: {},
+    submitSWFReinsuranceOptionLimitOrderVotes: {},
+    cancelSWFReinsuranceOptionLimitOrderVotes: {},
   };
 };
 
@@ -3800,6 +3836,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     bidSWFReinsuranceOptionVotes: rest.bidSWFReinsuranceOptionVotes ? JSON.parse(JSON.stringify(rest.bidSWFReinsuranceOptionVotes)) : undefined,
     executeSWFReinsuranceOptionSaleVotes: rest.executeSWFReinsuranceOptionSaleVotes ? JSON.parse(JSON.stringify(rest.executeSWFReinsuranceOptionSaleVotes)) : undefined,
     exerciseSWFReinsuranceOptionVotes: rest.exerciseSWFReinsuranceOptionVotes ? JSON.parse(JSON.stringify(rest.exerciseSWFReinsuranceOptionVotes)) : undefined,
+    swfReinsuranceOptionLimitOrders: rest.swfReinsuranceOptionLimitOrders ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionLimitOrders)) : undefined,
+    submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
+    cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
   };
   return clone;
 }
@@ -11500,6 +11539,134 @@ export function reconcileExerciseSWFReinsuranceOptions(state: GameState, pack: a
           }
           if (Object.keys(newState.exerciseSWFReinsuranceOptionVotes[syndicateId]).length === 0) {
             delete newState.exerciseSWFReinsuranceOptionVotes[syndicateId];
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSubmitSWFReinsuranceOptionLimitOrders(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    submitSWFReinsuranceOptionLimitOrderVotes: state.submitSWFReinsuranceOptionLimitOrderVotes ? { ...state.submitSWFReinsuranceOptionLimitOrderVotes } : {},
+    swfReinsuranceOptionLimitOrders: state.swfReinsuranceOptionLimitOrders ? { ...state.swfReinsuranceOptionLimitOrders } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.submitSWFReinsuranceOptionLimitOrderVotes || {})) {
+    const votes = newState.submitSWFReinsuranceOptionLimitOrderVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by orderId
+    const votesByOrder: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByOrder[voteObj.orderId]) {
+        votesByOrder[voteObj.orderId] = {};
+      }
+      votesByOrder[voteObj.orderId][voterId] = voteObj;
+    }
+
+    for (const [orderId, orderVotes] of Object.entries(votesByOrder)) {
+      const firstVote = Object.values(orderVotes)[0];
+      if (!firstVote) continue;
+
+      const { orderType, contractId, swfYieldCdoId, trancheId, optionType, strikePremiumRate, size, limitPrice, timestamp } = firstVote;
+      const yesVotes = Object.entries(orderVotes)
+        .filter(([voterId]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        newState.swfReinsuranceOptionLimitOrders![orderId] = {
+          id: orderId,
+          syndicateId,
+          orderType,
+          contractId,
+          swfYieldCdoId,
+          trancheId,
+          optionType,
+          strikePremiumRate,
+          size,
+          limitPrice,
+          status: "Open" as const,
+          timestamp,
+        };
+
+        if (newState.submitSWFReinsuranceOptionLimitOrderVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.submitSWFReinsuranceOptionLimitOrderVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.submitSWFReinsuranceOptionLimitOrderVotes[syndicateId]).length === 0) {
+            delete newState.submitSWFReinsuranceOptionLimitOrderVotes[syndicateId];
+          }
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Limit Order Submitted] Syndicate ${syndicateId} successfully submitted a ${orderType} limit order ${orderId} on CDO ${swfYieldCdoId} tranche ${trancheId} (Strike: ${strikePremiumRate.toFixed(4)}, Size: ${size}, Limit Price: ${limitPrice} gold).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCancelSWFReinsuranceOptionLimitOrders(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cancelSWFReinsuranceOptionLimitOrderVotes: state.cancelSWFReinsuranceOptionLimitOrderVotes ? { ...state.cancelSWFReinsuranceOptionLimitOrderVotes } : {},
+    swfReinsuranceOptionLimitOrders: state.swfReinsuranceOptionLimitOrders ? { ...state.swfReinsuranceOptionLimitOrders } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.cancelSWFReinsuranceOptionLimitOrderVotes || {})) {
+    const votes = newState.cancelSWFReinsuranceOptionLimitOrderVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const members = syndicate.members;
+    // Group votes by orderId
+    const votesByOrder: Record<string, typeof votes> = {};
+    for (const [voterId, voteObj] of Object.entries(votes)) {
+      if (!votesByOrder[voteObj.orderId]) {
+        votesByOrder[voteObj.orderId] = {};
+      }
+      votesByOrder[voteObj.orderId][voterId] = voteObj;
+    }
+
+    for (const [orderId, orderVotes] of Object.entries(votesByOrder)) {
+      const firstVote = Object.values(orderVotes)[0];
+      if (!firstVote) continue;
+
+      const { timestamp } = firstVote;
+      const yesVotes = Object.entries(orderVotes)
+        .filter(([voterId]) => members.includes(voterId))
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length > members.length / 2) {
+        const order = newState.swfReinsuranceOptionLimitOrders![orderId];
+        if (order && order.status === "Open" && order.syndicateId === syndicateId) {
+          order.status = "Cancelled" as const;
+          order.timestamp = timestamp;
+          newState.swfReinsuranceOptionLimitOrders![orderId] = order;
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Reinsurance Option Limit Order Cancelled] Limit order ${orderId} cancelled by Syndicate ${syndicateId}.`
+          );
+        }
+
+        if (newState.cancelSWFReinsuranceOptionLimitOrderVotes?.[syndicateId]) {
+          for (const voterId of yesVotes) {
+            delete newState.cancelSWFReinsuranceOptionLimitOrderVotes[syndicateId][voterId];
+          }
+          if (Object.keys(newState.cancelSWFReinsuranceOptionLimitOrderVotes[syndicateId]).length === 0) {
+            delete newState.cancelSWFReinsuranceOptionLimitOrderVotes[syndicateId];
           }
         }
       }

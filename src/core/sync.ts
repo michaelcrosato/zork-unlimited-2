@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool } from "./state.js";
 export interface MultiAgentAction {
@@ -32975,6 +32975,263 @@ export function multiAgentStep(
         syndicateId,
         agentId,
         contractId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER action (AF-149)
+  if ((action as any).type === "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER") {
+    const { orderId, syndicateId, orderType, contractId, swfYieldCdoId, trancheId, optionType, strikePremiumRate, size, limitPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!orderId) {
+      rejectionReason = `Order ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!orderType || !["buy", "sell"].includes(orderType)) {
+      rejectionReason = `Order type must be buy or sell.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (!optionType || !["call", "put"].includes(optionType)) {
+      rejectionReason = `Valid option type (call, put) is required.`;
+    } else if (strikePremiumRate === undefined || strikePremiumRate < 0) {
+      rejectionReason = `Strike premium rate must be non-negative.`;
+    } else if (size === undefined || size <= 0) {
+      rejectionReason = `Option contract size must be positive.`;
+    } else if (limitPrice === undefined || limitPrice <= 0 || !Number.isInteger(limitPrice)) {
+      rejectionReason = `Limit price must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.swfReinsuranceOptionLimitOrders?.[orderId]) {
+      rejectionReason = `Limit order ${orderId} already exists.`;
+    } else if (orderType === "buy" && (syndicate.warChest ?? 0) < limitPrice) {
+      rejectionReason = `Syndicate war chest does not have enough gold for buy limit price.`;
+    } else if (orderType === "sell" && contractId) {
+      const contract = state.swfReinsuranceOptionsContracts?.[contractId];
+      if (!contract) {
+        rejectionReason = `Option contract ${contractId} does not exist.`;
+      } else if (!contract.active) {
+        rejectionReason = `Option contract ${contractId} is not active.`;
+      } else if (contract.syndicateId !== syndicateId) {
+        rejectionReason = `Option contract ${contractId} is not held by Syndicate ${syndicateId}.`;
+      } else {
+        ok = true;
+      }
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const submitSWFReinsuranceOptionLimitOrderVotes = { ...(state.submitSWFReinsuranceOptionLimitOrderVotes || {}) };
+      if (!submitSWFReinsuranceOptionLimitOrderVotes[syndicateId]) {
+        submitSWFReinsuranceOptionLimitOrderVotes[syndicateId] = {};
+      }
+      submitSWFReinsuranceOptionLimitOrderVotes[syndicateId][agentId] = {
+        orderId,
+        orderType,
+        contractId,
+        swfYieldCdoId,
+        trancheId,
+        optionType,
+        strikePremiumRate,
+        size,
+        limitPrice,
+        timestamp,
+      };
+      newState.submitSWFReinsuranceOptionLimitOrderVotes = submitSWFReinsuranceOptionLimitOrderVotes;
+
+      // Reconcile votes
+      newState = reconcileSubmitSWFReinsuranceOptionLimitOrders(newState, pack);
+
+      const isSubmitted = newState.swfReinsuranceOptionLimitOrders?.[orderId]?.status === "Open";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Option Limit Order Submit Vote] Agent ${agentId} voted to submit limit order ${orderId} for Syndicate ${syndicateId} (Status: ${isSubmitted ? "OPENED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance Option limit order vote cast by ${agentId} for Syndicate ${syndicateId} (Order: ${orderId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_option_limit_order_voted" as any,
+        syndicateId,
+        agentId,
+        orderId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle CANCEL_REINSURANCE_OPTION_LIMIT_ORDER action (AF-149)
+  if ((action as any).type === "CANCEL_REINSURANCE_OPTION_LIMIT_ORDER") {
+    const { orderId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const order = state.swfReinsuranceOptionLimitOrders?.[orderId];
+
+    if (!orderId) {
+      rejectionReason = `Order ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!order) {
+      rejectionReason = `Limit order ${orderId} does not exist.`;
+    } else if (order.status !== "Open") {
+      rejectionReason = `Limit order ${orderId} is not Open.`;
+    } else if (order.syndicateId !== syndicateId) {
+      rejectionReason = `Limit order ${orderId} is not owned by Syndicate ${syndicateId}.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && order) {
+      const cancelSWFReinsuranceOptionLimitOrderVotes = { ...(state.cancelSWFReinsuranceOptionLimitOrderVotes || {}) };
+      if (!cancelSWFReinsuranceOptionLimitOrderVotes[syndicateId]) {
+        cancelSWFReinsuranceOptionLimitOrderVotes[syndicateId] = {};
+      }
+      cancelSWFReinsuranceOptionLimitOrderVotes[syndicateId][agentId] = {
+        orderId,
+        timestamp,
+      };
+      newState.cancelSWFReinsuranceOptionLimitOrderVotes = cancelSWFReinsuranceOptionLimitOrderVotes;
+
+      // Reconcile votes
+      newState = reconcileCancelSWFReinsuranceOptionLimitOrders(newState, pack);
+
+      const isCancelled = newState.swfReinsuranceOptionLimitOrders?.[orderId]?.status === "Cancelled";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Option Limit Order Cancel Vote] Agent ${agentId} voted to cancel limit order ${orderId} for Syndicate ${syndicateId} (Status: ${isCancelled ? "CANCELLED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance Option limit order cancel vote cast by ${agentId} for Syndicate ${syndicateId} (Order: ${orderId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_reinsurance_option_limit_order_cancelled_voted" as any,
+        syndicateId,
+        agentId,
+        orderId,
         timestamp,
       });
     }
