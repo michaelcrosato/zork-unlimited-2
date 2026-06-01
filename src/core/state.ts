@@ -1089,6 +1089,8 @@ export const MarginAccountSchema = z.object({
   bufferTriggerRatio: z.number().optional(),
   liquidityBuffer: z.number().int().nonnegative().optional(),
   vaultAllocations: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  advisorEnabled: z.boolean().optional(),
+  advisorSafetyThreshold: z.number().nonnegative().optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -1405,6 +1407,14 @@ export const GameStateSchema = z.object({
     bufferTriggerRatio: z.number(),
     timestamp: z.number().int(),
   }))).optional(),
+  rebalancingAdvisorVotes: z.record(z.string(), z.record(z.string(), z.object({
+    enabled: z.boolean(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  advisorSafetyThresholdVotes: z.record(z.string(), z.record(z.string(), z.object({
+    threshold: z.number().nonnegative(),
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -1587,6 +1597,8 @@ export const createInitialState = (options: {
     marginRehypothecationVotes: {},
     marginRehypothecationRevokeVotes: {},
     marginRebalancingPolicyVotes: {},
+    rebalancingAdvisorVotes: {},
+    advisorSafetyThresholdVotes: {},
   };
 };
 
@@ -2362,6 +2374,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     marginRehypothecationVotes: rest.marginRehypothecationVotes ? JSON.parse(JSON.stringify(rest.marginRehypothecationVotes)) : undefined,
     marginRehypothecationRevokeVotes: rest.marginRehypothecationRevokeVotes ? JSON.parse(JSON.stringify(rest.marginRehypothecationRevokeVotes)) : undefined,
     marginRebalancingPolicyVotes: rest.marginRebalancingPolicyVotes ? JSON.parse(JSON.stringify(rest.marginRebalancingPolicyVotes)) : undefined,
+    rebalancingAdvisorVotes: rest.rebalancingAdvisorVotes ? JSON.parse(JSON.stringify(rest.rebalancingAdvisorVotes)) : undefined,
+    advisorSafetyThresholdVotes: rest.advisorSafetyThresholdVotes ? JSON.parse(JSON.stringify(rest.advisorSafetyThresholdVotes)) : undefined,
   };
   return clone;
 }
@@ -2827,6 +2841,152 @@ export function reconcileMarginRebalancingPolicies(state: GameState, pack: any):
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Margin Rebalancing Policy] Rebalancing policy for Syndicate ${syndicateId} set by consensus majority (Enabled: ${fullyApprovedCombination.enabled}, Buffer Ratio: ${fullyApprovedCombination.liquidityBufferRatio}%, Buffer Trigger: ${fullyApprovedCombination.bufferTriggerRatio}%).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileRebalancingAdvisors(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    rebalancingAdvisorVotes: state.rebalancingAdvisorVotes ? { ...state.rebalancingAdvisorVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.rebalancingAdvisorVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      enabled: boolean;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.enabled}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            enabled: vote.enabled,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        advisorEnabled: fullyApprovedCombination.enabled,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      // Clear votes
+      if (newState.rebalancingAdvisorVotes) {
+        delete newState.rebalancingAdvisorVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Rebalancing Advisor Policy] Rebalancing advisor for Syndicate ${syndicateId} set by consensus majority (Enabled: ${fullyApprovedCombination.enabled}).`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileAdvisorSafetyThresholds(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    advisorSafetyThresholdVotes: state.advisorSafetyThresholdVotes ? { ...state.advisorSafetyThresholdVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.advisorSafetyThresholdVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      threshold: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.threshold}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            threshold: vote.threshold,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        advisorSafetyThreshold: fullyApprovedCombination.threshold,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      // Clear votes
+      if (newState.advisorSafetyThresholdVotes) {
+        delete newState.advisorSafetyThresholdVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Advisor Safety Threshold Policy] Advisor safety threshold for Syndicate ${syndicateId} set by consensus majority (Threshold: ${fullyApprovedCombination.threshold}%).`
       );
     }
   }

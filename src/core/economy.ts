@@ -550,6 +550,65 @@ export function getMerchantGold(state: GameState, npc: any): number {
   return startingGold;
 }
 
+function findOptimalAdvisorAllocations(
+  vaults: any[],
+  safetyThreshold: number
+): Record<string, number> {
+  const maxRisk = safetyThreshold / 100;
+  let bestYield = -1;
+  let bestAllocations: Record<string, number> = {};
+
+  if (vaults.length === 0) return {};
+
+  if (vaults.length === 1) {
+    return { [vaults[0].vaultId]: 100 };
+  }
+
+  const n = vaults.length;
+  
+  function search(index: number, remaining: number, currentAlloc: Record<string, number>) {
+    if (index === n - 1) {
+      currentAlloc[vaults[index].vaultId] = remaining;
+      
+      let weightedRisk = 0;
+      let weightedYield = 0;
+      for (let i = 0; i < n; i++) {
+        const v = vaults[i];
+        const w = currentAlloc[v.vaultId];
+        weightedRisk += (w / 100) * v.sweepRisk;
+        weightedYield += (w / 100) * v.interestRate;
+      }
+
+      if (weightedRisk <= maxRisk) {
+        if (weightedYield > bestYield || (Math.abs(weightedYield - bestYield) < 1e-9 && Object.keys(bestAllocations).length === 0)) {
+          bestYield = weightedYield;
+          bestAllocations = { ...currentAlloc };
+        }
+      }
+      return;
+    }
+
+    for (let w = 0; w <= remaining; w++) {
+      currentAlloc[vaults[index].vaultId] = w;
+      search(index + 1, remaining - w, currentAlloc);
+    }
+  }
+
+  search(0, 100, {});
+
+  if (Object.keys(bestAllocations).length === 0) {
+    let safestVault = vaults[0];
+    for (const v of vaults) {
+      if (v.sweepRisk < safestVault.sweepRisk) {
+        safestVault = v;
+      }
+    }
+    bestAllocations = { [safestVault.vaultId]: 100 };
+  }
+
+  return bestAllocations;
+}
+
 /**
  * Handles merchant restocking logic on every step.
  */
@@ -3013,6 +3072,19 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   if (newState.marginAccounts && Object.keys(newState.marginAccounts).length > 0) {
     newState.marginAccounts = { ...newState.marginAccounts };
     for (const [syndicateId, marginAccount] of Object.entries(newState.marginAccounts)) {
+      // AF-113: Dynamic Advisor-led Reallocations
+      if (marginAccount.advisorEnabled && marginAccount.advisorSafetyThreshold !== undefined && marginAccount.collateral > 0) {
+        const vaults = getSecondaryReserveVaults(newState);
+        const vaultsList = Object.values(vaults);
+        if (vaultsList.length > 0) {
+          const optimalTargets = findOptimalAdvisorAllocations(vaultsList, marginAccount.advisorSafetyThreshold);
+          marginAccount.vaultTargets = optimalTargets;
+          newState.journal.push(
+            `[Advisor Rebalancing] Automated Advisor updated vault targets for Syndicate ${syndicateId} to optimize yield under safety threshold of ${marginAccount.advisorSafetyThreshold}%: ${JSON.stringify(optimalTargets)}.`
+          );
+        }
+      }
+
       // AF-112: Auto-rebalance if rebalancing is enabled
       if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
         const collateral = marginAccount.collateral;

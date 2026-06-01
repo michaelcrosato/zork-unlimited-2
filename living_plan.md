@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #112 (Ready for Cycle #113)
-* **Build/Test Status**: 🟢 PASS (All 490 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #113 (Ready for Cycle #114)
+* **Build/Test Status**: 🟢 PASS (All 494 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -665,15 +665,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 91: Syndicate Bank Multi-Vault Dynamic Yield-Risk Optimization & Automated Rebalancing Advisors (Completed)
+- [x] Define rebalancing advisor structures and safety thresholds in GameState schemas (`AF-113`).
+- [x] Implement `DEPLOY_REBALANCING_ADVISOR` and `SET_ADVISOR_SAFETY_THRESHOLD` decentralized consensus actions (`AF-113`).
+- [x] Wire dynamic advisor-led reallocation suggestions and target updates inside `tickEconomy` before rebalancing ticks (`AF-113`).
+- [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-113`).
+
+---
+
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-113`
-* **Objective**: Syndicate Bank Multi-Vault Dynamic Yield-Risk Optimization & Automated Rebalancing Advisors.
-* **Why this matters**: Allow syndicates to deploy automated rebalancing advisors (heuristics) that monitor vault interest rates and sweep risks in real-time, voting to dynamically shift target allocations to optimize net interest income while keeping the total sweep risk below a user-defined safety threshold.
+**Task ID**: `AF-114`
+* **Objective**: Syndicate Bank Leverage Liquidity Mining Incentives & Yield Boosting Campaigns.
+* **Why this matters**: Allow syndicates to lock margin rehypothecation positions for fixed-term epochs to earn leverage liquidity mining bonuses (boosted yields and reputation multipliers) distributed from joint faction reserve pools, increasing capital utilization and group cooperation.
 * **Planned Actions**:
-  1. Define rebalancing advisor structures and safety thresholds in GameState schemas.
-  2. Implement `DEPLOY_REBALANCING_ADVISOR` and `SET_ADVISOR_SAFETY_THRESHOLD` decentralized consensus actions.
-  3. Wire dynamic advisor-led reallocation suggestions and target updates inside `tickEconomy` before rebalancing ticks.
-  4. Write comprehensive Vitest integration and mesh convergence tests.
+  1. Define locked liquidity epoch pools and yield boost multiplier schemas in GameState.
+  2. Implement `LOCK_REHYPOTHECATED_COLLATERAL` and `CLAIM_LIQUIDITY_MINING_REWARDS` consensus actions.
+  3. Wire passive yield boost scaling and reputation accrual inside `tickEconomy` under rehypothecation ticks.
+  4. Write comprehensive Vitest integration and P2P mesh convergence tests.
 
 ---
 
@@ -683,7 +692,7 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 | Risk | Impact | Mitigation Strategy |
 | :--- | :---: | :--- |
 | **State-space explosion during pathfinding** | High | Cap the maximum depth/steps of the state explorer and focus validation on critical gate variables and room reachability. Exclude `DROP` actions to keep puzzle path traversal clean. |
-| **Timeout during playtest** | High | Keep playtest path lengths bounded (e.g. max 35 steps) and use efficient execution loops. |
+| **Timeout during playtest** | High | Keep playtest path lengths bounded (e.g. max 35 steps) and use negative filter checks. |
 | **Nondeterminism in engine** | High | Standardized JSON serialization sorting keys before hashing. Property test action sequences to assert identical hashes. |
 | **Infinite debugging loops** | Medium | Limit autonomous cycle runs to a single task per CLI session, preventing internal loops. |
 
