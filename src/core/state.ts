@@ -366,6 +366,25 @@ export const UndercoverAgentSchema = z.object({
 });
 export type UndercoverAgent = z.infer<typeof UndercoverAgentSchema>;
 
+export const InformantSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  syndicateId: z.string(),
+  status: z.enum(["active", "exposed", "compromised"]),
+  bribeCost: z.number().int().nonnegative().optional(),
+  timestamp: z.number().int(),
+});
+export type Informant = z.infer<typeof InformantSchema>;
+
+export const RaidWarningSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  scheduledStep: z.number().int().nonnegative(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type RaidWarning = z.infer<typeof RaidWarningSchema>;
+
 
 
 export const CrimeSyndicateSchema = z.object({
@@ -530,6 +549,8 @@ export const GameStateSchema = z.object({
   smugglingConvoys: z.record(z.string(), SmugglingConvoySchema).optional(),
   convoyInsurance: z.record(z.string(), ConvoyInsuranceSchema).optional(),
   undercoverAgents: z.record(z.string(), UndercoverAgentSchema).optional(),
+  informants: z.record(z.string(), InformantSchema).optional(),
+  raidWarnings: z.record(z.string(), RaidWarningSchema).optional(),
 });
 
 
@@ -639,6 +660,8 @@ export const createInitialState = (options: {
     smugglingConvoys: {},
     convoyInsurance: {},
     undercoverAgents: {},
+    informants: {},
+    raidWarnings: {},
   };
 };
 
@@ -1205,6 +1228,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     smugglingConvoys: rest.smugglingConvoys ? JSON.parse(JSON.stringify(rest.smugglingConvoys)) : undefined,
     convoyInsurance: rest.convoyInsurance ? JSON.parse(JSON.stringify(rest.convoyInsurance)) : undefined,
     undercoverAgents: rest.undercoverAgents ? JSON.parse(JSON.stringify(rest.undercoverAgents)) : undefined,
+    informants: rest.informants ? JSON.parse(JSON.stringify(rest.informants)) : undefined,
+    raidWarnings: rest.raidWarnings ? JSON.parse(JSON.stringify(rest.raidWarnings)) : undefined,
   };
   return clone;
 }

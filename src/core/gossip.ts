@@ -709,6 +709,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge informants using LWW (Last-Write-Wins)
+  const informants = { ...stateA.informants };
+  if (stateB.informants) {
+    for (const [id, entryB] of Object.entries(stateB.informants)) {
+      const entryA = informants[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        informants[id] = entryB;
+      }
+    }
+  }
+
+  // Merge raidWarnings using LWW (Last-Write-Wins)
+  const raidWarnings = { ...stateA.raidWarnings };
+  if (stateB.raidWarnings) {
+    for (const [id, entryB] of Object.entries(stateB.raidWarnings)) {
+      const entryA = raidWarnings[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        raidWarnings[id] = entryB;
+      }
+    }
+  }
+
   // Merge productionLabs using LWW (Last-Write-Wins)
   const productionLabs = { ...stateA.productionLabs };
   if (stateB.productionLabs) {
@@ -984,8 +1006,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     syndicateWaiverVotes,
     syndicateTaxVotes,
     smugglingConvoys,
-    convoyInsurance,
     undercoverAgents,
+    informants,
+    raidWarnings,
   };
 }
 

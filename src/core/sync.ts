@@ -5499,6 +5499,366 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized BRIBE_ENFORCER action (AF-63)
+  if ((action as any).type === "BRIBE_ENFORCER") {
+    const { enforcerId, syndicateId, timestamp } = action as any;
+    const goldCost = (action as any).goldCost ?? 100;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const enforcer = state.enforcers?.[enforcerId];
+
+    if (!enforcerId) {
+      rejectionReason = `Enforcer ID is required to bribe an enforcer.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to bribe an enforcer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!enforcer) {
+      rejectionReason = `Enforcer ${enforcerId} does not exist.`;
+    } else if (enforcer.status !== "defeated") {
+      rejectionReason = `Enforcer ${enforcer.name} is not defeated. Bribing requires a defeated enforcer.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < goldCost) {
+        rejectionReason = `Insufficient gold to bribe enforcer (requires ${goldCost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && enforcer) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - goldCost,
+      };
+
+      // Add to informants
+      newState.informants = newState.informants ? { ...newState.informants } : {};
+      newState.informants[enforcerId] = {
+        id: enforcerId,
+        name: enforcer.name,
+        syndicateId,
+        status: "active" as const,
+        bribeCost: goldCost,
+        timestamp,
+      };
+
+      if (newState.enforcers) {
+        newState.enforcers = {
+          ...newState.enforcers,
+          [enforcerId]: {
+            ...enforcer,
+            status: "defeated" as const,
+            timestamp,
+          }
+        };
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate] Enforcer ${enforcer.name} was bribed by agent ${agentId} to become an active informant for syndicate ${syndicateId}.`
+      );
+
+      customEvents.push({
+        type: "enforcer_bribed",
+        agentId,
+        syndicateId,
+        enforcerId,
+        name: enforcer.name,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized INTERROGATE_ENFORCER action (AF-63)
+  if ((action as any).type === "INTERROGATE_ENFORCER") {
+    const { enforcerId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const enforcer = state.enforcers?.[enforcerId];
+
+    if (!enforcerId) {
+      rejectionReason = `Enforcer ID is required to interrogate an enforcer.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to interrogate an enforcer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!enforcer) {
+      rejectionReason = `Enforcer ${enforcerId} does not exist.`;
+    } else if (enforcer.status !== "defeated") {
+      rejectionReason = `Enforcer ${enforcer.name} is not defeated. Interrogation requires a defeated enforcer.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && enforcer) {
+      // Add to informants with status compromised
+      newState.informants = newState.informants ? { ...newState.informants } : {};
+      newState.informants[enforcerId] = {
+        id: enforcerId,
+        name: enforcer.name,
+        syndicateId,
+        status: "compromised" as const,
+        timestamp,
+      };
+
+      // Pick a room with safehouse or production lab owned by this syndicate to warn about
+      let warnedRoom = state.current;
+      if (newState.safehouses) {
+        const sh = Object.values(newState.safehouses).find(s => s.syndicateId === syndicateId);
+        if (sh) warnedRoom = sh.roomId;
+      }
+      if (warnedRoom === state.current && newState.productionLabs) {
+        const lab = Object.values(newState.productionLabs).find(l => l.syndicateId === syndicateId);
+        if (lab) warnedRoom = lab.roomId;
+      }
+
+      // Schedule pre-emptive warning for step + 5
+      const scheduledStep = newState.step + 5;
+      const warningId = `warning_${enforcerId}_${warnedRoom}_${scheduledStep}`;
+      
+      newState.raidWarnings = newState.raidWarnings ? { ...newState.raidWarnings } : {};
+      newState.raidWarnings[warningId] = {
+        roomId: warnedRoom,
+        syndicateId,
+        scheduledStep,
+        active: true,
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate] Enforcer ${enforcer.name} was interrogated by agent ${agentId} and recruited as an informant, leaking a pre-emptive raid warning for room ${warnedRoom} at step ${scheduledStep}!`
+      );
+
+      customEvents.push({
+        type: "enforcer_interrogated",
+        agentId,
+        syndicateId,
+        enforcerId,
+        name: enforcer.name,
+        warnedRoom,
+        scheduledStep,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized RECRUIT_ENFORCER action (AF-63)
+  if ((action as any).type === "RECRUIT_ENFORCER") {
+    const { enforcerId, syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const enforcer = state.enforcers?.[enforcerId];
+    const dominance = syndicate?.dominance ?? 50;
+
+    if (!enforcerId) {
+      rejectionReason = `Enforcer ID is required to recruit an enforcer.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to recruit an enforcer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Shadow Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!enforcer) {
+      rejectionReason = `Enforcer ${enforcerId} does not exist.`;
+    } else if (enforcer.status !== "defeated") {
+      rejectionReason = `Enforcer ${enforcer.name} is not defeated. Recruitment requires a defeated enforcer.`;
+    } else if (dominance < 50) {
+      rejectionReason = `Recruiting a defeated enforcer requires syndicate dominance of at least 50 (current dominance is ${dominance}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && enforcer) {
+      // Add to informants with status exposed
+      newState.informants = newState.informants ? { ...newState.informants } : {};
+      newState.informants[enforcerId] = {
+        id: enforcerId,
+        name: enforcer.name,
+        syndicateId,
+        status: "exposed" as const,
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate] Enforcer ${enforcer.name} was recruited by agent ${agentId} as an informant for syndicate ${syndicateId} using syndicate dominance.`
+      );
+
+      customEvents.push({
+        type: "enforcer_recruited",
+        agentId,
+        syndicateId,
+        enforcerId,
+        name: enforcer.name,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Handle decentralized ADJUST_TURF_TAX action (AF-53)
   if ((action as any).type === "ADJUST_TURF_TAX") {
     const { syndicateId, rate, timestamp } = action as any;

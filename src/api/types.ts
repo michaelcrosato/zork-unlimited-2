@@ -47,7 +47,10 @@ export type Action =
   | { type: "ORGANIZE_CONVOY"; convoyId: string; syndicateId: string; routeId: string; cargo: number; goldCost?: number; timestamp: number }
   | { type: "PURCHASE_CONVOY_INSURANCE"; convoyId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "LAUNCH_BACKGROUND_CHECK"; syndicateId: string; targetAgentId: string; cost?: number; timestamp: number }
-  | { type: "EXPOSE_MOLE"; syndicateId: string; targetAgentId: string; timestamp: number };
+  | { type: "EXPOSE_MOLE"; syndicateId: string; targetAgentId: string; timestamp: number }
+  | { type: "BRIBE_ENFORCER"; enforcerId: string; syndicateId: string; goldCost?: number; timestamp: number }
+  | { type: "INTERROGATE_ENFORCER"; enforcerId: string; syndicateId: string; timestamp: number }
+  | { type: "RECRUIT_ENFORCER"; enforcerId: string; syndicateId: string; timestamp: number };
 
 
 

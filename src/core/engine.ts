@@ -1946,30 +1946,43 @@ export function tickProductionLabs(
       currentSeed = nextSeed;
 
       if (raidRoll <= 20) {
-        // Check if there is an active deflection policy in the room
-        const activeDeflection = newState.deflectionPolicies?.[roomId]?.active;
-        if (activeDeflection) {
-          // Raid deflected! Consume the policy.
-          const updatedDeflection = { ...(newState.deflectionPolicies || {}) };
-          updatedDeflection[roomId] = {
-            ...updatedDeflection[roomId],
-            active: false,
-            timestamp: newState.step,
-          };
-          newState.deflectionPolicies = updatedDeflection;
+        // Check if a raid warning was active for this room at this step
+        const hasWarning = Object.values(newState.raidWarnings || {}).some(
+          w => w.roomId === roomId && w.active && w.scheduledStep === newState.step
+        );
 
+        if (hasWarning) {
           events.push({
             type: "narration",
-            text: `[Syndicate] An enforcer raid on the lab in ${roomId} was successfully deflected by the active deflection policy!`,
+            text: `[Syndicate] Pre-emptive raid warning was active! The contraband lab in ${roomId} was successfully evacuated before the raid occurred. No contraband was confiscated!`,
           } as any);
           if (!newState.journal) newState.journal = [];
-          newState.journal.push(`[Syndicate] Lab raid deflected in ${roomId} by active deflection policy.`);
+          newState.journal.push(`[Syndicate] Lab in ${roomId} was pre-emptively evacuated due to active raid warning. Stored contraband of ${updatedLab.storedContraband} was saved.`);
         } else {
-          // Raid occurs!
-          events.push({
-            type: "narration",
-            text: `[Syndicate] Enforcement agents have tracked down and raided the contraband lab in ${roomId}!`,
-          } as any);
+          // Check if there is an active deflection policy in the room
+          const activeDeflection = newState.deflectionPolicies?.[roomId]?.active;
+          if (activeDeflection) {
+            // Raid deflected! Consume the policy.
+            const updatedDeflection = { ...(newState.deflectionPolicies || {}) };
+            updatedDeflection[roomId] = {
+              ...updatedDeflection[roomId],
+              active: false,
+              timestamp: newState.step,
+            };
+            newState.deflectionPolicies = updatedDeflection;
+
+            events.push({
+              type: "narration",
+              text: `[Syndicate] An enforcer raid on the lab in ${roomId} was successfully deflected by the active deflection policy!`,
+            } as any);
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(`[Syndicate] Lab raid deflected in ${roomId} by active deflection policy.`);
+          } else {
+            // Raid occurs!
+            events.push({
+              type: "narration",
+              text: `[Syndicate] Enforcement agents have tracked down and raided the contraband lab in ${roomId}!`,
+            } as any);
 
           const { value: raidStrength, nextSeed: nextSeed2 } = PureRand.nextInt(currentSeed, 1, 50);
           currentSeed = nextSeed2;
@@ -2030,6 +2043,7 @@ export function tickProductionLabs(
         }
       }
     }
+  }
 
     if (labChanged) {
       updatedLabs[roomId] = updatedLab;
@@ -2389,6 +2403,7 @@ function tickEnforcers(
   pack?: CYOAPack | ParserPack
 ): GameState {
   let newState = tickUndercoverAgents(state, events, pack);
+  newState = tickInformants(newState, events, pack);
   if (!pack || !("rooms" in pack) || !newState.enforcers || Object.keys(newState.enforcers).length === 0) {
     return newState;
   }
@@ -2637,6 +2652,66 @@ function tickEnforcers(
   return newState;
 }
 
+function tickInformants(
+  state: GameState,
+  events: GameEvent[],
+  pack?: CYOAPack | ParserPack
+): GameState {
+  if (!state.informants || Object.keys(state.informants).length === 0) {
+    return state;
+  }
+
+  let newState = { ...state };
+  newState.informants = { ...newState.informants };
+  newState.raidWarnings = newState.raidWarnings ? { ...newState.raidWarnings } : {};
+  if (!newState.journal) newState.journal = [];
+
+  for (const informant of Object.values(newState.informants)) {
+    if (informant.status !== "active") continue;
+
+    const { value: alertRoll, nextSeed } = PureRand.nextInt(newState.seed + state.step, 1, 100);
+    
+    // 30% chance per step that an active informant detects an upcoming raid
+    if (alertRoll <= 30) {
+      let warnedRoom: string | undefined = undefined;
+      
+      if (newState.safehouses) {
+        const sh = Object.values(newState.safehouses).find(s => s.syndicateId === informant.syndicateId);
+        if (sh) warnedRoom = sh.roomId;
+      }
+      if (!warnedRoom && newState.productionLabs) {
+        const lab = Object.values(newState.productionLabs).find(l => l.syndicateId === informant.syndicateId);
+        if (lab) warnedRoom = lab.roomId;
+      }
+      
+      if (warnedRoom) {
+        const scheduledStep = newState.step + 3;
+        const warningId = `warning_${informant.id}_${warnedRoom}_${scheduledStep}`;
+        
+        if (!newState.raidWarnings[warningId]) {
+          newState.raidWarnings[warningId] = {
+            roomId: warnedRoom,
+            syndicateId: informant.syndicateId,
+            scheduledStep,
+            active: true,
+            timestamp: newState.step,
+          };
+          
+          newState.journal.push(
+            `[Syndicate] Informant ${informant.name} leaked enforcer raid plans! Pre-emptive warning scheduled for room ${warnedRoom} at step ${scheduledStep}.`
+          );
+          events.push({
+            type: "narration",
+            text: `⚠️ [Intelligence] Informant ${informant.name} warns of an upcoming enforcer sweep in ${warnedRoom} at step ${scheduledStep}!`,
+          } as any);
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
 function tickUndercoverAgents(
   state: GameState,
   events: GameEvent[],
@@ -2761,11 +2836,33 @@ function tickUndercoverAgents(
             if (safehouse.syndicateId === agent.syndicateId) {
               const itemCount = safehouse.stashItems.length;
               
-              newState.safehouses[roomId] = {
-                ...safehouse,
-                stashItems: [],
-                timestamp: newState.step,
-              };
+              const hasWarning = Object.values(newState.raidWarnings || {}).some(
+                w => w.roomId === roomId && w.active && w.scheduledStep === newState.step
+              );
+
+              if (hasWarning) {
+                newState.journal.push(
+                  `[Syndicate] Pre-emptive raid warning was active! Safehouse in room ${roomId} was successfully evacuated before the raid. No items were confiscated!`
+                );
+                events.push({
+                  type: "narration",
+                  text: `🚨 [Raid] Safehouse in room ${roomId} was raided, but thanks to the informant's warning, it was evacuated in time! No items were lost!`
+                } as any);
+              } else {
+                newState.safehouses[roomId] = {
+                  ...safehouse,
+                  stashItems: [],
+                  timestamp: newState.step,
+                };
+                
+                newState.journal.push(
+                  `[Syndicate] Safehouse in room ${roomId} was raided! Confiscated ${itemCount} stashed items and spiked room heat to 100.`
+                );
+                events.push({
+                  type: "narration",
+                  text: `🚨 [Raid] Enforcers raided the safehouse in ${roomId}, confiscating ${itemCount} items!`
+                } as any);
+              }
               
               if (!newState.enforcementHeat) newState.enforcementHeat = {};
               newState.enforcementHeat[roomId] = {
@@ -2773,14 +2870,6 @@ function tickUndercoverAgents(
                 heat: 100,
                 timestamp: newState.step,
               };
-
-              newState.journal.push(
-                `[Syndicate] Safehouse in room ${roomId} was raided! Confiscated ${itemCount} stashed items and spiked room heat to 100.`
-              );
-              events.push({
-                type: "narration",
-                text: `🚨 [Raid] Enforcers raided the safehouse in ${roomId}, confiscating ${itemCount} items!`
-              } as any);
             }
           }
         }
