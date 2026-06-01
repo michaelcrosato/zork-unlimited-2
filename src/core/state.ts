@@ -1308,9 +1308,37 @@ export const MultiFactionCdoRiskRatingProposalSchema = z.object({
 });
 export type MultiFactionCdoRiskRatingProposal = z.infer<typeof MultiFactionCdoRiskRatingProposalSchema>;
 
+export const SovereignDebtProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  factionId: z.string(),
+  faceValue: z.number().int().positive(),
+  interestRate: z.number().nonnegative(),
+  termEpochs: z.number().int().positive(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtProposal = z.infer<typeof SovereignDebtProposalSchema>;
 
-
-
+export const FactionReserveBondSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  factionId: z.string(),
+  faceValue: z.number().int().nonnegative(),
+  interestRate: z.number().nonnegative(),
+  termEpochs: z.number().int().positive(),
+  remainingEpochs: z.number().int().nonnegative(),
+  couponPayout: z.number().int().nonnegative(),
+  totalRepayment: z.number().int().nonnegative(),
+  remainingRepayment: z.number().int().nonnegative(),
+  status: z.enum(["Active", "Matured", "Defaulted"]),
+  timestamp: z.number().int(),
+});
+export type FactionReserveBond = z.infer<typeof FactionReserveBondSchema>;
 
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
@@ -1694,6 +1722,8 @@ export const GameStateSchema = z.object({
   factionCdoInsurancePoolProposals: z.record(z.string(), FactionCdoInsurancePoolProposalSchema).optional(),
   multiFactionCdoRiskRatings: z.record(z.string(), MultiFactionCdoRiskRatingSchema).optional(),
   multiFactionCdoRiskRatingProposals: z.record(z.string(), MultiFactionCdoRiskRatingProposalSchema).optional(),
+  sovereignDebtProposals: z.record(z.string(), SovereignDebtProposalSchema).optional(),
+  factionReserveBonds: z.record(z.string(), FactionReserveBondSchema).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
 });
@@ -1903,6 +1933,8 @@ export const createInitialState = (options: {
     factionCdoInsurancePoolProposals: {},
     multiFactionCdoRiskRatings: {},
     multiFactionCdoRiskRatingProposals: {},
+    sovereignDebtProposals: {},
+    factionReserveBonds: {},
   };
 };
 
@@ -2702,6 +2734,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     factionCdoInsurancePoolProposals: rest.factionCdoInsurancePoolProposals ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePoolProposals)) : undefined,
     multiFactionCdoRiskRatings: rest.multiFactionCdoRiskRatings ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatings)) : undefined,
     multiFactionCdoRiskRatingProposals: rest.multiFactionCdoRiskRatingProposals ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatingProposals)) : undefined,
+    sovereignDebtProposals: rest.sovereignDebtProposals ? JSON.parse(JSON.stringify(rest.sovereignDebtProposals)) : undefined,
+    factionReserveBonds: rest.factionReserveBonds ? JSON.parse(JSON.stringify(rest.factionReserveBonds)) : undefined,
     maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
     slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
   };
@@ -6225,6 +6259,82 @@ export function reconcileMultiFactionCdoRiskRatings(state: GameState, pack: any)
       newState.journal.push(
         `[Multi-Faction CDO Risk Rating Resolved] Syndicate ${syndicateId} established risk rating policy for CDO ${cdoId} sponsored by ${factionId} with rating ${riskRating} and base premium ${basePremiumRate}.`
       );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignBonds(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtProposals: state.sovereignDebtProposals ? { ...state.sovereignDebtProposals } : {},
+    factionReserveBonds: state.factionReserveBonds ? { ...state.factionReserveBonds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sovereignDebtProposals || {})) {
+    const proposal = newState.sovereignDebtProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, factionId, faceValue, interestRate, termEpochs, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      // Consensus reached! Check faction reserves one more time
+      const factionReserve = newState.factionReservePools?.[factionId] ?? 10000;
+      if (factionReserve >= faceValue) {
+        // Resolve proposal
+        newState.sovereignDebtProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        // Transfer funds: faction reserves -> syndicate war chest
+        if (!newState.factionReservePools) newState.factionReservePools = {};
+        newState.factionReservePools[factionId] = factionReserve - faceValue;
+        
+        syndicate.warChest = (syndicate.warChest ?? 0) + faceValue;
+
+        // Establish the active bond
+        const totalRepayment = faceValue + Math.floor(faceValue * (interestRate / 100));
+        const couponPayout = Math.floor(totalRepayment / termEpochs);
+        
+        if (!newState.factionReserveBonds) newState.factionReserveBonds = {};
+        newState.factionReserveBonds[proposalId] = {
+          id: proposalId,
+          syndicateId,
+          factionId,
+          faceValue,
+          interestRate,
+          termEpochs,
+          remainingEpochs: termEpochs,
+          couponPayout,
+          totalRepayment,
+          remainingRepayment: totalRepayment,
+          status: "Active" as const,
+          timestamp,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Sovereign Bond Resolved] Syndicate ${syndicateId} issued sovereign bond ${proposalId} to faction ${factionId} for ${faceValue} gold.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Sovereign Bond Resolution Failed] Faction ${factionId} has insufficient reserves (${factionReserve} < ${faceValue}) to resolve proposal ${proposalId}.`
+        );
+      }
     }
   }
 

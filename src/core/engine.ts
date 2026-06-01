@@ -2223,6 +2223,84 @@ export function tickProductionLabs(
     }
   }
 
+  // Periodic Sovereign Debt / Bond monetization (AF-123)
+  if (newState.factionReserveBonds && Object.keys(newState.factionReserveBonds).length > 0) {
+    const updatedBonds = { ...newState.factionReserveBonds };
+    const updatedSyndicates = { ...(newState.syndicates || {}) };
+    const updatedFactionReserves = { ...(newState.factionReservePools || {}) };
+    const updatedFactionRep = { ...(newState.factionRep || {}) };
+    let bondsChanged = false;
+
+    for (const [bondId, bond] of Object.entries(updatedBonds)) {
+      if (bond.status === "Active") {
+        const syndicate = updatedSyndicates[bond.syndicateId];
+        if (!syndicate) continue;
+
+        // Determine coupon payment amount for this tick
+        let payout = bond.couponPayout;
+        if (bond.remainingEpochs === 1) {
+          // Final payment pays whatever is left to avoid rounding errors
+          payout = bond.remainingRepayment;
+        }
+
+        if ((syndicate.warChest ?? 0) >= payout) {
+          // Amortize debt successfully
+          syndicate.warChest = (syndicate.warChest ?? 0) - payout;
+          updatedFactionReserves[bond.factionId] = (updatedFactionReserves[bond.factionId] ?? 10000) + payout;
+
+          const remainingRepayment = Math.max(0, bond.remainingRepayment - payout);
+          const remainingEpochs = Math.max(0, bond.remainingEpochs - 1);
+          const status = remainingEpochs === 0 ? "Matured" as const : "Active" as const;
+
+          updatedBonds[bondId] = {
+            ...bond,
+            remainingRepayment,
+            remainingEpochs,
+            status,
+          };
+          bondsChanged = true;
+
+          events.push({
+            type: "narration",
+            text: `🏛️ [Sovereign Debt Monetization] Syndicate ${bond.syndicateId} paid bond coupon of ${payout} gold to faction ${bond.factionId}. Remaining debt: ${remainingRepayment} gold.`,
+          } as any);
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Sovereign Debt Monetization] Syndicate ${bond.syndicateId} paid bond coupon of ${payout} gold to faction ${bond.factionId}.`
+          );
+        } else {
+          // Syndicate default!
+          updatedBonds[bondId] = {
+            ...bond,
+            status: "Defaulted" as const,
+          };
+          bondsChanged = true;
+
+          // Deduct reputation standing heavily (-20)
+          updatedFactionRep[bond.factionId] = Math.max(0, (updatedFactionRep[bond.factionId] ?? 0) - 20);
+
+          events.push({
+            type: "narration",
+            text: `⚠️ [Sovereign Debt Default] Syndicate ${bond.syndicateId} defaulted on bond coupon payment of ${payout} gold to faction ${bond.factionId}! Reputation standing heavily penalized.`,
+          } as any);
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Sovereign Debt Default] Syndicate ${bond.syndicateId} defaulted on coupon payment of ${payout} gold to faction ${bond.factionId}.`
+          );
+        }
+      }
+    }
+
+    if (bondsChanged) {
+      newState.factionReserveBonds = updatedBonds;
+      newState.syndicates = updatedSyndicates;
+      newState.factionReservePools = updatedFactionReserves;
+      newState.factionRep = updatedFactionRep;
+    }
+  }
+
   if (!state.productionLabs || Object.keys(state.productionLabs).length === 0) {
     if (heatChanged) {
       newState.enforcementHeat = updatedHeat;

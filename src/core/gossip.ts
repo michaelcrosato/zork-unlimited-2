@@ -2303,6 +2303,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge sovereignDebtProposals using LWW (Last-Write-Wins)
+  const sovereignDebtProposals = { ...stateA.sovereignDebtProposals };
+  if (stateB.sovereignDebtProposals) {
+    for (const [propId, propB] of Object.entries(stateB.sovereignDebtProposals)) {
+      const propA = sovereignDebtProposals[propId];
+      if (!propA || propB.timestamp > propA.timestamp) {
+        sovereignDebtProposals[propId] = { ...propB };
+      }
+    }
+  }
+
+  // Merge factionReserveBonds using LWW (Last-Write-Wins)
+  const factionReserveBonds = { ...stateA.factionReserveBonds };
+  if (stateB.factionReserveBonds) {
+    for (const [bondId, bondB] of Object.entries(stateB.factionReserveBonds)) {
+      const bondA = factionReserveBonds[bondId];
+      if (!bondA || bondB.timestamp > bondA.timestamp) {
+        factionReserveBonds[bondId] = { ...bondB };
+      }
+    }
+  }
+
   // Merge maliciousActors using boolean OR union
   const maliciousActors = { ...stateA.maliciousActors };
   if (stateB.maliciousActors) {
@@ -2525,6 +2547,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     factionCdoInsurancePoolProposals,
     multiFactionCdoRiskRatings,
     multiFactionCdoRiskRatingProposals,
+    sovereignDebtProposals,
+    factionReserveBonds,
     maliciousActors,
     slashingRates,
   };

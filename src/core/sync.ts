@@ -7,8 +7,8 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
+import { reconcileSovereignBonds } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -21298,6 +21298,261 @@ export function multiAgentStep(
 
         customEvents.push({
           type: "loyalty_rank_voted" as any,
+          syndicateId,
+          proposalId,
+          agentId,
+          vote,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_SOVEREIGN_BOND action (AF-123)
+  if ((action as any).type === "PROPOSE_SOVEREIGN_BOND") {
+    const { proposalId, syndicateId, factionId, faceValue, interestRate, termEpochs, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required to propose a sovereign bond.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!factionId) {
+      rejectionReason = `Faction ID is required.`;
+    } else if (faceValue === undefined || faceValue <= 0) {
+      rejectionReason = `Face value must be positive.`;
+    } else if (interestRate === undefined || interestRate < 0) {
+      rejectionReason = `Interest rate must be non-negative.`;
+    } else if (termEpochs === undefined || termEpochs <= 0) {
+      rejectionReason = `Term epochs must be positive.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot propose a sovereign bond.`;
+    } else {
+      // Validate faction reserves
+      const factionReserve = state.factionReservePools?.[factionId] ?? 10000;
+      if (factionReserve < faceValue) {
+        rejectionReason = `Faction reserve for ${factionId} is insufficient to purchase the bond (requires ${faceValue}, has ${factionReserve}).`;
+      } else {
+        // Validate faction reputation/standing
+        const standing = getSyndicateFactionStanding(state, syndicateId, factionId);
+        if (standing < 50) {
+          rejectionReason = `Syndicate standing with faction ${factionId} is too low to issue a bond (requires at least 50, has ${standing}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const proposals = { ...(state.sovereignDebtProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          syndicateId,
+          factionId,
+          faceValue,
+          interestRate,
+          termEpochs,
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.sovereignDebtProposals = proposals;
+        newState = reconcileSovereignBonds(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Sovereign Bond Proposed] Agent ${agentId} proposed sovereign bond issuance ${proposalId} with faction ${factionId} for ${faceValue} gold at ${interestRate}% for ${termEpochs} epochs.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Sovereign bond proposal created by ${agentId} for faction ${factionId} (face value: ${faceValue} gold, rate: ${interestRate}%, term: ${termEpochs} epochs).`,
+        } as any);
+
+        customEvents.push({
+          type: "sovereign_bond_proposed" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          factionId,
+          faceValue,
+          interestRate,
+          termEpochs,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_SOVEREIGN_BOND action (AF-123)
+  if ((action as any).type === "VOTE_SOVEREIGN_BOND") {
+    const { syndicateId, proposalId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.sovereignDebtProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `Sovereign bond proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on sovereign bond proposal.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.sovereignDebtProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.sovereignDebtProposals = proposalsCopy;
+        newState = reconcileSovereignBonds(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Sovereign Bond Voted] Agent ${agentId} voted ${vote ? "FOR" : "AGAINST"} sovereign bond proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Sovereign bond vote cast by ${agentId} for proposal ${proposalId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "sovereign_bond_voted" as any,
           syndicateId,
           proposalId,
           agentId,
