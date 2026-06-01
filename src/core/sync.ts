@@ -4666,6 +4666,134 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized ESTABLISH_OUTPOST action (AF-56)
+  if ((action as any).type === "ESTABLISH_OUTPOST") {
+    const { roomId, syndicateId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 100;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const roomExists = "rooms" in pack
+      ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
+      : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to establish an outpost.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to establish an outpost.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Outpost cost ${cost} must be a non-negative integer.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (state.syndicateTurf?.[roomId] !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} does not control the turf in room ${roomId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to establish outpost costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const turfGuardOutposts = { ...(state.turfGuardOutposts || {}) };
+      const existingOutpost = turfGuardOutposts[roomId];
+      const newLevel = existingOutpost ? existingOutpost.securityLevel + 1 : 1;
+
+      turfGuardOutposts[roomId] = {
+        roomId,
+        syndicateId,
+        securityLevel: newLevel,
+        timestamp,
+      };
+      newState.turfGuardOutposts = turfGuardOutposts;
+
+      if (!newState.journal) newState.journal = [];
+      if (existingOutpost) {
+        newState.journal.push(`[Syndicate] Upgraded turf guard defense outpost in room ${roomId} to security level ${newLevel} for ${cost} gold by agent ${agentId}.`);
+      } else {
+        newState.journal.push(`[Syndicate] Established turf guard defense outpost in room ${roomId} at security level 1 for ${cost} gold by agent ${agentId}.`);
+      }
+
+      customEvents.push({
+        type: "turf_outpost_established",
+        agentId,
+        roomId,
+        syndicateId,
+        securityLevel: newLevel,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Handle decentralized ADJUST_TURF_TAX action (AF-53)
   if ((action as any).type === "ADJUST_TURF_TAX") {
     const { syndicateId, rate, timestamp } = action as any;

@@ -1974,8 +1974,9 @@ export function tickProductionLabs(
           const { value: raidStrength, nextSeed: nextSeed2 } = PureRand.nextInt(currentSeed, 1, 50);
           currentSeed = nextSeed2;
 
+          const outpost = newState.turfGuardOutposts?.[roomId];
           const guards = newState.turfGuards?.[roomId]?.count ?? 0;
-          const defenseScore = (updatedLab.defense ?? 0) + updatedLab.level * 10 + (guards * 15);
+          const defenseScore = (updatedLab.defense ?? 0) + updatedLab.level * 10 + (guards * 15) + (outpost ? outpost.securityLevel * 25 : 0);
 
           // Increase enforcement heat in the room due to active raid
           const oldHeat = updatedHeat[roomId]?.heat ?? 0;
@@ -1990,9 +1991,11 @@ export function tickProductionLabs(
             // Raid successfully defended!
             events.push({
               type: "narration",
-              text: guards > 0
-                ? `[Syndicate] Syndicate defenders and ${guards} hired turf guards successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`
-                : `[Syndicate] Syndicate defenders successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`,
+              text: outpost
+                ? `[Syndicate] Syndicate defenders, ${guards} hired turf guards, and Defense Outpost successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`
+                : (guards > 0
+                  ? `[Syndicate] Syndicate defenders and ${guards} hired turf guards successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`
+                  : `[Syndicate] Syndicate defenders successfully repelled the enforcement raid at ${roomId} (Defense: ${defenseScore} vs Raid: ${raidStrength})!`),
             } as any);
           } else {
             // Raid succeeded! Confiscate all stored contraband and damage the facility (downgrade level)

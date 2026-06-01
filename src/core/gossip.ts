@@ -820,6 +820,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge turfGuardOutposts using LWW
+  const turfGuardOutposts = { ...stateA.turfGuardOutposts };
+  if (stateB.turfGuardOutposts) {
+    for (const [roomId, entryB] of Object.entries(stateB.turfGuardOutposts)) {
+      const entryA = turfGuardOutposts[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        turfGuardOutposts[roomId] = entryB;
+      }
+    }
+  }
+
   // Merge syndicateBribeVotes using LWW (Last-Write-Wins)
   const syndicateBribeVotes = { ...stateA.syndicateBribeVotes };
   if (stateB.syndicateBribeVotes) {
@@ -917,6 +928,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     frontBusinesses,
     turfGuards,
     turfCheckpoints,
+    turfGuardOutposts,
     syndicateBribeVotes,
     syndicateWaiverVotes,
     syndicateTaxVotes,

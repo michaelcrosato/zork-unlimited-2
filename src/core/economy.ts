@@ -440,6 +440,36 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     journal: [...state.journal],
   };
 
+  // Automatic Turf Guard Recruitment from Outposts (AF-56)
+  if (newState.turfGuardOutposts) {
+    const turfGuards = newState.turfGuards ? { ...newState.turfGuards } : {};
+    let guardsChanged = false;
+    for (const [roomId, outpost] of Object.entries(newState.turfGuardOutposts)) {
+      // Check if the syndicate still controls this turf
+      const controllingSyndicateId = newState.syndicateTurf?.[roomId];
+      if (controllingSyndicateId === outpost.syndicateId) {
+        const existingGuard = turfGuards[roomId];
+        const currentCount = existingGuard?.count ?? 0;
+        const targetCount = outpost.securityLevel; // Recruit up to securityLevel
+        if (currentCount < targetCount) {
+          const newCount = currentCount + 1; // Recruit 1 guard per tick/step
+          turfGuards[roomId] = {
+            roomId,
+            syndicateId: outpost.syndicateId,
+            count: newCount,
+            cost: existingGuard?.cost ?? 0, // Automated recruitment is free / passive
+            timestamp: newState.step,
+          };
+          guardsChanged = true;
+          newState.journal.push(`[Syndicate] Outpost in room ${roomId} automatically recruited local Turf Guard (Count: ${newCount}/${targetCount}).`);
+        }
+      }
+    }
+    if (guardsChanged) {
+      newState.turfGuards = turfGuards;
+    }
+  }
+
   if (!pack || !pack.npcs) {
     // Still run periodic tax ticking even if there are no npcs
     if (newState.step > 0 && newState.step % 5 === 0 && newState.territoryControl) {
@@ -625,12 +655,13 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         if (clean >= 150) {
           if (currentHeat >= 25) {
             // Trigger Enforcer Sweep!
+            const outpost = newState.turfGuardOutposts?.[front.roomId];
             const guards = newState.turfGuards?.[front.roomId]?.count ?? 0;
             let sweepDefended = false;
             let sweepStrength = 0;
-            let defenseScore = guards * 15;
+            let defenseScore = guards * 15 + (outpost ? outpost.securityLevel * 25 : 0);
 
-            if (guards > 0) {
+            if (guards > 0 || outpost) {
               const { value: rolledStrength, nextSeed } = PureRand.nextInt(newState.seed, 1, 50);
               newState.seed = nextSeed;
               sweepStrength = rolledStrength;
@@ -640,7 +671,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             }
 
             if (sweepDefended) {
-              newState.journal.push(`[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`);
+              if (outpost) {
+                newState.journal.push(`[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards and Defense Outpost (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`);
+              } else {
+                newState.journal.push(`[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully repelled by ${guards} hired turf guards (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength})!`);
+              }
               if (newState.enforcementHeat?.[front.roomId]) {
                 newState.enforcementHeat[front.roomId] = {
                   ...newState.enforcementHeat[front.roomId],
@@ -710,8 +745,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             const taxRate = controllingSyndicate.turfTaxRate ?? 0;
             if (taxRate > 0) {
               const guardsCount = newState.turfGuards?.[front.roomId]?.count ?? 0;
-              // Tax scales by local turf guard security presence: taxRate * (1 + guardsCount)
-              const taxAmount = taxRate * (1 + guardsCount);
+              const outpost = newState.turfGuardOutposts?.[front.roomId];
+              // Enhanced tax passive bonus: extra tax multiplier/bonus based on outpost securityLevel
+              const outpostBonus = outpost ? outpost.securityLevel * 2 : 0;
+              // Tax scales by local turf guard security presence: taxRate * (1 + guardsCount + outpostBonus)
+              const taxAmount = taxRate * (1 + guardsCount + outpostBonus);
               const actualPayout = Math.min(taxAmount, clean);
               if (actualPayout > 0) {
                 clean -= actualPayout;

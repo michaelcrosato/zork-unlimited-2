@@ -311,6 +311,15 @@ export const TurfCheckpointSchema = z.object({
 });
 export type TurfCheckpoint = z.infer<typeof TurfCheckpointSchema>;
 
+export const TurfGuardOutpostSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  securityLevel: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type TurfGuardOutpost = z.infer<typeof TurfGuardOutpostSchema>;
+
+
 export const CrimeSyndicateSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -468,6 +477,7 @@ export const GameStateSchema = z.object({
   turfCheckpoints: z.record(z.string(), TurfCheckpointSchema).optional(),
   syndicateBribeVotes: z.record(z.string(), z.record(z.string(), SyndicateBribeVoteSchema)).optional(),
   syndicateWaiverVotes: z.record(z.string(), z.record(z.string(), SyndicateWaiverVoteSchema)).optional(),
+  turfGuardOutposts: z.record(z.string(), TurfGuardOutpostSchema).optional(),
 });
 
 
@@ -573,6 +583,7 @@ export const createInitialState = (options: {
     turfCheckpoints: {},
     syndicateBribeVotes: {},
     syndicateWaiverVotes: {},
+    turfGuardOutposts: {},
   };
 };
 
@@ -1135,6 +1146,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     turfCheckpoints: rest.turfCheckpoints ? JSON.parse(JSON.stringify(rest.turfCheckpoints)) : undefined,
     syndicateBribeVotes: rest.syndicateBribeVotes ? JSON.parse(JSON.stringify(rest.syndicateBribeVotes)) : undefined,
     syndicateWaiverVotes: rest.syndicateWaiverVotes ? JSON.parse(JSON.stringify(rest.syndicateWaiverVotes)) : undefined,
+    turfGuardOutposts: rest.turfGuardOutposts ? JSON.parse(JSON.stringify(rest.turfGuardOutposts)) : undefined,
   };
   return clone;
 }
