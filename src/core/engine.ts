@@ -1,4 +1,4 @@
-import { GameState, findRoom, getRoomExits } from "./state.js";
+import { GameState, findRoom, getRoomExits, cloneMerchantInventories } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { GameEvent } from "./events.js";
 import { evaluateConditions } from "./conditions.js";
@@ -40,7 +40,7 @@ export function step(
     visited: { ...state.visited },
     questStage: { ...state.questStage },
     cooperativeSyncLog: state.cooperativeSyncLog ? [...state.cooperativeSyncLog] : [],
-    merchantInventories: state.merchantInventories ? JSON.parse(JSON.stringify(state.merchantInventories)) : undefined,
+    merchantInventories: cloneMerchantInventories(state.merchantInventories),
     tradeHistory: state.tradeHistory ? [...state.tradeHistory] : undefined,
     merchantGold: state.merchantGold ? { ...state.merchantGold } : undefined,
     merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : undefined,

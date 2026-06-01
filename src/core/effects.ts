@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { GameState } from "./state.js";
+import { GameState, cloneMerchantInventories } from "./state.js";
 import { GameEvent } from "./events.js";
 import { PureRand } from "./rng.js";
 import { calculateTradePrice, checkReputationTrade, getMerchantGold, getContrabandInInventory } from "./economy.js";
@@ -140,7 +140,7 @@ export function applyEffect(
     objectState: { ...state.objectState },
     journal: [...state.journal],
     visited: { ...state.visited },
-    merchantInventories: state.merchantInventories ? JSON.parse(JSON.stringify(state.merchantInventories)) : undefined,
+    merchantInventories: cloneMerchantInventories(state.merchantInventories),
     tradeHistory: state.tradeHistory ? [...state.tradeHistory] : undefined,
     merchantGold: state.merchantGold ? { ...state.merchantGold } : undefined,
     merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : undefined,

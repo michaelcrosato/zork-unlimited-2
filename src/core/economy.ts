@@ -1,4 +1,4 @@
-import { GameState } from "./state.js";
+import { GameState, cloneMerchantInventories } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -418,7 +418,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     seed: state.seed,
     merchantGold: state.merchantGold ? { ...state.merchantGold } : {},
     merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : {},
-    merchantInventories: state.merchantInventories ? JSON.parse(JSON.stringify(state.merchantInventories)) : {},
+    merchantInventories: cloneMerchantInventories(state.merchantInventories) ?? {},
     merchantLastUpdated: state.merchantLastUpdated ? { ...state.merchantLastUpdated } : {},
     objectState: { ...state.objectState },
     vars: { ...state.vars },
