@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #224 (Ready for Cycle #225)
-* **Build/Test Status**: 🟢 PASS (All 779 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #225 (Ready for Cycle #226)
+* **Build/Test Status**: 🟢 PASS (All 782 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1447,15 +1447,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 205: Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty Waiver Proposals (Completed)
+- [x] Define grace period and penalty waiver proposal schemas inside `GameStateSchema` or similar (`AF-227`).
+- [x] Implement `PROPOSE_DEFAULT_GRACE_PERIOD` and `PROPOSE_DEFAULT_PENALTY_WAIVER` decentralized consensus actions (`AF-227`).
+- [x] Wire the economy tick to defer enforcer reputation penalties and pricing penalty markups/markdowns when active grace periods or authorized waivers are in effect (`AF-227`).
+- [x] Write comprehensive Vitest integration tests asserting grace periods, waivers, and pricing overrides upon convergence (`AF-227`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-227`
-* **Objective**: Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty Waiver Proposals.
-* **Why this matters**: Support proposing grace period extensions and default penalty waivers for default alerts, allowing target syndicates to temporarily bypass reputation and pricing penalties, propagating waiver states and grace periods dynamically across all mesh nodes.
+**Task ID**: `AF-228`
+* **Objective**: Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Dynamic Risk Hedging Policies.
+* **Why this matters**: Support buying and selling Credit Default Swaps (CDS) for default alerts across the mesh, allowing non-defaulted syndicates to insure their lending exposure, dynamically adjusting CDS premium costs based on active default risk indicators (Outstanding deflection fees, enforcer heat, and active grace periods) and executing automated payout settlements upon authorized default alerts.
 * **Planned Actions**:
-  1. Define grace period and penalty waiver proposal schemas inside `GameStateSchema` or similar.
-  2. Implement `PROPOSE_DEFAULT_GRACE_PERIOD` and `PROPOSE_DEFAULT_PENALTY_WAIVER` decentralized consensus actions.
-  3. Wire the economy tick to defer enforcer reputation penalties and pricing penalty markups/markdowns when active grace periods or authorized waivers are in effect.
-  4. Write comprehensive Vitest integration tests asserting grace periods, waivers, and pricing overrides upon convergence.
+  1. Define Credit Default Swap (CDS) contract and portfolio schemas inside `GameStateSchema` or similar.
+  2. Implement `PURCHASE_CDS_CONTRACT` and `SETTLE_CDS_CLAIMS` decentralized consensus actions.
+  3. Wire the economy tick to calculate dynamic CDS premium prices and accrue payments, automatically triggering payout settlements to CDS holders when target syndicates enter default status.
+  4. Write comprehensive Vitest integration tests asserting contract purchases, dynamic premium pricing, auto-payouts on default, and Gossip mesh convergence.
 
 ---
 
