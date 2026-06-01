@@ -2248,6 +2248,8 @@ export const SWFReinsuranceOptionMarginPolicySchema = z.object({
   gracePeriodExtension: z.number().int().nonnegative().optional(),
   liquidityDepletionThreshold: z.number().nonnegative().optional(),
   floorScalingFactor: z.number().nonnegative().optional(),
+  accumulatedFeeReinvestmentPool: z.number().int().nonnegative().optional(),
+  autoReinvestThreshold: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginPolicy = z.infer<typeof SWFReinsuranceOptionMarginPolicySchema>;
 
@@ -2507,6 +2509,7 @@ export const SWFReinsuranceOptionMarginVoteSchema = z.object({
   marginCallGracePeriod: z.number().int().nonnegative().optional(),
   gracePeriodVolatilityThreshold: z.number().nonnegative().optional(),
   gracePeriodExtension: z.number().int().nonnegative().optional(),
+  autoReinvestThreshold: z.number().int().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginVote = z.infer<typeof SWFReinsuranceOptionMarginVoteSchema>;
 
@@ -2535,6 +2538,25 @@ export const SWFReinsuranceOptionVolatilityInsuranceVoteSchema = z.object({
   timestamp: z.number().int(),
 });
 export type SWFReinsuranceOptionVolatilityInsuranceVote = z.infer<typeof SWFReinsuranceOptionVolatilityInsuranceVoteSchema>;
+
+export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  autoReinvestThreshold: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposal = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposalSchema>;
+
+export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVoteSchema>;
 
 export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
   id: z.string(),
@@ -3429,6 +3451,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposalSchema).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVoteSchema)).optional(),
+  swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposalSchema).optional(),
+  swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee: z.number().int().nonnegative().optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee: z.number().int().nonnegative().optional(),
 
@@ -3810,6 +3834,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes: {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals: {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee: 500,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee: 100,
 
@@ -4897,6 +4923,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes)) : undefined,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals)) : undefined,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee,
 
@@ -13108,13 +13136,14 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
       marginCallGracePeriod?: number;
       gracePeriodVolatilityThreshold?: number;
       gracePeriodExtension?: number;
+      autoReinvestThreshold?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
       if (syndicate.members.includes(voterId)) {
-        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}::${vote.compoundingFactor ?? 0}::${vote.compoundingYieldRate ?? 0}::${vote.stressReserveScalingLimit ?? 0}::${vote.stressReserveBufferMultiplier ?? 0}::${vote.stressStabilizationTarget ?? 0}::${vote.prunedRoutesRiskThreshold ?? 0}::${vote.protectivePoolAllocation ?? 0}::${vote.marginCallGracePeriod ?? 0}::${vote.gracePeriodVolatilityThreshold ?? 0}::${vote.gracePeriodExtension ?? 0}`;
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}::${vote.compoundingFactor ?? 0}::${vote.compoundingYieldRate ?? 0}::${vote.stressReserveScalingLimit ?? 0}::${vote.stressReserveBufferMultiplier ?? 0}::${vote.stressStabilizationTarget ?? 0}::${vote.prunedRoutesRiskThreshold ?? 0}::${vote.protectivePoolAllocation ?? 0}::${vote.marginCallGracePeriod ?? 0}::${vote.gracePeriodVolatilityThreshold ?? 0}::${vote.gracePeriodExtension ?? 0}::${vote.autoReinvestThreshold ?? 0}`;
         if (!voteGroups[key]) {
           voteGroups[key] = {
             swfYieldCdoId: vote.swfYieldCdoId,
@@ -13133,6 +13162,7 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
             marginCallGracePeriod: vote.marginCallGracePeriod,
             gracePeriodVolatilityThreshold: vote.gracePeriodVolatilityThreshold,
             gracePeriodExtension: vote.gracePeriodExtension,
+            autoReinvestThreshold: vote.autoReinvestThreshold,
             voters: new Set<string>(),
             timestamps: [],
           };
@@ -13145,6 +13175,7 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
     for (const group of Object.values(voteGroups)) {
       if (group.voters.size > totalMembers / 2) {
         const policyKey = `${group.swfYieldCdoId}_${group.trancheId}`;
+        const oldPolicy = newState.swfReinsuranceOptionMarginPolicies![policyKey];
         newState.swfReinsuranceOptionMarginPolicies![policyKey] = {
           swfYieldCdoId: group.swfYieldCdoId,
           trancheId: group.trancheId,
@@ -13162,6 +13193,8 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
           marginCallGracePeriod: group.marginCallGracePeriod,
           gracePeriodVolatilityThreshold: group.gracePeriodVolatilityThreshold,
           gracePeriodExtension: group.gracePeriodExtension,
+          autoReinvestThreshold: group.autoReinvestThreshold,
+          accumulatedFeeReinvestmentPool: oldPolicy?.accumulatedFeeReinvestmentPool,
           timestamp: Math.max(...group.timestamps, newState.step),
         };
 
@@ -15046,6 +15079,78 @@ export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensi
   if (latestAuthorizedProposal) {
     newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee = latestAuthorizedProposal.newProposalFee;
     newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee = latestAuthorizedProposal.newVoteFee;
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals } : {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes } : {},
+    swfReinsuranceOptionMarginPolicies: state.swfReinsuranceOptionMarginPolicies ? { ...state.swfReinsuranceOptionMarginPolicies } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+    if (authorizeVoters.size > totalMembers / 2) {
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+
+    const updatedProposal = {
+      ...proposal,
+      status,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
+
+    newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[proposalId] = updatedProposal;
+
+    if (status === "authorized") {
+      const policyKey = `${proposal.swfYieldCdoId}_${proposal.trancheId}`;
+      if (newState.swfReinsuranceOptionMarginPolicies[policyKey]) {
+        newState.swfReinsuranceOptionMarginPolicies[policyKey] = {
+          ...newState.swfReinsuranceOptionMarginPolicies[policyKey],
+          autoReinvestThreshold: proposal.autoReinvestThreshold,
+        };
+      } else {
+        newState.swfReinsuranceOptionMarginPolicies[policyKey] = {
+          swfYieldCdoId: proposal.swfYieldCdoId,
+          trancheId: proposal.trancheId,
+          liquidationThreshold: 0.1,
+          penaltyRate: 0.05,
+          timestamp: newState.step,
+          autoReinvestThreshold: proposal.autoReinvestThreshold,
+        };
+      }
+    }
   }
 
   return newState;

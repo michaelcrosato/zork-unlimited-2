@@ -8450,6 +8450,81 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
     }
   }
 
+  // SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment on epoch boundaries (AF-201)
+  if (newState.step % 5 === 0 && newState.swfReinsuranceOptionMarginPolicies) {
+    newState.swfReinsuranceOptionMarginPolicies = { ...newState.swfReinsuranceOptionMarginPolicies };
+    for (const [policyKey, policy] of Object.entries(newState.swfReinsuranceOptionMarginPolicies)) {
+      const reinvestedAmount = policy.accumulatedFeeReinvestmentPool ?? 0;
+      const threshold = policy.autoReinvestThreshold ?? 0;
+      if (reinvestedAmount > 0 && threshold > 0 && reinvestedAmount >= threshold) {
+        // Find corresponding CDO and tranche
+        const cdo = newState.swfYieldCDOs?.[policy.swfYieldCdoId];
+        if (cdo && cdo.tranches) {
+          newState.swfYieldCDOs = { ...newState.swfYieldCDOs };
+          const tranche = cdo.tranches[policy.trancheId];
+          if (tranche) {
+            const updatedTranche = {
+              ...tranche,
+              ownership: { ...tranche.ownership },
+            };
+            const oldTotalShares = tranche.totalShares;
+            if (oldTotalShares > 0) {
+              let distributed = 0;
+              const entries = Object.entries(updatedTranche.ownership).filter(([_, sh]) => sh > 0);
+              for (let i = 0; i < entries.length; i++) {
+                const [sId, ownedShares] = entries[i];
+                let addedShares = Math.floor(reinvestedAmount * (ownedShares / oldTotalShares));
+                if (i === entries.length - 1) {
+                  addedShares = reinvestedAmount - distributed;
+                }
+                updatedTranche.ownership[sId] = ownedShares + addedShares;
+                distributed += addedShares;
+              }
+            } else {
+              const activeSyndicates = Object.keys(newState.syndicates || {});
+              if (activeSyndicates.length > 0) {
+                let distributed = 0;
+                for (let i = 0; i < activeSyndicates.length; i++) {
+                  const sId = activeSyndicates[i];
+                  let addedShares = Math.floor(reinvestedAmount / activeSyndicates.length);
+                  if (i === activeSyndicates.length - 1) {
+                    addedShares = reinvestedAmount - distributed;
+                  }
+                  updatedTranche.ownership[sId] = (updatedTranche.ownership[sId] ?? 0) + addedShares;
+                  distributed += addedShares;
+                }
+              }
+            }
+            updatedTranche.totalShares = oldTotalShares + reinvestedAmount;
+            updatedTranche.timestamp = newState.step;
+
+            const updatedCdo = {
+              ...cdo,
+              tranches: {
+                ...cdo.tranches,
+                [policy.trancheId]: updatedTranche,
+              },
+              timestamp: newState.step,
+            };
+            newState.swfYieldCDOs[policy.swfYieldCdoId] = updatedCdo;
+
+            // Reset accumulated pool in the policy
+            newState.swfReinsuranceOptionMarginPolicies[policyKey] = {
+              ...policy,
+              accumulatedFeeReinvestmentPool: 0,
+              timestamp: newState.step,
+            };
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Option Margin Fee Reinvestment] Reinvested ${reinvestedAmount} accumulated gold fees back into SWF Yield CDO ${policy.swfYieldCdoId} tranche ${policy.trancheId} yield pool on epoch boundary (increased total shares by ${reinvestedAmount}).`
+            );
+          }
+        }
+      }
+    }
+  }
+
   return newState;
 }
 
