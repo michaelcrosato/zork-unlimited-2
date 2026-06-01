@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #228 (Ready for Cycle #229)
-* **Build/Test Status**: 🟢 PASS (All 791 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #229 (Ready for Cycle #230)
+* **Build/Test Status**: 🟢 PASS (All 792 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1479,15 +1479,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 209: Syndicate SWF Sovereign Debt Default Credit Default Swap (CDS) CDO Tranche Secondary Trading & Bid-Ask Auction Markets (Completed)
+- [x] Define CDS CDO tranche secondary listing and bidding schemas in `GameStateSchema` (`AF-231`).
+- [x] Implement `LIST_CDS_CDO_TRANCHE_FOR_SALE` and `BID_ON_CDS_CDO_TRANCHE` decentralized actions (`AF-231`).
+- [x] Wire economy tick logic to calculate dynamic market bid-ask spreads for active CDS CDO tranches and execute automatic bid matching (`AF-231`).
+- [x] Write comprehensive Vitest integration tests inside `tests/syndicates_sovereign_debt_default_cds_cdo.test.ts` validating secondary trading, bidding, transaction executions, arbitrage bot placement, and Gossip convergence (`AF-231`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-231`
-* **Objective**: Syndicate SWF Sovereign Debt Default Credit Default Swap (CDS) CDO Tranche Secondary Trading & Bid-Ask Auction Markets.
-* **Why this matters**: Introduce the capability for syndicates to list their owned CDS CDO tranche shares for sale in a secondary auction market, allowing other syndicates to place bids and execute trades of fractional CDO tranche ownership stakes, syncing transactions across the Gossip mesh with LWW consensus arbitration.
+**Task ID**: `AF-232`
+* **Objective**: Syndicate SWF Sovereign Debt Default Credit Default Swap (CDS) CDO Tranche Dynamic Margin Maintenance & Autocallable Yield Triggers.
+* **Why this matters**: Introduce structured dynamic margin requirements and autocallable yield thresholds for purchased CDO tranche shares across the Gossip mesh. When underlying CDS portfolios experience defaults, senior tranches trigger automated capital drawdowns from syndicates to maintain collateral levels, while equity tranches trigger autocallable yield payments if defaults remain below target limits.
 * **Planned Actions**:
-  1. Define CDS CDO tranche secondary listing and bidding schemas in `GameStateSchema`.
-  2. Implement `LIST_CDS_CDO_TRANCHE_FOR_SALE` and `BID_ON_CDS_CDO_TRANCHE` decentralized actions.
-  3. Wire economy tick logic to calculate dynamic market bid-ask spreads for active CDS CDO tranches and execute automatic bid matching.
-  4. Write integration tests validating secondary trading, bidding, transaction executions, and Gossip convergence.
+  1. Define CDS CDO tranche margin maintenance and autocallable yield trigger properties in GameState schemas.
+  2. Implement `ADJUST_CDS_CDO_TRANCHE_MARGIN` and `TRIGGER_CDO_AUTOCALL` decentralized consensus actions.
+  3. Wire the economy tick to calculate real-time margin requirements under default stress, initiating margin calls or executing automated liquidations and autocall payouts.
+  4. Write comprehensive Vitest integration tests asserting margin calls, liquidation enforcement, autocall payments, and Gossip convergence.
 
 ---
 
