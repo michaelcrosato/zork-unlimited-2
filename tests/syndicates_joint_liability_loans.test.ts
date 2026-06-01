@@ -1476,5 +1476,203 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     expect(merged.jointLoanGracePeriodVotes?.jgroup1?.player.timestamp).toBe(1050);
     expect(merged.jointLoanGracePeriodVotes?.jgroup1?.player.extensionSteps).toBe(5);
   });
+
+  it("should propose, vote, and establish joint loan penalty waivers during grace periods, and verify waived penalties on default (AF-98)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {
+        gold: 0,
+        gold_alice: 0,
+      },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"], // Group members: player, alice. Bank members: player, alice, bob
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "clearing",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 1,
+      },
+    };
+
+    state.jointLoans = {
+      jgroup1: {
+        id: "jgroup1",
+        syndicateId: "blood_fangs",
+        members: ["player", "alice"],
+        collaterals: [
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+        ],
+        amount: 300,
+        interestAccrued: 50,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000,
+        gracePeriodSteps: 5,
+      },
+    };
+
+    // Step is 5 (before dueStep 10, so not in grace period yet)
+    state.step = 5;
+
+    // Proposing outside grace period should be rejected!
+    const actionFail = {
+      type: "PROPOSE_JOINT_LOAN_PENALTY_WAIVER",
+      groupId: "jgroup1",
+      reducedInterestRate: 2,
+      waivePenalty: true,
+      timestamp: 1010,
+    };
+    let resFail = multiAgentStep(state, { agentId: "player", action: actionFail as any }, mockPack);
+    expect(resFail.ok).toBe(false);
+    expect(resFail.rejectionReason).toContain("only be proposed during the grace period");
+
+    // Advance step to 12 (past dueStep 10, but within grace period of 5 steps, so expires after step 15)
+    state.step = 12;
+
+    // 1. Group member 'player' proposes penalty waiver
+    const action1 = {
+      type: "PROPOSE_JOINT_LOAN_PENALTY_WAIVER",
+      groupId: "jgroup1",
+      reducedInterestRate: 2,
+      waivePenalty: true,
+      timestamp: 1020,
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
+    expect(res1.ok).toBe(true);
+    expect(res1.state.jointLoans?.jgroup1?.reducedInterestRate).toBeUndefined();
+    expect(res1.state.jointLoans?.jgroup1?.waivePenalty).toBeUndefined();
+    expect(res1.state.jointLoanPenaltyWaiverVotes?.jgroup1?.player).toBeDefined();
+
+    // 2. Bank member 'bob' votes
+    const action2 = {
+      type: "PROPOSE_JOINT_LOAN_PENALTY_WAIVER",
+      groupId: "jgroup1",
+      reducedInterestRate: 2,
+      waivePenalty: true,
+      timestamp: 1025,
+    };
+
+    let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
+    expect(res2.ok).toBe(true);
+    expect(res2.state.jointLoans?.jgroup1?.reducedInterestRate).toBeUndefined();
+
+    // 3. Alice votes (group member)
+    const action3 = {
+      type: "PROPOSE_JOINT_LOAN_PENALTY_WAIVER",
+      groupId: "jgroup1",
+      reducedInterestRate: 2,
+      waivePenalty: true,
+      timestamp: 1030,
+    };
+
+    let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
+    expect(res3.ok).toBe(true);
+
+    // Consensus reached!
+    expect(res3.state.jointLoans?.jgroup1?.reducedInterestRate).toBe(2);
+    expect(res3.state.jointLoans?.jgroup1?.waivePenalty).toBe(true);
+    expect(res3.state.jointLoanPenaltyWaiverVotes?.jgroup1).toBeUndefined();
+
+    // Verify reduced interest rate accrual
+    // Base amount: 300. Reduced interest rate: 2%.
+    // Accrued interest per tick should be: Math.floor(300 * 2 / 100) = 6 gold (rather than 300 * 10 / 100 = 30 gold)
+    let tickedState = res3.state;
+    tickedState.step = 13;
+    tickedState = tickEconomy(tickedState, mockPack);
+    expect(tickedState.jointLoans?.jgroup1?.interestAccrued).toBe(56); // 50 + 6 = 56
+
+    // Verify default enforcer sweep behavior with waived penalty
+    // Advance step past grace period (dueStep 10 + gracePeriodSteps 5 = 15) to step 16 to trigger default
+    tickedState.step = 16;
+    
+    // Set initial credit ratings to 100
+    tickedState.creditRatings = {
+      player: 100,
+      alice: 100,
+    };
+
+    tickedState = tickEconomy(tickedState, mockPack);
+
+    // Loan should be deleted and collateral liquidated as normal
+    expect(tickedState.jointLoans?.jgroup1).toBeUndefined();
+    expect(tickedState.safehouses?.clearing).toBeUndefined();
+
+    // Credit rating should NOT decrease (remain 100)!
+    expect(tickedState.creditRatings?.player).toBe(100);
+    expect(tickedState.creditRatings?.alice).toBe(100);
+
+    // Default alert should NOT be created!
+    expect(tickedState.defaultAlerts?.player_blood_fangs).toBeUndefined();
+    expect(tickedState.defaultAlerts?.alice_blood_fangs).toBeUndefined();
+  });
+
+  it("should merge jointLoanPenaltyWaiverVotes and reconcile terms across Gossip synchronization (AF-98)", () => {
+    let stateA = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateA.jointLoanPenaltyWaiverVotes = {
+      jgroup1: {
+        player: {
+          reducedInterestRate: 2,
+          waivePenalty: true,
+          timestamp: 1050,
+        },
+      },
+    };
+
+    let stateB = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateB.jointLoanPenaltyWaiverVotes = {
+      jgroup1: {
+        player: {
+          reducedInterestRate: 5,
+          waivePenalty: false,
+          timestamp: 1020, // older
+        },
+      },
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.jointLoanPenaltyWaiverVotes?.jgroup1?.player.timestamp).toBe(1050);
+    expect(merged.jointLoanPenaltyWaiverVotes?.jgroup1?.player.reducedInterestRate).toBe(2);
+    expect(merged.jointLoanPenaltyWaiverVotes?.jgroup1?.player.waivePenalty).toBe(true);
+  });
 });
 

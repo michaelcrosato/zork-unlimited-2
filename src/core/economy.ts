@@ -2120,7 +2120,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     for (const [groupId, jointLoan] of Object.entries(jointLoans)) {
       const bank = newState.syndicateBanks?.[jointLoan.syndicateId];
       // 1. Accrue loan interest
-      const baseRate = jointLoan.refinancedInterestRate !== undefined ? jointLoan.refinancedInterestRate : (bank?.interestRate ?? 5);
+      const baseRate = jointLoan.reducedInterestRate !== undefined ? jointLoan.reducedInterestRate : (jointLoan.refinancedInterestRate !== undefined ? jointLoan.refinancedInterestRate : (bank?.interestRate ?? 5));
       const loanRate = Math.max(0, baseRate);
       const interest = Math.floor((jointLoan.amount * loanRate) / 100);
 
@@ -2198,23 +2198,30 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           }
           totalCollected += collected;
 
-          // Decrease credit rating
-          if (!newState.creditRatings) newState.creditRatings = {};
-          const currentRating = newState.creditRatings[agentId] ?? 100;
-          newState.creditRatings[agentId] = Math.max(0, currentRating - 50);
+          // Decrease credit rating & Add default alert
+          if (!updatedJointLoan.waivePenalty) {
+            // Decrease credit rating
+            if (!newState.creditRatings) newState.creditRatings = {};
+            const currentRating = newState.creditRatings[agentId] ?? 100;
+            newState.creditRatings[agentId] = Math.max(0, currentRating - 50);
 
-          // Add default alert
-          if (!newState.defaultAlerts) newState.defaultAlerts = {};
-          const alertKey = `${agentId}_${updatedJointLoan.syndicateId}`;
-          newState.defaultAlerts[alertKey] = {
-            agentId,
-            syndicateId: updatedJointLoan.syndicateId,
-            defaultStep: newState.step,
-            timestamp: newState.step,
-          };
+            // Add default alert
+            if (!newState.defaultAlerts) newState.defaultAlerts = {};
+            const alertKey = `${agentId}_${updatedJointLoan.syndicateId}`;
+            newState.defaultAlerts[alertKey] = {
+              agentId,
+              syndicateId: updatedJointLoan.syndicateId,
+              defaultStep: newState.step,
+              timestamp: newState.step,
+            };
 
-          newState.journal.push(`[Credit Score] Agent ${agentId} credit rating decreased by -50 due to joint loan default (New Score: ${newState.creditRatings[agentId]}).`);
-          newState.journal.push(`[Gossip Mesh Alert] Broadcasted debt default alert for agent ${agentId} (Defaulted in joint loan ${groupId} at bank ${updatedJointLoan.syndicateId}). Blacklisted mesh-wide.`);
+            newState.journal.push(`[Credit Score] Agent ${agentId} credit rating decreased by -50 due to joint loan default (New Score: ${newState.creditRatings[agentId]}).`);
+            newState.journal.push(`[Gossip Mesh Alert] Broadcasted debt default alert for agent ${agentId} (Defaulted in joint loan ${groupId} at bank ${updatedJointLoan.syndicateId}). Blacklisted mesh-wide.`);
+          } else {
+            newState.journal.push(`[Credit Score] Enforcer credit score penalty waived for agent ${agentId} on default of joint loan ${groupId}.`);
+            newState.journal.push(`[Gossip Mesh Alert] Debt default alert blacklisting waived for agent ${agentId} on default of joint loan ${groupId}.`);
+          }
+
           newState.journal.push(`[Debt Recovery] Joint Loan default: Enforcers swept agent ${agentId}'s gold, collecting ${collected} gold (Remaining due: ${remainingDue}).`);
         }
 

@@ -1050,6 +1050,7 @@ export const GameStateSchema = z.object({
   jointLoanDebtSettlementVotes: z.record(z.string(), z.record(z.string(), JointLoanDebtSettlementVoteSchema)).optional(),
   jointLoanCollateralSwapVotes: z.record(z.string(), z.record(z.string(), JointLoanCollateralSwapVoteSchema)).optional(),
   jointLoanGracePeriodVotes: z.record(z.string(), z.record(z.string(), JointLoanGracePeriodVoteSchema)).optional(),
+  jointLoanPenaltyWaiverVotes: z.record(z.string(), z.record(z.string(), JointLoanPenaltyWaiverVoteSchema)).optional(),
 });
 
 
@@ -1919,6 +1920,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     jointLoanDebtSettlementVotes: rest.jointLoanDebtSettlementVotes ? JSON.parse(JSON.stringify(rest.jointLoanDebtSettlementVotes)) : undefined,
     jointLoanCollateralSwapVotes: rest.jointLoanCollateralSwapVotes ? JSON.parse(JSON.stringify(rest.jointLoanCollateralSwapVotes)) : undefined,
     jointLoanGracePeriodVotes: rest.jointLoanGracePeriodVotes ? JSON.parse(JSON.stringify(rest.jointLoanGracePeriodVotes)) : undefined,
+    jointLoanPenaltyWaiverVotes: rest.jointLoanPenaltyWaiverVotes ? JSON.parse(JSON.stringify(rest.jointLoanPenaltyWaiverVotes)) : undefined,
     creditRecoveries: rest.creditRecoveries ? JSON.parse(JSON.stringify(rest.creditRecoveries)) : undefined,
   };
   return clone;
@@ -3343,6 +3345,110 @@ export function reconcileJointLoanGracePeriods(state: GameState, pack: any): Gam
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Syndicate Bank] Joint loan grace period for group ${groupId} approved! Grace period of ${fullyApprovedCombination.extensionSteps} steps established.`
+      );
+    }
+  }
+
+  if (loansChanged) {
+    newState.jointLoans = updatedJointLoans;
+  }
+
+  return newState;
+}
+
+export function reconcileJointLoanPenaltyWaivers(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    jointLoans: state.jointLoans ? { ...state.jointLoans } : {},
+  };
+
+  if (!newState.jointLoanPenaltyWaiverVotes) {
+    newState.jointLoanPenaltyWaiverVotes = {};
+    return newState;
+  }
+
+  const updatedJointLoans = { ...newState.jointLoans };
+  let loansChanged = false;
+
+  for (const [groupId, votes] of Object.entries(newState.jointLoanPenaltyWaiverVotes)) {
+    const jointLoan = updatedJointLoans[groupId];
+    if (!jointLoan) continue;
+
+    const syndicate = newState.syndicates[jointLoan.syndicateId];
+    if (!syndicate) continue;
+
+    // Count votes for each unique combination of reducedInterestRate and waivePenalty
+    const combinationCounts: Record<string, { 
+      reducedInterestRate: number;
+      waivePenalty: boolean;
+      groupVotes: Set<string>; 
+      bankVotes: Set<string>; 
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      const key = `${vote.reducedInterestRate}_${vote.waivePenalty}`;
+
+      if (!combinationCounts[key]) {
+        combinationCounts[key] = {
+          reducedInterestRate: vote.reducedInterestRate,
+          waivePenalty: vote.waivePenalty,
+          groupVotes: new Set<string>(),
+          bankVotes: new Set<string>(),
+        };
+      }
+
+      // If voter is in group, count as group vote
+      if (jointLoan.members.includes(voterId)) {
+        combinationCounts[key].groupVotes.add(voterId);
+      }
+
+      // If voter is in syndicate, count as bank vote
+      if (syndicate.members.includes(voterId)) {
+        combinationCounts[key].bankVotes.add(voterId);
+      }
+    }
+
+    // Check if any combination has a majority of group members AND syndicate bank members
+    const groupMajorityThreshold = jointLoan.members.length / 2;
+    const bankMajorityThreshold = syndicate.members.length / 2;
+
+    let fullyApprovedCombination: {
+      reducedInterestRate: number;
+      waivePenalty: boolean;
+      maxTimestamp: number;
+    } | undefined;
+
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.groupVotes.size > groupMajorityThreshold && combo.bankVotes.size > bankMajorityThreshold) {
+        const votersForCombo = [...combo.groupVotes, ...combo.bankVotes];
+        const timestamps = votersForCombo.map(vid => votes[vid]?.timestamp ?? 0);
+        const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : state.step;
+
+        fullyApprovedCombination = {
+          reducedInterestRate: combo.reducedInterestRate,
+          waivePenalty: combo.waivePenalty,
+          maxTimestamp,
+        };
+        break; // Strict majority consensus implies at most one combo can satisfy both
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      updatedJointLoans[groupId] = {
+        ...jointLoan,
+        reducedInterestRate: fullyApprovedCombination.reducedInterestRate,
+        waivePenalty: fullyApprovedCombination.waivePenalty,
+        timestamp: fullyApprovedCombination.maxTimestamp,
+      };
+      loansChanged = true;
+
+      // Clear the votes so they don't apply again
+      delete newState.jointLoanPenaltyWaiverVotes[groupId];
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate Bank] Joint loan penalty waiver for group ${groupId} approved! Reduced interest rate: ${fullyApprovedCombination.reducedInterestRate}%, enforcer penalty waiving set to ${fullyApprovedCombination.waivePenalty}.`
       );
     }
   }
