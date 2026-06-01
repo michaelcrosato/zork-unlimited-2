@@ -3,6 +3,7 @@ import { createInitialState, getSyndicateLoanLimit, isCollateralLocked } from ".
 import { multiAgentStep } from "../src/core/sync.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { tickEconomy } from "../src/core/economy.js";
+import { mergeMonotonicStateFields } from "../src/core/gossip.js";
 
 describe("Smuggler Syndicate Cartel Bank Loans, Collateral-Gated Borrowing, & Enforcer Debt-Recovery Ticks (AF-87)", () => {
   const mockPack: ParserPack = ParserPackSchema.parse({
@@ -476,5 +477,357 @@ describe("Smuggler Syndicate Cartel Bank Loans, Collateral-Gated Borrowing, & En
     expect(manualLiq.state.turfGuardOutposts?.["clearing"]).toBeUndefined(); // Outpost liquidated
     expect(manualLiq.state.enforcementHeat?.["clearing"]?.heat).toBe(18); // Heat 5 decayed to 3, then +15 = 18
     expect(manualLiq.state.syndicateBanks?.["blood_fangs"]?.loans?.["player"]).toBeUndefined(); // Loan removed
+  });
+
+  it("should purchase deposit insurance and reduce sweep loss rates under failed money laundering audits (AF-88)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 500 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {
+          player: 200,
+          alice: 200,
+        },
+        timestamp: 1000,
+      },
+    };
+
+    // 1. Purchase deposit insurance for player (Alice is uninsured)
+    const insRes = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PURCHASE_DEPOSIT_INSURANCE",
+          syndicateId: "blood_fangs",
+          premiumPaid: 50,
+          timestamp: 1005,
+        },
+      },
+      mockPack
+    );
+
+    expect(insRes.ok).toBe(true);
+    expect(insRes.state.vars["gold"]).toBe(450); // 500 - 50 premium
+    expect(insRes.state.depositInsurance?.["player"]?.["blood_fangs"]?.active).toBe(true);
+    expect(insRes.state.depositInsurance?.["player"]?.["blood_fangs"]?.premiumPaid).toBe(50);
+    expect(insRes.state.depositInsurance?.["alice"]?.["blood_fangs"]).toBeUndefined();
+
+    // 2. Setup front business in clearing and force a failed money laundering audit
+    let testState = insRes.state;
+    testState.frontBusinesses = {
+      fb1: {
+        id: "fb1",
+        merchantId: "merchant_timmy",
+        roomId: "clearing",
+        syndicateId: "blood_fangs",
+        level: 1,
+        dirtyGold: 100,
+        cleanGold: 200,
+        launderingCapacity: 300,
+        launderingRate: 50,
+        timestamp: 1010,
+        activeAudit: true, // Force active audit to trigger failed audit
+      },
+    };
+
+    testState.enforcementHeat = {
+      clearing: { roomId: "clearing", heat: 40, timestamp: 1010 },
+    };
+
+    testState.step = 5;
+
+    // Run tickEconomy: failed money laundering audit triggers
+    // Player has insurance (5% loss), Alice does not (25% loss)
+    const tickedState = tickEconomy(testState, mockPack);
+
+    const playerBal = tickedState.syndicateBanks?.["blood_fangs"]?.balances?.["player"];
+    const aliceBal = tickedState.syndicateBanks?.["blood_fangs"]?.balances?.["alice"];
+
+    // Player lost 5% of 200 = 10 gold => 190 remaining
+    expect(playerBal).toBe(190);
+    // Alice lost 25% of 200 = 50 gold => 150 remaining
+    expect(aliceBal).toBe(150);
+  });
+
+  it("should scale borrowing capacities by player credit rating score and track score adjustments (AF-88)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 500 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "sh1",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 1,
+        stashCapacity: 5,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 0,
+      },
+    };
+
+    // Base collateral value: 200 gold. Scale scale: 1.0. Base limit: 200 gold.
+    // 1. Borrowing with high credit rating score (150 score => 1.5x capacity => 300 limit)
+    state.creditRatings = { player: 150 };
+    const limitHigh = getSyndicateLoanLimit(state, "blood_fangs", "player", "safehouse", "clearing");
+    expect(limitHigh).toBe(300);
+
+    // 2. Borrowing with low credit rating score (50 score => 0.5x capacity => 100 limit)
+    state.creditRatings = { player: 50 };
+    const limitLow = getSyndicateLoanLimit(state, "blood_fangs", "player", "safehouse", "clearing");
+    expect(limitLow).toBe(100);
+
+    // 3. Track score adjustments (+5 on partial payback, +15 on full payback)
+    // First reset credit rating to default (100) and borrow 100 gold
+    state.creditRatings = { player: 100 };
+    const borrowRes = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BORROW_SYNDICATE_BANK",
+          syndicateId: "blood_fangs",
+          amount: 100,
+          collateralType: "safehouse",
+          collateralId: "clearing",
+          timestamp: 1005,
+        },
+      },
+      mockPack
+    );
+    expect(borrowRes.ok).toBe(true);
+
+    // Partial payback: pay 40 gold. Rating should increase by +5 (100 -> 105)
+    const partialRes = multiAgentStep(
+      borrowRes.state,
+      {
+        agentId: "player",
+        action: {
+          type: "PAYBACK_SYNDICATE_BANK",
+          syndicateId: "blood_fangs",
+          amount: 40,
+          timestamp: 1010,
+        },
+      },
+      mockPack
+    );
+    expect(partialRes.ok).toBe(true);
+    expect(partialRes.state.creditRatings?.["player"]).toBe(105);
+
+    // Full payback: pay remaining 60 gold. Rating should increase by +15 (105 -> 120)
+    const fullRes = multiAgentStep(
+      partialRes.state,
+      {
+        agentId: "player",
+        action: {
+          type: "PAYBACK_SYNDICATE_BANK",
+          syndicateId: "blood_fangs",
+          amount: 60,
+          timestamp: 1015,
+        },
+      },
+      mockPack
+    );
+    expect(fullRes.ok).toBe(true);
+    expect(fullRes.state.creditRatings?.["player"]).toBe(120);
+
+    // 4. Default drops credit rating by 50 points (capped at 0)
+    // Setup a loan and force a default
+    const borrow2 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BORROW_SYNDICATE_BANK",
+          syndicateId: "blood_fangs",
+          amount: 100,
+          collateralType: "safehouse",
+          collateralId: "clearing",
+          timestamp: 1020,
+        },
+      },
+      mockPack
+    );
+    expect(borrow2.ok).toBe(true);
+
+    let defaultState = borrow2.state;
+    defaultState.creditRatings = { player: 40 }; // set to 40 so it drops below 0
+    // Trigger default periodically (step > loan.dueStep)
+    for (let i = 1; i <= 16; i++) {
+      defaultState.step = i;
+      defaultState = tickEconomy(defaultState, mockPack);
+    }
+    // Loan defaulted, score drops by 50 capped at 0
+    expect(defaultState.creditRatings?.["player"]).toBe(0);
+  });
+
+  it("should broadcast mesh-wide default alerts to blacklist defaulted agents from borrowing, and merge defaultAlerts in Gossip mesh (AF-88)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 500 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.safehouses = {
+      clearing: {
+        id: "sh1",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 1,
+        stashCapacity: 5,
+        stashItems: [],
+        timestamp: 1000,
+        storageUpgradeLevel: 0,
+      },
+    };
+
+    // 1. Borrow gold
+    const borrowRes = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BORROW_SYNDICATE_BANK",
+          syndicateId: "blood_fangs",
+          amount: 100,
+          collateralType: "safehouse",
+          collateralId: "clearing",
+          timestamp: 1005,
+        },
+      },
+      mockPack
+    );
+
+    // 2. Liquidate loan (manually) to trigger a default alert
+    let liqState = borrowRes.state;
+    liqState.step = 20; // past dueStep 15
+
+    const liqRes = multiAgentStep(
+      liqState,
+      {
+        agentId: "player",
+        action: {
+          type: "LIQUIDATE_COLLATERAL",
+          syndicateId: "blood_fangs",
+          targetAgentId: "player",
+          timestamp: 1010,
+        },
+      },
+      mockPack
+    );
+
+    expect(liqRes.ok).toBe(true);
+    // Alert should be recorded in defaultAlerts
+    const alert = liqRes.state.defaultAlerts?.["player_blood_fangs"];
+    expect(alert).toBeDefined();
+    expect(alert?.agentId).toBe("player");
+    expect(alert?.syndicateId).toBe("blood_fangs");
+
+    // 3. Try borrowing again - should be blacklisted!
+    const failBorrow = multiAgentStep(
+      liqRes.state,
+      {
+        agentId: "player",
+        action: {
+          type: "BORROW_SYNDICATE_BANK",
+          syndicateId: "blood_fangs",
+          amount: 50,
+          collateralType: "safehouse",
+          collateralId: "clearing",
+          timestamp: 1015,
+        },
+      },
+      mockPack
+    );
+    expect(failBorrow.ok).toBe(false);
+    expect(failBorrow.rejectionReason).toContain("is blacklisted due to a mesh-wide debt default alert");
+
+    // 4. Test Gossip convergence: merge defaultAlerts using LWW
+    let nodeA = createInitialState({ seed: 12345, start: "clearing" });
+    nodeA.defaultAlerts = {
+      player_blood_fangs: {
+        agentId: "player",
+        syndicateId: "blood_fangs",
+        defaultStep: 15,
+        timestamp: 1050,
+      },
+    };
+
+    let nodeB = createInitialState({ seed: 12345, start: "clearing" });
+    nodeB.defaultAlerts = {
+      player_blood_fangs: {
+        agentId: "player",
+        syndicateId: "blood_fangs",
+        defaultStep: 15,
+        timestamp: 1020, // older alert
+      },
+    };
+
+    // Merging A and B should keep B's alert overwritten by A's alert (timestamp 1050 > 1020)
+    const merged = mergeMonotonicStateFields(nodeB, nodeA);
+    expect(merged.defaultAlerts?.["player_blood_fangs"]?.timestamp).toBe(1050);
   });
 });

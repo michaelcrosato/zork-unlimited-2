@@ -101,6 +101,7 @@ export type Action =
   | { type: "BORROW_SYNDICATE_BANK"; syndicateId: string; amount: number; collateralType: "safehouse" | "outpost"; collateralId: string; timestamp: number }
   | { type: "PAYBACK_SYNDICATE_BANK"; syndicateId: string; amount: number; timestamp: number }
   | { type: "LIQUIDATE_COLLATERAL"; syndicateId: string; targetAgentId: string; timestamp: number }
+  | { type: "PURCHASE_DEPOSIT_INSURANCE"; syndicateId: string; premiumPaid?: number; timestamp: number }
   | { type: "MINT_COUNTERFEIT_GOLD"; syndicateId: string; agentId: string; amount: number; cost?: number; timestamp: number }
   | { type: "ESTABLISH_AUDIT_MITIGATION"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "APPOINT_SMUGGLING_RINGLEADER"; syndicateId: string; ringleaderId: string; timestamp: number }

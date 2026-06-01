@@ -1478,6 +1478,35 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             }
 
             newState.journal.push(`[Syndicate] Front business ${front.id} failed money laundering audit in room ${front.roomId}! Enforcers raided the premises, confiscating ${confiscatedDirty} dirty gold and ${confiscatedClean} clean gold (Defense: ${defenseScore} vs Audit Strength: ${auditStrength}).`);
+            
+            // Sweep syndicate bank balances on failed audit (AF-88)
+            const syndicateId = front.syndicateId;
+            const bank = newState.syndicateBanks?.[syndicateId];
+            if (bank && bank.balances) {
+              const newBalances = { ...bank.balances };
+              let balancesChanged = false;
+              for (const memberId of Object.keys(newBalances)) {
+                const balance = newBalances[memberId] ?? 0;
+                if (balance > 0) {
+                  const hasInsurance = newState.depositInsurance?.[memberId]?.[syndicateId]?.active === true;
+                  const lossRate = hasInsurance ? 0.05 : 0.25;
+                  const seized = Math.floor(balance * lossRate);
+                  if (seized > 0) {
+                    newBalances[memberId] = balance - seized;
+                    balancesChanged = true;
+                    newState.journal.push(`[Bank Sweep] Failed Audit! Enforcers swept member ${memberId} bank deposit at syndicate ${syndicateId} bank, confiscating ${seized} gold (Insurance: ${hasInsurance ? "Active" : "None"}).`);
+                  }
+                }
+              }
+              if (balancesChanged && newState.syndicateBanks) {
+                newState.syndicateBanks[syndicateId] = {
+                  ...bank,
+                  balances: newBalances,
+                  timestamp: newState.step,
+                };
+              }
+            }
+
             activeAudit = false;
           }
           frontUpdated = true;
@@ -1642,6 +1671,34 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 newState.journal.push(`[Syndicate] Enforcer sweep triggered at front business ${front.id} in room ${front.roomId}! Hired turf guards failed to defend the business (Defense: ${defenseScore} vs Sweep Strength: ${sweepStrength}). Confiscated ${confiscatedDirty} dirty gold and ${confiscatedClean} clean gold.`);
               } else {
                 newState.journal.push(`[Syndicate] Enforcer sweep triggered at front business ${front.id} in room ${front.roomId} due to high laundering volume and heat! Confiscated ${confiscatedDirty} dirty gold and ${confiscatedClean} clean gold.`);
+              }
+
+              // Sweep syndicate bank balances on failed enforcer sweep (AF-88)
+              const syndicateId = front.syndicateId;
+              const bank = newState.syndicateBanks?.[syndicateId];
+              if (bank && bank.balances) {
+                const newBalances = { ...bank.balances };
+                let balancesChanged = false;
+                for (const memberId of Object.keys(newBalances)) {
+                  const balance = newBalances[memberId] ?? 0;
+                  if (balance > 0) {
+                    const hasInsurance = newState.depositInsurance?.[memberId]?.[syndicateId]?.active === true;
+                    const lossRate = hasInsurance ? 0.05 : 0.25;
+                    const seized = Math.floor(balance * lossRate);
+                    if (seized > 0) {
+                      newBalances[memberId] = balance - seized;
+                      balancesChanged = true;
+                      newState.journal.push(`[Bank Sweep] Enforcer Sweep! Enforcers swept member ${memberId} bank deposit at syndicate ${syndicateId} bank, confiscating ${seized} gold (Insurance: ${hasInsurance ? "Active" : "None"}).`);
+                    }
+                  }
+                }
+                if (balancesChanged && newState.syndicateBanks) {
+                  newState.syndicateBanks[syndicateId] = {
+                    ...bank,
+                    balances: newBalances,
+                    timestamp: newState.step,
+                  };
+                }
               }
             }
             frontUpdated = true;
@@ -2016,6 +2073,24 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 timestamp: newState.step,
               };
             }
+
+            // Decrease credit rating
+            if (!newState.creditRatings) newState.creditRatings = {};
+            const currentRating = newState.creditRatings[agentId] ?? 100;
+            newState.creditRatings[agentId] = Math.max(0, currentRating - 50);
+
+            // Add default alert
+            if (!newState.defaultAlerts) newState.defaultAlerts = {};
+            const alertKey = `${agentId}_${syndicateId}`;
+            newState.defaultAlerts[alertKey] = {
+              agentId,
+              syndicateId,
+              defaultStep: newState.step,
+              timestamp: newState.step,
+            };
+
+            newState.journal.push(`[Credit Score] Agent ${agentId} credit rating decreased by -50 due to default (New Score: ${newState.creditRatings[agentId]}).`);
+            newState.journal.push(`[Gossip Mesh Alert] Broadcasted debt default alert for agent ${agentId} (Defaulted at bank ${syndicateId}). Blacklisted mesh-wide.`);
 
             newState.journal.push(
               `[Debt Recovery] Loan for agent ${agentId} is in default! Enforcers swept agent's gold, collecting ${collected} gold (Remaining due: ${remainingDue}). Liquidated collateral ${updatedLoan.collateralType} ${updatedLoan.collateralId}.`

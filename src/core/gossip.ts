@@ -1048,6 +1048,45 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge depositInsurance using LWW
+  const depositInsurance = { ...stateA.depositInsurance };
+  if (stateB.depositInsurance) {
+    for (const [agentId, innerB] of Object.entries(stateB.depositInsurance)) {
+      if (!depositInsurance[agentId]) {
+        depositInsurance[agentId] = { ...innerB };
+      } else {
+        const innerA = { ...depositInsurance[agentId] };
+        for (const [syndicateId, entryB] of Object.entries(innerB)) {
+          const entryA = innerA[syndicateId];
+          if (!entryA || entryB.timestamp > entryA.timestamp) {
+            innerA[syndicateId] = entryB;
+          }
+        }
+        depositInsurance[agentId] = innerA;
+      }
+    }
+  }
+
+  // Merge creditRatings using conservative Math.min
+  const creditRatings = { ...stateA.creditRatings };
+  if (stateB.creditRatings) {
+    for (const [agentId, ratingB] of Object.entries(stateB.creditRatings)) {
+      const ratingA = creditRatings[agentId];
+      creditRatings[agentId] = ratingA === undefined ? ratingB : Math.min(ratingA, ratingB);
+    }
+  }
+
+  // Merge defaultAlerts using LWW
+  const defaultAlerts = { ...stateA.defaultAlerts };
+  if (stateB.defaultAlerts) {
+    for (const [key, entryB] of Object.entries(stateB.defaultAlerts)) {
+      const entryA = defaultAlerts[key];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        defaultAlerts[key] = entryB;
+      }
+    }
+  }
+
   // Merge turfCheckpoints using LWW
   const turfCheckpoints = { ...stateA.turfCheckpoints };
   if (stateB.turfCheckpoints) {
@@ -1364,6 +1403,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     syndicateBanks,
     bankInterestVotes,
     bankInterestPolicies,
+    depositInsurance,
+    creditRatings,
+    defaultAlerts,
   };
 }
 

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #87 (Ready for Cycle #88)
-* **Build/Test Status**: 🟢 PASS (All 412 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #88 (Ready for Cycle #89)
+* **Build/Test Status**: 🟢 PASS (All 415 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -505,17 +505,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement dynamic borrowing capacities scaling based on dominance, standing, and collateral values (`AF-87`).
 - [x] Wire periodic loan interest accruals and enforcer-led debt recovery sweeps on default inside economy ticks (`AF-87`).
 - [x] Write comprehensive Vitest integration tests (`AF-87`).
+- [x] Define deposit insurance states and agent credit rating scores in state schemas (`AF-88`).
+- [x] Support `PURCHASE_DEPOSIT_INSURANCE` decentralized action decreasing sweep loss rates for insured members (`AF-88`).
+- [x] Scale borrowing capacities by player credit rating score and broadcast debt default alerts across the Gossip mesh (`AF-88`).
+- [x] Write comprehensive Vitest integration tests asserting insurance, ratings, and mesh convergence (`AF-88`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-88`
-* **Objective**: Smuggler Syndicate Cartel Deposit Insurance, Credit Rating Score, and Mesh-Wide Default Alert Gossip.
-* **Why this matters**: Introduce dynamic deposit insurance policies to protect member bank deposits from enforcer sweeps, calculate dynamic credit ratings for agents based on borrowing repayment history, and broadcast mesh-wide default alerts to black-list defaulted agents from borrowing at other cartel banks.
+**Task ID**: `AF-89`
+* **Objective**: Smuggler Syndicate Cartel Bankruptcy Restructuring, Loan Refinancing, and Mesh-Wide Credit Recovery Gossip.
+* **Why this matters**: Support a new proposal action `PROPOSE_LOAN_REFINANCING` allowing distressed borrowers to extend their loan due dates or lower interest rates via syndicate consensus voting, implement a `DECLARE_CARTEL_BANKRUPTCY` reducer that restructures defaults and sets up a gradual credit rating recovery over step ticks, and sync credit recovery progress across the Gossip mesh.
 * **Planned Actions**:
-  1. Define deposit insurance states and agent credit rating scores in state schemas.
-  2. Support `PURCHASE_DEPOSIT_INSURANCE` action and decrease sweep loss rates for insured members.
-  3. Scale borrowing capacities by player credit rating score and broadcast debt default alerts across the Gossip mesh.
+  1. Add restructuring and refinancing proposal schemas inside state variables.
+  2. Implement `PROPOSE_LOAN_REFINANCING` and `DECLARE_CARTEL_BANKRUPTCY` decentralized consensus actions.
+  3. Wire dynamic credit recovery steps to gradually restore credit rating scores over step ticks and sync recovery states across the Gossip mesh.
   4. Write comprehensive Vitest integration tests.
 
 ---

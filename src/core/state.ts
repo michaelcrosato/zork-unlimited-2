@@ -759,6 +759,23 @@ export const AuditMitigationSchema = z.object({
 });
 export type AuditMitigation = z.infer<typeof AuditMitigationSchema>;
 
+export const DepositInsuranceSchema = z.object({
+  agentId: z.string(),
+  syndicateId: z.string(),
+  premiumPaid: z.number().int().nonnegative(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type DepositInsurance = z.infer<typeof DepositInsuranceSchema>;
+
+export const DefaultAlertSchema = z.object({
+  agentId: z.string(),
+  syndicateId: z.string(),
+  defaultStep: z.number().int(),
+  timestamp: z.number().int(),
+});
+export type DefaultAlert = z.infer<typeof DefaultAlertSchema>;
+
 
 
 export const GameStateSchema = z.object({
@@ -917,6 +934,9 @@ export const GameStateSchema = z.object({
   safehouseRentPolicies: z.record(z.string(), z.number()).optional(),
   bankInterestVotes: z.record(z.string(), z.record(z.string(), BankInterestVoteSchema)).optional(),
   bankInterestPolicies: z.record(z.string(), z.number()).optional(),
+  depositInsurance: z.record(z.string(), z.record(z.string(), DepositInsuranceSchema)).optional(),
+  creditRatings: z.record(z.string(), z.number().int()).optional(),
+  defaultAlerts: z.record(z.string(), DefaultAlertSchema).optional(),
 });
 
 
@@ -1063,6 +1083,9 @@ export const createInitialState = (options: {
     stashItemOwners: {},
     safehouseRentVotes: {},
     safehouseRentPolicies: {},
+    depositInsurance: {},
+    creditRatings: {},
+    defaultAlerts: {},
   };
 };
 
@@ -1770,6 +1793,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     safehouseRentVotes: rest.safehouseRentVotes ? JSON.parse(JSON.stringify(rest.safehouseRentVotes)) : undefined,
     safehouseRentPolicies: rest.safehouseRentPolicies ? { ...rest.safehouseRentPolicies } : undefined,
     syndicateBanks: rest.syndicateBanks ? JSON.parse(JSON.stringify(rest.syndicateBanks)) : undefined,
+    depositInsurance: rest.depositInsurance ? JSON.parse(JSON.stringify(rest.depositInsurance)) : undefined,
+    creditRatings: rest.creditRatings ? { ...rest.creditRatings } : undefined,
+    defaultAlerts: rest.defaultAlerts ? JSON.parse(JSON.stringify(rest.defaultAlerts)) : undefined,
   };
   return clone;
 }
@@ -2281,6 +2307,7 @@ export function getSyndicateLoanLimit(
 
   const scale = (dominance / 50) * (standing / 100);
   const rawLimit = collateralValue * Math.max(0.5, scale);
-  return Math.floor(rawLimit);
+  const creditRating = Math.max(0, state.creditRatings?.[agentId] ?? 100);
+  return Math.floor(rawLimit * (creditRating / 100));
 }
 

@@ -11901,6 +11901,8 @@ export function multiAgentStep(
       rejectionReason = `Syndicate bank for ${syndicateId} is not established.`;
     } else if (bank.loans?.[agentId]) {
       rejectionReason = `Agent ${agentId} already has an active loan with syndicate ${syndicateId} bank.`;
+    } else if (state.defaultAlerts && Object.values(state.defaultAlerts).some(a => a.agentId === agentId)) {
+      rejectionReason = `Agent ${agentId} is blacklisted due to a mesh-wide debt default alert.`;
     } else if (collateralType !== "safehouse" && collateralType !== "outpost") {
       rejectionReason = `Invalid collateral type ${collateralType}. Must be safehouse or outpost.`;
     } else if (!collateralId) {
@@ -12123,6 +12125,13 @@ export function multiAgentStep(
         } as any);
       }
 
+      // Increase credit rating
+      if (!newState.creditRatings) newState.creditRatings = {};
+      const currentRating = newState.creditRatings[agentId] ?? 100;
+      const increase = newLoan.amount === 0 ? 15 : 5;
+      newState.creditRatings[agentId] = Math.min(200, currentRating + increase);
+      newState.journal.push(`[Credit Score] Agent ${agentId} credit rating increased by +${increase} (New Score: ${newState.creditRatings[agentId]}).`);
+
       syndicateBanks[syndicateId] = {
         ...bank,
         loans,
@@ -12137,6 +12146,130 @@ export function multiAgentStep(
         amount,
         remainingPrincipal: newLoan.amount,
         remainingInterest: newLoan.interestAccrued,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PURCHASE_DEPOSIT_INSURANCE action (AF-88)
+  if ((action as any).type === "PURCHASE_DEPOSIT_INSURANCE") {
+    const { syndicateId, premiumPaid, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const premium = premiumPaid ?? 50; // default premium 50 gold
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const bank = state.syndicateBanks?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to purchase deposit insurance.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${syndicateId} is not established.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot purchase deposit insurance.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < premium) {
+        rejectionReason = `Insufficient gold to purchase deposit insurance costing ${premium} (requires ${premium}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && bank) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct premium
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - premium,
+      };
+
+      // Set deposit insurance to active
+      if (!newState.depositInsurance) newState.depositInsurance = {};
+      const agentIns = newState.depositInsurance[agentId] ? { ...newState.depositInsurance[agentId] } : {};
+      agentIns[syndicateId] = {
+        agentId,
+        syndicateId,
+        premiumPaid: premium,
+        active: true,
+        timestamp,
+      };
+      newState.depositInsurance = {
+        ...newState.depositInsurance,
+        [agentId]: agentIns,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Bank Insurance] Agent ${agentId} purchased deposit insurance for syndicate ${syndicateId} bank. Premium paid: ${premium} gold.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `🛡️ Agent ${agentId} purchased deposit insurance for syndicate ${syndicateId} bank.`,
+      } as any);
+
+      customEvents.push({
+        type: "deposit_insurance_purchased" as any,
+        syndicateId,
+        agentId,
+        premiumPaid: premium,
         timestamp,
       });
     }
@@ -12284,13 +12417,38 @@ export function multiAgentStep(
         };
       }
 
+      // Decrease credit rating
+      if (!newState.creditRatings) newState.creditRatings = {};
+      const currentRating = newState.creditRatings[targetAgentId] ?? 100;
+      newState.creditRatings[targetAgentId] = Math.max(0, currentRating - 50);
+
+      // Broadcast mesh-wide debt default alert
+      if (!newState.defaultAlerts) newState.defaultAlerts = {};
+      const alertKey = `${targetAgentId}_${syndicateId}`;
+      newState.defaultAlerts[alertKey] = {
+        agentId: targetAgentId,
+        syndicateId,
+        defaultStep: newState.step,
+        timestamp,
+      };
+
       if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Credit Score] Agent ${targetAgentId} credit rating decreased by -50 due to default (New Score: ${newState.creditRatings[targetAgentId]}).`);
+      newState.journal.push(`[Gossip Mesh Alert] Broadcasted debt default alert for agent ${targetAgentId} (Defaulted at bank ${syndicateId}). Blacklisted mesh-wide.`);
       newState.journal.push(`[Syndicate Bank] Agent ${agentId} triggered liquidation of defaulted loan for ${targetAgentId}. Seized ${collected} gold, remaining debt ${remainingDue}. Liquidated ${loan.collateralType} ${loan.collateralId}.`);
 
       customEvents.push({
         type: "narration",
         text: `⚖️ Enforcers and Syndicate liquidated collateral ${loan.collateralId} for defaulted loan of ${targetAgentId}.`,
       } as any);
+
+      customEvents.push({
+        type: "default_alert_gossip" as any,
+        agentId: targetAgentId,
+        syndicateId,
+        defaultStep: newState.step,
+        timestamp,
+      });
 
       customEvents.push({
         type: "syndicate_collateral_liquidated" as any,
