@@ -848,6 +848,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge smugglingConvoys using LWW
+  const smugglingConvoys = { ...stateA.smugglingConvoys };
+  if (stateB.smugglingConvoys) {
+    for (const [convoyId, entryB] of Object.entries(stateB.smugglingConvoys)) {
+      const entryA = smugglingConvoys[convoyId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        smugglingConvoys[convoyId] = entryB;
+      }
+    }
+  }
+
   // Merge syndicateBribeVotes using LWW (Last-Write-Wins)
   const syndicateBribeVotes = { ...stateA.syndicateBribeVotes };
   if (stateB.syndicateBribeVotes) {
@@ -949,6 +960,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     syndicateBribeVotes,
     syndicateWaiverVotes,
     syndicateTaxVotes,
+    smugglingConvoys,
   };
 }
 

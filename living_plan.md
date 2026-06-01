@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #57 (Ready for Cycle #58)
-* **Build/Test Status**: 🟢 PASS (All 257 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #58 (Ready for Cycle #59)
+* **Build/Test Status**: 🟢 PASS (All 263 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -340,16 +340,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire tactical turrets to automatically strike down enforcer forces during sweeps, lowering sweep damage, deflecting lab raids, and collecting dynamic security premiums (`AF-57`).
 - [x] Write comprehensive integration and P2P mesh convergence tests (`AF-57`).
 
+### Phase 52: Crime Syndicate Smuggling Cargo Fleets & Convoy Networks (Completed)
+- [x] Define Crime Syndicate Smuggling Cargo Fleet / Convoy state schemas in GameState (`AF-58`).
+- [x] Implement `ORGANIZE_CONVOY` decentralized consensus action costing gold and cargo resources (`AF-58`).
+- [x] Wire smuggling convoy transport ticks across trade routes, calculating ambush risks, faction toll deductions, and payout distributions (`AF-58`).
+- [x] Write comprehensive unit, integration, and P2P mesh convergence tests (`AF-58`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-58`
-* **Objective**: Crime Syndicate Black Market Cargo Fleets & Contraband Smuggling Convoy Networks.
-* **Why this matters**: Further expand the Syndicate global market mechanics by supporting tactical caravan/fleet operations, allowing syndicates to mobilize collective contraband across regional routes under dynamic faction tax adjustments, enforcer sweeps, and pirate/ambush threat factors.
+**Task ID**: `AF-59`
+* **Objective**: Crime Syndicate Contraband Insurance Claims & Dynamic Loss Compensation Policies.
+* **Why this matters**: Support smuggling risk hedging by allowing syndicates to purchase decentralized contraband loss insurance policies that dynamically pay out clean gold to the syndicate when convoys are ambushed or destroyed.
 * **Planned Actions**:
-  1. Define Crime Syndicate Smuggling Cargo Fleet / Convoy state schemas in GameState.
-  2. Implement `ORGANIZE_CONVOY` decentralized consensus action costing gold and cargo resources.
-  3. Wire smuggling convoy transport ticks across trade routes, calculating ambush risks, faction toll deductions, and payout distributions.
+  1. Define smuggling convoy loss insurance schemas inside GameState.
+  2. Implement `PURCHASE_CONVOY_INSURANCE` decentralized consensus action costing gold.
+  3. Wire automatic insurance claim processing inside `tickSmugglingConvoys` on convoy ambush destruction, distributing compensation gold to members.
   4. Write comprehensive unit, integration, and P2P mesh convergence tests.
 
 ---

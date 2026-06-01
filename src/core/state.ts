@@ -330,6 +330,19 @@ export const TurfGuardOutpostSchema = z.object({
 });
 export type TurfGuardOutpost = z.infer<typeof TurfGuardOutpostSchema>;
 
+export const SmugglingConvoySchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  routeId: z.string(),
+  currentRoomIndex: z.number().int().nonnegative(),
+  cargo: z.number().int().nonnegative(),
+  goldCost: z.number().int().nonnegative(),
+  status: z.enum(["en_route", "completed", "ambushed"]),
+  definedBy: z.string(),
+  timestamp: z.number().int(),
+});
+export type SmugglingConvoy = z.infer<typeof SmugglingConvoySchema>;
+
 
 
 export const CrimeSyndicateSchema = z.object({
@@ -490,6 +503,7 @@ export const GameStateSchema = z.object({
   syndicateBribeVotes: z.record(z.string(), z.record(z.string(), SyndicateBribeVoteSchema)).optional(),
   syndicateWaiverVotes: z.record(z.string(), z.record(z.string(), SyndicateWaiverVoteSchema)).optional(),
   turfGuardOutposts: z.record(z.string(), TurfGuardOutpostSchema).optional(),
+  smugglingConvoys: z.record(z.string(), SmugglingConvoySchema).optional(),
 });
 
 
@@ -596,6 +610,7 @@ export const createInitialState = (options: {
     syndicateBribeVotes: {},
     syndicateWaiverVotes: {},
     turfGuardOutposts: {},
+    smugglingConvoys: {},
   };
 };
 
@@ -1159,6 +1174,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     syndicateBribeVotes: rest.syndicateBribeVotes ? JSON.parse(JSON.stringify(rest.syndicateBribeVotes)) : undefined,
     syndicateWaiverVotes: rest.syndicateWaiverVotes ? JSON.parse(JSON.stringify(rest.syndicateWaiverVotes)) : undefined,
     turfGuardOutposts: rest.turfGuardOutposts ? JSON.parse(JSON.stringify(rest.turfGuardOutposts)) : undefined,
+    smugglingConvoys: rest.smugglingConvoys ? JSON.parse(JSON.stringify(rest.smugglingConvoys)) : undefined,
   };
   return clone;
 }

@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { getMerchantGold } from "./economy.js";
+import { getMerchantGold, getContrabandInInventory } from "./economy.js";
 
 export interface MultiAgentAction {
   agentId: string;
@@ -4883,6 +4883,186 @@ export function multiAgentStep(
         turretId,
         turretType,
         cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ORGANIZE_CONVOY action (AF-58)
+  if ((action as any).type === "ORGANIZE_CONVOY") {
+    const { convoyId, syndicateId, routeId, cargo, timestamp } = action as any;
+    const defaultCost = 100;
+    const cost = (action as any).goldCost ?? (action as any).cost ?? defaultCost;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const route = state.tradeRoutes?.[routeId];
+
+    if (!convoyId) {
+      rejectionReason = `Convoy ID is required to organize a convoy.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to organize a convoy.`;
+    } else if (!routeId) {
+      rejectionReason = `Route ID is required to organize a convoy.`;
+    } else if (cargo <= 0 || !Number.isInteger(cargo)) {
+      rejectionReason = `Convoy cargo amount ${cargo} must be a positive integer.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Convoy organization cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!route || !route.rooms || route.rooms.length === 0) {
+      rejectionReason = `Trade route ${routeId} does not exist or has no rooms.`;
+    } else if (state.smugglingConvoys?.[convoyId]) {
+      rejectionReason = `Smuggling convoy ${convoyId} already exists.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      
+      // Calculate contraband count in agent's inventory
+      const inventory = agentId === "player" ? state.inventory : (state.agents?.[agentId]?.inventory || []);
+      const contrabandItems: string[] = [];
+      const packAny = pack as any;
+      if (packAny && packAny.objects && inventory) {
+        for (const itemId of inventory) {
+          const packObj = packAny.objects.find((o: any) => o.id === itemId);
+          const isPackContraband = packObj?.contraband === true;
+          const isBlacklisted = state.contrabandBlacklist?.[itemId]?.blacklisted === true;
+          if (isPackContraband || isBlacklisted) {
+            contrabandItems.push(itemId);
+          }
+        }
+      }
+
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to organize convoy costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else if (contrabandItems.length < cargo) {
+        rejectionReason = `Insufficient cargo resources to organize convoy (requires ${cargo}, has ${contrabandItems.length}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate && route) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Deduct cargo from inventory
+      const inventory = agentId === "player" ? state.inventory : (state.agents?.[agentId]?.inventory || []);
+      let remainingToDeduct = cargo;
+      const newInventory: string[] = [];
+      const packAny = pack as any;
+      if (packAny && packAny.objects) {
+        for (const itemId of inventory) {
+          const packObj = packAny.objects.find((o: any) => o.id === itemId);
+          const isPackContraband = packObj?.contraband === true;
+          const isBlacklisted = state.contrabandBlacklist?.[itemId]?.blacklisted === true;
+          if ((isPackContraband || isBlacklisted) && remainingToDeduct > 0) {
+            remainingToDeduct--;
+          } else {
+            newInventory.push(itemId);
+          }
+        }
+      }
+
+      if (agentId === "player") {
+        newState.inventory = newInventory;
+      } else {
+        const agents = newState.agents ? { ...newState.agents } : {};
+        if (agents[agentId]) {
+          agents[agentId] = {
+            ...agents[agentId],
+            inventory: newInventory,
+          };
+          newState.agents = agents;
+        }
+      }
+
+      // Add to convoys list
+      const smugglingConvoys = { ...(state.smugglingConvoys || {}) };
+      smugglingConvoys[convoyId] = {
+        id: convoyId,
+        syndicateId,
+        routeId,
+        currentRoomIndex: 0,
+        cargo,
+        goldCost: cost,
+        status: "en_route",
+        definedBy: agentId,
+        timestamp,
+      };
+      newState.smugglingConvoys = smugglingConvoys;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Organized smuggling convoy ${convoyId} for syndicate ${syndicateId} along route ${routeId} carrying ${cargo} cargo for ${cost} gold.`);
+
+      customEvents.push({
+        type: "smuggling_convoy_organized",
+        agentId,
+        convoyId,
+        syndicateId,
+        routeId,
+        cargo,
+        goldCost: cost,
       });
     }
 

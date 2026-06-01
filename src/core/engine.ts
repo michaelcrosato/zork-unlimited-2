@@ -2045,6 +2045,198 @@ export function tickProductionLabs(
     newState.enforcementHeat = updatedHeat;
   }
 
+  newState = tickSmugglingConvoys(newState, events, pack);
+
+  return newState;
+}
+
+export function tickSmugglingConvoys(
+  state: GameState,
+  events: GameEvent[],
+  pack?: CYOAPack | ParserPack
+): GameState {
+  let newState = { ...state };
+  if (!newState.smugglingConvoys || Object.keys(newState.smugglingConvoys).length === 0) {
+    return newState;
+  }
+
+  const updatedConvoys = { ...newState.smugglingConvoys };
+  let currentSeed = newState.seed;
+
+  for (const [convoyId, convoy] of Object.entries(updatedConvoys)) {
+    if (convoy.status !== "en_route") continue;
+
+    const route = newState.tradeRoutes?.[convoy.routeId];
+    if (!route || !route.rooms || route.rooms.length === 0) continue;
+
+    const updatedConvoy = { ...convoy };
+    const nextRoomIndex = updatedConvoy.currentRoomIndex + 1;
+
+    if (nextRoomIndex >= route.rooms.length) {
+      // Reached destination! Payout
+      const syndicate = newState.syndicates?.[convoy.syndicateId];
+      const dominance = syndicate?.dominance ?? 0;
+      const dominanceBonus = Math.floor(dominance * 1.5);
+      
+      // Check if destination has active black market
+      const destRoom = route.rooms[route.rooms.length - 1];
+      const destHasBlackMarket = newState.blackMarkets?.[destRoom] !== undefined;
+      const baseValue = destHasBlackMarket ? 200 : 150;
+      const payoutGold = updatedConvoy.cargo * baseValue + dominanceBonus;
+
+      const members = syndicate?.members || [convoy.definedBy];
+      const share = members.length > 0 ? Math.floor(payoutGold / members.length) : 0;
+      if (share > 0) {
+        if (!newState.vars) newState.vars = {};
+        for (const member of members) {
+          const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+          newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+        }
+      }
+
+      newState.vars["totalConvoyPayouts"] = (newState.vars["totalConvoyPayouts"] ?? 0) + payoutGold;
+      updatedConvoy.status = "completed";
+      updatedConvoy.currentRoomIndex = route.rooms.length - 1;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Smuggling convoy ${convoyId} successfully completed its route, delivering ${convoy.cargo} cargo. Total payout: ${payoutGold} gold (Distributed ${share} gold to each member).`);
+
+      events.push({
+        type: "narration",
+        text: `💰 Smuggling convoy ${convoyId} arrived at destination! Delivered ${convoy.cargo} cargo, earning ${payoutGold} gold.`,
+      } as any);
+
+      events.push({
+        type: "smuggling_convoy_completed" as any,
+        convoyId,
+        syndicateId: convoy.syndicateId,
+        payoutGold,
+        share,
+      } as any);
+    } else {
+      // Move to next room
+      const destRoomId = route.rooms[nextRoomIndex];
+      const factionId = newState.territoryControl?.[destRoomId];
+      let toll = 0;
+
+      if (factionId) {
+        const organizerId = convoy.definedBy;
+        const rep = newState.factionRep?.[factionId] ?? 0;
+        let tax = 5;
+        if (rep < 0) {
+          tax = 20;
+        } else if (rep < 10) {
+          tax = 10;
+        }
+        const rateMultiplier = newState.taxPolicy?.[factionId];
+        if (rateMultiplier !== undefined) {
+          tax = tax * rateMultiplier;
+        }
+        
+        let hasAlliedAlliance = false;
+        let hasHostileAlliance = false;
+        if (newState.alliances && newState.factionRep) {
+          for (const [otherFactionId, otherRep] of Object.entries(newState.factionRep)) {
+            if (otherFactionId !== factionId && otherRep >= 10) {
+              const relation = newState.alliances[factionId]?.[otherFactionId];
+              if (relation === "allied") {
+                hasAlliedAlliance = true;
+              } else if (relation === "hostile") {
+                hasHostileAlliance = true;
+              }
+            }
+          }
+        }
+        if (hasAlliedAlliance) {
+          tax = 0;
+        } else if (hasHostileAlliance) {
+          tax = tax * 2;
+        }
+        
+        const hasLicense = newState.merchantLicenses?.[convoy.syndicateId]?.includes(factionId) === true || newState.merchantLicenses?.[organizerId]?.includes(factionId) === true;
+        if (!hasLicense) {
+          tax += 15;
+        }
+        toll = tax * convoy.cargo;
+      }
+
+      if (toll > 0) {
+        const organizerId = convoy.definedBy;
+        const goldKey = organizerId === "player" ? "gold" : `gold_${organizerId}`;
+        const currentGold = newState.vars[goldKey] ?? (organizerId === "player" ? 0 : 100);
+        newState.vars[goldKey] = Math.max(0, currentGold - toll);
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate] Convoy ${convoyId} paid ${toll} gold in faction tolls to ${factionId} at room ${destRoomId}.`);
+      }
+
+      // Check ambush risk
+      const heat = newState.enforcementHeat?.[destRoomId]?.heat ?? 0;
+      let ambushChance = 10;
+      ambushChance += heat * 2;
+      if (factionId && newState.factionRep?.[factionId] !== undefined && newState.factionRep[factionId] < 0) {
+        ambushChance += 15;
+      }
+      const weather = newState.environment?.weather || "clear";
+      if (weather === "storm" || weather === "blizzard" || weather === "rain") {
+        ambushChance += 10;
+      }
+
+      const outpost = newState.turfGuardOutposts?.[destRoomId];
+      if (outpost && outpost.syndicateId === convoy.syndicateId) {
+        ambushChance -= outpost.securityLevel * 5;
+      }
+      const guards = newState.turfGuards?.[destRoomId]?.count ?? 0;
+      ambushChance -= guards * 3;
+      
+      ambushChance = Math.max(5, Math.min(80, ambushChance));
+
+      const { value: ambushRoll, nextSeed } = PureRand.nextInt(currentSeed, 1, 100);
+      currentSeed = nextSeed;
+
+      if (ambushRoll <= ambushChance) {
+        // AMBUSH! Check turrets
+        let deflected = false;
+        if (outpost && outpost.syndicateId === convoy.syndicateId && outpost.turrets && Object.keys(outpost.turrets).length > 0) {
+          deflected = true;
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[Syndicate] Convoy ${convoyId} was ambushed in room ${destRoomId}, but the syndicate outpost's tactical turrets struck down the ambushers and defended the convoy!`);
+          events.push({
+            type: "narration",
+            text: `💥 Convoy ${convoyId} was ambushed in ${destRoomId}, but tactical turrets successfully defended it!`,
+          } as any);
+        }
+
+        if (!deflected) {
+          updatedConvoy.status = "ambushed";
+          updatedConvoy.currentRoomIndex = nextRoomIndex;
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[Syndicate] Convoy ${convoyId} was ambushed and destroyed by enforcers/pirates in room ${destRoomId}! All cargo was lost.`);
+          events.push({
+            type: "narration",
+            text: `🚨 Oh no! Smuggling convoy ${convoyId} was ambushed and destroyed in ${destRoomId}! All cargo was lost.`,
+          } as any);
+          events.push({
+            type: "smuggling_convoy_ambushed" as any,
+            convoyId,
+            room: destRoomId,
+          } as any);
+        } else {
+          updatedConvoy.currentRoomIndex = nextRoomIndex;
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[Syndicate] Convoy ${convoyId} successfully traversed through room ${destRoomId} (survived ambush).`);
+        }
+      } else {
+        updatedConvoy.currentRoomIndex = nextRoomIndex;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate] Convoy ${convoyId} successfully traversed through room ${destRoomId}.`);
+      }
+    }
+
+    updatedConvoys[convoyId] = updatedConvoy;
+  }
+
+  newState.smugglingConvoys = updatedConvoys;
+  newState.seed = currentSeed;
   return newState;
 }
 
