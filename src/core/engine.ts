@@ -44,6 +44,7 @@ export function step(
     merchantGold: state.merchantGold ? { ...state.merchantGold } : undefined,
     merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : undefined,
     npcRep: state.npcRep ? { ...state.npcRep } : undefined,
+    factionRep: state.factionRep ? { ...state.factionRep } : undefined,
   };
 
   const events: GameEvent[] = [];

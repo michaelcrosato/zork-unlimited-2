@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #26 (Ready for Cycle #27)
-* **Build/Test Status**: 🟢 PASS (All 123 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #27 (Ready for Cycle #28)
+* **Build/Test Status**: 🟢 PASS (All 128 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -138,17 +138,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire dynamic price scaling and transaction success verification to NPC/effect reputation thresholds (`AF-26`).
 - [x] Write comprehensive unit tests asserting all reputation, weather climate_pricing, gold limits, and restocking logic (`AF-26`).
 
+### Phase 22: Cooperative Faction Alliances & Reputation Dynamics (Completed)
+- [x] Define faction structures (`factions`) and player-faction reputation variables (`faction_rep`) (`AF-27`).
+- [x] Support faction-gated room exits and item interaction conditions (`AF-27`).
+- [x] Implement cooperative faction-reputation gossip synchronization across the P2P mesh (`AF-27`).
+- [x] Write comprehensive unit and integration tests simulating P2P gossip mesh faction reputation convergence (`AF-27`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-27`
-* **Objective**: Design and implement cooperative P2P faction alliances and faction reputation dynamics (`faction_rep`) in decentralized packs.
-* **Why this matters**: Introducing faction-level alignments and mesh-synchronized player alliances expands multiplayer text adventures with tribal factions, territorial claiming, and complex cooperative goals.
+**Task ID**: `AF-28`
+* **Objective**: Design and implement decentralized faction territories and cooperative mesh-wide faction conquest goals.
+* **Why this matters**: Adding territorial control and mesh-synchronized sector claiming expands cooperative gameplay with dynamic frontlines, regional faction bonuses, and global P2P win conditions.
 * **Planned Actions**:
-  1. Define faction structures (`factions`) and player-faction reputation variables (`faction_rep`).
-  2. Support faction-gated room exits and item interaction conditions.
-  3. Implement cooperative faction-reputation gossip synchronization across the P2P mesh.
-  4. Write comprehensive tests and mock playtests for faction interactions.
+  1. Define faction territory schemas and track regional control in the decentralized state.
+  2. Implement gossip-based dynamic territory claim resolution and conflict arbitration.
+  3. Support territory-based exit traversal constraints and faction tax mechanics.
+  4. Write comprehensive tests and playtest simulations of mesh-wide territory conquest.
 
 ---
 

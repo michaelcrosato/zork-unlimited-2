@@ -1,6 +1,6 @@
 import { ParserPack, ParserPackSchema } from "../parser/schema.js";
 import { ValidationReport, ValidationFinding } from "./report.js";
-import { createInitialState, GameState } from "../core/state.js";
+import { createInitialState, GameState, getFactionRepInit } from "../core/state.js";
 import { step } from "../core/engine.js";
 import { Action } from "../api/types.js";
 import { generateLegalActions } from "../parser/legal_actions.js";
@@ -23,6 +23,7 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
     start: startRoom,
     varsInit: pack.meta.vars_init,
     flagsInit: pack.meta.flags_init,
+    factionRepInit: getFactionRepInit(pack),
   });
 
   const hasWeather = JSON.stringify(pack).includes('"weather_is"') || JSON.stringify(pack).includes('"temperature_is"');

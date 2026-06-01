@@ -105,9 +105,22 @@ export const EffectSchema = z.union([
       by: z.number(),
     }),
   }),
+  z.object({
+    change_faction_reputation: z.object({
+      faction_id: z.string(),
+      by: z.number(),
+    }),
+  }),
 ]);
 
-export type Effect = z.infer<typeof EffectSchema>;
+export type Effect =
+  | z.infer<typeof EffectSchema>
+  | {
+      change_faction_reputation: {
+        faction_id: string;
+        by: number;
+      };
+    };
 
 /**
  * Pure function to apply a single effect to a GameState.
@@ -132,6 +145,7 @@ export function applyEffect(
     merchantGold: state.merchantGold ? { ...state.merchantGold } : undefined,
     merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : undefined,
     npcRep: state.npcRep ? { ...state.npcRep } : undefined,
+    factionRep: state.factionRep ? { ...state.factionRep } : undefined,
   };
 
   if ("set_flag" in effect) {
@@ -680,6 +694,18 @@ export function applyEffect(
     return {
       state: newState,
       event: { type: "state_change", effect: "change_reputation", variable: npc_id, value: finalRep }
+    };
+  }
+
+  if ("change_faction_reputation" in effect) {
+    const { faction_id, by } = effect.change_faction_reputation;
+    newState.factionRep = newState.factionRep || {};
+    const currentRep = newState.factionRep[faction_id] ?? 0;
+    const finalRep = currentRep + by;
+    newState.factionRep[faction_id] = finalRep;
+    return {
+      state: newState,
+      event: { type: "state_change", effect: "change_faction_reputation", variable: faction_id, value: finalRep }
     };
   }
 

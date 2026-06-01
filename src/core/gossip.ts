@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -330,6 +330,7 @@ export function reconstructState(
     flagsInit: pack.meta?.flags_init || [],
     varsInit: pack.meta?.vars_init || {},
     agentsInit: sortedAgentIds.length > 0 ? sortedAgentIds : undefined,
+    factionRepInit: getFactionRepInit(pack),
   });
 
   // Replay all transactions in order (omitting sequence/hash constraints to allow resolution)
@@ -388,6 +389,7 @@ export class GossipNode {
       flagsInit: pack.meta?.flags_init || [],
       varsInit: pack.meta?.vars_init || {},
       agentsInit: [nodeId],
+      factionRepInit: getFactionRepInit(pack),
     });
     this.vectorClock = {
       [nodeId]: 0,

@@ -1,5 +1,5 @@
 // Core State & Logic
-export { GameStateSchema, ObjectRuntimeSchema, createInitialState } from "./core/state.js";
+export { GameStateSchema, ObjectRuntimeSchema, createInitialState, getFactionRepInit } from "./core/state.js";
 export type { GameState, ObjectRuntime } from "./core/state.js";
 
 export { step } from "./core/engine.js";

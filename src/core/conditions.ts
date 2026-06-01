@@ -30,6 +30,18 @@ export const ConditionSchema: z.ZodType<any> = z.lazy(() =>
     }),
     z.object({ weather_is: z.string() }),
     z.object({ temperature_is: z.string() }),
+    z.object({
+      faction_rep_gte: z.object({
+        faction: z.string(),
+        value: z.number(),
+      }),
+    }),
+    z.object({
+      faction_rep_lte: z.object({
+        faction: z.string(),
+        value: z.number(),
+      }),
+    }),
     z.object({ all_of: z.array(ConditionSchema) }),
     z.object({ any_of: z.array(ConditionSchema) }),
     z.object({ none_of: z.array(ConditionSchema) }),
@@ -48,6 +60,8 @@ export type Condition =
   | { var_eq: { name: string; value: number } }
   | { weather_is: string }
   | { temperature_is: string }
+  | { faction_rep_gte: { faction: string; value: number } }
+  | { faction_rep_lte: { faction: string; value: number } }
   | { all_of: Condition[] }
   | { any_of: Condition[] }
   | { none_of: Condition[] };
@@ -98,6 +112,16 @@ export function evaluateCondition(state: GameState, cond: Condition): boolean {
     const expected = cond.temperature_is;
     const current = state.environment?.temperature ?? "mild";
     return current === expected;
+  }
+  if ("faction_rep_gte" in cond) {
+    const { faction, value } = cond.faction_rep_gte;
+    const currentRep = state.factionRep?.[faction] ?? 0;
+    return currentRep >= value;
+  }
+  if ("faction_rep_lte" in cond) {
+    const { faction, value } = cond.faction_rep_lte;
+    const currentRep = state.factionRep?.[faction] ?? 0;
+    return currentRep <= value;
   }
   if ("all_of" in cond) {
     return cond.all_of.every((c) => evaluateCondition(state, c));

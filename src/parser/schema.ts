@@ -134,6 +134,15 @@ export const ProceduralRoomTemplateSchema = z.object({
 
 export type ProceduralRoomTemplate = z.infer<typeof ProceduralRoomTemplateSchema>;
 
+export const FactionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  initial_rep: z.number().optional().default(0),
+});
+
+export type Faction = z.infer<typeof FactionSchema>;
+
 export const ParserPackSchema = z.object({
   meta: z.object({
     id: z.string(),
@@ -145,6 +154,7 @@ export const ParserPackSchema = z.object({
   rooms: z.array(ParserRoomSchema),
   objects: z.array(ParserObjectSchema).default([]),
   npcs: z.array(ParserNPCSchema).default([]),
+  factions: z.array(FactionSchema).optional(),
   win_conditions: z.array(ParserWinConditionSchema).default([]),
   endings: z.array(ParserEndingSchema).default([]),
   procedural_templates: z.array(ProceduralRoomTemplateSchema).optional(),

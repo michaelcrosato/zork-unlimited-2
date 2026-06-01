@@ -97,6 +97,7 @@ export const GameStateSchema = z.object({
   merchantGold: z.record(z.string(), z.number()).optional(),
   merchantLastRestock: z.record(z.string(), z.number()).optional(),
   npcRep: z.record(z.string(), z.number()).optional(),
+  factionRep: z.record(z.string(), z.number()).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -107,6 +108,7 @@ export const createInitialState = (options: {
   varsInit?: Record<string, number>;
   flagsInit?: string[];
   agentsInit?: string[];
+  factionRepInit?: Record<string, number>;
 }): GameState => {
   const flags: Record<string, boolean> = {};
   if (options.flagsInit) {
@@ -156,8 +158,18 @@ export const createInitialState = (options: {
     merchantGold: {},
     merchantLastRestock: {},
     npcRep: {},
+    factionRep: options.factionRepInit ?? {},
   };
 };
+
+export function getFactionRepInit(pack: any): Record<string, number> | undefined {
+  if (!pack || !pack.factions) return undefined;
+  const init: Record<string, number> = {};
+  for (const f of pack.factions) {
+    init[f.id] = f.initial_rep ?? 0;
+  }
+  return init;
+}
 
 export function reconcileLootClaims(state: GameState, pack: any): GameState {
   if (!state.lootClaims) return state;
