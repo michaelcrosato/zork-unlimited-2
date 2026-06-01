@@ -2266,6 +2266,33 @@ export const SWFReinsuranceOptionCrossHedgingVoteSchema = z.object({
 });
 export type SWFReinsuranceOptionCrossHedgingVote = z.infer<typeof SWFReinsuranceOptionCrossHedgingVoteSchema>;
 
+export const MultiAssetCrossHedgingAssetSchema = z.object({
+  correlatedAssetId: z.string(),
+  correlatedTrancheId: z.enum(["senior", "mezzanine", "equity"]),
+  correlationCoefficient: z.number(),
+  hedgeWeight: z.number().nonnegative(),
+});
+export type MultiAssetCrossHedgingAsset = z.infer<typeof MultiAssetCrossHedgingAssetSchema>;
+
+export const SWFReinsuranceOptionMultiAssetCrossHedgingPortfolioSchema = z.object({
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  assets: z.array(MultiAssetCrossHedgingAssetSchema),
+  riskDiversificationCoefficient: z.number(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionMultiAssetCrossHedgingPortfolio = z.infer<typeof SWFReinsuranceOptionMultiAssetCrossHedgingPortfolioSchema>;
+
+export const SWFReinsuranceOptionMultiAssetCrossHedgingVoteSchema = z.object({
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  assets: z.array(MultiAssetCrossHedgingAssetSchema),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionMultiAssetCrossHedgingVote = z.infer<typeof SWFReinsuranceOptionMultiAssetCrossHedgingVoteSchema>;
+
 export const VolatilityHedgedPremiumPolicySchema = z.object({
   swfYieldCdoId: z.string(),
   volatilityReserve: z.number().int().nonnegative(),
@@ -2835,6 +2862,8 @@ export const GameStateSchema = z.object({
   adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionStressTestDeltaHedgingVoteSchema)).optional(),
   swfReinsuranceOptionCrossHedgingPolicies: z.record(z.string(), SWFReinsuranceOptionCrossHedgingPolicySchema).optional(),
   adjustSWFReinsuranceOptionCrossHedgingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionCrossHedgingVoteSchema)).optional(),
+  swfReinsuranceOptionMultiAssetCrossHedgingPortfolios: z.record(z.string(), SWFReinsuranceOptionMultiAssetCrossHedgingPortfolioSchema).optional(),
+  adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionMultiAssetCrossHedgingVoteSchema)).optional(),
   submitSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
     orderId: z.string(),
     orderType: z.enum(["buy", "sell"]),
@@ -3164,6 +3193,8 @@ export const createInitialState = (options: {
     adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes: {},
     swfReinsuranceOptionCrossHedgingPolicies: {},
     adjustSWFReinsuranceOptionCrossHedgingVotes: {},
+    swfReinsuranceOptionMultiAssetCrossHedgingPortfolios: {},
+    adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes: {},
     submitSWFReinsuranceOptionLimitOrderVotes: {},
     cancelSWFReinsuranceOptionLimitOrderVotes: {},
     swfLiquidityMiningRewards: {},
@@ -4060,6 +4091,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes: rest.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionStressTestDeltaHedgingVotes)) : undefined,
     swfReinsuranceOptionCrossHedgingPolicies: rest.swfReinsuranceOptionCrossHedgingPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionCrossHedgingPolicies)) : undefined,
     adjustSWFReinsuranceOptionCrossHedgingVotes: rest.adjustSWFReinsuranceOptionCrossHedgingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionCrossHedgingVotes)) : undefined,
+    swfReinsuranceOptionMultiAssetCrossHedgingPortfolios: rest.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios)) : undefined,
+    adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes: rest.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes)) : undefined,
     submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     swfLiquidityMiningRewards: rest.swfLiquidityMiningRewards ? JSON.parse(JSON.stringify(rest.swfLiquidityMiningRewards)) : undefined,
@@ -12477,6 +12510,100 @@ export function reconcileSWFReinsuranceOptionCrossHedging(state: GameState, pack
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[SWF Reinsurance Option Cross Hedging Adjusted] Syndicate ${syndicateId} adjusted cross-hedging policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} using correlated asset ${group.correlatedAssetId} tranche ${group.correlatedTrancheId} via majority consensus (Correlation: ${group.correlationCoefficient.toFixed(2)}, Hedge Weight: ${group.hedgeWeight.toFixed(2)}).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function calculateRiskDiversificationCoefficient(assets: MultiAssetCrossHedgingAsset[]): number {
+  if (assets.length === 0) return 1.0;
+  
+  let totalWeight = 0;
+  let weightedCorrelationSum = 0;
+  
+  for (const asset of assets) {
+    totalWeight += asset.hedgeWeight;
+    weightedCorrelationSum += asset.hedgeWeight * Math.abs(asset.correlationCoefficient);
+  }
+  
+  if (totalWeight === 0) return 1.0;
+  
+  // Risk diversification coefficient D = 1.0 - (weightedCorrelationSum / totalWeight)
+  // Ensures value stays bounded between 0.0 and 1.0.
+  return Math.max(0.0, Math.min(1.0, 1.0 - (weightedCorrelationSum / totalWeight)));
+}
+
+export function reconcileSWFReinsuranceOptionMultiAssetCrossHedging(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionMultiAssetCrossHedgingPortfolios: state.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios ? { ...state.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios } : {},
+    adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes: state.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes ? { ...state.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes || {})) {
+    const votes = newState.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      syndicateId: string;
+      swfYieldCdoId: string;
+      trancheId: "senior" | "mezzanine" | "equity";
+      assets: MultiAssetCrossHedgingAsset[];
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        // Create a unique key based on assets, syndicateId, swfYieldCdoId, trancheId
+        const sortedAssets = [...vote.assets].sort((a, b) => {
+          const keyA = `${a.correlatedAssetId}::${a.correlatedTrancheId}`;
+          const keyB = `${b.correlatedAssetId}::${b.correlatedTrancheId}`;
+          return keyA.localeCompare(keyB);
+        });
+        const assetStr = sortedAssets.map(a => `${a.correlatedAssetId}::${a.correlatedTrancheId}::${a.correlationCoefficient}::${a.hedgeWeight}`).join("||");
+        const key = `${vote.syndicateId}::${vote.swfYieldCdoId}::${vote.trancheId}::${assetStr}`;
+        
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            syndicateId: vote.syndicateId,
+            swfYieldCdoId: vote.swfYieldCdoId,
+            trancheId: vote.trancheId,
+            assets: vote.assets,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const policyKey = `${group.syndicateId}_${group.swfYieldCdoId}_${group.trancheId}`;
+        const riskDiversificationCoefficient = calculateRiskDiversificationCoefficient(group.assets);
+        
+        newState.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios![policyKey] = {
+          syndicateId: group.syndicateId,
+          swfYieldCdoId: group.swfYieldCdoId,
+          trancheId: group.trancheId,
+          assets: group.assets,
+          riskDiversificationCoefficient,
+          timestamp: Math.max(...group.timestamps, newState.step),
+        };
+
+        delete newState.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes[syndicateId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Multi-Asset Cross Hedging Adjusted] Syndicate ${syndicateId} adjusted multi-asset cross-hedging portfolio for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Diversification Coefficient: ${riskDiversificationCoefficient.toFixed(4)}, Assets Count: ${group.assets.length}).`
         );
       }
     }

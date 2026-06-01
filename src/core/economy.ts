@@ -5089,10 +5089,72 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             }
           }
 
-          // Dynamic Cross-Hedging (AF-161)
+          // Dynamic Cross-Hedging (AF-161 & AF-162)
           const crossPolicyKey = `${syndicateId}_${opt.swfYieldCdoId}_${opt.trancheId}`;
+          const multiCrossPolicy = newState.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios?.[crossPolicyKey];
           const crossPolicy = newState.swfReinsuranceOptionCrossHedgingPolicies?.[crossPolicyKey];
-          if (crossPolicy) {
+
+          if (multiCrossPolicy && multiCrossPolicy.assets && multiCrossPolicy.assets.length > 0) {
+            const spotRate = getCDOTrancheReinsurancePremiumRate(newState, opt.swfYieldCdoId, opt.trancheId);
+            let delta = 0.5;
+            if (opt.optionType === "call") {
+              delta = 1.0 / (1.0 + Math.exp(-(spotRate - opt.strikePremiumRate) * 50.0));
+            } else {
+              delta = 1.0 / (1.0 + Math.exp(-(opt.strikePremiumRate - spotRate) * 50.0));
+            }
+
+            for (const asset of multiCrossPolicy.assets) {
+              const targetHolding = Math.floor(
+                delta * opt.size * asset.correlationCoefficient * asset.hedgeWeight
+              );
+
+              if (newState.swfYieldCDOs && newState.swfYieldCDOs[asset.correlatedAssetId]) {
+                const corrCdo = newState.swfYieldCDOs[asset.correlatedAssetId];
+                const corrTranche = corrCdo.tranches[asset.correlatedTrancheId];
+
+                if (corrTranche) {
+                  const currentHolding = corrTranche.ownership[syndicateId] ?? 0;
+                  const difference = targetHolding - currentHolding;
+
+                  const corrSpotRate = getCDOTrancheReinsurancePremiumRate(
+                    newState,
+                    asset.correlatedAssetId,
+                    asset.correlatedTrancheId
+                  );
+                  const sharePrice = Math.max(10, Math.floor(100.0 * (1.0 + corrSpotRate)));
+
+                  if (difference > 0) {
+                    const cost = difference * sharePrice;
+                    const syndicate = newState.syndicates?.[syndicateId];
+                    if (syndicate && (syndicate.warChest ?? 0) >= cost) {
+                      syndicate.warChest = (syndicate.warChest ?? 0) - cost;
+                      corrTranche.ownership[syndicateId] = currentHolding + difference;
+
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[Multi-Asset Cross Hedging Rebalancing] Syndicate ${syndicateId} purchased ${difference} correlated CDO ${asset.correlatedAssetId} tranche ${asset.correlatedTrancheId} yield tokens at ${sharePrice} gold/share to cross-hedge option ${optId} on CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId} (Target Correlated: ${targetHolding} shares).`
+                      );
+                    }
+                  } else if (difference < 0) {
+                    const sharesToSell = Math.min(-difference, currentHolding);
+                    if (sharesToSell > 0) {
+                      const revenue = sharesToSell * sharePrice;
+                      const syndicate = newState.syndicates?.[syndicateId];
+                      if (syndicate) {
+                        syndicate.warChest = (syndicate.warChest ?? 0) + revenue;
+                        corrTranche.ownership[syndicateId] = currentHolding - sharesToSell;
+
+                        if (!newState.journal) newState.journal = [];
+                        newState.journal.push(
+                          `[Multi-Asset Cross Hedging Rebalancing] Syndicate ${syndicateId} sold ${sharesToSell} correlated CDO ${asset.correlatedAssetId} tranche ${asset.correlatedTrancheId} yield tokens at ${sharePrice} gold/share to cross-hedge option ${optId} on CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId}.`
+                        );
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } else if (crossPolicy) {
             const spotRate = getCDOTrancheReinsurancePremiumRate(newState, opt.swfYieldCdoId, opt.trancheId);
             let delta = 0.5;
             if (opt.optionType === "call") {
@@ -6186,6 +6248,28 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         const feeA = Math.max(0, baseFee - subsidy);
         const feeB = Math.max(0, baseFee - subsidy);
 
+        // AF-162: Risk-adjusted transaction fee scaling based on portfolio risk-diversification coefficients
+        let buyerDivStr = "";
+        let sellerDivStr = "";
+        
+        let finalFeeA = feeA;
+        const buyerPortKey = `${buyOrder.syndicateId}_${buyOrder.swfYieldCdoId}_${buyOrder.trancheId}`;
+        const buyerPortfolio = newState.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios?.[buyerPortKey];
+        if (buyerPortfolio) {
+          const divCoef = buyerPortfolio.riskDiversificationCoefficient;
+          finalFeeA = Math.max(0, Math.round(feeA * (1.0 - 0.5 * divCoef)));
+          buyerDivStr = ` (Multi-Asset Diversification: ${divCoef.toFixed(4)})`;
+        }
+        
+        let finalFeeB = feeB;
+        const sellerPortKey = `${sellOrder.syndicateId}_${buyOrder.swfYieldCdoId}_${buyOrder.trancheId}`;
+        const sellerPortfolio = newState.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios?.[sellerPortKey];
+        if (sellerPortfolio) {
+          const divCoef = sellerPortfolio.riskDiversificationCoefficient;
+          finalFeeB = Math.max(0, Math.round(feeB * (1.0 - 0.5 * divCoef)));
+          sellerDivStr = ` (Multi-Asset Diversification: ${divCoef.toFixed(4)})`;
+        }
+
         // Calculate mid-market price and dynamic market maker rebate rates (AF-155)
         const buyPrices = openOrdersForTranche.filter(o => o.orderType === "buy").map(o => o.limitPrice / o.size);
         const sellPrices = openOrdersForTranche.filter(o => o.orderType === "sell").map(o => o.limitPrice / o.size);
@@ -6211,10 +6295,10 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         const rebateAmount = Math.round(finalPrice * rebateRate);
 
         // Check buyer warChest
-        if ((buyer.warChest ?? 0) < finalPrice + feeA) {
+        if ((buyer.warChest ?? 0) < finalPrice + finalFeeA) {
           continue; // Buyer doesn't have enough gold, skip this match
         }
-        if ((seller.warChest ?? 0) + finalPrice < feeB) {
+        if ((seller.warChest ?? 0) + finalPrice < finalFeeB) {
           continue;
         }
 
@@ -6276,8 +6360,8 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         }
 
         // Transfer gold using final price, deduct transaction fees, and apply rebate (AF-155)
-        let netBuyerDiff = -finalPrice - feeA;
-        let netSellerDiff = finalPrice - feeB;
+        let netBuyerDiff = -finalPrice - finalFeeA;
+        let netSellerDiff = finalPrice - finalFeeB;
         if (makerIsBuy) {
           netBuyerDiff += rebateAmount;
         } else {
@@ -6320,7 +6404,7 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         );
 
         newState.journal.push(
-          `[SWF Reinsurance Option Trade Fees] Buyer Fee: ${feeA} gold, Seller Fee: ${feeB} gold (Base: ${baseFee} gold, Subsidy: ${subsidy} gold, Standing: ${standing}).`
+          `[SWF Reinsurance Option Trade Fees] Buyer Fee: ${finalFeeA} gold${buyerDivStr}, Seller Fee: ${finalFeeB} gold${sellerDivStr} (Base: ${baseFee} gold, Subsidy: ${subsidy} gold, Standing: ${standing}).`
         );
 
         if (rebateAmount > 0) {

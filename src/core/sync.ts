@@ -9,7 +9,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -33962,6 +33962,152 @@ export function multiAgentStep(
         correlatedTrancheId,
         correlationCoefficient,
         hedgeWeight,
+        timestamp,
+        isConsensusReached,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle ADJUST_SWF_REINSURANCE_OPTION_MULTI_ASSET_CROSS_HEDGING_PORTFOLIO action (AF-162)
+  if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_MULTI_ASSET_CROSS_HEDGING_PORTFOLIO") {
+    const { syndicateId, swfYieldCdoId, trancheId, assets, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const cdo = state.swfYieldCDOs?.[swfYieldCdoId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!swfYieldCdoId) {
+      rejectionReason = `CDO ID is required.`;
+    } else if (!trancheId || !["senior", "mezzanine", "equity"].includes(trancheId)) {
+      rejectionReason = `Valid tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (!assets || !Array.isArray(assets) || assets.length === 0) {
+      rejectionReason = `Non-empty correlated assets list is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!cdo) {
+      rejectionReason = `CDO ${swfYieldCdoId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      let assetsOk = true;
+      for (const asset of assets) {
+        const corrCdo = state.swfYieldCDOs?.[asset.correlatedAssetId];
+        if (!asset.correlatedAssetId) {
+          rejectionReason = `Correlated asset ID is required.`;
+          assetsOk = false;
+          break;
+        } else if (!asset.correlatedTrancheId || !["senior", "mezzanine", "equity"].includes(asset.correlatedTrancheId)) {
+          rejectionReason = `Valid correlated tranche ID (senior, mezzanine, equity) is required.`;
+          assetsOk = false;
+          break;
+        } else if (asset.correlationCoefficient === undefined || asset.correlationCoefficient < -1.0 || asset.correlationCoefficient > 1.0) {
+          rejectionReason = `Correlation coefficient must be between -1.0 and 1.0.`;
+          assetsOk = false;
+          break;
+        } else if (asset.hedgeWeight === undefined || asset.hedgeWeight < 0) {
+          rejectionReason = `Hedge weight must be non-negative.`;
+          assetsOk = false;
+          break;
+        } else if (!corrCdo) {
+          rejectionReason = `Correlated CDO ${asset.correlatedAssetId} does not exist.`;
+          assetsOk = false;
+          break;
+        }
+      }
+      if (assetsOk) {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes = { ...(state.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes || {}) };
+      if (!adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes[syndicateId]) {
+        adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes[syndicateId] = {};
+      }
+      adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes[syndicateId][agentId] = {
+        syndicateId,
+        swfYieldCdoId,
+        trancheId,
+        assets,
+        timestamp,
+      };
+      newState.adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes = adjustSWFReinsuranceOptionMultiAssetCrossHedgingVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFReinsuranceOptionMultiAssetCrossHedging(newState, pack);
+
+      const policyKey = `${syndicateId}_${swfYieldCdoId}_${trancheId}`;
+      const isConsensusReached = newState.swfReinsuranceOptionMultiAssetCrossHedgingPortfolios?.[policyKey]?.timestamp === Math.max(timestamp, newState.step);
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Reinsurance Option Multi-Asset Cross Hedging Vote] Agent ${agentId} voted to adjust multi-asset cross-hedging portfolio for CDO ${swfYieldCdoId} tranche ${trancheId} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🗳️ SWF Reinsurance Option multi-asset cross-hedging portfolio vote cast by ${agentId} for Syndicate ${syndicateId} (CDO: ${swfYieldCdoId}, Tranche: ${trancheId}).`,
+      } as any);
+
+      customEvents.push({
+        type: "adjust_swf_reinsurance_option_multi_asset_cross_hedging_portfolio_voted" as any,
+        syndicateId,
+        agentId,
+        swfYieldCdoId,
+        trancheId,
+        assets,
         timestamp,
         isConsensusReached,
       });
