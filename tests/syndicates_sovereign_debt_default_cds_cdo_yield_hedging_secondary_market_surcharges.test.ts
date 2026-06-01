@@ -441,4 +441,261 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(log).toContain("25 gold compounded into senior tranche margin collateral");
     expect(log).toContain("surcharge rate: 5.00%");
   });
+
+  it("should propose, vote, and apply faction standing-gated discounts to reduce dynamic MM surcharges when NOT auto-compounded during defaults (AF-254)", () => {
+    let state = setupState();
+
+    // 1. Propose policy with surcharge faction standing discounts
+    let res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "surcharge_policy_standing_discount",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        spreadPenaltyMultiplier: 2.0,
+        spreadPenaltyThresholdPercent: 0.20,
+        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
+        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent (<= 1.0)
+        marketMakerSurchargeAutoCompound: false,
+        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.30 }, // 30% discount for rangers faction
+        timestamp: 1100,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Verify fields on proposal
+    const prop = state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals?.surcharge_policy_standing_discount;
+    expect(prop).toBeDefined();
+    expect(prop!.marketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+
+    // 2. Vote to authorize
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "surcharge_policy_standing_discount",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1150,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+    pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
+
+    // Setup active default alert for target syndicate (beta)
+    state.sovereignDebtDefaultAlerts = {
+      alert_1: {
+        alertId: "alert_1",
+        targetSyndicateId: "beta",
+        status: "authorized",
+        resolved: false,
+        timestamp: 1200,
+      } as any,
+    };
+
+    // Set seller standing with rangers to 80 (>= 50 means allied)
+    state.factionRep = {
+      ...state.factionRep,
+      rangers: 80,
+    };
+
+    // Setup active option contract
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        coverageAmount: 1000,
+        premiumPaid: 100,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: state.step + 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Create listing for the option from alpha (ask 1200 gold)
+    state.cdsCdoYieldHedgingOptionListings = {
+      listing_1: {
+        listingId: "listing_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    // Create matching bid from beta (bid 1200 gold)
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_1: {
+        bidId: "bid_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    // Dynamic Liquidity Floor is 1000. Threshold is 100%, so critical threshold is 2000.
+    // Set vault balance to 1500 (below 2000, but >= floor so trading is allowed).
+    // Deficit is 25% drop below critical threshold.
+    // Base surcharge is 10%, so scaled surcharge is 10% * 25% = 2.5% (0.025).
+    // Raw surcharge is 1200 * 0.025 = 30 gold.
+    // Scaled down by 30% (cappedMMDiscount = 0.30): 30 * (1 - 0.30) = 21 gold.
+    // standard fee = 1200 * 0.05 = 60 gold.
+    // Proposer alpha pays 125 gold proposal/vote fees.
+    // alpha net warChest: 20000 + 1200 - 60 (standard fee) - 21 (surcharge) - 125 + 1700 = 22694 gold.
+    // beta pays 1200 gold.
+    // Vault balance receives 21 gold: 1500 + 21 = 1521 gold.
+    pool!.fractionalizedVault.balance = 1500;
+
+    const newState = tickEconomy(state, mockPack);
+
+    expect(newState.syndicates!.beta.warChest).toBe(19800);
+    expect(newState.syndicates!.alpha.warChest).toBe(22694); // receives 1200 - 60 fee - 21 surcharge + 1700 coupons - 125 proposal/vote fees
+    expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.fractionalizedVault.balance).toBe(1521);
+
+    // Assert journal contains discounted surcharge info
+    const log = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    expect(log).toBeDefined();
+    expect(log).toContain("Dynamic MM Liquidity Surcharge");
+    expect(log).toContain("21 gold deposited to vault [Discounted: 30%]");
+  });
+
+  it("should propose, vote, and apply faction standing-gated boosts to compounding yield allocations when auto-compounding IS enabled during defaults (AF-254)", () => {
+    let state = setupState();
+
+    // 1. Propose policy with surcharge faction standing discounts and auto-compounding
+    let res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "surcharge_policy_standing_boost",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        spreadPenaltyMultiplier: 2.0,
+        spreadPenaltyThresholdPercent: 0.20,
+        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
+        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent (<= 1.0)
+        marketMakerSurchargeAutoCompound: true,
+        marketMakerSurchargeCompoundTrancheId: "senior",
+        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.40 }, // 40% boost for rangers faction
+        timestamp: 1100,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Verify fields on proposal
+    const prop = state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals?.surcharge_policy_standing_boost;
+    expect(prop).toBeDefined();
+    expect(prop!.marketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.40 });
+
+    // 2. Vote to authorize
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "surcharge_policy_standing_boost",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1150,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.40 });
+    pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
+
+    // Setup active default alert for target syndicate (beta)
+    state.sovereignDebtDefaultAlerts = {
+      alert_1: {
+        alertId: "alert_1",
+        targetSyndicateId: "beta",
+        status: "authorized",
+        resolved: false,
+        timestamp: 1200,
+      } as any,
+    };
+
+    // Set seller standing with rangers to 80 (>= 50 means allied)
+    state.factionRep = {
+      ...state.factionRep,
+      rangers: 80,
+    };
+
+    // Setup active option contract
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        coverageAmount: 1000,
+        premiumPaid: 100,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: state.step + 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Create listing for the option from alpha (ask 1200 gold)
+    state.cdsCdoYieldHedgingOptionListings = {
+      listing_1: {
+        listingId: "listing_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    // Create matching bid from beta (bid 1200 gold)
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_1: {
+        bidId: "bid_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    // Dynamic Liquidity Floor is 1000. Threshold is 100%, so critical threshold is 2000.
+    // Set vault balance to 1500 (below 2000, but >= floor so trading is allowed).
+    // Deficit is 25% drop.
+    // Base surcharge is 10%, so scaled surcharge is 10% * 25% = 2.5% (0.025).
+    // Raw surcharge paid by seller: 1200 * 0.025 = 30 gold.
+    // Compounded allocation boosted by 40% (cappedMMDiscount = 0.40): 30 * 1.40 = 42 gold.
+    // alpha net warChest: 20000 + 1200 - 60 (standard fee) - 30 (surcharge) - 125 + 1700 = 22685 gold.
+    // Senior tranche margin collateral for alpha increases from 3000 by 42 gold to 3042 gold.
+    // Vault balance remains at 1500 gold.
+    pool!.fractionalizedVault.balance = 1500;
+
+    const newState = tickEconomy(state, mockPack);
+
+    expect(newState.syndicates!.beta.warChest).toBe(19800);
+    expect(newState.syndicates!.alpha.warChest).toBe(22685); // receives 1200 - 60 fee - 30 surcharge + 1700 coupons - 125 proposal/vote fees
+    expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.fractionalizedVault.balance).toBe(1500);
+    expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.tranches.senior.marginCollateral?.alpha).toBe(3042);
+
+    // Assert journal contains boosted surcharge info
+    const log = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    expect(log).toBeDefined();
+    expect(log).toContain("Dynamic MM Liquidity Surcharge");
+    expect(log).toContain("30 gold paid, 42 gold compounded into senior tranche margin collateral [Boosted: 40%]");
+  });
 });
+

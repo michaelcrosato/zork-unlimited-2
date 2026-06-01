@@ -8044,7 +8044,40 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               }
             }
 
-            sellerSynd.warChest = (sellerSynd.warChest ?? 0) + tradePrice - feeAmount - mmSurchargeAmount;
+            // Apply Faction Standing-Gated Discount Scaling (AF-254)
+            let mmDiscount = 0;
+            const poolCDSs = Object.values(newState.sovereignDebtCDSContracts || {}).filter(c => c.cdoId === cdoId);
+            const targetSyndicates = poolCDSs.map(c => c.targetSyndicateId);
+            const alertActive = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
+              (alert: any) => targetSyndicates.includes(alert.targetSyndicateId) && alert.status === "authorized" && !alert.resolved
+            );
+
+            if (alertActive && pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts) {
+              for (const [factionId, discount] of Object.entries(pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts)) {
+                const standing = getSyndicateFactionStanding(newState as GameState, sellerSyndicateId, factionId);
+                const isAllied = isFactionAlliedToSyndicate(newState as GameState, sellerSyndicateId, factionId) || standing >= 50;
+                if (isAllied) {
+                  mmDiscount += discount;
+                }
+              }
+            }
+
+            const cappedMMDiscount = Math.min(1.0, mmDiscount);
+            let finalMMSurchargeAmount = mmSurchargeAmount;
+            let finalCompoundedAmount = mmSurchargeAmount;
+
+            if (cappedMMDiscount > 0 && mmSurchargeAmount > 0) {
+              if (pool.yieldHedgingOptionMarketMakerSurchargeAutoCompound) {
+                // Boost compounding margin allocations
+                finalCompoundedAmount = Math.round(mmSurchargeAmount * (1.0 + cappedMMDiscount));
+              } else {
+                // Reduce dynamic surcharge
+                finalMMSurchargeAmount = Math.round(mmSurchargeAmount * (1.0 - cappedMMDiscount));
+                finalCompoundedAmount = finalMMSurchargeAmount;
+              }
+            }
+
+            sellerSynd.warChest = (sellerSynd.warChest ?? 0) + tradePrice - feeAmount - finalMMSurchargeAmount;
             bidderSynd.warChest = Math.max(0, (bidderSynd.warChest ?? 0) - tradePrice);
 
             // Distribute dividends
@@ -8062,7 +8095,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
                 compoundedTrancheId = pool.yieldHedgingOptionMarketMakerSurchargeCompoundTrancheId;
                 const tranche = pool.tranches[compoundedTrancheId as "senior" | "mezzanine" | "equity"];
                 const collMap = { ...(tranche.marginCollateral || {}) };
-                const newColl = (collMap[sellerSyndicateId] ?? 0) + mmSurchargeAmount;
+                const newColl = (collMap[sellerSyndicateId] ?? 0) + finalCompoundedAmount;
                 collMap[sellerSyndicateId] = newColl;
                 tranche.marginCollateral = collMap;
                 tranche.timestamp = newState.step;
@@ -8080,7 +8113,7 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               } else {
                 pool.fractionalizedVault = {
                   ...pool.fractionalizedVault,
-                  balance: (pool.fractionalizedVault.balance ?? 0) + mmSurchargeAmount,
+                  balance: (pool.fractionalizedVault.balance ?? 0) + finalMMSurchargeAmount,
                   timestamp: newState.step,
                 };
               }
@@ -8100,8 +8133,8 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
             const surchargeLog = mmSurchargeAmount > 0
               ? (isCompounded
-                ? ` (Dynamic MM Liquidity Surcharge: ${mmSurchargeAmount} gold compounded into ${compoundedTrancheId} tranche margin collateral, surcharge rate: ${(effectiveMMSurcharge * 100).toFixed(2)}%)`
-                : ` (Dynamic MM Liquidity Surcharge: ${mmSurchargeAmount} gold deposited to vault, surcharge rate: ${(effectiveMMSurcharge * 100).toFixed(2)}%)`)
+                ? ` (Dynamic MM Liquidity Surcharge: ${mmSurchargeAmount} gold paid, ${finalCompoundedAmount} gold compounded into ${compoundedTrancheId} tranche margin collateral${cappedMMDiscount > 0 ? ` [Boosted: ${(cappedMMDiscount * 100).toFixed(0)}%]` : ""}, surcharge rate: ${(effectiveMMSurcharge * 100).toFixed(2)}%)`
+                : ` (Dynamic MM Liquidity Surcharge: ${finalMMSurchargeAmount} gold deposited to vault${cappedMMDiscount > 0 ? ` [Discounted: ${(cappedMMDiscount * 100).toFixed(0)}%]` : ""}, surcharge rate: ${(effectiveMMSurcharge * 100).toFixed(2)}%)`)
               : "";
 
             if (!newState.journal) newState.journal = [];

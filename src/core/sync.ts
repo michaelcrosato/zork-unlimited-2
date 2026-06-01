@@ -50695,7 +50695,7 @@ export function multiAgentStep(
 
   // Handle PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY action (AF-247)
   if ((action as any).type === "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY") {
-    const { proposalId, cdoId, syndicateId, spreadPenaltyMultiplier, spreadPenaltyThresholdPercent, factionStandingDiscounts, spreadPenaltyCapMultiplier, marketMakerSurchargeRate, marketMakerSurchargeThresholdPercent, marketMakerSurchargeAutoCompound, marketMakerSurchargeCompoundTrancheId, timestamp } = action as any;
+    const { proposalId, cdoId, syndicateId, spreadPenaltyMultiplier, spreadPenaltyThresholdPercent, factionStandingDiscounts, spreadPenaltyCapMultiplier, marketMakerSurchargeRate, marketMakerSurchargeThresholdPercent, marketMakerSurchargeAutoCompound, marketMakerSurchargeCompoundTrancheId, marketMakerSurchargeFactionStandingDiscounts, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -50747,6 +50747,8 @@ export function multiAgentStep(
       rejectionReason = `Valid market maker surcharge compound tranche ID must be 'senior', 'mezzanine', or 'equity'.`;
     } else if (factionStandingDiscounts !== undefined && (typeof factionStandingDiscounts !== "object" || factionStandingDiscounts === null || Object.entries(factionStandingDiscounts).some(([k, v]) => typeof k !== "string" || k === "" || typeof v !== "number" || v < 0 || v > 1))) {
       rejectionReason = `Valid faction standing discounts are required.`;
+    } else if (marketMakerSurchargeFactionStandingDiscounts !== undefined && (typeof marketMakerSurchargeFactionStandingDiscounts !== "object" || marketMakerSurchargeFactionStandingDiscounts === null || Object.entries(marketMakerSurchargeFactionStandingDiscounts).some(([k, v]) => typeof k !== "string" || k === "" || typeof v !== "number" || v < 0 || v > 1))) {
+      rejectionReason = `Valid market maker surcharge standing discounts are required.`;
     } else if (!pool) {
       rejectionReason = `CDO pool ${cdoId} does not exist.`;
     } else if (!syndicate) {
@@ -50789,6 +50791,7 @@ export function multiAgentStep(
         marketMakerSurchargeThresholdPercent,
         marketMakerSurchargeAutoCompound,
         marketMakerSurchargeCompoundTrancheId,
+        marketMakerSurchargeFactionStandingDiscounts,
         status: "proposed",
         resolved: false,
         proposerId: agentId,
