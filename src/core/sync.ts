@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -12597,6 +12597,132 @@ export function multiAgentStep(
         remainingInterest: newJointLoan.interestAccrued,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_JOINT_REFINANCING action (AF-92)
+  if ((action as any).type === "PROPOSE_JOINT_REFINANCING") {
+    const { groupId, newDueStep, newInterestRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const jointLoan = state.jointLoans?.[groupId];
+    const syndicate = jointLoan ? state.syndicates?.[jointLoan.syndicateId] : undefined;
+    const bank = jointLoan ? state.syndicateBanks?.[jointLoan.syndicateId] : undefined;
+
+    if (!groupId) {
+      rejectionReason = `Group ID is required to propose joint loan refinancing.`;
+    } else if (newDueStep === undefined || newDueStep <= 0 || !Number.isInteger(newDueStep)) {
+      rejectionReason = `New due step must be a positive integer.`;
+    } else if (newInterestRate === undefined || newInterestRate < 0 || !Number.isInteger(newInterestRate)) {
+      rejectionReason = `New interest rate must be a non-negative integer.`;
+    } else if (!jointLoan) {
+      rejectionReason = `Joint loan group ${groupId} does not exist or has no active loan.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${jointLoan.syndicateId} does not exist.`;
+    } else if (!bank) {
+      rejectionReason = `Syndicate bank for ${jointLoan.syndicateId} is not established.`;
+    } else if (!jointLoan.members.includes(agentId) && !syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of the joint loan group or the syndicate bank, and cannot vote on refinancing.`;
+    } else if (newDueStep <= jointLoan.borrowStep) {
+      rejectionReason = `Proposed due step ${newDueStep} must be after joint loan borrow step ${jointLoan.borrowStep}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && jointLoan) {
+      const jointLoanRefinancingVotes = { ...(state.jointLoanRefinancingVotes || {}) };
+      if (!jointLoanRefinancingVotes[groupId]) {
+        jointLoanRefinancingVotes[groupId] = {};
+      } else {
+        jointLoanRefinancingVotes[groupId] = { ...jointLoanRefinancingVotes[groupId] };
+      }
+
+      const existingVote = jointLoanRefinancingVotes[groupId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        jointLoanRefinancingVotes[groupId][agentId] = {
+          newDueStep,
+          newInterestRate,
+          timestamp,
+        };
+        newState.jointLoanRefinancingVotes = jointLoanRefinancingVotes;
+        newState = reconcileJointLoanRefinancings(newState, pack);
+
+        const updatedLoan = newState.jointLoans?.[groupId];
+        const currentDue = updatedLoan?.dueStep ?? newDueStep;
+        const currentRate = updatedLoan?.refinancedInterestRate ?? newInterestRate;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Syndicate Bank] Agent ${agentId} voted for refinancing joint loan ${groupId} (New consensus due: ${currentDue}, rate: ${currentRate}%).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Joint loan refinancing vote cast by ${agentId} for loan ${groupId} (Due step: ${newDueStep}, interest rate: ${newInterestRate}%).`,
+        } as any);
+
+        customEvents.push({
+          type: "joint_loan_refinancing_proposed" as any,
+          groupId,
+          agentId,
+          newDueStep,
+          newInterestRate,
+          timestamp,
+        });
+      }
     }
 
     newState.step += 1;

@@ -117,7 +117,8 @@ export type Action =
   | { type: "DECLARE_CARTEL_BANKRUPTCY"; syndicateId: string; timestamp: number }
   | { type: "PROPOSE_DEBT_SETTLEMENT"; syndicateId: string; targetAgentId: string; settlementAmount: number; timestamp: number }
   | { type: "PROPOSE_JOINT_LOAN"; groupId: string; syndicateId: string; members: string[]; collaterals: { agentId: string; collateralType: "safehouse" | "outpost"; collateralId: string }[]; amount: number; timestamp: number }
-  | { type: "PAYBACK_JOINT_LOAN"; groupId: string; amount: number; timestamp: number };
+  | { type: "PAYBACK_JOINT_LOAN"; groupId: string; amount: number; timestamp: number }
+  | { type: "PROPOSE_JOINT_REFINANCING"; groupId: string; newDueStep: number; newInterestRate: number; timestamp: number };
 
 
 

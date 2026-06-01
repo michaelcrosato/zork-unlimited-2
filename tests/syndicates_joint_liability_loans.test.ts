@@ -502,4 +502,139 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     expect(merged.jointLoans?.loan1.amount).toBe(150);
     expect(merged.jointLoans?.loan1.timestamp).toBe(1050);
   });
+
+  it("should handle decentralized PROPOSE_JOINT_REFINANCING, require majority approval from group members and syndicate bank members, and update active loan terms", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 100, gold_alice: 100 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        dominance: 50,
+      },
+    };
+
+    state.syndicateBanks = {
+      blood_fangs: {
+        syndicateId: "blood_fangs",
+        balances: {},
+        timestamp: 1000,
+      },
+    };
+
+    state.jointLoans = {
+      jgroup1: {
+        id: "jgroup1",
+        syndicateId: "blood_fangs",
+        members: ["player", "alice"],
+        collaterals: [],
+        amount: 500,
+        interestAccrued: 0,
+        borrowStep: 1,
+        dueStep: 10,
+        timestamp: 1000
+      }
+    };
+
+    // 1. Group member 'player' proposes refinancing
+    // Group members = ['player', 'alice'] (size 2). Group majority threshold is > 1.
+    // Syndicate members = ['player', 'alice', 'bob'] (size 3). Bank majority threshold is > 1.5.
+    const action1 = {
+      type: "PROPOSE_JOINT_REFINANCING",
+      groupId: "jgroup1",
+      newDueStep: 30,
+      newInterestRate: 2,
+      timestamp: 1010
+    };
+
+    let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
+    expect(res1.ok).toBe(true);
+    // Loan terms shouldn't be updated yet because we don't have a majority approval
+    expect(res1.state.jointLoans?.jgroup1.dueStep).toBe(10);
+    expect(res1.state.jointLoans?.jgroup1.refinancedInterestRate).toBeUndefined();
+    expect(res1.state.jointLoanRefinancingVotes?.jgroup1?.player).toBeDefined();
+
+    // 2. Non-member 'bob' tries to vote but bob is in syndicate (so he represents the bank).
+    // Bob votes. Since Bob is not in the group, his vote counts towards the bank majority, but not group majority.
+    const action2 = {
+      type: "PROPOSE_JOINT_REFINANCING",
+      groupId: "jgroup1",
+      newDueStep: 30,
+      newInterestRate: 2,
+      timestamp: 1015
+    };
+
+    let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
+    expect(res2.ok).toBe(true);
+    expect(res2.state.jointLoans?.jgroup1.dueStep).toBe(10); // still not approved
+
+    // 3. Group member 'alice' votes. Alice is also in syndicate.
+    // Group votes for (30, 2): ['player', 'alice'] (size 2 > group threshold of 1) -> Group approved!
+    // Bank votes for (30, 2): ['player', 'bob', 'alice'] (size 3 > bank threshold of 1.5) -> Bank approved!
+    // Now both approved! Restructured terms are applied.
+    const action3 = {
+      type: "PROPOSE_JOINT_REFINANCING",
+      groupId: "jgroup1",
+      newDueStep: 30,
+      newInterestRate: 2,
+      timestamp: 1020
+    };
+
+    let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
+    expect(res3.ok).toBe(true);
+    // Loan terms must be updated now!
+    expect(res3.state.jointLoans?.jgroup1.dueStep).toBe(30);
+    expect(res3.state.jointLoans?.jgroup1.refinancedInterestRate).toBe(2);
+    // Votes must be cleared on consensus resolution
+    expect(res3.state.jointLoanRefinancingVotes?.jgroup1).toBeUndefined();
+  });
+
+  it("should merge jointLoanRefinancingVotes and reconcile terms across Gossip synchronization", () => {
+    let stateA = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateA.jointLoanRefinancingVotes = {
+      jgroup1: {
+        player: {
+          newDueStep: 30,
+          newInterestRate: 2,
+          timestamp: 1050,
+        }
+      }
+    };
+
+    let stateB = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: {},
+      agentsInit: ["player"],
+    });
+
+    stateB.jointLoanRefinancingVotes = {
+      jgroup1: {
+        player: {
+          newDueStep: 20,
+          newInterestRate: 5,
+          timestamp: 1020, // older vote
+        }
+      }
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.jointLoanRefinancingVotes?.jgroup1?.player.timestamp).toBe(1050);
+    expect(merged.jointLoanRefinancingVotes?.jgroup1?.player.newDueStep).toBe(30);
+    expect(merged.jointLoanRefinancingVotes?.jgroup1?.player.newInterestRate).toBe(2);
+  });
 });

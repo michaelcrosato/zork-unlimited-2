@@ -996,6 +996,7 @@ export const GameStateSchema = z.object({
   debtSettlementVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), DebtSettlementVoteSchema))).optional(),
   jointLoanProposals: z.record(z.string(), JointLoanProposalSchema).optional(),
   jointLoans: z.record(z.string(), JointLoanSchema).optional(),
+  jointLoanRefinancingVotes: z.record(z.string(), z.record(z.string(), LoanRefinancingVoteSchema)).optional(),
 });
 
 
@@ -1855,6 +1856,12 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     depositInsurance: rest.depositInsurance ? JSON.parse(JSON.stringify(rest.depositInsurance)) : undefined,
     creditRatings: rest.creditRatings ? { ...rest.creditRatings } : undefined,
     defaultAlerts: rest.defaultAlerts ? JSON.parse(JSON.stringify(rest.defaultAlerts)) : undefined,
+    loanRefinancingVotes: rest.loanRefinancingVotes ? JSON.parse(JSON.stringify(rest.loanRefinancingVotes)) : undefined,
+    debtSettlementVotes: rest.debtSettlementVotes ? JSON.parse(JSON.stringify(rest.debtSettlementVotes)) : undefined,
+    jointLoanProposals: rest.jointLoanProposals ? JSON.parse(JSON.stringify(rest.jointLoanProposals)) : undefined,
+    jointLoans: rest.jointLoans ? JSON.parse(JSON.stringify(rest.jointLoans)) : undefined,
+    jointLoanRefinancingVotes: rest.jointLoanRefinancingVotes ? JSON.parse(JSON.stringify(rest.jointLoanRefinancingVotes)) : undefined,
+    creditRecoveries: rest.creditRecoveries ? JSON.parse(JSON.stringify(rest.creditRecoveries)) : undefined,
   };
   return clone;
 }
@@ -2591,4 +2598,98 @@ export function getSyndicateLoanLimit(
   const creditRating = Math.max(0, state.creditRatings?.[agentId] ?? 100);
   return Math.floor(rawLimit * (creditRating / 100));
 }
+
+export function reconcileJointLoanRefinancings(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    jointLoans: state.jointLoans ? { ...state.jointLoans } : {},
+  };
+
+  if (!newState.jointLoanRefinancingVotes) {
+    newState.jointLoanRefinancingVotes = {};
+  }
+
+  const updatedJointLoans = { ...newState.jointLoans };
+  let loansChanged = false;
+
+  for (const [groupId, votes] of Object.entries(newState.jointLoanRefinancingVotes)) {
+    const jointLoan = updatedJointLoans[groupId];
+    if (!jointLoan) continue;
+
+    const syndicate = newState.syndicates[jointLoan.syndicateId];
+    if (!syndicate) continue;
+
+    // Count votes for each (newDueStep, newInterestRate) combination
+    const combinationCounts: Record<string, { newDueStep: number; newInterestRate: number; groupVotes: Set<string>; bankVotes: Set<string> }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      const key = `${vote.newDueStep}_${vote.newInterestRate}`;
+      if (!combinationCounts[key]) {
+        combinationCounts[key] = {
+          newDueStep: vote.newDueStep,
+          newInterestRate: vote.newInterestRate,
+          groupVotes: new Set<string>(),
+          bankVotes: new Set<string>(),
+        };
+      }
+
+      // If voter is in group, count as group vote
+      if (jointLoan.members.includes(voterId)) {
+        combinationCounts[key].groupVotes.add(voterId);
+      }
+
+      // If voter is in syndicate, count as bank vote
+      if (syndicate.members.includes(voterId)) {
+        combinationCounts[key].bankVotes.add(voterId);
+      }
+    }
+
+    // Check if any combination has a majority of group members AND syndicate bank members
+    const groupMajorityThreshold = jointLoan.members.length / 2;
+    const bankMajorityThreshold = syndicate.members.length / 2;
+
+    let fullyApprovedCombination: { newDueStep: number; newInterestRate: number; maxTimestamp: number } | undefined;
+
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.groupVotes.size > groupMajorityThreshold && combo.bankVotes.size > bankMajorityThreshold) {
+        const votersForCombo = [...combo.groupVotes, ...combo.bankVotes];
+        const timestamps = votersForCombo.map(vid => votes[vid]?.timestamp ?? 0);
+        const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : state.step;
+
+        fullyApprovedCombination = {
+          newDueStep: combo.newDueStep,
+          newInterestRate: combo.newInterestRate,
+          maxTimestamp,
+        };
+        break; // Standard majority consensus implies at most one combo can satisfy strict majority of both
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      updatedJointLoans[groupId] = {
+        ...jointLoan,
+        dueStep: fullyApprovedCombination.newDueStep,
+        refinancedInterestRate: fullyApprovedCombination.newInterestRate,
+        timestamp: fullyApprovedCombination.maxTimestamp,
+      };
+      loansChanged = true;
+
+      // Clear the votes so they don't apply again
+      delete newState.jointLoanRefinancingVotes[groupId];
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate Bank] Joint loan ${groupId} has been restructured by consensual majority! New due step: ${fullyApprovedCombination.newDueStep}, new interest rate: ${fullyApprovedCombination.newInterestRate}%.`
+      );
+    }
+  }
+
+  if (loansChanged) {
+    newState.jointLoans = updatedJointLoans;
+  }
+
+  return newState;
+}
+
 

@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #91 (Ready for Cycle #92)
-* **Build/Test Status**: 🟢 PASS (All 425 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #92 (Ready for Cycle #93)
+* **Build/Test Status**: 🟢 PASS (All 427 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -530,17 +530,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Integrate LWW Gossip mesh state reconciliation and sync replication (`AF-91`).
 - [x] Write comprehensive Vitest integration tests asserting limit calculations, approvals, consensual funding, proportional payback/default, and Gossip mesh convergence (`AF-91`).
 
+### Phase 92: Joint-Liability Loan Group Refinancing and Collective Debt Restructuring (Completed)
+- [x] Add joint loan refinancing/restructuring proposal schemas (`AF-92`).
+- [x] Implement `PROPOSE_JOINT_REFINANCING` decentralized consensus action (`AF-92`).
+- [x] Wire restructured due dates and consensual rate modifications to active joint loans (`AF-92`).
+- [x] Write comprehensive Vitest integration tests and merge support (`AF-92`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-92`
-* **Objective**: Joint-Liability Loan Group Refinancing and Collective Debt Restructuring.
-* **Why this matters**: Support collective renegotiation of group loans, where members can propose a joint restructuring of due steps or interest rates (`PROPOSE_JOINT_REFINANCING`), requiring consensual majority approval from all group members and the syndicate bank, propagating the restructured terms seamlessly across the Gossip mesh.
+**Task ID**: `AF-93`
+* **Objective**: Joint-Liability Loan Collateral Substitution and Pro-Rata Collateral Releases.
+* **Why this matters**: Support partial repayment of joint loans where members can request to release specific locked collateral assets early or substitute them with other assets of equal or greater value (`PROPOSE_COLLATERAL_SUBSTITUTION`), requiring majority approval of group members and the syndicate bank to optimize capital efficiency without reducing overall loan security.
 * **Planned Actions**:
-  1. Add joint loan refinancing/restructuring proposal schemas.
-  2. Implement `PROPOSE_JOINT_REFINANCING` decentralized consensus action.
-  3. Wire restructured due dates and consensual rate modifications to active joint loans.
-  4. Write comprehensive Vitest integration tests.
+  1. Add schemas for joint loan collateral substitution proposals.
+  2. Implement `PROPOSE_COLLATERAL_SUBSTITUTION` decentralized action reducer.
+  3. Wire pro-rata collateral release on partial loan paybacks when remaining balance is fully covered by remaining collateral.
+  4. Write robust unit and integration tests.
 
 ---
 
