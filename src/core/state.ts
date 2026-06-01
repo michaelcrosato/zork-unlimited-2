@@ -1830,6 +1830,10 @@ export const MarginAccountSchema = z.object({
   swfStakedFactions: z.record(z.string(), z.number().int().nonnegative()).optional(),
   swfStakingYields: z.record(z.string(), z.number().nonnegative()).optional(),
   swfGracePeriodExtensions: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  swfBondArbitrageEnabled: z.boolean().optional(),
+  swfBondArbitrageTargetPools: z.array(z.string()).optional(),
+  swfBondArbitrageMaxCapital: z.number().int().nonnegative().optional(),
+  swfBondArbitrageMinYieldSpread: z.number().nonnegative().optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -2178,6 +2182,13 @@ export const GameStateSchema = z.object({
     autoWithdrawalEnabled: z.boolean(),
     timestamp: z.number().int(),
   }))).optional(),
+  swfSovereignBondArbitragePolicyVotes: z.record(z.string(), z.record(z.string(), z.object({
+    enabled: z.boolean(),
+    targetPoolIds: z.array(z.string()),
+    maxCapitalAllocated: z.number().int().nonnegative(),
+    minYieldSpread: z.number().nonnegative(),
+    timestamp: z.number().int(),
+  }))).optional(),
   swfStakingPolicyVotes: z.record(z.string(), z.record(z.string(), z.object({
     enabled: z.boolean(),
     stakedFactions: z.record(z.string(), z.number().int().nonnegative().max(100)),
@@ -2470,6 +2481,7 @@ export const createInitialState = (options: {
     swfMarginRehypothecationRevokeVotes: {},
     swfMarginRebalancingPolicyVotes: {},
     swfYieldArbitragePolicyVotes: {},
+    swfSovereignBondArbitragePolicyVotes: {},
     swfStakingPolicyVotes: {},
     swfRebalancingAdvisorVotes: {},
     swfAdvisorSafetyThresholdVotes: {},
@@ -3314,6 +3326,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfMarginRehypothecationRevokeVotes: rest.swfMarginRehypothecationRevokeVotes ? JSON.parse(JSON.stringify(rest.swfMarginRehypothecationRevokeVotes)) : undefined,
     swfMarginRebalancingPolicyVotes: rest.swfMarginRebalancingPolicyVotes ? JSON.parse(JSON.stringify(rest.swfMarginRebalancingPolicyVotes)) : undefined,
     swfYieldArbitragePolicyVotes: rest.swfYieldArbitragePolicyVotes ? JSON.parse(JSON.stringify(rest.swfYieldArbitragePolicyVotes)) : undefined,
+    swfSovereignBondArbitragePolicyVotes: rest.swfSovereignBondArbitragePolicyVotes ? JSON.parse(JSON.stringify(rest.swfSovereignBondArbitragePolicyVotes)) : undefined,
     swfStakingPolicyVotes: rest.swfStakingPolicyVotes ? JSON.parse(JSON.stringify(rest.swfStakingPolicyVotes)) : undefined,
     swfRebalancingAdvisorVotes: rest.swfRebalancingAdvisorVotes ? JSON.parse(JSON.stringify(rest.swfRebalancingAdvisorVotes)) : undefined,
     swfAdvisorSafetyThresholdVotes: rest.swfAdvisorSafetyThresholdVotes ? JSON.parse(JSON.stringify(rest.swfAdvisorSafetyThresholdVotes)) : undefined,
@@ -9140,6 +9153,87 @@ export function reconcileSWFYieldArbitragePolicies(state: GameState, pack: any):
     }
   }
 
+  return newState;
+}
+
+export function reconcileSWFSovereignBondArbitragePolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    swfSovereignBondArbitragePolicyVotes: state.swfSovereignBondArbitragePolicyVotes ? { ...state.swfSovereignBondArbitragePolicyVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const authVotes = newState.swfSovereignBondArbitragePolicyVotes?.[syndicateId] || {};
+
+    const combinationCounts: Record<string, {
+      enabled: boolean;
+      targetPoolIds: string[];
+      maxCapitalAllocated: number;
+      minYieldSpread: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const sortedTargetPools = [...(vote.targetPoolIds || [])].sort().join(",");
+        const key = `${vote.enabled}::${sortedTargetPools}::${vote.maxCapitalAllocated}::${vote.minYieldSpread}`;
+
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            enabled: vote.enabled,
+            targetPoolIds: vote.targetPoolIds,
+            maxCapitalAllocated: vote.maxCapitalAllocated,
+            minYieldSpread: vote.minYieldSpread,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break;
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        swfBondArbitrageEnabled: fullyApprovedCombination.enabled,
+        swfBondArbitrageTargetPools: fullyApprovedCombination.targetPoolIds,
+        swfBondArbitrageMaxCapital: fullyApprovedCombination.maxCapitalAllocated,
+        swfBondArbitrageMinYieldSpread: fullyApprovedCombination.minYieldSpread,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      if (newState.swfSovereignBondArbitragePolicyVotes) {
+        delete newState.swfSovereignBondArbitragePolicyVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Sovereign Bond Arbitrage Policy] SWF Sovereign Bond Arbitrage policy for Syndicate ${syndicateId} set by consensus majority (Enabled: ${fullyApprovedCombination.enabled}, Target Pools: ${JSON.stringify(fullyApprovedCombination.targetPoolIds)}, Max Capital: ${fullyApprovedCombination.maxCapitalAllocated}, Min Spread: ${fullyApprovedCombination.minYieldSpread}).`
+      );
+    }
+  }
   return newState;
 }
 

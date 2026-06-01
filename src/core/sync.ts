@@ -9,6 +9,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -20268,6 +20269,365 @@ export function multiAgentStep(
       } else {
         ok = true;
       }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized SET_SWF_BOND_ARBITRAGE_POLICY action (AF-142)
+  if ((action as any).type === "SET_SWF_BOND_ARBITRAGE_POLICY") {
+    const { syndicateId, enabled, targetPoolIds, maxCapitalAllocated, minYieldSpread, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to set SWF sovereign bond arbitrage policy.`;
+    } else if (enabled === undefined) {
+      rejectionReason = `Enabled status is required to set SWF sovereign bond arbitrage policy.`;
+    } else if (enabled && (!targetPoolIds || targetPoolIds.length === 0)) {
+      rejectionReason = `Target pools are required when SWF sovereign bond arbitrage is enabled.`;
+    } else if (maxCapitalAllocated === undefined || typeof maxCapitalAllocated !== "number" || maxCapitalAllocated < 0) {
+      rejectionReason = `Max capital allocated must be a non-negative number.`;
+    } else if (minYieldSpread === undefined || typeof minYieldSpread !== "number" || minYieldSpread < 0) {
+      rejectionReason = `Min yield spread must be a non-negative number.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on SWF sovereign bond arbitrage policy.`;
+    } else {
+      let allPoolsExist = true;
+      for (const poolId of targetPoolIds || []) {
+        if (!state.sovereignBondLendingPools?.[poolId]) {
+          allPoolsExist = false;
+          rejectionReason = `Lending pool ${poolId} does not exist.`;
+          break;
+        }
+      }
+      if (allPoolsExist) {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const swfSovereignBondArbitragePolicyVotes = { ...(state.swfSovereignBondArbitragePolicyVotes || {}) };
+      if (!swfSovereignBondArbitragePolicyVotes[syndicateId]) {
+        swfSovereignBondArbitragePolicyVotes[syndicateId] = {};
+      } else {
+        swfSovereignBondArbitragePolicyVotes[syndicateId] = { ...swfSovereignBondArbitragePolicyVotes[syndicateId] };
+      }
+
+      const existingVote = swfSovereignBondArbitragePolicyVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        swfSovereignBondArbitragePolicyVotes[syndicateId][agentId] = {
+          enabled,
+          targetPoolIds,
+          maxCapitalAllocated,
+          minYieldSpread,
+          timestamp,
+        };
+        newState.swfSovereignBondArbitragePolicyVotes = swfSovereignBondArbitragePolicyVotes;
+        newState = reconcileSWFSovereignBondArbitragePolicies(newState, pack);
+
+        const currentMA = newState.marginAccounts?.[syndicateId];
+        const isEnabled = currentMA?.swfBondArbitrageEnabled || false;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Sovereign Bond Arbitrage Policy Vote] Agent ${agentId} voted on SWF sovereign bond arbitrage policy for Syndicate ${syndicateId}. Consensus enabled: ${isEnabled}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Sovereign bond arbitrage policy vote cast by ${agentId} for Syndicate ${syndicateId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_bond_arbitrage_policy_voted" as any,
+          syndicateId,
+          agentId,
+          enabled,
+          targetPoolIds,
+          maxCapitalAllocated,
+          minYieldSpread,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized TRIGGER_SWF_BOND_ARBITRAGE action (AF-142)
+  if ((action as any).type === "TRIGGER_SWF_BOND_ARBITRAGE") {
+    const { syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to trigger SWF sovereign bond arbitrage.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot trigger SWF sovereign bond arbitrage.`;
+    } else if (!marginAccount.swfBondArbitrageEnabled) {
+      rejectionReason = `SWF Sovereign Bond Arbitrage is not enabled for Syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      if (newState.sovereignBondLendingPools && Object.keys(newState.sovereignBondLendingPools).length > 0) {
+        const updatedPools = { ...newState.sovereignBondLendingPools };
+        let poolsChanged = false;
+
+        const targetPoolIds = marginAccount.swfBondArbitrageTargetPools || [];
+        const activeTargetPools = targetPoolIds
+          .map(id => updatedPools[id])
+          .filter(p => p !== undefined) as SovereignBondLendingPool[];
+
+        if (activeTargetPools.length > 0) {
+          // Group pools by their underlying bondId
+          const poolsByBond: Record<string, SovereignBondLendingPool[]> = {};
+          for (const pool of activeTargetPools) {
+            if (!poolsByBond[pool.bondId]) {
+              poolsByBond[pool.bondId] = [];
+            }
+            poolsByBond[pool.bondId].push(pool);
+          }
+
+          for (const [bondId, pools] of Object.entries(poolsByBond)) {
+            if (pools.length < 1) continue;
+
+            // Find the best pool
+            let bestPool = pools[0];
+            for (const pool of pools) {
+              if (pool.borrowFeeRate > bestPool.borrowFeeRate) {
+                bestPool = pool;
+              }
+            }
+
+            // 1. Reallocate worst -> best
+            if (pools.length > 1) {
+              let worstPool: SovereignBondLendingPool | undefined = undefined;
+              for (const pool of pools) {
+                if (pool.id === bestPool.id) continue;
+                const dep = pool.deposits[syndicateId] ?? 0;
+                if (dep > 0) {
+                  if (!worstPool || pool.borrowFeeRate < worstPool.borrowFeeRate) {
+                    worstPool = pool;
+                  }
+                }
+              }
+
+              if (worstPool) {
+                const spread = bestPool.borrowFeeRate - worstPool.borrowFeeRate;
+                const minSpread = marginAccount.swfBondArbitrageMinYieldSpread ?? 0.0;
+
+                if (spread >= minSpread) {
+                  const worstPoolUnborrowed = worstPool.totalDeposited - worstPool.totalBorrowed;
+                  const maxMoveFromWorst = Math.min(worstPool.deposits[syndicateId] ?? 0, worstPoolUnborrowed);
+                  const limit = marginAccount.swfBondArbitrageMaxCapital ?? 999999;
+                  const amountToMove = Math.min(maxMoveFromWorst, limit);
+
+                  if (amountToMove > 0) {
+                    worstPool.deposits[syndicateId] = (worstPool.deposits[syndicateId] ?? 0) - amountToMove;
+                    if (worstPool.deposits[syndicateId] === 0) {
+                      delete worstPool.deposits[syndicateId];
+                    }
+                    worstPool.totalDeposited -= amountToMove;
+
+                    bestPool.deposits[syndicateId] = (bestPool.deposits[syndicateId] ?? 0) + amountToMove;
+                    bestPool.totalDeposited += amountToMove;
+
+                    const worstU = worstPool.totalDeposited > 0 ? worstPool.totalBorrowed / worstPool.totalDeposited : 0;
+                    worstPool.borrowFeeRate = 5 + 10 * worstU;
+
+                    const bestU = bestPool.totalDeposited > 0 ? bestPool.totalBorrowed / bestPool.totalDeposited : 0;
+                    bestPool.borrowFeeRate = 5 + 10 * bestU;
+
+                    const bond = newState.cooperativeSovereigntyBondProposals?.[bondId];
+                    if (bond && bond.contributions) {
+                      const worstPoolKey = `pool_${worstPool.id}`;
+                      const bestPoolKey = `pool_${bestPool.id}`;
+
+                      bond.contributions[worstPoolKey] = (bond.contributions[worstPoolKey] ?? 0) - amountToMove;
+                      if (bond.contributions[worstPoolKey] === 0) {
+                        delete bond.contributions[worstPoolKey];
+                      }
+                      bond.contributions[bestPoolKey] = (bond.contributions[bestPoolKey] ?? 0) + amountToMove;
+                    }
+
+                    poolsChanged = true;
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[SWF Bond Arbitrage Reallocation Triggered] Routed ${amountToMove} bond shares from pool ${worstPool.id} (yield: ${worstPool.borrowFeeRate.toFixed(2)}%) to pool ${bestPool.id} (yield: ${bestPool.borrowFeeRate.toFixed(2)}%) for Syndicate ${syndicateId} (Spread: ${spread.toFixed(2)}%).`
+                    );
+                    customEvents.push({
+                      type: "narration",
+                      text: `📈 [SWF Bond Arbitrage Reallocation Triggered] Routed ${amountToMove} bond shares from pool ${worstPool.id} to pool ${bestPool.id} to maximize yield (Spread: ${spread.toFixed(2)}%).`,
+                    } as any);
+                  }
+                }
+              }
+            }
+
+            // 2. Deploy fresh capital
+            const bond = newState.cooperativeSovereigntyBondProposals?.[bondId];
+            if (bond && bond.contributions && bond.contributions[syndicateId] && bond.contributions[syndicateId] > 0) {
+              const freshCapital = bond.contributions[syndicateId];
+              const limit = marginAccount.swfBondArbitrageMaxCapital ?? 999999;
+              const amountToDeploy = Math.min(freshCapital, limit);
+
+              if (amountToDeploy > 0) {
+                bestPool.deposits[syndicateId] = (bestPool.deposits[syndicateId] ?? 0) + amountToDeploy;
+                bestPool.totalDeposited += amountToDeploy;
+
+                const bestU = bestPool.totalDeposited > 0 ? bestPool.totalBorrowed / bestPool.totalDeposited : 0;
+                bestPool.borrowFeeRate = 5 + 10 * bestU;
+
+                bond.contributions[syndicateId] -= amountToDeploy;
+                if (bond.contributions[syndicateId] === 0) {
+                  delete bond.contributions[syndicateId];
+                }
+
+                const bestPoolKey = `pool_${bestPool.id}`;
+                bond.contributions[bestPoolKey] = (bond.contributions[bestPoolKey] ?? 0) + amountToDeploy;
+
+                poolsChanged = true;
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[SWF Bond Arbitrage Fresh Deployment Triggered] Deployed ${amountToDeploy} fresh bond shares into pool ${bestPool.id} (yield: ${bestPool.borrowFeeRate.toFixed(2)}%) for Syndicate ${syndicateId}.`
+                );
+                customEvents.push({
+                  type: "narration",
+                  text: `📈 [SWF Bond Arbitrage Fresh Deployment Triggered] Deployed ${amountToDeploy} fresh bond shares into pool ${bestPool.id} to maximize yield.`,
+                } as any);
+              }
+            }
+          }
+        }
+
+        if (poolsChanged) {
+          newState.sovereignBondLendingPools = updatedPools;
+        }
+      }
+
+      customEvents.push({
+        type: "swf_bond_arbitrage_triggered" as any,
+        syndicateId,
+        agentId,
+        timestamp,
+      });
     }
 
     newState.step += 1;

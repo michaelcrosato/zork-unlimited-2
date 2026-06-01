@@ -1,4 +1,4 @@
-import { GameState, findRoom, getRoomExits, cloneMerchantInventories, getEnforcerDefundingRate, getBondPricePerShare } from "./state.js";
+import { GameState, findRoom, getRoomExits, cloneMerchantInventories, getEnforcerDefundingRate, getBondPricePerShare, SovereignBondLendingPool } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { GameEvent } from "./events.js";
 import { evaluateConditions } from "./conditions.js";
@@ -2618,8 +2618,198 @@ export function tickProductionLabs(
     // Update dynamic lending pool fee rates based on utilization before processing positions
     if (newState.sovereignBondLendingPools && Object.keys(newState.sovereignBondLendingPools).length > 0) {
       for (const pool of Object.values(newState.sovereignBondLendingPools)) {
-        const U = pool.totalDeposited > 0 ? pool.totalBorrowed / pool.totalDeposited : 0;
+        let U = pool.totalDeposited > 0 ? pool.totalBorrowed / pool.totalDeposited : 0;
+
+        // Faction-backed liquidity injection if utilization exceeds 80% (AF-142)
+        if (U > 0.8) {
+          const bond = newState.cooperativeSovereigntyBondProposals?.[pool.bondId];
+          if (bond) {
+            const factionId = bond.factionId;
+            // Target utilization after injection: 70%
+            const targetU = 0.70;
+            const injectionAmount = Math.max(1, Math.ceil(pool.totalBorrowed / targetU) - pool.totalDeposited);
+
+            // Perform injection
+            pool.deposits[factionId] = (pool.deposits[factionId] ?? 0) + injectionAmount;
+            pool.totalDeposited += injectionAmount;
+
+            // Update bond contributions for the pool
+            if (bond.contributions) {
+              const poolKey = `pool_${pool.id}`;
+              bond.contributions[poolKey] = (bond.contributions[poolKey] ?? 0) + injectionAmount;
+            }
+
+            // Also deduct from faction reserve pool if possible (to simulate capital deployment)
+            if (newState.factionReservePools) {
+              const reserve = newState.factionReservePools[factionId] ?? 10000;
+              newState.factionReservePools[factionId] = Math.max(0, reserve - Math.floor(injectionAmount * 0.5));
+            }
+
+            // Recalculate utilization
+            U = pool.totalDeposited > 0 ? pool.totalBorrowed / pool.totalDeposited : 0;
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Faction Liquidity Injection] Faction ${factionId} injected ${injectionAmount} shares into pool ${pool.id} due to high utilization (${(U * 100).toFixed(1)}%).`
+            );
+            events.push({
+              type: "narration",
+              text: `🏛️ [Faction Liquidity Injection] Faction ${factionId} injected ${injectionAmount} shares into pool ${pool.id} to stabilize credit liquidity.`,
+            } as any);
+          }
+        }
+
         pool.borrowFeeRate = 5 + 10 * U;
+      }
+    }
+
+    // Automated SWF Sovereign Bond Arbitrage Routing and Reallocation (AF-142)
+    if (newState.marginAccounts && newState.sovereignBondLendingPools && Object.keys(newState.sovereignBondLendingPools).length > 0) {
+      const updatedPools = { ...newState.sovereignBondLendingPools };
+      let poolsChanged = false;
+
+      for (const [syndicateId, marginAccount] of Object.entries(newState.marginAccounts)) {
+        if (marginAccount.swfBondArbitrageEnabled && marginAccount.swfBondArbitrageTargetPools && marginAccount.swfBondArbitrageTargetPools.length > 0) {
+          const targetPoolIds = marginAccount.swfBondArbitrageTargetPools;
+
+          // Find valid active target pools
+          const activeTargetPools = targetPoolIds
+            .map(id => updatedPools[id])
+            .filter(p => p !== undefined) as SovereignBondLendingPool[];
+
+          if (activeTargetPools.length === 0) continue;
+
+          // Group pools by their underlying bondId
+          const poolsByBond: Record<string, SovereignBondLendingPool[]> = {};
+          for (const pool of activeTargetPools) {
+            if (!poolsByBond[pool.bondId]) {
+              poolsByBond[pool.bondId] = [];
+            }
+            poolsByBond[pool.bondId].push(pool);
+          }
+
+          for (const [bondId, pools] of Object.entries(poolsByBond)) {
+            if (pools.length < 1) continue;
+
+            // Find the best pool (highest borrowFeeRate)
+            let bestPool = pools[0];
+            for (const pool of pools) {
+              if (pool.borrowFeeRate > bestPool.borrowFeeRate) {
+                bestPool = pool;
+              }
+            }
+
+            // 1. Reallocate between pools (worst pool -> best pool)
+            if (pools.length > 1) {
+              // Find the worst pool (lowest borrowFeeRate) where the syndicate has non-zero deposits
+              let worstPool: SovereignBondLendingPool | undefined = undefined;
+              for (const pool of pools) {
+                if (pool.id === bestPool.id) continue;
+                const dep = pool.deposits[syndicateId] ?? 0;
+                if (dep > 0) {
+                  if (!worstPool || pool.borrowFeeRate < worstPool.borrowFeeRate) {
+                    worstPool = pool;
+                  }
+                }
+              }
+
+              if (worstPool) {
+                const spread = bestPool.borrowFeeRate - worstPool.borrowFeeRate;
+                const minSpread = marginAccount.swfBondArbitrageMinYieldSpread ?? 0.0;
+
+                if (spread >= minSpread) {
+                  const worstPoolUnborrowed = worstPool.totalDeposited - worstPool.totalBorrowed;
+                  const maxMoveFromWorst = Math.min(worstPool.deposits[syndicateId] ?? 0, worstPoolUnborrowed);
+                  const limit = marginAccount.swfBondArbitrageMaxCapital ?? 999999;
+                  const amountToMove = Math.min(maxMoveFromWorst, limit);
+
+                  if (amountToMove > 0) {
+                    // Perform reallocation
+                    worstPool.deposits[syndicateId] = (worstPool.deposits[syndicateId] ?? 0) - amountToMove;
+                    if (worstPool.deposits[syndicateId] === 0) {
+                      delete worstPool.deposits[syndicateId];
+                    }
+                    worstPool.totalDeposited -= amountToMove;
+
+                    bestPool.deposits[syndicateId] = (bestPool.deposits[syndicateId] ?? 0) + amountToMove;
+                    bestPool.totalDeposited += amountToMove;
+
+                    // Update dynamic rates
+                    const worstU = worstPool.totalDeposited > 0 ? worstPool.totalBorrowed / worstPool.totalDeposited : 0;
+                    worstPool.borrowFeeRate = 5 + 10 * worstU;
+
+                    const bestU = bestPool.totalDeposited > 0 ? bestPool.totalBorrowed / bestPool.totalDeposited : 0;
+                    bestPool.borrowFeeRate = 5 + 10 * bestU;
+
+                    // Update underlying bond contributions
+                    const bond = newState.cooperativeSovereigntyBondProposals?.[bondId];
+                    if (bond && bond.contributions) {
+                      const worstPoolKey = `pool_${worstPool.id}`;
+                      const bestPoolKey = `pool_${bestPool.id}`;
+
+                      bond.contributions[worstPoolKey] = (bond.contributions[worstPoolKey] ?? 0) - amountToMove;
+                      if (bond.contributions[worstPoolKey] === 0) {
+                        delete bond.contributions[worstPoolKey];
+                      }
+                      bond.contributions[bestPoolKey] = (bond.contributions[bestPoolKey] ?? 0) + amountToMove;
+                    }
+
+                    poolsChanged = true;
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[SWF Bond Arbitrage Reallocation] Routed ${amountToMove} bond shares from pool ${worstPool.id} (yield: ${worstPool.borrowFeeRate.toFixed(2)}%) to pool ${bestPool.id} (yield: ${bestPool.borrowFeeRate.toFixed(2)}%) for Syndicate ${syndicateId} (Spread: ${spread.toFixed(2)}%).`
+                    );
+                    events.push({
+                      type: "narration",
+                      text: `📈 [SWF Bond Arbitrage Reallocation] Routed ${amountToMove} bond shares from pool ${worstPool.id} to pool ${bestPool.id} to maximize yield (Spread: ${spread.toFixed(2)}%).`,
+                    } as any);
+                  }
+                }
+              }
+            }
+
+            // 2. Deploy fresh capital (direct bond holdings -> best pool)
+            const bond = newState.cooperativeSovereigntyBondProposals?.[bondId];
+            if (bond && bond.contributions && bond.contributions[syndicateId] && bond.contributions[syndicateId] > 0) {
+              const freshCapital = bond.contributions[syndicateId];
+              const limit = marginAccount.swfBondArbitrageMaxCapital ?? 999999;
+              const amountToDeploy = Math.min(freshCapital, limit);
+
+              if (amountToDeploy > 0) {
+                // Perform fresh deployment
+                bestPool.deposits[syndicateId] = (bestPool.deposits[syndicateId] ?? 0) + amountToDeploy;
+                bestPool.totalDeposited += amountToDeploy;
+
+                const bestU = bestPool.totalDeposited > 0 ? bestPool.totalBorrowed / bestPool.totalDeposited : 0;
+                bestPool.borrowFeeRate = 5 + 10 * bestU;
+
+                bond.contributions[syndicateId] -= amountToDeploy;
+                if (bond.contributions[syndicateId] === 0) {
+                  delete bond.contributions[syndicateId];
+                }
+
+                const bestPoolKey = `pool_${bestPool.id}`;
+                bond.contributions[bestPoolKey] = (bond.contributions[bestPoolKey] ?? 0) + amountToDeploy;
+
+                poolsChanged = true;
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[SWF Bond Arbitrage Fresh Deployment] Deployed ${amountToDeploy} fresh bond shares into pool ${bestPool.id} (yield: ${bestPool.borrowFeeRate.toFixed(2)}%) for Syndicate ${syndicateId}.`
+                );
+                events.push({
+                  type: "narration",
+                  text: `📈 [SWF Bond Arbitrage Fresh Deployment] Deployed ${amountToDeploy} fresh bond shares into pool ${bestPool.id} to maximize yield.`,
+                } as any);
+              }
+            }
+          }
+        }
+      }
+
+      if (poolsChanged) {
+        newState.sovereignBondLendingPools = updatedPools;
       }
     }
 
