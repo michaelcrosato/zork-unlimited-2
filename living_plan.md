@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #235 (Ready for Cycle #236)
-* **Build/Test Status**: 🟢 PASS (All 813 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #236 (Ready for Cycle #237)
+* **Build/Test Status**: 🟢 PASS (All 814 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1533,14 +1533,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 217: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Automated Yield Reinvestment and Compound Boost (Completed)
+- [x] Define co-investment yield reinvestment rules and reinvestment trackers in GameState (`AF-239`).
+- [x] Implement decentralized co-investment yield reinvestment adjustments allowing consensus voting on the yield reinvestment share (`AF-239`).
+- [x] Wire the economy tick's yield payout flow to divert the configured percentage of co-investor coupon payouts back into their locked contributions and increase the CDO fractionalized vault balance (`AF-239`).
+- [x] Write comprehensive Vitest integration tests and run AI Autopilot validator (`AF-239`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-239`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Automated Yield Reinvestment and Compound Boost.
-* **Why this matters**: Allow co-investing syndicates to compound their yields by configuring an optional automated reinvestment percentage. When coupon yields are paid out, the reinvested portion is dynamically added back to the syndicate's locked contribution in the CDO pool (increasing their share of future payouts) and added to the CDO fractionalized vault's balance, instead of being fully paid out to the war chest.
+**Task ID**: `AF-240`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Reinvestment Tiered Reward Boosters & Reputation Slashing.
+* **Why this matters**: Incentive-align syndicates to compound their capital inside the CDO pool to support Sovereign Debt stability rather than continuously draining coupons. Syndicates who maintain high automated yield reinvestment ratios (e.g. >50% reinvestment share gets a 1.2x boost on reputation gains; >80% gets 1.5x) receive tiered reputation and reward multipliers, while a fractional reputation slashing penalty is applied to syndicates who reduce or completely disable their reinvestment share below 10%.
 * **Planned Actions**:
-  1. Define co-investment yield reinvestment rules and reinvestment trackers in GameState.
-  2. Implement decentralized co-investment yield reinvestment adjustments allowing consensus voting on the yield reinvestment share.
-  3. Wire the economy tick's yield payout flow to divert the configured percentage of co-investor coupon payouts back into their locked contributions and increase the CDO fractionalized vault balance.
+  1. Define co-investment reinvestment tiered rewards and multiplier schemas in GameState.
+  2. Implement decentralized co-investment policy voting to adjust booster tier ranges and slashing penalties.
+  3. Wire the economy tick to calculate and apply tiered reputation and reward multipliers or execute reputation slashes based on the active yield reinvestment ratio.
   4. Write comprehensive Vitest integration tests.
 
 ---

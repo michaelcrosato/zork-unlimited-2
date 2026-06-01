@@ -7868,18 +7868,48 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
                 const divertedAmount = Math.floor(divertedTotal * ratio);
 
                 if (divertedAmount > 0) {
+                  const reinvestmentShare = coinvestProposal.yieldReinvestmentShare ?? 0;
+                  const reinvestedAmount = Math.floor(divertedAmount * (reinvestmentShare / 100));
+                  const paidOutAmount = divertedAmount - reinvestedAmount;
+
                   const coSynd = newState.syndicates[sId];
-                  if (coSynd) {
-                    coSynd.warChest = (coSynd.warChest ?? 0) + divertedAmount;
+                  if (coSynd && paidOutAmount > 0) {
+                    coSynd.warChest = (coSynd.warChest ?? 0) + paidOutAmount;
                   }
-                  coinvestProposal.historicalYieldPayouts[sId] = (coinvestProposal.historicalYieldPayouts[sId] ?? 0) + divertedAmount;
+
+                  coinvestProposal.historicalYieldPayouts[sId] = (coinvestProposal.historicalYieldPayouts[sId] ?? 0) + paidOutAmount;
                   const globalKey = `${coinvestProposal.proposalId}_${sId}`;
-                  newState.cdsCdoCoinvestmentYieldPayouts[globalKey] = (newState.cdsCdoCoinvestmentYieldPayouts[globalKey] ?? 0) + divertedAmount;
+                  newState.cdsCdoCoinvestmentYieldPayouts[globalKey] = (newState.cdsCdoCoinvestmentYieldPayouts[globalKey] ?? 0) + paidOutAmount;
 
                   if (!newState.journal) newState.journal = [];
-                  newState.journal.push(
-                    `[CDS CDO Co-Investment Yield Payout] Syndicate ${sId} received ${divertedAmount} gold (pro-rata co-investment yield compensation) from CDO ${cdoId} tranche equity autocall.`
-                  );
+                  if (paidOutAmount > 0) {
+                    newState.journal.push(
+                      `[CDS CDO Co-Investment Yield Payout] Syndicate ${sId} received ${paidOutAmount} gold (pro-rata co-investment yield compensation) from CDO ${cdoId} tranche equity autocall.`
+                    );
+                  }
+
+                  if (reinvestedAmount > 0) {
+                    // 1. Add back to syndicate's locked contribution in the CDO pool
+                    coinvestProposal.contributions[sId] = (coinvestProposal.contributions[sId] ?? 0) + reinvestedAmount;
+
+                    // 2. Add to the CDO fractionalized vault's balance
+                    pool.fractionalizedVault = {
+                      ...pool.fractionalizedVault,
+                      balance: pool.fractionalizedVault.balance + reinvestedAmount,
+                    };
+
+                    // 3. Track in historicalYieldReinvestments
+                    coinvestProposal.historicalYieldReinvestments = coinvestProposal.historicalYieldReinvestments || {};
+                    coinvestProposal.historicalYieldReinvestments[sId] = (coinvestProposal.historicalYieldReinvestments[sId] ?? 0) + reinvestedAmount;
+
+                    // 4. Track globally in cdsCdoCoinvestmentYieldReinvestments
+                    newState.cdsCdoCoinvestmentYieldReinvestments = newState.cdsCdoCoinvestmentYieldReinvestments || {};
+                    newState.cdsCdoCoinvestmentYieldReinvestments[globalKey] = (newState.cdsCdoCoinvestmentYieldReinvestments[globalKey] ?? 0) + reinvestedAmount;
+
+                    newState.journal.push(
+                      `[CDS CDO Co-Investment Yield Reinvestment] Syndicate ${sId} reinvested ${reinvestedAmount} gold back into CDO ${cdoId} pool via co-investment proposal ${coinvestProposal.proposalId}.`
+                    );
+                  }
                 }
               }
             }
@@ -8159,18 +8189,48 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
                     const divertedAmount = Math.floor(divertedTotal * ratio);
 
                     if (divertedAmount > 0) {
+                      const reinvestmentShare = coinvestProposal.yieldReinvestmentShare ?? 0;
+                      const reinvestedAmount = Math.floor(divertedAmount * (reinvestmentShare / 100));
+                      const paidOutAmount = divertedAmount - reinvestedAmount;
+
                       const coSynd = newState.syndicates[sId];
-                      if (coSynd) {
-                        coSynd.warChest = (coSynd.warChest ?? 0) + divertedAmount;
+                      if (coSynd && paidOutAmount > 0) {
+                        coSynd.warChest = (coSynd.warChest ?? 0) + paidOutAmount;
                       }
-                      coinvestProposal.historicalYieldPayouts[sId] = (coinvestProposal.historicalYieldPayouts[sId] ?? 0) + divertedAmount;
+
+                      coinvestProposal.historicalYieldPayouts[sId] = (coinvestProposal.historicalYieldPayouts[sId] ?? 0) + paidOutAmount;
                       const globalKey = `${coinvestProposal.proposalId}_${sId}`;
-                      newState.cdsCdoCoinvestmentYieldPayouts[globalKey] = (newState.cdsCdoCoinvestmentYieldPayouts[globalKey] ?? 0) + divertedAmount;
+                      newState.cdsCdoCoinvestmentYieldPayouts[globalKey] = (newState.cdsCdoCoinvestmentYieldPayouts[globalKey] ?? 0) + paidOutAmount;
 
                       if (!newState.journal) newState.journal = [];
-                      newState.journal.push(
-                        `[CDS CDO Co-Investment Yield Payout] Syndicate ${sId} received ${divertedAmount} gold (pro-rata co-investment yield compensation) from CDO ${cdoId} tranche ${trancheId} autocall.`
-                      );
+                      if (paidOutAmount > 0) {
+                        newState.journal.push(
+                          `[CDS CDO Co-Investment Yield Payout] Syndicate ${sId} received ${paidOutAmount} gold (pro-rata co-investment yield compensation) from CDO ${cdoId} tranche ${trancheId} autocall.`
+                        );
+                      }
+
+                      if (reinvestedAmount > 0) {
+                        // 1. Add back to syndicate's locked contribution in the CDO pool
+                        coinvestProposal.contributions[sId] = (coinvestProposal.contributions[sId] ?? 0) + reinvestedAmount;
+
+                        // 2. Add to the CDO fractionalized vault's balance
+                        pool.fractionalizedVault = {
+                          ...pool.fractionalizedVault,
+                          balance: pool.fractionalizedVault.balance + reinvestedAmount,
+                        };
+
+                        // 3. Track in historicalYieldReinvestments
+                        coinvestProposal.historicalYieldReinvestments = coinvestProposal.historicalYieldReinvestments || {};
+                        coinvestProposal.historicalYieldReinvestments[sId] = (coinvestProposal.historicalYieldReinvestments[sId] ?? 0) + reinvestedAmount;
+
+                        // 4. Track globally in cdsCdoCoinvestmentYieldReinvestments
+                        newState.cdsCdoCoinvestmentYieldReinvestments = newState.cdsCdoCoinvestmentYieldReinvestments || {};
+                        newState.cdsCdoCoinvestmentYieldReinvestments[globalKey] = (newState.cdsCdoCoinvestmentYieldReinvestments[globalKey] ?? 0) + reinvestedAmount;
+
+                        newState.journal.push(
+                          `[CDS CDO Co-Investment Yield Reinvestment] Syndicate ${sId} reinvested ${reinvestedAmount} gold back into CDO ${cdoId} pool via co-investment proposal ${coinvestProposal.proposalId}.`
+                        );
+                      }
                     }
                   }
                 }
