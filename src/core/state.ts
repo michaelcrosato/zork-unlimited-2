@@ -2654,6 +2654,7 @@ export const GameStateSchema = z.object({
     timestamp: z.number().int(),
   }))).optional(),
   swfReinsuranceOptionLimitOrders: z.record(z.string(), SWFReinsuranceOptionLimitOrderSchema).optional(),
+  swfReinsuranceOptionOrderBookVolumes: z.record(z.string(), z.number().int().nonnegative()).optional(),
   submitSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
     orderId: z.string(),
     orderType: z.enum(["buy", "sell"]),
@@ -2961,6 +2962,7 @@ export const createInitialState = (options: {
     executeSWFReinsuranceOptionSaleVotes: {},
     exerciseSWFReinsuranceOptionVotes: {},
     swfReinsuranceOptionLimitOrders: {},
+    swfReinsuranceOptionOrderBookVolumes: {},
     submitSWFReinsuranceOptionLimitOrderVotes: {},
     cancelSWFReinsuranceOptionLimitOrderVotes: {},
   };
@@ -3837,6 +3839,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     executeSWFReinsuranceOptionSaleVotes: rest.executeSWFReinsuranceOptionSaleVotes ? JSON.parse(JSON.stringify(rest.executeSWFReinsuranceOptionSaleVotes)) : undefined,
     exerciseSWFReinsuranceOptionVotes: rest.exerciseSWFReinsuranceOptionVotes ? JSON.parse(JSON.stringify(rest.exerciseSWFReinsuranceOptionVotes)) : undefined,
     swfReinsuranceOptionLimitOrders: rest.swfReinsuranceOptionLimitOrders ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionLimitOrders)) : undefined,
+    swfReinsuranceOptionOrderBookVolumes: rest.swfReinsuranceOptionOrderBookVolumes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionOrderBookVolumes)) : undefined,
     submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
   };

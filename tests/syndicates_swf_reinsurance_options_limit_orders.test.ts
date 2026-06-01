@@ -308,4 +308,179 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("does not have enough gold");
   });
+
+  it("should track SWF reinsurance options order book volumes and dynamically scale margin requirements or trigger margin calls on dynamic buffer breach (AF-150)", () => {
+    let state = createInitialState({
+      seed: 98765,
+      start: "clearing",
+      varsInit: { gold: 15000 },
+      agentsInit: ["player", "alice", "bob", "carol"],
+    });
+
+    // 1. Setup syndicates
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 5000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "carol"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 100, // very small warChest to trigger buffer breach later!
+      },
+    };
+
+    // Setup dummy CDO
+    state.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: {},
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.20,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    // Setup a margin account for beta
+    state.marginAccounts = {
+      beta: {
+        syndicateId: "beta",
+        collateral: 1000,
+        leveragedCDSIds: [],
+        leveragedSWFYieldCDOCDSIds: ["cds_1"], // has a leveraged CDS position to liquidate!
+        leveragedTranchePositions: {},
+        timestamp: 1000,
+      },
+    };
+
+    // Setup a dummy active SWF CDS for beta so they have a maintenance requirement
+    state.swfYieldCDOCDSs = {
+      cds_1: {
+        id: "cds_1",
+        buyerSyndicateId: "beta",
+        writerSyndicateId: "alpha",
+        swfYieldCdoId: "cdo_1",
+        trancheId: "senior",
+        notionalValue: 1000,
+        premiumRate: 0.05,
+        active: true,
+        timestamp: 1000,
+      },
+    };
+
+    // Verify initial volume is zero
+    let initialTick = tickEconomy(state, mockPack);
+    expect(initialTick.swfReinsuranceOptionOrderBookVolumes?.["cdo_1_senior"]).toBe(0);
+
+    // Initial maintenance requirement for beta:
+    // 20% of CDS notional (1000) / swfLeverage (1.0) = 200 gold.
+    // collateral is 1000, netEquity is 1000. So no margin call.
+
+    // 2. Submit Buy Limit Order for Beta (Beta wants to buy an option, CDO: cdo_1, senior, strike: 0.03, size: 500, price: 80 gold)
+    const buyOrderAction = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "buy_order_1",
+      syndicateId: "beta",
+      orderType: "buy",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 500,
+      limitPrice: 80,
+      timestamp: 1001,
+    };
+
+    // Alpha votes too
+    let res = multiAgentStep(state, { agentId: "bob", action: buyOrderAction as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "carol", action: buyOrderAction as any }, mockPack);
+    state = res.state;
+
+    expect(state.swfReinsuranceOptionLimitOrders?.["buy_order_1"]?.status).toBe("Open");
+
+    // 3. Tick economy to compute order book volumes & test scaling
+    // Volume should now be 80 gold for cdo_1_senior.
+    // Beta's open orders sum to 80 gold. Beta's warChest is 100 gold.
+    // Since aggregatePendingValue (80) <= warChest (100), no scaling is applied.
+    // Required dynamic buffer is 20% of 80 = 16 gold. Since warChest (100) >= 16, no dynamic buffer margin call.
+    let tick1 = tickEconomy(state, mockPack);
+    expect(tick1.swfReinsuranceOptionOrderBookVolumes?.["cdo_1_senior"]).toBe(80);
+    expect(tick1.marginAccounts?.["beta"]?.collateral).toBe(1000); // still healthy
+    expect(tick1.swfYieldCDOCDSs?.["cds_1"]?.active).toBe(true);
+
+    // 4. Submit another Buy Limit Order for Beta to push exposure above warChest!
+    // Second order for 30 gold. Total pending exposure will be 80 + 30 = 110 gold.
+    // 110 gold exceeds Beta's warChest of 100 gold!
+    const buyOrderAction2 = {
+      type: "SUBMIT_REINSURANCE_OPTION_LIMIT_ORDER",
+      orderId: "buy_order_2",
+      syndicateId: "beta",
+      orderType: "buy",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior",
+      optionType: "call",
+      strikePremiumRate: 0.03,
+      size: 500,
+      limitPrice: 30,
+      timestamp: 1002,
+    };
+
+    res = multiAgentStep(state, { agentId: "bob", action: buyOrderAction2 as any }, mockPack);
+    state = res.state;
+    res = multiAgentStep(state, { agentId: "carol", action: buyOrderAction2 as any }, mockPack);
+    state = res.state;
+
+    expect(state.swfReinsuranceOptionLimitOrders?.["buy_order_2"]?.status).toBe("Open");
+
+    // 5. Tick economy. Total pending is 110. warChest is 100.
+    // pendingScale = 110 / 100 = 1.1x.
+    // scaled maintenance requirement = 200 * 1.1 = 220 gold.
+    // Since collateral (1000) is still well above 220, no standard margin call is triggered, but scaling is active!
+    // Required dynamic buffer is 20% of 110 = 22 gold. Since warChest (100) >= 22, no dynamic buffer margin call yet.
+    let tick2 = tickEconomy(state, mockPack);
+    expect(tick2.swfReinsuranceOptionOrderBookVolumes?.["cdo_1_senior"]).toBe(110);
+    expect(tick2.swfYieldCDOCDSs?.["cds_1"]?.active).toBe(true);
+
+    // 6. Test dynamic buffer breach margin call:
+    // Let's set Beta's warChest to 10 gold (which is below the required dynamic buffer of 22 gold).
+    state.syndicates!.beta.warChest = 10;
+
+    // Tick economy: warChest (10) < requiredDynamicBuffer (22).
+    // This must trigger a margin call and liquidate Beta's leveraged CDS position!
+    let tick3 = tickEconomy(state, mockPack);
+    expect(tick3.swfYieldCDOCDSs?.["cds_1"]?.active).toBe(false); // successfully liquidated!
+    const marginCallJournal = tick3.journal.find(j => j.includes("fell below required dynamic buffer of 22 gold"));
+    expect(marginCallJournal).toBeDefined();
+  });
 });

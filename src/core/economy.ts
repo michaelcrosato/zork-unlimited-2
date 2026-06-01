@@ -675,6 +675,24 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     journal: [...state.journal],
   };
 
+  // SWF Reinsurance Option Order Book Volume Tracking (AF-150)
+  newState.swfReinsuranceOptionOrderBookVolumes = {};
+  if (newState.swfYieldCDOs) {
+    for (const cdoId of Object.keys(newState.swfYieldCDOs)) {
+      for (const trancheId of ["senior", "mezzanine", "equity"]) {
+        const key = `${cdoId}_${trancheId}`;
+        newState.swfReinsuranceOptionOrderBookVolumes[key] = 0;
+      }
+    }
+  }
+  const allOpenOrders = Object.values(newState.swfReinsuranceOptionLimitOrders || {}).filter(
+    (o) => o.status === "Open"
+  );
+  for (const order of allOpenOrders) {
+    const key = `${order.swfYieldCdoId}_${order.trancheId}`;
+    newState.swfReinsuranceOptionOrderBookVolumes[key] = (newState.swfReinsuranceOptionOrderBookVolumes[key] ?? 0) + order.limitPrice;
+  }
+
   // Dynamic Volatility Index (VIX-style) calculation (AF-144)
   const activeBonds = new Set<string>();
   if (newState.cooperativeSovereigntyBondProposals) {
@@ -4606,7 +4624,24 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
       const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
       const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
+
+      // Calculate SWF Reinsurance Option Limit Order Book exposure and dynamic scale factor (AF-150)
+      const openLimitOrdersForSyndicate = Object.values(newState.swfReinsuranceOptionLimitOrders || {}).filter(
+        (o) => o.status === "Open" && o.syndicateId === syndicateId
+      );
+      const aggregatePendingValue = openLimitOrdersForSyndicate.reduce((sum, o) => sum + o.limitPrice, 0);
+      const syndicate = newState.syndicates?.[syndicateId];
+      const warChest = syndicate?.warChest ?? 0;
+
+      let pendingScale = 1.0;
+      if (warChest > 0 && aggregatePendingValue > warChest) {
+        pendingScale = aggregatePendingValue / warChest;
+      }
+
       let maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement + sumVolMaintenanceRequirement;
+
+      // Apply pending order book scale factor
+      maintenanceRequirement = Math.round(maintenanceRequirement * pendingScale);
 
       // AF-112: Preemptive Drawdown Loop to prevent margin call liquidations
       if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
@@ -4645,10 +4680,9 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 }
               }
               rehypothecationPremium = tempPremium;
-              const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
-              const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
-              const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
-              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement + sumVolMaintenanceRequirement;
+              maintenanceRequirement = Math.round(
+                (Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement + sumVolMaintenanceRequirement) * pendingScale
+              );
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!
@@ -4699,10 +4733,9 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 }
               }
               swfRehypothecationPremium = tempPremium;
-              const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
-              const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
-              const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
-              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement + sumVolMaintenanceRequirement;
+              maintenanceRequirement = Math.round(
+                (Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement + sumVolMaintenanceRequirement) * pendingScale
+              );
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!
@@ -4735,9 +4768,16 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
-      // If netEquity < maintenanceRequirement, trigger a MARGIN CALL!
-      if (netEquity < maintenanceRequirement) {
-        newState.journal.push(`[Margin Call] Syndicate ${syndicateId} margin balance fell below maintenance threshold! Net Equity: ${netEquity}, Required: ${maintenanceRequirement}. Triggering automatic liquidation.`);
+      // If netEquity < maintenanceRequirement or warChest drops below required dynamic buffer, trigger a MARGIN CALL!
+      const requiredDynamicBuffer = Math.round(aggregatePendingValue * 0.20);
+      const triggerDueToDynamicBuffer = aggregatePendingValue > 0 && warChest < requiredDynamicBuffer;
+
+      if (netEquity < maintenanceRequirement || triggerDueToDynamicBuffer) {
+        if (triggerDueToDynamicBuffer) {
+          newState.journal.push(`[Margin Call] Syndicate ${syndicateId} war chest (${warChest} gold) fell below required dynamic buffer of ${requiredDynamicBuffer} gold (20% of aggregate pending SWF options limit order book value ${aggregatePendingValue} gold). Triggering automatic liquidation.`);
+        } else {
+          newState.journal.push(`[Margin Call] Syndicate ${syndicateId} margin balance fell below maintenance threshold! Net Equity: ${netEquity}, Required: ${maintenanceRequirement}. Triggering automatic liquidation.`);
+        }
 
         // Deactivate all leveraged written CDS contracts
         if (newState.creditDefaultSwaps) {
@@ -5638,6 +5678,24 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         break; // Match found for this buy order, move to next buy order
       }
     }
+  }
+
+  // Recalculate SWF Reinsurance Option Order Book Volumes after matching (AF-150)
+  newState.swfReinsuranceOptionOrderBookVolumes = {};
+  if (newState.swfYieldCDOs) {
+    for (const cdoId of Object.keys(newState.swfYieldCDOs)) {
+      for (const trancheId of ["senior", "mezzanine", "equity"]) {
+        const key = `${cdoId}_${trancheId}`;
+        newState.swfReinsuranceOptionOrderBookVolumes[key] = 0;
+      }
+    }
+  }
+  const remainingOpenOrders = Object.values(newState.swfReinsuranceOptionLimitOrders || {}).filter(
+    (o) => o.status === "Open"
+  );
+  for (const order of remainingOpenOrders) {
+    const key = `${order.swfYieldCdoId}_${order.trancheId}`;
+    newState.swfReinsuranceOptionOrderBookVolumes[key] = (newState.swfReinsuranceOptionOrderBookVolumes[key] ?? 0) + order.limitPrice;
   }
 
   return newState;

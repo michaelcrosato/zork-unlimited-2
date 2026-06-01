@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #149 (Ready for Cycle #150)
-* **Build/Test Status**: 🟢 PASS (All 620 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #150 (Ready for Cycle #151)
+* **Build/Test Status**: 🟢 PASS (All 621 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -895,16 +895,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire limit order matching engine checking for bid-ask overlap inside economy ticks (`AF-149`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-149`).
 
+### Phase 128: Syndicate SWF Reinsurance Options Limit Order Book Volume Tracking & Dynamic Margin Adjustments (Completed)
+- [x] Define metrics and tracking schemas for limit order book volumes (`AF-150`).
+- [x] Implement margin requirement scaling logic based on aggregate pending order book exposure in economy ticks (`AF-150`).
+- [x] Wire automated margin call triggers if war chest drops below the required dynamic buffer (`AF-150`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-150`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-150`
-* **Objective**: Syndicate SWF Reinsurance Options Limit Order Book Volume Tracking & Dynamic Margin Adjustments.
-* **Why this matters**: Track total limit order book volume for SWF reinsurance options per tranche, and dynamically scale syndicate margin requirements or trigger margin calls when aggregate pending order values exceed the war chest buffer.
+**Task ID**: `AF-151`
+* **Objective**: Syndicate SWF Reinsurance Options Limit Order Book Depth Metrics & Dynamic Bid-Ask Spread Price Adjustments.
+* **Why this matters**: Automatically calculate reinsurance options bid-ask spreads dynamically inside economy ticks based on limit order book depth (imbalances between buy vs. sell pending volume), raising premium rates when sell volume is scarce and lowering them when sell volume is abundant.
 * **Planned Actions**:
-  1. Define metrics and tracking schemas for limit order book volumes.
-  2. Implement margin requirement scaling logic based on aggregate pending order book exposure in economy ticks.
-  3. Wire automated margin call triggers if war chest drops below the required dynamic buffer.
+  1. Define metrics and tracking schemas for limit order book depth and buy/sell volume imbalances.
+  2. Implement dynamic spread calculation and base option premium scaling logic inside economy ticks.
+  3. Wire automated price adjustment alerts to the journal.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---
