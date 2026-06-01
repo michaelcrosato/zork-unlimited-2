@@ -40,6 +40,7 @@ export type Action =
   | { type: "VOTE_GUILD_POLICY"; guildId: string; tariffRate: number; exportPricingPolicy: "premium" | "discount" | "standard"; timestamp: number }
   | { type: "SELL_BLACK_MARKET"; itemId: string; roomId: string; timestamp: number }
   | { type: "ADJUST_TURF_BRIBE"; syndicateId: string; amount: number; timestamp: number }
+  | { type: "ADJUST_TURF_WAIVER"; syndicateId: string; threshold: number; timestamp: number }
   | { type: "ESTABLISH_CHECKPOINT"; roomId: string; syndicateId: string; timestamp: number };
 
 

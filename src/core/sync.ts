@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -4819,6 +4819,110 @@ export function multiAgentStep(
           syndicateId,
           amount,
           consensusAmount: newConsensusAmount,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+
+  // Handle decentralized ADJUST_TURF_WAIVER action (AF-55)
+  if ((action as any).type === "ADJUST_TURF_WAIVER") {
+    const { syndicateId, threshold, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to adjust turf waiver threshold.`;
+    } else if (!Number.isInteger(threshold)) {
+      rejectionReason = `Proposed turf waiver threshold ${threshold} must be an integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const syndicateWaiverVotes = { ...(state.syndicateWaiverVotes || {}) };
+      if (!syndicateWaiverVotes[syndicateId]) {
+        syndicateWaiverVotes[syndicateId] = {};
+      } else {
+        syndicateWaiverVotes[syndicateId] = { ...syndicateWaiverVotes[syndicateId] };
+      }
+
+      const existingVote = syndicateWaiverVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        syndicateWaiverVotes[syndicateId][agentId] = {
+          threshold,
+          timestamp,
+        };
+        newState.syndicateWaiverVotes = syndicateWaiverVotes;
+        newState = reconcileSyndicateWaivers(newState, pack);
+
+        const newConsensusThreshold = newState.syndicates?.[syndicateId]?.turfWaiverThreshold ?? 50;
+        newState.journal.push(`[Syndicate] Agent ${agentId} voted for turf waiver threshold ${threshold} in syndicate ${syndicateId} (New consensus threshold: ${newConsensusThreshold}).`);
+
+        customEvents.push({
+          type: "turf_waiver_adjusted",
+          agentId,
+          syndicateId,
+          threshold,
+          consensusThreshold: newConsensusThreshold,
         });
       }
     }

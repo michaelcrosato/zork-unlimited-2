@@ -297,6 +297,12 @@ export const SyndicateBribeVoteSchema = z.object({
 });
 export type SyndicateBribeVote = z.infer<typeof SyndicateBribeVoteSchema>;
 
+export const SyndicateWaiverVoteSchema = z.object({
+  threshold: z.number().int(),
+  timestamp: z.number().int(),
+});
+export type SyndicateWaiverVote = z.infer<typeof SyndicateWaiverVoteSchema>;
+
 export const TurfCheckpointSchema = z.object({
   roomId: z.string(),
   syndicateId: z.string(),
@@ -314,6 +320,7 @@ export const CrimeSyndicateSchema = z.object({
   dominance: z.number().int().nonnegative().optional(),
   turfTaxRate: z.number().int().nonnegative().optional(),
   turfBribeCost: z.number().int().nonnegative().optional(),
+  turfWaiverThreshold: z.number().int().optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
 
@@ -460,6 +467,7 @@ export const GameStateSchema = z.object({
   syndicateTaxVotes: z.record(z.string(), z.record(z.string(), SyndicateTaxVoteSchema)).optional(),
   turfCheckpoints: z.record(z.string(), TurfCheckpointSchema).optional(),
   syndicateBribeVotes: z.record(z.string(), z.record(z.string(), SyndicateBribeVoteSchema)).optional(),
+  syndicateWaiverVotes: z.record(z.string(), z.record(z.string(), SyndicateWaiverVoteSchema)).optional(),
 });
 
 
@@ -564,6 +572,7 @@ export const createInitialState = (options: {
     syndicateTaxVotes: {},
     turfCheckpoints: {},
     syndicateBribeVotes: {},
+    syndicateWaiverVotes: {},
   };
 };
 
@@ -1125,6 +1134,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     syndicateTaxVotes: rest.syndicateTaxVotes ? JSON.parse(JSON.stringify(rest.syndicateTaxVotes)) : undefined,
     turfCheckpoints: rest.turfCheckpoints ? JSON.parse(JSON.stringify(rest.turfCheckpoints)) : undefined,
     syndicateBribeVotes: rest.syndicateBribeVotes ? JSON.parse(JSON.stringify(rest.syndicateBribeVotes)) : undefined,
+    syndicateWaiverVotes: rest.syndicateWaiverVotes ? JSON.parse(JSON.stringify(rest.syndicateWaiverVotes)) : undefined,
   };
   return clone;
 }
@@ -1165,6 +1175,48 @@ export function reconcileSyndicateBribes(state: GameState, pack: any): GameState
     newState.syndicates[syndicateId] = {
       ...syndicate,
       turfBribeCost: consensusAmount,
+    };
+  }
+
+  return newState;
+}
+
+export function reconcileSyndicateWaivers(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  if (!newState.syndicateWaiverVotes) {
+    newState.syndicateWaiverVotes = {};
+  }
+
+  for (const [syndicateId, votes] of Object.entries(newState.syndicateWaiverVotes)) {
+    const syndicate = newState.syndicates[syndicateId];
+    if (!syndicate) continue;
+
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.threshold] = (counts[vote.threshold] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    let consensusThreshold = syndicate.turfWaiverThreshold ?? 50;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort thresholds descending to prefer higher thresholds.
+    const uniqueThresholds = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const threshold of uniqueThresholds) {
+      const count = counts[threshold];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusThreshold = threshold;
+      }
+    }
+
+    newState.syndicates[syndicateId] = {
+      ...syndicate,
+      turfWaiverThreshold: consensusThreshold,
     };
   }
 

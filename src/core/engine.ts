@@ -812,64 +812,94 @@ export function step(
         }
       }
 
-      // Contraband Checkpoint & Automatic Bribe Extortion Check (AF-54)
+      // Contraband Checkpoint & Automatic Bribe Extortion Check (AF-54, AF-55)
       if (controllingSyndicateId && carriesContraband) {
         const isHostileTurf = !newState.syndicates?.[controllingSyndicateId]?.members.includes(agentId);
         const checkpoint = newState.turfCheckpoints?.[destRoomId];
         if (isHostileTurf && checkpoint && checkpoint.active) {
           const syndicate = newState.syndicates?.[controllingSyndicateId];
-          const bribeCost = syndicate?.turfBribeCost ?? 0;
-          const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
-          const currentGold = newState.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+          const syndicateRep = newState.factionRep?.[controllingSyndicateId] ?? 0;
+          const waiverThreshold = syndicate?.turfWaiverThreshold !== undefined ? syndicate.turfWaiverThreshold : 50;
 
-          if (bribeCost > 0 && currentGold >= bribeCost) {
-            // Pay bribe toll and pass
-            newState.vars[goldKey] = currentGold - bribeCost;
-
-            // Distribute among syndicate members
-            const members = syndicate?.members ?? [];
-            const memberShare = members.length > 0 ? Math.floor(bribeCost / members.length) : 0;
-            if (memberShare > 0) {
-              for (const member of members) {
-                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
-                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + memberShare;
-              }
-            }
-
-            newState.journal.push(`[Syndicate] Agent ${agentId} paid ${bribeCost} gold bribe to ${controllingSyndicateId} checkpoint at ${destRoomId}. Distributed ${memberShare} gold to each member.`);
+          if (syndicateRep >= waiverThreshold) {
+            newState.journal.push(`[Syndicate] Agent ${agentId} passed ${controllingSyndicateId} checkpoint at ${destRoomId} carrying contraband. Bribe waived due to high reputation (${syndicateRep} >= ${waiverThreshold}).`);
             events.push({
               type: "narration",
-              text: `Paid ${bribeCost} gold in syndicate bribe toll to pass contraband checkpoint in ${destRoomId} (controlled by ${syndicateName}).`,
+              text: `Your high reputation with ${syndicateName} waives the contraband checkpoint bribe toll. You pass freely.`,
             });
           } else {
-            // Trigger enforcer skirmish!
-            const enforcerId = `turf_enforcer_${controllingSyndicateId}`;
-            newState.enforcers = {
-              ...(newState.enforcers || {}),
-              [enforcerId]: {
-                id: enforcerId,
-                name: `${syndicate?.name || "Syndicate"} Enforcer`,
-                factionId: controllingSyndicateId,
-                currentRoom: destRoomId,
-                status: "idle",
-                isBountyHunter: false,
-                timestamp: newState.step,
-                hp: 30,
-                max_hp: 30,
-                attack: 4,
-                defense: 12,
-                gold: 50,
-                xp: 40,
-              }
-            };
-            newState.flags[`in_combat_with_${enforcerId}`] = true;
-            newState.vars[`npc_hp_${enforcerId}`] = 30;
+            const isHatedEnemy = syndicateRep <= -50;
+            const bribeCost = syndicate?.turfBribeCost ?? 0;
+            let finalBribeCost = bribeCost;
+            if (!isHatedEnemy && syndicateRep < 0) {
+              finalBribeCost = bribeCost * 2;
+            }
 
-            newState.journal.push(`[Syndicate] Agent ${agentId} intercepted at ${controllingSyndicateId} checkpoint in ${destRoomId} carrying contraband. Skirmish triggered!`);
-            events.push({
-              type: "narration",
-              text: `💥 Intercepted at Crime Syndicate checkpoint! ${syndicate?.name || "Syndicate"} Enforcer detects your contraband and attacks!`,
-            });
+            const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+            const currentGold = newState.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+            if (!isHatedEnemy && finalBribeCost > 0 && currentGold >= finalBribeCost) {
+              // Pay bribe toll and pass
+              newState.vars[goldKey] = currentGold - finalBribeCost;
+
+              // Distribute among syndicate members
+              const members = syndicate?.members ?? [];
+              const memberShare = members.length > 0 ? Math.floor(finalBribeCost / members.length) : 0;
+              if (memberShare > 0) {
+                for (const member of members) {
+                  const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                  newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + memberShare;
+                }
+              }
+
+              const bribeMsg = finalBribeCost !== bribeCost ? `double bribe toll of ${finalBribeCost} gold` : `bribe toll of ${bribeCost} gold`;
+              newState.journal.push(`[Syndicate] Agent ${agentId} paid ${bribeMsg} to ${controllingSyndicateId} checkpoint at ${destRoomId}. Distributed ${memberShare} gold to each member.`);
+              events.push({
+                type: "narration",
+                text: `Paid ${finalBribeCost} gold in syndicate bribe toll to pass contraband checkpoint in ${destRoomId} (controlled by ${syndicateName}).`,
+              });
+            } else {
+              // Trigger enforcer skirmish / ambush!
+              const enforcerId = `turf_enforcer_${controllingSyndicateId}`;
+              const repPenalty = Math.abs(Math.min(0, syndicateRep));
+              const scaledHp = 30 + repPenalty;
+              const scaledDefense = 12 + Math.floor(repPenalty / 5);
+
+              newState.enforcers = {
+                ...(newState.enforcers || {}),
+                [enforcerId]: {
+                  id: enforcerId,
+                  name: `${syndicate?.name || "Syndicate"} Enforcer`,
+                  factionId: controllingSyndicateId,
+                  currentRoom: destRoomId,
+                  status: "idle",
+                  isBountyHunter: false,
+                  timestamp: newState.step,
+                  hp: scaledHp,
+                  max_hp: scaledHp,
+                  attack: 4,
+                  defense: scaledDefense,
+                  gold: 50,
+                  xp: 40,
+                }
+              };
+              newState.flags[`in_combat_with_${enforcerId}`] = true;
+              newState.vars[`npc_hp_${enforcerId}`] = scaledHp;
+
+              if (isHatedEnemy) {
+                newState.journal.push(`[Syndicate] Hated enemy Agent ${agentId} intercepted at ${controllingSyndicateId} checkpoint in ${destRoomId} carrying contraband. Pre-emptive ambush triggered!`);
+                events.push({
+                  type: "narration",
+                  text: `💥 Pre-emptive Ambush! As a hated enemy, the ${syndicate?.name || "Syndicate"} Enforcer immediately attacks you at the checkpoint!`,
+                });
+              } else {
+                newState.journal.push(`[Syndicate] Agent ${agentId} intercepted at ${controllingSyndicateId} checkpoint in ${destRoomId} carrying contraband. Skirmish triggered!`);
+                events.push({
+                  type: "narration",
+                  text: `💥 Intercepted at Crime Syndicate checkpoint! ${syndicate?.name || "Syndicate"} Enforcer detects your contraband and attacks!`,
+                });
+              }
+            }
           }
         }
       }

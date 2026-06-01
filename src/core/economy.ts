@@ -54,6 +54,21 @@ export function calculateTradePrice(
     }
   }
 
+  // 3b. Crime Syndicate Turf Reputation Modifier (AF-55)
+  const controllingSyndicateId = state.syndicateTurf?.[state.current];
+  if (controllingSyndicateId && !isSafehouse) {
+    const syndicateRep = state.factionRep?.[controllingSyndicateId] ?? 0;
+    if (isBuy) {
+      // Positive reputation gives a discount; negative reputation acts as a price penalty (markup)
+      const syndicateBuyFactor = Math.max(0.5, Math.min(1.5, 1.0 - syndicateRep * 0.02));
+      multiplier *= syndicateBuyFactor;
+    } else {
+      // Positive reputation gives a higher sell payout; negative reputation acts as a sell penalty (lower payout)
+      const syndicateSellFactor = Math.max(0.5, Math.min(1.5, 1.0 + syndicateRep * 0.02));
+      multiplier *= syndicateSellFactor;
+    }
+  }
+
   // 4. Faction Territory Merchant Tariff (AF-35)
   if (controllingFactionId && !isSafehouse) {
     const hasLicense = state.merchantLicenses?.[traderId]?.includes(controllingFactionId) || false;
