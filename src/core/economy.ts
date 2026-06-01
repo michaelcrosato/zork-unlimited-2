@@ -543,9 +543,8 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           roomTax = roomTax * rateMultiplier;
         }
 
-        // Check Espionage Network interception! (AF-64)
         const espionage = newState.espionageNetworks?.[roomId];
-        if (espionage) {
+        if (espionage && espionage.status !== "sabotaged") {
           const syndicate = newState.syndicates?.[espionage.syndicateId];
           if (syndicate) {
             const intercepted = Math.max(1, Math.floor(roomTax * 0.2));
@@ -875,7 +874,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
                 let actualPayout = fullTaxAmount;
                 const wiretap = newState.wiretaps?.[front.roomId];
-                if (wiretap && wiretap.syndicateId !== controllingSyndicateId) {
+                if (wiretap && wiretap.syndicateId !== controllingSyndicateId && wiretap.status !== "sabotaged") {
                   const wiretapSyndicate = newState.syndicates?.[wiretap.syndicateId];
                   if (wiretapSyndicate) {
                     const intercepted = Math.max(1, Math.floor(fullTaxAmount * 0.2));
@@ -964,6 +963,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   // 7. Periodic wiretap intelligence leakage (AF-64)
   if (newState.step > 0 && newState.step % 5 === 0 && newState.wiretaps) {
     for (const [roomId, wiretap] of Object.entries(newState.wiretaps)) {
+      if (wiretap.status === "sabotaged") continue;
       const txJournal = newState.transactionJournal || [];
       const rivalTxs = txJournal.filter(tx => {
         const syndicate = newState.syndicates?.[wiretap.syndicateId];

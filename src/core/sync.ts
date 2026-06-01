@@ -6197,7 +6197,7 @@ export function multiAgentStep(
       rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
     } else if (!isFactionControlled) {
       rejectionReason = `Room ${roomId} is not faction-controlled. Espionage networks require faction territory.`;
-    } else if (state.espionageNetworks?.[roomId]) {
+    } else if (state.espionageNetworks?.[roomId] && state.espionageNetworks[roomId].status !== "sabotaged") {
       rejectionReason = `Room ${roomId} already has an established espionage network.`;
     } else {
       const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
@@ -6350,7 +6350,7 @@ export function multiAgentStep(
       rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
     } else if (!isMerchantHub) {
       rejectionReason = `Room ${roomId} is not a merchant transaction hub. Wiretaps require a merchant presence.`;
-    } else if (state.wiretaps?.[roomId]) {
+    } else if (state.wiretaps?.[roomId] && state.wiretaps[roomId].status !== "sabotaged") {
       rejectionReason = `Room ${roomId} already has an active wiretap.`;
     } else {
       const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
@@ -6845,6 +6845,306 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized SABOTAGE_NETWORK action (AF-66)
+  if ((action as any).type === "SABOTAGE_NETWORK") {
+    const { syndicateId, targetSyndicateId, roomId, targetType, reportId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const targetSyndicate = state.syndicates?.[targetSyndicateId];
+    const currentRoomId = agentId === "player" ? state.current : (state.agents?.[agentId]?.current ?? state.current);
+
+    let hasBlackMarketMerchant = false;
+    const p = pack as any;
+    if (p) {
+      if ("rooms" in p) {
+        const room = p.rooms.find((r: any) => r.id === currentRoomId);
+        if (room && room.npcs && room.npcs.length > 0) {
+          hasBlackMarketMerchant = true;
+        }
+      } else {
+        const scene = p.scenes.find((s: any) => s.id === currentRoomId);
+        if (scene && scene.npcs && scene.npcs.length > 0) {
+          hasBlackMarketMerchant = true;
+        }
+      }
+    }
+    if (!hasBlackMarketMerchant && state.blackMarkets) {
+      if (Object.values(state.blackMarkets).some(b => b.roomId === currentRoomId)) {
+        hasBlackMarketMerchant = true;
+      }
+    }
+    if (!hasBlackMarketMerchant && state.safehouses) {
+      if (Object.values(state.safehouses).some(s => s.roomId === currentRoomId)) {
+        hasBlackMarketMerchant = true;
+      }
+    }
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to sabotage a rival network.`;
+    } else if (!targetSyndicateId) {
+      rejectionReason = `Target syndicate ID is required to sabotage a rival network.`;
+    } else if (!roomId) {
+      rejectionReason = `Room ID is required to sabotage a rival network.`;
+    } else if (!targetType || !["espionage_network", "wiretap"].includes(targetType)) {
+      rejectionReason = `Target type ${targetType} must be one of: espionage_network, wiretap.`;
+    } else if (!reportId) {
+      rejectionReason = `Report ID is required to sabotage a rival network.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!targetSyndicate) {
+      rejectionReason = `Target syndicate ${targetSyndicateId} does not exist.`;
+    } else if (syndicateId === targetSyndicateId) {
+      rejectionReason = `You cannot sabotage your own syndicate's espionage network or wiretap.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!syndicate.intelStock?.[reportId]) {
+      rejectionReason = `Intel report ${reportId} does not exist in syndicate ${syndicateId} stock.`;
+    } else if (!hasBlackMarketMerchant) {
+      rejectionReason = `No black market merchant or safehouse/front business present in room ${currentRoomId}. Intel trading requires a black market presence.`;
+    } else if (targetType === "espionage_network") {
+      const net = state.espionageNetworks?.[roomId];
+      if (!net) {
+        rejectionReason = `No espionage network exists in room ${roomId}.`;
+      } else if (net.syndicateId !== targetSyndicateId) {
+        rejectionReason = `Espionage network in room ${roomId} does not belong to rival syndicate ${targetSyndicateId}.`;
+      } else if (net.status === "sabotaged") {
+        rejectionReason = `Espionage network in room ${roomId} is already sabotaged.`;
+      } else {
+        ok = true;
+      }
+    } else if (targetType === "wiretap") {
+      const wt = state.wiretaps?.[roomId];
+      if (!wt) {
+        rejectionReason = `No wiretap exists in room ${roomId}.`;
+      } else if (wt.syndicateId !== targetSyndicateId) {
+        rejectionReason = `Wiretap in room ${roomId} does not belong to rival syndicate ${targetSyndicateId}.`;
+      } else if (wt.status === "sabotaged") {
+        rejectionReason = `Wiretap in room ${roomId} is already sabotaged.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      // 1. Consume the intel report
+      const intelStock = { ...(syndicate.intelStock || {}) };
+      delete intelStock[reportId];
+
+      newState.syndicates = {
+        ...newState.syndicates,
+        [syndicateId]: {
+          ...syndicate,
+          intelStock,
+          timestamp,
+        },
+      };
+
+      // 2. Sabotage the target network
+      if (targetType === "espionage_network") {
+        const espionageNetworks = { ...(state.espionageNetworks || {}) };
+        const entry = espionageNetworks[roomId];
+        if (entry) {
+          espionageNetworks[roomId] = {
+            ...entry,
+            status: "sabotaged" as const,
+            timestamp,
+          };
+        }
+        newState.espionageNetworks = espionageNetworks;
+      } else {
+        const wiretaps = { ...(state.wiretaps || {}) };
+        const entry = wiretaps[roomId];
+        if (entry) {
+          wiretaps[roomId] = {
+            ...entry,
+            status: "sabotaged" as const,
+            timestamp,
+          };
+        }
+        newState.wiretaps = wiretaps;
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Agent ${agentId} sabotaged rival syndicate ${targetSyndicateId} ${targetType} in room ${roomId} using intel report ${reportId}.`);
+
+      customEvents.push({
+        type: "network_sabotaged",
+        agentId,
+        syndicateId,
+        targetSyndicateId,
+        roomId,
+        targetType,
+        reportId,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized FLIP_UNDERCOVER_AGENT action (AF-66)
+  if ((action as any).type === "FLIP_UNDERCOVER_AGENT") {
+    const { syndicateId, agentId: targetAgentId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const targetAgent = state.undercoverAgents?.[targetAgentId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to flip an undercover agent.`;
+    } else if (!targetAgentId) {
+      rejectionReason = `Undercover agent ID is required to flip an undercover agent.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!targetAgent) {
+      rejectionReason = `Undercover agent ${targetAgentId} does not exist.`;
+    } else if (targetAgent.syndicateId !== syndicateId) {
+      rejectionReason = `Undercover agent ${targetAgentId} is not infiltrating syndicate ${syndicateId}.`;
+    } else if (targetAgent.status === "rooted_out") {
+      rejectionReason = `Undercover agent ${targetAgentId} has already been rooted out.`;
+    } else if (!syndicate.intelTransactions || syndicate.intelTransactions.length === 0) {
+      rejectionReason = `Syndicate ${syndicateId} must have at least one intel transaction record to flip an undercover agent.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && targetAgent) {
+      // 1. Update target agent status in undercoverAgents
+      newState.undercoverAgents = newState.undercoverAgents ? { ...newState.undercoverAgents } : {};
+      newState.undercoverAgents[targetAgentId] = {
+        ...targetAgent,
+        status: "rooted_out" as const,
+        timestamp,
+      };
+
+      // 2. Create informant in informants
+      newState.informants = newState.informants ? { ...newState.informants } : {};
+      newState.informants[targetAgentId] = {
+        id: targetAgentId,
+        name: targetAgent.name,
+        syndicateId,
+        status: "active" as const,
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Undercover agent ${targetAgent.name} was flipped to a syndicate informant by agent ${agentId} for syndicate ${syndicateId} using intel transaction records.`);
+
+      customEvents.push({
+        type: "undercover_agent_flipped",
+        agentId,
+        syndicateId,
+        targetAgentId,
+        name: targetAgent.name,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
 
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};

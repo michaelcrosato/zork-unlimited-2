@@ -390,6 +390,7 @@ export const EspionageNetworkSchema = z.object({
   syndicateId: z.string(),
   cost: z.number().int().nonnegative(),
   timestamp: z.number().int(),
+  status: z.enum(["active", "sabotaged"]).optional(),
 });
 export type EspionageNetwork = z.infer<typeof EspionageNetworkSchema>;
 
@@ -398,6 +399,7 @@ export const WiretapSchema = z.object({
   syndicateId: z.string(),
   cost: z.number().int().nonnegative(),
   timestamp: z.number().int(),
+  status: z.enum(["active", "sabotaged"]).optional(),
 });
 export type Wiretap = z.infer<typeof WiretapSchema>;
 

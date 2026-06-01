@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #65 (Ready for Cycle #66)
-* **Build/Test Status**: 🟢 PASS (All 293 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #66 (Ready for Cycle #67)
+* **Build/Test Status**: 🟢 PASS (All 298 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -390,16 +390,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire transaction reducers to trigger strategic benefits upon intelligence trading (`AF-65`).
 - [x] Write comprehensive integration tests (`AF-65`).
 
+### Phase 60: Syndicate Sabotage & Undercover Enforcer Defection (Completed)
+- [x] Add `SABOTAGE_NETWORK` decentralized action reducer (`AF-66`).
+- [x] Add `FLIP_UNDERCOVER_AGENT` decentralized action reducer (`AF-66`).
+- [x] Integrate with network Discovery/Mesh node gossip updates (`AF-66`).
+- [x] Write comprehensive integration tests verifying validations, active overrides, and gossip reconciliation (`AF-66`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-66`
-* **Objective**: Syndicate Black Market Informant Sabotage & Undercover Enforcer Defection.
-* **Why this matters**: Support sabotaging rival espionage networks or wiretaps using specialized intelligence trade deals, and allow recruiting/flipping undercover enforcer agents to syndicate informants using intel transaction records.
+**Task ID**: `AF-67`
+* **Objective**: Syndicate Black Market Contraband Smuggling Ringleaders & Global Cartel Taxes.
+* **Why this matters**: Support appointing smuggling ringleaders that coordinate multi-convoy networks, and vote on global cartel tax adjustments that dynamically tax trade route crossings mesh-wide.
 * **Planned Actions**:
-  1. Add `SABOTAGE_NETWORK` decentralized action reducer.
-  2. Add `FLIP_UNDERCOVER_AGENT` decentralized action reducer.
-  3. Integrate with network Discovery/Mesh node gossip updates.
+  1. Add `APPOINT_RINGLEADER` decentralized action reducer.
+  2. Add `VOTE_CARTEL_GLOBAL_TAX` decentralized action reducer.
+  3. Integrate with economy ticks and mesh-wide gossip sync.
   4. Write comprehensive integration tests.
 
 ---

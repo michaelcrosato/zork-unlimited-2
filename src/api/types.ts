@@ -54,7 +54,9 @@ export type Action =
   | { type: "ESTABLISH_ESPIONAGE_NETWORK"; roomId: string; syndicateId: string; cost: number; timestamp: number }
   | { type: "PLACE_WIRETAP"; roomId: string; syndicateId: string; cost: number; timestamp: number }
   | { type: "SELL_INTEL_REPORT"; syndicateId: string; reportId: string; gold: number; timestamp: number }
-  | { type: "BUY_INTEL_REPORT"; syndicateId: string; reportId: string; intelType: "wiretap_log" | "transaction_map" | "raid_schedule"; roomId: string; cost: number; timestamp: number };
+  | { type: "BUY_INTEL_REPORT"; syndicateId: string; reportId: string; intelType: "wiretap_log" | "transaction_map" | "raid_schedule"; roomId: string; cost: number; timestamp: number }
+  | { type: "SABOTAGE_NETWORK"; syndicateId: string; targetSyndicateId: string; roomId: string; targetType: "espionage_network" | "wiretap"; reportId: string; timestamp: number }
+  | { type: "FLIP_UNDERCOVER_AGENT"; syndicateId: string; agentId: string; timestamp: number };
 
 
 
