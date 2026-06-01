@@ -517,6 +517,20 @@ export function calculateTradePrice(
     }
   }
 
+  // AF-226: Dynamic Strategic Pricing under default alert
+  const hasActiveDefaultAlert = traderSyndicates.some(s => {
+    return Object.values(state.sovereignDebtDefaultAlerts || {}).some(alert => {
+      return alert.targetSyndicateId === s.id && alert.status === "authorized" && !alert.resolved;
+    });
+  });
+  if (hasActiveDefaultAlert) {
+    if (isBuy) {
+      multiplier *= 1.5; // default alert pricing penalty (50% markup)
+    } else {
+      multiplier *= 0.5; // default alert payout penalty (50% markdown)
+    }
+  }
+
   const finalCost = Math.round(baseCost * multiplier);
   return Math.max(1, finalCost); // price never drops below 1 gold
 }
@@ -7196,8 +7210,44 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
   // AF-224: SWF Deflection Surcharge Alliance Liquidity Pool Yield-bearing Sweep-in & auto-refunding
   finalState = tickAllianceYieldAutoRepay(finalState);
+
+  // AF-226: Tick Sovereign Debt Default Alerts & reputation penalties
+  finalState = tickSovereignDebtDefaultAlerts(finalState);
   return finalState;
 }
+
+export function tickSovereignDebtDefaultAlerts(state: GameState): GameState {
+  if (!state.sovereignDebtDefaultAlerts) return state;
+
+  const newState = {
+    ...state,
+    factionRep: state.factionRep ? { ...state.factionRep } : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  const activeAlerts = Object.values(newState.sovereignDebtDefaultAlerts || {}).filter(
+    (alert: any) => alert.status === "authorized"
+  );
+
+
+  for (const alert of activeAlerts) {
+    const targetSyndicateId = alert.targetSyndicateId;
+    const outstandingFee = newState.outstandingDeflectionFees?.[targetSyndicateId] ?? 0;
+    
+    if (outstandingFee > 0) {
+      const currentRep = newState.factionRep[targetSyndicateId] ?? 0;
+      const penalty = 15;
+      newState.factionRep[targetSyndicateId] = currentRep - penalty;
+      
+      newState.journal.push(
+        `[Sovereign Debt Default Alert Penalty] Syndicate ${targetSyndicateId} failed to service outstanding deflection fee of ${outstandingFee} gold. Applied reputation penalty of -${penalty} faction reputation (New Faction Reputation: ${newState.factionRep[targetSyndicateId]}).`
+      );
+    }
+  }
+
+  return newState;
+}
+
 
 export function tickSWFReinsuranceOptionPeerLending(state: GameState): GameState {
   if (!state.swfReinsuranceOptionPeerLendingRequests) return state;

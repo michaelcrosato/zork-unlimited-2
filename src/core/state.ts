@@ -2925,6 +2925,39 @@ export const SWFAllianceYieldAutoRepayProposalSchema = z.object({
 });
 export type SWFAllianceYieldAutoRepayProposal = z.infer<typeof SWFAllianceYieldAutoRepayProposalSchema>;
 
+export const SovereignDebtDefaultAlertSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  sovereignDebtAmount: z.number(),
+  status: z.enum(["proposed", "authorized", "disputed", "resolved"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtDefaultAlert = z.infer<typeof SovereignDebtDefaultAlertSchema>;
+
+export const SovereignDebtResolveAlertSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  alertProposalId: z.string(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtResolveAlert = z.infer<typeof SovereignDebtResolveAlertSchema>;
+
+
 
 
 
@@ -3905,6 +3938,10 @@ export const GameStateSchema = z.object({
   swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier: z.number().optional(),
   swfAllianceYieldAutoRepayProposals: z.record(z.string(), SWFAllianceYieldAutoRepayProposalSchema).optional(),
   outstandingDeflectionFees: z.record(z.string(), z.number().int().nonnegative()).optional(),
+  sovereignDebtDefaultAlerts: z.record(z.string(), SovereignDebtDefaultAlertSchema).optional(),
+  sovereignDebtResolveAlerts: z.record(z.string(), SovereignDebtResolveAlertSchema).optional(),
+
+
 
 
 
@@ -4347,6 +4384,9 @@ export const createInitialState = (options: {
     swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier: 1.0,
     swfAllianceYieldAutoRepayProposals: {},
     outstandingDeflectionFees: {},
+    sovereignDebtDefaultAlerts: {},
+    sovereignDebtResolveAlerts: {},
+
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
 
@@ -5516,6 +5556,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier: rest.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier,
     swfAllianceYieldAutoRepayProposals: rest.swfAllianceYieldAutoRepayProposals ? JSON.parse(JSON.stringify(rest.swfAllianceYieldAutoRepayProposals)) : undefined,
     outstandingDeflectionFees: rest.outstandingDeflectionFees ? JSON.parse(JSON.stringify(rest.outstandingDeflectionFees)) : undefined,
+    sovereignDebtDefaultAlerts: rest.sovereignDebtDefaultAlerts ? JSON.parse(JSON.stringify(rest.sovereignDebtDefaultAlerts)) : undefined,
+    sovereignDebtResolveAlerts: rest.sovereignDebtResolveAlerts ? JSON.parse(JSON.stringify(rest.sovereignDebtResolveAlerts)) : undefined,
+
   };
   return clone;
 }
@@ -17182,6 +17225,113 @@ export function reconcileSWFAllianceYieldAutoRepayProposals(state: GameState, pa
 
   return newState;
 }
+
+export function reconcileSovereignDebtDefaultAlerts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtDefaultAlerts: state.sovereignDebtDefaultAlerts ? { ...state.sovereignDebtDefaultAlerts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    factionRep: state.factionRep ? { ...state.factionRep } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.sovereignDebtDefaultAlerts)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed" || proposal.status === "resolved") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sovereignDebtDefaultAlerts[proposalId] = {
+        ...proposal,
+        resolved: false,
+        status: "authorized",
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Default Alert Resolved] Syndicate ${proposal.syndicateId} authorized default alert proposal ${proposalId} on Syndicate ${proposal.targetSyndicateId} (Debt: ${proposal.sovereignDebtAmount} gold).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.sovereignDebtDefaultAlerts[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtResolveAlerts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtDefaultAlerts: state.sovereignDebtDefaultAlerts ? { ...state.sovereignDebtDefaultAlerts } : {},
+    sovereignDebtResolveAlerts: state.sovereignDebtResolveAlerts ? { ...state.sovereignDebtResolveAlerts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.sovereignDebtResolveAlerts)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.sovereignDebtResolveAlerts[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      // Resolve the original default alert!
+      const alertId = proposal.alertProposalId;
+      if (newState.sovereignDebtDefaultAlerts[alertId]) {
+        newState.sovereignDebtDefaultAlerts[alertId] = {
+          ...newState.sovereignDebtDefaultAlerts[alertId],
+          resolved: true,
+          status: "resolved",
+        };
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Default Alert Resolved] Syndicate ${proposal.syndicateId} authorized resolve alert proposal ${proposalId} for target Syndicate ${proposal.targetSyndicateId} (Cleared Alert: ${alertId}).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.sovereignDebtResolveAlerts[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
 
 
 

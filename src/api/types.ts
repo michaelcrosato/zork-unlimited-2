@@ -242,7 +242,12 @@ export type Action =
   | { type: "PROPOSE_ALLIANCE_LIQUIDITY_SUBSIDY"; proposalId: string; syndicateId: string; subsidyRate: number; minAlliedWealth: number; timestamp: number }
   | { type: "VOTE_ALLIANCE_LIQUIDITY_SUBSIDY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_ALLIANCE_YIELD_AUTO_REPAY"; proposalId: string; syndicateId: string; yieldRate: number; partitionThreshold: number; gracePeriodMultiplier?: number; creditRatingRecoveryMultiplier?: number; timestamp: number }
-  | { type: "VOTE_ALLIANCE_YIELD_AUTO_REPAY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_ALLIANCE_YIELD_AUTO_REPAY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_DEFAULT_ALERT"; proposalId: string; syndicateId: string; targetSyndicateId: string; sovereignDebtAmount: number; timestamp: number }
+  | { type: "VOTE_DEFAULT_ALERT"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_RESOLVE_DEFAULT_ALERT"; proposalId: string; syndicateId: string; targetSyndicateId: string; alertProposalId: string; timestamp: number }
+  | { type: "VOTE_RESOLVE_DEFAULT_ALERT"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+
 
 
 
