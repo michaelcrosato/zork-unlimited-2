@@ -4714,7 +4714,22 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
               : 15.0;
 
-            const optRequired = Math.round(opt.size * spotRate * (avgVolatility / 10.0) * 10);
+            const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
+            const stressPolicy = newState.swfReinsuranceOptionStressTestPolicies?.[policyKey];
+
+            let volatilityToUse = avgVolatility;
+            let shockScale = 1.0;
+            let flatShock = 0;
+
+            if (stressPolicy) {
+              volatilityToUse = avgVolatility + stressPolicy.simulatedVolatilityShock;
+              shockScale = stressPolicy.reserveMultiplier;
+              flatShock = Math.round(stressPolicy.simulatedLiquidityShock);
+            }
+
+            let optRequired = Math.round(opt.size * spotRate * (volatilityToUse / 10.0) * 10);
+            optRequired = Math.round(optRequired * shockScale) + flatShock;
+
             sumOptionsMaintenanceRequirement += optRequired;
           }
         }

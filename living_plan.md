@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #156 (Ready for Cycle #157)
-* **Build/Test Status**: 🟢 PASS (All 632 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #157 (Ready for Cycle #158)
+* **Build/Test Status**: 🟢 PASS (All 634 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -949,14 +949,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 135: Syndicate SWF Reinsurance Options Portfolio Stress Testing & Dynamic Liquidity Reserve Buffer Scaling (Completed)
+- [x] Define multi-scenario stress testing schemas and metrics inside GameState (`AF-157`).
+- [x] Implement decentralized voting on stress-test shocks and reserve multipliers (`AF-157`).
+- [x] Wire dynamic liquidity reserve buffer adjustments to economy ticks (`AF-157`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-157`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-157`
-* **Objective**: Syndicate SWF Reinsurance Options Portfolio Stress Testing & Dynamic Liquidity Reserve Buffer Scaling.
-* **Why this matters**: Introduce multi-scenario stress-testing for option writers that dynamically scales mandatory liquidity reserve buffers based on extreme simulated volatility hikes and systemic liquidity shocks.
+**Task ID**: `AF-158`
+* **Objective**: Syndicate SWF Stress-Test-Aware Automated Hedging & Dynamic Liquidity Insurance Pool Reallocation.
+* **Why this matters**: Automatically trigger rebalancing and preemptive liquidity reallocation from lower-yield reserves to reinsurance insurance pools when stress-test volatility metrics indicate a high probability of impending margin calls.
 * **Planned Actions**:
-  1. Define multi-scenario stress testing schemas and metrics inside GameState.
-  2. Implement decentralized voting on stress-test shocks and reserve multipliers.
-  3. Wire dynamic liquidity reserve buffer adjustments to economy ticks.
+  1. Define stress-test-aware automated hedging thresholds and state variables in GameState.
+  2. Implement decentralized voting on hedging activation and reserve reallocation limits.
+  3. Wire automated hedging reallocations to economy ticks before liquidation audits occur.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---

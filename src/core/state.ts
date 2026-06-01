@@ -2166,6 +2166,26 @@ export const SWFReinsuranceOptionMarginVoteSchema = z.object({
 });
 export type SWFReinsuranceOptionMarginVote = z.infer<typeof SWFReinsuranceOptionMarginVoteSchema>;
 
+export const SWFReinsuranceOptionStressTestPolicySchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  simulatedVolatilityShock: z.number().nonnegative(),
+  simulatedLiquidityShock: z.number().nonnegative(),
+  reserveMultiplier: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionStressTestPolicy = z.infer<typeof SWFReinsuranceOptionStressTestPolicySchema>;
+
+export const SWFReinsuranceOptionStressTestVoteSchema = z.object({
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  simulatedVolatilityShock: z.number().nonnegative(),
+  simulatedLiquidityShock: z.number().nonnegative(),
+  reserveMultiplier: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionStressTestVote = z.infer<typeof SWFReinsuranceOptionStressTestVoteSchema>;
+
 
 
 export const VolatilityHedgedPremiumPolicySchema = z.object({
@@ -2727,6 +2747,8 @@ export const GameStateSchema = z.object({
   adjustSWFReinsuranceOptionMarketMakerRebateVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionMarketMakerRebateVoteSchema)).optional(),
   swfReinsuranceOptionMarginPolicies: z.record(z.string(), SWFReinsuranceOptionMarginPolicySchema).optional(),
   adjustSWFReinsuranceOptionMarginVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionMarginVoteSchema)).optional(),
+  swfReinsuranceOptionStressTestPolicies: z.record(z.string(), SWFReinsuranceOptionStressTestPolicySchema).optional(),
+  adjustSWFReinsuranceOptionStressTestVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionStressTestVoteSchema)).optional(),
   submitSWFReinsuranceOptionLimitOrderVotes: z.record(z.string(), z.record(z.string(), z.object({
     orderId: z.string(),
     orderType: z.enum(["buy", "sell"]),
@@ -3046,6 +3068,8 @@ export const createInitialState = (options: {
     adjustSWFReinsuranceOptionMarketMakerRebateVotes: {},
     swfReinsuranceOptionMarginPolicies: {},
     adjustSWFReinsuranceOptionMarginVotes: {},
+    swfReinsuranceOptionStressTestPolicies: {},
+    adjustSWFReinsuranceOptionStressTestVotes: {},
     submitSWFReinsuranceOptionLimitOrderVotes: {},
     cancelSWFReinsuranceOptionLimitOrderVotes: {},
     swfLiquidityMiningRewards: {},
@@ -3932,6 +3956,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     adjustSWFReinsuranceOptionMarketMakerRebateVotes: rest.adjustSWFReinsuranceOptionMarketMakerRebateVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionMarketMakerRebateVotes)) : undefined,
     swfReinsuranceOptionMarginPolicies: rest.swfReinsuranceOptionMarginPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionMarginPolicies)) : undefined,
     adjustSWFReinsuranceOptionMarginVotes: rest.adjustSWFReinsuranceOptionMarginVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionMarginVotes)) : undefined,
+    swfReinsuranceOptionStressTestPolicies: rest.swfReinsuranceOptionStressTestPolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionStressTestPolicies)) : undefined,
+    adjustSWFReinsuranceOptionStressTestVotes: rest.adjustSWFReinsuranceOptionStressTestVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionStressTestVotes)) : undefined,
     submitSWFReinsuranceOptionLimitOrderVotes: rest.submitSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.submitSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     cancelSWFReinsuranceOptionLimitOrderVotes: rest.cancelSWFReinsuranceOptionLimitOrderVotes ? JSON.parse(JSON.stringify(rest.cancelSWFReinsuranceOptionLimitOrderVotes)) : undefined,
     swfLiquidityMiningRewards: rest.swfLiquidityMiningRewards ? JSON.parse(JSON.stringify(rest.swfLiquidityMiningRewards)) : undefined,
@@ -12009,6 +12035,74 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[SWF Reinsurance Option Margin Policy Adjusted] Syndicate ${syndicateId} adjusted margin policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Liquidation Threshold: ${group.liquidationThreshold.toFixed(4)}, Penalty Rate: ${group.penaltyRate.toFixed(4)}).`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFReinsuranceOptionStressTests(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionStressTestPolicies: state.swfReinsuranceOptionStressTestPolicies ? { ...state.swfReinsuranceOptionStressTestPolicies } : {},
+    adjustSWFReinsuranceOptionStressTestVotes: state.adjustSWFReinsuranceOptionStressTestVotes ? { ...state.adjustSWFReinsuranceOptionStressTestVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.adjustSWFReinsuranceOptionStressTestVotes || {})) {
+    const votes = newState.adjustSWFReinsuranceOptionStressTestVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      swfYieldCdoId: string;
+      trancheId: "senior" | "mezzanine" | "equity";
+      simulatedVolatilityShock: number;
+      simulatedLiquidityShock: number;
+      reserveMultiplier: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.simulatedVolatilityShock}::${vote.simulatedLiquidityShock}::${vote.reserveMultiplier}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            swfYieldCdoId: vote.swfYieldCdoId,
+            trancheId: vote.trancheId,
+            simulatedVolatilityShock: vote.simulatedVolatilityShock,
+            simulatedLiquidityShock: vote.simulatedLiquidityShock,
+            reserveMultiplier: vote.reserveMultiplier,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const policyKey = `${group.swfYieldCdoId}_${group.trancheId}`;
+        newState.swfReinsuranceOptionStressTestPolicies![policyKey] = {
+          swfYieldCdoId: group.swfYieldCdoId,
+          trancheId: group.trancheId,
+          simulatedVolatilityShock: group.simulatedVolatilityShock,
+          simulatedLiquidityShock: group.simulatedLiquidityShock,
+          reserveMultiplier: group.reserveMultiplier,
+          timestamp: Math.max(...group.timestamps, newState.step),
+        };
+
+        delete newState.adjustSWFReinsuranceOptionStressTestVotes[syndicateId];
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Reinsurance Option Stress Test Adjusted] Syndicate ${syndicateId} adjusted stress test policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Volatility Shock: +${group.simulatedVolatilityShock.toFixed(2)}%, Liquidity Shock: ${group.simulatedLiquidityShock.toFixed(2)} gold, Reserve Multiplier: ${group.reserveMultiplier.toFixed(4)}x).`
         );
       }
     }
