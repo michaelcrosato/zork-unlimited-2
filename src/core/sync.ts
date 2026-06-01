@@ -33678,7 +33678,7 @@ export function multiAgentStep(
 
   // Handle ADJUST_SWF_REINSURANCE_OPTION_MARGIN action (AF-170)
   if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_MARGIN") {
-    const { syndicateId, swfYieldCdoId, trancheId, liquidationThreshold, penaltyRate, autoDeleveragingThreshold, marginDeflectionFactor, compoundingFactor, compoundingYieldRate, stressReserveScalingLimit, stressReserveBufferMultiplier, stressStabilizationTarget, timestamp } = action as any;
+    const { syndicateId, swfYieldCdoId, trancheId, liquidationThreshold, penaltyRate, autoDeleveragingThreshold, marginDeflectionFactor, compoundingFactor, compoundingYieldRate, stressReserveScalingLimit, stressReserveBufferMultiplier, stressStabilizationTarget, prunedRoutesRiskThreshold, protectivePoolAllocation, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -33710,6 +33710,10 @@ export function multiAgentStep(
       rejectionReason = `Stress reserve buffer multiplier must be non-negative.`;
     } else if (stressStabilizationTarget !== undefined && stressStabilizationTarget < 0) {
       rejectionReason = `Stress stabilization target must be non-negative.`;
+    } else if (prunedRoutesRiskThreshold !== undefined && prunedRoutesRiskThreshold < 0) {
+      rejectionReason = `Pruned routes risk threshold must be non-negative.`;
+    } else if (protectivePoolAllocation !== undefined && protectivePoolAllocation < 0) {
+      rejectionReason = `Protective pool allocation must be non-negative.`;
     } else if (!syndicate) {
       rejectionReason = `Syndicate ${syndicateId} does not exist.`;
     } else if (!cdo) {
@@ -33740,6 +33744,8 @@ export function multiAgentStep(
         stressReserveScalingLimit,
         stressReserveBufferMultiplier,
         stressStabilizationTarget,
+        prunedRoutesRiskThreshold,
+        protectivePoolAllocation,
         timestamp,
       };
       newState.adjustSWFReinsuranceOptionMarginVotes = adjustSWFReinsuranceOptionMarginVotes;
@@ -33754,6 +33760,9 @@ export function multiAgentStep(
       let extraStr = "";
       if (stressReserveScalingLimit !== undefined || stressReserveBufferMultiplier !== undefined || stressStabilizationTarget !== undefined) {
         extraStr = `, Stress Reserve Scaling Limit: ${(stressReserveScalingLimit ?? 20.0).toFixed(2)}, Stress Reserve Buffer Multiplier: ${(stressReserveBufferMultiplier ?? 1.5).toFixed(2)}, Stress Stabilization Target: ${(stressStabilizationTarget ?? 100).toFixed(0)}`;
+      }
+      if (prunedRoutesRiskThreshold !== undefined || protectivePoolAllocation !== undefined) {
+        extraStr += `, Pruned Routes Risk Threshold: ${(prunedRoutesRiskThreshold ?? 0)}, Protective Pool Allocation: ${(protectivePoolAllocation ?? 0.0).toFixed(2)}`;
       }
       newState.journal.push(
         `[SWF Reinsurance Option Margin Vote] Agent ${agentId} voted to adjust margin for CDO ${swfYieldCdoId} tranche ${trancheId} to Threshold: ${liquidationThreshold.toFixed(4)}, Penalty: ${penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(marginDeflectionFactor ?? 0.5).toFixed(2)}, Compounding Factor: ${(compoundingFactor ?? 0.0).toFixed(2)}, Compounding Yield Rate: ${(compoundingYieldRate ?? 0.0).toFixed(2)}${extraStr} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`

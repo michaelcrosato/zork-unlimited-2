@@ -4078,7 +4078,9 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                 }
               }
               const threshold = policy.autoDeleveragingThreshold ?? 0.3;
-              if (optLinkStateDropRate >= threshold) {
+              const prunedThreshold = policy.prunedRoutesRiskThreshold;
+              const prunedCount = marginAccount?.prunedRoutesCount ?? 0;
+              if (optLinkStateDropRate >= threshold || (prunedThreshold !== undefined && prunedCount >= prunedThreshold)) {
                 isNormal = false;
               }
             }
@@ -5082,7 +5084,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             const autoDeleveragingThreshold = marginPolicy?.autoDeleveragingThreshold ?? 0.3;
             const marginDeflectionFactor = marginPolicy?.marginDeflectionFactor ?? 0.5;
 
-            if (optLinkStateDropRate >= autoDeleveragingThreshold) {
+            const prunedThreshold = marginPolicy?.prunedRoutesRiskThreshold;
+            const prunedCount = marginAccount?.prunedRoutesCount ?? 0;
+
+            if (optLinkStateDropRate >= autoDeleveragingThreshold || (prunedThreshold !== undefined && prunedCount >= prunedThreshold)) {
               deleveragingActive = true;
               effectiveSize = Math.round(opt.size * (1.0 - marginDeflectionFactor));
             }
@@ -5094,8 +5099,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               optRequired = Math.round(optRequired * (1.0 - marginDeflectionFactor));
 
               if (!newState.journal) newState.journal = [];
+              const reason = (prunedThreshold !== undefined && prunedCount >= prunedThreshold)
+                ? `multiple route prunings (Pruned count: ${prunedCount} >= Threshold: ${prunedThreshold})`
+                : `severe network degradation (Link-state drop rate: ${optLinkStateDropRate.toFixed(2)} >= Threshold: ${autoDeleveragingThreshold.toFixed(2)})`;
               newState.journal.push(
-                `[SWF Reinsurance Option Auto-Deleveraging] Syndicate ${syndicateId} option on CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId} auto-deleveraged: Size marked down from ${opt.size} to ${effectiveSize} and margin requirement reduced by ${(marginDeflectionFactor * 100).toFixed(0)}% due to severe network degradation (Link-state drop rate: ${optLinkStateDropRate.toFixed(2)} >= Threshold: ${autoDeleveragingThreshold.toFixed(2)}).`
+                `[SWF Reinsurance Option Auto-Deleveraging] Syndicate ${syndicateId} option on CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId} auto-deleveraged: Size marked down from ${opt.size} to ${effectiveSize} and margin requirement reduced by ${(marginDeflectionFactor * 100).toFixed(0)}% due to ${reason}.`
               );
             }
 
@@ -5900,7 +5908,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               const autoDeleveragingThreshold = policy?.autoDeleveragingThreshold ?? 0.3;
               const marginDeflectionFactor = policy?.marginDeflectionFactor ?? 0.5;
 
-              if (optLinkStateDropRate >= autoDeleveragingThreshold) {
+              const prunedThreshold = policy?.prunedRoutesRiskThreshold;
+              const prunedCount = marginAccount?.prunedRoutesCount ?? 0;
+
+              if (optLinkStateDropRate >= autoDeleveragingThreshold || (prunedThreshold !== undefined && prunedCount >= prunedThreshold)) {
                 effectiveSize = Math.round(opt.size * (1.0 - marginDeflectionFactor));
               }
 

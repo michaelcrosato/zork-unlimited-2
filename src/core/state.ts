@@ -1863,6 +1863,7 @@ export const MarginAccountSchema = z.object({
   swfBondArbitrageMaxCapital: z.number().int().nonnegative().optional(),
   swfBondArbitrageMinYieldSpread: z.number().nonnegative().optional(),
   swfReinsuranceOptionVault: z.number().int().nonnegative().optional(),
+  prunedRoutesCount: z.number().int().nonnegative().optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -2235,6 +2236,8 @@ export const SWFReinsuranceOptionMarginPolicySchema = z.object({
   stressReserveScalingLimit: z.number().nonnegative().optional(),
   stressReserveBufferMultiplier: z.number().nonnegative().optional(),
   stressStabilizationTarget: z.number().nonnegative().optional(),
+  prunedRoutesRiskThreshold: z.number().int().nonnegative().optional(),
+  protectivePoolAllocation: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginPolicy = z.infer<typeof SWFReinsuranceOptionMarginPolicySchema>;
 
@@ -2251,6 +2254,8 @@ export const SWFReinsuranceOptionMarginVoteSchema = z.object({
   stressReserveScalingLimit: z.number().nonnegative().optional(),
   stressReserveBufferMultiplier: z.number().nonnegative().optional(),
   stressStabilizationTarget: z.number().nonnegative().optional(),
+  prunedRoutesRiskThreshold: z.number().int().nonnegative().optional(),
+  protectivePoolAllocation: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionMarginVote = z.infer<typeof SWFReinsuranceOptionMarginVoteSchema>;
 
@@ -12655,13 +12660,15 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
       stressReserveScalingLimit?: number;
       stressReserveBufferMultiplier?: number;
       stressStabilizationTarget?: number;
+      prunedRoutesRiskThreshold?: number;
+      protectivePoolAllocation?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
       if (syndicate.members.includes(voterId)) {
-        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}::${vote.compoundingFactor ?? 0}::${vote.compoundingYieldRate ?? 0}::${vote.stressReserveScalingLimit ?? 0}::${vote.stressReserveBufferMultiplier ?? 0}::${vote.stressStabilizationTarget ?? 0}`;
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.liquidationThreshold}::${vote.penaltyRate}::${vote.autoDeleveragingThreshold ?? 0.3}::${vote.marginDeflectionFactor ?? 0.5}::${vote.compoundingFactor ?? 0}::${vote.compoundingYieldRate ?? 0}::${vote.stressReserveScalingLimit ?? 0}::${vote.stressReserveBufferMultiplier ?? 0}::${vote.stressStabilizationTarget ?? 0}::${vote.prunedRoutesRiskThreshold ?? 0}::${vote.protectivePoolAllocation ?? 0}`;
         if (!voteGroups[key]) {
           voteGroups[key] = {
             swfYieldCdoId: vote.swfYieldCdoId,
@@ -12675,6 +12682,8 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
             stressReserveScalingLimit: vote.stressReserveScalingLimit,
             stressReserveBufferMultiplier: vote.stressReserveBufferMultiplier,
             stressStabilizationTarget: vote.stressStabilizationTarget,
+            prunedRoutesRiskThreshold: vote.prunedRoutesRiskThreshold,
+            protectivePoolAllocation: vote.protectivePoolAllocation,
             voters: new Set<string>(),
             timestamps: [],
           };
@@ -12699,6 +12708,8 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
           stressReserveScalingLimit: group.stressReserveScalingLimit,
           stressReserveBufferMultiplier: group.stressReserveBufferMultiplier,
           stressStabilizationTarget: group.stressStabilizationTarget,
+          prunedRoutesRiskThreshold: group.prunedRoutesRiskThreshold,
+          protectivePoolAllocation: group.protectivePoolAllocation,
           timestamp: Math.max(...group.timestamps, newState.step),
         };
 
@@ -12708,6 +12719,9 @@ export function reconcileSWFReinsuranceOptionMargins(state: GameState, pack: any
         let extraStr = "";
         if (group.stressReserveScalingLimit !== undefined || group.stressReserveBufferMultiplier !== undefined || group.stressStabilizationTarget !== undefined) {
           extraStr = `, Stress Reserve Scaling Limit: ${(group.stressReserveScalingLimit ?? 20.0).toFixed(2)}, Stress Reserve Buffer Multiplier: ${(group.stressReserveBufferMultiplier ?? 1.5).toFixed(2)}, Stress Stabilization Target: ${(group.stressStabilizationTarget ?? 100).toFixed(0)}`;
+        }
+        if (group.prunedRoutesRiskThreshold !== undefined || group.protectivePoolAllocation !== undefined) {
+          extraStr += `, Pruned Routes Risk Threshold: ${(group.prunedRoutesRiskThreshold ?? 0)}, Protective Pool Allocation: ${(group.protectivePoolAllocation ?? 0.0).toFixed(2)}`;
         }
         newState.journal.push(
           `[SWF Reinsurance Option Margin Policy Adjusted] Syndicate ${syndicateId} adjusted margin policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Liquidation Threshold: ${group.liquidationThreshold.toFixed(4)}, Penalty Rate: ${group.penaltyRate.toFixed(4)}, Auto-Deleveraging Threshold: ${(group.autoDeleveragingThreshold ?? 0.3).toFixed(2)}, Margin Deflection Factor: ${(group.marginDeflectionFactor ?? 0.5).toFixed(2)}, Compounding Factor: ${(group.compoundingFactor ?? 0.0).toFixed(2)}, Compounding Yield Rate: ${(group.compoundingYieldRate ?? 0.0).toFixed(2)}${extraStr}).`

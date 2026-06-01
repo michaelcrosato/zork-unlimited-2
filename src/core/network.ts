@@ -470,6 +470,52 @@ export class MeshNode extends GossipNode {
           targetNode.localState.journal.push(
             `[SWF Reinsurance Options Cross-Mesh Route Pruned] Pruned options arbitrage route ${routeId} from node ${sourceNodeId} to ${targetNodeId} due to latency (${finalLatency}ms) exceeding the threshold of ${route.maxPruningLatencyMs}ms.`
           );
+
+          // AF-182: Track pruned routes and trigger safety top-ups
+          const creatorSyndicateId = sourceNode.localState.swfYieldCDOs?.[swfYieldCdoId]?.creatorSyndicateId;
+          if (creatorSyndicateId) {
+            const marginPolicyKey = `${swfYieldCdoId}_${trancheId}`;
+            const marginPolicy = sourceNode.localState.swfReinsuranceOptionMarginPolicies?.[marginPolicyKey];
+            const marginAccount = sourceNode.localState.marginAccounts?.[creatorSyndicateId];
+            const syndicate = sourceNode.localState.syndicates?.[creatorSyndicateId];
+
+            if (marginAccount) {
+              sourceNode.localState.marginAccounts = { ...sourceNode.localState.marginAccounts };
+              const currentPruned = (marginAccount.prunedRoutesCount ?? 0) + 1;
+              sourceNode.localState.marginAccounts[creatorSyndicateId] = {
+                ...marginAccount,
+                prunedRoutesCount: currentPruned,
+              };
+
+              const updatedMarginAccount = sourceNode.localState.marginAccounts[creatorSyndicateId];
+
+              if (marginPolicy && marginPolicy.prunedRoutesRiskThreshold !== undefined) {
+                if (currentPruned >= marginPolicy.prunedRoutesRiskThreshold) {
+                  const allocation = marginPolicy.protectivePoolAllocation ?? 0;
+                  if (allocation > 0) {
+                    let topUpAmount = Math.round(allocation);
+                    if (syndicate && (syndicate.warChest ?? 0) >= topUpAmount) {
+                      sourceNode.localState.syndicates = { ...sourceNode.localState.syndicates };
+                      sourceNode.localState.syndicates[creatorSyndicateId] = {
+                        ...syndicate,
+                        warChest: (syndicate.warChest ?? 0) - topUpAmount,
+                      };
+                      updatedMarginAccount.collateral = (updatedMarginAccount.collateral ?? 0) + topUpAmount;
+                      sourceNode.localState.journal.push(
+                        `[SWF Reinsurance Options Margin Top-up] Automatically topped up option margin collateral by ${topUpAmount} gold for Syndicate ${creatorSyndicateId} from war chest (new collateral: ${updatedMarginAccount.collateral} gold) due to pruned routes count (${currentPruned}) meeting risk threshold (${marginPolicy.prunedRoutesRiskThreshold}).`
+                      );
+                    } else if (updatedMarginAccount.swfReinsuranceOptionVault && updatedMarginAccount.swfReinsuranceOptionVault >= topUpAmount) {
+                      updatedMarginAccount.swfReinsuranceOptionVault -= topUpAmount;
+                      updatedMarginAccount.collateral = (updatedMarginAccount.collateral ?? 0) + topUpAmount;
+                      sourceNode.localState.journal.push(
+                        `[SWF Reinsurance Options Margin Top-up] Automatically topped up option margin collateral by ${topUpAmount} gold for Syndicate ${creatorSyndicateId} from secondary option vault (new collateral: ${updatedMarginAccount.collateral} gold) due to pruned routes count (${currentPruned}) meeting risk threshold (${marginPolicy.prunedRoutesRiskThreshold}).`
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
           continue;
         }
       }
