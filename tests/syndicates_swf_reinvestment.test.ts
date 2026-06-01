@@ -500,4 +500,172 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       "[REINVESTMENT_AUDIT_BREACH] Audit triggered! Attempted reinvestment of 600 gold breached the authorized governance cap of 400 gold. Clamped to cap."
     );
   });
+
+  it("should propose and vote on governance cap breach slashing rate, authorizing it and setting breachSlashingRates for a syndicate", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Propose breach slashing rate of 15% (0.15)
+    const stepResult1 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP_BREACH_SLASHING" as any,
+          proposalId: "slashing_prop_1",
+          syndicateId: "alpha",
+          slashingRate: 0.15,
+          timestamp: 1010,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult1.ok).toBe(true);
+    state = stepResult1.state;
+
+    const prop = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals?.["slashing_prop_1"];
+    expect(prop).toBeDefined();
+    expect(prop?.slashingRate).toBe(0.15);
+    expect(prop?.status).toBe("proposed");
+
+    // Vote to authorize
+    const stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION_YIELD_PRO_RATA_AUTO_REINVESTMENT_GOVERNANCE_CAP_BREACH_SLASHING" as any,
+          proposalId: "slashing_prop_1",
+          vote: true,
+          timestamp: 1020,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    const propAfter = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals?.["slashing_prop_1"];
+    expect(propAfter?.status).toBe("authorized");
+    expect(state.breachSlashingRates?.["alpha"]).toBe(0.15);
+  });
+
+  it("should slash CDO tranche shares proportionally based on breachSlashingRates and breachCount when a cap breach occurs", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 30000 },
+      agentsInit: ["player"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    state.swfYieldCDOs = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 10000,
+        tranches: {
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 1000,
+            ownership: { alpha: 1000 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.10,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.18,
+            totalShares: 200,
+            ownership: {},
+            timestamp: 1000,
+          },
+        },
+        timestamp: 1000,
+      },
+    };
+
+    // Configure cap = 400
+    state.maxAutoReinvestYieldCap = 400;
+
+    // Configure base slashing rate to 10% (0.10) for alpha
+    if (!state.breachSlashingRates) state.breachSlashingRates = {};
+    state.breachSlashingRates["alpha"] = 0.10;
+
+    // Configure breach count to 2
+    if (!state.reinvestmentBreachCount) state.reinvestmentBreachCount = {};
+    state.reinvestmentBreachCount["alpha"] = 2; // Next breach will increment this to 3, so effective slashing rate = 3 * 10% = 30%!
+
+    // Configure margin policy with accumulatedFeeReinvestmentPool = 600, autoReinvestThreshold = 500
+    state.swfReinsuranceOptionMarginPolicies = {
+      "cdo_1_senior": {
+        swfYieldCdoId: "cdo_1",
+        trancheId: "senior",
+        liquidationThreshold: 0.1,
+        penaltyRate: 0.05,
+        timestamp: 1000,
+        autoReinvestThreshold: 500,
+        accumulatedFeeReinvestmentPool: 600,
+      },
+    };
+
+    state.step = 10; // Epoch boundary
+
+    const afterState = tickEconomy(state, mockPack);
+
+    // Initial shares = 1000.
+    // Effective slashing rate = 0.10 * (2 + 1) = 0.30 (30%).
+    // Slashed shares = Math.floor(1000 * 0.30) = 300 shares.
+    // Remaining shares before reinvestment = 1000 - 300 = 700 shares.
+    // Reinvested amount clamped to cap = 400 shares.
+    // Final total shares should be 700 + 400 = 1100 shares!
+    const tranche = afterState.swfYieldCDOs?.["cdo_1"]?.tranches?.senior;
+    expect(tranche?.totalShares).toBe(1100);
+    expect(tranche?.ownership?.alpha).toBe(1100);
+
+    // Verify breach count incremented to 3
+    expect(afterState.reinvestmentBreachCount?.["alpha"]).toBe(3);
+
+    // Verify audit logs and journal contain breach and slashing logging
+    expect(afterState.auditLogs).toContain(
+      "[REINVESTMENT_GOVERNANCE_CAP_BREACH_SLASH] Syndicate alpha cap breach count: 3. Slashed 300 shares from CDO cdo_1 tranche senior (Slashing Rate: 30.0%)."
+    );
+    expect(afterState.journal).toContain(
+      "[REINVESTMENT_GOVERNANCE_CAP_BREACH_SLASH] Syndicate alpha has consistently breached the reinvestment cap (Breach Count: 3). Slashed 300 shares from CDO cdo_1 tranche senior at an effective slashing rate of 30.0%."
+    );
+  });
 });

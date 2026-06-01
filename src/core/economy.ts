@@ -8471,6 +8471,56 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
           newState.journal.push(
             `[REINVESTMENT_AUDIT_BREACH] Audit triggered! Attempted reinvestment of ${originalAmount} gold breached the authorized governance cap of ${cap} gold. Clamped to cap.`
           );
+
+          // Slashing Logic (AF-203)
+          const cdo = newState.swfYieldCDOs?.[policy.swfYieldCdoId];
+          const sId = cdo?.creatorSyndicateId;
+          if (cdo && sId) {
+            newState.reinvestmentBreachCount = newState.reinvestmentBreachCount ? { ...newState.reinvestmentBreachCount } : {};
+            const breachCount = (newState.reinvestmentBreachCount[sId] ?? 0) + 1;
+            newState.reinvestmentBreachCount[sId] = breachCount;
+
+            const baseSlashingRate = newState.breachSlashingRates?.[sId] ?? 0.05;
+            const effectiveSlashingRate = Math.min(1.0, baseSlashingRate * breachCount);
+
+            // Slice from their CDO tranche ownership if they consistently breach (breachCount > 1)
+            if (breachCount > 1) {
+              const tranche = cdo.tranches?.[policy.trancheId];
+              if (tranche) {
+                const updatedTranche = {
+                  ...tranche,
+                  ownership: { ...tranche.ownership },
+                };
+                const ownedShares = updatedTranche.ownership[sId] ?? 0;
+                const slashedShares = Math.floor(ownedShares * effectiveSlashingRate);
+                
+                if (slashedShares > 0) {
+                  updatedTranche.ownership[sId] = ownedShares - slashedShares;
+                  updatedTranche.totalShares = Math.max(0, updatedTranche.totalShares - slashedShares);
+                  updatedTranche.timestamp = newState.step;
+
+                  const updatedCdo = {
+                    ...cdo,
+                    tranches: {
+                      ...cdo.tranches,
+                      [policy.trancheId]: updatedTranche,
+                    },
+                    timestamp: newState.step,
+                  };
+                  
+                  newState.swfYieldCDOs = newState.swfYieldCDOs ? { ...newState.swfYieldCDOs } : {};
+                  newState.swfYieldCDOs[policy.swfYieldCdoId] = updatedCdo;
+
+                  newState.auditLogs.push(
+                    `[REINVESTMENT_GOVERNANCE_CAP_BREACH_SLASH] Syndicate ${sId} cap breach count: ${breachCount}. Slashed ${slashedShares} shares from CDO ${policy.swfYieldCdoId} tranche ${policy.trancheId} (Slashing Rate: ${(effectiveSlashingRate * 100).toFixed(1)}%).`
+                  );
+                  newState.journal.push(
+                    `[REINVESTMENT_GOVERNANCE_CAP_BREACH_SLASH] Syndicate ${sId} has consistently breached the reinvestment cap (Breach Count: ${breachCount}). Slashed ${slashedShares} shares from CDO ${policy.swfYieldCdoId} tranche ${policy.trancheId} at an effective slashing rate of ${(effectiveSlashingRate * 100).toFixed(1)}%.`
+                  );
+                }
+              }
+            }
+          }
         }
         // Find corresponding CDO and tranche
         const cdo = newState.swfYieldCDOs?.[policy.swfYieldCdoId];

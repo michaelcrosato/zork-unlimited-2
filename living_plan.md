@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #200 (Ready for Cycle #201)
-* **Build/Test Status**: 🟢 PASS (All 737 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #201 (Ready for Cycle #202)
+* **Build/Test Status**: 🟢 PASS (All 739 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1276,16 +1276,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the economy tick to clamp actual reinvested gold to the active cap and trigger audits on breach (`AF-202`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-202`).
 
+### Phase 181: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing (Completed)
+- [x] Define `reinvestmentBreachCount` and `breachSlashingRates` inside the GameState (`AF-203`).
+- [x] Implement propose/vote actions to dynamically scale the slashing rate (`AF-203`).
+- [x] Wire the economy tick to slice a percentage of the syndicate's CDO tranche ownership when a cap breach occurs (`AF-203`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-203`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-203`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing.
-* **Why this matters**: Enforce financial discipline by penalizing syndicates that consistently attempt to trigger reinvestments exceeding the SWF's governance cap, slashing their CDO tranche shares proportionally.
+**Task ID**: `AF-204`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation and Credit Recovery.
+* **Why this matters**: Allow penalized syndicates that have had their CDO tranche shares slashed due to cap breaches to perform rehabilitation tasks (e.g., contributing gold to a SWF stability pool) to gradually restore a fraction of their slashed shares and recover their credit rating score.
 * **Planned Actions**:
-  1. Define `reinvestmentBreachCount` and `breachSlashingRates` inside the GameState.
-  2. Implement propose/vote actions to dynamically scale the slashing rate.
-  3. Wire the economy tick to slice a percentage of the syndicate's CDO tranche ownership when a cap breach occurs.
+  1. Define a `reinvestmentBreachRehab` proposal and state trackers in the GameState.
+  2. Implement decentralized `PROPOSE_BREACH_REHAB` and `VOTE_BREACH_REHAB` actions costing gold.
+  3. Wire the reconciliation logic to restore up to 50% of slashed CDO shares upon successful consensus.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---
