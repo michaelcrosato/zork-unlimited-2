@@ -1,6 +1,7 @@
 import { GameState, Transaction, createInitialState, reconcileLootClaims } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
+import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
 
 export interface VectorClock {
   [nodeId: string]: number;
@@ -109,7 +110,8 @@ export function compressStateDiff(transactions: Transaction[], baseSequence: num
       stateHashesAfter: [],
       timestamps: [],
       oks: [],
-      rejectionReasons: []
+      rejectionReasons: [],
+      signatures: []
     };
   }
 
@@ -121,6 +123,7 @@ export function compressStateDiff(transactions: Transaction[], baseSequence: num
   const timestamps = filtered.map(tx => tx.timestamp);
   const oks = filtered.map(tx => tx.ok);
   const rejectionReasons = filtered.map(tx => tx.rejectionReason ?? "");
+  const signatures = filtered.map(tx => tx.signature ?? "");
 
   const compressedAgentIds = compressRLE(agentIds);
   const compressedSeqs = compressRLE(deltaEncode(seqs));
@@ -128,6 +131,7 @@ export function compressStateDiff(transactions: Transaction[], baseSequence: num
   const compressedTimestamps = compressRLE(deltaEncode(timestamps));
   const compressedOks = compressRLE(oks);
   const compressedRejectionReasons = compressRLE(rejectionReasons);
+  const compressedSignatures = compressRLE(signatures);
 
   return {
     baseSequence,
@@ -139,7 +143,8 @@ export function compressStateDiff(transactions: Transaction[], baseSequence: num
     stateHashesAfter: hashesAfter,
     timestamps: compressedTimestamps,
     oks: compressedOks,
-    rejectionReasons: compressedRejectionReasons
+    rejectionReasons: compressedRejectionReasons,
+    signatures: compressedSignatures
   };
 }
 
@@ -160,6 +165,7 @@ export function decompressStateDiff(compressed: any): Transaction[] {
   const timestamps = deltaDecode(decompressRLE(compressed.timestamps));
   const oks = decompressRLE(compressed.oks);
   const rejectionReasons = decompressRLE(compressed.rejectionReasons);
+  const signatures = compressed.signatures ? decompressRLE(compressed.signatures) : [];
 
   const transactions: Transaction[] = [];
   for (let i = 0; i < count; i++) {
@@ -174,6 +180,9 @@ export function decompressStateDiff(compressed: any): Transaction[] {
     };
     if (rejectionReasons[i] !== undefined && rejectionReasons[i] !== "") {
       tx.rejectionReason = rejectionReasons[i];
+    }
+    if (signatures[i] !== undefined && signatures[i] !== "") {
+      tx.signature = signatures[i];
     }
     transactions.push(tx);
   }
@@ -325,11 +334,19 @@ export function reconstructState(
 
   // Replay all transactions in order (omitting sequence/hash constraints to allow resolution)
   for (const tx of transactions) {
+    if (tx.signature) {
+      const pubKey = SecureCooperativeMesh.getPublicKey(tx.agentId);
+      if (!verifyTransactionSignature(tx, pubKey)) {
+        continue; // Skip invalid transaction
+      }
+    }
+
     const res = multiAgentStep(
       state,
       {
         agentId: tx.agentId,
         action: tx.action,
+        signature: tx.signature,
       },
       pack
     );
@@ -353,11 +370,18 @@ export class GossipNode {
   public peerClocks: Map<string, VectorClock> = new Map();
   public seed: number;
   public lastSentGossipCache: Map<string, { vectorClock: VectorClock; transactionIds: string[]; timestamp: number }> = new Map();
+  public privateKey: string;
+  public publicKey: string;
+  public enforceSignatures = false;
 
   constructor(nodeId: string, pack: any, seed = 42) {
     this.nodeId = nodeId;
     this.pack = pack;
     this.seed = seed;
+    this.privateKey = `privkey:${nodeId}`;
+    this.publicKey = `pubkey:${nodeId}`;
+    SecureCooperativeMesh.registerPublicKey(nodeId, this.publicKey);
+
     this.localState = createInitialState({
       seed,
       start: pack.meta?.start || pack.start || "clearing",
@@ -447,6 +471,7 @@ export class GossipNode {
       {
         agentId: this.nodeId,
         action,
+        signingKey: this.privateKey,
       },
       this.pack
     );
@@ -505,6 +530,19 @@ export class GossipNode {
     if (message.compressedDiff) {
       message.transactions = decompressStateDiff(message.compressedDiff);
     }
+
+    // Verify signatures of all incoming transactions
+    for (const tx of message.transactions) {
+      if (tx.signature) {
+        const pubKey = SecureCooperativeMesh.getPublicKey(tx.agentId);
+        if (!verifyTransactionSignature(tx, pubKey)) {
+          return false; // Reject gossip with invalid signature
+        }
+      } else if (this.enforceSignatures) {
+        return false; // Reject gossip with missing signature when enforced
+      }
+    }
+
     // 1. Check if the message contains any updates or clock advancements we don't have
     const isBehind = isClockBehind(this.vectorClock, message.vectorClock);
     const hasNewTransactions = message.transactions.some(tx => {

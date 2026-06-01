@@ -34,6 +34,7 @@ export const TransactionSchema = z.object({
   timestamp: z.number().int(),
   ok: z.boolean(),
   rejectionReason: z.string().optional(),
+  signature: z.string().optional(),
 });
 
 export type Transaction = z.infer<typeof TransactionSchema>;

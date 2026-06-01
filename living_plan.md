@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #23 (Ready for Cycle #24)
-* **Build/Test Status**: 🟢 PASS (All 111 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #24 (Ready for Cycle #25)
+* **Build/Test Status**: 🟢 PASS (All 117 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -117,16 +117,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement a background recovery task triggered when state divergence or clock discrepancies are detected (`AF-23`).
 - [x] Write comprehensive tests asserting complete convergence of partitioned nodes upon anti-entropy reconciliation (`AF-23`).
 
+### Phase 19: Secure Multiplayer Mesh Transaction Verification (Completed)
+- [x] Design and implement a secure transaction verification and signing protocol (`SecureCooperativeMesh`) using simulated asymmetric cryptography (`AF-24`).
+- [x] Support deterministic public/private key pairs and dynamic transaction signing upon execution (`AF-24`).
+- [x] Implement signature validation during state reconstruction (`reconstructState`) and P2P receiving (`receiveGossip`) (`AF-24`).
+- [x] Add signature compression to delta state encoding to prevent hash/telemetry divergence (`AF-24`).
+- [x] Write comprehensive unit tests for keypair generation, transaction signing, signature verification, spoofing/tampering detection, and secure mesh convergence (`AF-24`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-24`
-* **Objective**: Design and implement a secure transaction verification and signing protocol (`SecureCooperativeMesh`) that uses asymmetric cryptography (or simulated cryptographic signatures) to sign, verify, and authenticate transaction entries in cooperative/multiplayer content packs, preventing malicious nodes from injecting unauthorized state actions.
-* **Why this matters**: In open P2P networks, gossip nodes must be able to verify that incoming state modifications were genuinely performed by the authorized agent and have not been tampered with in-transit by intermediate routing peers.
+**Task ID**: `AF-25`
+* **Objective**: Design and implement a procedural merchant and trading system (`NPC_TRADE`) that supports stocking merchant items, dynamic buying/selling mechanics, gold variables, and trade interaction effects in parser packs.
+* **Why this matters**: Adding interactive economies dynamically driven by the state engine increases the mechanical depth, narrative choice, and gameplay options without breaking determinism.
 * **Planned Actions**:
-  1. Define keypairs or simulated cryptographic credentials for each agent/node.
-  2. Add dynamic transaction signing upon execution and signature validation during `receiveGossip` / `reconstructState`.
-  3. Write robust unit tests simulating unauthorized transaction injection, verifying signature validation failure, and ensuring secure convergence of honest nodes.
+  1. Add an `NPC_TRADE` interaction effect type to support trading mechanics.
+  2. Implement custom game state variables (`gold`, etc.) to track money and transaction history.
+  3. Support procedurally stocking merchant inventories and writing comprehensive tests to assert trade transitions.
 
 ---
 

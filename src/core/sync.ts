@@ -5,12 +5,15 @@ import { ParserPack } from "../parser/schema.js";
 import { step } from "./engine.js";
 import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
+import { signTransaction } from "./security.js";
 
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
   expectedSequenceNumber?: number;
   expectedStateHash?: string;
+  signature?: string;
+  signingKey?: string;
 }
 
 export interface BufferedAction {
@@ -283,6 +286,12 @@ export function multiAgentStep(
       rejectionReason,
     };
 
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
     newState.transactionJournal = [...(state.transactionJournal || []), transaction];
 
     return {
@@ -366,6 +375,12 @@ export function multiAgentStep(
     ok: stepResult.ok,
     rejectionReason: stepResult.rejectionReason,
   };
+
+  if (multiAction.signature) {
+    transaction.signature = multiAction.signature;
+  } else if (multiAction.signingKey) {
+    transaction.signature = signTransaction(transaction, multiAction.signingKey);
+  }
 
   newState.transactionJournal = [...(state.transactionJournal || []), transaction];
 
