@@ -510,7 +510,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
 
     // Rebalancing should be halted, warChest remains 1000
     expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(1000);
-    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("Arbitrage rebalancing halted along route route_A_B: Latency 130ms exceeds max allowed overhead of 120ms"));
+    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("Arbitrage rebalancing halted along route route_A_B: Latency 260ms exceeds max allowed overhead of 120ms"));
 
     // Test Case 3: Dynamic routing cost exceeds potential spread difference -> HALT rebalancing
     nodeA.lastHeartbeatLatency.set("B", 100); // 100ms (10 gold toll)
@@ -525,5 +525,142 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
 
     expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(1000);
     expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("Arbitrage rebalancing halted along route route_A_B: Network routing costs (10 gold) exceed potential spread difference"));
+  });
+
+  it("should dynamically apply route penalty weights and trigger automatic route repair or bypass degraded routes via pathfinder", () => {
+    const net = new MeshNetwork();
+
+    const nodeA = new MeshNode("A", mockPack, 42);
+    const nodeB = new MeshNode("B", mockPack, 42);
+    const nodeC = new MeshNode("C", mockPack, 42);
+
+    net.registerNode(nodeA);
+    net.registerNode(nodeB);
+    net.registerNode(nodeC);
+
+    // Connect them in a triangle: A <-> B, A <-> C, C <-> B
+    net.connectNodes("A", "B");
+    net.connectNodes("A", "C");
+    net.connectNodes("C", "B");
+
+    // Initialize syndicates on all nodes
+    const syndicateObj = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["A", "B", "C"],
+        definedBy: "A",
+        timestamp: 1000,
+        warChest: 1000,
+      },
+    };
+    nodeA.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+    nodeB.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+    nodeC.localState.syndicates = JSON.parse(JSON.stringify(syndicateObj));
+
+    // Initialize CDO
+    const cdoObj = {
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
+          mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+        },
+        timestamp: 1000,
+      },
+    };
+    nodeA.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+    nodeB.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+    nodeC.localState.swfYieldCDOs = JSON.parse(JSON.stringify(cdoObj));
+
+    // Set up active cross-mesh arbitrage policy
+    const policy = {
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      arbitrageSpreadThreshold: 10.0,
+      maxArbitrageVolume: 100,
+      timestamp: 1000,
+    };
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+    nodeB.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+    nodeC.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = { cdo_1_senior: policy };
+
+    // Surcharge policy
+    const surchargePolicy = {
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      maxLatencyHedgedOverhead: 120.0,
+      timestamp: 1000,
+    };
+    nodeA.localState.swfReinsuranceOptionArbitrageFeeSurchargePolicies = { cdo_1_senior: surchargePolicy };
+    nodeB.localState.swfReinsuranceOptionArbitrageFeeSurchargePolicies = { cdo_1_senior: surchargePolicy };
+    nodeC.localState.swfReinsuranceOptionArbitrageFeeSurchargePolicies = { cdo_1_senior: surchargePolicy };
+
+    // Route setup
+    const route = {
+      routeId: "route_A_B",
+      sourceNodeId: "A",
+      targetNodeId: "B",
+      swfYieldCdoId: "cdo_1",
+      trancheId: "senior" as const,
+      spreadDifference: 0,
+      timestamp: 1000,
+    };
+    nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: route };
+    nodeB.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...route } };
+    nodeC.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes = { route_A_B: { ...route } };
+
+    // Setup order books
+    nodeA.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 50 },
+    };
+    nodeB.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 10 },
+    };
+
+    // Run network ticks to propagate presence, calculate routing tables, and discover topology
+    for (let i = 0; i < 5; i++) {
+      net.tick(100);
+    }
+
+    // Low latency initially on direct link (50ms)
+    nodeA.lastHeartbeatLatency.set("B", 50);
+
+    // Reconcile once (should work fine)
+    nodeA.reconcileCrossMeshOptionArbitrage();
+    expect(nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B?.routePenaltyMultiplier).toBe(1.0);
+    expect(nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B?.linkStateLatencyMs).toBe(50);
+
+    // Let's reset spreads for testing degraded route
+    nodeA.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 50 },
+    };
+    nodeB.localState.swfReinsuranceOptionOrderBookDepths = {
+      cdo_1_senior: { buyVolume: 10, sellVolume: 10, imbalance: 0, spreadAdjustment: 1.0, bidAskSpread: 10 },
+    };
+    nodeA.localState.syndicates!.alpha!.warChest = 1000;
+    nodeB.localState.syndicates!.alpha!.warChest = 1000;
+
+    // Now, set high physical latency on link between A and B (110ms > 100ms)
+    // This should trigger routePenaltyMultiplier = 2.0, so perceived latency = 220ms > 120ms (maxLatencyHedgedOverhead)
+    nodeA.lastHeartbeatLatency.set("B", 110);
+
+    // Reconcile - this should detect degradation, apply penalty, and trigger automatic route repair!
+    nodeA.reconcileCrossMeshOptionArbitrage();
+
+    // Verify routePenaltyMultiplier is reset to 1.0 on the route because the repaired route is healthy (100ms)
+    expect(nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B?.routePenaltyMultiplier).toBe(1.0);
+
+    // Since the path was repaired, the direct link A -> B was pruned from A's topology!
+    // Pathfinder should now route via C (A -> C -> B), which has hops = 2.
+    // Since we don't have heartbeat latency for B via the multi-hop path, it defaults to hops * 50 = 100ms, which is healthy (< 120ms max)
+    // The spreads should successfully converge and rewards are distributed!
+    const finalRoute = nodeA.localState.swfReinsuranceOptionCrossMeshArbitrageRoutes?.route_A_B;
+    expect(finalRoute?.linkStateLatencyMs).toBe(100); // 2 hops * 50 = 100ms
+    expect(nodeA.localState.syndicates?.alpha?.warChest).toBeGreaterThan(1000);
   });
 });

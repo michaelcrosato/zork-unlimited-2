@@ -2375,6 +2375,7 @@ export const SWFReinsuranceOptionCrossMeshArbitrageRouteSchema = z.object({
   timestamp: z.number().int(),
   linkStateLatencyMs: z.number().int().nonnegative().optional(),
   dynamicTollRate: z.number().nonnegative().optional(),
+  routePenaltyMultiplier: z.number().nonnegative().optional(),
 });
 export type SWFReinsuranceOptionCrossMeshArbitrageRoute = z.infer<typeof SWFReinsuranceOptionCrossMeshArbitrageRouteSchema>;
 

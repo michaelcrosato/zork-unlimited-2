@@ -207,23 +207,49 @@ export class MeshNode extends GossipNode {
 
     let changed = false;
 
-    function getPathLength(discovery: NetworkDiscovery, start: string, end: string): number {
+    const self = this;
+    function getWeightedPathLength(discovery: NetworkDiscovery, start: string, end: string): number {
       if (start === end) return 0;
+      const dist: Record<string, number> = {};
+      dist[start] = 0;
       const queue: Array<[string, number]> = [[start, 0]];
-      const visited = new Set<string>([start]);
+      const visited = new Set<string>();
+
       while (queue.length > 0) {
-        const [current, dist] = queue.shift()!;
-        if (current === end) return dist;
+        queue.sort((a, b) => a[1] - b[1]);
+        const [current, currentDist] = queue.shift()!;
+        
+        if (visited.has(current)) continue;
+        visited.add(current);
+
+        if (current === end) return currentDist;
+
         const record = discovery.topology.get(current);
         const neighbors = record ? record.neighbors : [];
         for (const neighbor of neighbors) {
           if (!visited.has(neighbor)) {
-            visited.add(neighbor);
-            queue.push([neighbor, dist + 1]);
+            let penalty = 1.0;
+            if (state.swfReinsuranceOptionCrossMeshArbitrageRoutes) {
+              for (const r of Object.values(state.swfReinsuranceOptionCrossMeshArbitrageRoutes)) {
+                if (
+                  (r.sourceNodeId === current && r.targetNodeId === neighbor) ||
+                  (r.sourceNodeId === neighbor && r.targetNodeId === current)
+                ) {
+                  if (r.routePenaltyMultiplier !== undefined) {
+                    penalty = r.routePenaltyMultiplier;
+                  }
+                  break;
+                }
+              }
+            }
+            const weight = 1.0 * penalty;
+            const nextDist = currentDist + weight;
+            dist[neighbor] = Math.min(dist[neighbor] ?? Infinity, nextDist);
+            queue.push([neighbor, nextDist]);
           }
         }
       }
-      return 999; // Unreachable
+      return dist[end] ?? 999;
     }
 
     for (const [routeId, route] of Object.entries(state.swfReinsuranceOptionCrossMeshArbitrageRoutes)) {
@@ -238,23 +264,29 @@ export class MeshNode extends GossipNode {
       if (!sourceNode || !targetNode) continue;
 
       // Calculate path length and latency
-      const hops = getPathLength(sourceNode.discovery, sourceNodeId, targetNodeId);
-      const latency = sourceNode.lastHeartbeatLatency.get(targetNodeId) ?? (hops * 50);
+      const hops = getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId);
+      const nextHop = sourceNode.discovery.getNextHop(targetNodeId);
+      const isDirect = nextHop === targetNodeId;
+      const rawLatency = (isDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hops * 50);
+
+      // Dynamically adjust route penalty multiplier based on latency degradation in network ticking logic
+      let currentPenalty = 1.0;
+      if (rawLatency > 100) {
+        currentPenalty = 2.0;
+      }
+      if (route.routePenaltyMultiplier !== currentPenalty) {
+        route.routePenaltyMultiplier = currentPenalty;
+        route.timestamp = state.step;
+        changed = true;
+      }
+
+      let latency = rawLatency * currentPenalty;
 
       // Check max latency hedged overhead from the policy
       const surchargePolicyKey = `${swfYieldCdoId}_${trancheId}`;
       const surchargePolicy = state.swfReinsuranceOptionArbitrageFeeSurchargePolicies?.[surchargePolicyKey];
 
-      const dynamicToll = surchargePolicy ? Math.floor(latency * 0.1) : 0;
       const maxLatencyHedgedOverhead = surchargePolicy?.maxLatencyHedgedOverhead ?? Infinity;
-
-      // Update route fields in state schemas
-      if (route.linkStateLatencyMs !== latency || route.dynamicTollRate !== dynamicToll) {
-        route.linkStateLatencyMs = latency;
-        route.dynamicTollRate = dynamicToll;
-        route.timestamp = state.step;
-        changed = true;
-      }
 
       let halted = false;
       let haltReason = "";
@@ -262,6 +294,40 @@ export class MeshNode extends GossipNode {
       if (surchargePolicy && latency > maxLatencyHedgedOverhead) {
         halted = true;
         haltReason = `Latency ${latency}ms exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`;
+
+        // Wire automatic route repair when executing cross-mesh option arbitrage on a degraded route
+        if (nextHop) {
+          const repaired = sourceNode.repairRoute(targetNodeId, nextHop);
+          if (repaired) {
+            const newHops = getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId);
+            const newNextHop = sourceNode.discovery.getNextHop(targetNodeId);
+            const newIsDirect = newNextHop === targetNodeId;
+            const newRawLatency = (newIsDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(newHops * 50);
+            const newPenalty = newRawLatency > 100 ? 2.0 : 1.0;
+            
+            route.routePenaltyMultiplier = newPenalty;
+            latency = newRawLatency * newPenalty;
+            route.timestamp = state.step;
+            changed = true;
+
+            if (latency <= maxLatencyHedgedOverhead) {
+              halted = false;
+              haltReason = "";
+            } else {
+              haltReason = `Latency ${latency}ms after repair still exceeds max allowed overhead of ${maxLatencyHedgedOverhead}ms`;
+            }
+          }
+        }
+      }
+
+      const dynamicToll = surchargePolicy ? Math.floor(latency * 0.1) : 0;
+
+      // Update route fields in state schemas
+      if (route.linkStateLatencyMs !== latency || route.dynamicTollRate !== dynamicToll) {
+        route.linkStateLatencyMs = latency;
+        route.dynamicTollRate = dynamicToll;
+        route.timestamp = state.step;
+        changed = true;
       }
 
       // Calculate spread difference between different gossip mesh nodes
@@ -629,6 +695,8 @@ export class MeshNode extends GossipNode {
     this.routeRepairsTriggered++;
 
     if (failedNextHop) {
+      this.directNeighbors.delete(failedNextHop);
+
       // Remove failed next hop from our own topology neighbors
       const ownTopology = this.discovery.topology.get(this.nodeId);
       if (ownTopology) {
