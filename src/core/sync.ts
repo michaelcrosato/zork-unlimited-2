@@ -4440,9 +4440,9 @@ export function multiAgentStep(
     };
   }
 
-  // Handle decentralized HIRE_TURF_GUARD action (AF-52)
+  // Handle decentralized HIRE_TURF_GUARD action (AF-52, AF-70)
   if ((action as any).type === "HIRE_TURF_GUARD") {
-    const { roomId, syndicateId, cost, timestamp } = action as any;
+    const { roomId, syndicateId, cost, timestamp, useWarChest } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -4451,6 +4451,23 @@ export function multiAgentStep(
       ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
       : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
     const syndicate = state.syndicates?.[syndicateId];
+
+    const agentSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(agentId));
+    const isMemberOrAllied = syndicate && (
+      syndicate.members.includes(agentId) ||
+      agentSyndicates.some(s =>
+        state.syndicateAlliances?.[s.id]?.[syndicateId] === "allied" ||
+        state.syndicateAlliances?.[syndicateId]?.[s.id] === "allied"
+      )
+    );
+
+    const controllingSyndId = state.syndicateTurf?.[roomId];
+    const hasControlOrAlliedControl = controllingSyndId === syndicateId || (
+      controllingSyndId && (
+        state.syndicateAlliances?.[controllingSyndId]?.[syndicateId] === "allied" ||
+        state.syndicateAlliances?.[syndicateId]?.[controllingSyndId] === "allied"
+      )
+    );
 
     if (!roomId) {
       rejectionReason = `Room ID is required to hire a turf guard.`;
@@ -4462,31 +4479,51 @@ export function multiAgentStep(
       rejectionReason = `Room ${roomId} does not exist in pack.`;
     } else if (!syndicate) {
       rejectionReason = `Syndicate ${syndicateId} does not exist.`;
-    } else if (!syndicate.members.includes(agentId)) {
-      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
-    } else if (state.syndicateTurf?.[roomId] !== syndicateId) {
-      rejectionReason = `Syndicate ${syndicateId} does not control the turf in room ${roomId}.`;
+    } else if (!isMemberOrAllied) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} or any allied syndicate.`;
+    } else if (!hasControlOrAlliedControl) {
+      rejectionReason = `Syndicate ${syndicateId} or its allies does not control the turf in room ${roomId}.`;
     } else {
-      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
-      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
-      if (currentGold < cost) {
-        rejectionReason = `Insufficient gold to hire turf guard costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      if (useWarChest) {
+        const warChestGold = syndicate.warChest ?? 0;
+        if (warChestGold < cost) {
+          rejectionReason = `Insufficient gold in syndicate war chest to hire turf guard costing ${cost} (requires ${cost}, has ${warChestGold}).`;
+        } else {
+          ok = true;
+        }
       } else {
-        ok = true;
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        if (currentGold < cost) {
+          rejectionReason = `Insufficient gold to hire turf guard costing ${cost} (requires ${cost}, has ${currentGold}).`;
+        } else {
+          ok = true;
+        }
       }
     }
 
     let newState = { ...state };
     let customEvents: any[] = [];
     if (ok && syndicate) {
-      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
-      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (useWarChest) {
+        const updatedSyndicate = {
+          ...syndicate,
+          warChest: (syndicate.warChest ?? 0) - cost,
+        };
+        newState.syndicates = {
+          ...(newState.syndicates || {}),
+          [syndicateId]: updatedSyndicate,
+        };
+      } else {
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
 
-      // Deduct gold
-      newState.vars = {
-        ...newState.vars,
-        [goldKey]: currentGold - cost,
-      };
+        // Deduct gold
+        newState.vars = {
+          ...newState.vars,
+          [goldKey]: currentGold - cost,
+        };
+      }
 
       const turfGuards = { ...(state.turfGuards || {}) };
       const existingGuard = turfGuards[roomId];
@@ -4502,7 +4539,8 @@ export function multiAgentStep(
       newState.turfGuards = turfGuards;
 
       if (!newState.journal) newState.journal = [];
-      newState.journal.push(`[Syndicate] Hired turf guard for syndicate ${syndicateId} in room ${roomId} (Count: ${newCount}) for ${cost} gold by agent ${agentId}.`);
+      const paymentSource = useWarChest ? "syndicate war chest" : "personal gold";
+      newState.journal.push(`[Syndicate] Hired turf guard for syndicate ${syndicateId} in room ${roomId} (Count: ${newCount}) for ${cost} gold using ${paymentSource} by agent ${agentId}.`);
 
       customEvents.push({
         type: "turf_guard_hired",
@@ -4511,6 +4549,7 @@ export function multiAgentStep(
         syndicateId,
         count: newCount,
         cost,
+        useWarChest,
       });
     }
 
@@ -7892,6 +7931,230 @@ export function multiAgentStep(
       state: newState,
       events: ok
         ? [{ type: "espionage_data_shared", syndicateId, targetSyndicateId, roomId, sender: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CONTRIBUTE_WAR_CHEST action (AF-70)
+  if ((action as any).type === "CONTRIBUTE_WAR_CHEST") {
+    const { syndicateId, amount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required for war chest contribution.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Contribution amount ${amount} must be a positive integer.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < amount) {
+        rejectionReason = `Insufficient gold to contribute ${amount} (requires ${amount}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct agent's gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - amount,
+      };
+
+      // Add to syndicate war chest
+      const updatedSyndicate = {
+        ...syndicate,
+        warChest: (syndicate.warChest ?? 0) + amount,
+      };
+      newState.syndicates = {
+        ...(newState.syndicates || {}),
+        [syndicateId]: updatedSyndicate,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Agent ${agentId} contributed ${amount} gold to syndicate ${syndicateId} war chest.`);
+    }
+
+    newState.step += 1;
+
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "war_chest_contributed", agentId, syndicateId, amount } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PAY_FACTION_BRIBE action (AF-70)
+  if ((action as any).type === "PAY_FACTION_BRIBE") {
+    const { factionId, syndicateId, amount, timestamp, useWarChest } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = syndicateId ? state.syndicates?.[syndicateId] : undefined;
+
+    if (!factionId) {
+      rejectionReason = `Faction ID is required for faction bribe.`;
+    } else if (amount < 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Bribe amount ${amount} must be a non-negative integer.`;
+    } else if (useWarChest) {
+      if (!syndicateId) {
+        rejectionReason = `Syndicate ID is required when paying bribe from war chest.`;
+      } else if (!syndicate) {
+        rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+      } else if (!syndicate.members.includes(agentId)) {
+        rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+      } else {
+        const warChestGold = syndicate.warChest ?? 0;
+        if (warChestGold < amount) {
+          rejectionReason = `Insufficient gold in syndicate war chest to pay bribe of ${amount} (requires ${amount}, has ${warChestGold}).`;
+        } else {
+          ok = true;
+        }
+      }
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < amount) {
+        rejectionReason = `Insufficient gold to pay bribe of ${amount} (has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      if (useWarChest && syndicateId && syndicate) {
+        // Deduct from war chest
+        const updatedSyndicate = {
+          ...syndicate,
+          warChest: (syndicate.warChest ?? 0) - amount,
+        };
+        newState.syndicates = {
+          ...(newState.syndicates || {}),
+          [syndicateId]: updatedSyndicate,
+        };
+      } else {
+        // Deduct from agent's personal gold
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        newState.vars = {
+          ...newState.vars,
+          [goldKey]: currentGold - amount,
+        };
+      }
+
+      // Register bribe in bribes under factionId
+      const bribes = { ...(state.bribes || {}) };
+      bribes[factionId] = {
+        enforcerId: factionId,
+        amount,
+        timestamp,
+      };
+      newState.bribes = bribes;
+
+      if (!newState.journal) newState.journal = [];
+      const paymentSource = useWarChest ? `syndicate ${syndicateId} war chest` : "personal gold";
+      newState.journal.push(`[Syndicate] Agent ${agentId} paid faction bribe of ${amount} gold to faction ${factionId} using ${paymentSource}.`);
+    }
+
+    newState.step += 1;
+
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "faction_bribe_paid", agentId, factionId, amount, useWarChest, syndicateId } as any]
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

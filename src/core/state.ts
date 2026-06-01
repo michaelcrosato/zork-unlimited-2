@@ -461,6 +461,7 @@ export const CrimeSyndicateSchema = z.object({
   intelStock: z.record(z.string(), IntelReportSchema).optional(),
   intelTransactions: z.array(IntelTransactionSchema).optional(),
   ringleader: z.string().optional(),
+  warChest: z.number().int().nonnegative().optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
 

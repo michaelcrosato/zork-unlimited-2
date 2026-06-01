@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #69 (Ready for Cycle #70)
-* **Build/Test Status**: 🟢 PASS (All 312 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #70 (Ready for Cycle #71)
+* **Build/Test Status**: 🟢 PASS (All 316 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -414,16 +414,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire allied syndicate status to safehouse black market strategic discount scaling (20% for owning member, 10% for allied syndicate member) (`AF-69`).
 - [x] Write comprehensive integration tests verifying alliances, safehouse black market trading, and espionage sharing (`AF-69`).
 
+
+### Phase 64: Cartel War Chests, Faction Bribes, and Cooperative Turf Guard Recruiting (Completed)
+- [x] Add `CONTRIBUTE_WAR_CHEST` and `PAY_FACTION_BRIBE` decentralized actions (`AF-70`).
+- [x] Implement cooperative recruitment of turf guards using cartel war chest gold and across allied syndicates (`AF-70`).
+- [x] Wire cartel war chests and faction bribes to traversal border checks and enforcer heat calculations (`AF-70`).
+- [x] Write comprehensive integration tests asserting all mechanics and convergence (`AF-70`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-70`
-* **Objective**: Smuggler Syndicate Cartel War Chests, Dynamic Faction Bribes, and Cooperative Turf Guard Recruiting.
-* **Why this matters**: Support pooling syndicate resources into a central cartel war chest, paying dynamic bribes to faction border patrol agents, and cooperatively recruiting turf guards across allied syndicates using the pooled war chest.
+**Task ID**: `AF-71`
+* **Objective**: Smuggler Syndicate Cartel Conquest Campaigns, Faction War Declarations, and Territory Taxation.
+* **Why this matters**: Support launching automated cartel military campaigns to seize faction territories, declaring hot wars on hostile factions, and enforcing regional taxation rules over controlled territories.
 * **Planned Actions**:
-  1. Add `CONTRIBUTE_WAR_CHEST` and `PAY_FACTION_BRIBE` decentralized actions.
-  2. Implement cooperative recruitment of turf guards using cartel war chest gold.
-  3. Wire cartel war chests and faction bribes to traversal border checks and enforcer heat calculations.
+  1. Add `LAUNCH_CAMPAIGN` and `DECLARE_FACTION_WAR` decentralized actions.
+  2. Implement faction war status modifying strategic pricing, toll scaling, and enforcer pursuit BFS paths.
+  3. Wire campaign success probabilities to pooled cartel war chest investments.
   4. Write comprehensive integration tests.
 
 ---

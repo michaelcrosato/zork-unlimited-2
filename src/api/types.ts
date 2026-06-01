@@ -63,7 +63,10 @@ export type Action =
   | { type: "VOTE_SMUGGLER_GUILD_CBA"; guildId: string; routeId: string; agreedToll: number; timestamp: number }
   | { type: "POOL_BOUNTY_RESOURCES"; syndicateId: string; targetId: string; goldAmount: number; timestamp: number }
   | { type: "PROPOSE_SYNDICATE_ALLIANCE"; syndicateIdA: string; syndicateIdB: string; targetState?: "allied" | "hostile" | "neutral"; timestamp: number }
-  | { type: "SHARE_ESPIONAGE_DATA"; syndicateId: string; targetSyndicateId: string; roomId: string; timestamp: number };
+  | { type: "SHARE_ESPIONAGE_DATA"; syndicateId: string; targetSyndicateId: string; roomId: string; timestamp: number }
+  | { type: "HIRE_TURF_GUARD"; roomId: string; syndicateId: string; cost: number; timestamp: number; useWarChest?: boolean }
+  | { type: "CONTRIBUTE_WAR_CHEST"; syndicateId: string; amount: number; timestamp: number }
+  | { type: "PAY_FACTION_BRIBE"; factionId: string; syndicateId?: string; amount: number; timestamp: number; useWarChest?: boolean };
 
 
 

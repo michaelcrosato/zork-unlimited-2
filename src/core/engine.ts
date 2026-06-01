@@ -699,15 +699,18 @@ export function step(
           // Caught!
           const borderFactionId = factionId || hostileRouteFactionId;
           
-          const hasInsurance = newState.smugglingInsurance?.["player"]?.active === true;
+          const hasInsurance = newState.smugglingInsurance?.[agentId]?.active === true;
           const factionBribe = borderFactionId ? newState.bribes?.[borderFactionId] : undefined;
           const hasBribe = factionBribe && factionBribe.amount > 0;
 
+          const updatedAgentSynd = agentSyndicate ? newState.syndicates?.[agentSyndicate.id] : undefined;
+          const hasWarChestBribe = updatedAgentSynd && (updatedAgentSynd.warChest ?? 0) >= 50;
+
           if (hasInsurance) {
             // Avoid confiscation and fines!
-            if (newState.smugglingInsurance?.["player"]) {
-              newState.smugglingInsurance["player"] = {
-                ...newState.smugglingInsurance["player"],
+            if (newState.smugglingInsurance?.[agentId]) {
+              newState.smugglingInsurance[agentId] = {
+                ...newState.smugglingInsurance[agentId],
                 active: false,
                 timestamp: newState.step,
               };
@@ -722,6 +725,13 @@ export function step(
             events.push({
               type: "narration",
               text: `👮 Caught smuggling! However, you paid a bribe of ${factionBribe.amount} gold to faction ${borderFactionId || "border patrol"}. The guards wink and let you pass with your contraband.`,
+            });
+            isSmugglingBypassed = true;
+          } else if (hasWarChestBribe && updatedAgentSynd) {
+            updatedAgentSynd.warChest = (updatedAgentSynd.warChest ?? 0) - 50;
+            events.push({
+              type: "narration",
+              text: `👮 Caught smuggling at the border! However, a bribe of 50 gold was automatically paid from your syndicate ${updatedAgentSynd.name} war chest. The guards let you pass with your contraband.`,
             });
             isSmugglingBypassed = true;
           } else {
@@ -1932,7 +1942,21 @@ export function tickProductionLabs(
   for (const [roomId, entry] of Object.entries(updatedHeat)) {
     if (entry.heat > 0) {
       const activeBribe = newState.syndicateBribes?.[roomId]?.active;
-      const decayAmount = activeBribe ? 3 : 1;
+      const factionId = newState.territoryControl?.[roomId];
+      const hasFactionBribe = factionId && newState.bribes?.[factionId] && newState.bribes[factionId].amount > 0;
+
+      const turfSyndicateId = newState.syndicateTurf?.[roomId];
+      const turfSyndicate = turfSyndicateId ? newState.syndicates?.[turfSyndicateId] : undefined;
+      const hasTurfWarChest = turfSyndicate && (turfSyndicate.warChest ?? 0) > 0;
+
+      let decayAmount = activeBribe ? 3 : 1;
+      if (hasFactionBribe) {
+        decayAmount += 2;
+      }
+      if (hasTurfWarChest) {
+        decayAmount += 1;
+      }
+
       updatedHeat[roomId] = {
         ...entry,
         heat: Math.max(0, entry.heat - decayAmount),
@@ -1979,7 +2003,15 @@ export function tickProductionLabs(
         // (If there's an active bribe, the heat increase is halved)
         const oldHeat = updatedHeat[roomId]?.heat ?? 0;
         const activeBribe = newState.syndicateBribes?.[roomId]?.active;
-        const heatInc = activeBribe ? Math.floor(productionAmount) : (productionAmount * 2);
+        const factionId = newState.territoryControl?.[roomId];
+        const hasFactionBribe = factionId && newState.bribes?.[factionId] && newState.bribes[factionId].amount > 0;
+
+        const labSyndicateId = lab.syndicateId;
+        const labSyndicate = labSyndicateId ? newState.syndicates?.[labSyndicateId] : undefined;
+        const hasLabWarChest = labSyndicate && (labSyndicate.warChest ?? 0) > 0;
+
+        const isBribedOrFunded = activeBribe || hasFactionBribe || hasLabWarChest;
+        const heatInc = isBribedOrFunded ? Math.floor(productionAmount) : (productionAmount * 2);
         updatedHeat[roomId] = {
           roomId,
           heat: oldHeat + heatInc,
@@ -2608,6 +2640,11 @@ export function tickEnforcers(
                 const enforcerBribe = newState.bribes?.[enforcer.id];
                 const hasBribe = enforcerBribe && enforcerBribe.amount > 0;
 
+                const playerSynd = newState.syndicates
+                   ? Object.values(newState.syndicates).find(s => s.members.includes("player"))
+                   : undefined;
+                 const hasWarChestBribe = playerSynd && (playerSynd.warChest ?? 0) >= 50;
+
                 if (hasInsurance) {
                   if (newState.smugglingInsurance?.["player"]) {
                     newState.smugglingInsurance["player"] = {
@@ -2625,6 +2662,12 @@ export function tickEnforcers(
                     type: "narration",
                     text: `🛡️ Bounty Hunter ${enforcer.name} corners you in ${enforcer.currentRoom}, but accepts your bribe of ${enforcerBribe.amount} gold and stands down.`
                   } as any);
+                } else if (hasWarChestBribe && playerSynd) {
+                   playerSynd.warChest = (playerSynd.warChest ?? 0) - 50;
+                   events.push({
+                     type: "narration",
+                     text: `🛡️ Bounty Hunter ${enforcer.name} corners you in ${enforcer.currentRoom}, but a bribe of 50 gold is automatically paid from your syndicate ${playerSynd.name} war chest. They stand down.`
+                   } as any);
                 } else {
                   events.push({
                     type: "narration",
@@ -2709,6 +2752,11 @@ export function tickEnforcers(
             const hasBribe = (enforcerBribe && enforcerBribe.amount > 0) || (factionBribe && factionBribe.amount > 0);
             const bribeAmount = (enforcerBribe?.amount ?? 0) || (factionBribe?.amount ?? 0);
 
+            const playerSynd = newState.syndicates
+              ? Object.values(newState.syndicates).find(s => s.members.includes("player"))
+              : undefined;
+            const hasWarChestBribe = playerSynd && (playerSynd.warChest ?? 0) >= 50;
+
             if (hasInsurance) {
               if (newState.smugglingInsurance?.["player"]) {
                 newState.smugglingInsurance["player"] = {
@@ -2725,6 +2773,12 @@ export function tickEnforcers(
               events.push({
                 type: "narration",
                 text: `👮 Enforcement Agent ${enforcer.name} stops you, but recognizes your bribe of ${bribeAmount} gold and lets you pass with your contraband (${contraband.join(", ")}).`
+              } as any);
+            } else if (hasWarChestBribe && playerSynd) {
+              playerSynd.warChest = (playerSynd.warChest ?? 0) - 50;
+              events.push({
+                type: "narration",
+                text: `👮 Enforcement Agent ${enforcer.name} stops you, but a bribe of 50 gold is automatically paid from your syndicate ${playerSynd.name} war chest. They let you pass with your contraband (${contraband.join(", ")}).`
               } as any);
             } else if (rep >= 10) {
               events.push({
