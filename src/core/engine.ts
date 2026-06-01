@@ -7,7 +7,7 @@ import { computeStateHashShort } from "./hash.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack, ParserRoom, ParserObject, ParserNPC } from "../parser/schema.js";
 import { PureRand } from "./rng.js";
-import { calculateTradePrice, checkReputationTrade, getMerchantGold, tickEconomy, getFactionForNpc, getMerchantTradeCaps, getContrabandInInventory } from "./economy.js";
+import { calculateTradePrice, checkReputationTrade, getMerchantGold, tickEconomy, getFactionForNpc, getMerchantTradeCaps, getContrabandInInventory, getCounterfeitExchangeRate } from "./economy.js";
 
 /**
  * Pure engine step transition function.
@@ -1562,19 +1562,56 @@ export function step(
         }
       }
 
-      const playerGold = newState.vars["gold"] ?? 0;
+      const useCounterfeit = (action as any).useCounterfeit ?? false;
+      let finalCost = itemCost;
+      let isCounterfeitUsed = false;
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const counterfeitGoldKey = agentId === "player" ? "counterfeit_gold" : `counterfeit_gold_${agentId}`;
 
-      if (playerGold < itemCost) {
-        return {
-          state,
-          events: [{ type: "rejected", reason: `You don't have enough gold (requires ${itemCost} gold, you have ${playerGold}).` }],
-          ok: false,
-          rejectionReason: `You don't have enough gold.`,
-        };
+      if (useCounterfeit) {
+        let syndicateId = newState.syndicateTurf?.[newState.current];
+        if (!syndicateId && newState.safehouses?.[newState.current]) {
+          syndicateId = newState.safehouses[newState.current].syndicateId;
+        }
+        if (!syndicateId && newState.syndicates) {
+          const traderSyndicates = Object.values(newState.syndicates).filter(s => s.members.includes(agentId));
+          if (traderSyndicates.length > 0) {
+            syndicateId = traderSyndicates[0].id;
+          }
+        }
+
+        const exchangeRate = syndicateId
+          ? getCounterfeitExchangeRate(newState, syndicateId, newState.current)
+          : 1.0;
+
+        finalCost = Math.ceil(itemCost / exchangeRate);
+        const playerCounterfeit = newState.vars[counterfeitGoldKey] ?? 0;
+
+        if (playerCounterfeit < finalCost) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `You don't have enough counterfeit gold (requires ${finalCost} counterfeit gold, you have ${playerCounterfeit}).` }],
+            ok: false,
+            rejectionReason: `You don't have enough counterfeit gold.`,
+          };
+        }
+
+        newState.vars[counterfeitGoldKey] = playerCounterfeit - finalCost;
+        isCounterfeitUsed = true;
+      } else {
+        const playerGold = newState.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+        if (playerGold < itemCost) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `You don't have enough gold (requires ${itemCost} gold, you have ${playerGold}).` }],
+            ok: false,
+            rejectionReason: `You don't have enough gold.`,
+          };
+        }
+
+        newState.vars[goldKey] = playerGold - itemCost;
       }
-
-      // Update Player Gold
-      newState.vars["gold"] = playerGold - itemCost;
       
       // Update Merchant Gold
       const mGold = getMerchantGold(newState, npc);
@@ -1602,7 +1639,7 @@ export function step(
         npcId: npc.id,
         action: "buy",
         item: action.item,
-        gold: itemCost,
+        gold: isCounterfeitUsed ? finalCost : itemCost,
       });
 
       events.push({
@@ -1611,7 +1648,9 @@ export function step(
       });
       events.push({
         type: "narration",
-        text: `You buy the ${itemObj?.name ?? action.item} from ${npc.name} for ${itemCost} gold.`,
+        text: isCounterfeitUsed
+          ? `You buy the ${itemObj?.name ?? action.item} from ${npc.name} using counterfeit gold (Cost: ${finalCost} counterfeit gold).`
+          : `You buy the ${itemObj?.name ?? action.item} from ${npc.name} for ${itemCost} gold.`,
       });
       break;
     }
@@ -1711,8 +1750,20 @@ export function step(
       // Deduct item from inventory and credit gold
       newState.inventory = newState.inventory.filter((i) => i !== itemId);
       
+      const useCounterfeit = (action as any).useCounterfeit ?? false;
       const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
-      newState.vars[goldKey] = (newState.vars[goldKey] ?? 0) + itemPayout;
+      const counterfeitGoldKey = agentId === "player" ? "counterfeit_gold" : `counterfeit_gold_${agentId}`;
+      let finalPayout = itemPayout;
+      let isCounterfeitUsed = false;
+
+      if (useCounterfeit) {
+        const exchangeRate = getCounterfeitExchangeRate(newState, safehouse.syndicateId, roomId);
+        finalPayout = Math.floor(itemPayout / exchangeRate);
+        newState.vars[counterfeitGoldKey] = (newState.vars[counterfeitGoldKey] ?? 0) + finalPayout;
+        isCounterfeitUsed = true;
+      } else {
+        newState.vars[goldKey] = (newState.vars[goldKey] ?? 0) + itemPayout;
+      }
 
       // Update black market inventory
       const blackMarkets = { ...(state.blackMarkets || {}) };
@@ -1740,19 +1791,26 @@ export function step(
       };
 
       if (!newState.journal) newState.journal = [];
-      newState.journal.push(`[Syndicate] Agent ${agentId} sold contraband ${itemId} to the black market in safehouse ${roomId} for ${itemPayout} gold.`);
-
-      events.push({
-        type: "narration",
-        text: `You sell the contraband ${itemObj?.name ?? itemId} to the syndicate black market in the safehouse for ${itemPayout} gold (avoiding all tolls and tariffs).`,
-      });
+      if (isCounterfeitUsed) {
+        newState.journal.push(`[Syndicate] Agent ${agentId} sold contraband ${itemId} to the black market in safehouse ${roomId} for ${finalPayout} counterfeit gold.`);
+        events.push({
+          type: "narration",
+          text: `You sell the contraband ${itemObj?.name ?? itemId} to the syndicate black market in the safehouse for ${finalPayout} counterfeit gold (avoiding all tolls and tariffs).`,
+        });
+      } else {
+        newState.journal.push(`[Syndicate] Agent ${agentId} sold contraband ${itemId} to the black market in safehouse ${roomId} for ${itemPayout} gold.`);
+        events.push({
+          type: "narration",
+          text: `You sell the contraband ${itemObj?.name ?? itemId} to the syndicate black market in the safehouse for ${itemPayout} gold (avoiding all tolls and tariffs).`,
+        });
+      }
 
       events.push({
         type: "black_market_sold",
         agentId,
         roomId,
         itemId,
-        price: itemPayout,
+        price: isCounterfeitUsed ? finalPayout : itemPayout,
       });
 
       break;
@@ -1853,7 +1911,35 @@ export function step(
       }
 
       newState.inventory = newState.inventory.filter((i) => i !== action.item);
-      newState.vars["gold"] = (newState.vars["gold"] ?? 0) + itemPayout;
+      
+      const useCounterfeit = (action as any).useCounterfeit ?? false;
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const counterfeitGoldKey = agentId === "player" ? "counterfeit_gold" : `counterfeit_gold_${agentId}`;
+      let finalPayout = itemPayout;
+      let isCounterfeitUsed = false;
+
+      if (useCounterfeit) {
+        let syndicateId = newState.syndicateTurf?.[newState.current];
+        if (!syndicateId && newState.safehouses?.[newState.current]) {
+          syndicateId = newState.safehouses[newState.current].syndicateId;
+        }
+        if (!syndicateId && newState.syndicates) {
+          const traderSyndicates = Object.values(newState.syndicates).filter(s => s.members.includes(agentId));
+          if (traderSyndicates.length > 0) {
+            syndicateId = traderSyndicates[0].id;
+          }
+        }
+
+        const exchangeRate = syndicateId
+          ? getCounterfeitExchangeRate(newState, syndicateId, newState.current)
+          : 1.0;
+
+        finalPayout = Math.floor(itemPayout / exchangeRate);
+        newState.vars[counterfeitGoldKey] = (newState.vars[counterfeitGoldKey] ?? 0) + finalPayout;
+        isCounterfeitUsed = true;
+      } else {
+        newState.vars[goldKey] = (newState.vars[goldKey] ?? 0) + itemPayout;
+      }
       
       // Update Merchant Gold
       newState.merchantGold = newState.merchantGold || {};
@@ -1875,7 +1961,7 @@ export function step(
         npcId: npc.id,
         action: "sell",
         item: action.item,
-        gold: itemPayout,
+        gold: isCounterfeitUsed ? finalPayout : itemPayout,
       });
 
       events.push({
@@ -1884,7 +1970,9 @@ export function step(
       });
       events.push({
         type: "narration",
-        text: `You sell the ${itemObj?.name ?? action.item} to ${npc.name} for ${itemPayout} gold.`,
+        text: isCounterfeitUsed
+          ? `You sell the ${itemObj?.name ?? action.item} to ${npc.name} for ${finalPayout} counterfeit gold.`
+          : `You sell the ${itemObj?.name ?? action.item} to ${npc.name} for ${itemPayout} gold.`,
       });
       break;
     }

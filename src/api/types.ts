@@ -93,7 +93,10 @@ export type Action =
   | { type: "CREATE_SYNDICATE"; id: string; name: string; members: string[]; timestamp: number }
   | { type: "CONSTRUCT_HIDDEN_PASSAGE"; passageId: string; syndicateId: string; fromRoomId: string; toRoomId: string; cost?: number; timestamp: number }
   | { type: "INFILTRATE_FACTION_NETWORK"; syndicateId: string; factionId: string; cost?: number; timestamp: number }
-  | { type: "DEPOSIT_SYNDICATE_BANK"; syndicateId: string; agentId: string; amount: number; timestamp: number };
+  | { type: "DEPOSIT_SYNDICATE_BANK"; syndicateId: string; agentId: string; amount: number; timestamp: number }
+  | { type: "MINT_COUNTERFEIT_GOLD"; syndicateId: string; agentId: string; amount: number; cost?: number; timestamp: number }
+  | { type: "TRADE_EXCHANGE_RATE"; syndicateId: string; baseRate: number; timestamp: number }
+  | { type: "ESTABLISH_AUDIT_MITIGATION"; roomId: string; syndicateId: string; cost?: number; timestamp: number };
 
 
 

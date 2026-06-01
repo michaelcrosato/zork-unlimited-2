@@ -1395,9 +1395,19 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             }
           } else {
             // Failed audit!
-            const confiscatedDirty = dirty;
+            let confiscatedDirty = dirty;
             const damageReductionFactor = Math.max(0.1, 1 - (totalArmor / 100));
-            const confiscationFactor = Math.max(0.1, 1 - (defenseScore / 200)) * damageReductionFactor;
+            let confiscationFactor = Math.max(0.1, 1 - (defenseScore / 200)) * damageReductionFactor;
+
+            // Apply audit mitigation if active in this room (AF-82)
+            const mitigation = newState.auditMitigations?.[front.roomId];
+            if (mitigation && mitigation.active) {
+              // Reduce confiscation rate by 25% per level, up to a maximum of 80% (0.8) mitigation
+              const mitigationDiscount = Math.min(0.8, mitigation.mitigationLevel * 0.25);
+              confiscatedDirty = Math.floor(dirty * (1 - mitigationDiscount));
+              confiscationFactor *= (1 - mitigationDiscount);
+            }
+
             const confiscatedClean = Math.floor(clean * confiscationFactor * 0.75);
 
             dirty -= confiscatedDirty;
@@ -1929,5 +1939,27 @@ export function calculateConvoyInsurancePremium(state: GameState, convoyId: stri
 
   // Ensure premium is a positive integer, at least 10 gold
   return Math.max(10, finalPremium);
+}
+
+/**
+ * Calculates the dynamic black-market exchange rate for counterfeit gold.
+ * Fluctuates based on base rate, regional enforcer heat (lowers rate), and syndicate dominance (raises rate).
+ */
+export function getCounterfeitExchangeRate(
+  state: GameState,
+  syndicateId: string,
+  roomId: string
+): number {
+  const baseRate = state.tradeExchangeRates?.[syndicateId]?.baseRate ?? 1.0;
+  const heat = state.enforcementHeat?.[roomId]?.heat ?? 0;
+  const dominance = state.syndicates?.[syndicateId]?.dominance ?? 50;
+
+  // Equation: rate = baseRate * (1 - heat / 200) * (1 + dominance / 200)
+  const heatFactor = Math.max(0.1, 1 - heat / 200);
+  const dominanceFactor = 1 + dominance / 200;
+  const rate = baseRate * heatFactor * dominanceFactor;
+
+  // Bound exchange rate between 0.1 and 2.0
+  return Math.max(0.1, Math.min(2.0, rate));
 }
 

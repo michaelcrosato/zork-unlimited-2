@@ -961,6 +961,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge tradeExchangeRates using LWW
+  const tradeExchangeRates = { ...stateA.tradeExchangeRates };
+  if (stateB.tradeExchangeRates) {
+    for (const [syndicateId, entryB] of Object.entries(stateB.tradeExchangeRates)) {
+      const entryA = tradeExchangeRates[syndicateId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        tradeExchangeRates[syndicateId] = entryB;
+      }
+    }
+  }
+
+  // Merge auditMitigations using LWW
+  const auditMitigations = { ...stateA.auditMitigations };
+  if (stateB.auditMitigations) {
+    for (const [roomId, entryB] of Object.entries(stateB.auditMitigations)) {
+      const entryA = auditMitigations[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        auditMitigations[roomId] = entryB;
+      }
+    }
+  }
+
   // Merge turfCheckpoints using LWW
   const turfCheckpoints = { ...stateA.turfCheckpoints };
   if (stateB.turfCheckpoints) {
@@ -1209,6 +1231,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     eliteEnforcers,
     legendaryHitmen,
     decoyConvoys,
+    tradeExchangeRates,
+    auditMitigations,
   };
 }
 

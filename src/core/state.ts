@@ -671,6 +671,21 @@ export const BlackOpsSafehouseSchema = z.object({
   active: z.boolean(),
 });
 export type BlackOpsSafehouse = z.infer<typeof BlackOpsSafehouseSchema>;
+export const TradeExchangeRateSchema = z.object({
+  syndicateId: z.string(),
+  baseRate: z.number(),
+  timestamp: z.number().int(),
+});
+export type TradeExchangeRate = z.infer<typeof TradeExchangeRateSchema>;
+
+export const AuditMitigationSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  mitigationLevel: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+});
+export type AuditMitigation = z.infer<typeof AuditMitigationSchema>;
 
 
 
@@ -819,6 +834,8 @@ export const GameStateSchema = z.object({
   hiddenPassages: z.record(z.string(), HiddenPassageSchema).optional(),
   factionInfiltrations: z.record(z.string(), FactionInfiltrationSchema).optional(),
   syndicateBanks: z.record(z.string(), SyndicateBankSchema).optional(),
+  tradeExchangeRates: z.record(z.string(), TradeExchangeRateSchema).optional(),
+  auditMitigations: z.record(z.string(), AuditMitigationSchema).optional(),
 });
 
 
@@ -956,6 +973,8 @@ export const createInitialState = (options: {
     treatyInfiltrators: {},
     tariffExemptionVotes: {},
     tariffExemptionPolicies: {},
+    tradeExchangeRates: {},
+    auditMitigations: {},
   };
 };
 
@@ -1651,9 +1670,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     blackOpsSafehouses: rest.blackOpsSafehouses ? JSON.parse(JSON.stringify(rest.blackOpsSafehouses)) : undefined,
     shadowAlliances: rest.shadowAlliances ? JSON.parse(JSON.stringify(rest.shadowAlliances)) : undefined,
     shadowAllianceVotes: rest.shadowAllianceVotes ? JSON.parse(JSON.stringify(rest.shadowAllianceVotes)) : undefined,
-    treatyInfiltrators: rest.treatyInfiltrators ? JSON.parse(JSON.stringify(rest.treatyInfiltrators)) : undefined,
     tariffExemptionVotes: rest.tariffExemptionVotes ? JSON.parse(JSON.stringify(rest.tariffExemptionVotes)) : undefined,
     tariffExemptionPolicies: rest.tariffExemptionPolicies ? JSON.parse(JSON.stringify(rest.tariffExemptionPolicies)) : undefined,
+    tradeExchangeRates: rest.tradeExchangeRates ? JSON.parse(JSON.stringify(rest.tradeExchangeRates)) : undefined,
+    auditMitigations: rest.auditMitigations ? JSON.parse(JSON.stringify(rest.auditMitigations)) : undefined,
   };
   return clone;
 }
