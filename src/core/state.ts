@@ -115,6 +115,37 @@ export const MerchantLicensingSchema = z.object({
 });
 export type MerchantLicensing = z.infer<typeof MerchantLicensingSchema>;
 
+export const GuildVoteSchema = z.object({
+  tariffRate: z.number().int().nonnegative(),
+  exportPricingPolicy: z.enum(["premium", "discount", "standard"]),
+  timestamp: z.number().int(),
+});
+export type GuildVote = z.infer<typeof GuildVoteSchema>;
+
+export const MerchantGuildSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  members: z.array(z.string()),
+  definedBy: z.string(),
+  timestamp: z.number().int(),
+});
+export type MerchantGuild = z.infer<typeof MerchantGuildSchema>;
+
+export const GuildPolicySchema = z.object({
+  tariffRate: z.number().int().nonnegative(),
+  exportPricingPolicy: z.enum(["premium", "discount", "standard"]),
+});
+export type GuildPolicy = z.infer<typeof GuildPolicySchema>;
+
+export const CollectiveBargainingSchema = z.object({
+  guildId: z.string(),
+  factionId: z.string(),
+  agreedTariff: z.number().int().nonnegative(),
+  definedBy: z.string(),
+  timestamp: z.number().int(),
+});
+export type CollectiveBargaining = z.infer<typeof CollectiveBargainingSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -176,6 +207,13 @@ export const GameStateSchema = z.object({
   merchantLicensings: z.record(z.string(), MerchantLicensingSchema).optional(),
   tariffVotes: z.record(z.string(), z.record(z.string(), TariffVoteSchema)).optional(),
   tariffPolicy: z.record(z.string(), z.number()).optional(),
+
+  // decentralized merchant trade guilds and tariff arbitrations
+  merchantGuilds: z.record(z.string(), MerchantGuildSchema).optional(),
+  guildMemberships: z.record(z.string(), z.array(z.string())).optional(),
+  guildVotes: z.record(z.string(), z.record(z.string(), GuildVoteSchema)).optional(),
+  guildPolicies: z.record(z.string(), GuildPolicySchema).optional(),
+  collectiveBargainingAgreements: z.record(z.string(), CollectiveBargainingSchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -249,6 +287,11 @@ export const createInitialState = (options: {
     tradeRoutes: {},
     tradeRouteVotes: {},
     tradeRoutePolicies: {},
+    merchantGuilds: {},
+    guildMemberships: {},
+    guildVotes: {},
+    guildPolicies: {},
+    collectiveBargainingAgreements: {},
   };
 };
 
@@ -538,6 +581,58 @@ export function reconcileTariffPolicies(state: GameState, pack: any): GameState 
     }
 
     newState.tariffPolicy[factionId] = consensusRate;
+  }
+
+  return newState;
+}
+
+export function reconcileGuildPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    guildPolicies: { ...(state.guildPolicies || {}) },
+  };
+
+  if (!newState.guildVotes) {
+    newState.guildVotes = {};
+  }
+
+  for (const [guildId, votes] of Object.entries(newState.guildVotes)) {
+    const tariffCounts: Record<number, number> = {};
+    const policyCounts: Record<string, number> = { premium: 0, standard: 0, discount: 0 };
+
+    for (const vote of Object.values(votes)) {
+      tariffCounts[vote.tariffRate] = (tariffCounts[vote.tariffRate] ?? 0) + 1;
+      policyCounts[vote.exportPricingPolicy] = (policyCounts[vote.exportPricingPolicy] ?? 0) + 1;
+    }
+
+    // 1. Reconcile tariffRate (highest rate wins on ties)
+    let maxTariffCount = 0;
+    let consensusTariff = 0;
+    const uniqueTariffs = Object.keys(tariffCounts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueTariffs) {
+      const count = tariffCounts[rate];
+      if (count > maxTariffCount) {
+        maxTariffCount = count;
+        consensusTariff = rate;
+      }
+    }
+
+    // 2. Reconcile exportPricingPolicy (premium > standard > discount priority on ties)
+    let maxPolicyCount = -1;
+    let consensusPolicy: "premium" | "standard" | "discount" = "standard";
+    const policyPriority: ("premium" | "standard" | "discount")[] = ["premium", "standard", "discount"];
+    for (const p of policyPriority) {
+      const count = policyCounts[p] ?? 0;
+      if (count > maxPolicyCount) {
+        maxPolicyCount = count;
+        consensusPolicy = p;
+      }
+    }
+
+    newState.guildPolicies[guildId] = {
+      tariffRate: consensusTariff,
+      exportPricingPolicy: consensusPolicy,
+    };
   }
 
   return newState;

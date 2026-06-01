@@ -109,6 +109,97 @@ export function calculateTradePrice(
     }
   }
 
+  // 6. Guild Memberships, Policies, and Collective Bargaining (AF-38)
+  if (state.merchantGuilds && npc?.id) {
+    for (const [guildId, guild] of Object.entries(state.merchantGuilds)) {
+      if (guild.members.includes(npc.id)) {
+        // Check if the trader is a member of this guild
+        const isTraderMember = state.guildMemberships?.[traderId]?.includes(guildId) || false;
+        const guildPolicy = state.guildPolicies?.[guildId];
+
+        // Collective Bargaining Agreements override standard faction territory tariffs
+        if (controllingFactionId) {
+          const cbaKey = `${guildId}:${controllingFactionId}`;
+          const agreement = state.collectiveBargainingAgreements?.[cbaKey];
+          if (agreement && !isTraderMember) {
+            const licensing = state.merchantLicensings?.[controllingFactionId];
+            const standardTariff = state.tariffPolicy?.[controllingFactionId] ?? licensing?.tariffRate ?? 0;
+            if (standardTariff > 0) {
+              const factionRep = state.factionRep?.[controllingFactionId] ?? 0;
+              const waiverThreshold = licensing?.tariffWaiverThreshold ?? 20;
+              const discountThreshold = licensing?.tariffDiscountThreshold ?? 10;
+
+              let standardEffectiveRate = standardTariff;
+              if (factionRep >= waiverThreshold) {
+                standardEffectiveRate = 0;
+              } else if (factionRep >= discountThreshold) {
+                standardEffectiveRate = standardTariff / 2;
+              }
+
+              if (standardEffectiveRate > 0) {
+                // De-apply standard effective tariff rate
+                if (isBuy) {
+                  multiplier /= (1.0 + standardEffectiveRate / 100.0);
+                } else {
+                  multiplier /= Math.max(0.1, 1.0 - standardEffectiveRate / 100.0);
+                }
+              }
+            }
+
+            // Apply CBA agreed tariff rate
+            const appliedTariffRate = agreement.agreedTariff;
+            if (appliedTariffRate > 0) {
+              if (isBuy) {
+                multiplier *= (1.0 + appliedTariffRate / 100.0);
+              } else {
+                multiplier *= Math.max(0.1, 1.0 - appliedTariffRate / 100.0);
+              }
+            }
+          }
+        }
+
+        // Apply member discount / markup
+        if (isTraderMember) {
+          if (isBuy) {
+            multiplier *= 0.85; // 15% discount for buying from own guild
+          } else {
+            multiplier *= 1.15; // 15% bonus for selling to own guild
+          }
+        } else {
+          // Non-member guild tariff markup/markdown
+          if (guildPolicy) {
+            const guildTariff = guildPolicy.tariffRate;
+            if (guildTariff > 0) {
+              if (isBuy) {
+                multiplier *= (1.0 + guildTariff / 100.0);
+              } else {
+                multiplier *= Math.max(0.1, 1.0 - guildTariff / 100.0);
+              }
+            }
+          }
+        }
+
+        // Export pricing policy modifier
+        if (guildPolicy) {
+          const policy = guildPolicy.exportPricingPolicy;
+          if (policy === "premium") {
+            if (isBuy) {
+              multiplier *= 1.25;
+            } else {
+              multiplier *= 1.15;
+            }
+          } else if (policy === "discount") {
+            if (isBuy) {
+              multiplier *= 0.85;
+            } else {
+              multiplier *= 0.80;
+            }
+          }
+        }
+      }
+    }
+  }
+
   const finalCost = Math.round(baseCost * multiplier);
   return Math.max(1, finalCost); // price never drops below 1 gold
 }

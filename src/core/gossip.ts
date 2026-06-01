@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -468,6 +468,71 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge merchantGuilds using LWW (Last-Write-Wins)
+  const merchantGuilds = { ...stateA.merchantGuilds };
+  if (stateB.merchantGuilds) {
+    for (const [guildId, guildB] of Object.entries(stateB.merchantGuilds)) {
+      const guildA = merchantGuilds[guildId];
+      if (!guildA) {
+        merchantGuilds[guildId] = guildB;
+      } else {
+        if (guildB.timestamp > guildA.timestamp) {
+          merchantGuilds[guildId] = guildB;
+        } else if (guildB.timestamp === guildA.timestamp) {
+          if (guildB.definedBy.localeCompare(guildA.definedBy) < 0) {
+            merchantGuilds[guildId] = guildB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge guildMemberships monotonically
+  const guildMemberships = { ...stateA.guildMemberships };
+  if (stateB.guildMemberships) {
+    for (const [agentId, bGuilds] of Object.entries(stateB.guildMemberships)) {
+      const aGuilds = guildMemberships[agentId] || [];
+      guildMemberships[agentId] = Array.from(new Set([...aGuilds, ...bGuilds]));
+    }
+  }
+
+  // Merge guildVotes using LWW (Last-Write-Wins)
+  const guildVotes = { ...stateA.guildVotes };
+  if (stateB.guildVotes) {
+    for (const [guildId, bVotes] of Object.entries(stateB.guildVotes)) {
+      if (!guildVotes[guildId]) {
+        guildVotes[guildId] = { ...bVotes };
+      } else {
+        guildVotes[guildId] = { ...guildVotes[guildId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = guildVotes[guildId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            guildVotes[guildId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge collectiveBargainingAgreements using LWW (Last-Write-Wins)
+  const collectiveBargainingAgreements = { ...stateA.collectiveBargainingAgreements };
+  if (stateB.collectiveBargainingAgreements) {
+    for (const [key, agreementB] of Object.entries(stateB.collectiveBargainingAgreements)) {
+      const agreementA = collectiveBargainingAgreements[key];
+      if (!agreementA) {
+        collectiveBargainingAgreements[key] = agreementB;
+      } else {
+        if (agreementB.timestamp > agreementA.timestamp) {
+          collectiveBargainingAgreements[key] = agreementB;
+        } else if (agreementB.timestamp === agreementA.timestamp) {
+          if (agreementB.definedBy.localeCompare(agreementA.definedBy) < 0) {
+            collectiveBargainingAgreements[key] = agreementB;
+          }
+        }
+      }
+    }
+  }
+
   // Merge merchantInventories and merchantGold using LWW (Last-Write-Wins)
   const merchantInventories = stateA.merchantInventories ? { ...stateA.merchantInventories } : {};
   const merchantGold = stateA.merchantGold ? { ...stateA.merchantGold } : {};
@@ -528,6 +593,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     merchantGold,
     merchantLastRestock,
     merchantLastUpdated,
+    merchantGuilds,
+    guildMemberships,
+    guildVotes,
+    collectiveBargainingAgreements,
   };
 }
 
@@ -824,6 +893,9 @@ export class GossipNode {
 
     // Reconcile tariff policies to ensure consensual tariff rates align perfectly across the mesh
     convergedState = reconcileTariffPolicies(convergedState, this.pack);
+
+    // Reconcile merchant guild policies to ensure consensual guild policies align perfectly across the mesh
+    convergedState = reconcileGuildPolicies(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

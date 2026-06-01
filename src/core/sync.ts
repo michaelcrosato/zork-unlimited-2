@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -1220,6 +1220,371 @@ export function multiAgentStep(
       state: newState,
       events: ok
         ? [{ type: "merchant_license_purchased", factionId, agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEFINE_MERCHANT_GUILD action
+  if ((action as any).type === "DEFINE_MERCHANT_GUILD") {
+    const { guildId, name, members, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    if (!guildId || typeof guildId !== "string") {
+      rejectionReason = `Proposed guild ID must be a non-empty string.`;
+    } else if (!name || typeof name !== "string") {
+      rejectionReason = `Proposed guild name must be a non-empty string.`;
+    } else if (!Array.isArray(members) || members.some(m => typeof m !== "string")) {
+      rejectionReason = `Proposed guild members must be an array of NPC ID strings.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const merchantGuilds = { ...(state.merchantGuilds || {}) };
+      const existingGuild = merchantGuilds[guildId];
+
+      if (!existingGuild || timestamp > existingGuild.timestamp ||
+        (timestamp === existingGuild.timestamp && agentId.localeCompare(existingGuild.definedBy) < 0)
+      ) {
+        merchantGuilds[guildId] = {
+          id: guildId,
+          name,
+          members,
+          definedBy: agentId,
+          timestamp,
+        };
+        newState.merchantGuilds = merchantGuilds;
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "merchant_guild_defined", guildId, name, definedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized JOIN_MERCHANT_GUILD action
+  if ((action as any).type === "JOIN_MERCHANT_GUILD") {
+    const { guildId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const guild = state.merchantGuilds?.[guildId];
+    if (!guild) {
+      rejectionReason = `Merchant guild ${guildId} does not exist in state.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const guildMemberships = { ...(state.guildMemberships || {}) };
+      if (!guildMemberships[agentId]) {
+        guildMemberships[agentId] = [];
+      } else {
+        guildMemberships[agentId] = [...guildMemberships[agentId]];
+      }
+
+      if (!guildMemberships[agentId].includes(guildId)) {
+        guildMemberships[agentId].push(guildId);
+      }
+      newState.guildMemberships = guildMemberships;
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "merchant_guild_joined", guildId, agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_GUILD_POLICY action
+  if ((action as any).type === "VOTE_GUILD_POLICY") {
+    const { guildId, tariffRate, exportPricingPolicy, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const guild = state.merchantGuilds?.[guildId];
+    const isMember = state.guildMemberships?.[agentId]?.includes(guildId) || false;
+
+    if (!guild) {
+      rejectionReason = `Merchant guild ${guildId} does not exist in state.`;
+    } else if (!isMember) {
+      rejectionReason = `Agent ${agentId} is not a member of guild ${guildId} and cannot vote.`;
+    } else if (tariffRate < 0 || !Number.isInteger(tariffRate)) {
+      rejectionReason = `Proposed guild tariff rate ${tariffRate} must be a non-negative integer.`;
+    } else if (!["premium", "discount", "standard"].includes(exportPricingPolicy)) {
+      rejectionReason = `Proposed export pricing policy ${exportPricingPolicy} is invalid.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const guildVotes = { ...(state.guildVotes || {}) };
+      if (!guildVotes[guildId]) {
+        guildVotes[guildId] = {};
+      } else {
+        guildVotes[guildId] = { ...guildVotes[guildId] };
+      }
+
+      const existingVote = guildVotes[guildId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        guildVotes[guildId][agentId] = {
+          tariffRate,
+          exportPricingPolicy,
+          timestamp,
+        };
+        newState.guildVotes = guildVotes;
+        newState = reconcileGuildPolicies(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "guild_policy_voted", guildId, tariffRate, exportPricingPolicy, voter: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized NEGOTIATE_COLLECTIVE_BARGAINING action
+  if ((action as any).type === "NEGOTIATE_COLLECTIVE_BARGAINING") {
+    const { guildId, factionId, agreedTariff, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const guild = state.merchantGuilds?.[guildId];
+    const isValidFaction = (pack as any).factions?.some((f: any) => f.id === factionId);
+    const isMember = state.guildMemberships?.[agentId]?.includes(guildId) || false;
+
+    if (!guild) {
+      rejectionReason = `Merchant guild ${guildId} does not exist in state.`;
+    } else if (!isValidFaction) {
+      rejectionReason = `Faction ${factionId} is not a valid faction in the content pack.`;
+    } else if (!isMember) {
+      rejectionReason = `Agent ${agentId} is not a member of guild ${guildId} and cannot negotiate collective bargaining.`;
+    } else if (agreedTariff < 0 || !Number.isInteger(agreedTariff)) {
+      rejectionReason = `Proposed agreed tariff rate ${agreedTariff} must be a non-negative integer.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const collectiveBargainingAgreements = { ...(state.collectiveBargainingAgreements || {}) };
+      const cbaKey = `${guildId}:${factionId}`;
+      const existingCba = collectiveBargainingAgreements[cbaKey];
+
+      if (!existingCba || timestamp > existingCba.timestamp ||
+        (timestamp === existingCba.timestamp && agentId.localeCompare(existingCba.definedBy) < 0)
+      ) {
+        collectiveBargainingAgreements[cbaKey] = {
+          guildId,
+          factionId,
+          agreedTariff,
+          definedBy: agentId,
+          timestamp,
+        };
+        newState.collectiveBargainingAgreements = collectiveBargainingAgreements;
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "collective_bargaining_negotiated", guildId, factionId, agreedTariff, definedBy: agentId } as any]
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

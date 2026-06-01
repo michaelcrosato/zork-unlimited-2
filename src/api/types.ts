@@ -31,7 +31,14 @@ export type Action =
   | { type: "CLAIM_TERRITORY"; roomId: string; factionId: string; timestamp: number }
   | { type: "ASSIST_CONQUEST"; roomId: string; factionId: string; assistingFactionId: string; timestamp: number }
   | { type: "DEFINE_TRADE_ROUTE"; routeId: string; factionId: string; rooms: string[]; taxShare: number; timestamp: number }
-  | { type: "VOTE_TRADE_ROUTE_TAX"; routeId: string; taxShare: number; timestamp: number };
+  | { type: "VOTE_TRADE_ROUTE_TAX"; routeId: string; taxShare: number; timestamp: number }
+  | { type: "DEFINE_MERCHANT_LICENSING"; factionId: string; licenseCost: number; tariffRate: number; timestamp: number; tariffWaiverThreshold?: number; tariffDiscountThreshold?: number }
+  | { type: "VOTE_MERCHANT_TARIFF"; factionId: string; tariffRate: number; timestamp: number }
+  | { type: "BUY_MERCHANT_LICENSE"; factionId: string; timestamp: number }
+  | { type: "DEFINE_MERCHANT_GUILD"; guildId: string; name: string; members: string[]; timestamp: number }
+  | { type: "JOIN_MERCHANT_GUILD"; guildId: string; timestamp: number }
+  | { type: "VOTE_GUILD_POLICY"; guildId: string; tariffRate: number; exportPricingPolicy: "premium" | "discount" | "standard"; timestamp: number }
+  | { type: "NEGOTIATE_COLLECTIVE_BARGAINING"; guildId: string; factionId: string; agreedTariff: number; timestamp: number };
 
 
 

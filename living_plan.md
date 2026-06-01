@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #37 (Ready for Cycle #38)
-* **Build/Test Status**: 🟢 PASS (All 162 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #38 (Ready for Cycle #39)
+* **Build/Test Status**: 🟢 PASS (All 168 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -201,17 +201,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Add trade arbitrage pathfinding checks to identify and exploit cross-territory price gaps (`AF-37`).
 - [x] Write comprehensive integration tests verifying supply-based price updates and mesh arbitrage loops (`AF-37`).
 
+### Phase 33: Gossip-based Cooperative Merchant Trade Guilds and Territory Tariff Arbitrations (Completed)
+- [x] Add trade guild affiliations, memberships, votes, policies, and collective bargaining agreements to state schemas (`AF-38`).
+- [x] Implement decentralized action transitions and majority-consensus arbitration for guild tariff rates and export pricing policies (`AF-38`).
+- [x] Support full P2P gossip mesh replication of guild standing, votes, memberships, and CBA parameters (`AF-38`).
+- [x] Wire guild membership discounts, non-member guild tariffs, export policies, and CBA faction tariff overrides into the strategic trade pricing module (`AF-38`).
+- [x] Write comprehensive integration tests verifying strategic pricing, voting consensus, CBA overrides, and mesh replication convergence (`AF-38`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-38`
-* **Objective**: Implement Gossip-based Cooperative Merchant Trade Guilds and Territory Tariff Arbitrations.
-* **Why this matters**: Grouping merchants into regional trade guilds that gossip about consensual baseline pricing and share profit margins lets players join guilds, vote on territory tariff rates, and negotiate collective bargaining agreements between rival faction territories.
+**Task ID**: `AF-39`
+* **Objective**: Implement Gossip-based Collective Merchant Cartels and Price Collusion.
+* **Why this matters**: Cartels allowing guild merchants to actively coordinate price collusion, artificially raising prices under low competition or retaliating against hostile factions with severe embargoes.
 * **Planned Actions**:
-  1. Add trade guild affiliations and memberships to state variables.
-  2. Implement guild-level collective consensus voting on tariff rates and export pricing policies.
-  3. Support P2P gossip mesh replication of guild standings and trade policies.
-  4. Write comprehensive integration tests verifying guild voting and collective strategic pricing.
+  1. Define merchant cartel coordination and embargo schemas in state variables.
+  2. Implement local competition/density checks to trigger coordinated pricing hikes.
+  3. Support P2P gossip mesh replication of active embargoes and cartel policies.
+  4. Write comprehensive integration tests verifying embargoes and cartel-coordinated price hikes.
 
 ---
 
