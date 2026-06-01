@@ -1324,6 +1324,35 @@ export const SovereignDebtProposalSchema = z.object({
 });
 export type SovereignDebtProposal = z.infer<typeof SovereignDebtProposalSchema>;
 
+export const SovereignDebtRestructureProposalSchema = z.object({
+  id: z.string(),
+  bondId: z.string(),
+  syndicateId: z.string(),
+  extensionEpochs: z.number().int().positive(),
+  newInterestRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtRestructureProposal = z.infer<typeof SovereignDebtRestructureProposalSchema>;
+
+export const FactionBailoutProposalSchema = z.object({
+  id: z.string(),
+  bondId: z.string(),
+  syndicateId: z.string(),
+  factionId: z.string(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type FactionBailoutProposal = z.infer<typeof FactionBailoutProposalSchema>;
+
 export const FactionReserveBondSchema = z.object({
   id: z.string(),
   syndicateId: z.string(),
@@ -1723,6 +1752,8 @@ export const GameStateSchema = z.object({
   multiFactionCdoRiskRatings: z.record(z.string(), MultiFactionCdoRiskRatingSchema).optional(),
   multiFactionCdoRiskRatingProposals: z.record(z.string(), MultiFactionCdoRiskRatingProposalSchema).optional(),
   sovereignDebtProposals: z.record(z.string(), SovereignDebtProposalSchema).optional(),
+  sovereignDebtRestructureProposals: z.record(z.string(), SovereignDebtRestructureProposalSchema).optional(),
+  factionBailoutProposals: z.record(z.string(), FactionBailoutProposalSchema).optional(),
   factionReserveBonds: z.record(z.string(), FactionReserveBondSchema).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
@@ -1934,6 +1965,8 @@ export const createInitialState = (options: {
     multiFactionCdoRiskRatings: {},
     multiFactionCdoRiskRatingProposals: {},
     sovereignDebtProposals: {},
+    sovereignDebtRestructureProposals: {},
+    factionBailoutProposals: {},
     factionReserveBonds: {},
   };
 };
@@ -2735,6 +2768,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     multiFactionCdoRiskRatings: rest.multiFactionCdoRiskRatings ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatings)) : undefined,
     multiFactionCdoRiskRatingProposals: rest.multiFactionCdoRiskRatingProposals ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatingProposals)) : undefined,
     sovereignDebtProposals: rest.sovereignDebtProposals ? JSON.parse(JSON.stringify(rest.sovereignDebtProposals)) : undefined,
+    sovereignDebtRestructureProposals: rest.sovereignDebtRestructureProposals ? JSON.parse(JSON.stringify(rest.sovereignDebtRestructureProposals)) : undefined,
+    factionBailoutProposals: rest.factionBailoutProposals ? JSON.parse(JSON.stringify(rest.factionBailoutProposals)) : undefined,
     factionReserveBonds: rest.factionReserveBonds ? JSON.parse(JSON.stringify(rest.factionReserveBonds)) : undefined,
     maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
     slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
@@ -6333,6 +6368,121 @@ export function reconcileSovereignBonds(state: GameState, pack: any): GameState 
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[Sovereign Bond Resolution Failed] Faction ${factionId} has insufficient reserves (${factionReserve} < ${faceValue}) to resolve proposal ${proposalId}.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignDebtRestructure(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtRestructureProposals: state.sovereignDebtRestructureProposals ? { ...state.sovereignDebtRestructureProposals } : {},
+    factionReserveBonds: state.factionReserveBonds ? { ...state.factionReserveBonds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.sovereignDebtRestructureProposals || {})) {
+    const proposal = newState.sovereignDebtRestructureProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { bondId, syndicateId, extensionEpochs, newInterestRate, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    const bond = newState.factionReserveBonds?.[bondId];
+    if (!syndicate || !bond) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      // Consensus reached! Let's restructure the bond.
+      // Resolve proposal
+      newState.sovereignDebtRestructureProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      // Wire restructuring to adjust remaining bond parameters
+      const amountAlreadyRepaid = bond.totalRepayment - bond.remainingRepayment;
+      const newTotalRepayment = bond.faceValue + Math.floor(bond.faceValue * (newInterestRate / 100));
+      
+      bond.remainingRepayment = Math.max(0, newTotalRepayment - amountAlreadyRepaid);
+      bond.totalRepayment = newTotalRepayment;
+      bond.remainingEpochs += extensionEpochs;
+      bond.termEpochs += extensionEpochs;
+      bond.interestRate = newInterestRate;
+      
+      // Cures default and makes bond Active again
+      bond.status = "Active";
+      bond.couponPayout = Math.floor(bond.remainingRepayment / bond.remainingEpochs);
+      bond.timestamp = timestamp; // update timestamp to show active update
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sovereign Debt Restructure Resolved] Syndicate ${syndicateId} restructured bond ${bondId}: maturity extended by ${extensionEpochs} epochs, interest rate reduced to ${newInterestRate}%.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileFactionBailouts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    factionBailoutProposals: state.factionBailoutProposals ? { ...state.factionBailoutProposals } : {},
+    factionReserveBonds: state.factionReserveBonds ? { ...state.factionReserveBonds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.factionBailoutProposals || {})) {
+    const proposal = newState.factionBailoutProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { bondId, syndicateId, factionId, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    const bond = newState.factionReserveBonds?.[bondId];
+    if (!syndicate || !bond) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      // Consensus reached! Check if the faction reserve pool has enough gold
+      const factionReserve = newState.factionReservePools?.[factionId] ?? 10000;
+      if (factionReserve >= bond.remainingRepayment) {
+        // Resolve proposal
+        newState.factionBailoutProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        // Wire bailout to cover remaining payments using faction reserve funds
+        newState.factionReservePools[factionId] = factionReserve - bond.remainingRepayment;
+        
+        bond.remainingRepayment = 0;
+        bond.status = "Matured";
+        bond.timestamp = timestamp;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction Bailout Resolved] Faction ${factionId} bailed out syndicate ${syndicateId} for bond ${bondId} covering ${bond.remainingRepayment} gold.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Faction Bailout Resolution Failed] Faction ${factionId} has insufficient reserves (${factionReserve} < ${bond.remainingRepayment}) to resolve bailout proposal ${proposalId}.`
         );
       }
     }

@@ -2314,6 +2314,70 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge sovereignDebtRestructureProposals using LWW (Last-Write-Wins)
+  const sovereignDebtRestructureProposals = { ...stateA.sovereignDebtRestructureProposals };
+  if (stateB.sovereignDebtRestructureProposals) {
+    for (const [propId, propB] of Object.entries(stateB.sovereignDebtRestructureProposals)) {
+      const propA = sovereignDebtRestructureProposals[propId];
+      if (!propA) {
+        sovereignDebtRestructureProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          sovereignDebtRestructureProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          sovereignDebtRestructureProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
+  // Merge factionBailoutProposals using LWW (Last-Write-Wins)
+  const factionBailoutProposals = { ...stateA.factionBailoutProposals };
+  if (stateB.factionBailoutProposals) {
+    for (const [propId, propB] of Object.entries(stateB.factionBailoutProposals)) {
+      const propA = factionBailoutProposals[propId];
+      if (!propA) {
+        factionBailoutProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          factionBailoutProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          factionBailoutProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
   // Merge factionReserveBonds using LWW (Last-Write-Wins)
   const factionReserveBonds = { ...stateA.factionReserveBonds };
   if (stateB.factionReserveBonds) {
@@ -2548,6 +2612,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     multiFactionCdoRiskRatings,
     multiFactionCdoRiskRatingProposals,
     sovereignDebtProposals,
+    sovereignDebtRestructureProposals,
+    factionBailoutProposals,
     factionReserveBonds,
     maliciousActors,
     slashingRates,
