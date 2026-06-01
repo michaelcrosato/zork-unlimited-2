@@ -15,6 +15,25 @@ export function calculateTradePrice(
 ): number {
   let multiplier = 1.0;
   const isSafehouse = state.safehouses && state.safehouses[state.current] !== undefined;
+  const traderSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(traderId));
+
+  // Check for active Reserve Sweep dynamic tariff liquidation (AF-125)
+  let activeSweepPolicy: any = undefined;
+  for (const synd of traderSyndicates) {
+    const policy = state.reserveSweepPolicies?.[synd.id];
+    if (policy && policy.active) {
+      activeSweepPolicy = policy;
+      break;
+    }
+  }
+
+  if (activeSweepPolicy) {
+    if (isBuy) {
+      multiplier *= (1.0 + activeSweepPolicy.tariffLiquidationRate);
+    } else {
+      multiplier *= Math.max(0.1, 1.0 - activeSweepPolicy.tariffLiquidationRate);
+    }
+  }
 
   // 1. Weather/Climate Multiplier
   if (state.environment?.weather) {
@@ -56,7 +75,6 @@ export function calculateTradePrice(
 
   // 3c. Faction War Strategic Pricing Modifier (AF-71)
   const npcFactionId = npc?.faction || controllingFactionId;
-  const traderSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(traderId));
   const isAtWarWithFaction = npcFactionId && traderSyndicates.some(s => state.factionWars?.[s.id]?.[npcFactionId] === true);
   if (isAtWarWithFaction) {
     if (isBuy) {

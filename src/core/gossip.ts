@@ -2314,6 +2314,55 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge reserveSweepPolicies using LWW (Last-Write-Wins)
+  const reserveSweepPolicies = { ...stateA.reserveSweepPolicies };
+  if (stateB.reserveSweepPolicies) {
+    for (const [syndicateId, policyB] of Object.entries(stateB.reserveSweepPolicies)) {
+      const policyA = reserveSweepPolicies[syndicateId];
+      if (!policyA || policyB.timestamp > policyA.timestamp) {
+        reserveSweepPolicies[syndicateId] = { ...policyB };
+      }
+    }
+  }
+
+  // Merge reserveSweepVotes using LWW (Last-Write-Wins)
+  const reserveSweepVotes = { ...stateA.reserveSweepVotes };
+  if (stateB.reserveSweepVotes) {
+    for (const [syndicateId, bInner] of Object.entries(stateB.reserveSweepVotes)) {
+      if (!reserveSweepVotes[syndicateId]) {
+        reserveSweepVotes[syndicateId] = { ...bInner };
+      } else {
+        const aInner = { ...reserveSweepVotes[syndicateId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = { ...voteB };
+          }
+        }
+        reserveSweepVotes[syndicateId] = aInner;
+      }
+    }
+  }
+
+  // Merge reserveSweepContestVotes using LWW (Last-Write-Wins)
+  const reserveSweepContestVotes = { ...stateA.reserveSweepContestVotes };
+  if (stateB.reserveSweepContestVotes) {
+    for (const [syndicateId, bInner] of Object.entries(stateB.reserveSweepContestVotes)) {
+      if (!reserveSweepContestVotes[syndicateId]) {
+        reserveSweepContestVotes[syndicateId] = { ...bInner };
+      } else {
+        const aInner = { ...reserveSweepContestVotes[syndicateId] };
+        for (const [voterId, voteB] of Object.entries(bInner)) {
+          const voteA = aInner[voterId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            aInner[voterId] = { ...voteB };
+          }
+        }
+        reserveSweepContestVotes[syndicateId] = aInner;
+      }
+    }
+  }
+
   // Merge sovereignDebtRestructureProposals using LWW (Last-Write-Wins)
   const sovereignDebtRestructureProposals = { ...stateA.sovereignDebtRestructureProposals };
   if (stateB.sovereignDebtRestructureProposals) {
@@ -2615,6 +2664,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     sovereignDebtRestructureProposals,
     factionBailoutProposals,
     factionReserveBonds,
+    reserveSweepPolicies,
+    reserveSweepVotes,
+    reserveSweepContestVotes,
     maliciousActors,
     slashingRates,
   };

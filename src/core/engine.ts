@@ -1678,6 +1678,39 @@ export function step(
         }
 
         newState.vars[goldKey] = playerGold - itemCost;
+
+        // Apply active reserve sweep dynamic tariff liquidation (AF-125)
+        const traderSyndicates = Object.values(newState.syndicates || {}).filter(s => s.members.includes(agentId));
+        let activeSweepPolicy: any = undefined;
+        for (const synd of traderSyndicates) {
+          const policy = newState.reserveSweepPolicies?.[synd.id];
+          if (policy && policy.active) {
+            activeSweepPolicy = policy;
+            break;
+          }
+        }
+        if (activeSweepPolicy) {
+          const liquidationGold = Math.floor(itemCost * activeSweepPolicy.tariffLiquidationRate / (1.0 + activeSweepPolicy.tariffLiquidationRate));
+          if (liquidationGold > 0) {
+            const defaultedBond = Object.values(newState.factionReserveBonds || {}).find(b => b.syndicateId === activeSweepPolicy.syndicateId && b.status === "Defaulted");
+            if (defaultedBond) {
+              defaultedBond.remainingRepayment = Math.max(0, defaultedBond.remainingRepayment - liquidationGold);
+              if (defaultedBond.remainingRepayment === 0) {
+                defaultedBond.status = "Matured";
+                activeSweepPolicy.active = false;
+              }
+              activeSweepPolicy.accumulatedLiquidatedGold += liquidationGold;
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Tariff Liquidation] Diverted ${liquidationGold} gold from trade transaction to liquidate defaulted bond ${defaultedBond.id} for syndicate ${activeSweepPolicy.syndicateId}.`
+              );
+              events.push({
+                type: "narration",
+                text: `💰 [Tariff Liquidation] Diverted ${liquidationGold} gold from transaction to liquidate defaulted bond of syndicate ${activeSweepPolicy.syndicateId}.`,
+              } as any);
+            }
+          }
+        }
       }
       
       // Update Merchant Gold
@@ -2006,6 +2039,39 @@ export function step(
         isCounterfeitUsed = true;
       } else {
         newState.vars[goldKey] = (newState.vars[goldKey] ?? 0) + itemPayout;
+
+        // Apply active reserve sweep dynamic tariff liquidation (AF-125)
+        const traderSyndicates = Object.values(newState.syndicates || {}).filter(s => s.members.includes(agentId));
+        let activeSweepPolicy: any = undefined;
+        for (const synd of traderSyndicates) {
+          const policy = newState.reserveSweepPolicies?.[synd.id];
+          if (policy && policy.active) {
+            activeSweepPolicy = policy;
+            break;
+          }
+        }
+        if (activeSweepPolicy) {
+          const liquidationGold = Math.floor(itemPayout * activeSweepPolicy.tariffLiquidationRate / (1.0 - activeSweepPolicy.tariffLiquidationRate));
+          if (liquidationGold > 0) {
+            const defaultedBond = Object.values(newState.factionReserveBonds || {}).find(b => b.syndicateId === activeSweepPolicy.syndicateId && b.status === "Defaulted");
+            if (defaultedBond) {
+              defaultedBond.remainingRepayment = Math.max(0, defaultedBond.remainingRepayment - liquidationGold);
+              if (defaultedBond.remainingRepayment === 0) {
+                defaultedBond.status = "Matured";
+                activeSweepPolicy.active = false;
+              }
+              activeSweepPolicy.accumulatedLiquidatedGold += liquidationGold;
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Tariff Liquidation] Diverted ${liquidationGold} gold from trade transaction to liquidate defaulted bond ${defaultedBond.id} for syndicate ${activeSweepPolicy.syndicateId}.`
+              );
+              events.push({
+                type: "narration",
+                text: `💰 [Tariff Liquidation] Diverted ${liquidationGold} gold from transaction to liquidate defaulted bond of syndicate ${activeSweepPolicy.syndicateId}.`,
+              } as any);
+            }
+          }
+        }
       }
       
       // Update Merchant Gold
@@ -2229,6 +2295,9 @@ export function tickProductionLabs(
     const updatedSyndicates = { ...(newState.syndicates || {}) };
     const updatedFactionReserves = { ...(newState.factionReservePools || {}) };
     const updatedFactionRep = { ...(newState.factionRep || {}) };
+    const updatedSecondaryReserves = newState.secondaryReserves ? { ...newState.secondaryReserves } : {};
+    const updatedSecondaryReserveInvestments = newState.secondaryReserveInvestments ? JSON.parse(JSON.stringify(newState.secondaryReserveInvestments)) : {};
+    const updatedSweepPolicies = newState.reserveSweepPolicies ? { ...newState.reserveSweepPolicies } : {};
     let bondsChanged = false;
 
     for (const [bondId, bond] of Object.entries(updatedBonds)) {
@@ -2241,6 +2310,56 @@ export function tickProductionLabs(
         if (bond.remainingEpochs === 1) {
           // Final payment pays whatever is left to avoid rounding errors
           payout = bond.remainingRepayment;
+        }
+
+        const policy = updatedSweepPolicies[bond.syndicateId];
+        const sweepMargin = policy?.sweepMargin ?? 500;
+
+        // Check if we need to auto-sweep reserves/investments
+        if ((syndicate.warChest ?? 0) < payout || (syndicate.warChest ?? 0) < sweepMargin) {
+          // 1. Sweep from secondary reserves
+          const reserveEntry = updatedSecondaryReserves[bond.syndicateId];
+          if (reserveEntry && reserveEntry.reserveGold > 0) {
+            const needed = payout - (syndicate.warChest ?? 0);
+            if (needed > 0) {
+              const sweepAmount = Math.min(reserveEntry.reserveGold, needed);
+              reserveEntry.reserveGold -= sweepAmount;
+              syndicate.warChest = (syndicate.warChest ?? 0) + sweepAmount;
+              bondsChanged = true;
+
+              events.push({
+                type: "narration",
+                text: `🔄 [Automated Sweep] Swept ${sweepAmount} gold from secondary reserves of syndicate ${bond.syndicateId} to cover coupon payout.`,
+              } as any);
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Automated Sweep] Swept ${sweepAmount} gold from secondary reserves of syndicate ${bond.syndicateId}.`
+              );
+            }
+          }
+
+          // 2. Sweep/liquidate from secondary reserve vault investments
+          const investments = updatedSecondaryReserveInvestments[bond.syndicateId] || {};
+          for (const [vaultId, investment] of Object.entries(investments)) {
+            const needed = payout - (syndicate.warChest ?? 0);
+            if (needed <= 0) break;
+            const investedGold = (investment as any).investedGold ?? 0;
+            if (investedGold > 0) {
+              const liquidateAmount = Math.min(investedGold, needed);
+              (investment as any).investedGold -= liquidateAmount;
+              syndicate.warChest = (syndicate.warChest ?? 0) + liquidateAmount;
+              bondsChanged = true;
+
+              events.push({
+                type: "narration",
+                text: `💰 [Automated Sweep] Liquidated ${liquidateAmount} gold from secondary reserve vault ${vaultId} for syndicate ${bond.syndicateId} to cover coupon payout.`,
+              } as any);
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Automated Sweep] Liquidated ${liquidateAmount} gold from secondary reserve vault ${vaultId} for syndicate ${bond.syndicateId}.`
+              );
+            }
+          }
         }
 
         if ((syndicate.warChest ?? 0) >= payout) {
@@ -2280,10 +2399,24 @@ export function tickProductionLabs(
           // Deduct reputation standing heavily (-20)
           updatedFactionRep[bond.factionId] = Math.max(0, (updatedFactionRep[bond.factionId] ?? 0) - 20);
 
-          events.push({
-            type: "narration",
-            text: `⚠️ [Sovereign Debt Default] Syndicate ${bond.syndicateId} defaulted on bond coupon payment of ${payout} gold to faction ${bond.factionId}! Reputation standing heavily penalized.`,
-          } as any);
+          if (policy) {
+            policy.active = true;
+            policy.timestamp = newState.step;
+
+            events.push({
+              type: "narration",
+              text: `⚠️ [Reserve Sweep Activated] Syndicate ${bond.syndicateId} has defaulted and entered active reserve sweep liquidation mode at tariff rate ${policy.tariffLiquidationRate * 100}%.`,
+            } as any);
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Reserve Sweep Activated] Active sweep policy enabled for syndicate ${bond.syndicateId} at tariff rate ${policy.tariffLiquidationRate * 100}%.`
+            );
+          } else {
+            events.push({
+              type: "narration",
+              text: `⚠️ [Sovereign Debt Default] Syndicate ${bond.syndicateId} defaulted on bond coupon payment of ${payout} gold to faction ${bond.factionId}! Reputation standing heavily penalized.`,
+            } as any);
+          }
 
           if (!newState.journal) newState.journal = [];
           newState.journal.push(
@@ -2293,12 +2426,13 @@ export function tickProductionLabs(
       }
     }
 
-    if (bondsChanged) {
-      newState.factionReserveBonds = updatedBonds;
-      newState.syndicates = updatedSyndicates;
-      newState.factionReservePools = updatedFactionReserves;
-      newState.factionRep = updatedFactionRep;
-    }
+    newState.factionReserveBonds = updatedBonds;
+    newState.syndicates = updatedSyndicates;
+    newState.factionReservePools = updatedFactionReserves;
+    newState.factionRep = updatedFactionRep;
+    newState.secondaryReserves = updatedSecondaryReserves;
+    newState.secondaryReserveInvestments = updatedSecondaryReserveInvestments;
+    newState.reserveSweepPolicies = updatedSweepPolicies;
   }
 
   if (!state.productionLabs || Object.keys(state.productionLabs).length === 0) {

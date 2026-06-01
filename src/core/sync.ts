@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -22055,6 +22055,244 @@ export function multiAgentStep(
           agentId,
           vote,
           timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized AUTHORIZE_RESERVE_SWEEP & ADJUST_RESERVE_SWEEP_MARGIN action (AF-125)
+  if ((action as any).type === "AUTHORIZE_RESERVE_SWEEP" || (action as any).type === "ADJUST_RESERVE_SWEEP_MARGIN") {
+    const { syndicateId, sweepMargin, tariffLiquidationRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (sweepMargin === undefined || sweepMargin < 0 || !Number.isInteger(sweepMargin)) {
+      rejectionReason = `Sweep margin must be a non-negative integer.`;
+    } else if (tariffLiquidationRate === undefined || tariffLiquidationRate < 0 || tariffLiquidationRate > 1.0) {
+      rejectionReason = `Tariff liquidation rate must be between 0.0 and 1.0.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on sweep policy.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const reserveSweepVotes = { ...(state.reserveSweepVotes || {}) };
+      if (!reserveSweepVotes[syndicateId]) {
+        reserveSweepVotes[syndicateId] = {};
+      } else {
+        reserveSweepVotes[syndicateId] = { ...reserveSweepVotes[syndicateId] };
+      }
+
+      const existingVote = reserveSweepVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        reserveSweepVotes[syndicateId][agentId] = {
+          sweepMargin,
+          tariffLiquidationRate,
+          timestamp,
+        };
+
+        newState.reserveSweepVotes = reserveSweepVotes;
+        newState = reconcileReserveSweeps(newState, pack);
+
+        const policy = newState.reserveSweepPolicies?.[syndicateId];
+        const newConsensusMargin = policy?.sweepMargin ?? 500;
+        const newConsensusRate = policy?.tariffLiquidationRate ?? 0.15;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Reserve Sweep Voted] Agent ${agentId} voted for sweep policy (margin: ${sweepMargin}, rate: ${tariffLiquidationRate}) in syndicate ${syndicateId}. Consensus: margin ${newConsensusMargin}, rate ${newConsensusRate}.`
+        );
+
+        customEvents.push({
+          type: "reserve_sweep_voted" as any,
+          agentId,
+          syndicateId,
+          sweepMargin,
+          tariffLiquidationRate,
+          consensusMargin: newConsensusMargin,
+          consensusRate: newConsensusRate,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized CONTEST_RESERVE_SWEEP action (AF-125)
+  if ((action as any).type === "CONTEST_RESERVE_SWEEP") {
+    const { syndicateId, contest, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const policy = state.reserveSweepPolicies?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (contest === undefined) {
+      rejectionReason = `Contest value (boolean) is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!policy) {
+      rejectionReason = `Sweep policy does not exist for syndicate ${syndicateId}.`;
+    } else if (!policy.active) {
+      rejectionReason = `Sweep policy is not active for syndicate ${syndicateId}, nothing to contest.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to contest.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const reserveSweepContestVotes = { ...(state.reserveSweepContestVotes || {}) };
+      if (!reserveSweepContestVotes[syndicateId]) {
+        reserveSweepContestVotes[syndicateId] = {};
+      } else {
+        reserveSweepContestVotes[syndicateId] = { ...reserveSweepContestVotes[syndicateId] };
+      }
+
+      const existingVote = reserveSweepContestVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        reserveSweepContestVotes[syndicateId][agentId] = {
+          contest,
+          timestamp,
+        };
+
+        newState.reserveSweepContestVotes = reserveSweepContestVotes;
+        newState = reconcileReserveSweeps(newState, pack);
+
+        const currentPolicy = newState.reserveSweepPolicies?.[syndicateId];
+        const cured = currentPolicy && !currentPolicy.active;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Reserve Sweep Contested] Agent ${agentId} voted to ${contest ? "CONTEST" : "ACCEPT"} active sweep in syndicate ${syndicateId}. Sweep active status: ${currentPolicy?.active}.`
+        );
+
+        if (cured) {
+          customEvents.push({
+            type: "narration",
+            text: `⚖️ Syndicate ${syndicateId} active reserve sweep has been successfully contested and cured!`,
+          } as any);
+        }
+
+        customEvents.push({
+          type: "reserve_sweep_contested" as any,
+          agentId,
+          syndicateId,
+          contest,
+          sweepActive: currentPolicy?.active ?? false,
         });
       }
     }

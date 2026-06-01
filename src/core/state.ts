@@ -1369,6 +1369,29 @@ export const FactionReserveBondSchema = z.object({
 });
 export type FactionReserveBond = z.infer<typeof FactionReserveBondSchema>;
 
+export const ReserveSweepPolicySchema = z.object({
+  syndicateId: z.string(),
+  sweepMargin: z.number().int().nonnegative(),
+  tariffLiquidationRate: z.number().nonnegative(),
+  active: z.boolean(),
+  accumulatedLiquidatedGold: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type ReserveSweepPolicy = z.infer<typeof ReserveSweepPolicySchema>;
+
+export const ReserveSweepVoteSchema = z.object({
+  sweepMargin: z.number().int().nonnegative(),
+  tariffLiquidationRate: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type ReserveSweepVote = z.infer<typeof ReserveSweepVoteSchema>;
+
+export const ReserveSweepContestVoteSchema = z.object({
+  contest: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ReserveSweepContestVote = z.infer<typeof ReserveSweepContestVoteSchema>;
+
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
   totalLocked: z.number().int().nonnegative(),
@@ -1755,6 +1778,9 @@ export const GameStateSchema = z.object({
   sovereignDebtRestructureProposals: z.record(z.string(), SovereignDebtRestructureProposalSchema).optional(),
   factionBailoutProposals: z.record(z.string(), FactionBailoutProposalSchema).optional(),
   factionReserveBonds: z.record(z.string(), FactionReserveBondSchema).optional(),
+  reserveSweepPolicies: z.record(z.string(), ReserveSweepPolicySchema).optional(),
+  reserveSweepVotes: z.record(z.string(), z.record(z.string(), ReserveSweepVoteSchema)).optional(),
+  reserveSweepContestVotes: z.record(z.string(), z.record(z.string(), ReserveSweepContestVoteSchema)).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
 });
@@ -1968,6 +1994,9 @@ export const createInitialState = (options: {
     sovereignDebtRestructureProposals: {},
     factionBailoutProposals: {},
     factionReserveBonds: {},
+    reserveSweepPolicies: {},
+    reserveSweepVotes: {},
+    reserveSweepContestVotes: {},
   };
 };
 
@@ -2771,6 +2800,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     sovereignDebtRestructureProposals: rest.sovereignDebtRestructureProposals ? JSON.parse(JSON.stringify(rest.sovereignDebtRestructureProposals)) : undefined,
     factionBailoutProposals: rest.factionBailoutProposals ? JSON.parse(JSON.stringify(rest.factionBailoutProposals)) : undefined,
     factionReserveBonds: rest.factionReserveBonds ? JSON.parse(JSON.stringify(rest.factionReserveBonds)) : undefined,
+    reserveSweepPolicies: rest.reserveSweepPolicies ? JSON.parse(JSON.stringify(rest.reserveSweepPolicies)) : undefined,
+    reserveSweepVotes: rest.reserveSweepVotes ? JSON.parse(JSON.stringify(rest.reserveSweepVotes)) : undefined,
+    reserveSweepContestVotes: rest.reserveSweepContestVotes ? JSON.parse(JSON.stringify(rest.reserveSweepContestVotes)) : undefined,
     maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
     slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
   };
@@ -6484,6 +6516,92 @@ export function reconcileFactionBailouts(state: GameState, pack: any): GameState
         newState.journal.push(
           `[Faction Bailout Resolution Failed] Faction ${factionId} has insufficient reserves (${factionReserve} < ${bond.remainingRepayment}) to resolve bailout proposal ${proposalId}.`
         );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileReserveSweeps(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    reserveSweepPolicies: state.reserveSweepPolicies ? { ...state.reserveSweepPolicies } : {},
+    reserveSweepVotes: state.reserveSweepVotes ? { ...state.reserveSweepVotes } : {},
+    reserveSweepContestVotes: state.reserveSweepContestVotes ? { ...state.reserveSweepContestVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  // Reconcile sweep policy parameters from votes
+  for (const [syndicateId, votes] of Object.entries(newState.reserveSweepVotes || {})) {
+    const syndicate = state.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const marginCounts: Record<number, number> = {};
+    const rateCounts: Record<number, number> = {};
+
+    for (const vote of Object.values(votes)) {
+      marginCounts[vote.sweepMargin] = (marginCounts[vote.sweepMargin] ?? 0) + 1;
+      rateCounts[vote.tariffLiquidationRate] = (rateCounts[vote.tariffLiquidationRate] ?? 0) + 1;
+    }
+
+    let maxMarginCount = 0;
+    let consensusMargin = newState.reserveSweepPolicies[syndicateId]?.sweepMargin ?? 500;
+    const uniqueMargins = Object.keys(marginCounts).map(Number).sort((a, b) => b - a);
+    for (const margin of uniqueMargins) {
+      const count = marginCounts[margin];
+      if (count > maxMarginCount) {
+        maxMarginCount = count;
+        consensusMargin = margin;
+      }
+    }
+
+    let maxRateCount = 0;
+    let consensusRate = newState.reserveSweepPolicies[syndicateId]?.tariffLiquidationRate ?? 0.15;
+    const uniqueRates = Object.keys(rateCounts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = rateCounts[rate];
+      if (count > maxRateCount) {
+        maxRateCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    const currentPolicy = newState.reserveSweepPolicies[syndicateId];
+    newState.reserveSweepPolicies[syndicateId] = {
+      syndicateId,
+      sweepMargin: consensusMargin,
+      tariffLiquidationRate: consensusRate,
+      active: currentPolicy?.active ?? false,
+      accumulatedLiquidatedGold: currentPolicy?.accumulatedLiquidatedGold ?? 0,
+      timestamp: Math.max(...Object.values(votes).map(v => v.timestamp), currentPolicy?.timestamp ?? 0),
+    };
+  }
+
+  // Reconcile contest votes
+  for (const [syndicateId, votes] of Object.entries(newState.reserveSweepContestVotes || {})) {
+    const syndicate = state.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.contest === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      const policy = newState.reserveSweepPolicies[syndicateId];
+      if (policy && policy.active) {
+        const secondaryReserve = state.secondaryReserves?.[syndicateId]?.reserveGold ?? 0;
+        const totalFunds = (syndicate.warChest ?? 0) + secondaryReserve;
+        if (totalFunds >= policy.sweepMargin) {
+          policy.active = false;
+          policy.timestamp = Math.max(...Object.values(votes).map(v => v.timestamp), policy.timestamp);
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Reserve Sweep Contested] Syndicate ${syndicateId} successfully contested and deactivated the active sweep (Total funds ${totalFunds} >= margin ${policy.sweepMargin}).`
+          );
+        }
       }
     }
   }
