@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #83 (Ready for Cycle #84)
-* **Build/Test Status**: 🟢 PASS (All 390 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #84 (Ready for Cycle #85)
+* **Build/Test Status**: 🟢 PASS (All 396 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -485,22 +485,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire audit mitigation to lower failed audit confiscation rates (`AF-82`).
 - [x] Write comprehensive Vitest integration tests asserting all counterfeit and audit mitigation features (`AF-82`).
 
-### Phase 76: Smuggler Syndicate Cartel Contraband Smuggling Ringleaders, Multi-Node Interceptor Deflections, and Custom Safehouse Defense Upgrades (Completed)
-- [x] Add `APPOINT_SMUGGLING_RINGLEADER`, `UPGRADE_SAFEHOUSE_DEFENSES`, and `DEPLOY_INTERCEPTOR_DECOY` decentralized actions (`AF-83`).
-- [x] Implement ringleader speed and coordination multipliers in convoy progression logic (`AF-83`).
-- [x] Wire custom defenses to reduce damage and sweep capture chance in black ops safehouses (`AF-83`).
-- [x] Write comprehensive Vitest integration tests asserting all ringleaders, decoys, and safehouse defense features (`AF-83`).
+### Phase 77: Smuggler Syndicate Cartel Underground Railroads, Contraband Tunnels, and Automated Tunnel Transport (Completed)
+- [x] Add `CONSTRUCT_CONTRABAND_TUNNEL`, `ESTABLISH_TUNNEL_TOLL`, and `DEPLOY_TUNNEL_DRONE` decentralized actions (`AF-84`).
+- [x] Implement contraband tunnel movement safe paths that completely bypass surface border checkpoints, faction taxes/tolls, extortion tolls, and enforcer sweeps (`AF-84`).
+- [x] Wire tunnel maintenance costs to deduct gold from the syndicate war chest and custom tolls to charge non-members (`AF-84`).
+- [x] Deploy automated Tunnel Transport Drones that generate passive contraband smuggling profits for the owning syndicate (`AF-84`).
+- [x] Write comprehensive Vitest integration tests for all railroad features (`AF-84`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-84`
-* **Objective**: Smuggler Syndicate Cartel Underground Railroads, Cross-Border Contraband Tunnels, and Automated Tunnel Transport Systems.
-* **Why this matters**: Introduce Underground Railroad networks for smuggling, allowing syndicates to construct cross-border Contraband Tunnels, pay faction tunnel tolls, and deploy automated Tunnel Transport Drones to completely bypass standard surface enforcer sweeps and surface border checkpoints.
+**Task ID**: `AF-85`
+* **Objective**: Smuggler Syndicate Cartel Contraband Safehouse Storage Upgrades, Dynamic Regional Supply Caps, and Cartel Storage Rent Arbitration.
+* **Why this matters**: Introduce advanced safehouse storage mechanics for smuggling syndicates, enabling them to expand storage capacity, adjust dynamic regional supply limits, levy storage rents on non-members, and execute consensual storage rent votes and consensus arbitrations.
 * **Planned Actions**:
-  1. Add `CONSTRUCT_CONTRABAND_TUNNEL`, `ESTABLISH_TUNNEL_TOLL`, and `DEPLOY_TUNNEL_DRONE` decentralized actions.
-  2. Implement tunnel-based safe movement paths that completely bypass surface border checkpoints and surface enforcer sweeps.
-  3. Wire tunnel maintenance costs and custom tunnel tolls to distribute gold shares to owning syndicate members.
+  1. Add `UPGRADE_SAFEHOUSE_STORAGE`, `ESTABLISH_STORAGE_RENT`, and `VOTE_STORAGE_RENT_RATE` decentralized actions.
+  2. Implement dynamic safehouse contraband storage capacity scaling based on upgrades and dynamic regional supply limits.
+  3. Wire storage rent charges and voting arbitrations to distribute rent profits to the syndicate and penalize over-limit storage.
   4. Write comprehensive Vitest integration tests.
 
 ---

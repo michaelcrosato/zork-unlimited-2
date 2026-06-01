@@ -539,11 +539,15 @@ export function step(
         (hp) => (hp.fromRoomId === currentRoom.id && hp.toRoomId === destRoomId) ||
                 (hp.fromRoomId === destRoomId && hp.toRoomId === currentRoom.id)
       );
-      const factionId = isHiddenPassageUsed ? undefined : state.territoryControl?.[destRoomId];
+      const isTunnelUsed = Object.values(state.contrabandTunnels || {}).some(
+        (tunnel) => (tunnel.fromRoomId === currentRoom.id && tunnel.toRoomId === destRoomId) ||
+                    (tunnel.fromRoomId === destRoomId && tunnel.toRoomId === currentRoom.id)
+      );
+      const factionId = (isHiddenPassageUsed || isTunnelUsed) ? undefined : state.territoryControl?.[destRoomId];
 
       // Check if player is carrying contraband
       const contrabandItems = getContrabandInInventory(state, pack);
-      const carriesContraband = isHiddenPassageUsed ? false : (contrabandItems.length > 0);
+      const carriesContraband = (isHiddenPassageUsed || isTunnelUsed) ? false : (contrabandItems.length > 0);
 
       // Pre-calculate Tax
       let calculatedTax = 0;
@@ -634,7 +638,7 @@ export function step(
 
       // Pre-calculate Syndicate Extortion Toll (AF-45)
       let calculatedExtortionToll = 0;
-      const controllingSyndicateId = isHiddenPassageUsed ? undefined : state.syndicateTurf?.[destRoomId];
+      const controllingSyndicateId = (isHiddenPassageUsed || isTunnelUsed) ? undefined : state.syndicateTurf?.[destRoomId];
       let syndicateName = "";
       if (controllingSyndicateId) {
         const syndicate = state.syndicates?.[controllingSyndicateId];
@@ -666,13 +670,58 @@ export function step(
         }
       }
 
+      // Pre-calculate and pay Contraband Tunnel Toll (AF-84)
+      if (isTunnelUsed) {
+        const activeTunnel = Object.values(state.contrabandTunnels || {}).find(
+          (tunnel) => (tunnel.fromRoomId === currentRoom.id && tunnel.toRoomId === destRoomId) ||
+                      (tunnel.fromRoomId === destRoomId && tunnel.toRoomId === currentRoom.id)
+        );
+        if (activeTunnel) {
+          const isTunnelSyndicateMember = state.syndicates?.[activeTunnel.syndicateId]?.members.includes(agentId);
+          if (!isTunnelSyndicateMember) {
+            const tunnelTollPolicy = state.tunnelTolls?.[activeTunnel.id];
+            const tunnelToll = tunnelTollPolicy ? tunnelTollPolicy.tollAmount : 0;
+            if (tunnelToll > 0) {
+              const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+              const currentGold = newState.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+              if (currentGold < tunnelToll) {
+                return {
+                  state,
+                  events: [{ type: "rejected", reason: `You cannot traverse tunnel ${activeTunnel.id} without paying a toll of ${tunnelToll} gold (you have ${currentGold}).` }],
+                  ok: false,
+                  rejectionReason: `You cannot afford the tunnel toll of ${tunnelToll} gold to cross this tunnel.`,
+                };
+              }
+              // Deduct gold
+              newState.vars[goldKey] = currentGold - tunnelToll;
+
+              // Distribute among syndicate members
+              const syndicate = state.syndicates?.[activeTunnel.syndicateId];
+              const members = syndicate?.members ?? [];
+              const memberShare = members.length > 0 ? Math.floor(tunnelToll / members.length) : 0;
+              if (memberShare > 0) {
+                for (const member of members) {
+                  const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                  newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + memberShare;
+                }
+              }
+              newState.journal.push(`[Underground Railroad] Agent ${agentId} paid tunnel toll of ${tunnelToll} gold for tunnel ${activeTunnel.id} owned by syndicate ${activeTunnel.syndicateId}. Distributed ${memberShare} gold to each member.`);
+              events.push({
+                type: "narration",
+                text: `Paid ${tunnelToll} gold in tunnel toll to traverse safe passage (owned by syndicate ${syndicate?.name || activeTunnel.syndicateId}).`,
+              });
+            }
+          }
+        }
+      }
+
       // Pre-calculate Trade Route locking and tolls
       let maxToll = 0;
       let lockingRouteId: string | null = null;
       let tollingRouteId: string | null = null;
       let hostileRouteFactionId: string | null = null;
 
-      if (!isHiddenPassageUsed && state.tradeRoutes) {
+      if (!isHiddenPassageUsed && !isTunnelUsed && state.tradeRoutes) {
         for (const [routeId, route] of Object.entries(state.tradeRoutes)) {
           if (route.rooms.includes(destRoomId)) {
             const rFactionId = route.factionId;
@@ -1073,6 +1122,12 @@ export function step(
         events.push({
           type: "narration",
           text: `🤫 You traversed the hidden passage undetected, completely bypassing all border checks, checkpoints, taxes, and tolls!`,
+        });
+      }
+      if (isTunnelUsed) {
+        events.push({
+          type: "narration",
+          text: `🚇 You traversed the contraband tunnel safely, completely bypassing all surface border checks, checkpoints, taxes, and tolls!`,
         });
       }
       if (newRoom) {

@@ -98,7 +98,10 @@ export type Action =
   | { type: "ESTABLISH_AUDIT_MITIGATION"; roomId: string; syndicateId: string; cost?: number; timestamp: number }
   | { type: "APPOINT_SMUGGLING_RINGLEADER"; syndicateId: string; ringleaderId: string; timestamp: number }
   | { type: "UPGRADE_SAFEHOUSE_DEFENSES"; safehouseId: string; upgradeCost?: number; timestamp: number }
-  | { type: "DEPLOY_INTERCEPTOR_DECOY"; decoyId: string; syndicateId: string; routeId: string; cost?: number; timestamp: number };
+  | { type: "DEPLOY_INTERCEPTOR_DECOY"; decoyId: string; syndicateId: string; routeId: string; cost?: number; timestamp: number }
+  | { type: "CONSTRUCT_CONTRABAND_TUNNEL"; tunnelId: string; syndicateId: string; fromRoomId: string; toRoomId: string; cost?: number; timestamp: number }
+  | { type: "ESTABLISH_TUNNEL_TOLL"; tunnelId: string; syndicateId: string; tollAmount: number; timestamp: number }
+  | { type: "DEPLOY_TUNNEL_DRONE"; droneId: string; syndicateId: string; tunnelId: string; cargoCapacity: number; cost?: number; timestamp: number };
 
 
 

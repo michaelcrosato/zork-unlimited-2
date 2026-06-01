@@ -12044,6 +12044,389 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized CONSTRUCT_CONTRABAND_TUNNEL action (AF-84)
+  if ((action as any).type === "CONSTRUCT_CONTRABAND_TUNNEL") {
+    const { tunnelId, syndicateId, fromRoomId, toRoomId, timestamp } = action as any;
+    const defaultCost = 200;
+    const cost = (action as any).cost ?? (action as any).goldCost ?? defaultCost;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!tunnelId) {
+      rejectionReason = `Tunnel ID is required to construct a contraband tunnel.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to construct a contraband tunnel.`;
+    } else if (!fromRoomId) {
+      rejectionReason = `From Room ID is required to construct a contraband tunnel.`;
+    } else if (!toRoomId) {
+      rejectionReason = `To Room ID is required to construct a contraband tunnel.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Tunnel construction cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!findRoom(state, pack, fromRoomId)) {
+      rejectionReason = `Room ${fromRoomId} does not exist.`;
+    } else if (!findRoom(state, pack, toRoomId)) {
+      rejectionReason = `Room ${toRoomId} does not exist.`;
+    } else if (state.contrabandTunnels?.[tunnelId]) {
+      rejectionReason = `Contraband tunnel ${tunnelId} already exists.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to construct contraband tunnel costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Add contraband tunnel
+      newState.contrabandTunnels = {
+        ...(state.contrabandTunnels || {}),
+        [tunnelId]: {
+          id: tunnelId,
+          syndicateId,
+          fromRoomId,
+          toRoomId,
+          cost,
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Underground Railroad] Constructed contraband tunnel ${tunnelId} for syndicate ${syndicateId} from ${fromRoomId} to ${toRoomId} costing ${cost} gold.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `🚇 Contraband Tunnel ${tunnelId} constructed from ${fromRoomId} to ${toRoomId}! Smuggling activities can now bypass surface enforcer sweeps and surface border checkpoints.`,
+      } as any);
+
+      customEvents.push({
+        type: "contraband_tunnel_constructed" as any,
+        agentId,
+        tunnelId,
+        syndicateId,
+        fromRoomId,
+        toRoomId,
+        cost,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ESTABLISH_TUNNEL_TOLL action (AF-84)
+  if ((action as any).type === "ESTABLISH_TUNNEL_TOLL") {
+    const { tunnelId, syndicateId, tollAmount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const tunnel = state.contrabandTunnels?.[tunnelId];
+
+    if (!tunnelId) {
+      rejectionReason = `Tunnel ID is required to establish a tunnel toll.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to establish a tunnel toll.`;
+    } else if (tollAmount < 0 || !Number.isInteger(tollAmount)) {
+      rejectionReason = `Tunnel toll amount ${tollAmount} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!tunnel) {
+      rejectionReason = `Contraband tunnel ${tunnelId} does not exist.`;
+    } else if (tunnel.syndicateId !== syndicateId) {
+      rejectionReason = `Contraband tunnel ${tunnelId} is not owned by syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate && tunnel) {
+      newState.tunnelTolls = {
+        ...(state.tunnelTolls || {}),
+        [tunnelId]: {
+          tunnelId,
+          syndicateId,
+          tollAmount,
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Underground Railroad] Established custom tunnel toll of ${tollAmount} gold for contraband tunnel ${tunnelId} owned by syndicate ${syndicateId}.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `🚇 Custom tunnel toll established for tunnel ${tunnelId}! Non-members will be charged ${tollAmount} gold to traverse this safe passage.`,
+      } as any);
+
+      customEvents.push({
+        type: "tunnel_toll_established" as any,
+        agentId,
+        tunnelId,
+        syndicateId,
+        tollAmount,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEPLOY_TUNNEL_DRONE action (AF-84)
+  if ((action as any).type === "DEPLOY_TUNNEL_DRONE") {
+    const { droneId, syndicateId, tunnelId, cargoCapacity, timestamp } = action as any;
+    const defaultCost = 150;
+    const cost = (action as any).cost ?? (action as any).goldCost ?? defaultCost;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const tunnel = state.contrabandTunnels?.[tunnelId];
+
+    if (!droneId) {
+      rejectionReason = `Drone ID is required to deploy a tunnel drone.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to deploy a tunnel drone.`;
+    } else if (!tunnelId) {
+      rejectionReason = `Tunnel ID is required to deploy a tunnel drone.`;
+    } else if (cargoCapacity < 0 || !Number.isInteger(cargoCapacity)) {
+      rejectionReason = `Drone cargo capacity ${cargoCapacity} must be a non-negative integer.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Drone deployment cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!tunnel) {
+      rejectionReason = `Contraband tunnel ${tunnelId} does not exist.`;
+    } else if (tunnel.syndicateId !== syndicateId) {
+      rejectionReason = `Contraband tunnel ${tunnelId} is not owned by syndicate ${syndicateId}.`;
+    } else if (state.tunnelDrones?.[droneId]) {
+      rejectionReason = `Tunnel drone ${droneId} already exists.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to deploy tunnel drone costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate && tunnel) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Add tunnel drone
+      newState.tunnelDrones = {
+        ...(state.tunnelDrones || {}),
+        [droneId]: {
+          id: droneId,
+          syndicateId,
+          tunnelId,
+          cargoCapacity,
+          active: true,
+          cost,
+          timestamp,
+        },
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Underground Railroad] Deployed automated Tunnel Transport Drone ${droneId} in tunnel ${tunnelId} costing ${cost} gold.`);
+
+      customEvents.push({
+        type: "narration",
+        text: `🛸 Tunnel Transport Drone ${droneId} deployed in tunnel ${tunnelId}! It will automatically transport contraband safely for passive profit.`,
+      } as any);
+
+      customEvents.push({
+        type: "tunnel_drone_deployed" as any,
+        agentId,
+        droneId,
+        syndicateId,
+        tunnelId,
+        cargoCapacity,
+        cost,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

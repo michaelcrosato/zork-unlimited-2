@@ -1809,6 +1809,51 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // 8. Contraband Tunnel Maintenance Ticking (AF-84)
+  if (newState.contrabandTunnels && newState.syndicates) {
+    const syndicates = { ...newState.syndicates } as Record<string, any>;
+    for (const [tunnelId, tunnel] of Object.entries(newState.contrabandTunnels)) {
+      const syndicate = syndicates[tunnel.syndicateId];
+      if (syndicate) {
+        const maintenanceCost = 15; // 15 gold per step maintenance cost
+        const currentWarChest = syndicate.warChest ?? 0;
+        const newWarChest = Math.max(0, currentWarChest - maintenanceCost);
+        syndicates[tunnel.syndicateId] = {
+          ...syndicate,
+          warChest: newWarChest,
+        };
+        newState.journal.push(`[Underground Railroad] Contraband tunnel ${tunnelId} incurred maintenance cost of ${maintenanceCost} gold deducted from syndicate ${tunnel.syndicateId} war chest (New war chest balance: ${newWarChest}).`);
+      }
+    }
+    newState.syndicates = syndicates;
+  }
+
+  // 9. Automated Tunnel Transport Drone Contraband Profits Ticking (AF-84)
+  if (newState.tunnelDrones && newState.contrabandTunnels && newState.syndicates) {
+    const syndicates = newState.syndicates as Record<string, any>;
+    for (const [droneId, drone] of Object.entries(newState.tunnelDrones)) {
+      if (drone.active) {
+        const tunnel = newState.contrabandTunnels[drone.tunnelId];
+        if (tunnel) {
+          const syndicate = syndicates[drone.syndicateId];
+          if (syndicate) {
+            const profit = 40; // 40 gold passive profit
+            const members = syndicate.members ?? [];
+            const share = members.length > 0 ? Math.floor(profit / members.length) : 0;
+            if (share > 0) {
+              if (!newState.vars) newState.vars = {};
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+              }
+              newState.journal.push(`[Underground Railroad] Tunnel transport drone ${droneId} in tunnel ${drone.tunnelId} automated contraband transport safely, bypassing surface sweeps. Distributed profit of ${profit} gold (${share} gold per member) to syndicate ${drone.syndicateId}.`);
+            }
+          }
+        }
+      }
+    }
+  }
+
   return newState;
 }
 

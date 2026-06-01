@@ -532,6 +532,36 @@ export const HiddenPassageSchema = z.object({
 });
 export type HiddenPassage = z.infer<typeof HiddenPassageSchema>;
 
+export const ContrabandTunnelSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  fromRoomId: z.string(),
+  toRoomId: z.string(),
+  cost: z.number().int().nonnegative().optional(),
+  timestamp: z.number().int(),
+});
+export type ContrabandTunnel = z.infer<typeof ContrabandTunnelSchema>;
+
+export const TunnelTollPolicySchema = z.object({
+  tunnelId: z.string(),
+  syndicateId: z.string(),
+  tollAmount: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type TunnelTollPolicy = z.infer<typeof TunnelTollPolicySchema>;
+
+export const TunnelDroneSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  tunnelId: z.string(),
+  cargoCapacity: z.number().int().nonnegative(),
+  active: z.boolean(),
+  cost: z.number().int().nonnegative().optional(),
+  timestamp: z.number().int(),
+});
+export type TunnelDrone = z.infer<typeof TunnelDroneSchema>;
+
+
 export const FactionInfiltrationSchema = z.object({
   id: z.string(),
   syndicateId: z.string(),
@@ -845,6 +875,9 @@ export const GameStateSchema = z.object({
   tariffExemptionVotes: z.record(z.string(), z.record(z.string(), z.record(z.string(), TariffExemptionVoteSchema))).optional(),
   tariffExemptionPolicies: z.record(z.string(), z.record(z.string(), z.boolean())).optional(),
   hiddenPassages: z.record(z.string(), HiddenPassageSchema).optional(),
+  contrabandTunnels: z.record(z.string(), ContrabandTunnelSchema).optional(),
+  tunnelTolls: z.record(z.string(), TunnelTollPolicySchema).optional(),
+  tunnelDrones: z.record(z.string(), TunnelDroneSchema).optional(),
   factionInfiltrations: z.record(z.string(), FactionInfiltrationSchema).optional(),
   syndicateBanks: z.record(z.string(), SyndicateBankSchema).optional(),
   tradeExchangeRates: z.record(z.string(), TradeExchangeRateSchema).optional(),
@@ -989,6 +1022,9 @@ export const createInitialState = (options: {
     tariffExemptionPolicies: {},
     tradeExchangeRates: {},
     auditMitigations: {},
+    contrabandTunnels: {},
+    tunnelTolls: {},
+    tunnelDrones: {},
   };
 };
 
@@ -1689,6 +1725,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     tariffExemptionPolicies: rest.tariffExemptionPolicies ? JSON.parse(JSON.stringify(rest.tariffExemptionPolicies)) : undefined,
     tradeExchangeRates: rest.tradeExchangeRates ? JSON.parse(JSON.stringify(rest.tradeExchangeRates)) : undefined,
     auditMitigations: rest.auditMitigations ? JSON.parse(JSON.stringify(rest.auditMitigations)) : undefined,
+    contrabandTunnels: rest.contrabandTunnels ? JSON.parse(JSON.stringify(rest.contrabandTunnels)) : undefined,
+    tunnelTolls: rest.tunnelTolls ? JSON.parse(JSON.stringify(rest.tunnelTolls)) : undefined,
+    tunnelDrones: rest.tunnelDrones ? JSON.parse(JSON.stringify(rest.tunnelDrones)) : undefined,
   };
   return clone;
 }

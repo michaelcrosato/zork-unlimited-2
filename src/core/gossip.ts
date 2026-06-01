@@ -1187,12 +1187,48 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge contrabandTunnels using LWW (Last-Write-Wins)
+  const contrabandTunnels = { ...stateA.contrabandTunnels };
+  if (stateB.contrabandTunnels) {
+    for (const [id, entryB] of Object.entries(stateB.contrabandTunnels)) {
+      const entryA = contrabandTunnels[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        contrabandTunnels[id] = entryB;
+      }
+    }
+  }
+
+  // Merge tunnelTolls using LWW (Last-Write-Wins)
+  const tunnelTolls = { ...stateA.tunnelTolls };
+  if (stateB.tunnelTolls) {
+    for (const [id, entryB] of Object.entries(stateB.tunnelTolls)) {
+      const entryA = tunnelTolls[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        tunnelTolls[id] = entryB;
+      }
+    }
+  }
+
+  // Merge tunnelDrones using LWW (Last-Write-Wins)
+  const tunnelDrones = { ...stateA.tunnelDrones };
+  if (stateB.tunnelDrones) {
+    for (const [id, entryB] of Object.entries(stateB.tunnelDrones)) {
+      const entryA = tunnelDrones[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        tunnelDrones[id] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
     journal,
     blackOpsSafehouses,
     interceptorDecoys,
+    contrabandTunnels,
+    tunnelTolls,
+    tunnelDrones,
     lootClaims,
     territoryClaims,
     territoryAssists,
