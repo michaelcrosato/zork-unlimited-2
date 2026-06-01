@@ -337,4 +337,106 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     expect(finalState.cdsCdoYieldHedgingOptionListings?.opt_1.status).toBe("completed");
     expect(finalState.cdsCdoYieldHedgingOptionBids?.bid_opt_1.status).toBe("accepted");
   });
+
+  it("should smoothly decay the spread penalty multiplier over 5 steps on default resolution", () => {
+    let state = setupState();
+
+    // 1. Directly configure pool properties
+    const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
+    pool.yieldHedgingOptionSpreadPenaltyMultiplier = 3.0;
+    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.20;
+    pool.yieldHedgingOptionMinSpread = 10;
+    pool.yieldHedgingOptionMaxSpread = 100;
+
+    // 2. Set default alert resolved at step 10
+    state.sovereignDebtDefaultAlerts = {
+      alert_1: {
+        proposalId: "alert_1",
+        syndicateId: "alpha",
+        targetSyndicateId: "beta",
+        sovereignDebtAmount: 5000,
+        status: "resolved",
+        resolved: true,
+        resolvedAtStep: 10,
+        proposerId: "bob",
+        timestamp: 1000,
+      },
+    };
+
+    // 3. Set up active option contract owned by alpha
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        premiumPaid: 200,
+        coverageAmount: 2000,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: 100,
+        timestamp: 1000,
+      },
+    };
+
+    state.cdsCdoYieldHedgingOptionListings = {
+      opt_1: {
+        listingId: "opt_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+        votes: {},
+      },
+    };
+
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_opt_1: {
+        bidId: "bid_opt_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 1150, // raw spread is 50
+        status: "active",
+        timestamp: 1000,
+        votes: {},
+      },
+    };
+
+    // Step 10: elapsed = 0 -> multiplier should be 3.0, widened spread = 50 * 3.0 = 150
+    state.step = 10;
+    let stateAt10 = tickEconomy(state, mockPack);
+    let spreadAt10 = stateAt10.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadAt10).toBeCloseTo(150);
+
+    // Step 11: elapsed = 1 -> multiplier should be 2.6, widened spread = 50 * 2.6 = 130
+    state.step = 11;
+    let stateAt11 = tickEconomy(state, mockPack);
+    let spreadAt11 = stateAt11.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadAt11).toBeCloseTo(130);
+
+    // Step 12: elapsed = 2 -> multiplier should be 2.2, widened spread = 50 * 2.2 = 110
+    state.step = 12;
+    let stateAt12 = tickEconomy(state, mockPack);
+    let spreadAt12 = stateAt12.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadAt12).toBeCloseTo(110);
+
+    // Step 13: elapsed = 3 -> multiplier should be 1.8, widened spread = 50 * 1.8 = 90
+    state.step = 13;
+    let stateAt13 = tickEconomy(state, mockPack);
+    let spreadAt13 = stateAt13.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadAt13).toBeCloseTo(90);
+
+    // Step 14: elapsed = 4 -> multiplier should be 1.4, widened spread = 50 * 1.4 = 70
+    state.step = 14;
+    let stateAt14 = tickEconomy(state, mockPack);
+    let spreadAt14 = stateAt14.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadAt14).toBeCloseTo(70);
+
+    // Step 15: elapsed = 5 -> multiplier should be 1.0 (no penalty), widened spread = 50 * 1.0 = 50
+    state.step = 15;
+    let stateAt15 = tickEconomy(state, mockPack);
+    let spreadAt15 = stateAt15.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
+    expect(spreadAt15).toBeCloseTo(50);
+  });
 });
+

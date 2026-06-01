@@ -7794,14 +7794,41 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         (a: any) => targetSyndicates.includes(a.targetSyndicateId) && a.status === "authorized" && !a.resolved
       );
 
-      let spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
+      // Find recently resolved alerts for target syndicates to calculate decay
+      const resolvedAlerts = Object.values(newState.sovereignDebtDefaultAlerts || {}).filter(
+        (a: any) => targetSyndicates.includes(a.targetSyndicateId) && (a.status === "resolved" || a.resolved === true)
+      );
+      let maxResolvedAtStep = -1;
+      for (const a of resolvedAlerts) {
+        if (a.resolvedAtStep !== undefined && a.resolvedAtStep > maxResolvedAtStep) {
+          maxResolvedAtStep = a.resolvedAtStep;
+        }
+      }
+
+      let effectiveMultiplier = 1.0;
       if (alertActive && pool.dynamicLiquidityFloor !== undefined) {
         const floor = pool.dynamicLiquidityFloor;
         const vaultBalance = pool.fractionalizedVault?.balance ?? 0;
         const thresholdPercent = pool.yieldHedgingOptionSpreadPenaltyThresholdPercent ?? 0.20;
         if (vaultBalance <= floor * (1 + thresholdPercent)) {
-          spread = spread * (pool.yieldHedgingOptionSpreadPenaltyMultiplier ?? 1.0);
+          effectiveMultiplier = pool.yieldHedgingOptionSpreadPenaltyMultiplier ?? 1.0;
         }
+      } else if (maxResolvedAtStep !== -1 && pool.dynamicLiquidityFloor !== undefined) {
+        const elapsed = newState.step - maxResolvedAtStep;
+        if (elapsed >= 0 && elapsed < 5) {
+          const floor = pool.dynamicLiquidityFloor;
+          const vaultBalance = pool.fractionalizedVault?.balance ?? 0;
+          const thresholdPercent = pool.yieldHedgingOptionSpreadPenaltyThresholdPercent ?? 0.20;
+          if (vaultBalance <= floor * (1 + thresholdPercent)) {
+            const baseMultiplier = pool.yieldHedgingOptionSpreadPenaltyMultiplier ?? 1.0;
+            effectiveMultiplier = 1.0 + (baseMultiplier - 1.0) * (1 - elapsed / 5);
+          }
+        }
+      }
+
+      let spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
+      if (effectiveMultiplier > 1.0) {
+        spread = spread * effectiveMultiplier;
       }
 
       newState.cdsCdoYieldHedgingOptionMarketSpreads![optionId] = {
@@ -7847,13 +7874,8 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
 
         if (lowestAsk > 0 && highestBid > 0) {
           let spreadVal = lowestAsk - highestBid;
-          if (alertActive && pool.dynamicLiquidityFloor !== undefined) {
-            const floor = pool.dynamicLiquidityFloor;
-            const vaultBalance = pool.fractionalizedVault?.balance ?? 0;
-            const thresholdPercent = pool.yieldHedgingOptionSpreadPenaltyThresholdPercent ?? 0.20;
-            if (vaultBalance <= floor * (1 + thresholdPercent)) {
-              spreadVal = spreadVal * (pool.yieldHedgingOptionSpreadPenaltyMultiplier ?? 1.0);
-            }
+          if (effectiveMultiplier > 1.0) {
+            spreadVal = spreadVal * effectiveMultiplier;
           }
           if (spreadVal > 0) {
             if (spreadVal < minSpread || spreadVal > maxSpread) {

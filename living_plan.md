@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #244 (Ready for Cycle #245)
-* **Build/Test Status**: 🟢 PASS (All 838 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #245 (Ready for Cycle #246)
+* **Build/Test Status**: 🟢 PASS (All 839 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1589,16 +1589,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement the dynamic spread penalty policy proposal and vote action handlers in sync engine (`AF-247`).
 - [x] Write comprehensive unit and integration tests asserting proposal, vote, and dynamic spread adjustments under default stress (`AF-247`).
 
+### Phase 226: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Spread Penalty Auto-Decay (Completed)
+- [x] Add tracking of default resolution step inside GameState (`AF-248`).
+- [x] Implement linear or step-based auto-decay of the spread penalty multiplier over 5 steps in `tickEconomy` (`AF-248`).
+- [x] Write comprehensive unit and integration tests verifying the smooth recovery of pricing spreads (`AF-248`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-248`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Spread Penalty dynamic auto-decay over steps on default resolution.
-* **Why this matters**: Support smooth pricing transitions back to normal market conditions when defaults are resolved by gradually decaying the spread penalty multiplier back to 1.0.
+**Task ID**: `AF-249`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Spread Penalty Volatility Spike Premium.
+* **Why this matters**: Introduce territory-specific enforcer heat scaling to the spread penalty multiplier, making pricing more sensitive to local conflict/regulatory pressure.
 * **Planned Actions**:
-  1. Add tracking of default resolution step inside GameState.
-  2. Implement linear or step-based auto-decay of the spread penalty multiplier over 5 steps in `tickEconomy`.
-  3. Write comprehensive unit and integration tests verifying the smooth recovery of pricing spreads.
+  1. Define territory enforcer heat volatility scales in the syndicate schemas.
+  2. Scale the active spread penalty multiplier by local territory enforcer heat or regional volatility index in `tickEconomy`.
+  3. Write comprehensive unit and integration tests asserting the strategic pricing volatility spikes.
 
 ---
 

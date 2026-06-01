@@ -2932,6 +2932,7 @@ export const SovereignDebtDefaultAlertSchema = z.object({
   sovereignDebtAmount: z.number(),
   status: z.enum(["proposed", "authorized", "disputed", "resolved"]).optional(),
   resolved: z.boolean().optional(),
+  resolvedAtStep: z.number().int().optional(),
   proposerId: z.string(),
   timestamp: z.number().int(),
   votes: z.record(z.string(), z.object({
@@ -17932,6 +17933,7 @@ export function reconcileSovereignDebtResolveAlerts(state: GameState, pack: any)
           ...newState.sovereignDebtDefaultAlerts[alertId],
           resolved: true,
           status: "resolved",
+          resolvedAtStep: newState.step,
         };
       }
 
