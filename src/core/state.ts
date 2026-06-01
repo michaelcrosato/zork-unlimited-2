@@ -2441,6 +2441,27 @@ export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellati
 });
 export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVoteSchema>;
 
+export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  targetProposalId: z.string(),
+  newMinLiquidityThreshold: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposal = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalSchema>;
+
+export const SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteSchema>;
+
+
 export const SWFReinsuranceOptionPenaltyRefundVoteSchema = z.object({
   proposalId: z.string(),
   vote: z.boolean(),
@@ -3384,6 +3405,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposalSchema).optional(),
   swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVoteSchema)).optional(),
+  swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalSchema).optional(),
+  swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteSchema)).optional(),
 
 
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
@@ -3759,6 +3782,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals: {},
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes: {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals: {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: {},
 
 
     swfReinsuranceOptionPremiumContributions: {},
@@ -4840,6 +4865,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals)) : undefined,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes)) : undefined,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals)) : undefined,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes)) : undefined,
 
 
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
@@ -14856,5 +14883,74 @@ export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensi
 
   return newState;
 }
+
+export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals } : {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals } : {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes: state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+
+    let newlyAuthorized = false;
+    if (authorizeVoters.size > totalMembers / 2) {
+      if (status !== "authorized") {
+        newlyAuthorized = true;
+      }
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+
+    if (status === "authorized") {
+      const targetGraceLiquidityProposal = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals[proposal.targetProposalId];
+      if (targetGraceLiquidityProposal && targetGraceLiquidityProposal.minLiquidityThreshold !== proposal.newMinLiquidityThreshold) {
+        newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals[proposal.targetProposalId] = {
+          ...targetGraceLiquidityProposal,
+          minLiquidityThreshold: proposal.newMinLiquidityThreshold,
+          timestamp: Math.max(targetGraceLiquidityProposal.timestamp, newState.step),
+        };
+      }
+    }
+
+    newState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId] = {
+      ...proposal,
+      status,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
+  }
+
+  return newState;
+}
+
 
 
