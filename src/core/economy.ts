@@ -5088,6 +5088,72 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               }
             }
           }
+
+          // Dynamic Cross-Hedging (AF-161)
+          const crossPolicyKey = `${syndicateId}_${opt.swfYieldCdoId}_${opt.trancheId}`;
+          const crossPolicy = newState.swfReinsuranceOptionCrossHedgingPolicies?.[crossPolicyKey];
+          if (crossPolicy) {
+            const spotRate = getCDOTrancheReinsurancePremiumRate(newState, opt.swfYieldCdoId, opt.trancheId);
+            let delta = 0.5;
+            if (opt.optionType === "call") {
+              delta = 1.0 / (1.0 + Math.exp(-(spotRate - opt.strikePremiumRate) * 50.0));
+            } else {
+              delta = 1.0 / (1.0 + Math.exp(-(opt.strikePremiumRate - spotRate) * 50.0));
+            }
+
+            // Compute target holding for correlated asset
+            const targetHolding = Math.floor(
+              delta * opt.size * crossPolicy.correlationCoefficient * crossPolicy.hedgeWeight
+            );
+            
+            if (newState.swfYieldCDOs && newState.swfYieldCDOs[crossPolicy.correlatedAssetId]) {
+              const corrCdo = newState.swfYieldCDOs[crossPolicy.correlatedAssetId];
+              const corrTranche = corrCdo.tranches[crossPolicy.correlatedTrancheId];
+              
+              if (corrTranche) {
+                const currentHolding = corrTranche.ownership[syndicateId] ?? 0;
+                const difference = targetHolding - currentHolding;
+                
+                const corrSpotRate = getCDOTrancheReinsurancePremiumRate(
+                  newState,
+                  crossPolicy.correlatedAssetId,
+                  crossPolicy.correlatedTrancheId
+                );
+                const sharePrice = Math.max(10, Math.floor(100.0 * (1.0 + corrSpotRate)));
+                
+                if (difference > 0) {
+                  // Buy correlated asset deficit
+                  const cost = difference * sharePrice;
+                  const syndicate = newState.syndicates?.[syndicateId];
+                  if (syndicate && (syndicate.warChest ?? 0) >= cost) {
+                    syndicate.warChest = (syndicate.warChest ?? 0) - cost;
+                    corrTranche.ownership[syndicateId] = currentHolding + difference;
+                    
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[Cross Hedging Rebalancing] Syndicate ${syndicateId} purchased ${difference} correlated CDO ${crossPolicy.correlatedAssetId} tranche ${crossPolicy.correlatedTrancheId} yield tokens at ${sharePrice} gold/share to cross-hedge option ${optId} on CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId} (Target Correlated: ${targetHolding} shares).`
+                    );
+                  }
+                } else if (difference < 0) {
+                  // Sell correlated asset surplus
+                  const sharesToSell = Math.min(-difference, currentHolding);
+                  if (sharesToSell > 0) {
+                    const revenue = sharesToSell * sharePrice;
+                    const syndicate = newState.syndicates?.[syndicateId];
+                    if (syndicate) {
+                      syndicate.warChest = (syndicate.warChest ?? 0) + revenue;
+                      corrTranche.ownership[syndicateId] = currentHolding - sharesToSell;
+                      
+                      if (!newState.journal) newState.journal = [];
+                      newState.journal.push(
+                        `[Cross Hedging Rebalancing] Syndicate ${syndicateId} sold ${sharesToSell} correlated CDO ${crossPolicy.correlatedAssetId} tranche ${crossPolicy.correlatedTrancheId} yield tokens at ${sharePrice} gold/share to cross-hedge option ${optId} on CDO ${opt.swfYieldCdoId} tranche ${opt.trancheId}.`
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
 
@@ -6278,6 +6344,178 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
 
         if (buyOrder.status === "Filled") {
           break;
+        }
+      }
+    }
+  }
+
+  // AF-161: Automated Liquidity Matching for unmatched limit orders using cross-hedging syndicate resources
+  if (newState.swfReinsuranceOptionCrossHedgingPolicies) {
+    const remainingOpenOrders = Object.values(newState.swfReinsuranceOptionLimitOrders).filter(
+      (o) => o.status === "Open" && o.size > 0
+    );
+
+    for (const openOrder of remainingOpenOrders) {
+      if (openOrder.status !== "Open" || openOrder.size <= 0) continue;
+
+      // Find any cross-hedging policies that apply to this order's underlying asset (CDO + Tranche)
+      for (const [policyKey, crossPolicy] of Object.entries(newState.swfReinsuranceOptionCrossHedgingPolicies)) {
+        if (
+          crossPolicy.swfYieldCdoId === openOrder.swfYieldCdoId &&
+          crossPolicy.trancheId === openOrder.trancheId
+        ) {
+          const providerSyndicateId = crossPolicy.syndicateId;
+          const provider = newState.syndicates?.[providerSyndicateId];
+          if (!provider) continue;
+
+          // Prevent a syndicate from matching its own limit order
+          if (openOrder.syndicateId === providerSyndicateId) continue;
+
+          // We match this order!
+          const matchedSize = openOrder.size;
+          const totalOrderPrice = openOrder.limitPrice;
+
+          if (openOrder.orderType === "buy") {
+            // Syndicate matches BUY order by WRITING/SELLING the option
+            if ((provider.warChest ?? 0) + totalOrderPrice >= 0) {
+              // Write/create new option contract
+              if (!newState.swfReinsuranceOptionsContracts) {
+                newState.swfReinsuranceOptionsContracts = {};
+              }
+              const optionId = `opt_limit_${Object.keys(newState.swfReinsuranceOptionsContracts).length + 1}`;
+              newState.swfReinsuranceOptionsContracts[optionId] = {
+                id: optionId,
+                syndicateId: openOrder.syndicateId, // buyer/holder
+                writerSyndicateId: providerSyndicateId, // provider/writer
+                swfYieldCdoId: openOrder.swfYieldCdoId,
+                trancheId: openOrder.trancheId,
+                optionType: openOrder.optionType,
+                strikePremiumRate: openOrder.strikePremiumRate,
+                size: matchedSize,
+                timestamp: newState.step,
+                active: true,
+              };
+
+              // Transfer gold
+              const buyer = newState.syndicates[openOrder.syndicateId];
+              if (buyer && (buyer.warChest ?? 0) >= totalOrderPrice) {
+                buyer.warChest = (buyer.warChest ?? 0) - totalOrderPrice;
+                provider.warChest = (provider.warChest ?? 0) + totalOrderPrice;
+
+                newState.syndicates[openOrder.syndicateId] = { ...buyer };
+                newState.syndicates[providerSyndicateId] = { ...provider };
+
+                // Fill order
+                openOrder.status = "Filled";
+                openOrder.size = 0;
+                openOrder.limitPrice = 0;
+                newState.swfReinsuranceOptionLimitOrders[openOrder.id] = { ...openOrder };
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[Automated Liquidity Match] Cross-Hedging Syndicate ${providerSyndicateId} provided liquidity to match Buy Order ${openOrder.id} (Syndicate ${openOrder.syndicateId}) at execution price ${totalOrderPrice} gold (CDO: ${openOrder.swfYieldCdoId}, Tranche: ${openOrder.trancheId}, Option Type: ${openOrder.optionType}, Strike: ${openOrder.strikePremiumRate.toFixed(4)}, Size: ${matchedSize}).`
+                );
+              }
+            }
+          } else if (openOrder.orderType === "sell") {
+            // Syndicate matches SELL order by BUYING the option
+            if (openOrder.contractId) {
+              const contract = newState.swfReinsuranceOptionsContracts[openOrder.contractId];
+              if (contract && contract.active && contract.syndicateId === openOrder.syndicateId) {
+                if ((provider.warChest ?? 0) >= totalOrderPrice) {
+                  // Syndicate buys contract
+                  if (contract.size <= matchedSize) {
+                    newState.swfReinsuranceOptionsContracts[openOrder.contractId] = {
+                      ...contract,
+                      syndicateId: providerSyndicateId, // new holder
+                      timestamp: newState.step,
+                    };
+                  } else {
+                    newState.swfReinsuranceOptionsContracts[openOrder.contractId] = {
+                      ...contract,
+                      size: contract.size - matchedSize,
+                      timestamp: newState.step,
+                    };
+                    const optionId = `opt_limit_${Object.keys(newState.swfReinsuranceOptionsContracts).length + 1}`;
+                    newState.swfReinsuranceOptionsContracts[optionId] = {
+                      id: optionId,
+                      syndicateId: providerSyndicateId, // provider/holder
+                      writerSyndicateId: contract.writerSyndicateId,
+                      swfYieldCdoId: openOrder.swfYieldCdoId,
+                      trancheId: openOrder.trancheId,
+                      optionType: openOrder.optionType,
+                      strikePremiumRate: openOrder.strikePremiumRate,
+                      size: matchedSize,
+                      timestamp: newState.step,
+                      active: true,
+                    };
+                  }
+
+                  // Transfer gold
+                  const seller = newState.syndicates[openOrder.syndicateId];
+                  if (seller) {
+                    seller.warChest = (seller.warChest ?? 0) + totalOrderPrice;
+                    provider.warChest = (provider.warChest ?? 0) - totalOrderPrice;
+
+                    newState.syndicates[openOrder.syndicateId] = { ...seller };
+                    newState.syndicates[providerSyndicateId] = { ...provider };
+
+                    // Fill order
+                    openOrder.status = "Filled";
+                    openOrder.size = 0;
+                    openOrder.limitPrice = 0;
+                    newState.swfReinsuranceOptionLimitOrders[openOrder.id] = { ...openOrder };
+
+                    if (!newState.journal) newState.journal = [];
+                    newState.journal.push(
+                      `[Automated Liquidity Match] Cross-Hedging Syndicate ${providerSyndicateId} provided liquidity to match Sell Order ${openOrder.id} (Syndicate ${openOrder.syndicateId}) at execution price ${totalOrderPrice} gold (CDO: ${openOrder.swfYieldCdoId}, Tranche: ${openOrder.trancheId}, Option Type: ${openOrder.optionType}, Strike: ${openOrder.strikePremiumRate.toFixed(4)}, Size: ${matchedSize}).`
+                    );
+                  }
+                }
+              }
+            } else {
+              // Match a new option write where provider is the buyer/holder and seller is writer
+              if ((provider.warChest ?? 0) >= totalOrderPrice) {
+                if (!newState.swfReinsuranceOptionsContracts) {
+                  newState.swfReinsuranceOptionsContracts = {};
+                }
+                const optionId = `opt_limit_${Object.keys(newState.swfReinsuranceOptionsContracts).length + 1}`;
+                newState.swfReinsuranceOptionsContracts[optionId] = {
+                  id: optionId,
+                  syndicateId: providerSyndicateId, // provider/holder
+                  writerSyndicateId: openOrder.syndicateId, // seller/writer
+                  swfYieldCdoId: openOrder.swfYieldCdoId,
+                  trancheId: openOrder.trancheId,
+                  optionType: openOrder.optionType,
+                  strikePremiumRate: openOrder.strikePremiumRate,
+                  size: matchedSize,
+                  timestamp: newState.step,
+                  active: true,
+                };
+
+                // Transfer gold
+                const seller = newState.syndicates[openOrder.syndicateId];
+                if (seller) {
+                  seller.warChest = (seller.warChest ?? 0) + totalOrderPrice;
+                  provider.warChest = (provider.warChest ?? 0) - totalOrderPrice;
+
+                  newState.syndicates[openOrder.syndicateId] = { ...seller };
+                  newState.syndicates[providerSyndicateId] = { ...provider };
+
+                  // Fill order
+                  openOrder.status = "Filled";
+                  openOrder.size = 0;
+                  openOrder.limitPrice = 0;
+                  newState.swfReinsuranceOptionLimitOrders[openOrder.id] = { ...openOrder };
+
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[Automated Liquidity Match] Cross-Hedging Syndicate ${providerSyndicateId} provided liquidity to match Sell Order ${openOrder.id} (Syndicate ${openOrder.syndicateId}) at execution price ${totalOrderPrice} gold (CDO: ${openOrder.swfYieldCdoId}, Tranche: ${openOrder.trancheId}, Option Type: ${openOrder.optionType}, Strike: ${openOrder.strikePremiumRate.toFixed(4)}, Size: ${matchedSize}).`
+                  );
+                }
+              }
+            }
+          }
         }
       }
     }
