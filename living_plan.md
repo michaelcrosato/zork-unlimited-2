@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #250 (Ready for Cycle #251)
-* **Build/Test Status**: 🟢 PASS (All 846 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #251 (Ready for Cycle #252)
+* **Build/Test Status**: 🟢 PASS (All 848 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1619,16 +1619,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement reinvestment logic in `tickEconomy` allocating surcharge payouts to tranche margin collateral (`AF-253`).
 - [x] Write comprehensive Vitest unit and integration tests asserting automated compounding and margin replenishment (`AF-253`).
 
+### Phase 232: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling (Completed)
+- [x] Define faction loyalty discount scaling rules for auto-compounding surcharges in the policy proposal (`AF-254`).
+- [x] Update reinvestment math in `tickEconomy` to reduce dynamic surcharges or boost margin compound allocations for high-reputation members (`AF-254`).
+- [x] Write comprehensive Vitest unit and integration tests asserting faction standing discounts on option surcharges under defaults (`AF-254`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-254`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling.
-* **Why this matters**: Allow faction standing to dynamically scale down surcharges or boost compounding yield allocations for allied syndicate members during default events, aligning strategic diplomacy with financial risk mitigation.
+**Task ID**: `AF-255`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override.
+* **Why this matters**: Introduce custom voting and panic overrides specifically for dynamic MM surcharge discount/boost scaling, allowing syndicates to temporarily suspend standing-gated incentives under extreme market panic or partition recovery events.
 * **Planned Actions**:
-  1. Define faction loyalty discount scaling rules for auto-compounding surcharges in the policy proposal.
-  2. Update reinvestment math in `tickEconomy` to reduce dynamic surcharges or boost margin compound allocations for high-reputation members.
-  3. Write comprehensive integration tests.
+  1. Define panic override proposal and voting schemas for surcharge standing discounts.
+  2. Wire the cooldown check inside `tickEconomy` to freeze discount adjustments under panic override.
+  3. Write comprehensive Vitest unit and integration tests.
 
 ---
 

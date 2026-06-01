@@ -1,8 +1,8 @@
 # 🤖 AI Autopilot Living Report
 
-* **Last Updated**: 2026-06-01T18:41:49.197Z
+* **Last Updated**: 2026-06-01T18:49:07.854Z
 * **Autopilot Cycle**: #1
-* **Cycle Duration**: 26.9 seconds
+* **Cycle Duration**: 25.3 seconds
 * **Build Status**: 🟢 PASS
 * **Tests Status**: 🟢 PASS
 
@@ -23,12 +23,12 @@ Clean compilation.
 
 ### Unit Tests Log
 ```
-✓ tests/syndicates_swf_reinsurance_options_volatility_floor_auto_adjust.test.ts (2 tests) 3ms
+✓ tests/dialogue_gating_trade_incentives.test.ts (5 tests) 6ms
 
  Test Files  188 passed (188)
-      Tests  846 passed (846)
-   Start at  11:41:34
-   Duration  13.17s (transform 47.23s, setup 0ms, import 245.89s, tests 44.65s, environment 33ms)
+      Tests  848 passed (848)
+   Start at  11:48:54
+   Duration  12.31s (transform 42.89s, setup 0ms, import 226.43s, tests 43.53s, environment 35ms)
 ```
 
 ---

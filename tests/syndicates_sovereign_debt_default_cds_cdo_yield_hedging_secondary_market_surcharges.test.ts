@@ -552,7 +552,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     // Scaled down by 30% (cappedMMDiscount = 0.30): 30 * (1 - 0.30) = 21 gold.
     // standard fee = 1200 * 0.05 = 60 gold.
     // Proposer alpha pays 125 gold proposal/vote fees.
-    // alpha net warChest: 20000 + 1200 - 60 (standard fee) - 21 (surcharge) - 125 + 1700 = 22694 gold.
+    // alpha net warChest: 20000 + 1200 - 60 (standard fee) - 21 (surcharge) - 125 + 5000 (CDS payout) = 25994 gold.
     // beta pays 1200 gold.
     // Vault balance receives 21 gold: 1500 + 21 = 1521 gold.
     pool!.fractionalizedVault.balance = 1500;
@@ -560,7 +560,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     const newState = tickEconomy(state, mockPack);
 
     expect(newState.syndicates!.beta.warChest).toBe(19800);
-    expect(newState.syndicates!.alpha.warChest).toBe(22694); // receives 1200 - 60 fee - 21 surcharge + 1700 coupons - 125 proposal/vote fees
+    expect(newState.syndicates!.alpha.warChest).toBe(25994); // receives 1200 - 60 fee - 21 surcharge + 5000 CDS payout - 125 proposal/vote fees
     expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.fractionalizedVault.balance).toBe(1521);
 
     // Assert journal contains discounted surcharge info
@@ -679,7 +679,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     // Base surcharge is 10%, so scaled surcharge is 10% * 25% = 2.5% (0.025).
     // Raw surcharge paid by seller: 1200 * 0.025 = 30 gold.
     // Compounded allocation boosted by 40% (cappedMMDiscount = 0.40): 30 * 1.40 = 42 gold.
-    // alpha net warChest: 20000 + 1200 - 60 (standard fee) - 30 (surcharge) - 125 + 1700 = 22685 gold.
+    // alpha net warChest: 20000 + 1200 - 60 (standard fee) - 30 (surcharge) - 125 + 5000 (CDS payout) = 25985 gold.
     // Senior tranche margin collateral for alpha increases from 3000 by 42 gold to 3042 gold.
     // Vault balance remains at 1500 gold.
     pool!.fractionalizedVault.balance = 1500;
@@ -687,7 +687,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     const newState = tickEconomy(state, mockPack);
 
     expect(newState.syndicates!.beta.warChest).toBe(19800);
-    expect(newState.syndicates!.alpha.warChest).toBe(22685); // receives 1200 - 60 fee - 30 surcharge + 1700 coupons - 125 proposal/vote fees
+    expect(newState.syndicates!.alpha.warChest).toBe(25985); // receives 1200 - 60 fee - 30 surcharge + 5000 CDS payout - 125 proposal/vote fees
     expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.fractionalizedVault.balance).toBe(1500);
     expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.tranches.senior.marginCollateral?.alpha).toBe(3042);
 
