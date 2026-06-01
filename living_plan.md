@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #202 (Ready for Cycle #203)
-* **Build/Test Status**: 🟢 PASS (All 741 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #203 (Ready for Cycle #204)
+* **Build/Test Status**: 🟢 PASS (All 742 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1291,14 +1291,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 183: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation Campaign Subsidies and Cooperative Mesh-Wide Staking (Completed)
+- [x] Define cooperative rehab subsidy proposal schema in the GameState (`AF-205`).
+- [x] Implement `PROPOSE_COOPERATIVE_REHAB_SUBSIDY` and `VOTE_COOPERATIVE_REHAB_SUBSIDY` decentralized actions (`AF-205`).
+- [x] Wire the reconciliation logic to discount the gold contribution fee based on alliance standing and faction reserve availability (`AF-205`).
+- [x] Write comprehensive Vitest integration tests inside `tests/syndicates_swf_reinvestment.test.ts` (`AF-205`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-205`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation Campaign Subsidies and Cooperative Mesh-Wide Staking.
-* **Why this matters**: Allow allied syndicates to sponsor or subsidize each other's rehabilitation campaigns across the P2P Gossip mesh, dynamically scaling down the required gold contribution using faction reserve funds.
+**Task ID**: `AF-206`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Cap Breach Slashing Rehabilitation Campaign Subsidies and Cooperative Mesh-Wide Staking Cross-Mesh Yield Compounding and Automated Liquidity Pool Sweeps.
+* **Why this matters**: Allow allied syndicates to pool their cooperative staking yields across the P2P Gossip mesh, automatically sweeping excess staking yields into a shared stabilization pool when faction standing falls below a critical threshold.
 * **Planned Actions**:
-  1. Define a cooperative rehab subsidy proposal schema in the GameState.
-  2. Implement `PROPOSE_COOPERATIVE_REHAB_SUBSIDY` and `VOTE_COOPERATIVE_REHAB_SUBSIDY` decentralized actions.
-  3. Wire the reconciliation logic to discount the gold contribution fee based on alliance standing and faction reserve availability.
+  1. Define a shared stabilization pool and automatic yield sweeping schema in the GameState.
+  2. Implement `PROPOSE_COOPERATIVE_STAKING_YIELD_SWEEP` and `VOTE_COOPERATIVE_STAKING_YIELD_SWEEP` actions.
+  3. Wire the economy tick to automatically transfer yields from individual syndicate staking targets into the shared pool on critical standing drop.
   4. Write comprehensive Vitest integration tests and merge support.
 
 ---
