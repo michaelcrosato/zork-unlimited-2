@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #233 (Ready for Cycle #234)
-* **Build/Test Status**: 🟢 PASS (All 809 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #234 (Ready for Cycle #235)
+* **Build/Test Status**: 🟢 PASS (All 812 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1519,14 +1519,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 215: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Multi-Syndicate Liquidity Injection Co-Investment Pools (Completed)
+- [x] Define co-investment pool schemas and multi-syndicate contribution states in GameState (`AF-237`).
+- [x] Implement decentralized co-investment join and lock action allowing other syndicates to pledge war chest gold (`AF-237`).
+- [x] Wire the economy tick to calculate and allocate proportional reputation increases and partial deflection fee waivers to all participating syndicates (`AF-237`).
+- [x] Write comprehensive Vitest integration tests (`AF-237`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-237`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Multi-Syndicate Liquidity Injection Co-Investment Pools.
-* **Why this matters**: Introduce a shared co-investment proposal allowing multiple syndicates to jointly contribute dynamic fractional gold amounts from their war chests into a stressed CDO pool, scaling the reputation boosts and fee waivers proportionally to incentivize broad cooperative network defense.
+**Task ID**: `AF-238`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Automated Yield Compensations.
+* **Why this matters**: Further incentivize multiple syndicates to participate in stressed CDO co-investment pools by dynamically distributing a share of future autocallable tranche coupon yields back to co-investing syndicates pro-rata to their locked contribution ratios.
 * **Planned Actions**:
-  1. Define co-investment pool schemas and multi-syndicate contribution states in GameState.
-  2. Implement decentralized co-investment join and lock action allowing other syndicates to pledge war chest gold.
-  3. Wire the economy tick to calculate and allocate proportional reputation increases and partial deflection fee waivers to all participating syndicates.
+  1. Define co-investment yield distribution rules and historical payout trackers in GameState.
+  2. Implement decentralized co-investment yield payout adjustments allowing consensus voting on the yield compensation share.
+  3. Wire the economy tick's autocallable yield payout flow to divert the configured percentage of coupon payouts to the locked co-investing syndicates.
   4. Write comprehensive Vitest integration tests.
 
 ---

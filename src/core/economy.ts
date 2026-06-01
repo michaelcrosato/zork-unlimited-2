@@ -6150,7 +6150,8 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             }
           }
 
-          const deflectionFee = Math.round(drawdown * surchargeRate);
+          const partialWaiver = newState.cdsCdoPartialFeeWaivers?.[syndicateId] ?? 0;
+          const deflectionFee = Math.round(drawdown * surchargeRate * (1 - partialWaiver));
 
           if (deflectionFee > 0 && syndicate) {
             let feeRemaining = deflectionFee;
@@ -7245,6 +7246,8 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
     outstandingDeflectionFees: state.outstandingDeflectionFees ? { ...state.outstandingDeflectionFees } : {},
     cdsCdoLiquidityInjectionProposals: state.cdsCdoLiquidityInjectionProposals ? JSON.parse(JSON.stringify(state.cdsCdoLiquidityInjectionProposals)) : {},
     cdsCdoFeeExemptions: state.cdsCdoFeeExemptions ? { ...state.cdsCdoFeeExemptions } : {},
+    cdsCdoCoinvestmentProposals: state.cdsCdoCoinvestmentProposals ? JSON.parse(JSON.stringify(state.cdsCdoCoinvestmentProposals)) : {},
+    cdsCdoPartialFeeWaivers: state.cdsCdoPartialFeeWaivers ? { ...state.cdsCdoPartialFeeWaivers } : {},
     journal: state.journal ? [...state.journal] : [],
   };
 
@@ -7774,6 +7777,52 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
       }
     }
 
+    // Process approved co-investment proposals for this pool
+    if (newState.cdsCdoCoinvestmentProposals) {
+      for (const [propId, prop] of Object.entries(newState.cdsCdoCoinvestmentProposals)) {
+        const proposal = prop as any;
+        if (proposal.cdoId === cdoId && proposal.status === "approved") {
+          if (pool.reserveFloor !== undefined && pool.fractionalizedVault.balance >= pool.reserveFloor) {
+            proposal.status = "executed";
+
+            // Sum all locked contributions
+            const contributions = proposal.contributions || {};
+            const locked = proposal.lockedContributions || {};
+            const lockedSyndicates = Object.keys(locked).filter(sId => locked[sId] === true);
+            const totalLocked = lockedSyndicates.reduce((sum, sId) => sum + (contributions[sId] ?? 0), 0);
+
+            if (totalLocked > 0) {
+              newState.cdsCdoPartialFeeWaivers = newState.cdsCdoPartialFeeWaivers ? { ...newState.cdsCdoPartialFeeWaivers } : {};
+              newState.outstandingDeflectionFees = newState.outstandingDeflectionFees ? { ...newState.outstandingDeflectionFees } : {};
+              newState.factionRep = newState.factionRep ? { ...newState.factionRep } : {};
+
+              for (const sId of lockedSyndicates) {
+                const contribution = contributions[sId] ?? 0;
+                const ratio = contribution / totalLocked;
+
+                // 1. Proportional reputation boost (+20 max base)
+                const repBoost = Math.round(20 * ratio);
+                const oldRep = newState.factionRep[sId] ?? 0;
+                newState.factionRep[sId] = oldRep + repBoost;
+
+                // 2. Set partial deflection fee waiver rate
+                newState.cdsCdoPartialFeeWaivers[sId] = ratio;
+
+                // 3. Partially waive (reduce) outstanding deflection fees
+                const oldOutstanding = newState.outstandingDeflectionFees[sId] ?? 0;
+                newState.outstandingDeflectionFees[sId] = Math.max(0, oldOutstanding - Math.round(oldOutstanding * ratio));
+
+                if (!newState.journal) newState.journal = [];
+                newState.journal.push(
+                  `[CDO Co-investment Restored] Syndicate ${sId} contributed ${contribution} gold (${(ratio * 100).toFixed(0)}% of total co-investment pool). Restored CDO ${cdoId} liquidity above reserve floor of ${pool.reserveFloor}. Granted +${repBoost} reputation and ${(ratio * 100).toFixed(0)}% deflection fee waiver.`
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Pre-pass: Process equity tranche autocallable yield payouts and apply cross-tranche hedging before any margin requirements are calculated.
     const equityTranche = pool.tranches["equity"];
     if (equityTranche && equityTranche.autocallTriggerLevel !== undefined && equityTranche.autocallCoupon !== undefined) {
@@ -8223,12 +8272,29 @@ export function tickSovereignDebtDefaultAlerts(state: GameState): GameState {
         continue;
       }
 
+      const partialWaiver = newState.cdsCdoPartialFeeWaivers?.[targetSyndicateId] ?? 0;
       const currentRep = newState.factionRep[targetSyndicateId] ?? 0;
-      const penalty = 15;
-      newState.factionRep[targetSyndicateId] = currentRep - penalty;
-      
+      const basePenalty = 15;
+      const penalty = Math.round(basePenalty * (1 - partialWaiver));
+
+      if (partialWaiver > 0) {
+        if (penalty === 0) {
+          newState.journal.push(
+            `[Sovereign Debt Default Alert Penalty Deferred] Syndicate ${targetSyndicateId} bypasses reputation penalty due to active CDO co-investment partial fee waiver (${(partialWaiver * 100).toFixed(0)}% waiver).`
+          );
+          continue;
+        } else {
+          newState.factionRep[targetSyndicateId] = currentRep - penalty;
+          newState.journal.push(
+            `[Sovereign Debt Default Alert Penalty Reduced] Syndicate ${targetSyndicateId} reputation penalty reduced to -${penalty} due to active CDO co-investment partial fee waiver (${(partialWaiver * 100).toFixed(0)}% waiver).`
+          );
+          continue;
+        }
+      }
+
+      newState.factionRep[targetSyndicateId] = currentRep - basePenalty;
       newState.journal.push(
-        `[Sovereign Debt Default Alert Penalty] Syndicate ${targetSyndicateId} failed to service outstanding deflection fee of ${outstandingFee} gold. Applied reputation penalty of -${penalty} faction reputation (New Faction Reputation: ${newState.factionRep[targetSyndicateId]}).`
+        `[Sovereign Debt Default Alert Penalty] Syndicate ${targetSyndicateId} failed to service outstanding deflection fee of ${outstandingFee} gold. Applied reputation penalty of -${basePenalty} faction reputation (New Faction Reputation: ${newState.factionRep[targetSyndicateId]}).`
       );
     }
   }

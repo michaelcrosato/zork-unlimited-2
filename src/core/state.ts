@@ -3232,6 +3232,22 @@ export const SovereignDebtCDSCDOLiquidityInjectionProposalSchema = z.object({
 });
 export type SovereignDebtCDSCDOLiquidityInjectionProposal = z.infer<typeof SovereignDebtCDSCDOLiquidityInjectionProposalSchema>;
 
+export const SovereignDebtCDSCDOCoinvestmentProposalSchema = z.object({
+  proposalId: z.string(),
+  cdoId: z.string(),
+  creatorSyndicateId: z.string(),
+  targetAmount: z.number().int().positive(),
+  status: z.enum(["proposed", "approved", "rejected", "executed"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+  contributions: z.record(z.string(), z.number().int().nonnegative()),
+  lockedContributions: z.record(z.string(), z.boolean()).optional(),
+});
+export type SovereignDebtCDSCDOCoinvestmentProposal = z.infer<typeof SovereignDebtCDSCDOCoinvestmentProposalSchema>;
+
 
 
 
@@ -4230,6 +4246,8 @@ export const GameStateSchema = z.object({
   cdsCdoHedgingReserveFloorAndCapProposals: z.record(z.string(), SovereignDebtCDSCDOHedgingReserveFloorAndCapProposalSchema).optional(),
   cdsCdoLiquidityInjectionProposals: z.record(z.string(), SovereignDebtCDSCDOLiquidityInjectionProposalSchema).optional(),
   cdsCdoFeeExemptions: z.record(z.string(), z.boolean()).optional(),
+  cdsCdoCoinvestmentProposals: z.record(z.string(), SovereignDebtCDSCDOCoinvestmentProposalSchema).optional(),
+  cdsCdoPartialFeeWaivers: z.record(z.string(), z.number()).optional(),
 
 
 
@@ -4695,6 +4713,8 @@ export const createInitialState = (options: {
     cdsCdoHedgingReserveFloorAndCapProposals: {},
     cdsCdoLiquidityInjectionProposals: {},
     cdsCdoFeeExemptions: {},
+    cdsCdoCoinvestmentProposals: {},
+    cdsCdoPartialFeeWaivers: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -5886,6 +5906,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoHedgingReserveFloorAndCapProposals: rest.cdsCdoHedgingReserveFloorAndCapProposals ? JSON.parse(JSON.stringify(rest.cdsCdoHedgingReserveFloorAndCapProposals)) : undefined,
     cdsCdoLiquidityInjectionProposals: rest.cdsCdoLiquidityInjectionProposals ? JSON.parse(JSON.stringify(rest.cdsCdoLiquidityInjectionProposals)) : undefined,
     cdsCdoFeeExemptions: rest.cdsCdoFeeExemptions ? JSON.parse(JSON.stringify(rest.cdsCdoFeeExemptions)) : undefined,
+    cdsCdoCoinvestmentProposals: rest.cdsCdoCoinvestmentProposals ? JSON.parse(JSON.stringify(rest.cdsCdoCoinvestmentProposals)) : undefined,
+    cdsCdoPartialFeeWaivers: rest.cdsCdoPartialFeeWaivers ? JSON.parse(JSON.stringify(rest.cdsCdoPartialFeeWaivers)) : undefined,
 
   };
   return clone;
@@ -18371,6 +18393,37 @@ export function reconcileCDSCDOLiquidityInjections(state: GameState, pack: any):
         } else {
           proposal.status = "rejected";
         }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCDSCDOCoinvestments(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoCoinvestmentProposals: state.cdsCdoCoinvestmentProposals ? { ...state.cdsCdoCoinvestmentProposals } : {},
+  };
+
+  if (newState.cdsCdoCoinvestmentProposals) {
+    for (const [proposalId, proposal] of Object.entries(newState.cdsCdoCoinvestmentProposals)) {
+      if (proposal.status !== "proposed") continue;
+      const syndicate = newState.syndicates[proposal.creatorSyndicateId];
+      if (!syndicate) continue;
+      const votes = proposal.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > syndicate.members.length / 2;
+      if (passed) {
+        proposal.status = "approved";
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDO Co-investment Approved] Syndicate ${proposal.creatorSyndicateId} approved co-investment proposal ${proposalId} for CDO ${proposal.cdoId} with target ${proposal.targetAmount} gold.`
+        );
       }
     }
   }
