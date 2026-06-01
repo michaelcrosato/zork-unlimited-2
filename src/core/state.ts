@@ -821,6 +821,13 @@ export const JointLoanGracePeriodVoteSchema = z.object({
 });
 export type JointLoanGracePeriodVote = z.infer<typeof JointLoanGracePeriodVoteSchema>;
 
+export const JointLoanPenaltyWaiverVoteSchema = z.object({
+  reducedInterestRate: z.number().int().nonnegative(),
+  waivePenalty: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type JointLoanPenaltyWaiverVote = z.infer<typeof JointLoanPenaltyWaiverVoteSchema>;
+
 export const CreditRecoverySchema = z.object({
   agentId: z.string(),
   startStep: z.number().int().nonnegative(),
@@ -861,6 +868,8 @@ export const JointLoanSchema = z.object({
   timestamp: z.number().int(),
   refinancedInterestRate: z.number().int().nonnegative().optional(),
   gracePeriodSteps: z.number().int().nonnegative().optional(),
+  reducedInterestRate: z.number().int().nonnegative().optional(),
+  waivePenalty: z.boolean().optional(),
 });
 export type JointLoan = z.infer<typeof JointLoanSchema>;
 
