@@ -9,7 +9,8 @@ export function calculateTradePrice(
   npc: any,
   packObj: any,
   baseCost: number,
-  isBuy: boolean
+  isBuy: boolean,
+  traderId: string = "player"
 ): number {
   let multiplier = 1.0;
 
@@ -48,6 +49,21 @@ export function calculateTradePrice(
       // Positive faction reputation gives a higher sell payout; negative reputation acts as a sell penalty (lower payout)
       const factionSellFactor = Math.max(0.5, Math.min(1.5, 1.0 + factionRep * 0.02));
       multiplier *= factionSellFactor;
+    }
+  }
+
+  // 4. Faction Territory Merchant Tariff (AF-35)
+  if (controllingFactionId) {
+    const hasLicense = state.merchantLicenses?.[traderId]?.includes(controllingFactionId) || false;
+    if (!hasLicense) {
+      const tariffRate = state.tariffPolicy?.[controllingFactionId] ?? state.merchantLicensings?.[controllingFactionId]?.tariffRate ?? 0;
+      if (tariffRate > 0) {
+        if (isBuy) {
+          multiplier *= (1.0 + tariffRate / 100.0);
+        } else {
+          multiplier *= Math.max(0.1, 1.0 - tariffRate / 100.0);
+        }
+      }
     }
   }
 

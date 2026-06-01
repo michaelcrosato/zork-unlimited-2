@@ -1,4 +1,4 @@
-import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, findRoom, getRoomExits } from "./state.js";
+import { GameState, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -914,6 +914,306 @@ export function multiAgentStep(
       state: newState,
       events: ok
         ? [{ type: "tax_policy_voted", factionId, rate, votedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized DEFINE_MERCHANT_LICENSING action
+  if ((action as any).type === "DEFINE_MERCHANT_LICENSING") {
+    const { factionId, licenseCost, tariffRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const isValidFaction = (pack as any).factions?.some((f: any) => f.id === factionId);
+    if (!isValidFaction) {
+      rejectionReason = `Faction ${factionId} is not a valid faction in the content pack.`;
+    } else if (licenseCost < 0 || !Number.isInteger(licenseCost)) {
+      rejectionReason = `Proposed license cost ${licenseCost} must be a non-negative integer.`;
+    } else if (tariffRate < 0 || !Number.isInteger(tariffRate)) {
+      rejectionReason = `Proposed tariff rate ${tariffRate} must be a non-negative integer.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const merchantLicensings = { ...(state.merchantLicensings || {}) };
+      const existingLicense = merchantLicensings[factionId];
+
+      if (!existingLicense || timestamp > existingLicense.timestamp ||
+        (timestamp === existingLicense.timestamp && agentId.localeCompare(existingLicense.definedBy) < 0)
+      ) {
+        merchantLicensings[factionId] = {
+          factionId,
+          licenseCost,
+          tariffRate,
+          definedBy: agentId,
+          timestamp,
+        };
+        newState.merchantLicensings = merchantLicensings;
+
+        // Initialize tariff votes
+        const tariffVotes = { ...(state.tariffVotes || {}) };
+        if (!tariffVotes[factionId]) {
+          tariffVotes[factionId] = {};
+        } else {
+          tariffVotes[factionId] = { ...tariffVotes[factionId] };
+        }
+        tariffVotes[factionId][agentId] = {
+          rate: tariffRate,
+          timestamp,
+        };
+        newState.tariffVotes = tariffVotes;
+
+        newState = reconcileTariffPolicies(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "merchant_licensing_defined", factionId, licenseCost, tariffRate, definedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_MERCHANT_TARIFF action
+  if ((action as any).type === "VOTE_MERCHANT_TARIFF") {
+    const { factionId, tariffRate, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const existingLicense = state.merchantLicensings?.[factionId];
+    if (!existingLicense) {
+      rejectionReason = `Merchant licensing for faction ${factionId} does not exist in state.`;
+    } else if (tariffRate < 0 || !Number.isInteger(tariffRate)) {
+      rejectionReason = `Proposed tariff rate ${tariffRate} must be a non-negative integer.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const tariffVotes = { ...(state.tariffVotes || {}) };
+      if (!tariffVotes[factionId]) {
+        tariffVotes[factionId] = {};
+      } else {
+        tariffVotes[factionId] = { ...tariffVotes[factionId] };
+      }
+
+      const existingVote = tariffVotes[factionId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        tariffVotes[factionId][agentId] = {
+          rate: tariffRate,
+          timestamp,
+        };
+        newState.tariffVotes = tariffVotes;
+        newState = reconcileTariffPolicies(newState, pack);
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "merchant_tariff_voted", factionId, tariffRate, voter: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized BUY_MERCHANT_LICENSE action
+  if ((action as any).type === "BUY_MERCHANT_LICENSE") {
+    const { factionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const existingLicenseDef = state.merchantLicensings?.[factionId];
+    if (!existingLicenseDef) {
+      rejectionReason = `Merchant licensing for faction ${factionId} does not exist in state.`;
+    } else {
+      const alreadyHasLicense = state.merchantLicenses?.[agentId]?.includes(factionId) || false;
+      if (alreadyHasLicense) {
+        rejectionReason = `Agent already has a license for faction ${factionId}.`;
+      } else {
+        // Check gold
+        const licenseCost = existingLicenseDef.licenseCost;
+        const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+        const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+        if (currentGold < licenseCost) {
+          rejectionReason = `Insufficient gold to purchase merchant license (requires ${licenseCost}, has ${currentGold}).`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    if (ok && existingLicenseDef) {
+      const licenseCost = existingLicenseDef.licenseCost;
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - licenseCost,
+      };
+
+      // Register license
+      const merchantLicenses = { ...(state.merchantLicenses || {}) };
+      if (!merchantLicenses[agentId]) {
+        merchantLicenses[agentId] = [];
+      } else {
+        merchantLicenses[agentId] = [...merchantLicenses[agentId]];
+      }
+      if (!merchantLicenses[agentId].includes(factionId)) {
+        merchantLicenses[agentId].push(factionId);
+      }
+      newState.merchantLicenses = merchantLicenses;
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "merchant_license_purchased", factionId, agentId } as any]
         : [{ type: "rejected", reason: rejectionReason! }],
       ok,
       rejectionReason,

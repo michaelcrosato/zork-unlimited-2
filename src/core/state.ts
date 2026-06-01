@@ -98,6 +98,21 @@ export const TradeRouteVoteSchema = z.object({
 });
 export type TradeRouteVote = z.infer<typeof TradeRouteVoteSchema>;
 
+export const TariffVoteSchema = z.object({
+  rate: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type TariffVote = z.infer<typeof TariffVoteSchema>;
+
+export const MerchantLicensingSchema = z.object({
+  factionId: z.string(),
+  licenseCost: z.number().int().nonnegative(),
+  tariffRate: z.number().int().nonnegative(),
+  definedBy: z.string(),
+  timestamp: z.number().int(),
+});
+export type MerchantLicensing = z.infer<typeof MerchantLicensingSchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -152,6 +167,12 @@ export const GameStateSchema = z.object({
   tradeRoutes: z.record(z.string(), TradeRouteSchema).optional(),
   tradeRouteVotes: z.record(z.string(), z.record(z.string(), TradeRouteVoteSchema)).optional(),
   tradeRoutePolicies: z.record(z.string(), z.number()).optional(),
+
+  // decentralized merchant trade licensing and tariffs
+  merchantLicenses: z.record(z.string(), z.array(z.string())).optional(),
+  merchantLicensings: z.record(z.string(), MerchantLicensingSchema).optional(),
+  tariffVotes: z.record(z.string(), z.record(z.string(), TariffVoteSchema)).optional(),
+  tariffPolicy: z.record(z.string(), z.number()).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -481,3 +502,40 @@ export function reconcileTradeRoutes(state: GameState, pack: any): GameState {
 
   return newState;
 }
+
+export function reconcileTariffPolicies(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    tariffPolicy: { ...(state.tariffPolicy || {}) },
+  };
+
+  if (!newState.tariffVotes) {
+    newState.tariffVotes = {};
+  }
+
+  for (const [factionId, votes] of Object.entries(newState.tariffVotes)) {
+    const counts: Record<number, number> = {};
+    for (const vote of Object.values(votes)) {
+      counts[vote.rate] = (counts[vote.rate] ?? 0) + 1;
+    }
+
+    let maxCount = 0;
+    let consensusRate = 0;
+
+    // Decisive deterministic tie-breaking majority consensus arbitration rule:
+    // Sort rates descending to prefer higher rates.
+    const uniqueRates = Object.keys(counts).map(Number).sort((a, b) => b - a);
+    for (const rate of uniqueRates) {
+      const count = counts[rate];
+      if (count > maxCount) {
+        maxCount = count;
+        consensusRate = rate;
+      }
+    }
+
+    newState.tariffPolicy[factionId] = consensusRate;
+  }
+
+  return newState;
+}
+

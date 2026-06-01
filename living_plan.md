@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #34 (Ready for Cycle #35)
-* **Build/Test Status**: 🟢 PASS (All 151 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #35 (Ready for Cycle #36)
+* **Build/Test Status**: 🟢 PASS (All 156 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -183,17 +183,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Propagate trade route definitions and consensus tax shares across the Gossip mesh (`AF-34`).
 - [x] Write comprehensive integration tests and verify mesh convergence (`AF-34`).
 
+### Phase 30: Decentralized Faction Merchant Licensing and Tariffs (Completed)
+- [x] Define faction-controlled merchant licensing structures and purchase costs in state (`AF-35`).
+- [x] Implement transaction effects to levy consensual tariffs on buy/sell actions in faction territories for unlicensed traders (`AF-35`).
+- [x] Propagate merchant licensing definitions, license holdings, and consensus tariff rates across the P2P Gossip mesh (`AF-35`).
+- [x] Write comprehensive integration tests asserting pricing, voting consensus, and mesh convergence (`AF-35`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-35`
-* **Objective**: Implement decentralized faction merchant trade licensing and tariff system.
-* **Why this matters**: Allowing factions to establish trade routes and issue merchant licenses/tariffs to other players/agents that conduct trade transactions in their controlled territories creates a more complete decentralized RPG economy.
+**Task ID**: `AF-36`
+* **Objective**: Implement decentralized faction reputation-based tariff waivers and dynamic merchant trading caps.
+* **Why this matters**: Allowing factions to waive tariffs for highly reputable players or agents, and enforcing dynamic buy/sell volume limits based on faction alignment/standing, makes the RPG economy deeper and more responsive to faction dynamics.
 * **Planned Actions**:
-  1. Define faction-controlled merchant licenses and register license purchases in state.
-  2. Add transaction effects to levy tariffs on buy/sell actions in faction territories for unlicensed traders.
-  3. Propagate merchant licensing definitions and consensus tariff rates across the Gossip mesh.
-  4. Write comprehensive integration tests.
+  1. Add faction reputation-based tariff discount thresholds and waivers to the tariff policy.
+  2. Implement merchant trade transaction count or gold volume caps based on faction standing.
+  3. Sync transaction caps and reputation alignments across the gossip mesh.
+  4. Write comprehensive integration tests verifying caps and reputation-based waivers.
 
 ---
 

@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -422,6 +422,52 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge merchant licenses monotonically
+  const merchantLicenses = { ...stateA.merchantLicenses };
+  if (stateB.merchantLicenses) {
+    for (const [agentId, bLicenses] of Object.entries(stateB.merchantLicenses)) {
+      const aLicenses = merchantLicenses[agentId] || [];
+      merchantLicenses[agentId] = Array.from(new Set([...aLicenses, ...bLicenses]));
+    }
+  }
+
+  // Merge merchantLicensings using LWW (Last-Write-Wins)
+  const merchantLicensings = { ...stateA.merchantLicensings };
+  if (stateB.merchantLicensings) {
+    for (const [factionId, licB] of Object.entries(stateB.merchantLicensings)) {
+      const licA = merchantLicensings[factionId];
+      if (!licA) {
+        merchantLicensings[factionId] = licB;
+      } else {
+        if (licB.timestamp > licA.timestamp) {
+          merchantLicensings[factionId] = licB;
+        } else if (licB.timestamp === licA.timestamp) {
+          if (licB.definedBy.localeCompare(licA.definedBy) < 0) {
+            merchantLicensings[factionId] = licB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge tariff votes using LWW (Last-Write-Wins)
+  const tariffVotes = { ...stateA.tariffVotes };
+  if (stateB.tariffVotes) {
+    for (const [factionId, bVotes] of Object.entries(stateB.tariffVotes)) {
+      if (!tariffVotes[factionId]) {
+        tariffVotes[factionId] = { ...bVotes };
+      } else {
+        tariffVotes[factionId] = { ...tariffVotes[factionId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = tariffVotes[factionId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            tariffVotes[factionId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -433,6 +479,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     allianceVotes,
     tradeRoutes,
     tradeRouteVotes,
+    merchantLicenses,
+    merchantLicensings,
+    tariffVotes,
   };
 }
 
@@ -726,6 +775,9 @@ export class GossipNode {
 
     // Reconcile trade routes to ensure consensual trade routes and taxes converge perfectly across the mesh
     convergedState = reconcileTradeRoutes(convergedState, this.pack);
+
+    // Reconcile tariff policies to ensure consensual tariff rates align perfectly across the mesh
+    convergedState = reconcileTariffPolicies(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};
