@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #191 (Ready for Cycle #192)
-* **Build/Test Status**: 🟢 PASS (All 711 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #192 (Ready for Cycle #193)
+* **Build/Test Status**: 🟢 PASS (All 714 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1220,17 +1220,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire dynamic consensus adjustments to the tick economy (`AF-193`).
 - [x] Write comprehensive Vitest unit and integration tests asserting consensus updates and mesh synchronization (`AF-193`).
 
+### Phase 172: Syndicate SWF Reinsurance Options Volatility Floor Auto-Adjustment Panic Override / Cooldown Policies (Completed)
+- [x] Define proposal and voting structures inside GameState schemas for a temporary panic override/cooldown policy (`AF-194`).
+- [x] Implement `PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE` and `VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE` actions and consensus state transitions (`AF-194`).
+- [x] Wire dynamic consensus overrides to the tick economy to temporarily freeze floor auto-boosting under cooldown (`AF-194`).
+- [x] Write comprehensive Vitest unit and integration tests asserting consensus updates and mesh synchronization (`AF-194`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-194`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Auto-Adjustment Panic Override / Cooldown Policies.
-* **Why this matters**: Allowing the syndicate to propose a temporary panic freeze/cooldown on the dynamic floor scaling multiplier to prevent over-deleveraging or system panic lockups under flash crashes, ensuring stability.
+**Task ID**: `AF-195`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Floor Panic Override Extension Voting.
+* **Why this matters**: Allows the syndicate to propose and vote to extend an active panic override/cooldown duration under sustained market turbulence, preventing pre-mature deleveraging or crash-induced system volatility.
 * **Planned Actions**:
-  1. Define proposal and voting structures inside GameState schemas for a temporary panic override/cooldown policy.
-  2. Implement `PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE` and `VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE` actions and consensus state transitions.
-  3. Wire dynamic consensus overrides to the tick economy to temporarily freeze floor auto-boosting under cooldown.
-  4. Write comprehensive Vitest unit and integration tests asserting consensus updates and mesh synchronization.
+  1. Define proposal and voting structures inside GameState schemas for panic override extensions.
+  2. Implement `PROPOSE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION` and `VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION` actions and consensus state transitions.
+  3. Wire consensus extensions to dynamically extend `cooldownEndStep` in the active panic override state.
+  4. Write comprehensive Vitest unit and integration tests asserting consensus updates and mesh convergence.
 
 ---
 

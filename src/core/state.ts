@@ -2340,6 +2340,28 @@ export const SWFReinsuranceOptionVolatilityFloorAutoAdjustVoteSchema = z.object(
 });
 export type SWFReinsuranceOptionVolatilityFloorAutoAdjustVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorAutoAdjustVoteSchema>;
 
+export const SWFReinsuranceOptionVolatilityFloorPanicOverrideProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  swfYieldCdoId: z.string(),
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  panicOverrideActive: z.boolean(),
+  cooldownDuration: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "disputed", "authorized"]),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  cooldownEndStep: z.number().int().optional(),
+});
+export type SWFReinsuranceOptionVolatilityFloorPanicOverrideProposal = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideProposalSchema>;
+
+export const SWFReinsuranceOptionVolatilityFloorPanicOverrideVoteSchema = z.object({
+  proposalId: z.string(),
+  vote: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SWFReinsuranceOptionVolatilityFloorPanicOverrideVote = z.infer<typeof SWFReinsuranceOptionVolatilityFloorPanicOverrideVoteSchema>;
+
+
 
 export const SWFReinsuranceOptionPenaltyRefundVoteSchema = z.object({
   proposalId: z.string(),
@@ -3274,6 +3296,8 @@ export const GameStateSchema = z.object({
   swfReinsuranceOptionVolatilityFloorVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorVoteSchema)).optional(),
   swfReinsuranceOptionVolatilityFloorAutoAdjustProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorAutoAdjustProposalSchema).optional(),
   swfReinsuranceOptionVolatilityFloorAutoAdjustVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorAutoAdjustVoteSchema)).optional(),
+  swfReinsuranceOptionVolatilityFloorPanicOverrideProposals: z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideProposalSchema).optional(),
+  swfReinsuranceOptionVolatilityFloorPanicOverrideVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityFloorPanicOverrideVoteSchema)).optional(),
   swfReinsuranceOptionPremiumContributions: z.record(z.string(), z.number().int().nonnegative()).optional(),
   swfReinsuranceOptionVolatilityInsurancePolicies: z.record(z.string(), SWFReinsuranceOptionVolatilityInsurancePolicySchema).optional(),
   adjustSWFReinsuranceOptionVolatilityInsuranceVotes: z.record(z.string(), z.record(z.string(), SWFReinsuranceOptionVolatilityInsuranceVoteSchema)).optional(),
@@ -3637,6 +3661,8 @@ export const createInitialState = (options: {
     swfReinsuranceOptionVolatilityFloorVotes: {},
     swfReinsuranceOptionVolatilityFloorAutoAdjustProposals: {},
     swfReinsuranceOptionVolatilityFloorAutoAdjustVotes: {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideProposals: {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideVotes: {},
     swfReinsuranceOptionPremiumContributions: {},
     swfReinsuranceOptionVolatilityInsurancePolicies: {},
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: {},
@@ -4706,6 +4732,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfReinsuranceOptionVolatilityFloorVotes: rest.swfReinsuranceOptionVolatilityFloorVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorVotes)) : undefined,
     swfReinsuranceOptionVolatilityFloorAutoAdjustProposals: rest.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals)) : undefined,
     swfReinsuranceOptionVolatilityFloorAutoAdjustVotes: rest.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes)) : undefined,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideProposals: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals)) : undefined,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideVotes: rest.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes)) : undefined,
     swfReinsuranceOptionPremiumContributions: rest.swfReinsuranceOptionPremiumContributions ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionPremiumContributions)) : undefined,
     swfReinsuranceOptionVolatilityInsurancePolicies: rest.swfReinsuranceOptionVolatilityInsurancePolicies ? JSON.parse(JSON.stringify(rest.swfReinsuranceOptionVolatilityInsurancePolicies)) : undefined,
     adjustSWFReinsuranceOptionVolatilityInsuranceVotes: rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes ? JSON.parse(JSON.stringify(rest.adjustSWFReinsuranceOptionVolatilityInsuranceVotes)) : undefined,
@@ -14367,6 +14395,69 @@ export function reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts(state: G
 
   return newState;
 }
+
+export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrides(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfReinsuranceOptionVolatilityFloorPanicOverrideProposals: state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals } : {},
+    swfReinsuranceOptionVolatilityFloorPanicOverrideVotes: state.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes ? { ...state.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals)) {
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const votes = newState.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes[proposalId] || {};
+    const totalMembers = syndicate.members.length;
+
+    const authorizeVoters = new Set<string>();
+    const disputeVoters = new Set<string>();
+    const timestamps: number[] = [];
+
+    for (const [voterId, v] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        if (v.vote) {
+          authorizeVoters.add(voterId);
+        } else {
+          disputeVoters.add(voterId);
+        }
+        timestamps.push(v.timestamp);
+      }
+    }
+
+    let status = proposal.status;
+
+    if (disputeVoters.size > 0 && status !== "authorized") {
+      status = "disputed";
+    }
+
+    let newlyAuthorized = false;
+    if (authorizeVoters.size > totalMembers / 2) {
+      if (status !== "authorized") {
+        newlyAuthorized = true;
+      }
+      status = "authorized";
+    }
+
+    const maxTimestamp = timestamps.length > 0 ? Math.max(...timestamps) : proposal.timestamp;
+    let cooldownEndStep = proposal.cooldownEndStep;
+
+    if (newlyAuthorized && cooldownEndStep === undefined) {
+      cooldownEndStep = state.step + proposal.cooldownDuration;
+    }
+
+    newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[proposalId] = {
+      ...proposal,
+      status,
+      cooldownEndStep,
+      timestamp: Math.max(maxTimestamp, newState.step),
+    };
+  }
+
+  return newState;
+}
+
 
 
 

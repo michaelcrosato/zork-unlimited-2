@@ -793,7 +793,28 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
         }
       }
 
-      if (depletionThreshold !== undefined && scalingFactor !== undefined) {
+      // Check if there is an authorized active panic override for this CDO and tranche
+      let overrideActive = false;
+      let overrideLogMsg = "";
+      if (newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals) {
+        for (const prop of Object.values(newState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals)) {
+          if (prop.swfYieldCdoId === optionCdoId &&
+              prop.trancheId === trancheId &&
+              prop.status === "authorized" &&
+              prop.panicOverrideActive &&
+              prop.cooldownEndStep !== undefined &&
+              newState.step <= prop.cooldownEndStep) {
+            overrideActive = true;
+            overrideLogMsg = `[SWF Reinsurance Option Volatility Floor Panic Override Active] Volatility floor auto-boost is frozen under cooldown (Current Step: ${newState.step}, Cooldown End Step: ${prop.cooldownEndStep}).`;
+            break;
+          }
+        }
+      }
+
+      if (overrideActive) {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(overrideLogMsg);
+      } else if (depletionThreshold !== undefined && scalingFactor !== undefined) {
         // Find the cross-syndicate pool or volatility insurance pool
         const crossPool = Object.values(newState.swfReinsuranceOptionCrossSyndicatePools || {}).find((p: any) =>
           p.swfYieldCdoId === optionCdoId && p.trancheId === trancheId
