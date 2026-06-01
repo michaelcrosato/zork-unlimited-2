@@ -1,4 +1,4 @@
-import { GossipNode, GossipMessage } from "./gossip.js";
+import { GossipNode, GossipMessage, GossipFragment, GossipPacketFragmenter } from "./gossip.js";
 import { Action, StepResult } from "../api/types.js";
 import { GameEvent } from "./events.js";
 
@@ -21,15 +21,16 @@ export interface RoutedPacket {
   sourceId: string;
   destinationId: string;
   ttl: number;
-  type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack";
+  type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment";
   payload: any;
   route: string[];
   priority?: number;
 }
 
-export function getPriorityForType(type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack"): number {
+export function getPriorityForType(type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment"): number {
   switch (type) {
     case "gossip":
+    case "gossip_fragment":
       return 3;
     case "presence":
       return 2;
@@ -161,6 +162,10 @@ export class MeshNode extends GossipNode {
   public network: MeshNetwork | null = null;
   public directNeighbors: Set<string> = new Set();
   public presenceSeq = 0;
+
+  // Fragmentation and Reassembly layer properties
+  public maxFragmentSize = 0; // 0 means fragmentation is disabled
+  public fragmentBuffers: Map<string, Map<number, GossipFragment>> = new Map();
 
   // Packet statistics for telemetry/testing
   public packetsSentCount = 0;
@@ -385,12 +390,21 @@ export class MeshNode extends GossipNode {
 
           if (this.network) {
             const reply = this.generateGossipMessageFor(packet.sourceId);
-            this.network.sendRoutedPacket({
-              sourceId: this.nodeId,
-              destinationId: packet.sourceId,
-              type: "gossip",
-              payload: reply,
-            });
+            this.sendGossipOrFragments(packet.sourceId, reply);
+          }
+        }
+      } else if (packet.type === "gossip_fragment") {
+        const fragment = packet.payload as GossipFragment;
+        const reassembled = this.bufferAndReassemble(fragment);
+        if (reassembled) {
+          const updated = this.receiveGossip(reassembled);
+          if (updated) {
+            this.triggerPeerEvent("sync", packet.sourceId);
+
+            if (this.network) {
+              const reply = this.generateGossipMessageFor(packet.sourceId);
+              this.sendGossipOrFragments(packet.sourceId, reply);
+            }
           }
         }
       } else if (packet.type === "heartbeat") {
@@ -610,14 +624,72 @@ export class MeshNode extends GossipNode {
     if (this.isRedundantGossip(targetNodeId, gossipMsg)) {
       return false;
     }
+    
+    this.sendGossipOrFragments(targetNodeId, gossipMsg);
+    return true;
+  }
+
+  /**
+   * Helper that either fragments and sends a GossipMessage as multiple packets,
+   * or sends it directly as a single gossip packet depending on maxFragmentSize.
+   */
+  public sendGossipOrFragments(destinationId: string, gossipMsg: GossipMessage): void {
+    if (!this.network) return;
+
+    if (this.maxFragmentSize > 0 && gossipMsg.compressedDiff) {
+      const fragments = GossipPacketFragmenter.fragment(gossipMsg, this.maxFragmentSize);
+      if (fragments.length > 1) {
+        for (const fragment of fragments) {
+          this.network.sendRoutedPacket({
+            sourceId: this.nodeId,
+            destinationId: destinationId,
+            type: "gossip_fragment",
+            payload: fragment,
+          });
+        }
+        return;
+      }
+    }
+
     this.network.sendRoutedPacket({
       sourceId: this.nodeId,
-      destinationId: targetNodeId,
+      destinationId,
       type: "gossip",
       payload: gossipMsg,
     });
+  }
 
-    return true;
+  /**
+   * Buffers out-of-order/jittered incoming gossip fragments for a transmission
+   * and returns the reassembled GossipMessage once all fragments have arrived.
+   */
+  public bufferAndReassemble(fragment: GossipFragment): GossipMessage | null {
+    const { transmissionId, fragmentIndex, totalFragments } = fragment;
+
+    let buffer = this.fragmentBuffers.get(transmissionId);
+    if (!buffer) {
+      buffer = new Map<number, GossipFragment>();
+      this.fragmentBuffers.set(transmissionId, buffer);
+    }
+
+    buffer.set(fragmentIndex, fragment);
+
+    if (buffer.size === totalFragments) {
+      const sortedFragments: GossipFragment[] = [];
+      for (let i = 0; i < totalFragments; i++) {
+        const f = buffer.get(i);
+        if (!f) {
+          return null;
+        }
+        sortedFragments.push(f);
+      }
+
+      const reassembled = GossipPacketFragmenter.reassemble(sortedFragments);
+      this.fragmentBuffers.delete(transmissionId);
+      return reassembled;
+    }
+
+    return null;
   }
 }
 
@@ -728,7 +800,7 @@ export class MeshNetwork {
   public sendRoutedPacket(params: {
     sourceId: string;
     destinationId: string;
-    type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack";
+    type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment";
     payload: any;
     priority?: number;
   }): void {

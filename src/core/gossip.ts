@@ -587,3 +587,74 @@ export class GossipNode {
     return updatedCount;
   }
 }
+
+/**
+ * A fragment of a serialized and split GossipMessage payload.
+ */
+export interface GossipFragment {
+  transmissionId: string;
+  fragmentIndex: number;
+  totalFragments: number;
+  senderId: string;
+  vectorClock: VectorClock;
+  chunk: string;
+}
+
+/**
+ * A serialization wrapper that splits compressed state diffs into small indexed chunks
+ * and reassembles them back into a unified GossipMessage.
+ */
+export class GossipPacketFragmenter {
+  /**
+   * Serializes the compressedDiff, splits it into chunks of maxFragmentSize,
+   * and wraps them in GossipFragment structures.
+   */
+  public static fragment(
+    message: GossipMessage,
+    maxFragmentSize: number
+  ): GossipFragment[] {
+    const serializedDiff = JSON.stringify(message.compressedDiff ?? {});
+    const totalLength = serializedDiff.length;
+    const totalFragments = Math.max(1, Math.ceil(totalLength / maxFragmentSize));
+    const transmissionId = `${message.senderId}-${Date.now()}-${Math.random()}`;
+
+    const fragments: GossipFragment[] = [];
+    for (let i = 0; i < totalFragments; i++) {
+      const start = i * maxFragmentSize;
+      const end = Math.min(start + maxFragmentSize, totalLength);
+      const chunk = serializedDiff.substring(start, end);
+      fragments.push({
+        transmissionId,
+        fragmentIndex: i,
+        totalFragments,
+        senderId: message.senderId,
+        vectorClock: { ...message.vectorClock },
+        chunk,
+      });
+    }
+    return fragments;
+  }
+
+  /**
+   * Reassembles a list of GossipFragments into a reconstructed GossipMessage.
+   * Sorts the fragments in order of fragmentIndex before joining.
+   */
+  public static reassemble(fragments: GossipFragment[]): GossipMessage {
+    if (fragments.length === 0) {
+      throw new Error("Cannot reassemble empty fragments list");
+    }
+
+    const sorted = [...fragments].sort((a, b) => a.fragmentIndex - b.fragmentIndex);
+    const fullSerialized = sorted.map((f) => f.chunk).join("");
+    const compressedDiff = JSON.parse(fullSerialized);
+
+    const first = sorted[0];
+    return {
+      senderId: first.senderId,
+      vectorClock: { ...first.vectorClock },
+      transactions: [],
+      compressedDiff,
+    };
+  }
+}
+

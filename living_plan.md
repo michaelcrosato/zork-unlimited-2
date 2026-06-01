@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #21 (Ready for Cycle #22)
-* **Build/Test Status**: 🟢 PASS (All 104 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #22 (Ready for Cycle #23)
+* **Build/Test Status**: 🟢 PASS (All 108 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -107,16 +107,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement local node caching of recently sent delta packets to avoid redundant updates (`AF-21`).
 - [x] Write comprehensive unit tests for compression, decompression, redundancy caching, and converged sync (`AF-21`).
 
+### Phase 17: Gossip Packet Fragmentation & Reassembly (Completed)
+- [x] Design a serialization wrapper that splits compressed state diffs into small indexed chunks/fragments with a shared transmission ID and total fragment count header (`AF-22`).
+- [x] Implement an out-of-order buffer at the receiver node to reassemble fragments, handling missing or delayed packets (`AF-22`).
+- [x] Write comprehensive unit and integration tests asserting seamless reassembly, fragment drop tolerance, and state convergence (`AF-22`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-22`
-* **Objective**: Design and implement a Gossip packet fragmentation and reassembly layer (`GossipPacketFragmenter`) to safely split oversized gossip states and transaction logs across multiple small network packets and reassemble them in order under network jitter or packet loss.
-* **Why this matters**: Even with differential compression, extremely long multi-agent sessions or rich structural game assets can eventually exceed the maximum transmission unit (MTU) of typical network layers, leading to fragmentation drops, high memory usage, or transmission failure in real P2P mesh deployments.
+**Task ID**: `AF-23`
+* **Objective**: Design and implement a Gossip anti-entropy recovery mechanism (`GossipAntiEntropyRecovery`) that periodically triggers a full vector-clock comparison and state reconciliation check for nodes that have recently suffered long physical partitions or high packet loss, resolving silent synchronization failures.
+* **Why this matters**: In highly dynamic meshes with frequent node failures and packet drops, even robust gossip and fragmentation protocols can occasionally leave nodes with undetected delta gaps. An active anti-entropy background task ensures perfect, ultimate consistency and eventual convergence under any adversarial network conditions.
 * **Planned Actions**:
-  1. Design a serialization wrapper that splits compressed state diffs into small indexed chunks/fragments with a shared transmission ID and total fragment count header.
-  2. Implement an out-of-order buffer at the receiver node to reassemble fragments, handling missing or delayed packets.
-  3. Write comprehensive unit and integration tests asserting seamless reassembly, fragment drop tolerance, and state convergence.
+  1. Design a periodic low-overhead anti-entropy digest exchange containing a merkle tree root or condensed clock hash of local states.
+  2. Implement a background recovery task triggered when state divergence or clock discrepancies are detected.
+  3. Write comprehensive tests asserting complete convergence of partitioned nodes upon anti-entropy reconciliation.
 
 ---
 

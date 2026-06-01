@@ -20,9 +20,10 @@ export {
   deltaEncode,
   deltaDecode,
   compressStateDiff,
-  decompressStateDiff
+  decompressStateDiff,
+  GossipPacketFragmenter
 } from "./core/gossip.js";
-export type { VectorClock, GossipMessage } from "./core/gossip.js";
+export type { VectorClock, GossipMessage, GossipFragment } from "./core/gossip.js";
 export { DecentralizedDungeonExpedition } from "./core/expedition.js";
 
 // Network & Mesh Discovery
