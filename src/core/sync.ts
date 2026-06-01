@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool } from "./state.js";
 export interface MultiAgentAction {
@@ -20628,6 +20628,394 @@ export function multiAgentStep(
 
       newState.marginLiquidationInsuranceVotes = marginLiquidationInsuranceVotes;
       newState = reconcileMarginLiquidationInsurancePolicies(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
+  }
+
+  // Handle decentralized BUY_SOVEREIGN_BOND_OPTION action (AF-144)
+  if ((action as any).type === "BUY_SOVEREIGN_BOND_OPTION") {
+    const { syndicateId, bondId, optionType, strikePrice, premium, size, expirationEpoch, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to buy sovereign bond option.`;
+    } else if (!bondId) {
+      rejectionReason = `Bond ID is required to buy sovereign bond option.`;
+    } else if (!optionType || (optionType !== "call" && optionType !== "put")) {
+      rejectionReason = `Option type must be call or put.`;
+    } else if (strikePrice === undefined || typeof strikePrice !== "number" || strikePrice < 0) {
+      rejectionReason = `Strike price must be a non-negative number.`;
+    } else if (premium === undefined || typeof premium !== "number" || premium < 0) {
+      rejectionReason = `Premium must be a non-negative number.`;
+    } else if (!size || !Number.isInteger(size) || size <= 0) {
+      rejectionReason = `Size must be a positive integer.`;
+    } else if (!expirationEpoch || !Number.isInteger(expirationEpoch) || expirationEpoch <= state.step) {
+      rejectionReason = `Expiration epoch must be an integer greater than the current step.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to buy option.`;
+    } else if (marginAccount.collateral < Math.round(premium * size)) {
+      rejectionReason = `Insufficient margin account collateral (${marginAccount.collateral} < ${Math.round(premium * size)}) to buy option.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const buySovereignBondOptionVotes = { ...(state.buySovereignBondOptionVotes || {}) };
+      if (!buySovereignBondOptionVotes[syndicateId]) {
+        buySovereignBondOptionVotes[syndicateId] = {};
+      } else {
+        buySovereignBondOptionVotes[syndicateId] = { ...buySovereignBondOptionVotes[syndicateId] };
+      }
+
+      buySovereignBondOptionVotes[syndicateId][agentId] = {
+        bondId,
+        optionType,
+        strikePrice,
+        premium,
+        size,
+        expirationEpoch,
+        timestamp,
+      };
+
+      newState.buySovereignBondOptionVotes = buySovereignBondOptionVotes;
+      newState = reconcileSovereignBondOptions(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
+  }
+
+  // Handle decentralized SELL_SOVEREIGN_BOND_OPTION action (AF-144)
+  if ((action as any).type === "SELL_SOVEREIGN_BOND_OPTION") {
+    const { syndicateId, optionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const option = state.sovereignBondOptions?.[optionId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to sell sovereign bond option.`;
+    } else if (!optionId) {
+      rejectionReason = `Option ID is required to sell sovereign bond option.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!option) {
+      rejectionReason = `Option ${optionId} does not exist.`;
+    } else if (!option.active) {
+      rejectionReason = `Option ${optionId} is already inactive/exercised.`;
+    } else if (option.syndicateId !== syndicateId) {
+      rejectionReason = `Option ${optionId} does not belong to syndicate ${syndicateId}.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to sell option.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const sellSovereignBondOptionVotes = { ...(state.sellSovereignBondOptionVotes || {}) };
+      if (!sellSovereignBondOptionVotes[syndicateId]) {
+        sellSovereignBondOptionVotes[syndicateId] = {};
+      } else {
+        sellSovereignBondOptionVotes[syndicateId] = { ...sellSovereignBondOptionVotes[syndicateId] };
+      }
+
+      sellSovereignBondOptionVotes[syndicateId][agentId] = {
+        optionId,
+        timestamp,
+      };
+
+      newState.sellSovereignBondOptionVotes = sellSovereignBondOptionVotes;
+      newState = reconcileSovereignBondOptions(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
+  }
+
+  // Handle decentralized EXERCISE_SOVEREIGN_BOND_OPTION action (AF-144)
+  if ((action as any).type === "EXERCISE_SOVEREIGN_BOND_OPTION") {
+    const { syndicateId, optionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const option = state.sovereignBondOptions?.[optionId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to exercise sovereign bond option.`;
+    } else if (!optionId) {
+      rejectionReason = `Option ID is required to exercise sovereign bond option.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!option) {
+      rejectionReason = `Option ${optionId} does not exist.`;
+    } else if (!option.active) {
+      rejectionReason = `Option ${optionId} is already inactive/exercised.`;
+    } else if (option.syndicateId !== syndicateId) {
+      rejectionReason = `Option ${optionId} does not belong to syndicate ${syndicateId}.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to exercise option.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const exerciseSovereignBondOptionVotes = { ...(state.exerciseSovereignBondOptionVotes || {}) };
+      if (!exerciseSovereignBondOptionVotes[syndicateId]) {
+        exerciseSovereignBondOptionVotes[syndicateId] = {};
+      } else {
+        exerciseSovereignBondOptionVotes[syndicateId] = { ...exerciseSovereignBondOptionVotes[syndicateId] };
+      }
+
+      exerciseSovereignBondOptionVotes[syndicateId][agentId] = {
+        optionId,
+        timestamp,
+      };
+
+      newState.exerciseSovereignBondOptionVotes = exerciseSovereignBondOptionVotes;
+      newState = reconcileSovereignBondOptions(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
+  }
+
+  // Handle decentralized OPEN_SOVEREIGN_BOND_VOLATILITY_POSITION action (AF-144)
+  if ((action as any).type === "OPEN_SOVEREIGN_BOND_VOLATILITY_POSITION") {
+    const { syndicateId, bondId, side, size, marginCollateral, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to open volatility position.`;
+    } else if (!bondId) {
+      rejectionReason = `Bond ID is required to open volatility position.`;
+    } else if (!side || (side !== "long" && side !== "short")) {
+      rejectionReason = `Side must be long or short.`;
+    } else if (!size || !Number.isInteger(size) || size <= 0) {
+      rejectionReason = `Size must be a positive integer.`;
+    } else if (marginCollateral === undefined || !Number.isInteger(marginCollateral) || marginCollateral < 0) {
+      rejectionReason = `Margin collateral must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to open volatility position.`;
+    } else if (marginAccount.collateral < marginCollateral) {
+      rejectionReason = `Insufficient margin account collateral (${marginAccount.collateral} < ${marginCollateral}) to open volatility position.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const openSovereignBondVolatilityVotes = { ...(state.openSovereignBondVolatilityVotes || {}) };
+      if (!openSovereignBondVolatilityVotes[syndicateId]) {
+        openSovereignBondVolatilityVotes[syndicateId] = {};
+      } else {
+        openSovereignBondVolatilityVotes[syndicateId] = { ...openSovereignBondVolatilityVotes[syndicateId] };
+      }
+
+      openSovereignBondVolatilityVotes[syndicateId][agentId] = {
+        bondId,
+        side,
+        size,
+        marginCollateral,
+        timestamp,
+      };
+
+      newState.openSovereignBondVolatilityVotes = openSovereignBondVolatilityVotes;
+      newState = reconcileSovereignBondVolatilityPositions(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
+  }
+
+  // Handle decentralized CLOSE_SOVEREIGN_BOND_VOLATILITY_POSITION action (AF-144)
+  if ((action as any).type === "CLOSE_SOVEREIGN_BOND_VOLATILITY_POSITION") {
+    const { syndicateId, positionId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const position = state.sovereignBondVolatilityPositions?.[positionId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to close volatility position.`;
+    } else if (!positionId) {
+      rejectionReason = `Position ID is required to close volatility position.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!position) {
+      rejectionReason = `Volatility position ${positionId} does not exist.`;
+    } else if (!position.active) {
+      rejectionReason = `Volatility position ${positionId} is already closed.`;
+    } else if (position.syndicateId !== syndicateId) {
+      rejectionReason = `Volatility position ${positionId} does not belong to syndicate ${syndicateId}.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to close volatility position.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && position) {
+      const closeSovereignBondVolatilityVotes = { ...(state.closeSovereignBondVolatilityVotes || {}) };
+      if (!closeSovereignBondVolatilityVotes[syndicateId]) {
+        closeSovereignBondVolatilityVotes[syndicateId] = {};
+      } else {
+        closeSovereignBondVolatilityVotes[syndicateId] = { ...closeSovereignBondVolatilityVotes[syndicateId] };
+      }
+
+      closeSovereignBondVolatilityVotes[syndicateId][agentId] = {
+        positionId,
+        timestamp,
+      };
+
+      newState.closeSovereignBondVolatilityVotes = closeSovereignBondVolatilityVotes;
+      newState = reconcileSovereignBondVolatilityPositions(newState, pack);
+
+      return {
+        state: newState,
+        events: customEvents,
+        ok: true,
+      };
+    } else {
+      return {
+        state,
+        events: [],
+        ok: false,
+        rejectionReason,
+      };
+    }
+  }
+
+  // Handle decentralized CONFIGURE_VOLATILITY_HEDGED_BUFFER action (AF-144)
+  if ((action as any).type === "CONFIGURE_VOLATILITY_HEDGED_BUFFER") {
+    const { syndicateId, reserveTarget, hedgedRatio, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to configure volatility-hedged reserve buffer.`;
+    } else if (reserveTarget === undefined || typeof reserveTarget !== "number" || reserveTarget < 0) {
+      rejectionReason = `Reserve target must be a non-negative number.`;
+    } else if (hedgedRatio === undefined || typeof hedgedRatio !== "number" || hedgedRatio < 0 || hedgedRatio > 100) {
+      rejectionReason = `Hedged ratio must be a percentage between 0 and 100.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to configure buffer.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const configureVolatilityHedgedBufferVotes = { ...(state.configureVolatilityHedgedBufferVotes || {}) };
+      if (!configureVolatilityHedgedBufferVotes[syndicateId]) {
+        configureVolatilityHedgedBufferVotes[syndicateId] = {};
+      } else {
+        configureVolatilityHedgedBufferVotes[syndicateId] = { ...configureVolatilityHedgedBufferVotes[syndicateId] };
+      }
+
+      configureVolatilityHedgedBufferVotes[syndicateId][agentId] = {
+        reserveTarget,
+        hedgedRatio,
+        timestamp,
+      };
+
+      newState.configureVolatilityHedgedBufferVotes = configureVolatilityHedgedBufferVotes;
+      newState = reconcileVolatilityHedgedReserveBuffers(newState, pack);
 
       return {
         state: newState,

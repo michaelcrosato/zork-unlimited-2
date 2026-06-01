@@ -1,4 +1,4 @@
-import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield } from "./state.js";
+import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium } from "./state.js";
 import { PureRand } from "./rng.js";
 
 /**
@@ -674,6 +674,88 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     vars: { ...state.vars },
     journal: [...state.journal],
   };
+
+  // Dynamic Volatility Index (VIX-style) calculation (AF-144)
+  const activeBonds = new Set<string>();
+  if (newState.cooperativeSovereigntyBondProposals) {
+    for (const bondId of Object.keys(newState.cooperativeSovereigntyBondProposals)) {
+      activeBonds.add(bondId);
+    }
+  }
+  if (newState.sovereignDebtProposals) {
+    for (const bondId of Object.keys(newState.sovereignDebtProposals)) {
+      activeBonds.add(bondId);
+    }
+  }
+  if (newState.sovereignBondLendingPools) {
+    for (const pool of Object.values(newState.sovereignBondLendingPools)) {
+      activeBonds.add(pool.bondId);
+    }
+  }
+
+  newState.bondYieldHistories = newState.bondYieldHistories ? { ...newState.bondYieldHistories } : {};
+  newState.yieldVolatilityIndexes = newState.yieldVolatilityIndexes ? { ...newState.yieldVolatilityIndexes } : {};
+
+  for (const bondId of activeBonds) {
+    const currentYield = getBondCurrentYield(newState, bondId);
+    const history = [...(newState.bondYieldHistories[bondId] || [])];
+    history.push(currentYield);
+    if (history.length > 5) {
+      history.shift();
+    }
+    newState.bondYieldHistories[bondId] = history;
+
+    let variance = 0;
+    if (history.length >= 2) {
+      const mean = history.reduce((a, b) => a + b, 0) / history.length;
+      const sqDiffSum = history.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0);
+      variance = sqDiffSum / history.length;
+    }
+
+    // Bid-ask option spread term (Theoretical call option strike=yield, expires step+5)
+    const basePrem = calculateOptionPremium(newState, bondId, "call", currentYield, newState.step + 5);
+    const spread = basePrem * 0.10;
+
+    const volatility = Math.max(10.0, Math.round(Math.sqrt(variance) * 50 + (spread * 20) + (currentYield * 0.5)));
+    newState.yieldVolatilityIndexes[bondId] = {
+      bondId,
+      volatility,
+      timestamp: newState.step,
+    };
+  }
+
+  // Active Option Expiries/Settlements (AF-144)
+  if (newState.sovereignBondOptions) {
+    newState.sovereignBondOptions = { ...newState.sovereignBondOptions };
+    newState.marginAccounts = newState.marginAccounts ? { ...newState.marginAccounts } : {};
+    for (const optId of Object.keys(newState.sovereignBondOptions)) {
+      const option = newState.sovereignBondOptions[optId];
+      if (option && option.active && newState.step >= option.expirationEpoch) {
+        const currentYield = getBondCurrentYield(newState, option.bondId);
+        const intrinsic = option.optionType === "call"
+          ? Math.max(0, currentYield - option.strikePrice)
+          : Math.max(0, option.strikePrice - currentYield);
+        const payoff = Math.round(intrinsic * option.size * 1000);
+
+        const marginAccount = newState.marginAccounts[option.syndicateId];
+        if (marginAccount && payoff > 0) {
+          marginAccount.collateral += payoff;
+          marginAccount.timestamp = newState.step;
+        }
+
+        newState.sovereignBondOptions[optId] = {
+          ...option,
+          active: false,
+          timestamp: newState.step,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Sovereign Bond Option Expired] Option ${option.id} (${option.optionType}) on bond ${option.bondId} expired at yield ${currentYield.toFixed(2)}% (Strike: ${option.strikePrice}%, Payoff: ${payoff} gold).`
+        );
+      }
+    }
+  }
 
   // Epoch audits & faction sponsor revocations (AF-116)
   const isEpochEnd = newState.step > 0 && newState.step % 5 === 0;
@@ -3586,6 +3668,52 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   if (newState.marginAccounts && Object.keys(newState.marginAccounts).length > 0) {
     newState.marginAccounts = { ...newState.marginAccounts };
     for (const [syndicateId, marginAccount] of Object.entries(newState.marginAccounts)) {
+      // AF-144: Volatility-Hedged Reserve Buffer Automated Adjustment
+      const bufferPolicy = newState.volatilityHedgedReserveBuffers?.[syndicateId];
+      if (bufferPolicy) {
+        const syndicate = newState.syndicates?.[syndicateId];
+        if (syndicate) {
+          // Find active bond or default to "bond_1"
+          let bondId = "bond_1";
+          if (newState.sovereignBondLendingPools) {
+            const pools = Object.values(newState.sovereignBondLendingPools);
+            if (pools.length > 0) {
+              bondId = pools[0].bondId;
+            }
+          }
+          const volatility = getBondVolatility(newState, bondId);
+          // Scale target by volatility relative to base of 20
+          const scaledTarget = Math.round(bufferPolicy.reserveTarget * (1 + (volatility - 20) / 100));
+
+          if (marginAccount.collateral < scaledTarget) {
+            const needed = scaledTarget - marginAccount.collateral;
+            const transfer = Math.min(syndicate.warChest ?? 0, needed);
+            if (transfer > 0) {
+              syndicate.warChest = (syndicate.warChest ?? 0) - transfer;
+              marginAccount.collateral += transfer;
+              marginAccount.timestamp = newState.step;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Volatility Hedged Buffer Deposit] Syndicate ${syndicateId} automatically deposited ${transfer} gold from war chest to margin account to maintain volatility-scaled reserve target of ${scaledTarget} gold (Current Volatility: ${volatility.toFixed(2)}%).`
+              );
+            }
+          } else if (marginAccount.collateral > scaledTarget * 1.5) {
+            const excess = marginAccount.collateral - scaledTarget;
+            if (excess > 0) {
+              marginAccount.collateral -= excess;
+              syndicate.warChest = (syndicate.warChest ?? 0) + excess;
+              marginAccount.timestamp = newState.step;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Volatility Hedged Buffer Refund] Syndicate ${syndicateId} automatically refunded ${excess} gold of excess collateral from margin account back to war chest (Target: ${scaledTarget} gold, Current Volatility: ${volatility.toFixed(2)}%).`
+              );
+            }
+          }
+        }
+      }
+
       // AF-113: Dynamic Advisor-led Reallocations
       if (marginAccount.advisorEnabled && marginAccount.advisorSafetyThreshold !== undefined && marginAccount.collateral > 0) {
         const vaults = getSecondaryReserveVaults(newState);
@@ -4225,12 +4353,60 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
+      let hasActiveVolatility = false;
+      if (newState.sovereignBondVolatilityPositions) {
+        for (const pos of Object.values(newState.sovereignBondVolatilityPositions)) {
+          if (pos.active && pos.syndicateId === syndicateId) {
+            hasActiveVolatility = true;
+            break;
+          }
+        }
+      }
+
+      const hasReserveBuffer = newState.volatilityHedgedReserveBuffers?.[syndicateId] !== undefined;
+
       if (marginAccount.collateral === 0 &&
           (!marginAccount.leveragedCDSIds || marginAccount.leveragedCDSIds.length === 0) &&
           (!marginAccount.leveragedSWFYieldCDOCDSIds || marginAccount.leveragedSWFYieldCDOCDSIds.length === 0) &&
           (!marginAccount.leveragedTranchePositions || Object.keys(marginAccount.leveragedTranchePositions).length === 0) &&
-          !hasActiveFutures) {
+          !hasActiveFutures &&
+          !hasActiveVolatility &&
+          !hasReserveBuffer) {
         continue;
+      }
+
+      // Mark-to-market settlement for active sovereign bond volatility positions (AF-144)
+      if (newState.sovereignBondVolatilityPositions) {
+        newState.sovereignBondVolatilityPositions = { ...newState.sovereignBondVolatilityPositions };
+        for (const posId of Object.keys(newState.sovereignBondVolatilityPositions)) {
+          const pos = newState.sovereignBondVolatilityPositions[posId];
+          if (pos && pos.active && pos.syndicateId === syndicateId) {
+            const currentVix = getBondVolatility(newState, pos.bondId);
+            const diff = currentVix - pos.entryVolatility;
+            const profit = Math.round((pos.side === "long" ? 1 : -1) * diff * pos.size * 10);
+
+            marginAccount.collateral = Math.max(0, marginAccount.collateral + profit);
+
+            newState.sovereignBondVolatilityPositions[posId] = {
+              ...pos,
+              entryVolatility: currentVix,
+              timestamp: newState.step,
+            };
+
+            if (marginAccount.collateral <= 0) {
+              newState.sovereignBondVolatilityPositions[posId].active = false;
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Sovereign Bond Volatility Position Liquidated] Syndicate ${syndicateId} position ${pos.id} on bond ${pos.bondId} was liquidated due to insufficient collateral.`
+              );
+            } else if (profit !== 0) {
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Sovereign Bond Volatility Mark-to-Market] Syndicate ${syndicateId} position ${pos.id} on bond ${pos.bondId} settled MTM. Current VIX: ${currentVix.toFixed(2)}%, profit/loss: ${profit} gold.`
+              );
+            }
+          }
+        }
       }
 
       // Mark-to-market settlement for active sovereign bond futures positions (AF-143)
@@ -4352,10 +4528,19 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         }
       }
 
+      let sumVolMaintenanceRequirement = 0;
+      if (newState.sovereignBondVolatilityPositions) {
+        for (const pos of Object.values(newState.sovereignBondVolatilityPositions)) {
+          if (pos.active && pos.syndicateId === syndicateId) {
+            sumVolMaintenanceRequirement += pos.size * 5;
+          }
+        }
+      }
+
       const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
       const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
       const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
-      let maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement;
+      let maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement + sumVolMaintenanceRequirement;
 
       // AF-112: Preemptive Drawdown Loop to prevent margin call liquidations
       if (marginAccount.rebalancingEnabled && marginAccount.collateral > 0) {
@@ -4397,7 +4582,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
               const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
               const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
-              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement;
+              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement + sumVolMaintenanceRequirement;
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!
@@ -4451,7 +4636,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               const swfLeverage = marginAccount.swfLeverageFactor ?? 1.0;
               const swfCdsComponent = Math.round((0.20 * sumSwfCdsNotional) / swfLeverage);
               const swfRehypoComponent = Math.round(swfRehypothecationPremium / swfLeverage);
-              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement;
+              maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium) + swfCdsComponent + swfRehypoComponent + sumFuturesMaintenanceRequirement + sumVolMaintenanceRequirement;
 
               if (netEquity > triggerRatio * maintenanceRequirement) {
                 break; // Safely avoided the danger zone!

@@ -1954,6 +1954,49 @@ export const MarginLiquidationInsurancePolicySchema = z.object({
 });
 export type MarginLiquidationInsurancePolicy = z.infer<typeof MarginLiquidationInsurancePolicySchema>;
 
+export const SovereignBondOptionSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  bondId: z.string(),
+  optionType: z.enum(["call", "put"]),
+  strikePrice: z.number(),
+  premium: z.number(),
+  size: z.number().int().positive(),
+  expirationEpoch: z.number().int().positive(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SovereignBondOption = z.infer<typeof SovereignBondOptionSchema>;
+
+export const YieldVolatilityIndexSchema = z.object({
+  bondId: z.string(),
+  volatility: z.number().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type YieldVolatilityIndex = z.infer<typeof YieldVolatilityIndexSchema>;
+
+export const VolatilityHedgedReserveBufferSchema = z.object({
+  syndicateId: z.string(),
+  reserveTarget: z.number().nonnegative(),
+  hedgedRatio: z.number().nonnegative().max(100),
+  timestamp: z.number().int(),
+});
+export type VolatilityHedgedReserveBuffer = z.infer<typeof VolatilityHedgedReserveBufferSchema>;
+
+export const SovereignBondVolatilityPositionSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  bondId: z.string(),
+  side: z.enum(["long", "short"]),
+  entryVolatility: z.number().nonnegative(),
+  size: z.number().int().positive(),
+  marginCollateral: z.number().int().nonnegative(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type SovereignBondVolatilityPosition = z.infer<typeof SovereignBondVolatilityPositionSchema>;
+
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -2329,6 +2372,50 @@ export const GameStateSchema = z.object({
     factionId: z.string(),
     timestamp: z.number().int(),
   }))).optional(),
+  sovereignBondOptions: z.record(z.string(), SovereignBondOptionSchema).optional(),
+  yieldVolatilityIndexes: z.record(z.string(), YieldVolatilityIndexSchema).optional(),
+  volatilityHedgedReserveBuffers: z.record(z.string(), VolatilityHedgedReserveBufferSchema).optional(),
+  sovereignBondVolatilityPositions: z.record(z.string(), SovereignBondVolatilityPositionSchema).optional(),
+  bondYieldHistories: z.record(z.string(), z.array(z.number())).optional(),
+
+  // Options votes
+  buySovereignBondOptionVotes: z.record(z.string(), z.record(z.string(), z.object({
+    bondId: z.string(),
+    optionType: z.enum(["call", "put"]),
+    strikePrice: z.number(),
+    premium: z.number(),
+    size: z.number().int().positive(),
+    expirationEpoch: z.number().int().positive(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  sellSovereignBondOptionVotes: z.record(z.string(), z.record(z.string(), z.object({
+    optionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  exerciseSovereignBondOptionVotes: z.record(z.string(), z.record(z.string(), z.object({
+    optionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+
+  // Volatility votes
+  openSovereignBondVolatilityVotes: z.record(z.string(), z.record(z.string(), z.object({
+    bondId: z.string(),
+    side: z.enum(["long", "short"]),
+    size: z.number().int().positive(),
+    marginCollateral: z.number().int().nonnegative(),
+    timestamp: z.number().int(),
+  }))).optional(),
+  closeSovereignBondVolatilityVotes: z.record(z.string(), z.record(z.string(), z.object({
+    positionId: z.string(),
+    timestamp: z.number().int(),
+  }))).optional(),
+
+  // Volatility hedged reserve buffer votes
+  configureVolatilityHedgedBufferVotes: z.record(z.string(), z.record(z.string(), z.object({
+    reserveTarget: z.number().nonnegative(),
+    hedgedRatio: z.number().nonnegative().max(100),
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -2586,6 +2673,17 @@ export const createInitialState = (options: {
     swfRiskPoolProposals: {},
     swfYieldCDOs: {},
     swfYieldCDOProposals: {},
+    sovereignBondOptions: {},
+    yieldVolatilityIndexes: {},
+    volatilityHedgedReserveBuffers: {},
+    sovereignBondVolatilityPositions: {},
+    bondYieldHistories: {},
+    buySovereignBondOptionVotes: {},
+    sellSovereignBondOptionVotes: {},
+    exerciseSovereignBondOptionVotes: {},
+    openSovereignBondVolatilityVotes: {},
+    closeSovereignBondVolatilityVotes: {},
+    configureVolatilityHedgedBufferVotes: {},
   };
 };
 
@@ -9674,6 +9772,439 @@ export function reconcileMarginLiquidationInsurancePolicies(state: GameState, pa
             delete newState.marginLiquidationInsuranceVotes[syndicateId];
           }
         }
+        break;
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function getBondVolatility(state: GameState, bondId: string): number {
+  if (state.yieldVolatilityIndexes?.[bondId]) {
+    return state.yieldVolatilityIndexes[bondId].volatility;
+  }
+  return 20.0;
+}
+
+export function calculateOptionPremium(
+  state: GameState,
+  bondId: string,
+  optionType: "call" | "put",
+  strikePrice: number,
+  expirationEpoch: number
+): number {
+  const currentYield = getBondCurrentYield(state, bondId);
+  const volatility = getBondVolatility(state, bondId);
+  const intrinsic = optionType === "call"
+    ? Math.max(0, currentYield - strikePrice)
+    : Math.max(0, strikePrice - currentYield);
+  const remainingTime = Math.max(0, expirationEpoch - state.step);
+  const timeValue = (volatility / 100) * Math.sqrt(remainingTime);
+  return Math.max(0.5, intrinsic + timeValue);
+}
+
+export function reconcileSovereignBondOptions(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignBondOptions: state.sovereignBondOptions ? { ...state.sovereignBondOptions } : {},
+    buySovereignBondOptionVotes: state.buySovereignBondOptionVotes ? { ...state.buySovereignBondOptionVotes } : {},
+    sellSovereignBondOptionVotes: state.sellSovereignBondOptionVotes ? { ...state.sellSovereignBondOptionVotes } : {},
+    exerciseSovereignBondOptionVotes: state.exerciseSovereignBondOptionVotes ? { ...state.exerciseSovereignBondOptionVotes } : {},
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+  };
+
+  // Reconcile BUY Option votes
+  for (const syndicateId of Object.keys(newState.buySovereignBondOptionVotes || {})) {
+    const votes = newState.buySovereignBondOptionVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      bondId: string;
+      optionType: "call" | "put";
+      strikePrice: number;
+      premium: number;
+      size: number;
+      expirationEpoch: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.bondId}::${vote.optionType}::${vote.strikePrice}::${vote.premium}::${vote.size}::${vote.expirationEpoch}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            bondId: vote.bondId,
+            optionType: vote.optionType,
+            strikePrice: vote.strikePrice,
+            premium: vote.premium,
+            size: vote.size,
+            expirationEpoch: vote.expirationEpoch,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const marginAccount = newState.marginAccounts?.[syndicateId];
+        const cost = Math.round(group.premium * group.size);
+        if (marginAccount && marginAccount.collateral >= cost) {
+          // Deduct premium cost
+          marginAccount.collateral -= cost;
+          marginAccount.timestamp = Math.max(...group.timestamps, newState.step);
+
+          const id = `opt_${Object.keys(newState.sovereignBondOptions || {}).length + 1}`;
+          newState.sovereignBondOptions![id] = {
+            id,
+            syndicateId,
+            bondId: group.bondId,
+            optionType: group.optionType,
+            strikePrice: group.strikePrice,
+            premium: group.premium,
+            size: group.size,
+            expirationEpoch: group.expirationEpoch,
+            active: true,
+            timestamp: Math.max(...group.timestamps, newState.step),
+          };
+
+          if (newState.buySovereignBondOptionVotes) {
+            delete newState.buySovereignBondOptionVotes[syndicateId];
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Sovereign Bond Option Purchased] Syndicate ${syndicateId} purchased ${group.size}x ${group.optionType} option on bond ${group.bondId} with strike ${group.strikePrice}% at premium ${group.premium} gold/unit (Total Cost: ${cost} gold, Expires Epoch: ${group.expirationEpoch}).`
+          );
+        }
+        break;
+      }
+    }
+  }
+
+  // Reconcile SELL/CLOSE Option votes
+  for (const syndicateId of Object.keys(newState.sellSovereignBondOptionVotes || {})) {
+    const votes = newState.sellSovereignBondOptionVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      optionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = vote.optionId;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            optionId: vote.optionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const option = newState.sovereignBondOptions?.[group.optionId];
+        if (option && option.active && option.syndicateId === syndicateId) {
+          const marginAccount = newState.marginAccounts?.[syndicateId];
+          if (marginAccount) {
+            const currentPremium = calculateOptionPremium(newState, option.bondId, option.optionType, option.strikePrice, option.expirationEpoch);
+            const payout = Math.round(currentPremium * option.size);
+
+            marginAccount.collateral += payout;
+            marginAccount.timestamp = Math.max(...group.timestamps, newState.step);
+
+            option.active = false;
+            option.timestamp = Math.max(...group.timestamps, newState.step);
+
+            if (newState.sellSovereignBondOptionVotes) {
+              delete newState.sellSovereignBondOptionVotes[syndicateId];
+            }
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Sovereign Bond Option Closed] Syndicate ${syndicateId} sold option ${option.id} back to market at current premium ${currentPremium.toFixed(2)} gold/unit (Payout: ${payout} gold).`
+            );
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  // Reconcile EXERCISE Option votes
+  for (const syndicateId of Object.keys(newState.exerciseSovereignBondOptionVotes || {})) {
+    const votes = newState.exerciseSovereignBondOptionVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      optionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = vote.optionId;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            optionId: vote.optionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const option = newState.sovereignBondOptions?.[group.optionId];
+        if (option && option.active && option.syndicateId === syndicateId) {
+          const marginAccount = newState.marginAccounts?.[syndicateId];
+          if (marginAccount) {
+            const currentYield = getBondCurrentYield(newState, option.bondId);
+            const intrinsic = option.optionType === "call"
+              ? Math.max(0, currentYield - option.strikePrice)
+              : Math.max(0, option.strikePrice - currentYield);
+            const payout = Math.round(intrinsic * option.size * 1000);
+
+            marginAccount.collateral += payout;
+            marginAccount.timestamp = Math.max(...group.timestamps, newState.step);
+
+            option.active = false;
+            option.timestamp = Math.max(...group.timestamps, newState.step);
+
+            if (newState.exerciseSovereignBondOptionVotes) {
+              delete newState.exerciseSovereignBondOptionVotes[syndicateId];
+            }
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Sovereign Bond Option Exercised] Syndicate ${syndicateId} exercised option ${option.id} at yield ${currentYield.toFixed(2)}% (Strike: ${option.strikePrice}%, Payoff: ${payout} gold).`
+            );
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSovereignBondVolatilityPositions(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    sovereignBondVolatilityPositions: state.sovereignBondVolatilityPositions ? { ...state.sovereignBondVolatilityPositions } : {},
+    openSovereignBondVolatilityVotes: state.openSovereignBondVolatilityVotes ? { ...state.openSovereignBondVolatilityVotes } : {},
+    closeSovereignBondVolatilityVotes: state.closeSovereignBondVolatilityVotes ? { ...state.closeSovereignBondVolatilityVotes } : {},
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+  };
+
+  // Reconcile OPEN Volatility votes
+  for (const syndicateId of Object.keys(newState.openSovereignBondVolatilityVotes || {})) {
+    const votes = newState.openSovereignBondVolatilityVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      bondId: string;
+      side: "long" | "short";
+      size: number;
+      marginCollateral: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.bondId}::${vote.side}::${vote.size}::${vote.marginCollateral}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            bondId: vote.bondId,
+            side: vote.side,
+            size: vote.size,
+            marginCollateral: vote.marginCollateral,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const marginAccount = newState.marginAccounts?.[syndicateId];
+        if (marginAccount && marginAccount.collateral >= group.marginCollateral) {
+          marginAccount.collateral -= group.marginCollateral;
+          marginAccount.timestamp = Math.max(...group.timestamps, newState.step);
+
+          const entryVix = getBondVolatility(newState, group.bondId);
+          const id = `vol_${Object.keys(newState.sovereignBondVolatilityPositions || {}).length + 1}`;
+          newState.sovereignBondVolatilityPositions![id] = {
+            id,
+            syndicateId,
+            bondId: group.bondId,
+            side: group.side,
+            entryVolatility: entryVix,
+            size: group.size,
+            marginCollateral: group.marginCollateral,
+            active: true,
+            timestamp: Math.max(...group.timestamps, newState.step),
+          };
+
+          if (newState.openSovereignBondVolatilityVotes) {
+            delete newState.openSovereignBondVolatilityVotes[syndicateId];
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[Sovereign Bond Volatility Position Opened] Syndicate ${syndicateId} opened a volatility ${group.side} position on bond ${group.bondId} with size ${group.size} and collateral ${group.marginCollateral} gold at entry volatility ${entryVix.toFixed(2)}%.`
+          );
+        }
+        break;
+      }
+    }
+  }
+
+  // Reconcile CLOSE Volatility votes
+  for (const syndicateId of Object.keys(newState.closeSovereignBondVolatilityVotes || {})) {
+    const votes = newState.closeSovereignBondVolatilityVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      positionId: string;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = vote.positionId;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            positionId: vote.positionId,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        const position = newState.sovereignBondVolatilityPositions?.[group.positionId];
+        if (position && position.active && position.syndicateId === syndicateId) {
+          const marginAccount = newState.marginAccounts?.[syndicateId];
+          if (marginAccount) {
+            const currentVix = getBondVolatility(newState, position.bondId);
+            const diff = currentVix - position.entryVolatility;
+            const profit = Math.round((position.side === "long" ? 1 : -1) * diff * position.size * 10);
+            
+            marginAccount.collateral = Math.max(0, marginAccount.collateral + position.marginCollateral + profit);
+            marginAccount.timestamp = Math.max(...group.timestamps, newState.step);
+
+            position.active = false;
+            position.entryVolatility = currentVix;
+            position.timestamp = Math.max(...group.timestamps, newState.step);
+
+            if (newState.closeSovereignBondVolatilityVotes) {
+              delete newState.closeSovereignBondVolatilityVotes[syndicateId];
+            }
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[Sovereign Bond Volatility Position Closed] Syndicate ${syndicateId} closed volatility position ${position.id}. End Volatility: ${currentVix.toFixed(2)}%, profit/loss: ${profit} gold.`
+            );
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileVolatilityHedgedReserveBuffers(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    volatilityHedgedReserveBuffers: state.volatilityHedgedReserveBuffers ? { ...state.volatilityHedgedReserveBuffers } : {},
+    configureVolatilityHedgedBufferVotes: state.configureVolatilityHedgedBufferVotes ? { ...state.configureVolatilityHedgedBufferVotes } : {},
+  };
+
+  for (const syndicateId of Object.keys(newState.configureVolatilityHedgedBufferVotes || {})) {
+    const votes = newState.configureVolatilityHedgedBufferVotes?.[syndicateId] || {};
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const voteGroups: Record<string, {
+      reserveTarget: number;
+      hedgedRatio: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.reserveTarget}::${vote.hedgedRatio}`;
+        if (!voteGroups[key]) {
+          voteGroups[key] = {
+            reserveTarget: vote.reserveTarget,
+            hedgedRatio: vote.hedgedRatio,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        voteGroups[key].voters.add(voterId);
+        voteGroups[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      if (group.voters.size > totalMembers / 2) {
+        newState.volatilityHedgedReserveBuffers![syndicateId] = {
+          syndicateId,
+          reserveTarget: group.reserveTarget,
+          hedgedRatio: group.hedgedRatio,
+          timestamp: Math.max(...group.timestamps, newState.step),
+        };
+
+        if (newState.configureVolatilityHedgedBufferVotes) {
+          delete newState.configureVolatilityHedgedBufferVotes[syndicateId];
+        }
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Volatility Hedged Buffer Configured] Syndicate ${syndicateId} configured reserve target of ${group.reserveTarget} gold with a hedged ratio of ${group.hedgedRatio}%.`
+        );
         break;
       }
     }
