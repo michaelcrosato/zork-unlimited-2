@@ -2740,6 +2740,8 @@ export const SweepPoolVolatilityHedgingProposalSchema = z.object({
   volatilityThreshold: z.number().nonnegative(),
   hedgingRatio: z.number().nonnegative().max(100),
   reserveFloor: z.number().int().nonnegative(),
+  slashingRate: z.number().nonnegative().optional(),
+  yieldPenaltyRate: z.number().nonnegative().optional(),
   status: z.enum(["proposed", "authorized", "disputed"]).optional(),
   resolved: z.boolean().optional(),
   timestamp: z.number().int(),
@@ -9100,7 +9102,87 @@ export function reconcileSweepPoolVolatilityHedging(state: GameState, pack: any)
       .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
       .map(([voterId]) => voterId);
 
-    if (trueVotes.length > totalMembers / 2) {
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    const allies = Object.keys(newState.syndicates || {}).filter(otherId => {
+      if (otherId === syndicateId) return false;
+      return (
+        newState.syndicateAlliances?.[syndicateId]?.[otherId] === "allied" ||
+        newState.syndicateAlliances?.[otherId]?.[syndicateId] === "allied"
+      );
+    });
+    const allianceCount = allies.length;
+
+    // Dynamically scale dispute consensus threshold based on active alliances
+    // Base threshold to fail/dispute is 25% of total members. Each ally adds 10% boost to threshold.
+    const baseDisputeThresholdPct = 0.25;
+    const allianceThresholdBoost = allianceCount * 0.1;
+    const dynamicDisputeThresholdPct = Math.min(0.75, baseDisputeThresholdPct + allianceThresholdBoost);
+    const disputeThreshold = Math.max(1, Math.floor(totalMembers * dynamicDisputeThresholdPct));
+
+    if (falseVotes.length >= disputeThreshold) {
+      // Failed stability vote! Trigger dynamic slashing and yield penalty
+      const baseSlashingRate = proposal.slashingRate ?? 0.2;
+      const baseYieldPenaltyRate = proposal.yieldPenaltyRate ?? 0.15;
+
+      // Scale slashing ratio based on alliances (each ally reduces the slashing rate by 15%)
+      const allianceSlashingMultiplier = Math.max(0.2, 1.0 - allianceCount * 0.15);
+      const scaledSlashingRate = Math.round(baseSlashingRate * allianceSlashingMultiplier * 10000) / 10000;
+      const scaledYieldPenaltyRate = Math.round(baseYieldPenaltyRate * allianceSlashingMultiplier * 10000) / 10000;
+
+      // Slash proposer war chest
+      const proposerWarChest = syndicate.warChest ?? 0;
+      const slashedGold = Math.floor(proposerWarChest * scaledSlashingRate);
+
+      // Slash sweep pool balance
+      const sweepPoolBalance = newState.swfStakingSweepPool ?? 0;
+      const yieldPenaltyGold = Math.floor(sweepPoolBalance * scaledYieldPenaltyRate);
+
+      const totalSlashed = slashedGold + yieldPenaltyGold;
+
+      const updatedSyndicates = { ...newState.syndicates };
+      const updatedProposer = { ...syndicate };
+      updatedProposer.warChest = Math.max(0, proposerWarChest - slashedGold);
+      updatedSyndicates[syndicateId] = updatedProposer;
+
+      newState.swfStakingSweepPool = Math.max(0, sweepPoolBalance - yieldPenaltyGold);
+
+      // Yield redistribution
+      let redistributionLog = "";
+      if (allianceCount > 0 && totalSlashed > 0) {
+        const share = Math.floor(totalSlashed / allianceCount);
+        if (share > 0) {
+          for (const allyId of allies) {
+            const ally = updatedSyndicates[allyId];
+            if (ally) {
+              updatedSyndicates[allyId] = {
+                ...ally,
+                warChest: (ally.warChest ?? 0) + share,
+              };
+            }
+          }
+          redistributionLog = ` Redistributed ${totalSlashed} gold penalty equally among ${allianceCount} allied syndicates (${share} gold each).`;
+        }
+      } else if (totalSlashed > 0) {
+        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + totalSlashed;
+        redistributionLog = ` Returned ${totalSlashed} gold penalty back to the shared sweep pool (no active allies).`;
+      }
+
+      newState.syndicates = updatedSyndicates;
+
+      newState.sweepPoolVolatilityHedgingProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Sweep Pool Volatility Hedging Failed] Proposal ${proposalId} failed stability vote consensus (Dispute Votes: ${falseVotes.length} >= Threshold: ${disputeThreshold}). Proposing Syndicate ${syndicateId} slashed by ${slashedGold} gold (rate: ${Math.round(scaledSlashingRate * 100)}%), sweep pool yield penalized by ${yieldPenaltyGold} gold (rate: ${Math.round(scaledYieldPenaltyRate * 100)}%).` + redistributionLog
+      );
+    } else if (trueVotes.length > totalMembers / 2) {
       newState.sweepPoolVolatilityHedgingProposals[proposalId] = {
         ...proposal,
         resolved: true,

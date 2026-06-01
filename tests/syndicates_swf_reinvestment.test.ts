@@ -2650,6 +2650,217 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       const payoutLog = tickedState.journal.find((log: string) => log.includes("Awarded speculative profit payout"));
       expect(payoutLog).toBeDefined();
     });
+
+    describe("AF-214: Sweep Pool Volatility Hedging Multi-Agent Governance Staking Consensus & Slashing", () => {
+      it("should parse slashingRate and yieldPenaltyRate on PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY", () => {
+        let state = createInitialState({
+          seed: 12345,
+          start: "clearing",
+          varsInit: { gold: 3000 },
+          agentsInit: ["player"],
+        });
+
+        // Initialize syndicates
+        state.syndicates = {
+          "syndicate_a": {
+            id: "syndicate_a",
+            name: "Syndicate A",
+            members: ["player"],
+            definedBy: "player",
+            timestamp: 1000,
+            warChest: 1000,
+          },
+        };
+
+        const proposeAction = {
+          type: "PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY",
+          proposalId: "prop_1",
+          syndicateId: "syndicate_a",
+          volatilityThreshold: 45,
+          hedgingRatio: 60,
+          reserveFloor: 200,
+          slashingRate: 0.3,
+          yieldPenaltyRate: 0.25,
+          timestamp: state.step,
+        };
+
+        const result = multiAgentStep(state, { agentId: "player", action: proposeAction as any }, mockPack);
+        expect(result.ok).toBe(true);
+
+        const prop = result.state.sweepPoolVolatilityHedgingProposals?.["prop_1"];
+        expect(prop).toBeDefined();
+        expect(prop?.slashingRate).toBe(0.3);
+        expect(prop?.yieldPenaltyRate).toBe(0.25);
+      });
+
+      it("should trigger failed stability vote and slash proposer chest and yield when dispute threshold is reached (no allies)", () => {
+        let state = createInitialState({
+          seed: 12345,
+          start: "clearing",
+          varsInit: { gold: 3000 },
+          agentsInit: ["player", "agent_1"],
+        });
+
+        state.syndicates = {
+          "syndicate_a": {
+            id: "syndicate_a",
+            name: "Syndicate A",
+            members: ["player", "agent_1"],
+            definedBy: "player",
+            timestamp: 1000,
+            warChest: 1000,
+          },
+        };
+        state.swfStakingSweepPool = 500;
+
+        // Propose proposal (player automatically votes true)
+        const proposeAction = {
+          type: "PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY",
+          proposalId: "prop_1",
+          syndicateId: "syndicate_a",
+          volatilityThreshold: 45,
+          hedgingRatio: 60,
+          reserveFloor: 200,
+          slashingRate: 0.25,
+          yieldPenaltyRate: 0.2,
+          timestamp: state.step,
+        };
+
+        let result = multiAgentStep(state, { agentId: "player", action: proposeAction as any }, mockPack);
+        expect(result.ok).toBe(true);
+
+        // Dispute vote by agent_1
+        const disputeVoteAction = {
+          type: "VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY",
+          syndicateId: "syndicate_a",
+          proposalId: "prop_1",
+          vote: false,
+          timestamp: result.state.step,
+        };
+
+        let voteResult = multiAgentStep(result.state, { agentId: "agent_1", action: disputeVoteAction as any }, mockPack);
+        expect(voteResult.ok).toBe(true);
+
+        const prop = voteResult.state.sweepPoolVolatilityHedgingProposals?.["prop_1"];
+        expect(prop?.status).toBe("disputed");
+        expect(prop?.resolved).toBe(true);
+
+        // Verification of slashing rates and dynamic amounts
+        // No allies => allianceCount = 0 => allianceSlashingMultiplier = 1.0 => rate is 25% and 20%
+        // Chest slashed = 760 * 0.25 = 190 (remaining warChest: 1000 - 190 fee - 50 vote fee - 190 slash = 570)
+        // Sweep pool yield penalty = 500 * 0.20 = 100 (remaining: 500 - 100 = 400)
+        // Slashed gold total = 190 + 100 = 290. Since no allies, it's returned back to the sweep pool!
+        // Final sweep pool balance: 400 + 290 = 690
+        const syndicate = voteResult.state.syndicates?.["syndicate_a"];
+        expect(syndicate?.warChest).toBe(570); // 1000 - 190 (proposal fee) - 50 (vote fee) - 190 (slashing penalty)
+        expect(voteResult.state.swfStakingSweepPool).toBe(690); // 500 - 100 (yield penalty) + 290 (returned slashed gold)
+
+        const journalLog = voteResult.state.journal.find((log: string) => log.includes("failed stability vote consensus"));
+        expect(journalLog).toBeDefined();
+        expect(journalLog).toContain("slashed by 190 gold");
+        expect(journalLog).toContain("yield penalized by 100 gold");
+        expect(journalLog).toContain("Returned 290 gold penalty back to the shared sweep pool");
+      });
+
+      it("should scale slashing ratios based on active alliances and redistribute penalty to allies", () => {
+        let state = createInitialState({
+          seed: 12345,
+          start: "clearing",
+          varsInit: { gold: 3000 },
+          agentsInit: ["player", "agent_1"],
+        });
+
+        // Set up syndicates with two allies of syndicate_a
+        state.syndicates = {
+          "syndicate_a": {
+            id: "syndicate_a",
+            name: "Syndicate A",
+            members: ["player", "agent_1"],
+            definedBy: "player",
+            timestamp: 1000,
+            warChest: 1000,
+          },
+          "syndicate_b": {
+            id: "syndicate_b",
+            name: "Syndicate B",
+            members: ["ally_agent_1"],
+            definedBy: "player",
+            timestamp: 1000,
+            warChest: 500,
+          },
+          "syndicate_c": {
+            id: "syndicate_c",
+            name: "Syndicate C",
+            members: ["ally_agent_2"],
+            definedBy: "player",
+            timestamp: 1000,
+            warChest: 500,
+          },
+        };
+        state.syndicateAlliances = {
+          "syndicate_a": {
+            "syndicate_b": "allied",
+            "syndicate_c": "allied",
+          },
+        };
+        state.swfStakingSweepPool = 500;
+
+        // Propose proposal (fee is dynamic: 2 allies => allianceCount = 2 => multiplier = 0.8 * 1.0 = 0.8 => fee = 160)
+        const proposeAction = {
+          type: "PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY",
+          proposalId: "prop_1",
+          syndicateId: "syndicate_a",
+          volatilityThreshold: 45,
+          hedgingRatio: 60,
+          reserveFloor: 200,
+          slashingRate: 0.25,
+          yieldPenaltyRate: 0.2,
+          timestamp: state.step,
+        };
+
+        let result = multiAgentStep(state, { agentId: "player", action: proposeAction as any }, mockPack);
+        expect(result.ok).toBe(true);
+
+        // Dispute vote by agent_1
+        const disputeVoteAction = {
+          type: "VOTE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY",
+          syndicateId: "syndicate_a",
+          proposalId: "prop_1",
+          vote: false,
+          timestamp: result.state.step,
+        };
+
+        let voteResult = multiAgentStep(result.state, { agentId: "agent_1", action: disputeVoteAction as any }, mockPack);
+        expect(voteResult.ok).toBe(true);
+
+        const prop = voteResult.state.sweepPoolVolatilityHedgingProposals?.["prop_1"];
+        expect(prop?.status).toBe("disputed");
+
+        // Verification of scaling and redistribution
+        // allianceCount = 2 => allianceSlashingMultiplier = 1.0 - 2 * 0.15 = 0.70
+        // Scaled slashing rate: 0.25 * 0.7 = 0.175 (17.5% -> Math.floor(818 * 0.175) = 143)
+        // Proposer chest remaining before slashing = 1000 - 144 proposal fee - 38 vote fee = 818. Chest slashed = 143. Remaining: 818 - 143 = 675.
+        // Scaled yield penalty rate: 0.2 * 0.7 = 0.14 (14% -> Math.floor(500 * 0.14) = 70)
+        // Sweep pool yield remaining before redistribution = 500. Slashed = 70. Remaining: 430.
+        // Total slashed = 143 + 70 = 213.
+        // Distributed to 2 allies: Math.floor(213 / 2) = 106 gold each!
+        // Allied syndicate warChests: 500 + 106 = 606 gold each.
+        const syndicateA = voteResult.state.syndicates?.["syndicate_a"];
+        expect(syndicateA?.warChest).toBe(675);
+        expect(voteResult.state.swfStakingSweepPool).toBe(430);
+
+        const syndicateB = voteResult.state.syndicates?.["syndicate_b"];
+        const syndicateC = voteResult.state.syndicates?.["syndicate_c"];
+        expect(syndicateB?.warChest).toBe(606);
+        expect(syndicateC?.warChest).toBe(606);
+
+        const journalLog = voteResult.state.journal.find((log: string) => log.includes("failed stability vote consensus"));
+        expect(journalLog).toBeDefined();
+        expect(journalLog).toContain("slashed by 143 gold");
+        expect(journalLog).toContain("yield penalized by 70 gold");
+        expect(journalLog).toContain("Redistributed 213 gold penalty equally among 2 allied syndicates (106 gold each)");
+      });
+    });
   });
 });
 

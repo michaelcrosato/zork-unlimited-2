@@ -39805,7 +39805,7 @@ export function multiAgentStep(
 
   // Handle PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY action (AF-211)
   if ((action as any).type === "PROPOSE_SWEEP_POOL_VOLATILITY_HEDGING_POLICY") {
-    const { proposalId, syndicateId, volatilityThreshold, hedgingRatio, reserveFloor, timestamp } = action as any;
+    const { proposalId, syndicateId, volatilityThreshold, hedgingRatio, reserveFloor, slashingRate, yieldPenaltyRate, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -39844,6 +39844,10 @@ export function multiAgentStep(
       rejectionReason = `Hedging ratio must be a percentage between 0 and 100.`;
     } else if (reserveFloor === undefined || typeof reserveFloor !== "number" || reserveFloor < 0) {
       rejectionReason = `Reserve floor must be a non-negative number.`;
+    } else if (slashingRate !== undefined && (typeof slashingRate !== "number" || slashingRate < 0 || slashingRate > 1.0)) {
+      rejectionReason = `Slashing rate must be a percentage between 0 and 1.`;
+    } else if (yieldPenaltyRate !== undefined && (typeof yieldPenaltyRate !== "number" || yieldPenaltyRate < 0 || yieldPenaltyRate > 1.0)) {
+      rejectionReason = `Yield penalty rate must be a percentage between 0 and 1.`;
     } else if (!syndicate) {
       rejectionReason = `Proposing Syndicate ${syndicateId} does not exist.`;
     } else if (!syndicate.members.includes(agentId)) {
@@ -39878,6 +39882,8 @@ export function multiAgentStep(
         volatilityThreshold,
         hedgingRatio,
         reserveFloor,
+        slashingRate: slashingRate !== undefined ? slashingRate : 0.2,
+        yieldPenaltyRate: yieldPenaltyRate !== undefined ? yieldPenaltyRate : 0.15,
         status: "proposed",
         resolved: false,
         timestamp,

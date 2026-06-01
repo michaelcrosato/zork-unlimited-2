@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #211 (Ready for Cycle #212)
-* **Build/Test Status**: 🟢 PASS (All 757 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #212 (Ready for Cycle #213)
+* **Build/Test Status**: 🟢 PASS (All 760 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1356,14 +1356,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 192: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Staking Consensus (Completed)
+- [x] Define dynamic slashing and yield penalty distribution schemas inside cooperative sweep pool options under failed stability votes (`AF-214`).
+- [x] Implement voting consensus thresholds that dynamically scale slashing ratios based on faction alliances (`AF-214`).
+- [x] Write comprehensive Vitest integration tests inside `tests/syndicates_swf_reinvestment.test.ts` verifying slashing enforcement and yield redistribution (`AF-214`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-214`
-* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Staking Consensus.
-* **Why this matters**: Scale decentralized voting participation and slashing policies inside cooperative sweep pool options under failed stability votes to enhance economic alignment.
+**Task ID**: `AF-215`
+* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Oracle Manipulation Defenses.
+* **Why this matters**: Protect dynamic volatility hedging purchases and speculative payouts from malicious weather forecast oracle reporting via decentralized validation and stake-slashing.
 * **Planned Actions**:
-  1. Define dynamic slashing and yield penalty distribution schemas inside cooperative sweep pool options under failed stability votes.
-  2. Implement voting consensus thresholds that dynamically scale slashing ratios based on faction alliances.
-  3. Write comprehensive Vitest integration tests verifying slashing enforcement and yield redistribution.
+  1. Define oracle reputation dispute and stake-slashing schemas for weather forecast reporting anomalies.
+  2. Implement dynamic voting-based consensus to dispute and slash malicious oracles.
+  3. Write comprehensive Vitest integration tests verifying manipulation defenses and oracle slashing.
 
 ---
 
