@@ -2388,12 +2388,13 @@ function tickEnforcers(
   events: GameEvent[],
   pack?: CYOAPack | ParserPack
 ): GameState {
-  if (!pack || !("rooms" in pack) || !state.enforcers || Object.keys(state.enforcers).length === 0) {
-    return state;
+  let newState = tickUndercoverAgents(state, events, pack);
+  if (!pack || !("rooms" in pack) || !newState.enforcers || Object.keys(newState.enforcers).length === 0) {
+    return newState;
   }
 
   const parserPack = pack as ParserPack;
-  let newState = { ...state };
+  newState = { ...newState };
   if (newState.enforcers) {
     newState.enforcers = { ...newState.enforcers };
   }
@@ -2629,6 +2630,179 @@ function tickEnforcers(
             }
           }
         }
+      }
+    }
+  }
+
+  return newState;
+}
+
+function tickUndercoverAgents(
+  state: GameState,
+  events: GameEvent[],
+  pack?: CYOAPack | ParserPack
+): GameState {
+  if (!state.syndicates || Object.keys(state.syndicates).length === 0) {
+    return state;
+  }
+
+  let newState = { ...state };
+  newState.undercoverAgents = newState.undercoverAgents ? { ...newState.undercoverAgents } : {};
+  newState.syndicates = { ...newState.syndicates };
+  if (newState.safehouses) {
+    newState.safehouses = { ...newState.safehouses };
+  }
+  if (newState.enforcementHeat) {
+    newState.enforcementHeat = { ...newState.enforcementHeat };
+  }
+  newState.journal = [...newState.journal];
+
+  // 1. Infiltration Check
+  if (newState.frontBusinesses) {
+    newState.frontBusinesses = { ...newState.frontBusinesses };
+    for (const front of Object.values(newState.frontBusinesses)) {
+      const syndicateId = front.syndicateId;
+      
+      // Check if there is already an active undercover agent in this syndicate
+      const hasActiveUndercover = Object.values(newState.undercoverAgents).some(
+        agent => agent.syndicateId === syndicateId && agent.status === "active"
+      );
+
+      if (!hasActiveUndercover) {
+        const heat = newState.enforcementHeat?.[front.roomId]?.heat ?? 0;
+        const volume = front.dirtyGold + front.cleanGold;
+        
+        // Infiltration chance: scaled by heat and volume
+        const infilChance = Math.min(100, Math.floor(heat * 0.4 + volume * 0.1));
+        if (infilChance > 0) {
+          const { value: rolled, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+          newState.seed = nextSeed;
+          
+          if (rolled <= infilChance) {
+            // Spawn undercover agent!
+            const agentNames = [
+              "Agent Cooper", "Agent Mulder", "Officer Jenkins", "Detective Vance",
+              "Inspector Clouseau", "Agent Starling", "Agent Smith", "Officer Brady"
+            ];
+            const nameIndex = Math.floor(PureRand.nextInt(newState.seed, 0, agentNames.length - 1).value);
+            const agentName = agentNames[nameIndex];
+            const agentId = `undercover_${syndicateId}_${newState.step}`;
+            
+            newState.undercoverAgents[agentId] = {
+              id: agentId,
+              syndicateId: syndicateId,
+              name: agentName,
+              intelAccumulated: 0,
+              status: "active",
+              timestamp: newState.step,
+            };
+
+            const syndicate = newState.syndicates[syndicateId];
+            if (syndicate) {
+              const updatedAgents = syndicate.undercoverAgents ? [...syndicate.undercoverAgents] : [];
+              if (!updatedAgents.includes(agentId)) {
+                updatedAgents.push(agentId);
+              }
+              newState.syndicates[syndicateId] = {
+                ...syndicate,
+                undercoverAgents: updatedAgents,
+                timestamp: newState.step,
+              };
+            }
+
+            newState.journal.push(
+              `[Syndicate] Undercover agent ${agentName} has successfully infiltrated syndicate ${syndicateId} due to enforcer heat (${heat}) and laundering activity!`
+            );
+            events.push({
+              type: "narration",
+              text: `⚠️ [Intelligence] Undercover enforcer ${agentName} has infiltrated syndicate ${syndicateId}!`
+            } as any);
+          }
+        }
+      }
+    }
+  }
+
+  // 2. Intel Accumulation and Raids
+  for (const [id, agent] of Object.entries(newState.undercoverAgents)) {
+    if (agent.status === "active") {
+      let heatBonus = 0;
+      if (newState.frontBusinesses) {
+        const syndicateFronts = Object.values(newState.frontBusinesses).filter(
+          f => f.syndicateId === agent.syndicateId
+        );
+        if (syndicateFronts.length > 0) {
+          const firstFront = syndicateFronts[0];
+          const heat = newState.enforcementHeat?.[firstFront.roomId]?.heat ?? 0;
+          heatBonus = Math.floor(heat * 0.1);
+        }
+      }
+
+      const updatedIntel = agent.intelAccumulated + 10 + heatBonus;
+      const updatedAgent = { ...agent };
+      
+      if (updatedIntel >= 100) {
+        updatedAgent.intelAccumulated = 100;
+        updatedAgent.status = "exposed";
+        updatedAgent.timestamp = newState.step;
+        newState.undercoverAgents[id] = updatedAgent;
+        
+        newState.journal.push(
+          `[Syndicate] Undercover agent ${agent.name} completed intel gathering and triggered a high-priority safehouse raid on syndicate ${agent.syndicateId}!`
+        );
+        events.push({
+          type: "narration",
+          text: `🚨 [Raid] Undercover agent ${agent.name} has triggered a high-priority raid on syndicate ${agent.syndicateId} safehouses!`
+        } as any);
+
+        // Raid all safehouses owned by this syndicate
+        if (newState.safehouses) {
+          for (const [roomId, safehouse] of Object.entries(newState.safehouses)) {
+            if (safehouse.syndicateId === agent.syndicateId) {
+              const itemCount = safehouse.stashItems.length;
+              
+              newState.safehouses[roomId] = {
+                ...safehouse,
+                stashItems: [],
+                timestamp: newState.step,
+              };
+              
+              if (!newState.enforcementHeat) newState.enforcementHeat = {};
+              newState.enforcementHeat[roomId] = {
+                roomId: roomId,
+                heat: 100,
+                timestamp: newState.step,
+              };
+
+              newState.journal.push(
+                `[Syndicate] Safehouse in room ${roomId} was raided! Confiscated ${itemCount} stashed items and spiked room heat to 100.`
+              );
+              events.push({
+                type: "narration",
+                text: `🚨 [Raid] Enforcers raided the safehouse in ${roomId}, confiscating ${itemCount} items!`
+              } as any);
+            }
+          }
+        }
+
+        // Reduce dominance by 25
+        const syndicate = newState.syndicates[agent.syndicateId];
+        if (syndicate) {
+          const currentDominance = syndicate.dominance ?? 50;
+          const newDominance = Math.max(0, currentDominance - 25);
+          newState.syndicates[agent.syndicateId] = {
+            ...syndicate,
+            dominance: newDominance,
+            timestamp: newState.step,
+          };
+          newState.journal.push(
+            `[Syndicate] Syndicate ${agent.syndicateId} dominance reduced by 25 (New Dominance: ${newDominance}) due to safehouse raid.`
+          );
+        }
+      } else {
+        updatedAgent.intelAccumulated = updatedIntel;
+        updatedAgent.timestamp = newState.step;
+        newState.undercoverAgents[id] = updatedAgent;
       }
     }
   }

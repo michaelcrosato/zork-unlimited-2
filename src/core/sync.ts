@@ -5248,6 +5248,257 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized LAUNCH_BACKGROUND_CHECK action (AF-62)
+  if ((action as any).type === "LAUNCH_BACKGROUND_CHECK") {
+    const { syndicateId, targetAgentId, timestamp } = action as any;
+    const cost = (action as any).cost ?? (action as any).goldCost ?? 50;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to launch a background check.`;
+    } else if (!targetAgentId) {
+      rejectionReason = `Target Agent ID is required to launch a background check.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Background check cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to launch background check costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      // Perform background check
+      newState.undercoverAgents = newState.undercoverAgents ? { ...newState.undercoverAgents } : {};
+      
+      // Find if targetAgentId is an active undercover agent or match by name/id
+      let foundAgent: any = undefined;
+      for (const agent of Object.values(newState.undercoverAgents)) {
+        if (agent.syndicateId === syndicateId && agent.status === "active") {
+          if (agent.id === targetAgentId || agent.name === targetAgentId) {
+            foundAgent = agent;
+            break;
+          }
+        }
+      }
+
+      if (!newState.journal) newState.journal = [];
+
+      if (foundAgent) {
+        // Expose them!
+        const updatedAgent = {
+          ...foundAgent,
+          status: "exposed" as const,
+          timestamp,
+        };
+        newState.undercoverAgents[foundAgent.id] = updatedAgent;
+        
+        newState.journal.push(
+          `[Syndicate] Background check on ${targetAgentId} by agent ${agentId} succeeded! Identified as undercover agent ${foundAgent.name}!`
+        );
+        customEvents.push({
+          type: "undercover_agent_exposed",
+          agentId,
+          syndicateId,
+          targetAgentId: foundAgent.id,
+          name: foundAgent.name,
+        });
+      } else {
+        newState.journal.push(
+          `[Syndicate] Background check on ${targetAgentId} by agent ${agentId} concluded they are clean.`
+        );
+        customEvents.push({
+          type: "background_check_clean",
+          agentId,
+          syndicateId,
+          targetAgentId,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized EXPOSE_MOLE action (AF-62)
+  if ((action as any).type === "EXPOSE_MOLE") {
+    const { syndicateId, targetAgentId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    let targetAgent: any = undefined;
+    if (state.undercoverAgents) {
+      for (const agent of Object.values(state.undercoverAgents)) {
+        if (agent.syndicateId === syndicateId) {
+          if (agent.id === targetAgentId || agent.name === targetAgentId) {
+            targetAgent = agent;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to expose a mole.`;
+    } else if (!targetAgentId) {
+      rejectionReason = `Target Agent ID is required to expose a mole.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!targetAgent) {
+      rejectionReason = `Mole ${targetAgentId} does not exist in syndicate ${syndicateId}.`;
+    } else if (targetAgent.status !== "exposed") {
+      rejectionReason = `Mole ${targetAgent.name} has not been exposed yet. Launch a background check first!`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && targetAgent) {
+      newState.undercoverAgents = newState.undercoverAgents ? { ...newState.undercoverAgents } : {};
+      
+      // Root out!
+      const agentToUpdate = newState.undercoverAgents[targetAgent.id];
+      if (agentToUpdate) {
+        newState.undercoverAgents[targetAgent.id] = {
+          ...agentToUpdate,
+          status: "rooted_out" as const,
+          timestamp,
+        };
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Syndicate] Exposed mole ${targetAgent.name} has been rooted out of syndicate ${syndicateId} by agent ${agentId}!`
+      );
+
+      customEvents.push({
+        type: "mole_rooted_out",
+        agentId,
+        syndicateId,
+        targetAgentId: targetAgent.id,
+        name: targetAgent.name,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Handle decentralized ADJUST_TURF_TAX action (AF-53)
   if ((action as any).type === "ADJUST_TURF_TAX") {
     const { syndicateId, rate, timestamp } = action as any;

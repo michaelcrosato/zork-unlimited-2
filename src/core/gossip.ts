@@ -698,6 +698,17 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge undercoverAgents using LWW (Last-Write-Wins)
+  const undercoverAgents = { ...stateA.undercoverAgents };
+  if (stateB.undercoverAgents) {
+    for (const [id, entryB] of Object.entries(stateB.undercoverAgents)) {
+      const entryA = undercoverAgents[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        undercoverAgents[id] = entryB;
+      }
+    }
+  }
+
   // Merge productionLabs using LWW (Last-Write-Wins)
   const productionLabs = { ...stateA.productionLabs };
   if (stateB.productionLabs) {
@@ -974,6 +985,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     syndicateTaxVotes,
     smugglingConvoys,
     convoyInsurance,
+    undercoverAgents,
   };
 }
 
