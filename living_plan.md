@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #214 (Ready for Cycle #215)
-* **Build/Test Status**: 🟢 PASS (All 764 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #215 (Ready for Cycle #216)
+* **Build/Test Status**: 🟢 PASS (All 768 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1377,14 +1377,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 195: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Multi-Oracle Consensus Penalty Waivers & Refund Escalations (Completed)
+- [x] Support proposing and voting on penalty waivers and refund escalations specifically for disputes involving multi-oracle aggregate forecasting failures (`AF-217`).
+- [x] Integrate grace period deferrals and dynamic refund calculations inside the joint-dispute resolution tick (`AF-217`).
+- [x] Write comprehensive Vitest integration tests asserting consensus updates, grace periods, and mesh convergence (`AF-217`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-217`
-* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Multi-Oracle Consensus Penalty Waivers & Refund Escalations.
-* **Why this matters**: Expand multi-oracle consensus to support cooperative grace period extension votes and penalty refunds specifically for disputes involving multi-oracle aggregate forecasting failures.
+**Task ID**: `AF-218`
+* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Multi-Agent Governance Multi-Oracle Consensus Dynamic Security Insurance Pools.
+* **Why this matters**: Support allocating multi-oracle penalty refund yields or sweep pool margins into dynamic security insurance reserves to hedge against future forecasting anomalies.
 * **Planned Actions**:
-  1. Support proposing and voting on penalty waivers and refund escalations specifically for multi-oracle consensus failures.
-  2. Integrate grace period deferrals and dynamic refund calculations inside the joint-dispute resolution tick.
-  3. Write comprehensive Vitest integration tests asserting consensus updates, grace periods, and mesh convergence.
+  1. Define dynamic security insurance pool structures gated by multi-oracle consensus votes.
+  2. Wire automated allocation of transaction fees and penalty yields to the insurance pool.
+  3. Write comprehensive Vitest integration tests asserting pool funding, consensus parameters, and reserve stability.
 
 ---
 

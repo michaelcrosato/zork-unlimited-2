@@ -2795,6 +2795,39 @@ export const SweepPoolWeatherForecastOracleDisputeSchema = z.object({
 });
 export type SweepPoolWeatherForecastOracleDispute = z.infer<typeof SweepPoolWeatherForecastOracleDisputeSchema>;
 
+export const MultiOraclePenaltyWaiverProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  disputeId: z.string(),
+  waivePenalty: z.boolean(),
+  gracePeriodSteps: z.number().int().nonnegative().optional(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type MultiOraclePenaltyWaiverProposal = z.infer<typeof MultiOraclePenaltyWaiverProposalSchema>;
+
+export const MultiOracleRefundEscalationProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  disputeId: z.string(),
+  refundSurchargePercent: z.number().nonnegative(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type MultiOracleRefundEscalationProposal = z.infer<typeof MultiOracleRefundEscalationProposalSchema>;
+
 
 
 
@@ -3748,6 +3781,8 @@ export const GameStateSchema = z.object({
   weatherForecastOracleHistory: z.record(z.string(), z.record(z.string(), z.number())).optional(),
   weatherForecastOracleIndividualOverrides: z.record(z.string(), z.record(z.string(), z.number())).optional(),
   sweepPoolWeatherForecastOracleDisputes: z.record(z.string(), SweepPoolWeatherForecastOracleDisputeSchema).optional(),
+  multiOraclePenaltyWaiverProposals: z.record(z.string(), MultiOraclePenaltyWaiverProposalSchema).optional(),
+  multiOracleRefundEscalationProposals: z.record(z.string(), MultiOracleRefundEscalationProposalSchema).optional(),
 
 
 
@@ -4168,6 +4203,8 @@ export const createInitialState = (options: {
     sweepPoolVolatilityHedgingProposals: {},
     sweepPoolWeatherForecastOracleProposals: {},
     weatherForecastOracles: {},
+    multiOraclePenaltyWaiverProposals: {},
+    multiOracleRefundEscalationProposals: {},
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
 
@@ -9342,6 +9379,20 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
       .map(([voterId]) => voterId);
 
     if (trueVotes.length > totalMembers / 2) {
+      // Grace period deferrals check
+      const waiver = Object.values(newState.multiOraclePenaltyWaiverProposals || {}).find(
+        (w) => w.disputeId === disputeId && w.status === "authorized" && w.gracePeriodSteps !== undefined
+      );
+      if (waiver && waiver.gracePeriodSteps && newState.step < dispute.anomalyStep + waiver.gracePeriodSteps) {
+        if (!newState.journal) newState.journal = [];
+        if (!newState.journal.some(j => j.includes(`[Oracle Dispute Deferred] Dispute ${disputeId}`))) {
+          newState.journal.push(
+            `[Oracle Dispute Deferred] Dispute ${disputeId} resolution deferred until step ${dispute.anomalyStep + waiver.gracePeriodSteps} due to authorized grace period waiver.`
+          );
+        }
+        continue; // Defer resolution!
+      }
+
       // Won dispute!
       newState.sweepPoolWeatherForecastOracleDisputes[disputeId] = {
         ...dispute,
@@ -9349,9 +9400,30 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
         status: "authorized",
       };
 
-      // Refund dispute stake to disputing syndicate
+      // Check if penalty waiver is authorized
+      let waivePenaltyEnabled = false;
+      const penaltyWaiver = Object.values(newState.multiOraclePenaltyWaiverProposals || {}).find(
+        (w) => w.disputeId === disputeId && w.status === "authorized"
+      );
+      if (penaltyWaiver && penaltyWaiver.waivePenalty) {
+        waivePenaltyEnabled = true;
+      }
+
+      // Check if refund escalation is authorized
+      let refundBonus = 0;
+      const escalationProposal = Object.values(newState.multiOracleRefundEscalationProposals || {}).find(
+        (p) => p.disputeId === disputeId && p.status === "authorized"
+      );
+      if (escalationProposal) {
+        refundBonus = Math.floor(disputeStake * (escalationProposal.refundSurchargePercent / 100));
+      }
+
+      // Refund dispute stake plus escalation bonus
       const updatedSyndicate = { ...newState.syndicates[syndicateId] };
-      updatedSyndicate.warChest = (updatedSyndicate.warChest ?? 0) + disputeStake;
+      updatedSyndicate.warChest = (updatedSyndicate.warChest ?? 0) + disputeStake + refundBonus;
+      if (refundBonus > 0) {
+        newState.swfStakingSweepPool = Math.max(0, (newState.swfStakingSweepPool ?? 0) - refundBonus);
+      }
 
       // 1. Identify which oracles to slash
       const oraclesToSlash: string[] = []; // List of oracle IDs (proposalIds) to slash
@@ -9421,19 +9493,29 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
           // Slash the legacy/main oracle
           const activeOracleStake = newState.sweepPoolWeatherForecastOracleStake ?? 0;
           const currentRep = newState.sweepPoolWeatherForecastOracleReputation ?? 100;
-          const newRep = Math.max(0, currentRep - 50);
+          const newRep = waivePenaltyEnabled ? currentRep : Math.max(0, currentRep - 50);
           newState.sweepPoolWeatherForecastOracleReputation = newRep;
           
           if (activeOracleStake > 0) {
-            const bounty = Math.floor(activeOracleStake * 0.5);
+            const baseBountyPercent = 50;
+            const escalationPercent = escalationProposal ? escalationProposal.refundSurchargePercent : 0;
+            const dynamicBountyPercent = Math.min(100, baseBountyPercent + escalationPercent);
+            
+            const bounty = Math.floor(activeOracleStake * (dynamicBountyPercent / 100));
             const sweepPoolShare = activeOracleStake - bounty;
             updatedSyndicate.warChest = (updatedSyndicate.warChest ?? 0) + bounty;
-            newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
-            penaltyLog += `, legacy oracle stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+            
+            if (waivePenaltyEnabled) {
+              newState.swfStakingSweepPool = Math.max(0, (newState.swfStakingSweepPool ?? 0) - bounty);
+              penaltyLog += `, legacy oracle stake penalty waived, bounty of ${bounty} gold paid to Syndicate ${syndicateId} from Sweep Pool`;
+            } else {
+              newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
+              penaltyLog += `, legacy oracle stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+            }
           }
 
           const repThreshold = newState.sweepPoolWeatherForecastOracleReputationThreshold ?? 50;
-          if (newRep < repThreshold || newRep === 0) {
+          if (!waivePenaltyEnabled && (newRep < repThreshold || newRep === 0)) {
             newState.sweepPoolWeatherForecastOracleAuthorized = false;
             newState.sweepPoolWeatherForecastOracleStake = 0;
             penaltyLog += " and legacy oracle was DE-AUTHORIZED";
@@ -9443,31 +9525,45 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
           const oracle = { ...newState.weatherForecastOracles[oId] };
           const activeOracleStake = oracle.stake;
           const currentRep = oracle.reputation;
-          const newRep = Math.max(0, currentRep - 50);
+          const newRep = waivePenaltyEnabled ? currentRep : Math.max(0, currentRep - 50);
           
           oracle.reputation = newRep;
-          oracle.stake = 0;
+          if (!waivePenaltyEnabled) {
+            oracle.stake = 0;
+          }
           newState.weatherForecastOracles[oId] = oracle;
 
           if (activeOracleStake > 0) {
-            const bounty = Math.floor(activeOracleStake * 0.5);
+            const baseBountyPercent = 50;
+            const escalationPercent = escalationProposal ? escalationProposal.refundSurchargePercent : 0;
+            const dynamicBountyPercent = Math.min(100, baseBountyPercent + escalationPercent);
+            
+            const bounty = Math.floor(activeOracleStake * (dynamicBountyPercent / 100));
             const sweepPoolShare = activeOracleStake - bounty;
             updatedSyndicate.warChest = (updatedSyndicate.warChest ?? 0) + bounty;
-            newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
-            penaltyLog += `, oracle ${oId} stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+            
+            if (waivePenaltyEnabled) {
+              newState.swfStakingSweepPool = Math.max(0, (newState.swfStakingSweepPool ?? 0) - bounty);
+              penaltyLog += `, oracle ${oId} stake penalty waived, bounty of ${bounty} gold paid to Syndicate ${syndicateId} from Sweep Pool`;
+            } else {
+              newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
+              penaltyLog += `, oracle ${oId} stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+            }
           }
 
           const repThreshold = oracle.reputationThreshold ?? 50;
-          if (newRep < repThreshold || newRep === 0) {
+          if (!waivePenaltyEnabled && (newRep < repThreshold || newRep === 0)) {
             penaltyLog += ` and oracle ${oId} was DE-AUTHORIZED`;
           }
 
           // If this is also the active main oracle provider, sync it
           if (oracle.provider === newState.sweepPoolWeatherForecastOracleProvider) {
             newState.sweepPoolWeatherForecastOracleReputation = newRep;
-            newState.sweepPoolWeatherForecastOracleStake = 0;
+            if (!waivePenaltyEnabled) {
+              newState.sweepPoolWeatherForecastOracleStake = 0;
+            }
             const legacyThreshold = newState.sweepPoolWeatherForecastOracleReputationThreshold ?? 50;
-            if (newRep < legacyThreshold || newRep === 0) {
+            if (!waivePenaltyEnabled && (newRep < legacyThreshold || newRep === 0)) {
               newState.sweepPoolWeatherForecastOracleAuthorized = false;
             }
           }
@@ -9477,12 +9573,14 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
       newState.syndicates[syndicateId] = updatedSyndicate;
 
       // Check if all registered oracles are de-authorized
-      const allDeauthorized = Object.values(newState.weatherForecastOracles).every(
-        o => o.reputation < o.reputationThreshold || o.reputation === 0
-      );
-      if (allDeauthorized && Object.keys(newState.weatherForecastOracles).length > 0) {
-        newState.sweepPoolWeatherForecastOracleAuthorized = false;
-        newState.sweepPoolWeatherForecastOracleStake = 0;
+      if (!waivePenaltyEnabled) {
+        const allDeauthorized = Object.values(newState.weatherForecastOracles).every(
+          o => o.reputation < o.reputationThreshold || o.reputation === 0
+        );
+        if (allDeauthorized && Object.keys(newState.weatherForecastOracles).length > 0) {
+          newState.sweepPoolWeatherForecastOracleAuthorized = false;
+          newState.sweepPoolWeatherForecastOracleStake = 0;
+        }
       }
 
       if (!newState.journal) newState.journal = [];
@@ -16508,6 +16606,100 @@ export function reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensi
 
   if (latestAuthorizedProposal) {
     newState.breachSlashingRates[latestAuthorizedProposal.syndicateId] = latestAuthorizedProposal.slashingRate;
+  }
+
+  return newState;
+}
+
+export function reconcileMultiOraclePenaltyWaivers(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    multiOraclePenaltyWaiverProposals: state.multiOraclePenaltyWaiverProposals ? { ...state.multiOraclePenaltyWaiverProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.multiOraclePenaltyWaiverProposals)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.multiOraclePenaltyWaiverProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Multi-Oracle Penalty Waiver Resolved] Syndicate ${proposal.syndicateId} authorized penalty waiver ${proposalId} for dispute ${proposal.disputeId} (Waive: ${proposal.waivePenalty}, Grace: ${proposal.gracePeriodSteps} steps).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.multiOraclePenaltyWaiverProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileMultiOracleRefundEscalations(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    multiOracleRefundEscalationProposals: state.multiOracleRefundEscalationProposals ? { ...state.multiOracleRefundEscalationProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.multiOracleRefundEscalationProposals)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.multiOracleRefundEscalationProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Multi-Oracle Refund Escalation Resolved] Syndicate ${proposal.syndicateId} authorized refund escalation ${proposalId} for dispute ${proposal.disputeId} (Surcharge: ${proposal.refundSurchargePercent}%).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.multiOracleRefundEscalationProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
   }
 
   return newState;

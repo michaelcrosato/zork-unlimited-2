@@ -226,7 +226,11 @@ export type Action =
   | { type: "PROPOSE_WEATHER_FORECAST_ORACLE"; proposalId: string; syndicateId: string; oracleReputationThreshold: number; forecastAccuracyFloor: number; oracleStake?: number; timestamp: number }
   | { type: "VOTE_WEATHER_FORECAST_ORACLE"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_ORACLE_DISPUTE"; disputeId: string; syndicateId: string; anomalyStep: number; disputeStake: number; timestamp: number }
-  | { type: "VOTE_ORACLE_DISPUTE"; syndicateId: string; disputeId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_ORACLE_DISPUTE"; syndicateId: string; disputeId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_MULTI_ORACLE_PENALTY_WAIVER"; proposalId: string; syndicateId: string; disputeId: string; waivePenalty: boolean; gracePeriodSteps?: number; timestamp: number }
+  | { type: "VOTE_MULTI_ORACLE_PENALTY_WAIVER"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_MULTI_ORACLE_REFUND_ESCALATION"; proposalId: string; syndicateId: string; disputeId: string; refundSurchargePercent: number; timestamp: number }
+  | { type: "VOTE_MULTI_ORACLE_REFUND_ESCALATION"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

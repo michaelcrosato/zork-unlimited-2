@@ -609,4 +609,569 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     expect(state.weatherForecastOracles?.["oracle_prop_1"]?.reputation).toBe(100);
     expect(state.weatherForecastOracles?.["oracle_prop_1"]?.stake).toBe(800);
   });
+
+  it("should support proposing and voting on penalty waivers and grace period deferrals (AF-217)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice", "bob", "charlie"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "charlie"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // 1. Authorize 2 Oracles to create a multi-oracle setup
+    state.sweepPoolWeatherForecastOracleAuthorized = true;
+    state.weatherForecastOracles = {
+      "oracle_prop_1": {
+        id: "oracle_prop_1",
+        provider: "alpha",
+        stake: 800,
+        reputation: 100,
+        accuracyFloor: 90,
+        reputationThreshold: 60,
+        timestamp: 1000,
+      },
+      "oracle_prop_2": {
+        id: "oracle_prop_2",
+        provider: "beta",
+        stake: 1000,
+        reputation: 100,
+        accuracyFloor: 85,
+        reputationThreshold: 50,
+        timestamp: 1000,
+      }
+    };
+
+    // Populate oracle predictions history at anomalyStep 5 to make it a multi-oracle failure
+    state.weatherForecastOracleHistory = {
+      "5": {
+        "oracle_prop_1": 80,
+        "oracle_prop_2": 80,
+      }
+    };
+    state.weatherForecastHistory = {
+      "5": 80,
+    };
+    state.weatherForecastAnomalies = [5];
+
+    // File a dispute targeting anomaly at step 5
+    let stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "dispute_multi_1",
+          syndicateId: "alpha",
+          anomalyStep: 5,
+          disputeStake: 200,
+          timestamp: 2000,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult.ok).toBe(true);
+    state = stepResult.state;
+
+    // Propose Penalty Waiver / Grace Period of 10 steps
+    let stepResult3 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "PROPOSE_MULTI_ORACLE_PENALTY_WAIVER",
+          proposalId: "waiver_prop_1",
+          syndicateId: "beta",
+          disputeId: "dispute_multi_1",
+          waivePenalty: false,
+          gracePeriodSteps: 10,
+          timestamp: 2020,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult3.ok).toBe(true);
+    state = stepResult3.state;
+
+    // Vote to authorize the waiver by Charlie
+    let stepResult4 = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_MULTI_ORACLE_PENALTY_WAIVER",
+          syndicateId: "beta",
+          proposalId: "waiver_prop_1",
+          vote: true,
+          timestamp: 2030,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult4.ok).toBe(true);
+    state = stepResult4.state;
+
+    expect(state.multiOraclePenaltyWaiverProposals?.["waiver_prop_1"]?.status).toBe("authorized");
+
+    // Vote to authorize the dispute by Alice (now waiver is authorized, so this will trigger deferral)
+    let stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE",
+          syndicateId: "alpha",
+          disputeId: "dispute_multi_1",
+          vote: true,
+          timestamp: 2010,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    // Since step is 6 (reconciled through actions), and anomalyStep is 5,
+    // step 6 is less than anomalyStep 5 + gracePeriodSteps 10 = 15.
+    // Dispute should remain unresolved/deferred!
+    expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_multi_1"]?.resolved).toBe(false);
+    expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_multi_1"]?.status).toBe("proposed");
+    expect(state.journal?.some(j => j.includes("[Oracle Dispute Deferred] Dispute dispute_multi_1"))).toBe(true);
+
+    // Fast forward step to 15
+    state.step = 15;
+    let stepResult5 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE", // just cast a duplicate vote or any valid action to trigger tick economy / dispute reconciliation
+          syndicateId: "alpha",
+          disputeId: "dispute_multi_1",
+          vote: true,
+          timestamp: 2040,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult5.ok).toBe(true);
+    state = stepResult5.state;
+
+    // Now step is 16, which is >= 15. The dispute should be successfully resolved and slashed!
+    expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_multi_1"]?.resolved).toBe(true);
+    expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_multi_1"]?.status).toBe("authorized");
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]?.stake).toBe(0);
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]?.stake).toBe(0);
+  });
+
+  it("should support penalty waivers with waivePenalty set to true (AF-217)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice", "bob", "charlie"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "charlie"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    state.sweepPoolWeatherForecastOracleAuthorized = true;
+    state.weatherForecastOracles = {
+      "oracle_prop_1": {
+        id: "oracle_prop_1",
+        provider: "alpha",
+        stake: 800,
+        reputation: 100,
+        accuracyFloor: 90,
+        reputationThreshold: 60,
+        timestamp: 1000,
+      },
+      "oracle_prop_2": {
+        id: "oracle_prop_2",
+        provider: "beta",
+        stake: 1000,
+        reputation: 100,
+        accuracyFloor: 85,
+        reputationThreshold: 50,
+        timestamp: 1000,
+      }
+    };
+
+    state.weatherForecastOracleHistory = {
+      "5": {
+        "oracle_prop_1": 80,
+        "oracle_prop_2": 80,
+      }
+    };
+    state.weatherForecastHistory = {
+      "5": 80,
+    };
+    state.weatherForecastAnomalies = [5];
+    state.swfStakingSweepPool = 1000;
+
+    // File dispute targeting anomaly at step 5
+    let stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "dispute_multi_2",
+          syndicateId: "alpha",
+          anomalyStep: 5,
+          disputeStake: 200,
+          timestamp: 2000,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult.state;
+
+    // Propose Penalty Waiver (waivePenalty = true)
+    let stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_MULTI_ORACLE_PENALTY_WAIVER",
+          proposalId: "waiver_prop_2",
+          syndicateId: "alpha",
+          disputeId: "dispute_multi_2",
+          waivePenalty: true,
+          timestamp: 2010,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult2.state;
+
+    // Authorize Waiver
+    let stepResult3 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_MULTI_ORACLE_PENALTY_WAIVER",
+          syndicateId: "alpha",
+          proposalId: "waiver_prop_2",
+          vote: true,
+          timestamp: 2020,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult3.state;
+
+    expect(state.multiOraclePenaltyWaiverProposals?.["waiver_prop_2"]?.status).toBe("authorized");
+
+    // Authorize dispute by Alice
+    let stepResult4 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE",
+          syndicateId: "alpha",
+          disputeId: "dispute_multi_2",
+          vote: true,
+          timestamp: 2030,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult4.state;
+
+    // Verify dispute resolved as won
+    expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_multi_2"]?.status).toBe("authorized");
+
+    // Since waivePenalty was authorized:
+    // 1. Oracle reputation and stakes should remain unchanged (100 rep, stakes intact)!
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]?.reputation).toBe(100);
+    expect(state.weatherForecastOracles?.["oracle_prop_1"]?.stake).toBe(800);
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]?.reputation).toBe(100);
+    expect(state.weatherForecastOracles?.["oracle_prop_2"]?.stake).toBe(1000);
+
+    // 2. Disputing syndicate alpha gets refunded disputeStake (200), plus bounties (800*0.5 + 1000*0.5 = 900) paid from sweep pool.
+    // Proposing dispute raw cost: warchest goes from 10000 -> 9800.
+    // Refund: 9800 + 200 (dispute stake) + 900 (bounties) = 10900.
+    expect(state.syndicates?.alpha.warChest).toBe(10900);
+    // Sweep pool decremented by 900 bounties: 1000 - 900 = 100.
+    expect(state.swfStakingSweepPool).toBe(100);
+  });
+
+  it("should support proposing and voting on refund escalations (AF-217)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice", "bob", "charlie"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "charlie"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    state.sweepPoolWeatherForecastOracleAuthorized = true;
+    state.weatherForecastOracles = {
+      "oracle_prop_1": {
+        id: "oracle_prop_1",
+        provider: "alpha",
+        stake: 800,
+        reputation: 100,
+        accuracyFloor: 90,
+        reputationThreshold: 60,
+        timestamp: 1000,
+      },
+      "oracle_prop_2": {
+        id: "oracle_prop_2",
+        provider: "beta",
+        stake: 1000,
+        reputation: 100,
+        accuracyFloor: 85,
+        reputationThreshold: 50,
+        timestamp: 1000,
+      }
+    };
+
+    state.weatherForecastOracleHistory = {
+      "5": {
+        "oracle_prop_1": 80,
+        "oracle_prop_2": 80,
+      }
+    };
+    state.weatherForecastHistory = {
+      "5": 80,
+    };
+    state.weatherForecastAnomalies = [5];
+    state.swfStakingSweepPool = 1000;
+
+    // File dispute targeting anomaly at step 5
+    let stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "dispute_multi_3",
+          syndicateId: "alpha",
+          anomalyStep: 5,
+          disputeStake: 200,
+          timestamp: 2000,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult.state;
+
+    // Propose Refund Escalation (refundSurchargePercent = 50%)
+    let stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_MULTI_ORACLE_REFUND_ESCALATION",
+          proposalId: "escalation_prop_1",
+          syndicateId: "alpha",
+          disputeId: "dispute_multi_3",
+          refundSurchargePercent: 50,
+          timestamp: 2010,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult2.state;
+
+    // Vote to authorize escalation
+    let stepResult3 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_MULTI_ORACLE_REFUND_ESCALATION",
+          syndicateId: "alpha",
+          proposalId: "escalation_prop_1",
+          vote: true,
+          timestamp: 2020,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult3.state;
+
+    expect(state.multiOracleRefundEscalationProposals?.["escalation_prop_1"]?.status).toBe("authorized");
+
+    // Vote to authorize dispute
+    let stepResult4 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE",
+          syndicateId: "alpha",
+          disputeId: "dispute_multi_3",
+          vote: true,
+          timestamp: 2030,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult4.state;
+
+    expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_multi_3"]?.status).toBe("authorized");
+
+    // Under refundSurchargePercent = 50%:
+    // 1. Refund contains original disputeStake (200) + refundBonus (200 * 50% = 100) = 300.
+    // 2. Bounty percent scaled from 50% to 100% (50 + 50):
+    //    Oracle 1 bounty: 800 * 100% = 800.
+    //    Oracle 2 bounty: 1000 * 100% = 1000.
+    //    Total bounty = 1800.
+    // Total warChest update: 9800 + 300 (refund) + 1800 (bounty) = 11900.
+    expect(state.syndicates?.alpha.warChest).toBe(11900);
+    // Sweep pool decremented by 100 refundBonus: 1000 - 100 = 900. (Oracles slashed stakes sweep share is 0 since bounty is 100%)
+    expect(state.swfStakingSweepPool).toBe(900);
+  });
+
+  it("should enforce validation checks restricting proposal to disputes involving multi-oracle failures", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice", "bob", "charlie"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Single oracle setup
+    state.sweepPoolWeatherForecastOracleAuthorized = true;
+    state.weatherForecastOracles = {
+      "oracle_prop_1": {
+        id: "oracle_prop_1",
+        provider: "alpha",
+        stake: 800,
+        reputation: 100,
+        accuracyFloor: 90,
+        reputationThreshold: 60,
+        timestamp: 1000,
+      }
+    };
+    state.weatherForecastHistory = {
+      "5": 80,
+    };
+    state.weatherForecastAnomalies = [5];
+
+    // File dispute targeting anomaly at step 5
+    let stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "dispute_single_1",
+          syndicateId: "alpha",
+          anomalyStep: 5,
+          disputeStake: 200,
+          timestamp: 2000,
+        } as any,
+      },
+      mockPack
+    );
+    state = stepResult.state;
+
+    // Attempt to propose penalty waiver for a dispute involving a single oracle failure (should reject)
+    let stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_MULTI_ORACLE_PENALTY_WAIVER",
+          proposalId: "waiver_prop_reject",
+          syndicateId: "alpha",
+          disputeId: "dispute_single_1",
+          waivePenalty: true,
+          timestamp: 2010,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult2.ok).toBe(false);
+    expect(stepResult2.rejectionReason).toContain("does not involve a multi-oracle aggregate forecasting failure");
+
+    // Attempt to propose refund escalation for a dispute involving a single oracle failure (should reject)
+    let stepResult3 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_MULTI_ORACLE_REFUND_ESCALATION",
+          proposalId: "escalation_prop_reject",
+          syndicateId: "alpha",
+          disputeId: "dispute_single_1",
+          refundSurchargePercent: 50,
+          timestamp: 2020,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult3.ok).toBe(false);
+    expect(stepResult3.rejectionReason).toContain("does not involve a multi-oracle aggregate forecasting failure");
+  });
 });
+
