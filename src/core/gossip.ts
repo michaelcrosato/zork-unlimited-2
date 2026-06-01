@@ -621,6 +621,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge contrabandBlacklist using LWW (Last-Write-Wins)
+  const contrabandBlacklist = { ...stateA.contrabandBlacklist };
+  if (stateB.contrabandBlacklist) {
+    for (const [itemId, entryB] of Object.entries(stateB.contrabandBlacklist)) {
+      const entryA = contrabandBlacklist[itemId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        contrabandBlacklist[itemId] = entryB;
+      }
+    }
+  }
+
+  // Merge blackMarketPayouts using LWW (Last-Write-Wins)
+  const blackMarketPayouts = { ...stateA.blackMarketPayouts };
+  if (stateB.blackMarketPayouts) {
+    for (const [roomId, entryB] of Object.entries(stateB.blackMarketPayouts)) {
+      const entryA = blackMarketPayouts[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        blackMarketPayouts[roomId] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -646,6 +668,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cartels,
     cartelMemberships,
     cartelVotes,
+    contrabandBlacklist,
+    blackMarketPayouts,
   };
 }
 

@@ -235,6 +235,20 @@ export function calculateTradePrice(
     }
   }
 
+  // 8. Regional Black Market Smuggling Payouts for Contraband (AF-40)
+  if (!isBuy && packObj) {
+    const isPackContraband = packObj.contraband === true;
+    const isBlacklisted = state.contrabandBlacklist?.[packObj.id]?.blacklisted === true;
+    if (isPackContraband || isBlacklisted) {
+      let contrabandMultiplier = 1.2; // Default premium
+      const payoutEntry = state.blackMarketPayouts?.[state.current];
+      if (payoutEntry && payoutEntry.payout > 0) {
+        contrabandMultiplier = payoutEntry.payout / 100.0;
+      }
+      multiplier *= contrabandMultiplier;
+    }
+  }
+
   const finalCost = Math.round(baseCost * multiplier);
   return Math.max(1, finalCost); // price never drops below 1 gold
 }
@@ -446,6 +460,24 @@ export function getMerchantTradeCaps(state: GameState, factionId: string): { max
       maxGoldVolume: 500 + rep * 20
     };
   }
+}
+
+/**
+ * Scans the player's inventory and returns a list of items that are flagged as contraband
+ * either in the pack definition or via the synchronized gossip contraband blacklist.
+ */
+export function getContrabandInInventory(state: GameState, pack: any): string[] {
+  const contrabandItems: string[] = [];
+  if (!pack || !pack.objects || !state.inventory) return [];
+  for (const itemId of state.inventory) {
+    const packObj = pack.objects.find((o: any) => o.id === itemId);
+    const isPackContraband = packObj?.contraband === true;
+    const isBlacklisted = state.contrabandBlacklist?.[itemId]?.blacklisted === true;
+    if (isPackContraband || isBlacklisted) {
+      contrabandItems.push(itemId);
+    }
+  }
+  return contrabandItems;
 }
 
 /**

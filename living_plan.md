@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #39 (Ready for Cycle #40)
-* **Build/Test Status**: 🟢 PASS (All 174 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #40 (Ready for Cycle #41)
+* **Build/Test Status**: 🟢 PASS (All 180 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -214,17 +214,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Support P2P gossip mesh replication of active embargoes and cartel policies (`AF-39`).
 - [x] Write comprehensive integration tests verifying embargoes and cartel-coordinated price hikes (`AF-39`).
 
+### Phase 34: Decentralized Cartel Smuggling and Contraband Economy (Completed)
+- [x] Add contraband flags to item schemas and state variables (`AF-40`).
+- [x] Implement smuggling reducer effects for crossing hostile/embargoed borders (`AF-40`).
+- [x] Support P2P gossip mesh synchronization of blacklisted contraband list and regional black-market smuggling payouts (`AF-40`).
+- [x] Write comprehensive Vitest integration tests for smuggling border checks, caught penalties, and mesh-wide sync (`AF-40`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-40`
-* **Objective**: Implement Decentralized Cartel Smuggling and Contraband Economy.
-* **Why this matters**: A smuggling contraband economy that lets players/agents bypass hostile faction trade route tolls or active cartel embargoes, introducing dynamic contraband mechanics and risk/reward reputational stakes.
+**Task ID**: `AF-41`
+* **Objective**: Implement Smuggling Bounty Hunters and Dynamic Enforcement Agents.
+* **Why this matters**: Introduce active Enforcement Agents and Smuggling Bounty Hunters that dynamically track players or other agents carrying contraband, triggering ambush events and reputation-based combat checks.
 * **Planned Actions**:
-  1. Add contraband flags to item schemas and state variables.
-  2. Implement smuggling reducer effects for crossing hostile/embargoed borders.
-  3. Support P2P gossip mesh synchronization of blacklisted contraband list and regional black-market smuggling payouts.
-  4. Write comprehensive Vitest integration tests for smuggling border checks, caught penalties, and mesh-wide sync.
+  1. Define Bounty Hunter and Enforcement Agent AI behavior and state schemas.
+  2. Implement ambush narration events and pursuit mechanisms.
+  3. Support P2P mesh synchronization of bounty tracking lists and bounty payouts.
+  4. Write comprehensive Vitest integration tests for hunters, ambushes, and mesh-wide bounty convergence.
 
 ---
 

@@ -7,7 +7,7 @@ import { computeStateHashShort } from "./hash.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack, ParserRoom, ParserObject, ParserNPC } from "../parser/schema.js";
 import { PureRand } from "./rng.js";
-import { calculateTradePrice, checkReputationTrade, getMerchantGold, tickEconomy, getFactionForNpc, getMerchantTradeCaps } from "./economy.js";
+import { calculateTradePrice, checkReputationTrade, getMerchantGold, tickEconomy, getFactionForNpc, getMerchantTradeCaps, getContrabandInInventory } from "./economy.js";
 
 /**
  * Pure engine step transition function.
@@ -460,6 +460,13 @@ export function step(
       // Territory-based exit traversal constraints & faction tax mechanics
       const destRoomId = exit.to;
       const factionId = state.territoryControl?.[destRoomId];
+
+      // Check if player is carrying contraband
+      const contrabandItems = getContrabandInInventory(state, pack);
+      const carriesContraband = contrabandItems.length > 0;
+
+      // Pre-calculate Tax
+      let calculatedTax = 0;
       if (factionId) {
         const rep = state.factionRep?.[factionId] ?? 0;
         let tax = 0;
@@ -496,44 +503,27 @@ export function step(
         } else if (hasHostileAlliance) {
           tax = tax * 2; // Hostile factions pay double tax
         }
-
-        if (tax > 0) {
-          const playerGold = state.vars["gold"] ?? 0;
-          if (playerGold < tax) {
-            return {
-              state,
-              events: [{ type: "rejected", reason: `You cannot enter ${exit.to} without paying a faction tax of ${tax} gold (you have ${playerGold}).` }],
-              ok: false,
-              rejectionReason: `You cannot afford the faction tax of ${tax} gold to enter this territory.`,
-            };
-          }
-          // Deduct gold
-          newState.vars["gold"] = playerGold - tax;
-          events.push({
-            type: "narration",
-            text: `Paid ${tax} gold in faction tax to enter ${factionId} territory.`,
-          });
-        }
+        calculatedTax = tax;
       }
 
-      // 🌀 AF-34: Faction Trade Route Locks and Tolls
-      if (state.tradeRoutes) {
-        let maxToll = 0;
-        let lockingRouteId: string | null = null;
-        let tollingRouteId: string | null = null;
-        let hostileRouteFactionId: string | null = null;
+      // Pre-calculate Trade Route locking and tolls
+      let maxToll = 0;
+      let lockingRouteId: string | null = null;
+      let tollingRouteId: string | null = null;
+      let hostileRouteFactionId: string | null = null;
 
+      if (state.tradeRoutes) {
         for (const [routeId, route] of Object.entries(state.tradeRoutes)) {
           if (route.rooms.includes(destRoomId)) {
-            const factionId = route.factionId;
-            const rep = state.factionRep?.[factionId] ?? 0;
+            const rFactionId = route.factionId;
+            const rep = state.factionRep?.[rFactionId] ?? 0;
 
             // Check if faction is hostile
             let isHostile = rep < 0;
             if (!isHostile && state.alliances && state.factionRep) {
               for (const [otherFactionId, otherRep] of Object.entries(state.factionRep)) {
-                if (otherFactionId !== factionId && otherRep >= 10) {
-                  if (state.alliances[factionId]?.[otherFactionId] === "hostile") {
+                if (otherFactionId !== rFactionId && otherRep >= 10) {
+                  if (state.alliances[rFactionId]?.[otherFactionId] === "hostile") {
                     isHostile = true;
                     break;
                   }
@@ -545,8 +535,8 @@ export function step(
             let isAllied = rep >= 10;
             if (!isAllied && state.alliances && state.factionRep) {
               for (const [otherFactionId, otherRep] of Object.entries(state.factionRep)) {
-                if (otherFactionId !== factionId && otherRep >= 10) {
-                  if (state.alliances[factionId]?.[otherFactionId] === "allied") {
+                if (otherFactionId !== rFactionId && otherRep >= 10) {
+                  if (state.alliances[rFactionId]?.[otherFactionId] === "allied") {
                     isAllied = true;
                     break;
                   }
@@ -555,7 +545,7 @@ export function step(
             }
 
             if (isHostile && !isAllied) {
-              hostileRouteFactionId = factionId;
+              hostileRouteFactionId = rFactionId;
               const toll = state.tradeRoutePolicies?.[routeId] ?? route.taxShare ?? 5;
               
               if (rep <= -10) {
@@ -567,6 +557,91 @@ export function step(
               }
             }
           }
+        }
+      }
+
+      const isHostileBorder = (calculatedTax > 0) || (maxToll > 0) || (lockingRouteId !== null);
+      let isSmugglingBypassed = false;
+
+      if (carriesContraband && isHostileBorder) {
+        // Trigger smuggling check!
+        const { value: roll, nextSeed } = PureRand.next(newState.seed);
+        newState.seed = nextSeed;
+
+        let detectionChance = 0.4; // 40% base
+        if (state.vars["smuggling"]) {
+          detectionChance -= state.vars["smuggling"] * 0.05;
+        }
+        if (state.vars["smuggling_skill"]) {
+          detectionChance -= state.vars["smuggling_skill"] * 0.05;
+        }
+        if (state.flags["smuggler_cloak"] || state.flags["smuggling_cloak"]) {
+          detectionChance -= 0.15;
+        }
+        detectionChance = Math.max(0.05, Math.min(0.95, detectionChance));
+
+        if (roll < detectionChance) {
+          // Caught!
+          const borderFactionId = factionId || hostileRouteFactionId;
+          
+          // Confiscate contraband
+          newState.inventory = newState.inventory.filter(itemId => !contrabandItems.includes(itemId));
+          
+          // Faction reputation penalty
+          if (borderFactionId) {
+            newState.factionRep = newState.factionRep || {};
+            const currentRep = newState.factionRep[borderFactionId] ?? 0;
+            newState.factionRep[borderFactionId] = currentRep - 15;
+          }
+
+          // Gold fine based on confiscated value
+          let contrabandValue = 0;
+          if (pack && (pack as any).objects) {
+            for (const itemId of contrabandItems) {
+              const obj = (pack as any).objects.find((o: any) => o.id === itemId);
+              contrabandValue += obj?.cost ?? 10;
+            }
+          }
+          const fine = Math.round(contrabandValue * 1.5) || 50;
+          const currentGold = newState.vars["gold"] ?? 0;
+          newState.vars["gold"] = Math.max(0, currentGold - fine);
+
+          return {
+            state: newState,
+            events: [{
+              type: "rejected",
+              reason: `You were caught by the border patrol smuggling contraband (${contrabandItems.join(", ")})! The contraband was confiscated, you were fined ${fine} gold, and your reputation with faction ${borderFactionId || "border patrol"} was reduced. You were turned back.`
+            } as any],
+            ok: false,
+            rejectionReason: `Caught smuggling contraband at the border.`,
+          };
+        } else {
+          // Success!
+          isSmugglingBypassed = true;
+          events.push({
+            type: "narration",
+            text: `You successfully smuggled contraband across the border into ${destRoomId} without paying faction taxes or tolls.`
+          });
+        }
+      }
+
+      if (!isSmugglingBypassed) {
+        if (calculatedTax > 0 && factionId) {
+          const playerGold = state.vars["gold"] ?? 0;
+          if (playerGold < calculatedTax) {
+            return {
+              state,
+              events: [{ type: "rejected", reason: `You cannot enter ${exit.to} without paying a faction tax of ${calculatedTax} gold (you have ${playerGold}).` }],
+              ok: false,
+              rejectionReason: `You cannot afford the faction tax of ${calculatedTax} gold to enter this territory.`,
+            };
+          }
+          // Deduct gold
+          newState.vars["gold"] = playerGold - calculatedTax;
+          events.push({
+            type: "narration",
+            text: `Paid ${calculatedTax} gold in faction tax to enter ${factionId} territory.`,
+          });
         }
 
         if (lockingRouteId) {

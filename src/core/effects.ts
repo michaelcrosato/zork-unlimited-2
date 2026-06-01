@@ -2,7 +2,7 @@ import { z } from "zod";
 import { GameState } from "./state.js";
 import { GameEvent } from "./events.js";
 import { PureRand } from "./rng.js";
-import { calculateTradePrice, checkReputationTrade, getMerchantGold } from "./economy.js";
+import { calculateTradePrice, checkReputationTrade, getMerchantGold, getContrabandInInventory } from "./economy.js";
 
 export const EffectSchema = z.union([
   z.object({ set_flag: z.string() }),
@@ -509,11 +509,94 @@ export function applyEffect(
 
     // Check Reputation requirement
     const repCheck = checkReputationTrade(newState, npcPack, min_rep);
+    let bypassAllowed = false;
+
     if (!repCheck.allowed) {
-      return {
-        state,
-        event: { type: "narration", text: fail_msg ?? repCheck.reason ?? "Trade not allowed." }
-      };
+      // Check if it's due to a cartel embargo and can be bypassed by smuggling
+      let isEmbargoed = false;
+      let cartelIdEmbargoed = "";
+      if (newState.cartels && npcPack?.id) {
+        for (const [cartelId, cartel] of Object.entries(newState.cartels)) {
+          if (cartel.members.includes(npcPack.id)) {
+            const cartelPolicy = newState.cartelPolicies?.[cartelId];
+            const embargoedFactions = cartelPolicy?.embargoedFactions ?? [];
+            for (const factionId of embargoedFactions) {
+              const factionRep = newState.factionRep?.[factionId] ?? 0;
+              if (factionRep > 0) {
+                isEmbargoed = true;
+                cartelIdEmbargoed = cartelId;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      const contrabandItems = getContrabandInInventory(newState, pack);
+      const carriesContraband = contrabandItems.length > 0;
+      const hasSmugglingCapability = carriesContraband || (newState.vars["smuggling"] ?? 0) > 0 || (newState.vars["smuggling_skill"] ?? 0) > 0;
+
+      if (isEmbargoed && hasSmugglingCapability) {
+        // Trigger smuggling check to bypass cartel embargo!
+        const { value: roll, nextSeed } = PureRand.next(newState.seed);
+        newState.seed = nextSeed;
+
+        let detectionChance = 0.4; // 40% base
+        if (newState.vars["smuggling"]) {
+          detectionChance -= newState.vars["smuggling"] * 0.05;
+        }
+        if (newState.vars["smuggling_skill"]) {
+          detectionChance -= newState.vars["smuggling_skill"] * 0.05;
+        }
+        if (newState.flags["smuggler_cloak"] || newState.flags["smuggling_cloak"]) {
+          detectionChance -= 0.15;
+        }
+        detectionChance = Math.max(0.05, Math.min(0.95, detectionChance));
+
+        if (roll < detectionChance) {
+          // Caught! Confiscate all contraband from player
+          newState.inventory = newState.inventory.filter(itemId => !contrabandItems.includes(itemId));
+
+          // Decrement faction reputation
+          const borderFactionId = npcPack.faction || npcPack.id;
+          if (borderFactionId) {
+            newState.factionRep = newState.factionRep || {};
+            const currentRep = newState.factionRep[borderFactionId] ?? 0;
+            newState.factionRep[borderFactionId] = currentRep - 15;
+          }
+
+          // Gold fine based on confiscated value
+          let contrabandValue = 0;
+          if (pack && (pack as any).objects) {
+            for (const itemId of contrabandItems) {
+              const obj = (pack as any).objects.find((o: any) => o.id === itemId);
+              contrabandValue += obj?.cost ?? 10;
+            }
+          }
+          const fine = Math.round(contrabandValue * 1.5) || 50;
+          const currentGold = newState.vars["gold"] ?? 0;
+          newState.vars["gold"] = Math.max(0, currentGold - fine);
+
+          return {
+            state: newState,
+            event: { 
+              type: "narration", 
+              text: fail_msg ?? `You were caught by the cartel guards smuggling trade past the embargo! All contraband was confiscated, you were fined ${fine} gold, and your reputation with the cartel was damaged.` 
+            }
+          };
+        } else {
+          // Success! Proceed with trade
+          bypassAllowed = true;
+          newState.journal.push(`Successfully smuggled trade past the cartel embargo with merchant ${npcPack.name}.`);
+        }
+      }
+
+      if (!bypassAllowed) {
+        return {
+          state,
+          event: { type: "narration", text: fail_msg ?? repCheck.reason ?? "Trade not allowed." }
+        };
+      }
     }
 
     if (action === "stock") {

@@ -168,7 +168,17 @@ export const CartelPolicySchema = z.object({
   priceMultiplier: z.number().nonnegative(),
   embargoedFactions: z.array(z.string()),
 });
-export type CartelPolicy = z.infer<typeof CartelPolicySchema>;
+export const ContrabandBlacklistEntrySchema = z.object({
+  blacklisted: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type ContrabandBlacklistEntry = z.infer<typeof ContrabandBlacklistEntrySchema>;
+
+export const BlackMarketPayoutEntrySchema = z.object({
+  payout: z.number().int(),
+  timestamp: z.number().int(),
+});
+export type BlackMarketPayoutEntry = z.infer<typeof BlackMarketPayoutEntrySchema>;
 
 export const GameStateSchema = z.object({
   // identity / determinism
@@ -243,6 +253,10 @@ export const GameStateSchema = z.object({
   cartelMemberships: z.record(z.string(), z.array(z.string())).optional(),
   cartelVotes: z.record(z.string(), z.record(z.string(), CartelVoteSchema)).optional(),
   cartelPolicies: z.record(z.string(), CartelPolicySchema).optional(),
+
+  // contraband smuggling economy (AF-40)
+  contrabandBlacklist: z.record(z.string(), ContrabandBlacklistEntrySchema).optional(),
+  blackMarketPayouts: z.record(z.string(), BlackMarketPayoutEntrySchema).optional(),
 });
 
 export type GameState = z.infer<typeof GameStateSchema>;
@@ -325,6 +339,8 @@ export const createInitialState = (options: {
     cartelMemberships: {},
     cartelVotes: {},
     cartelPolicies: {},
+    contrabandBlacklist: {},
+    blackMarketPayouts: {},
   };
 };
 

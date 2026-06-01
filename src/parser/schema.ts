@@ -36,6 +36,7 @@ export const ParserObjectSchema = z.object({
   interactions: z.array(ObjectInteractionSchema).optional().default([]),
   cost: z.number().optional(),
   climate_pricing: z.record(z.string(), z.number()).optional(),
+  contraband: z.boolean().optional(),
 });
 
 export type ParserObject = z.infer<typeof ParserObjectSchema>;

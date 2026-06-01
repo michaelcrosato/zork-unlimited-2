@@ -1919,6 +1919,165 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized SET_CONTRABAND_BLACKLIST action
+  if ((action as any).type === "SET_CONTRABAND_BLACKLIST") {
+    const { itemId, blacklisted, timestamp } = action as any;
+
+    let ok = true;
+    let rejectionReason: string | undefined;
+
+    const isValidObject = (pack as any).objects?.some((o: any) => o.id === itemId);
+    if (!isValidObject) {
+      ok = false;
+      rejectionReason = `Item ${itemId} is not a valid item in the content pack.`;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const blacklist = { ...(state.contrabandBlacklist || {}) };
+      const existing = blacklist[itemId];
+      if (!existing || timestamp > existing.timestamp) {
+        blacklist[itemId] = {
+          blacklisted,
+          timestamp,
+        };
+        newState.contrabandBlacklist = blacklist;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "contraband_blacklist_updated", itemId, blacklisted, updatedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized SET_BLACK_MARKET_PAYOUT action
+  if ((action as any).type === "SET_BLACK_MARKET_PAYOUT") {
+    const { roomId, payout, timestamp } = action as any;
+
+    let ok = true;
+    let rejectionReason: string | undefined;
+
+    const isValidRoom = (pack as any).rooms?.some((r: any) => r.id === roomId);
+    if (!isValidRoom) {
+      ok = false;
+      rejectionReason = `Room ${roomId} is not a valid room in the content pack.`;
+    } else if (payout < 0 || !Number.isInteger(payout)) {
+      ok = false;
+      rejectionReason = `Payout ${payout} must be a non-negative integer.`;
+    }
+
+    let newState = { ...state };
+    if (ok) {
+      const payouts = { ...(state.blackMarketPayouts || {}) };
+      const existing = payouts[roomId];
+      if (!existing || timestamp > existing.timestamp) {
+        payouts[roomId] = {
+          payout,
+          timestamp,
+        };
+        newState.blackMarketPayouts = payouts;
+      }
+    }
+
+    newState.step += 1;
+
+    // Maintain history on successful steps
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = JSON.parse(JSON.stringify(state));
+      delete clonedPriorState.stateHistory;
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    // Append transaction journal telemetry
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? [{ type: "black_market_payout_updated", roomId, payout, updatedBy: agentId } as any]
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {
