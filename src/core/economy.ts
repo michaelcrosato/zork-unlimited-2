@@ -3013,6 +3013,50 @@ export function tickEconomy(state: GameState, pack: any): GameState {
   if (newState.marginAccounts && Object.keys(newState.marginAccounts).length > 0) {
     newState.marginAccounts = { ...newState.marginAccounts };
     for (const [syndicateId, marginAccount] of Object.entries(newState.marginAccounts)) {
+      // AF-111: Process margin rehypothecation yield / sweep risk
+      if (marginAccount.rehypothecationAuthorized && marginAccount.rehypothecationVaultId && marginAccount.rehypothecationPercentage !== undefined && marginAccount.rehypothecationPercentage > 0 && marginAccount.collateral > 0) {
+        const vaults = getSecondaryReserveVaults(newState);
+        const vault = vaults[marginAccount.rehypothecationVaultId];
+        if (vault) {
+          const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.rehypothecationPercentage / 100));
+          if (rehypothecatedAmount > 0) {
+            // Roll for enforcer sweep risk
+            const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+            newState.seed = nextSeed;
+
+            const riskPercentage = Math.round(vault.sweepRisk * 100);
+            if (riskPercentage > 0 && sweepRoll <= riskPercentage) {
+              // Sweep! Reduce collateral by rehypothecated amount
+              marginAccount.collateral = Math.max(0, marginAccount.collateral - rehypothecatedAmount);
+              marginAccount.timestamp = newState.step;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Rehypothecation Sweep] Regulators swept vault ${vault.name} (${marginAccount.rehypothecationVaultId}) containing rehypothecated collateral of Syndicate ${syndicateId}! Liquidated all ${rehypothecatedAmount} gold (Sweep Roll: ${sweepRoll} <= Risk: ${riskPercentage}%).`
+              );
+            } else {
+              // Earn yield!
+              let interest = 0;
+              if (vault.interestRate > 0) {
+                interest = Math.max(1, Math.floor(rehypothecatedAmount * vault.interestRate));
+              }
+              if (interest > 0) {
+                const yieldReturned = Math.floor(interest * 0.80);
+                if (yieldReturned > 0) {
+                  marginAccount.collateral += yieldReturned;
+                  marginAccount.timestamp = newState.step;
+
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[Rehypothecation Yield] Syndicate ${syndicateId} earned ${interest} gold passive interest from rehypothecated collateral in ${vault.name} (Returned ${yieldReturned} gold to margin collateral).`
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+
       if (marginAccount.collateral === 0 && (!marginAccount.leveragedCDSIds || marginAccount.leveragedCDSIds.length === 0) && (!marginAccount.leveragedTranchePositions || Object.keys(marginAccount.leveragedTranchePositions).length === 0)) {
         continue;
       }
@@ -3046,7 +3090,17 @@ export function tickEconomy(state: GameState, pack: any): GameState {
       }
       marginAccount.leveragedCDSIds = stillActiveCDSIds;
 
-      const maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount));
+      let rehypothecationPremium = 0;
+      if (marginAccount.rehypothecationAuthorized && marginAccount.rehypothecationVaultId && marginAccount.rehypothecationPercentage !== undefined) {
+        const vaults = getSecondaryReserveVaults(newState);
+        const vault = vaults[marginAccount.rehypothecationVaultId];
+        if (vault) {
+          const rehypothecatedAmount = Math.floor(marginAccount.collateral * (marginAccount.rehypothecationPercentage / 100));
+          rehypothecationPremium = Math.round(rehypothecatedAmount * (0.10 + vault.sweepRisk));
+        }
+      }
+
+      const maintenanceRequirement = Math.round((0.20 * sumCdsNotional) + (0.10 * sumBorrowedAmount) + rehypothecationPremium);
 
       // If netEquity < maintenanceRequirement, trigger a MARGIN CALL!
       if (netEquity < maintenanceRequirement) {

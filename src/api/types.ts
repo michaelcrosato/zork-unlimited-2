@@ -132,6 +132,8 @@ export type Action =
   | { type: "WRITE_CREDIT_DEFAULT_SWAP"; cdsId: string; writerSyndicateId: string; buyerSyndicateId: string; cdoId: string; trancheId: "senior" | "mezzanine" | "equity"; notionalValue: number; premiumRate: number; timestamp: number; marginEnabled?: boolean }
   | { type: "OPEN_CDS_MARGIN_ACCOUNT"; syndicateId: string; initialDeposit: number; timestamp: number }
   | { type: "DEPOSIT_MARGIN_COLLATERAL"; syndicateId: string; amount: number; timestamp: number }
+  | { type: "AUTHORIZE_MARGIN_REHYPOTHECATION"; syndicateId: string; vaultId: string; percentage: number; timestamp: number }
+  | { type: "REVOKE_MARGIN_REHYPOTHECATION"; syndicateId: string; timestamp: number }
   | { type: "PROPOSE_CDS_TRADE"; tradeId: string; cdsId: string; proposerSyndicateId: string; counterpartySyndicateId: string; role: "buyer" | "writer"; goldPrice: number; timestamp: number }
   | { type: "ACCEPT_CDS_TRADE"; tradeId: string; timestamp: number };
 

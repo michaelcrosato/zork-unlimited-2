@@ -1080,6 +1080,9 @@ export const MarginAccountSchema = z.object({
   leveragedCDSIds: z.array(z.string()).optional(),
   leveragedTranchePositions: z.record(z.string(), LeveragedTranchePositionSchema).optional(),
   timestamp: z.number().int(),
+  rehypothecationAuthorized: z.boolean().optional(),
+  rehypothecationVaultId: z.string().optional(),
+  rehypothecationPercentage: z.number().int().nonnegative().max(100).optional(),
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
@@ -1381,6 +1384,14 @@ export const GameStateSchema = z.object({
   creditDefaultSwapVotes: z.record(z.string(), z.record(z.string(), CDSVoteSchema)).optional(),
   creditDefaultSwapTrades: z.record(z.string(), CDSTradeProposalSchema).optional(),
   marginAccounts: z.record(z.string(), MarginAccountSchema).optional(),
+  marginRehypothecationVotes: z.record(z.string(), z.record(z.string(), z.object({
+    vaultId: z.string(),
+    percentage: z.number().int().nonnegative().max(100),
+    timestamp: z.number().int(),
+  }))).optional(),
+  marginRehypothecationRevokeVotes: z.record(z.string(), z.record(z.string(), z.object({
+    timestamp: z.number().int(),
+  }))).optional(),
 });
 
 
@@ -1560,6 +1571,8 @@ export const createInitialState = (options: {
     creditDefaultSwapVotes: {},
     creditDefaultSwapTrades: {},
     marginAccounts: {},
+    marginRehypothecationVotes: {},
+    marginRehypothecationRevokeVotes: {},
   };
 };
 
@@ -2332,6 +2345,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     creditDefaultSwapVotes: rest.creditDefaultSwapVotes ? JSON.parse(JSON.stringify(rest.creditDefaultSwapVotes)) : undefined,
     creditDefaultSwapTrades: rest.creditDefaultSwapTrades ? JSON.parse(JSON.stringify(rest.creditDefaultSwapTrades)) : undefined,
     marginAccounts: rest.marginAccounts ? JSON.parse(JSON.stringify(rest.marginAccounts)) : undefined,
+    marginRehypothecationVotes: rest.marginRehypothecationVotes ? JSON.parse(JSON.stringify(rest.marginRehypothecationVotes)) : undefined,
+    marginRehypothecationRevokeVotes: rest.marginRehypothecationRevokeVotes ? JSON.parse(JSON.stringify(rest.marginRehypothecationRevokeVotes)) : undefined,
   };
   return clone;
 }
@@ -2585,6 +2600,118 @@ export function reconcileIndividualLoanCollateralSwaps(state: GameState, pack: a
         loans: updatedLoans,
         timestamp: newState.step,
       };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileMarginRehypothecations(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    marginRehypothecationVotes: state.marginRehypothecationVotes ? { ...state.marginRehypothecationVotes } : {},
+    marginRehypothecationRevokeVotes: state.marginRehypothecationRevokeVotes ? { ...state.marginRehypothecationRevokeVotes } : {},
+  };
+
+  if (!newState.marginAccounts) {
+    return newState;
+  }
+
+  for (const syndicateId of Object.keys(newState.marginAccounts)) {
+    const marginAccount = newState.marginAccounts[syndicateId];
+    if (!marginAccount) continue;
+
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+
+    // Check if there is a consensus to revoke
+    const revokeVotes = newState.marginRehypothecationRevokeVotes?.[syndicateId] || {};
+    const validRevokeVoters = Object.keys(revokeVotes).filter(voterId => syndicate.members.includes(voterId));
+    const revokeCount = validRevokeVoters.length;
+
+    if (revokeCount > totalMembers / 2) {
+      // Revoke!
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        rehypothecationAuthorized: false,
+        rehypothecationVaultId: undefined,
+        rehypothecationPercentage: undefined,
+        timestamp: Math.max(...validRevokeVoters.map(v => revokeVotes[v].timestamp), newState.step),
+      };
+
+      // Clear votes for this syndicate so they don't apply repeatedly
+      if (newState.marginRehypothecationVotes) {
+        delete newState.marginRehypothecationVotes[syndicateId];
+      }
+      if (newState.marginRehypothecationRevokeVotes) {
+        delete newState.marginRehypothecationRevokeVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Margin Rehypothecation] Rehypothecation for Syndicate ${syndicateId} has been REVOKED by consensus majority.`
+      );
+      continue;
+    }
+
+    // Check if there is a consensus to authorize
+    const authVotes = newState.marginRehypothecationVotes?.[syndicateId] || {};
+    const combinationCounts: Record<string, {
+      vaultId: string;
+      percentage: number;
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(authVotes)) {
+      if (syndicate.members.includes(voterId)) {
+        const key = `${vote.vaultId}::${vote.percentage}`;
+        if (!combinationCounts[key]) {
+          combinationCounts[key] = {
+            vaultId: vote.vaultId,
+            percentage: vote.percentage,
+            voters: new Set<string>(),
+            timestamps: [],
+          };
+        }
+        combinationCounts[key].voters.add(voterId);
+        combinationCounts[key].timestamps.push(vote.timestamp);
+      }
+    }
+
+    let fullyApprovedCombination: any = undefined;
+    for (const combo of Object.values(combinationCounts)) {
+      if (combo.voters.size > totalMembers / 2) {
+        fullyApprovedCombination = combo;
+        break; // At most one combination can satisfy strict majority
+      }
+    }
+
+    if (fullyApprovedCombination) {
+      // Authorize!
+      newState.marginAccounts[syndicateId] = {
+        ...marginAccount,
+        rehypothecationAuthorized: true,
+        rehypothecationVaultId: fullyApprovedCombination.vaultId,
+        rehypothecationPercentage: fullyApprovedCombination.percentage,
+        timestamp: Math.max(...fullyApprovedCombination.timestamps, newState.step),
+      };
+
+      // Clear votes
+      if (newState.marginRehypothecationVotes) {
+        delete newState.marginRehypothecationVotes[syndicateId];
+      }
+      if (newState.marginRehypothecationRevokeVotes) {
+        delete newState.marginRehypothecationRevokeVotes[syndicateId];
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Margin Rehypothecation] Rehypothecation for Syndicate ${syndicateId} authorized by consensus majority (Vault: ${fullyApprovedCombination.vaultId}, Percentage: ${fullyApprovedCombination.percentage}%).`
+      );
     }
   }
 

@@ -1918,6 +1918,42 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge marginRehypothecationVotes using LWW (Last-Write-Wins)
+  const marginRehypothecationVotes = { ...stateA.marginRehypothecationVotes };
+  if (stateB.marginRehypothecationVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.marginRehypothecationVotes)) {
+      if (!marginRehypothecationVotes[syndicateId]) {
+        marginRehypothecationVotes[syndicateId] = { ...bVotes };
+      } else {
+        marginRehypothecationVotes[syndicateId] = { ...marginRehypothecationVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = marginRehypothecationVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            marginRehypothecationVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
+  // Merge marginRehypothecationRevokeVotes using LWW (Last-Write-Wins)
+  const marginRehypothecationRevokeVotes = { ...stateA.marginRehypothecationRevokeVotes };
+  if (stateB.marginRehypothecationRevokeVotes) {
+    for (const [syndicateId, bVotes] of Object.entries(stateB.marginRehypothecationRevokeVotes)) {
+      if (!marginRehypothecationRevokeVotes[syndicateId]) {
+        marginRehypothecationRevokeVotes[syndicateId] = { ...bVotes };
+      } else {
+        marginRehypothecationRevokeVotes[syndicateId] = { ...marginRehypothecationRevokeVotes[syndicateId] };
+        for (const [agentId, voteB] of Object.entries(bVotes)) {
+          const voteA = marginRehypothecationRevokeVotes[syndicateId][agentId];
+          if (!voteA || voteB.timestamp > voteA.timestamp) {
+            marginRehypothecationRevokeVotes[syndicateId][agentId] = voteB;
+          }
+        }
+      }
+    }
+  }
+
   // Merge creditDefaultSwapVotes using LWW (Last-Write-Wins)
   const creditDefaultSwapVotes = { ...stateA.creditDefaultSwapVotes };
   if (stateB.creditDefaultSwapVotes) {
@@ -2103,6 +2139,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     creditDefaultSwapVotes,
     creditDefaultSwapTrades,
     marginAccounts,
+    marginRehypothecationVotes,
+    marginRehypothecationRevokeVotes,
   };
 }
 

@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileEnforcerDefunding, reconcileShadowAlliances, reconcileTariffExemptions, reconcileSafehouseRentRates, getSafehouseStorageCapacity, getSyndicateBankCapacity, reconcileBankInterestRates, getSyndicateLoanLimit, isCollateralLocked, reconcileLoanRefinancings, reconcileDebtSettlements, getJointLoanLimit, getCollateralValue, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileIndividualLoanCollateralSwaps, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileReinsurancePools, reconcileReinsuranceTransfers, reconcileContagionShields, reconcileInterestSubsidies, reconcileReinsuranceCollateral, reconcileReinsuranceRiskRatings, reconcileReinsuranceLiquidityAudits, reconcileReserveRatios, getSecondaryReserveVaults, reconcileCreditDefaultSwaps, reconcileMarginRehypothecations } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -18455,6 +18455,250 @@ export function multiAgentStep(
         amount,
         timestamp,
       });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized AUTHORIZE_MARGIN_REHYPOTHECATION action (AF-111)
+  if ((action as any).type === "AUTHORIZE_MARGIN_REHYPOTHECATION") {
+    const { syndicateId, vaultId, percentage, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+    const vaults = getSecondaryReserveVaults(state);
+    const vault = vaults[vaultId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to authorize margin rehypothecation.`;
+    } else if (!vaultId) {
+      rejectionReason = `Vault ID is required to authorize margin rehypothecation.`;
+    } else if (percentage === undefined || percentage < 0 || percentage > 100 || !Number.isInteger(percentage)) {
+      rejectionReason = `Rehypothecation percentage must be an integer between 0 and 100.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on rehypothecation.`;
+    } else if (!vault) {
+      rejectionReason = `Vault ${vaultId} does not exist.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const marginRehypothecationVotes = { ...(state.marginRehypothecationVotes || {}) };
+      if (!marginRehypothecationVotes[syndicateId]) {
+        marginRehypothecationVotes[syndicateId] = {};
+      } else {
+        marginRehypothecationVotes[syndicateId] = { ...marginRehypothecationVotes[syndicateId] };
+      }
+
+      const existingVote = marginRehypothecationVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        marginRehypothecationVotes[syndicateId][agentId] = {
+          vaultId,
+          percentage,
+          timestamp,
+        };
+        newState.marginRehypothecationVotes = marginRehypothecationVotes;
+        newState = reconcileMarginRehypothecations(newState, pack);
+
+        const currentRehypo = newState.marginAccounts?.[syndicateId];
+        const isAuthorized = currentRehypo?.rehypothecationAuthorized || false;
+        const currentPercentage = currentRehypo?.rehypothecationPercentage ?? 0;
+        const currentVaultId = currentRehypo?.rehypothecationVaultId ?? "";
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Margin Rehypothecation Vote] Agent ${agentId} voted to authorize rehypothecation for Syndicate ${syndicateId} (Vault: ${vaultId}, Percentage: ${percentage}%). Consensus authorized: ${isAuthorized} (Vault: ${currentVaultId}, Percentage: ${currentPercentage}%).`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Margin rehypothecation vote cast by ${agentId} for Syndicate ${syndicateId} (${percentage}% to ${vaultId}).`,
+        } as any);
+
+        customEvents.push({
+          type: "margin_rehypothecation_voted" as any,
+          syndicateId,
+          agentId,
+          vaultId,
+          percentage,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized REVOKE_MARGIN_REHYPOTHECATION action (AF-111)
+  if ((action as any).type === "REVOKE_MARGIN_REHYPOTHECATION") {
+    const { syndicateId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const marginAccount = state.marginAccounts?.[syndicateId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to revoke margin rehypothecation.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!marginAccount) {
+      rejectionReason = `Syndicate ${syndicateId} does not have a margin account.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote to revoke rehypothecation.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && marginAccount) {
+      const marginRehypothecationRevokeVotes = { ...(state.marginRehypothecationRevokeVotes || {}) };
+      if (!marginRehypothecationRevokeVotes[syndicateId]) {
+        marginRehypothecationRevokeVotes[syndicateId] = {};
+      } else {
+        marginRehypothecationRevokeVotes[syndicateId] = { ...marginRehypothecationRevokeVotes[syndicateId] };
+      }
+
+      const existingVote = marginRehypothecationRevokeVotes[syndicateId][agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        marginRehypothecationRevokeVotes[syndicateId][agentId] = {
+          timestamp,
+        };
+        newState.marginRehypothecationRevokeVotes = marginRehypothecationRevokeVotes;
+        newState = reconcileMarginRehypothecations(newState, pack);
+
+        const currentRehypo = newState.marginAccounts?.[syndicateId];
+        const isAuthorized = currentRehypo?.rehypothecationAuthorized || false;
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[Margin Rehypothecation Revoke Vote] Agent ${agentId} voted to revoke rehypothecation for Syndicate ${syndicateId}. Consensus authorized: ${isAuthorized}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Margin rehypothecation revoke vote cast by ${agentId} for Syndicate ${syndicateId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "margin_rehypothecation_revoke_voted" as any,
+          syndicateId,
+          agentId,
+          timestamp,
+        });
+      } else {
+        ok = true;
+      }
     }
 
     newState.step += 1;

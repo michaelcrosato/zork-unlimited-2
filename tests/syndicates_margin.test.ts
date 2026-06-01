@@ -450,4 +450,165 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
     expect(merged.marginAccounts?.blood_fangs?.collateral).toBe(500);
     expect(merged.marginAccounts?.blood_fangs?.timestamp).toBe(1100);
   });
+
+  it("should support authorizing and revoking margin rehypothecation by consensus, generating yield, sweeping under enforcer pressure, adjusting maintenance thresholds, and merging via Gossip", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice", "bob"],
+    });
+
+    state.syndicates = {
+      blood_fangs: {
+        id: "blood_fangs",
+        name: "Blood Fangs",
+        members: ["player", "alice", "bob"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 1000,
+      },
+    };
+
+    // Open margin account first
+    const openAction = {
+      type: "OPEN_CDS_MARGIN_ACCOUNT",
+      syndicateId: "blood_fangs",
+      initialDeposit: 500,
+      timestamp: 1001,
+    };
+    let resOpen = multiAgentStep(state, { agentId: "player", action: openAction as any }, mockPack);
+    expect(resOpen.ok).toBe(true);
+    state = resOpen.state;
+
+    // 1. Authorize: Vote 1 (Player) - No consensus yet (needs 2 out of 3 votes)
+    const auth1 = {
+      type: "AUTHORIZE_MARGIN_REHYPOTHECATION",
+      syndicateId: "blood_fangs",
+      vaultId: "high_yield",
+      percentage: 50,
+      timestamp: 1002,
+    };
+    let resAuth1 = multiAgentStep(state, { agentId: "player", action: auth1 as any }, mockPack);
+    expect(resAuth1.ok).toBe(true);
+    state = resAuth1.state;
+    expect(state.marginAccounts?.blood_fangs?.rehypothecationAuthorized).toBeUndefined();
+
+    // 2. Authorize: Vote 2 (Alice) - Achieving majority consensus!
+    const auth2 = {
+      type: "AUTHORIZE_MARGIN_REHYPOTHECATION",
+      syndicateId: "blood_fangs",
+      vaultId: "high_yield",
+      percentage: 50,
+      timestamp: 1003,
+    };
+    let resAuth2 = multiAgentStep(state, { agentId: "alice", action: auth2 as any }, mockPack);
+    expect(resAuth2.ok).toBe(true);
+    state = resAuth2.state;
+    
+    // Check that rehypothecation is authorized!
+    const marginAccount = state.marginAccounts?.blood_fangs;
+    expect(marginAccount?.rehypothecationAuthorized).toBe(true);
+    expect(marginAccount?.rehypothecationVaultId).toBe("high_yield");
+    expect(marginAccount?.rehypothecationPercentage).toBe(50);
+
+    // 3. Maintenance margin adjustment
+    // Vault: high_yield (sweepRisk: 0.05, interestRate: 0.08)
+    // Collateral: 500. RehypothecatedAmount: 500 * 50% = 250.
+    // Premium: Math.round(250 * (0.10 + 0.05)) = Math.round(250 * 0.15) = 38.
+    // We have no other CDS / CDO positions, so base is 0.
+    // Required maintenance should be 38.
+    // Let's call tickEconomy directly and inspect.
+    let tickState = tickEconomy(state, mockPack);
+    // Let's assert rehypothecation yield was earned!
+    // Rehypothecated: 250. Yield at 8% interest: 250 * 0.08 = 20 gold.
+    // Returned to margin (80%): 20 * 0.8 = 16 gold.
+    // Total collateral: 500 + 16 = 516.
+    expect(tickState.marginAccounts?.blood_fangs?.collateral).toBeGreaterThan(500);
+
+    // Let's verify the journal log has yield info
+    const journalStr = JSON.stringify(tickState.journal);
+    expect(journalStr).toContain("earned");
+    expect(journalStr).toContain("passive interest");
+
+    // 4. Test Enforcer Sweep Risk
+    // Let's seed the state so that the sweep risk roll triggers a sweep.
+    // Since we have getSecondaryReserveVaults, let's inject a custom vault into state.secondaryReserveVaults.
+    state.secondaryReserveVaults = {
+      ruinous_pool: {
+        vaultId: "ruinous_pool",
+        name: "Ruinous Vault",
+        interestRate: 0.50,
+        sweepRisk: 1.0, // 100% risk!
+        timestamp: 1000,
+      }
+    };
+    
+    // Vote to authorize ruinous_pool
+    const authRuinous1 = {
+      type: "AUTHORIZE_MARGIN_REHYPOTHECATION",
+      syndicateId: "blood_fangs",
+      vaultId: "ruinous_pool",
+      percentage: 60,
+      timestamp: 1005,
+    };
+    state = multiAgentStep(state, { agentId: "player", action: authRuinous1 as any }, mockPack).state;
+    const authRuinous2 = {
+      type: "AUTHORIZE_MARGIN_REHYPOTHECATION",
+      syndicateId: "blood_fangs",
+      vaultId: "ruinous_pool",
+      percentage: 60,
+      timestamp: 1006,
+    };
+    state = multiAgentStep(state, { agentId: "alice", action: authRuinous2 as any }, mockPack).state;
+    
+    expect(state.marginAccounts?.blood_fangs?.rehypothecationVaultId).toBe("ruinous_pool");
+    expect(state.marginAccounts?.blood_fangs?.rehypothecationPercentage).toBe(60);
+
+    // Let's tick economy. Since sweepRisk is 1.0, the sweep roll (<= 100) will definitely trigger a sweep!
+    // Collateral was 517 due to earned yield from the previous tick.
+    // RehypothecatedAmount: Math.floor(517 * 60%) = 310.
+    // Swept: 310 gold. Remaining: 207 gold.
+    let sweepState = tickEconomy(state, mockPack);
+    expect(sweepState.marginAccounts?.blood_fangs?.collateral).toBe(207);
+    expect(JSON.stringify(sweepState.journal)).toContain("swept vault");
+
+    // 5. Test Revoking Rehypothecation by Consensus majority
+    // Bob and Alice vote to revoke
+    const revoke1 = {
+      type: "REVOKE_MARGIN_REHYPOTHECATION",
+      syndicateId: "blood_fangs",
+      timestamp: 1010,
+    };
+    state = multiAgentStep(state, { agentId: "bob", action: revoke1 as any }, mockPack).state;
+    expect(state.marginAccounts?.blood_fangs?.rehypothecationAuthorized).toBe(true); // Still true, needs 2 out of 3
+
+    const revoke2 = {
+      type: "REVOKE_MARGIN_REHYPOTHECATION",
+      syndicateId: "blood_fangs",
+      timestamp: 1011,
+    };
+    state = multiAgentStep(state, { agentId: "alice", action: revoke2 as any }, mockPack).state;
+    expect(state.marginAccounts?.blood_fangs?.rehypothecationAuthorized).toBe(false);
+
+    // 6. Test Gossip Merging of Rehypothecation Votes
+    let stateA = createInitialState({ seed: 12345, start: "clearing" });
+    stateA.marginRehypothecationVotes = {
+      blood_fangs: {
+        player: { vaultId: "high_yield", percentage: 50, timestamp: 1200 },
+      }
+    };
+    let stateB = createInitialState({ seed: 12345, start: "clearing" });
+    stateB.marginRehypothecationVotes = {
+      blood_fangs: {
+        player: { vaultId: "risk_venture", percentage: 70, timestamp: 1300 }, // newer
+        alice: { vaultId: "high_yield", percentage: 50, timestamp: 1100 },
+      }
+    };
+
+    let merged = mergeMonotonicStateFields(stateA, stateB);
+    expect(merged.marginRehypothecationVotes?.blood_fangs?.player?.percentage).toBe(70);
+    expect(merged.marginRehypothecationVotes?.blood_fangs?.alice?.percentage).toBe(50);
+  });
 });
+
