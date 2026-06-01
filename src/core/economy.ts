@@ -723,9 +723,44 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
     const lowestSellPrice = sellOrders.length > 0 ? Math.min(...sellOrders.map((o) => o.limitPrice)) : 0;
     const bidAskSpread = (highestBuyPrice > 0 && lowestSellPrice > 0) ? Math.max(0, lowestSellPrice - highestBuyPrice) : 0;
 
+    let poolLinkStateDropRate = 0.0;
+    let cdoId = "";
+    if (key.includes("_")) {
+      const idx = key.lastIndexOf("_");
+      cdoId = key.substring(0, idx);
+    }
+    if (newState.swfMultiFundReinsurancePools && cdoId) {
+      const cdo = newState.swfYieldCDOs?.[cdoId];
+      const creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
+      for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+        if (pool.linkStateDropRate !== undefined) {
+          if (creatorSyndicateId && pool.syndicateIds.includes(creatorSyndicateId)) {
+            poolLinkStateDropRate = Math.max(poolLinkStateDropRate, pool.linkStateDropRate);
+          }
+        }
+      }
+    }
+
+    let linkStateDropRate = poolLinkStateDropRate;
+    if (linkStateDropRate === 0.0 && newState.swfMultiFundReinsurancePools) {
+      for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+        if (pool.linkStateDropRate !== undefined) {
+          linkStateDropRate = Math.max(linkStateDropRate, pool.linkStateDropRate);
+        }
+      }
+    }
+
+    const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
+    const avgVolatility = activeBonds.length > 0
+      ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+      : 15.0;
+
+    const spreadMultiplier = (1.0 + linkStateDropRate) * (1.0 + avgVolatility / 100.0);
+
     let spreadAdjustment = 1.0;
     if (buyVolume + sellVolume > 0) {
-      spreadAdjustment = 1.0 + (imbalance / (buyVolume + sellVolume)) * 0.5;
+      const baseDeviation = (imbalance / (buyVolume + sellVolume)) * 0.5;
+      spreadAdjustment = 1.0 + baseDeviation * spreadMultiplier;
     }
     spreadAdjustment = Math.round(spreadAdjustment * 10000) / 10000;
 
@@ -6670,6 +6705,44 @@ export function distributeReinsuranceLiquidityMiningRewards(state: GameState): G
   return newState;
 }
 
+function getSyndicateCartelPolicy(state: GameState, syndicateId: string): any {
+  if (!state.cartels) return undefined;
+  const syndicate = state.syndicates?.[syndicateId];
+  const syndicateMembers = syndicate ? syndicate.members : [];
+  
+  for (const [cartelId, cartel] of Object.entries(state.cartels)) {
+    const isMember = cartel.members.includes(syndicateId) ||
+                     state.cartelMemberships?.[syndicateId]?.includes(cartelId) ||
+                     syndicateMembers.some(m => cartel.members.includes(m) || state.cartelMemberships?.[m]?.includes(cartelId));
+    if (isMember) {
+      const policy = state.cartelPolicies?.[cartelId];
+      if (policy && policy.reinsuranceOptionRebateMultiplier !== undefined) {
+        return policy;
+      }
+    }
+  }
+  return undefined;
+}
+
+function getSyndicateGuildPolicy(state: GameState, syndicateId: string): any {
+  if (!state.merchantGuilds) return undefined;
+  const syndicate = state.syndicates?.[syndicateId];
+  const syndicateMembers = syndicate ? syndicate.members : [];
+  
+  for (const [guildId, guild] of Object.entries(state.merchantGuilds)) {
+    const isMember = guild.members.includes(syndicateId) ||
+                     state.guildMemberships?.[syndicateId]?.includes(guildId) ||
+                     syndicateMembers.some(m => guild.members.includes(m) || state.guildMemberships?.[m]?.includes(guildId));
+    if (isMember) {
+      const policy = state.guildPolicies?.[guildId];
+      if (policy && policy.reinsuranceOptionRebateMultiplier !== undefined) {
+        return policy;
+      }
+    }
+  }
+  return undefined;
+}
+
 export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameState {
   const newState = {
     ...state,
@@ -6815,10 +6888,46 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         const makerPrice = makerOrder.limitPrice / makerOrder.size;
         const closeness = midMarketPrice > 0 ? 1 / (1 + Math.abs(makerPrice - midMarketPrice)) : 1.0;
 
+        const makerSyndicateId = makerIsBuy ? buyOrder.syndicateId : sellOrder.syndicateId;
+        
+        let linkStateDropRate = 0.0;
+        if (newState.swfMultiFundReinsurancePools) {
+          const cdo = newState.swfYieldCDOs?.[buyOrder.swfYieldCdoId];
+          const creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
+          for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+            if (pool.linkStateDropRate !== undefined) {
+              if (pool.syndicateIds.includes(buyOrder.syndicateId) || 
+                  pool.syndicateIds.includes(sellOrder.syndicateId) ||
+                  (creatorSyndicateId && pool.syndicateIds.includes(creatorSyndicateId))) {
+                linkStateDropRate = Math.max(linkStateDropRate, pool.linkStateDropRate);
+              }
+            }
+          }
+        }
+
+        const activeBonds = Object.values(newState.yieldVolatilityIndexes || {});
+        const avgVolatility = activeBonds.length > 0
+          ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+          : 15.0;
+
+        const volumeFactor = depth > 0 ? (1000 / (1000 + depth)) : 1.0;
+
+        const volFactor = 1.0 + (avgVolatility / 50.0);
+        const dropFactor = 1.0 + (linkStateDropRate * 2.0);
+        const depthFactor = 1.0 + volumeFactor;
+
+        const cartelPolicy = getSyndicateCartelPolicy(newState, makerSyndicateId);
+        const guildPolicy = getSyndicateGuildPolicy(newState, makerSyndicateId);
+        
+        const cartelMult = cartelPolicy?.reinsuranceOptionRebateMultiplier ?? 1.0;
+        const guildMult = guildPolicy?.reinsuranceOptionRebateMultiplier ?? 1.0;
+
         const rebatePolicy = newState.swfReinsuranceOptionMarketMakerRebatePolicies?.[policyKey];
         const baseRebateRate = rebatePolicy ? rebatePolicy.baseRebateRate : 0;
         const maxRebateRate = rebatePolicy ? rebatePolicy.maxRebateRate : 0;
-        const rebateRate = Math.min(maxRebateRate, baseRebateRate * closeness);
+        
+        let dynamicRebateRate = baseRebateRate * closeness * volFactor * dropFactor * depthFactor * cartelMult * guildMult;
+        const rebateRate = Math.min(maxRebateRate, dynamicRebateRate);
         const rebateAmount = Math.round(finalPrice * rebateRate);
 
         // Check buyer warChest

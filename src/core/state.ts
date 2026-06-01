@@ -120,6 +120,7 @@ export const GuildVoteSchema = z.object({
   tariffRate: z.number().int().nonnegative(),
   exportPricingPolicy: z.enum(["premium", "discount", "standard"]),
   timestamp: z.number().int(),
+  reinsuranceOptionRebateMultiplier: z.number().nonnegative().optional(),
 });
 export type GuildVote = z.infer<typeof GuildVoteSchema>;
 
@@ -129,12 +130,14 @@ export const MerchantGuildSchema = z.object({
   members: z.array(z.string()),
   definedBy: z.string(),
   timestamp: z.number().int(),
+  reinsuranceOptionRebateMultiplier: z.number().nonnegative().optional(),
 });
 export type MerchantGuild = z.infer<typeof MerchantGuildSchema>;
 
 export const GuildPolicySchema = z.object({
   tariffRate: z.number().int().nonnegative(),
   exportPricingPolicy: z.enum(["premium", "discount", "standard"]),
+  reinsuranceOptionRebateMultiplier: z.number().nonnegative().optional(),
 });
 export type GuildPolicy = z.infer<typeof GuildPolicySchema>;
 
@@ -151,6 +154,7 @@ export const CartelVoteSchema = z.object({
   priceMultiplier: z.number().nonnegative(),
   embargoedFactions: z.array(z.string()),
   timestamp: z.number().int(),
+  reinsuranceOptionRebateMultiplier: z.number().nonnegative().optional(),
 });
 export type CartelVote = z.infer<typeof CartelVoteSchema>;
 
@@ -162,12 +166,14 @@ export const MerchantCartelSchema = z.object({
   priceMultiplier: z.number().nonnegative(),
   definedBy: z.string(),
   timestamp: z.number().int(),
+  reinsuranceOptionRebateMultiplier: z.number().nonnegative().optional(),
 });
 export type MerchantCartel = z.infer<typeof MerchantCartelSchema>;
 
 export const CartelPolicySchema = z.object({
   priceMultiplier: z.number().nonnegative(),
   embargoedFactions: z.array(z.string()),
+  reinsuranceOptionRebateMultiplier: z.number().nonnegative().optional(),
 });
 export const ContrabandBlacklistEntrySchema = z.object({
   blacklisted: z.boolean(),
@@ -3733,7 +3739,7 @@ export function reconcileTariffPolicies(state: GameState, pack: any): GameState 
 export function reconcileGuildPolicies(state: GameState, pack: any): GameState {
   const newState = {
     ...state,
-    guildPolicies: { ...(state.guildPolicies || {}) },
+    guildPolicies: state.guildPolicies ? { ...state.guildPolicies } : {},
   };
 
   if (!newState.guildVotes) {
@@ -3743,10 +3749,14 @@ export function reconcileGuildPolicies(state: GameState, pack: any): GameState {
   for (const [guildId, votes] of Object.entries(newState.guildVotes)) {
     const tariffCounts: Record<number, number> = {};
     const policyCounts: Record<string, number> = { premium: 0, standard: 0, discount: 0 };
+    const rebateCounts: Record<number, number> = {};
 
     for (const vote of Object.values(votes)) {
       tariffCounts[vote.tariffRate] = (tariffCounts[vote.tariffRate] ?? 0) + 1;
       policyCounts[vote.exportPricingPolicy] = (policyCounts[vote.exportPricingPolicy] ?? 0) + 1;
+      if (vote.reinsuranceOptionRebateMultiplier !== undefined) {
+        rebateCounts[vote.reinsuranceOptionRebateMultiplier] = (rebateCounts[vote.reinsuranceOptionRebateMultiplier] ?? 0) + 1;
+      }
     }
 
     // 1. Reconcile tariffRate (highest rate wins on ties)
@@ -3773,9 +3783,29 @@ export function reconcileGuildPolicies(state: GameState, pack: any): GameState {
       }
     }
 
+    // 3. Reconcile reinsuranceOptionRebateMultiplier (highest rate wins on ties)
+    let maxRebateCount = 0;
+    let consensusRebate: number | undefined = undefined;
+    const uniqueRebates = Object.keys(rebateCounts).map(Number).sort((a, b) => b - a);
+    for (const r of uniqueRebates) {
+      const count = rebateCounts[r];
+      if (count > maxRebateCount) {
+        maxRebateCount = count;
+        consensusRebate = r;
+      }
+    }
+
+    if (consensusRebate === undefined) {
+      const guild = newState.merchantGuilds?.[guildId];
+      if (guild && guild.reinsuranceOptionRebateMultiplier !== undefined) {
+        consensusRebate = guild.reinsuranceOptionRebateMultiplier;
+      }
+    }
+
     newState.guildPolicies[guildId] = {
       tariffRate: consensusTariff,
       exportPricingPolicy: consensusPolicy,
+      reinsuranceOptionRebateMultiplier: consensusRebate,
     };
   }
 
@@ -3785,7 +3815,7 @@ export function reconcileGuildPolicies(state: GameState, pack: any): GameState {
 export function reconcileCartelPolicies(state: GameState, pack: any): GameState {
   const newState = {
     ...state,
-    cartelPolicies: { ...(state.cartelPolicies || {}) },
+    cartelPolicies: state.cartelPolicies ? { ...state.cartelPolicies } : {},
   };
 
   if (!newState.cartelVotes) {
@@ -3794,11 +3824,15 @@ export function reconcileCartelPolicies(state: GameState, pack: any): GameState 
 
   for (const [cartelId, votes] of Object.entries(newState.cartelVotes)) {
     const multiplierCounts: Record<number, number> = {};
+    const rebateCounts: Record<number, number> = {};
     const factionEmbargoVotes: Record<string, number> = {};
     const totalVotes = Object.keys(votes).length;
 
     for (const vote of Object.values(votes)) {
       multiplierCounts[vote.priceMultiplier] = (multiplierCounts[vote.priceMultiplier] ?? 0) + 1;
+      if (vote.reinsuranceOptionRebateMultiplier !== undefined) {
+        rebateCounts[vote.reinsuranceOptionRebateMultiplier] = (rebateCounts[vote.reinsuranceOptionRebateMultiplier] ?? 0) + 1;
+      }
       for (const factionId of vote.embargoedFactions) {
         factionEmbargoVotes[factionId] = (factionEmbargoVotes[factionId] ?? 0) + 1;
       }
@@ -3816,7 +3850,26 @@ export function reconcileCartelPolicies(state: GameState, pack: any): GameState 
       }
     }
 
-    // 2. Reconcile embargoedFactions (majority consensus: voted by >= 50% of the active cartel voters)
+    // 2. Reconcile reinsuranceOptionRebateMultiplier (highest rate wins on ties)
+    let maxRebateCount = 0;
+    let consensusRebate: number | undefined = undefined;
+    const uniqueRebates = Object.keys(rebateCounts).map(Number).sort((a, b) => b - a);
+    for (const r of uniqueRebates) {
+      const count = rebateCounts[r];
+      if (count > maxRebateCount) {
+        maxRebateCount = count;
+        consensusRebate = r;
+      }
+    }
+
+    if (consensusRebate === undefined) {
+      const cartel = newState.cartels?.[cartelId];
+      if (cartel && cartel.reinsuranceOptionRebateMultiplier !== undefined) {
+        consensusRebate = cartel.reinsuranceOptionRebateMultiplier;
+      }
+    }
+
+    // 3. Reconcile embargoedFactions (majority consensus: voted by >= 50% of the active cartel voters)
     const consensusEmbargoes: string[] = [];
     const threshold = totalVotes / 2;
     // Sort faction IDs alphabetically to ensure perfect determinism
@@ -3831,6 +3884,7 @@ export function reconcileCartelPolicies(state: GameState, pack: any): GameState 
     newState.cartelPolicies[cartelId] = {
       priceMultiplier: consensusMultiplier,
       embargoedFactions: consensusEmbargoes,
+      reinsuranceOptionRebateMultiplier: consensusRebate,
     };
   }
 

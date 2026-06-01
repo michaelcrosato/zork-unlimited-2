@@ -1389,7 +1389,7 @@ export function multiAgentStep(
 
   // Handle decentralized VOTE_GUILD_POLICY action
   if ((action as any).type === "VOTE_GUILD_POLICY") {
-    const { guildId, tariffRate, exportPricingPolicy, timestamp } = action as any;
+    const { guildId, tariffRate, exportPricingPolicy, reinsuranceOptionRebateMultiplier, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -1405,6 +1405,8 @@ export function multiAgentStep(
       rejectionReason = `Proposed guild tariff rate ${tariffRate} must be a non-negative integer.`;
     } else if (!["premium", "discount", "standard"].includes(exportPricingPolicy)) {
       rejectionReason = `Proposed export pricing policy ${exportPricingPolicy} is invalid.`;
+    } else if (reinsuranceOptionRebateMultiplier !== undefined && (typeof reinsuranceOptionRebateMultiplier !== "number" || reinsuranceOptionRebateMultiplier < 0)) {
+      rejectionReason = `Proposed reinsurance option rebate multiplier must be non-negative.`;
     } else {
       ok = true;
     }
@@ -1423,6 +1425,7 @@ export function multiAgentStep(
         guildVotes[guildId][agentId] = {
           tariffRate,
           exportPricingPolicy,
+          reinsuranceOptionRebateMultiplier,
           timestamp,
         };
         newState.guildVotes = guildVotes;
@@ -1581,7 +1584,7 @@ export function multiAgentStep(
 
   // Handle decentralized DEFINE_MERCHANT_CARTEL action
   if ((action as any).type === "DEFINE_MERCHANT_CARTEL") {
-    const { cartelId, name, members, factionId, priceMultiplier, timestamp } = action as any;
+    const { cartelId, name, members, factionId, priceMultiplier, reinsuranceOptionRebateMultiplier, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -1598,6 +1601,8 @@ export function multiAgentStep(
       rejectionReason = `Faction ${factionId} is not a valid faction in the content pack.`;
     } else if (priceMultiplier < 0) {
       rejectionReason = `Proposed price multiplier must be non-negative.`;
+    } else if (reinsuranceOptionRebateMultiplier !== undefined && (typeof reinsuranceOptionRebateMultiplier !== "number" || reinsuranceOptionRebateMultiplier < 0)) {
+      rejectionReason = `Proposed reinsurance option rebate multiplier must be non-negative.`;
     } else {
       ok = true;
     }
@@ -1616,6 +1621,7 @@ export function multiAgentStep(
           members,
           factionId,
           priceMultiplier,
+          reinsuranceOptionRebateMultiplier,
           definedBy: agentId,
           timestamp,
         };
@@ -1645,6 +1651,7 @@ export function multiAgentStep(
         cartelVotes[cartelId][agentId] = {
           priceMultiplier,
           embargoedFactions: [],
+          reinsuranceOptionRebateMultiplier,
           timestamp,
         };
         newState.cartelVotes = cartelVotes;
@@ -1798,7 +1805,7 @@ export function multiAgentStep(
 
   // Handle decentralized VOTE_CARTEL_POLICY action
   if ((action as any).type === "VOTE_CARTEL_POLICY") {
-    const { cartelId, priceMultiplier, embargoedFactions, timestamp } = action as any;
+    const { cartelId, priceMultiplier, embargoedFactions, reinsuranceOptionRebateMultiplier, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -1812,6 +1819,8 @@ export function multiAgentStep(
       rejectionReason = `Agent ${agentId} is not a member of cartel ${cartelId} and cannot vote.`;
     } else if (priceMultiplier < 0) {
       rejectionReason = `Proposed price multiplier must be non-negative.`;
+    } else if (reinsuranceOptionRebateMultiplier !== undefined && (typeof reinsuranceOptionRebateMultiplier !== "number" || reinsuranceOptionRebateMultiplier < 0)) {
+      rejectionReason = `Proposed reinsurance option rebate multiplier must be non-negative.`;
     } else if (!Array.isArray(embargoedFactions) || embargoedFactions.some(f => typeof f !== "string")) {
       rejectionReason = `Proposed embargoed factions must be an array of faction ID strings.`;
     } else {
@@ -1844,6 +1853,7 @@ export function multiAgentStep(
         cartelVotes[cartelId][agentId] = {
           priceMultiplier,
           embargoedFactions,
+          reinsuranceOptionRebateMultiplier,
           timestamp,
         };
         newState.cartelVotes = cartelVotes;
