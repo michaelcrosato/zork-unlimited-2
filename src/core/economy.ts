@@ -7826,6 +7826,35 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         }
       }
 
+      if (effectiveMultiplier > 1.0) {
+        let localHeatFactor = 0;
+        const syndicate = newState.syndicates?.[option.syndicateId];
+        if (syndicate && syndicate.territoryEnforcerHeatVolatilityScales) {
+          const currentRoomId = newState.current;
+          const localScale = syndicate.territoryEnforcerHeatVolatilityScales[currentRoomId] ?? 0;
+          const localHeat = newState.enforcementHeat?.[currentRoomId]?.heat ?? 0;
+          localHeatFactor = localHeat * localScale;
+        }
+
+        let regionalVol = 0.0;
+        if (newState.environment) {
+          let baseVol = 0;
+          if (newState.environment.weather === "storm") baseVol = 50;
+          else if (newState.environment.weather === "rain") baseVol = 20;
+          else if (newState.environment.weather === "fog") baseVol = 15;
+          else if (newState.environment.weather === "clear") baseVol = 0;
+
+          let windVol = 0;
+          if (newState.environment.wind === "tempest") windVol = 30;
+          else if (newState.environment.wind === "gale") windVol = 15;
+          else if (newState.environment.wind === "breezy") windVol = 5;
+
+          regionalVol = (baseVol + windVol) / 100.0;
+        }
+
+        effectiveMultiplier = effectiveMultiplier * (1.0 + localHeatFactor + regionalVol);
+      }
+
       let spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
       if (effectiveMultiplier > 1.0) {
         spread = spread * effectiveMultiplier;

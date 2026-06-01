@@ -513,6 +513,7 @@ export const CrimeSyndicateSchema = z.object({
   smugglingRingleader: z.string().optional(),
   warChest: z.number().int().nonnegative().optional(),
   enforcerDefundingRate: z.number().optional(),
+  territoryEnforcerHeatVolatilityScales: z.record(z.string(), z.number()).optional(),
 });
 export type CrimeSyndicate = z.infer<typeof CrimeSyndicateSchema>;
 

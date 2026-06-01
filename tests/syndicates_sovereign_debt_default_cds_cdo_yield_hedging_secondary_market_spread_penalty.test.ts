@@ -438,5 +438,105 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     let spreadAt15 = stateAt15.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1?.spread;
     expect(spreadAt15).toBeCloseTo(50);
   });
+
+  it("should scale the active spread penalty multiplier by local territory enforcer heat and regional weather volatility index", () => {
+    let state = setupState();
+
+    // 1. Configure pool properties
+    const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
+    pool.yieldHedgingOptionSpreadPenaltyMultiplier = 2.0;
+    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.20;
+    pool.yieldHedgingOptionMinSpread = 10;
+    pool.yieldHedgingOptionMaxSpread = 1000;
+
+    // 2. Set default alert active
+    state.sovereignDebtDefaultAlerts = {
+      alert_1: {
+        proposalId: "alert_1",
+        syndicateId: "alpha",
+        targetSyndicateId: "beta",
+        sovereignDebtAmount: 5000,
+        status: "authorized",
+        resolved: false,
+        proposerId: "bob",
+        timestamp: 1000,
+      },
+    };
+
+    // 3. Set up active option contract owned by alpha
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        premiumPaid: 200,
+        coverageAmount: 2000,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: state.step + 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Listing has askPrice 1200, bid has bidPrice 1150 -> raw spread is 50
+    state.cdsCdoYieldHedgingOptionListings = {
+      opt_1: {
+        listingId: "opt_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+        votes: {},
+      },
+    };
+
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_opt_1: {
+        bidId: "bid_opt_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 1150,
+        status: "active",
+        timestamp: 1000,
+        votes: {},
+      },
+    };
+
+    // 4. Configure local territory enforcer heat volatility scales in the syndicate
+    state.syndicates!.alpha.territoryEnforcerHeatVolatilityScales = {
+      vault: 0.15, // scale factor for room 'vault'
+    };
+
+    // Set enforcer heat for room 'vault' (the current room, since state.current is 'vault')
+    state.enforcementHeat = {
+      vault: {
+        roomId: "vault",
+        heat: 4,
+        timestamp: 1000,
+      },
+    };
+
+    // Set environmental weather & wind (storm = 50, tempest = 30 -> regionalVol = 0.80)
+    state.environment = {
+      weather: "storm",
+      temperature: "cold",
+      wind: "tempest",
+      lastUpdatedStep: 0,
+    };
+
+    // Let's compute expected effective spread penalty multiplier:
+    // baseMultiplier = 2.0
+    // localHeatFactor = 4 * 0.15 = 0.60
+    // regionalVol = (50 + 30) / 100 = 0.80
+    // expectedMultiplier = 2.0 * (1.0 + 0.60 + 0.80) = 2.0 * 2.4 = 4.8
+    // expectedSpread = 50 * 4.8 = 240
+
+    let finalState = tickEconomy(state, mockPack);
+
+    const marketSpread = finalState.cdsCdoYieldHedgingOptionMarketSpreads?.opt_1;
+    expect(marketSpread).toBeDefined();
+    expect(marketSpread!.spread).toBeCloseTo(240);
+  });
 });
 

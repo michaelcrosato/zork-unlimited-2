@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #245 (Ready for Cycle #246)
-* **Build/Test Status**: 🟢 PASS (All 839 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #246 (Ready for Cycle #247)
+* **Build/Test Status**: 🟢 PASS (All 840 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1594,16 +1594,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement linear or step-based auto-decay of the spread penalty multiplier over 5 steps in `tickEconomy` (`AF-248`).
 - [x] Write comprehensive unit and integration tests verifying the smooth recovery of pricing spreads (`AF-248`).
 
+### Phase 227: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Spread Penalty Volatility Spike Premium (Completed)
+- [x] Define territory enforcer heat volatility scales in the syndicate schemas (`AF-249`).
+- [x] Scale the active spread penalty multiplier by local territory enforcer heat or regional volatility index in `tickEconomy` (`AF-249`).
+- [x] Write comprehensive unit and integration tests asserting the strategic pricing volatility spikes (`AF-249`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-249`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Spread Penalty Volatility Spike Premium.
-* **Why this matters**: Introduce territory-specific enforcer heat scaling to the spread penalty multiplier, making pricing more sensitive to local conflict/regulatory pressure.
+**Task ID**: `AF-250`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Spread Penalty Faction Standing-Gated Deflection Discount.
+* **Why this matters**: Allow allied/high faction standing syndicates to partially defuse option spreads during default volatility spikes, rewarding strong political alignment.
 * **Planned Actions**:
-  1. Define territory enforcer heat volatility scales in the syndicate schemas.
-  2. Scale the active spread penalty multiplier by local territory enforcer heat or regional volatility index in `tickEconomy`.
-  3. Write comprehensive unit and integration tests asserting the strategic pricing volatility spikes.
+  1. Define faction standing-gated discount percentages in option dynamic spread policies.
+  2. Implement price adjustments checking player reputation alignments when scaling the effective multiplier in `tickEconomy`.
+  3. Write comprehensive unit and integration tests asserting faction standing discounts on option spreads under defaults.
 
 ---
 
