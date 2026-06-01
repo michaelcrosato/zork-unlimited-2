@@ -468,6 +468,48 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge merchantInventories and merchantGold using LWW (Last-Write-Wins)
+  const merchantInventories = stateA.merchantInventories ? { ...stateA.merchantInventories } : {};
+  const merchantGold = stateA.merchantGold ? { ...stateA.merchantGold } : {};
+  const merchantLastRestock = stateA.merchantLastRestock ? { ...stateA.merchantLastRestock } : {};
+  const merchantLastUpdated = stateA.merchantLastUpdated ? { ...stateA.merchantLastUpdated } : {};
+
+  if (stateB.merchantInventories) {
+    for (const npcId of Object.keys(stateB.merchantInventories)) {
+      const stepA = merchantLastUpdated[npcId] ?? 0;
+      const stepB = stateB.merchantLastUpdated?.[npcId] ?? 0;
+
+      if (!stateA.merchantInventories?.[npcId] || stepB > stepA) {
+        merchantInventories[npcId] = [...stateB.merchantInventories[npcId]];
+        if (stateB.merchantGold?.[npcId] !== undefined) {
+          merchantGold[npcId] = stateB.merchantGold[npcId];
+        }
+        if (stateB.merchantLastRestock?.[npcId] !== undefined) {
+          merchantLastRestock[npcId] = stateB.merchantLastRestock[npcId];
+        }
+        if (stateB.merchantLastUpdated?.[npcId] !== undefined) {
+          merchantLastUpdated[npcId] = stateB.merchantLastUpdated[npcId];
+        }
+      } else if (stepB === stepA) {
+        // Tie break deterministically by comparing alphabetical contents of inventories
+        const invAStr = JSON.stringify(merchantInventories[npcId] ?? []);
+        const invBStr = JSON.stringify(stateB.merchantInventories[npcId] ?? []);
+        if (invBStr.localeCompare(invAStr) < 0) {
+          merchantInventories[npcId] = [...stateB.merchantInventories[npcId]];
+          if (stateB.merchantGold?.[npcId] !== undefined) {
+            merchantGold[npcId] = stateB.merchantGold[npcId];
+          }
+          if (stateB.merchantLastRestock?.[npcId] !== undefined) {
+            merchantLastRestock[npcId] = stateB.merchantLastRestock[npcId];
+          }
+          if (stateB.merchantLastUpdated?.[npcId] !== undefined) {
+            merchantLastUpdated[npcId] = stateB.merchantLastUpdated[npcId];
+          }
+        }
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -482,6 +524,10 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     merchantLicenses,
     merchantLicensings,
     tariffVotes,
+    merchantInventories,
+    merchantGold,
+    merchantLastRestock,
+    merchantLastUpdated,
   };
 }
 

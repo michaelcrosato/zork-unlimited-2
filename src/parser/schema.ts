@@ -91,6 +91,7 @@ export const ParserNPCSchema = z.object({
   climate_pricing: z.record(z.string(), z.number()).optional(),
   min_rep: z.number().optional(),
   faction: z.string().optional(),
+  dynamic_pricing: z.boolean().optional(),
 });
 
 export type ParserNPC = z.infer<typeof ParserNPCSchema>;

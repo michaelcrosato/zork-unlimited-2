@@ -144,6 +144,7 @@ export function applyEffect(
     tradeHistory: state.tradeHistory ? [...state.tradeHistory] : undefined,
     merchantGold: state.merchantGold ? { ...state.merchantGold } : undefined,
     merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : undefined,
+    merchantLastUpdated: state.merchantLastUpdated ? { ...state.merchantLastUpdated } : undefined,
     npcRep: state.npcRep ? { ...state.npcRep } : undefined,
     factionRep: state.factionRep ? { ...state.factionRep } : undefined,
   };
@@ -525,6 +526,8 @@ export function applyEffect(
 
       if (stockedItem) {
         newState.merchantInventories[npc_id] = [...newState.merchantInventories[npc_id], stockedItem];
+        newState.merchantLastUpdated = newState.merchantLastUpdated || {};
+        newState.merchantLastUpdated[npc_id] = newState.step;
         newState.tradeHistory.push({
           step: newState.step,
           npcId: npc_id,
@@ -596,6 +599,9 @@ export function applyEffect(
       }
       newState.merchantInventories[npc_id] = newState.merchantInventories[npc_id].filter((i: string) => i !== item);
       
+      newState.merchantLastUpdated = newState.merchantLastUpdated || {};
+      newState.merchantLastUpdated[npc_id] = newState.step;
+
       const currentObj = newState.objectState[item] ?? {};
       newState.objectState[item] = {
         ...currentObj,
@@ -662,6 +668,9 @@ export function applyEffect(
       newState.merchantGold[npc_id] = Math.max(0, mGold - itemPayout);
 
       newState.merchantInventories[npc_id] = [...newState.merchantInventories[npc_id], item];
+      
+      newState.merchantLastUpdated = newState.merchantLastUpdated || {};
+      newState.merchantLastUpdated[npc_id] = newState.step;
 
       const currentObj = newState.objectState[item] ?? {};
       newState.objectState[item] = {

@@ -43,6 +43,7 @@ export function step(
     tradeHistory: state.tradeHistory ? [...state.tradeHistory] : undefined,
     merchantGold: state.merchantGold ? { ...state.merchantGold } : undefined,
     merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : undefined,
+    merchantLastUpdated: state.merchantLastUpdated ? { ...state.merchantLastUpdated } : undefined,
     npcRep: state.npcRep ? { ...state.npcRep } : undefined,
     factionRep: state.factionRep ? { ...state.factionRep } : undefined,
   };
@@ -1130,6 +1131,9 @@ export function step(
         newState.inventory.push(action.item);
       }
       newState.merchantInventories[npc.id] = newState.merchantInventories[npc.id].filter((i) => i !== action.item);
+      
+      newState.merchantLastUpdated = newState.merchantLastUpdated || {};
+      newState.merchantLastUpdated[npc.id] = newState.step;
 
       const currentObj = newState.objectState[action.item] ?? {};
       newState.objectState[action.item] = {
@@ -1258,6 +1262,9 @@ export function step(
       newState.merchantGold[npc.id] = Math.max(0, mGold - itemPayout);
 
       newState.merchantInventories[npc.id] = [...newState.merchantInventories[npc.id], action.item];
+      
+      newState.merchantLastUpdated = newState.merchantLastUpdated || {};
+      newState.merchantLastUpdated[npc.id] = newState.step;
 
       const currentObj = newState.objectState[action.item] ?? {};
       newState.objectState[action.item] = {

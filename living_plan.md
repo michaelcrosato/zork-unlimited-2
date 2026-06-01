@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #36 (Ready for Cycle #37)
-* **Build/Test Status**: 🟢 PASS (All 159 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #37 (Ready for Cycle #38)
+* **Build/Test Status**: 🟢 PASS (All 162 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -195,17 +195,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Sync transaction caps and reputation alignments across the gossip mesh (`AF-36`).
 - [x] Write comprehensive integration tests verifying caps and reputation-based waivers (`AF-36`).
 
+### Phase 32: Decentralized Multi-Merchant Price Arbitrage & Local Inventory Balancing (Completed)
+- [x] Add local inventory-based dynamic pricing multipliers (supply/demand curves) to the economy module (`AF-37`).
+- [x] Implement multi-node merchant inventory gossip updates across the mesh using LWW CRDT rules (`AF-37`).
+- [x] Add trade arbitrage pathfinding checks to identify and exploit cross-territory price gaps (`AF-37`).
+- [x] Write comprehensive integration tests verifying supply-based price updates and mesh arbitrage loops (`AF-37`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-37`
-* **Objective**: Implement decentralized multi-merchant price arbitrage and adaptive local inventory balancing.
-* **Why this matters**: Allowing merchants to dynamically scale buy/sell price multipliers based on their local stock levels, and enabling gossip-based synchronization of merchant inventory states across the P2P mesh, lets peer agents discover profitable trade routes and automatically arbitrage price discrepancies between different faction territories.
+**Task ID**: `AF-38`
+* **Objective**: Implement Gossip-based Cooperative Merchant Trade Guilds and Territory Tariff Arbitrations.
+* **Why this matters**: Grouping merchants into regional trade guilds that gossip about consensual baseline pricing and share profit margins lets players join guilds, vote on territory tariff rates, and negotiate collective bargaining agreements between rival faction territories.
 * **Planned Actions**:
-  1. Add local inventory-based dynamic pricing multipliers (supply/demand curves) to the economy module.
-  2. Implement multi-node merchant inventory gossip updates across the mesh.
-  3. Add trade arbitrage pathfinding checks so that agents can identify and exploit cross-territory price gaps.
-  4. Write comprehensive integration tests verifying supply-based price updates and mesh arbitrage loops.
+  1. Add trade guild affiliations and memberships to state variables.
+  2. Implement guild-level collective consensus voting on tariff rates and export pricing policies.
+  3. Support P2P gossip mesh replication of guild standings and trade policies.
+  4. Write comprehensive integration tests verifying guild voting and collective strategic pricing.
 
 ---
 

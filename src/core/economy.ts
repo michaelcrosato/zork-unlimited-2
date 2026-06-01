@@ -81,6 +81,34 @@ export function calculateTradePrice(
     }
   }
 
+  // 5. Local Inventory-Based Dynamic Pricing (AF-37)
+  if ((npc?.dynamic_pricing || state.vars["dynamic_pricing"] || state.flags["dynamic_pricing"]) && npc?.id && packObj?.id) {
+    const stock = state.merchantInventories?.[npc.id] ?? [];
+    const count = stock.filter((itemId: string) => itemId === packObj.id).length;
+
+    if (isBuy) {
+      // Player buys from merchant: high supply -> cheap, low supply -> expensive
+      if (count === 0) {
+        multiplier *= 1.5;
+      } else if (count === 1) {
+        multiplier *= 1.2;
+      } else if (count === 2) {
+        multiplier *= 1.0;
+      } else {
+        multiplier *= Math.max(0.5, 1.0 - (count - 2) * 0.15);
+      }
+    } else {
+      // Player sells to merchant: low supply -> premium payout, high supply -> lower payout
+      if (count === 0) {
+        multiplier *= 1.5;
+      } else if (count === 1) {
+        multiplier *= 1.0;
+      } else {
+        multiplier *= Math.max(0.4, 1.0 - (count - 1) * 0.2);
+      }
+    }
+  }
+
   const finalCost = Math.round(baseCost * multiplier);
   return Math.max(1, finalCost); // price never drops below 1 gold
 }
@@ -130,6 +158,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     merchantGold: state.merchantGold ? { ...state.merchantGold } : {},
     merchantLastRestock: state.merchantLastRestock ? { ...state.merchantLastRestock } : {},
     merchantInventories: state.merchantInventories ? JSON.parse(JSON.stringify(state.merchantInventories)) : {},
+    merchantLastUpdated: state.merchantLastUpdated ? { ...state.merchantLastUpdated } : {},
     objectState: { ...state.objectState },
     vars: { ...state.vars },
     journal: [...state.journal],
@@ -190,6 +219,7 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
         // 3. Record the restock step
         newState.merchantLastRestock[npc.id] = newState.step;
+        newState.merchantLastUpdated[npc.id] = newState.step;
       }
     }
   }
@@ -270,4 +300,55 @@ export function getMerchantTradeCaps(state: GameState, factionId: string): { max
       maxGoldVolume: 500 + rep * 20
     };
   }
+}
+
+/**
+ * Scans all merchants and their inventories to find profitable arbitrage loops
+ * where an item can be bought from one merchant and sold to another for a profit.
+ */
+export function findArbitrageOpportunities(
+  state: GameState,
+  pack: any
+): Array<{
+  item: string;
+  buyNpc: string;
+  sellNpc: string;
+  cost: number;
+  payout: number;
+  profit: number;
+}> {
+  const opportunities: any[] = [];
+  if (!pack || !pack.npcs || !pack.objects) return opportunities;
+
+  for (const npcA of pack.npcs) {
+    const stock = state.merchantInventories?.[npcA.id] ?? [];
+    for (const itemId of stock) {
+      const packObj = pack.objects.find((o: any) => o.id === itemId);
+      if (!packObj) continue;
+
+      // 1. Calculate buy price from npcA (player buying from npcA)
+      const cost = calculateTradePrice(state, npcA, packObj, packObj.cost ?? 10, true);
+
+      for (const npcB of pack.npcs) {
+        if (npcA.id === npcB.id) continue;
+
+        // 2. Calculate sell price to npcB (player selling to npcB)
+        const payout = calculateTradePrice(state, npcB, packObj, packObj.cost ?? 10, false);
+
+        if (payout > cost) {
+          opportunities.push({
+            item: itemId,
+            buyNpc: npcA.id,
+            sellNpc: npcB.id,
+            cost,
+            payout,
+            profit: payout - cost,
+          });
+        }
+      }
+    }
+  }
+
+  // Sort by profit descending
+  return opportunities.sort((a, b) => b.profit - a.profit);
 }
