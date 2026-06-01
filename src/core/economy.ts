@@ -6092,35 +6092,52 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             }
             newState.journal.push(journalText);
 
-            if (feeRemaining > 0 && newState.swfYieldCDOs) {
-              for (const [cdoId, cdo] of Object.entries(newState.swfYieldCDOs)) {
-                if (feeRemaining <= 0) break;
-                for (const [trancheId, tranche] of Object.entries(cdo.tranches)) {
+            if (feeRemaining > 0) {
+              newState.outstandingDeflectionFees = newState.outstandingDeflectionFees ? { ...newState.outstandingDeflectionFees } : {};
+              newState.outstandingDeflectionFees[syndicateId] = (newState.outstandingDeflectionFees[syndicateId] ?? 0) + feeRemaining;
+
+              if (newState.swfYieldCDOs) {
+                for (const [cdoId, cdo] of Object.entries(newState.swfYieldCDOs)) {
                   if (feeRemaining <= 0) break;
-                  const ownership = tranche.ownership?.[syndicateId] ?? 0;
-                  if (ownership > 0) {
-                    const sharesToSlash = Math.min(ownership, Math.max(1, Math.round(feeRemaining / 10)));
-                    if (sharesToSlash > 0) {
-                      tranche.ownership[syndicateId] = ownership - sharesToSlash;
-                      tranche.totalShares = Math.max(0, tranche.totalShares - sharesToSlash);
-                      tranche.timestamp = newState.step;
-                      cdo.timestamp = newState.step;
+                  for (const [trancheId, tranche] of Object.entries(cdo.tranches)) {
+                    if (feeRemaining <= 0) break;
+                    const ownership = tranche.ownership?.[syndicateId] ?? 0;
+                    if (ownership > 0) {
+                      const sharesToSlash = Math.min(ownership, Math.max(1, Math.round(feeRemaining / 10)));
+                      if (sharesToSlash > 0) {
+                        tranche.ownership[syndicateId] = ownership - sharesToSlash;
+                        tranche.totalShares = Math.max(0, tranche.totalShares - sharesToSlash);
+                        tranche.timestamp = newState.step;
+                        cdo.timestamp = newState.step;
 
-                      newState.swfYieldCDOs = {
-                        ...newState.swfYieldCDOs,
-                        [cdoId]: {
-                          ...cdo,
-                          tranches: {
-                            ...cdo.tranches,
-                            [trancheId]: { ...tranche }
+                        newState.swfYieldCDOs = {
+                          ...newState.swfYieldCDOs,
+                          [cdoId]: {
+                            ...cdo,
+                            tranches: {
+                              ...cdo.tranches,
+                              [trancheId]: { ...tranche }
+                            }
                           }
-                        }
-                      };
+                        };
 
-                      feeRemaining -= sharesToSlash * 10;
-                      newState.journal.push(
-                        `[Security Insurance Pool Drawdown CDO Slash] Slashed ${sharesToSlash} shares from CDO ${cdoId} tranche ${trancheId} for Syndicate ${syndicateId} due to outstanding deflection fee.`
-                      );
+                        newState.slashedCDOTrancheShares = newState.slashedCDOTrancheShares ? { ...newState.slashedCDOTrancheShares } : {};
+                        if (!newState.slashedCDOTrancheShares[syndicateId]) {
+                          newState.slashedCDOTrancheShares[syndicateId] = {};
+                        }
+                        newState.slashedCDOTrancheShares[syndicateId] = { ...newState.slashedCDOTrancheShares[syndicateId] };
+                        if (!newState.slashedCDOTrancheShares[syndicateId][cdoId]) {
+                          newState.slashedCDOTrancheShares[syndicateId][cdoId] = {};
+                        }
+                        newState.slashedCDOTrancheShares[syndicateId][cdoId] = { ...newState.slashedCDOTrancheShares[syndicateId][cdoId] };
+                        const prevSlashed = newState.slashedCDOTrancheShares[syndicateId][cdoId][trancheId] ?? 0;
+                        newState.slashedCDOTrancheShares[syndicateId][cdoId][trancheId] = prevSlashed + sharesToSlash;
+
+                        feeRemaining -= sharesToSlash * 10;
+                        newState.journal.push(
+                          `[Security Insurance Pool Drawdown CDO Slash] Slashed ${sharesToSlash} shares from CDO ${cdoId} tranche ${trancheId} for Syndicate ${syndicateId} due to outstanding deflection fee.`
+                        );
+                      }
                     }
                   }
                 }
@@ -7135,6 +7152,9 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
   // AF-211: Sweep Pool Volatility Hedging Trigger
   finalState = tickSweepPoolVolatilityHedging(finalState);
+
+  // AF-224: SWF Deflection Surcharge Alliance Liquidity Pool Yield-bearing Sweep-in & auto-refunding
+  finalState = tickAllianceYieldAutoRepay(finalState);
   return finalState;
 }
 
@@ -9250,6 +9270,178 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
             newState.journal.push(
               `[Speculative Hedging Payout] Predicted weather volatility reverted to stable (${predictedVol} < Threshold ${threshold}). Awarded speculative profit payout of ${speculativePayout} gold back to the sweep pool from Volatility Insurance Pool ${firstPoolKey} (Remaining Pool Balance: ${pool.balance} gold).`
             );
+          }
+        }
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function tickAllianceYieldAutoRepay(state: GameState): GameState {
+  if (!state.swfAllianceYieldAutoRepayRate) return state;
+
+  const activeProp = Object.values(state.swfAllianceYieldAutoRepayProposals || {}).find(
+    (p: any) => p.status === "authorized"
+  );
+  if (!activeProp) return state;
+
+  const newState: GameState = {
+    ...state,
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    outstandingDeflectionFees: state.outstandingDeflectionFees ? { ...state.outstandingDeflectionFees } : {},
+    slashedCDOTrancheShares: state.slashedCDOTrancheShares ? { ...state.slashedCDOTrancheShares } : {},
+    swfYieldCDOs: state.swfYieldCDOs ? { ...state.swfYieldCDOs } : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  const proposerSyndicateId = activeProp.syndicateId;
+  const syndicates = newState.syndicates || {};
+  
+  // Find all allied syndicates in the alliance
+  const allies = Object.keys(syndicates).filter(otherId => {
+    if (otherId === proposerSyndicateId) return false;
+    return (
+      newState.syndicateAlliances?.[proposerSyndicateId]?.[otherId] === "allied" ||
+      newState.syndicateAlliances?.[otherId]?.[proposerSyndicateId] === "allied"
+    );
+  });
+  const allianceSyndicateIds = [proposerSyndicateId, ...allies];
+
+  // Calculate collective alliance war chest wealth
+  let totalAllianceWarChests = 0;
+  for (const sId of allianceSyndicateIds) {
+    const syndicate = syndicates[sId];
+    if (syndicate) {
+      totalAllianceWarChests += syndicate.warChest ?? 0;
+    }
+  }
+
+  // Calculate yield generated from collective alliance war chests
+  const repayRate = newState.swfAllianceYieldAutoRepayRate ?? 0;
+  const generatedYield = Math.round(totalAllianceWarChests * repayRate);
+  if (generatedYield > 0) {
+    newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + generatedYield;
+    newState.journal.push(
+      `[SWF Alliance Yield Sweep-In] Allocated yield of ${generatedYield} gold generated from collective alliance war chests (Total: ${totalAllianceWarChests} gold, Rate: ${(repayRate * 100).toFixed(1)}%) directly to the sweep pool (New Sweep Pool Balance: ${newState.swfStakingSweepPool} gold).`
+    );
+  }
+
+  // Calculate active linkStateDropRate by checking reinsurance pools
+  let dropRate = 0;
+  if (newState.swfMultiFundReinsurancePools) {
+    for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
+      if (pool.linkStateDropRate !== undefined) {
+        dropRate = Math.max(dropRate, pool.linkStateDropRate);
+      }
+    }
+  }
+
+  const partitionThreshold = newState.swfAllianceYieldAutoRepayPartitionThreshold ?? 0.5;
+  const isHighRiskPartition = dropRate >= partitionThreshold;
+
+  if (isHighRiskPartition) {
+    // Collect outstanding deflection fees for all allied members
+    const outstandingFeesList: { syndicateId: string; fee: number }[] = [];
+    let totalOutstandingAlliedFees = 0;
+    const outstandingDeflectionFees = newState.outstandingDeflectionFees || {};
+    
+    for (const sId of allianceSyndicateIds) {
+      const fee = outstandingDeflectionFees[sId] ?? 0;
+      if (fee > 0) {
+        outstandingFeesList.push({ syndicateId: sId, fee });
+        totalOutstandingAlliedFees += fee;
+      }
+    }
+
+    if (totalOutstandingAlliedFees > 0 && (newState.swfStakingSweepPool ?? 0) > 0) {
+      const availableSweepGold = newState.swfStakingSweepPool ?? 0;
+      const totalRepaidPool = Math.min(availableSweepGold, totalOutstandingAlliedFees);
+      
+      newState.swfStakingSweepPool = Math.max(0, availableSweepGold - totalRepaidPool);
+
+      for (const item of outstandingFeesList) {
+        const sId = item.syndicateId;
+        const fee = item.fee;
+        
+        // Prorated repayment share
+        let repaidAmount = 0;
+        if (totalRepaidPool === totalOutstandingAlliedFees) {
+          repaidAmount = fee;
+        } else {
+          repaidAmount = Math.floor(totalRepaidPool * (fee / totalOutstandingAlliedFees));
+        }
+
+        if (repaidAmount > 0) {
+          outstandingDeflectionFees[sId] = Math.max(0, fee - repaidAmount);
+          newState.outstandingDeflectionFees = outstandingDeflectionFees;
+          
+          newState.journal.push(
+            `[SWF Alliance Yield Repayment] Auto-repaid ${repaidAmount} gold outstanding deflection fee for Syndicate ${sId} from SWF sweep pool (Remaining Outstanding Fee: ${outstandingDeflectionFees[sId]} gold).`
+          );
+
+          // Restore slashed CDO shares: 10 gold repaid = 1 CDO share restored
+          const sharesToRestore = Math.floor(repaidAmount / 10);
+          if (sharesToRestore > 0) {
+            let restoredCount = 0;
+            const slashedCDOTrancheShares = newState.slashedCDOTrancheShares || {};
+            const slashedMap = slashedCDOTrancheShares[sId];
+            if (slashedMap) {
+              // Create a mutable copy of the syndicate's slashed CDO tranches map
+              slashedCDOTrancheShares[sId] = { ...slashedMap };
+              newState.slashedCDOTrancheShares = slashedCDOTrancheShares;
+              
+              for (const [cdoId, tranches] of Object.entries(slashedMap)) {
+                if (restoredCount >= sharesToRestore) break;
+                
+                slashedCDOTrancheShares[sId][cdoId] = { ...tranches };
+                
+                for (const [trancheId, slashedAmount] of Object.entries(tranches)) {
+                  if (restoredCount >= sharesToRestore) break;
+                  if (slashedAmount > 0) {
+                    const toRestore = Math.min(sharesToRestore - restoredCount, slashedAmount);
+                    if (toRestore > 0) {
+                      // Deduct from slashed CDO tracking
+                      slashedCDOTrancheShares[sId][cdoId][trancheId] = slashedAmount - toRestore;
+                      restoredCount += toRestore;
+
+                      // Restore to tranche ownership and totalShares
+                      const cdo = newState.swfYieldCDOs?.[cdoId];
+                      const tranche = cdo?.tranches?.[trancheId as "senior" | "mezzanine" | "equity"];
+                      if (cdo && tranche) {
+                        const updatedTranche = {
+                          ...tranche,
+                          ownership: {
+                            ...tranche.ownership,
+                            [sId]: (tranche.ownership?.[sId] ?? 0) + toRestore
+                          },
+                          totalShares: (tranche.totalShares ?? 0) + toRestore,
+                          timestamp: newState.step
+                        };
+
+                        newState.swfYieldCDOs = {
+                          ...newState.swfYieldCDOs,
+                          [cdoId]: {
+                            ...cdo,
+                            tranches: {
+                              ...cdo.tranches,
+                              [trancheId]: updatedTranche
+                            },
+                            timestamp: newState.step
+                          }
+                        };
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            if (restoredCount > 0) {
+              newState.journal.push(
+                `[SWF Alliance Yield CDO Restore] Restored ${restoredCount} slashed CDO tranche shares for Syndicate ${sId} due to outstanding deflection fee repayment.`
+              );
+            }
           }
         }
       }
