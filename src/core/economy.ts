@@ -752,6 +752,7 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
     }
 
     let poolLinkStateDropRate = 0.0;
+    let poolTargetYieldRate = 0.0;
     let cdoId = "";
     let creatorSyndicateId = "";
     if (key.includes("_")) {
@@ -762,9 +763,12 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
       const cdo = newState.swfYieldCDOs?.[cdoId];
       creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
       for (const pool of Object.values(newState.swfMultiFundReinsurancePools)) {
-        if (pool.linkStateDropRate !== undefined) {
-          if (creatorSyndicateId && pool.syndicateIds.includes(creatorSyndicateId)) {
+        if (creatorSyndicateId && pool.syndicateIds.includes(creatorSyndicateId)) {
+          if (pool.linkStateDropRate !== undefined) {
             poolLinkStateDropRate = Math.max(poolLinkStateDropRate, pool.linkStateDropRate);
+          }
+          if (pool.active) {
+            poolTargetYieldRate = Math.max(poolTargetYieldRate, pool.targetYieldRate);
           }
         }
       }
@@ -776,6 +780,9 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
         if (pool.linkStateDropRate !== undefined) {
           linkStateDropRate = Math.max(linkStateDropRate, pool.linkStateDropRate);
         }
+        if (pool.active) {
+          poolTargetYieldRate = Math.max(poolTargetYieldRate, pool.targetYieldRate);
+        }
       }
     }
 
@@ -783,6 +790,34 @@ export function recalculateReinsuranceOptionOrderBookMetrics(state: GameState): 
     const avgVolatility = activeBonds.length > 0
       ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
       : 15.0;
+
+    // AF-175: Volatility Shock Arbitrage Spread and Yield Target Balancing
+    const hedgingPolicy = newState.swfReinsuranceOptionHedgingPolicies?.[key];
+    if (hedgingPolicy) {
+      const stressPolicy = newState.swfReinsuranceOptionStressTestPolicies?.[key];
+      const stressShock = stressPolicy ? stressPolicy.simulatedVolatilityShock : 0.0;
+      const stressVolatility = avgVolatility + stressShock;
+
+      const activationThreshold = hedgingPolicy.hedgingActivationThreshold ?? 20.0;
+      const isVolatileShock = stressVolatility >= activationThreshold;
+
+      if (isVolatileShock && poolTargetYieldRate >= 0.05) {
+        const spreadThreshold = hedgingPolicy.volatilityShockArbitrageSpreadThreshold ?? 10.0;
+        if (bidAskSpread > spreadThreshold) {
+          const originalSpread = bidAskSpread;
+          const spreadExcess = bidAskSpread - spreadThreshold;
+          // Dynamically narrow spread by 50% of the excess to balance liquidity
+          const spreadReduction = Math.floor(spreadExcess * 0.5);
+          if (spreadReduction > 0) {
+            bidAskSpread = Math.max(spreadThreshold, bidAskSpread - spreadReduction);
+            
+            newState.journal.push(
+              `[SWF Reinsurance Option Spread Rebalancing] Dynamically narrowed option spread by ${spreadReduction} gold (from ${originalSpread} to ${bidAskSpread} gold) under volatile shock (Volatility: ${avgVolatility.toFixed(2)}%) and multi-fund target yield threshold (${(poolTargetYieldRate * 100).toFixed(1)}%) to prevent arbitrage depletion.`
+            );
+          }
+        }
+      }
+    }
 
     let volHedgeMult = 1.0;
     let partitionRiskMult = 1.0;
@@ -6493,6 +6528,82 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
   // AF-166: Tick SWF Multi-Fund Reinsurance Pools & Arbitrage
   finalState = tickSWFMultiFundReinsurance(finalState);
+
+  // AF-175: Automated secondary market rebalancing routing premium payouts under volatile shocks
+  if (finalState.marginAccounts && finalState.swfReinsuranceOptionsContracts) {
+    finalState.marginAccounts = { ...finalState.marginAccounts };
+    finalState.swfReinsuranceOptionsContracts = { ...finalState.swfReinsuranceOptionsContracts };
+    if (finalState.swfMultiFundReinsurancePools) {
+      finalState.swfMultiFundReinsurancePools = { ...finalState.swfMultiFundReinsurancePools };
+    }
+
+    for (const [syndicateId, marginAccount] of Object.entries(finalState.marginAccounts)) {
+      if ((marginAccount.swfReinsuranceOptionVault ?? 0) > 0) {
+        for (const opt of Object.values(finalState.swfReinsuranceOptionsContracts)) {
+          if (opt.active && opt.writerSyndicateId === syndicateId) {
+            const policyKey = `${opt.swfYieldCdoId}_${opt.trancheId}`;
+            const stressPolicy = finalState.swfReinsuranceOptionStressTestPolicies?.[policyKey];
+            const hedgingPolicy = finalState.swfReinsuranceOptionHedgingPolicies?.[policyKey];
+
+            if (stressPolicy && hedgingPolicy) {
+              const activeBonds = Object.values(finalState.yieldVolatilityIndexes || {});
+              const avgVolatility = activeBonds.length > 0
+                ? activeBonds.reduce((sum, item) => sum + item.volatility, 0) / activeBonds.length
+                : 15.0;
+
+              const stressVolatility = avgVolatility + stressPolicy.simulatedVolatilityShock;
+
+              if (stressVolatility >= hedgingPolicy.hedgingActivationThreshold) {
+                const spreadThreshold = hedgingPolicy.volatilityShockArbitrageSpreadThreshold;
+                const targetLimit = hedgingPolicy.targetBalanceLimit ?? 99999999;
+
+                const depth = finalState.swfReinsuranceOptionOrderBookDepths?.[policyKey];
+                const bidAskSpread = depth ? depth.bidAskSpread : 0;
+
+                if (spreadThreshold === undefined || bidAskSpread >= spreadThreshold) {
+                  const cdo = finalState.swfYieldCDOs?.[opt.swfYieldCdoId];
+                  const creatorSyndicateId = cdo ? cdo.creatorSyndicateId : "";
+                  const multiFundPools = Object.values(finalState.swfMultiFundReinsurancePools || {}) as SWFMultiFundReinsurancePool[];
+
+                  const candidatePools = multiFundPools.filter(
+                    (p) => p.active && creatorSyndicateId && p.syndicateIds.includes(creatorSyndicateId)
+                  );
+                  const targetPools = candidatePools.length > 0
+                    ? candidatePools
+                    : multiFundPools.filter((p) => p.active);
+
+                  if (targetPools.length > 0) {
+                    const toRoute = Math.min(marginAccount.swfReinsuranceOptionVault ?? 0, targetLimit);
+                    const amountPerPool = Math.floor(toRoute / targetPools.length);
+                    if (amountPerPool > 0) {
+                      const totalRouted = amountPerPool * targetPools.length;
+                      marginAccount.swfReinsuranceOptionVault = (marginAccount.swfReinsuranceOptionVault ?? 0) - totalRouted;
+                      marginAccount.timestamp = finalState.step;
+
+                      for (const targetPool of targetPools) {
+                        const p = finalState.swfMultiFundReinsurancePools![targetPool.id] as SWFMultiFundReinsurancePool;
+                        if (p) {
+                          p.totalReserve = (p.totalReserve ?? 0) + amountPerPool;
+                          if (!p.capitalAllocated) p.capitalAllocated = {};
+                          p.capitalAllocated[syndicateId] = (p.capitalAllocated[syndicateId] ?? 0) + amountPerPool;
+                          p.timestamp = finalState.step;
+                        }
+                      }
+
+                      if (!finalState.journal) finalState.journal = [];
+                      finalState.journal.push(
+                        `[SWF Volatility Shock Arbitrage Spread Rebalancing] Routed ${totalRouted} gold of option premium payouts from vault of Syndicate ${syndicateId} to ${targetPools.length} active yield portfolio(s) under volatile shock (Stress Volatility: ${stressVolatility.toFixed(2)}% >= Threshold: ${hedgingPolicy.hedgingActivationThreshold.toFixed(2)}%, Option Bid-Ask Spread: ${bidAskSpread} gold).`
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   return finalState;
 }

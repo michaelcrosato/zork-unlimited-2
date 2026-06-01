@@ -2314,6 +2314,8 @@ export const SWFReinsuranceOptionHedgingPolicySchema = z.object({
   trancheId: z.enum(["senior", "mezzanine", "equity"]),
   hedgingActivationThreshold: z.number().nonnegative(),
   reserveReallocationLimit: z.number().int().nonnegative(),
+  volatilityShockArbitrageSpreadThreshold: z.number().nonnegative().optional(),
+  targetBalanceLimit: z.number().int().nonnegative().optional(),
   timestamp: z.number().int(),
 });
 export type SWFReinsuranceOptionHedgingPolicy = z.infer<typeof SWFReinsuranceOptionHedgingPolicySchema>;
@@ -2323,6 +2325,8 @@ export const SWFReinsuranceOptionHedgingVoteSchema = z.object({
   trancheId: z.enum(["senior", "mezzanine", "equity"]),
   hedgingActivationThreshold: z.number().nonnegative(),
   reserveReallocationLimit: z.number().int().nonnegative(),
+  volatilityShockArbitrageSpreadThreshold: z.number().nonnegative().optional(),
+  targetBalanceLimit: z.number().int().nonnegative().optional(),
   timestamp: z.number().int(),
 });
 export type SWFReinsuranceOptionHedgingVote = z.infer<typeof SWFReinsuranceOptionHedgingVoteSchema>;
@@ -12821,19 +12825,23 @@ export function reconcileSWFReinsuranceOptionHedging(state: GameState, pack: any
       trancheId: "senior" | "mezzanine" | "equity";
       hedgingActivationThreshold: number;
       reserveReallocationLimit: number;
+      volatilityShockArbitrageSpreadThreshold?: number;
+      targetBalanceLimit?: number;
       voters: Set<string>;
       timestamps: number[];
     }> = {};
 
     for (const [voterId, vote] of Object.entries(votes)) {
       if (syndicate.members.includes(voterId)) {
-        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.hedgingActivationThreshold}::${vote.reserveReallocationLimit}`;
+        const key = `${vote.swfYieldCdoId}::${vote.trancheId}::${vote.hedgingActivationThreshold}::${vote.reserveReallocationLimit}::${vote.volatilityShockArbitrageSpreadThreshold ?? "undefined"}::${vote.targetBalanceLimit ?? "undefined"}`;
         if (!voteGroups[key]) {
           voteGroups[key] = {
             swfYieldCdoId: vote.swfYieldCdoId,
             trancheId: vote.trancheId,
             hedgingActivationThreshold: vote.hedgingActivationThreshold,
             reserveReallocationLimit: vote.reserveReallocationLimit,
+            volatilityShockArbitrageSpreadThreshold: vote.volatilityShockArbitrageSpreadThreshold,
+            targetBalanceLimit: vote.targetBalanceLimit,
             voters: new Set<string>(),
             timestamps: [],
           };
@@ -12851,14 +12859,18 @@ export function reconcileSWFReinsuranceOptionHedging(state: GameState, pack: any
           trancheId: group.trancheId,
           hedgingActivationThreshold: group.hedgingActivationThreshold,
           reserveReallocationLimit: group.reserveReallocationLimit,
+          volatilityShockArbitrageSpreadThreshold: group.volatilityShockArbitrageSpreadThreshold,
+          targetBalanceLimit: group.targetBalanceLimit,
           timestamp: Math.max(...group.timestamps, newState.step),
         };
 
         delete newState.adjustSWFReinsuranceOptionHedgingVotes[syndicateId];
 
         if (!newState.journal) newState.journal = [];
+        const spreadStr = group.volatilityShockArbitrageSpreadThreshold !== undefined ? `, Spread Threshold: ${group.volatilityShockArbitrageSpreadThreshold.toFixed(2)}` : "";
+        const balStr = group.targetBalanceLimit !== undefined ? `, Target Balance Limit: ${group.targetBalanceLimit} gold` : "";
         newState.journal.push(
-          `[SWF Reinsurance Option Hedging Adjusted] Syndicate ${syndicateId} adjusted hedging policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Hedging Activation Threshold: ${group.hedgingActivationThreshold.toFixed(2)}%, Reserve Reallocation Limit: ${group.reserveReallocationLimit} gold).`
+          `[SWF Reinsurance Option Hedging Adjusted] Syndicate ${syndicateId} adjusted hedging policy for CDO ${group.swfYieldCdoId} tranche ${group.trancheId} via majority consensus (Hedging Activation Threshold: ${group.hedgingActivationThreshold.toFixed(2)}%, Reserve Reallocation Limit: ${group.reserveReallocationLimit} gold${spreadStr}${balStr}).`
         );
       }
     }

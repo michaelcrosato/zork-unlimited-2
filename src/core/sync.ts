@@ -33963,7 +33963,16 @@ export function multiAgentStep(
 
   // Handle ADJUST_SWF_REINSURANCE_OPTION_HEDGING action (AF-158)
   if ((action as any).type === "ADJUST_SWF_REINSURANCE_OPTION_HEDGING") {
-    const { syndicateId, swfYieldCdoId, trancheId, hedgingActivationThreshold, reserveReallocationLimit, timestamp } = action as any;
+    const {
+      syndicateId,
+      swfYieldCdoId,
+      trancheId,
+      hedgingActivationThreshold,
+      reserveReallocationLimit,
+      volatilityShockArbitrageSpreadThreshold,
+      targetBalanceLimit,
+      timestamp
+    } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -33981,6 +33990,10 @@ export function multiAgentStep(
       rejectionReason = `Hedging activation threshold must be non-negative.`;
     } else if (reserveReallocationLimit === undefined || reserveReallocationLimit < 0 || !Number.isInteger(reserveReallocationLimit)) {
       rejectionReason = `Reserve reallocation limit must be a non-negative integer.`;
+    } else if (volatilityShockArbitrageSpreadThreshold !== undefined && (volatilityShockArbitrageSpreadThreshold < 0 || typeof volatilityShockArbitrageSpreadThreshold !== "number")) {
+      rejectionReason = `Volatility shock arbitrage spread threshold must be non-negative.`;
+    } else if (targetBalanceLimit !== undefined && (targetBalanceLimit < 0 || !Number.isInteger(targetBalanceLimit))) {
+      rejectionReason = `Target balance limit must be a non-negative integer.`;
     } else if (!syndicate) {
       rejectionReason = `Syndicate ${syndicateId} does not exist.`;
     } else if (!cdo) {
@@ -34004,6 +34017,8 @@ export function multiAgentStep(
         trancheId,
         hedgingActivationThreshold,
         reserveReallocationLimit,
+        volatilityShockArbitrageSpreadThreshold,
+        targetBalanceLimit,
         timestamp,
       };
       newState.adjustSWFReinsuranceOptionHedgingVotes = adjustSWFReinsuranceOptionHedgingVotes;
@@ -34015,8 +34030,10 @@ export function multiAgentStep(
       const isConsensusReached = newState.swfReinsuranceOptionHedgingPolicies?.[policyKey]?.timestamp === Math.max(timestamp, newState.step);
 
       if (!newState.journal) newState.journal = [];
+      const extraMsg = (volatilityShockArbitrageSpreadThreshold !== undefined ? `, Spread Threshold: ${volatilityShockArbitrageSpreadThreshold.toFixed(2)}` : "") + 
+                       (targetBalanceLimit !== undefined ? `, Target Balance Limit: ${targetBalanceLimit} gold` : "");
       newState.journal.push(
-        `[SWF Reinsurance Option Hedging Vote] Agent ${agentId} voted to adjust hedging policy for CDO ${swfYieldCdoId} tranche ${trancheId} to Hedging Activation Threshold: ${hedgingActivationThreshold.toFixed(2)}%, Reserve Reallocation Limit: ${reserveReallocationLimit} gold (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
+        `[SWF Reinsurance Option Hedging Vote] Agent ${agentId} voted to adjust hedging policy for CDO ${swfYieldCdoId} tranche ${trancheId} to Hedging Activation Threshold: ${hedgingActivationThreshold.toFixed(2)}%, Reserve Reallocation Limit: ${reserveReallocationLimit} gold${extraMsg} (Consensus: ${isConsensusReached ? "REACHED" : "PENDING"}).`
       );
 
       customEvents.push({
