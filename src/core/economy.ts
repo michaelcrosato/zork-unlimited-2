@@ -6059,6 +6059,25 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           if (newState.swfDeflectionSurchargeCap !== undefined) {
             surchargeRate = Math.min(surchargeRate, newState.swfDeflectionSurchargeCap);
           }
+
+          let appliedSubsidyDiscount = 0;
+          let alliesWarChest = 0;
+          if (newState.swfAllianceLiquiditySubsidyRate && newState.swfAllianceLiquiditySubsidyMinWealth) {
+            const allies = Object.keys(newState.syndicates || {}).filter(otherId => {
+              if (otherId === syndicateId) return false;
+              return (
+                newState.syndicateAlliances?.[syndicateId]?.[otherId] === "allied" ||
+                newState.syndicateAlliances?.[otherId]?.[syndicateId] === "allied"
+              );
+            });
+            alliesWarChest = allies.reduce((sum, allyId) => sum + (newState.syndicates?.[allyId]?.warChest ?? 0), 0);
+            if (alliesWarChest >= newState.swfAllianceLiquiditySubsidyMinWealth) {
+              const scalingFactor = Math.min(1.0, alliesWarChest / newState.swfAllianceLiquiditySubsidyMinWealth);
+              appliedSubsidyDiscount = newState.swfAllianceLiquiditySubsidyRate * scalingFactor;
+              surchargeRate = surchargeRate * (1.0 - appliedSubsidyDiscount);
+            }
+          }
+
           const deflectionFee = Math.round(drawdown * surchargeRate);
 
           if (deflectionFee > 0 && syndicate) {
@@ -6067,9 +6086,11 @@ export function tickEconomy(state: GameState, pack: any): GameState {
             syndicate.warChest = (syndicate.warChest ?? 0) - chestDeduction;
             feeRemaining -= chestDeduction;
 
-            newState.journal.push(
-              `[Security Insurance Pool Drawdown Fee] Charged deflection fee of ${deflectionFee} gold (Rate: ${(surchargeRate * 100).toFixed(1)}%, Count: ${drawdownCount}, Depth Factor: ${poolDepthFactor.toFixed(2)}). Deducted ${chestDeduction} gold from war chest of Syndicate ${syndicateId}.`
-            );
+            let journalText = `[Security Insurance Pool Drawdown Fee] Charged deflection fee of ${deflectionFee} gold (Rate: ${(surchargeRate * 100).toFixed(1)}%, Count: ${drawdownCount}, Depth Factor: ${poolDepthFactor.toFixed(2)}). Deducted ${chestDeduction} gold from war chest of Syndicate ${syndicateId}.`;
+            if (appliedSubsidyDiscount > 0) {
+              journalText = `[Security Insurance Pool Drawdown Fee] Charged alliance-subsidized deflection fee of ${deflectionFee} gold (Rate: ${(surchargeRate * 100).toFixed(1)}%, Count: ${drawdownCount}, Depth Factor: ${poolDepthFactor.toFixed(2)}, Allied Wealth: ${alliesWarChest}, Subsidy: ${(appliedSubsidyDiscount * 100).toFixed(1)}% discount). Deducted ${chestDeduction} gold from war chest of Syndicate ${syndicateId}.`;
+            }
+            newState.journal.push(journalText);
 
             if (feeRemaining > 0 && newState.swfYieldCDOs) {
               for (const [cdoId, cdo] of Object.entries(newState.swfYieldCDOs)) {

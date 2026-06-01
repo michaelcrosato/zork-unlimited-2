@@ -2891,6 +2891,22 @@ export const SWFDeflectionCapAndRefundProposalSchema = z.object({
 });
 export type SWFDeflectionCapAndRefundProposal = z.infer<typeof SWFDeflectionCapAndRefundProposalSchema>;
 
+export const SWFAllianceLiquiditySubsidyProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  subsidyRate: z.number(),
+  minAlliedWealth: z.number(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFAllianceLiquiditySubsidyProposal = z.infer<typeof SWFAllianceLiquiditySubsidyProposalSchema>;
+
 
 
 
@@ -3862,6 +3878,9 @@ export const GameStateSchema = z.object({
   swfDeflectionSurchargeCap: z.number().optional(),
   swfDeflectionSurchargeEmergencyRefundAllocationPercent: z.number().optional(),
   swfDeflectionCapAndRefundProposals: z.record(z.string(), SWFDeflectionCapAndRefundProposalSchema).optional(),
+  swfAllianceLiquiditySubsidyRate: z.number().optional(),
+  swfAllianceLiquiditySubsidyMinWealth: z.number().optional(),
+  swfAllianceLiquiditySubsidyProposals: z.record(z.string(), SWFAllianceLiquiditySubsidyProposalSchema).optional(),
 
 
 
@@ -4295,6 +4314,9 @@ export const createInitialState = (options: {
     swfDeflectionSurchargeCap: 1.0,
     swfDeflectionSurchargeEmergencyRefundAllocationPercent: 0,
     swfDeflectionCapAndRefundProposals: {},
+    swfAllianceLiquiditySubsidyRate: 0,
+    swfAllianceLiquiditySubsidyMinWealth: 0,
+    swfAllianceLiquiditySubsidyProposals: {},
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
 
@@ -5455,6 +5477,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfDeflectionSurchargeCap: rest.swfDeflectionSurchargeCap,
     swfDeflectionSurchargeEmergencyRefundAllocationPercent: rest.swfDeflectionSurchargeEmergencyRefundAllocationPercent,
     swfDeflectionCapAndRefundProposals: rest.swfDeflectionCapAndRefundProposals ? JSON.parse(JSON.stringify(rest.swfDeflectionCapAndRefundProposals)) : undefined,
+    swfAllianceLiquiditySubsidyRate: rest.swfAllianceLiquiditySubsidyRate,
+    swfAllianceLiquiditySubsidyMinWealth: rest.swfAllianceLiquiditySubsidyMinWealth,
+    swfAllianceLiquiditySubsidyProposals: rest.swfAllianceLiquiditySubsidyProposals ? JSON.parse(JSON.stringify(rest.swfAllianceLiquiditySubsidyProposals)) : undefined,
   };
   return clone;
 }
@@ -17010,6 +17035,56 @@ export function reconcileSWFDeflectionCapAndRefundProposals(state: GameState, pa
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.swfDeflectionCapAndRefundProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFAllianceLiquiditySubsidyProposals(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfAllianceLiquiditySubsidyProposals: state.swfAllianceLiquiditySubsidyProposals ? { ...state.swfAllianceLiquiditySubsidyProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfAllianceLiquiditySubsidyProposals)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.swfAllianceLiquiditySubsidyProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      newState.swfAllianceLiquiditySubsidyRate = proposal.subsidyRate;
+      newState.swfAllianceLiquiditySubsidyMinWealth = proposal.minAlliedWealth;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Alliance Liquidity Subsidy Resolved] Syndicate ${proposal.syndicateId} authorized alliance liquidity subsidy proposal ${proposalId} (Subsidy Rate: ${proposal.subsidyRate}, Min Allied Wealth: ${proposal.minAlliedWealth}).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.swfAllianceLiquiditySubsidyProposals[proposalId] = {
         ...proposal,
         resolved: true,
         status: "disputed",

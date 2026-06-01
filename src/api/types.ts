@@ -238,7 +238,9 @@ export type Action =
   | { type: "PROPOSE_DEFLECTION_SURCHARGE_POLICY"; proposalId: string; syndicateId: string; baseSurchargeRate: number; poolDepthScalingFactor: number; timestamp: number }
   | { type: "VOTE_DEFLECTION_SURCHARGE_POLICY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_DEFLECTION_CAP_AND_REFUND"; proposalId: string; syndicateId: string; deflectionCap: number; emergencyRefundAllocationPercent: number; timestamp: number }
-  | { type: "VOTE_DEFLECTION_CAP_AND_REFUND"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_DEFLECTION_CAP_AND_REFUND"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_ALLIANCE_LIQUIDITY_SUBSIDY"; proposalId: string; syndicateId: string; subsidyRate: number; minAlliedWealth: number; timestamp: number }
+  | { type: "VOTE_ALLIANCE_LIQUIDITY_SUBSIDY"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

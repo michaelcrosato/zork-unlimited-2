@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #220 (Ready for Cycle #221)
-* **Build/Test Status**: 🟢 PASS (All 773 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #221 (Ready for Cycle #222)
+* **Build/Test Status**: 🟢 PASS (All 774 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1415,14 +1415,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 201: Syndicate SWF Deflection Surcharge Alliance Liquidity Subsidy (Completed)
+- [x] Define proposal and voting schemas inside GameState schemas for collective reserve-based fee adjustments (`AF-223`).
+- [x] Implement `PROPOSE_ALLIANCE_LIQUIDITY_SUBSIDY` and `VOTE_ALLIANCE_LIQUIDITY_SUBSIDY` actions and consensus state transitions (`AF-223`).
+- [x] Wire alliance-subsidized deflection fee adjustments to the tick economy (`AF-223`).
+- [x] Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization (`AF-223`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-223`
-* **Objective**: Syndicate SWF Deflection Surcharge dynamic fee adjustment based on total syndicate war chests & strategic alliance liquidity pooling.
-* **Why this matters**: Support proposing and voting on dynamic deflection surcharge adjustments scaling with the collective wealth of allied syndicates, enabling wealthier alliances to subsidize transaction costs for liquidity-constrained allies during severe mesh partitions.
+**Task ID**: `AF-224`
+* **Objective**: Syndicate SWF Deflection Surcharge Alliance Liquidity Pool Yield-bearing Sweep-in & auto-refunding.
+* **Why this matters**: Support allocating interest or staking yield generated from the collective alliance war chests directly to the sweep pool to auto-repay outstanding deflection fees of allied members on a prorated basis during high-risk partitions.
 * **Planned Actions**:
-  1. Define proposal and voting schemas inside GameState schemas for collective reserve-based fee adjustments.
-  2. Implement `PROPOSE_ALLIANCE_LIQUIDITY_SUBSIDY` and `VOTE_ALLIANCE_LIQUIDITY_SUBSIDY` actions and consensus state transitions.
-  3. Wire alliance-subsidized deflection fee adjustments to the tick economy.
+  1. Define proposal and voting schemas inside GameState schemas for alliance-pooled yield deflection auto-repayments.
+  2. Implement `PROPOSE_ALLIANCE_YIELD_AUTO_REPAY` and `VOTE_ALLIANCE_YIELD_AUTO_REPAY` actions and consensus state transitions.
+  3. Wire yield-based auto-repayments to the tick economy.
   4. Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization.
 
 ---
