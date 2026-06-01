@@ -5795,9 +5795,30 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
         // Base price scaled down by the volume scale factor, then marked up by price impact
         const adjustedPrice = Math.round(executionPriceForMatch * volumeScale * (1 + priceImpact));
 
+        // Calculate standing-based price discount
+        const getSyndicateStanding = () => {
+          if (!newState.factionRep || Object.keys(newState.factionRep).length === 0) return 0;
+          return Math.max(0, ...Object.values(newState.factionRep));
+        };
+        const standing = getSyndicateStanding();
+        const priceDiscount = Math.min(0.5, standing * 0.002);
+        const finalPrice = Math.round(adjustedPrice * (1.0 - priceDiscount));
+
+        // Calculate transaction cost and standing-based subsidies
+        const policyKey = `${buyOrder.swfYieldCdoId}_${buyOrder.trancheId}`;
+        const policy = newState.swfReinsuranceOptionTransactionCostPolicies?.[policyKey];
+        const baseFee = policy ? policy.baseTransactionCost : 0;
+        const subsidyPerRep = policy ? policy.subsidyPerReputationPoint : 0;
+        const subsidy = Math.round(standing * subsidyPerRep);
+        const feeA = Math.max(0, baseFee - subsidy);
+        const feeB = Math.max(0, baseFee - subsidy);
+
         // Check buyer warChest
-        if ((buyer.warChest ?? 0) < adjustedPrice) {
+        if ((buyer.warChest ?? 0) < finalPrice + feeA) {
           continue; // Buyer doesn't have enough gold, skip this match
+        }
+        if ((seller.warChest ?? 0) + finalPrice < feeB) {
+          continue;
         }
 
         // Check if secondary sale (transferring existing option contract)
@@ -5857,9 +5878,9 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
           };
         }
 
-        // Transfer gold using adjusted price
-        buyer.warChest = (buyer.warChest ?? 0) - adjustedPrice;
-        seller.warChest = (seller.warChest ?? 0) + adjustedPrice;
+        // Transfer gold using final price and deduct transaction fees
+        buyer.warChest = (buyer.warChest ?? 0) - finalPrice - feeA;
+        seller.warChest = (seller.warChest ?? 0) + finalPrice - feeB;
 
         newState.syndicates[buyOrder.syndicateId] = { ...buyer };
         newState.syndicates[sellOrder.syndicateId] = { ...seller };
@@ -5890,8 +5911,18 @@ export function matchSWFReinsuranceOptionLimitOrders(state: GameState): GameStat
 
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
-          `[SWF Reinsurance Option Limit Match] Matched Buy Order ${buyOrder.id} (Syndicate ${buyOrder.syndicateId}) and Sell Order ${sellOrder.id} (Syndicate ${sellOrder.syndicateId}) at execution price ${adjustedPrice} gold (CDO: ${buyOrder.swfYieldCdoId}, Tranche: ${buyOrder.trancheId}, Strike: ${buyOrder.strikePremiumRate.toFixed(4)}, Original Size: ${buyOrder.size + matchedSize}, Executed Size: ${executedSize}, Contract: ${sellOrder.contractId ? sellOrder.contractId : "New"}).`
+          `[SWF Reinsurance Option Limit Match] Matched Buy Order ${buyOrder.id} (Syndicate ${buyOrder.syndicateId}) and Sell Order ${sellOrder.id} (Syndicate ${sellOrder.syndicateId}) at execution price ${finalPrice} gold (CDO: ${buyOrder.swfYieldCdoId}, Tranche: ${buyOrder.trancheId}, Strike: ${buyOrder.strikePremiumRate.toFixed(4)}, Original Size: ${buyOrder.size + matchedSize}, Executed Size: ${executedSize}, Contract: ${sellOrder.contractId ? sellOrder.contractId : "New"}).`
         );
+
+        newState.journal.push(
+          `[SWF Reinsurance Option Trade Fees] Buyer Fee: ${feeA} gold, Seller Fee: ${feeB} gold (Base: ${baseFee} gold, Subsidy: ${subsidy} gold, Standing: ${standing}).`
+        );
+
+        if (priceDiscount > 0) {
+          newState.journal.push(
+            `[SWF Reinsurance Option Standing Discount] Standing of ${standing} applied a ${(priceDiscount * 100).toFixed(1)}% discount to the option trade execution price (Before: ${adjustedPrice} gold, After: ${finalPrice} gold).`
+          );
+        }
 
         if (volumeScale < 1.0 || priceImpact > 0) {
           newState.journal.push(

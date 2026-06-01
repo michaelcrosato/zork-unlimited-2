@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #153 (Ready for Cycle #154)
-* **Build/Test Status**: 🟢 PASS (All 624 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #154 (Ready for Cycle #155)
+* **Build/Test Status**: 🟢 PASS (All 629 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -925,16 +925,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire reward claims and log matching/mining events to the journal (`AF-153`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-153`).
 
+### Phase 132: Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidies & Standing-Based Price Discounts (Completed)
+- [x] Implement dynamic transaction cost subsidies scaling with syndicate faction standing (`AF-154`).
+- [x] Support decentralized voting on transaction cost subsidies adjustments (`AF-154`).
+- [x] Wire dynamic subsidies calculations to the economy ticks and order matching engine (`AF-154`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-154`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-154`
-* **Objective**: Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidies & Standing-Based Price Discounts.
-* **Why this matters**: Introduce dynamic transaction cost subsidies in order book trades, scaling with the syndicate's overall faction reputation/standing to further incentivize market maker liquidity.
+**Task ID**: `AF-155`
+* **Objective**: Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebates & Dynamic Bid-Ask Spread Incentives.
+* **Why this matters**: Reward market makers who place limit orders close to the mid-market price with dynamic rebates, further narrowing the bid-ask spread and increasing order book liquidity.
 * **Planned Actions**:
-  1. Implement dynamic transaction cost subsidies scaling with syndicate faction standing.
-  2. Support decentralized voting on transaction cost subsidies adjustments.
-  3. Wire dynamic subsidies calculations to the economy ticks and order matching engine.
+  1. Define dynamic market maker rebate rates scaling with order closeness to mid-market price.
+  2. Support decentralized voting on market maker rebate limits and parameters.
+  3. Wire dynamic rebate generation to the matching engine ticks and distribute gold back to market maker war chests.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---
