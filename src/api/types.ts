@@ -273,9 +273,12 @@ export type Action =
   | { type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT"; proposalId: string; cdoId: string; syndicateId: string; yieldReinvestmentShare: number; timestamp: number }
   | { type: "PROPOSE_CDO_COINVESTMENT_REINVESTMENT_POLICY"; proposalId: string; cdoId: string; syndicateId: string; tier1Threshold: number; tier1Multiplier: number; tier2Threshold: number; tier2Multiplier: number; slashingThreshold: number; slashingPenalty: number; timestamp: number }
   | { type: "VOTE_CDO_COINVESTMENT_REINVESTMENT_POLICY"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
-  | { type: "PROPOSE_CDO_YIELD_HEDGING_POLICY"; proposalId: string; cdoId: string; syndicateId: string; premiumPricingSpread: number; automatedHedgeEnabled: boolean; timestamp: number }
+  | { type: "PROPOSE_CDO_YIELD_HEDGING_POLICY"; proposalId: string; cdoId: string; syndicateId: string; premiumPricingSpread: number; automatedHedgeEnabled: boolean; dynamicMatchingEnabled?: boolean; dynamicLiquidityFloor?: number; timestamp: number }
   | { type: "VOTE_CDO_YIELD_HEDGING_POLICY"; proposalId: string; syndicateId: string; vote: boolean; timestamp: number }
-  | { type: "PURCHASE_CDO_YIELD_HEDGING_OPTION"; optionId: string; cdoId: string; syndicateId: string; coverageAmount: number; timestamp: number };
+  | { type: "PURCHASE_CDO_YIELD_HEDGING_OPTION"; optionId: string; cdoId: string; syndicateId: string; coverageAmount: number; timestamp: number }
+  | { type: "LIST_CDO_YIELD_HEDGING_OPTION"; optionId: string; sellerSyndicateId: string; askPrice: number; timestamp: number }
+  | { type: "BID_ON_CDO_YIELD_HEDGING_OPTION"; bidId: string; optionId: string; bidderSyndicateId: string; bidPrice: number; timestamp: number }
+  | { type: "TRANSFER_CDO_YIELD_HEDGING_OPTION"; optionId: string; sellerSyndicateId: string; buyerSyndicateId: string; price: number; timestamp: number };
 
 
 

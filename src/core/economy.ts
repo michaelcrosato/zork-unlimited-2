@@ -7752,6 +7752,172 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
   newState.sovereignDebtCDSCDOPools = newState.sovereignDebtCDSCDOPools ? { ...newState.sovereignDebtCDSCDOPools } : {};
   newState.syndicates = newState.syndicates ? { ...newState.syndicates } : {};
 
+  newState.cdsCdoYieldHedgingOptionListings = newState.cdsCdoYieldHedgingOptionListings ? { ...newState.cdsCdoYieldHedgingOptionListings } : {};
+  newState.cdsCdoYieldHedgingOptionBids = newState.cdsCdoYieldHedgingOptionBids ? { ...newState.cdsCdoYieldHedgingOptionBids } : {};
+  newState.cdsCdoYieldHedgingOptionMarketSpreads = newState.cdsCdoYieldHedgingOptionMarketSpreads ? { ...newState.cdsCdoYieldHedgingOptionMarketSpreads } : {};
+
+  if (newState.cdsCdoYieldHedgingOptionContracts) {
+    newState.cdsCdoYieldHedgingOptionContracts = { ...newState.cdsCdoYieldHedgingOptionContracts };
+    for (const [optionId, option] of Object.entries(newState.cdsCdoYieldHedgingOptionContracts)) {
+      if (option.status !== "active") continue;
+      const cdoId = option.cdoId;
+      const pool = newState.sovereignDebtCDSCDOPools?.[cdoId];
+      if (!pool) continue;
+
+      // 1. Calculate Option Fair Value
+      const fairValue = getCDSCDOYieldHedgingPremium(newState, cdoId, option.coverageAmount);
+
+      // 2. Calculate Spread
+      let lowestAsk = 0;
+      if (newState.cdsCdoYieldHedgingOptionListings) {
+        const activeListings = Object.values(newState.cdsCdoYieldHedgingOptionListings).filter(
+          (l: any) => l.optionId === optionId && l.status === "active"
+        );
+        if (activeListings.length > 0) {
+          lowestAsk = Math.min(...activeListings.map((l: any) => l.askPrice));
+        }
+      }
+
+      let highestBid = 0;
+      if (newState.cdsCdoYieldHedgingOptionBids) {
+        const activeBids = Object.values(newState.cdsCdoYieldHedgingOptionBids).filter(
+          (b: any) => b.optionId === optionId && b.status === "active"
+        );
+        if (activeBids.length > 0) {
+          highestBid = Math.max(...activeBids.map((b: any) => b.bidPrice));
+        }
+      }
+
+      const spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
+
+      newState.cdsCdoYieldHedgingOptionMarketSpreads[optionId] = {
+        spreadId: optionId,
+        optionId,
+        highestBid,
+        lowestAsk,
+        spread,
+        fairValue,
+        timestamp: newState.step,
+      };
+
+      // 3. Enforce dynamic liquidity floor if alert active
+      const poolCDSs = Object.values(newState.sovereignDebtCDSContracts || {}).filter(c => c.cdoId === cdoId);
+      const targetSyndicates = poolCDSs.map(c => c.targetSyndicateId);
+      const alertActive = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
+        (a: any) => targetSyndicates.includes(a.targetSyndicateId) && a.status === "authorized" && !a.resolved
+      );
+
+      let validLowestAsk = lowestAsk;
+      let validHighestBid = highestBid;
+      if (alertActive && pool.dynamicLiquidityFloor !== undefined) {
+        const floor = pool.dynamicLiquidityFloor;
+        if (lowestAsk > 0 && lowestAsk < floor) {
+          validLowestAsk = 0;
+        }
+        if (highestBid > 0 && highestBid < floor) {
+          validHighestBid = 0;
+        }
+      }
+
+      // 4. Options Arbitrage Bot
+      if (validLowestAsk > 0 && validLowestAsk < fairValue && newState.cdsCdoYieldHedgingOptionListings) {
+        const listing: any = Object.values(newState.cdsCdoYieldHedgingOptionListings).find(
+          (l: any) => l.optionId === optionId && l.status === "active" && l.askPrice === lowestAsk
+        );
+        if (listing) {
+          const sellerSyndicateId: string = listing.sellerSyndicateId;
+          const arbSyndicate: any = Object.values(newState.syndicates).find(
+            (synd: any) =>
+              synd.id !== sellerSyndicateId &&
+              (synd.warChest ?? 0) >= validLowestAsk
+          );
+
+          if (arbSyndicate) {
+            const bidId = `${optionId}_${arbSyndicate.id}_arb`;
+            newState.cdsCdoYieldHedgingOptionBids[bidId] = {
+              bidId,
+              optionId,
+              bidderSyndicateId: arbSyndicate.id,
+              bidPrice: validLowestAsk,
+              status: "active",
+              timestamp: newState.step,
+              votes: {},
+            };
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDO Yield-Hedging Option Arbitrage Bot] Syndicate ${arbSyndicate.id} arbitrage bot placed an active matching bid of ${validLowestAsk} gold on undervalued Option ${optionId} (Fair Value: ${fairValue} gold).`
+            );
+            highestBid = validLowestAsk;
+            validHighestBid = validLowestAsk;
+            newState.cdsCdoYieldHedgingOptionMarketSpreads[optionId].highestBid = highestBid;
+            newState.cdsCdoYieldHedgingOptionMarketSpreads[optionId].spread = validLowestAsk - highestBid;
+          }
+        }
+      }
+
+      // 5. Dynamic bid-ask matching algorithms
+      if (validLowestAsk > 0 && validHighestBid > 0 && validHighestBid >= validLowestAsk && newState.cdsCdoYieldHedgingOptionListings && newState.cdsCdoYieldHedgingOptionBids) {
+        const matchingListing = Object.values(newState.cdsCdoYieldHedgingOptionListings).find(
+          (l: any) => l.optionId === optionId && l.status === "active" && l.askPrice === lowestAsk
+        );
+        const matchingBid = Object.values(newState.cdsCdoYieldHedgingOptionBids).find(
+          (b: any) => b.optionId === optionId && b.status === "active" && b.bidPrice === highestBid
+        );
+
+        if (matchingListing && matchingBid) {
+          const sellerSyndicateId = matchingListing.sellerSyndicateId;
+          const bidderSyndicateId = matchingBid.bidderSyndicateId;
+
+          const sellerSynd = newState.syndicates[sellerSyndicateId];
+          const bidderSynd = newState.syndicates[bidderSyndicateId];
+
+          let tradePrice = lowestAsk;
+          if (pool.dynamicMatchingEnabled) {
+            tradePrice = Math.round((lowestAsk + highestBid) / 2);
+          }
+
+          if (sellerSynd && bidderSynd && (bidderSynd.warChest ?? 0) >= tradePrice) {
+            newState.cdsCdoYieldHedgingOptionListings[matchingListing.optionId] = {
+              ...matchingListing,
+              status: "completed",
+            };
+            newState.cdsCdoYieldHedgingOptionBids[matchingBid.bidId] = {
+              ...matchingBid,
+              status: "accepted",
+            };
+
+            // Transfer option ownership
+            newState.cdsCdoYieldHedgingOptionContracts[optionId] = {
+              ...option,
+              syndicateId: bidderSyndicateId,
+            };
+
+            // Transfer gold
+            sellerSynd.warChest = (sellerSynd.warChest ?? 0) + tradePrice;
+            bidderSynd.warChest = Math.max(0, (bidderSynd.warChest ?? 0) - tradePrice);
+
+            // Cancel / complete all other active listings and bids for this option
+            for (const [lid, listing] of Object.entries(newState.cdsCdoYieldHedgingOptionListings)) {
+              if (listing.optionId === optionId && listing.status === "active") {
+                newState.cdsCdoYieldHedgingOptionListings[lid] = { ...listing, status: "completed" };
+              }
+            }
+            for (const [bid, b] of Object.entries(newState.cdsCdoYieldHedgingOptionBids)) {
+              if (b.optionId === optionId && b.status === "active") {
+                newState.cdsCdoYieldHedgingOptionBids[bid] = { ...b, status: "rejected" };
+              }
+            }
+
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[CDO Yield-Hedging Option Traded] Option ${optionId} traded from ${sellerSyndicateId} to ${bidderSyndicateId} at price ${tradePrice} gold${pool.dynamicMatchingEnabled ? " (Dynamic Mid-Price Match)" : ""}.`
+            );
+          }
+        }
+      }
+    }
+  }
+
   for (const [cdoId, pool] of Object.entries(newState.sovereignDebtCDSCDOPools)) {
     // Process yield hedging option settlements and expirations (AF-241)
     if (newState.cdsCdoYieldHedgingOptionContracts) {

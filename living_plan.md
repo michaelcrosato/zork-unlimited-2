@@ -1,8 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #238 (Ready for Cycle #239)
-* **Build/Test Status**: 🟢 PASS (All 821 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #239 (Ready for Cycle #240)
+* **Build/Test Status**: 🟢 PASS (All 829 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1557,14 +1556,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 220: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Trading spreads and dynamic liquidity floor (Completed)
+- [x] Define Yield-Hedging Option listing, bidding, and secondary spread schemas in GameState (`AF-242`).
+- [x] Implement decentralized actions to list, bid on, and trade Yield-Hedging Option contracts (`AF-242`).
+- [x] Wire the economy tick to calculate dynamic bid-ask matching and execute automated secondary market transactions (`AF-242`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-242`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-242`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Trading spreads and dynamic liquidity floor.
-* **Why this matters**: Further expand the complex financial tooling surrounding sovereign debt default by allowing syndicates to list, bid, and trade their Yield-Hedging Option contracts on the secondary market. Syndicates can vote to authorize dynamic bid-ask matching algorithms and enforce dynamic liquidity floors that prevent options fire-sales during active sovereign debt default alerts.
+**Task ID**: `AF-243`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Transaction Fee Dividends and Staking Pool Yield Sweep.
+* **Why this matters**: Implement a system to levy a customizable transaction fee on secondary option trades. Syndicates can vote on the fee percentage. The accumulated fees are deterministically swept to a staking pool and distributed as dividends to staked syndicate members, creating direct incentives for high trading volume and liquidity provision.
 * **Planned Actions**:
-  1. Define Yield-Hedging Option listing, bidding, and secondary spread schemas in GameState.
-  2. Implement decentralized actions to list, bid on, and trade Yield-Hedging Option contracts.
-  3. Wire the economy tick to calculate dynamic bid-ask matching and execute automated secondary market transactions.
+  1. Define secondary options trade transaction fee and staking pool dividend structures in GameState.
+  2. Implement a decentralized proposal and voting consensus action for Option secondary market fee policies.
+  3. Wire the economy tick to levy transaction fees on successful options trades, deposit them into the staking pool, and distribute dividends deterministically.
   4. Write comprehensive Vitest unit and integration tests.
 
 ---

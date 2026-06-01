@@ -10,7 +10,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionVolatilityInsurance, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy, getCDSCDOYieldHedgingPremium } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers, reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments, reconcileSovereignDebtCDSCDOCrossTrancheHedging, reconcileSovereignDebtCDSCDOHedgingReserveFloorAndCap, reconcileCDSCDOLiquidityInjections, reconcileCDSCDOCoinvestments, reconcileCDSCDOCoinvestmentYieldShares, reconcileCDSCDOCoinvestmentYieldReinvestments, reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals, reconcileCDSCDOYieldHedgingOptionPolicyProposals } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance, reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileReinvestmentBreachRehab, reconcileCooperativeRehabSubsidy, reconcileCooperativeStakingYieldSweep, reconcileSweepPoolRedistribution, reconcileSweepPoolRankAdjust, reconcileSweepPoolVolatilityHedging, reconcileSweepPoolWeatherForecastOracle, reconcileSweepPoolWeatherForecastOracleDisputes, reconcileMultiOraclePenaltyWaivers, reconcileMultiOracleRefundEscalations, reconcileSWFSecurityInsurancePoolProposals, reconcileSWFSecurityInsurancePoolEmergencyDrawdownProposals, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOPools, reconcileSovereignDebtCDSCDOTranches, reconcileSovereignDebtCDSCDOTrancheMarginAdjustments, reconcileSovereignDebtCDSCDOAutocallTriggers, reconcileSovereignDebtCDSCDOTrancheLeverageAdjustments, reconcileSovereignDebtCDSCDOCrossTrancheHedging, reconcileSovereignDebtCDSCDOHedgingReserveFloorAndCap, reconcileCDSCDOLiquidityInjections, reconcileCDSCDOCoinvestments, reconcileCDSCDOCoinvestmentYieldShares, reconcileCDSCDOCoinvestmentYieldReinvestments, reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals, reconcileCDSCDOYieldHedgingOptionPolicyProposals, reconcileCDSCDOYieldHedgingOptionContracts } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -49379,7 +49379,7 @@ export function multiAgentStep(
 
   // Handle PROPOSE_CDO_YIELD_HEDGING_POLICY action (AF-241)
   if ((action as any).type === "PROPOSE_CDO_YIELD_HEDGING_POLICY") {
-    const { proposalId, cdoId, syndicateId, premiumPricingSpread, automatedHedgeEnabled, timestamp } = action as any;
+    const { proposalId, cdoId, syndicateId, premiumPricingSpread, automatedHedgeEnabled, dynamicMatchingEnabled, dynamicLiquidityFloor, timestamp } = action as any;
 
     let ok = false;
     let rejectionReason: string | undefined;
@@ -49419,6 +49419,10 @@ export function multiAgentStep(
       rejectionReason = `Valid premium pricing spread (>= 0) is required.`;
     } else if (automatedHedgeEnabled === undefined || typeof automatedHedgeEnabled !== "boolean") {
       rejectionReason = `Automated hedge flag must be a boolean.`;
+    } else if (dynamicMatchingEnabled !== undefined && typeof dynamicMatchingEnabled !== "boolean") {
+      rejectionReason = `Dynamic matching flag must be a boolean.`;
+    } else if (dynamicLiquidityFloor !== undefined && (typeof dynamicLiquidityFloor !== "number" || dynamicLiquidityFloor < 0)) {
+      rejectionReason = `Dynamic liquidity floor must be a nonnegative number.`;
     } else if (!pool) {
       rejectionReason = `CDO pool ${cdoId} does not exist.`;
     } else if (!syndicate) {
@@ -49455,6 +49459,8 @@ export function multiAgentStep(
         syndicateId,
         premiumPricingSpread,
         automatedHedgeEnabled,
+        dynamicMatchingEnabled: dynamicMatchingEnabled ?? false,
+        dynamicLiquidityFloor: dynamicLiquidityFloor ?? 0,
         status: "proposed",
         resolved: false,
         proposerId: agentId,
@@ -49485,6 +49491,8 @@ export function multiAgentStep(
         syndicateId,
         premiumPricingSpread,
         automatedHedgeEnabled,
+        dynamicMatchingEnabled: dynamicMatchingEnabled ?? false,
+        dynamicLiquidityFloor: dynamicLiquidityFloor ?? 0,
         status: propStatus,
         timestamp,
       });
@@ -49761,6 +49769,411 @@ export function multiAgentStep(
         premiumPaid: calculatedPremium,
         coverageAmount,
         expiryStep: state.step + 10,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle LIST_CDO_YIELD_HEDGING_OPTION action (AF-242)
+  if ((action as any).type === "LIST_CDO_YIELD_HEDGING_OPTION") {
+    const { optionId, sellerSyndicateId, askPrice, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const option = state.cdsCdoYieldHedgingOptionContracts?.[optionId];
+    const sellerSyndicate = state.syndicates?.[sellerSyndicateId];
+
+    if (!optionId) {
+      rejectionReason = `Option ID is required.`;
+    } else if (!sellerSyndicateId) {
+      rejectionReason = `Seller Syndicate ID is required.`;
+    } else if (askPrice === undefined || typeof askPrice !== "number" || askPrice <= 0) {
+      rejectionReason = `Ask price must be a positive number.`;
+    } else if (!option) {
+      rejectionReason = `Yield hedging option contract ${optionId} does not exist.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller Syndicate ${sellerSyndicateId} does not exist.`;
+    } else if (option.syndicateId !== sellerSyndicateId) {
+      rejectionReason = `Syndicate ${sellerSyndicateId} is not the current buyer/owner of Option ${optionId}.`;
+    } else if (option.status !== "active") {
+      rejectionReason = `Option contract ${optionId} is not active (current status: ${option.status}).`;
+    } else if (!sellerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of seller syndicate ${sellerSyndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsCdoYieldHedgingOptionListings = newState.cdsCdoYieldHedgingOptionListings ? { ...newState.cdsCdoYieldHedgingOptionListings } : {};
+      const listingId = optionId;
+      const existingListing = newState.cdsCdoYieldHedgingOptionListings[listingId];
+
+      if (!existingListing || existingListing.status !== "proposed") {
+        newState.cdsCdoYieldHedgingOptionListings[listingId] = {
+          listingId,
+          optionId,
+          sellerSyndicateId,
+          askPrice,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsCdoYieldHedgingOptionListings[listingId] = {
+        ...newState.cdsCdoYieldHedgingOptionListings[listingId],
+        votes: newState.cdsCdoYieldHedgingOptionListings[listingId].votes ? { ...newState.cdsCdoYieldHedgingOptionListings[listingId].votes } : {},
+      };
+
+      newState.cdsCdoYieldHedgingOptionListings[listingId].votes = {
+        ...newState.cdsCdoYieldHedgingOptionListings[listingId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileCDSCDOYieldHedgingOptionContracts(newState, pack);
+
+      const listingStatus = newState.cdsCdoYieldHedgingOptionListings?.[listingId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Yield-Hedging Option Listing Vote] Agent ${agentId} voted to list Option ${optionId} (Status: ${listingStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Agent ${agentId} voted to list Option contract ${optionId} for sale by ${sellerSyndicateId} at ${askPrice} gold (Status: ${listingStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "list_cdo_yield_hedging_option" as any,
+        optionId,
+        agentId,
+        sellerSyndicateId,
+        askPrice,
+        status: listingStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle BID_ON_CDO_YIELD_HEDGING_OPTION action (AF-242)
+  if ((action as any).type === "BID_ON_CDO_YIELD_HEDGING_OPTION") {
+    const { bidId, optionId, bidderSyndicateId, bidPrice, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const option = state.cdsCdoYieldHedgingOptionContracts?.[optionId];
+    const bidderSyndicate = state.syndicates?.[bidderSyndicateId];
+
+    if (!bidId) {
+      rejectionReason = `Bid ID is required.`;
+    } else if (!optionId) {
+      rejectionReason = `Option ID is required.`;
+    } else if (!bidderSyndicateId) {
+      rejectionReason = `Bidder Syndicate ID is required.`;
+    } else if (bidPrice === undefined || typeof bidPrice !== "number" || bidPrice <= 0) {
+      rejectionReason = `Bid price must be a positive number.`;
+    } else if (!option) {
+      rejectionReason = `Yield hedging option contract ${optionId} does not exist.`;
+    } else if (!bidderSyndicate) {
+      rejectionReason = `Bidder Syndicate ${bidderSyndicateId} does not exist.`;
+    } else if (option.status !== "active") {
+      rejectionReason = `Option contract ${optionId} is not active (current status: ${option.status}).`;
+    } else if ((bidderSyndicate.warChest ?? 0) < bidPrice) {
+      rejectionReason = `Bidder Syndicate ${bidderSyndicateId} has insufficient war chest (${bidderSyndicate.warChest ?? 0} gold) to cover bid of ${bidPrice} gold.`;
+    } else if (!bidderSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of bidder syndicate ${bidderSyndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsCdoYieldHedgingOptionBids = newState.cdsCdoYieldHedgingOptionBids ? { ...newState.cdsCdoYieldHedgingOptionBids } : {};
+      const existingBid = newState.cdsCdoYieldHedgingOptionBids[bidId];
+
+      if (!existingBid || existingBid.status !== "proposed") {
+        newState.cdsCdoYieldHedgingOptionBids[bidId] = {
+          bidId,
+          optionId,
+          bidderSyndicateId,
+          bidPrice,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsCdoYieldHedgingOptionBids[bidId] = {
+        ...newState.cdsCdoYieldHedgingOptionBids[bidId],
+        votes: newState.cdsCdoYieldHedgingOptionBids[bidId].votes ? { ...newState.cdsCdoYieldHedgingOptionBids[bidId].votes } : {},
+      };
+
+      newState.cdsCdoYieldHedgingOptionBids[bidId].votes = {
+        ...newState.cdsCdoYieldHedgingOptionBids[bidId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileCDSCDOYieldHedgingOptionContracts(newState, pack);
+
+      const bidStatus = newState.cdsCdoYieldHedgingOptionBids?.[bidId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Yield-Hedging Option Bid Vote] Agent ${agentId} voted to bid ${bidPrice} gold on Option ${optionId} (Status: ${bidStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Agent ${agentId} voted to bid ${bidPrice} gold on Option contract ${optionId} by ${bidderSyndicateId} (Status: ${bidStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "bid_on_cdo_yield_hedging_option" as any,
+        bidId,
+        optionId,
+        agentId,
+        bidderSyndicateId,
+        bidPrice,
+        status: bidStatus,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle TRANSFER_CDO_YIELD_HEDGING_OPTION action (AF-242)
+  if ((action as any).type === "TRANSFER_CDO_YIELD_HEDGING_OPTION") {
+    const { optionId, sellerSyndicateId, buyerSyndicateId, price, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const option = state.cdsCdoYieldHedgingOptionContracts?.[optionId];
+    const sellerSyndicate = state.syndicates?.[sellerSyndicateId];
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+
+    if (!optionId) {
+      rejectionReason = `Option ID is required.`;
+    } else if (!sellerSyndicateId) {
+      rejectionReason = `Seller Syndicate ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (price === undefined || typeof price !== "number" || price <= 0) {
+      rejectionReason = `Price must be a positive number.`;
+    } else if (!option) {
+      rejectionReason = `Yield hedging option contract ${optionId} does not exist.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller Syndicate ${sellerSyndicateId} does not exist.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer Syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (option.syndicateId !== sellerSyndicateId) {
+      rejectionReason = `Syndicate ${sellerSyndicateId} is not the current buyer/owner of Option ${optionId}.`;
+    } else if (option.status !== "active") {
+      rejectionReason = `Option contract ${optionId} is not active (current status: ${option.status}).`;
+    } else if ((buyerSyndicate.warChest ?? 0) < price) {
+      rejectionReason = `Buyer Syndicate ${buyerSyndicateId} has insufficient war chest (${buyerSyndicate.warChest ?? 0} gold) for transfer price of ${price} gold.`;
+    } else {
+      const isSellerMember = sellerSyndicate.members.includes(agentId);
+      const isBuyerMember = buyerSyndicate.members.includes(agentId);
+
+      if (!isSellerMember && !isBuyerMember) {
+        rejectionReason = `Agent ${agentId} is not a member of either seller syndicate ${sellerSyndicateId} or buyer syndicate ${buyerSyndicateId}.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok) {
+      newState.cdsCdoYieldHedgingOptionTransfers = newState.cdsCdoYieldHedgingOptionTransfers ? { ...newState.cdsCdoYieldHedgingOptionTransfers } : {};
+      const transferId = `${optionId}_${sellerSyndicateId}_${buyerSyndicateId}`;
+      const existingTransfer = newState.cdsCdoYieldHedgingOptionTransfers[transferId];
+
+      if (!existingTransfer || existingTransfer.status !== "proposed") {
+        newState.cdsCdoYieldHedgingOptionTransfers[transferId] = {
+          optionId,
+          sellerSyndicateId,
+          buyerSyndicateId,
+          price,
+          status: "proposed",
+          timestamp,
+          votes: {},
+        };
+      }
+
+      newState.cdsCdoYieldHedgingOptionTransfers[transferId] = {
+        ...newState.cdsCdoYieldHedgingOptionTransfers[transferId],
+        votes: newState.cdsCdoYieldHedgingOptionTransfers[transferId].votes ? { ...newState.cdsCdoYieldHedgingOptionTransfers[transferId].votes } : {},
+      };
+
+      newState.cdsCdoYieldHedgingOptionTransfers[transferId].votes = {
+        ...newState.cdsCdoYieldHedgingOptionTransfers[transferId].votes,
+        [agentId]: { vote: true, timestamp },
+      };
+
+      newState = reconcileCDSCDOYieldHedgingOptionContracts(newState, pack);
+
+      const transferStatus = newState.cdsCdoYieldHedgingOptionTransfers?.[transferId]?.status ?? "proposed";
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Yield-Hedging Option Transfer Vote] Agent ${agentId} voted to transfer Option ${optionId} (Status: ${transferStatus.toUpperCase()}).`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `💰 Agent ${agentId} voted to transfer Option contract ${optionId} from ${sellerSyndicateId} to ${buyerSyndicateId} at ${price} gold (Status: ${transferStatus}).`,
+      } as any);
+
+      customEvents.push({
+        type: "transfer_cdo_yield_hedging_option" as any,
+        optionId,
+        agentId,
+        sellerSyndicateId,
+        buyerSyndicateId,
+        price,
+        status: transferStatus,
         timestamp,
       });
     }

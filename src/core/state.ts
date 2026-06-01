@@ -3046,6 +3046,8 @@ export const SovereignDebtCDSCDOPoolSchema = z.object({
   reinvestmentSlashingPenalty: z.number().min(0.0).max(1.0).optional(),
   premiumPricingSpread: z.number().min(0).optional(),
   automatedHedgeEnabled: z.boolean().optional(),
+  dynamicMatchingEnabled: z.boolean().optional(),
+  dynamicLiquidityFloor: z.number().optional(),
 });
 export type SovereignDebtCDSCDOPool = z.infer<typeof SovereignDebtCDSCDOPoolSchema>;
 
@@ -3328,6 +3330,8 @@ export const SovereignDebtCDSCDOYieldHedgingPolicyProposalSchema = z.object({
   syndicateId: z.string(),
   premiumPricingSpread: z.number().min(0),
   automatedHedgeEnabled: z.boolean(),
+  dynamicMatchingEnabled: z.boolean().optional(),
+  dynamicLiquidityFloor: z.number().optional(),
   status: z.enum(["proposed", "authorized", "disputed"]).optional(),
   resolved: z.boolean().optional(),
   proposerId: z.string(),
@@ -3338,6 +3342,59 @@ export const SovereignDebtCDSCDOYieldHedgingPolicyProposalSchema = z.object({
   })).optional(),
 });
 export type SovereignDebtCDSCDOYieldHedgingPolicyProposal = z.infer<typeof SovereignDebtCDSCDOYieldHedgingPolicyProposalSchema>;
+
+export const SovereignDebtCDSCDOYieldHedgingOptionListingSchema = z.object({
+  listingId: z.string(),
+  optionId: z.string(),
+  sellerSyndicateId: z.string(),
+  askPrice: z.number(),
+  status: z.enum(["proposed", "active", "completed", "cancelled"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionListing = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionListingSchema>;
+
+export const SovereignDebtCDSCDOYieldHedgingOptionBidSchema = z.object({
+  bidId: z.string(),
+  optionId: z.string(),
+  bidderSyndicateId: z.string(),
+  bidPrice: z.number(),
+  status: z.enum(["proposed", "active", "accepted", "rejected", "withdrawn"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionBid = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionBidSchema>;
+
+export const SovereignDebtCDSCDOYieldHedgingOptionTransferSchema = z.object({
+  optionId: z.string(),
+  sellerSyndicateId: z.string(),
+  buyerSyndicateId: z.string(),
+  price: z.number(),
+  status: z.enum(["proposed", "completed", "rejected"]),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionTransfer = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionTransferSchema>;
+
+export const SovereignDebtCDSCDOYieldHedgingOptionMarketSpreadSchema = z.object({
+  spreadId: z.string(),
+  optionId: z.string(),
+  highestBid: z.number(),
+  lowestAsk: z.number(),
+  spread: z.number(),
+  fairValue: z.number(),
+  timestamp: z.number().int(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionMarketSpread = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionMarketSpreadSchema>;
 
 
 export const SWFReinsuranceOptionVolatilityInsurancePoolSchema = z.object({
@@ -4342,6 +4399,10 @@ export const GameStateSchema = z.object({
   cdsCdoCoinvestmentReinvestmentPolicyProposals: z.record(z.string(), SovereignDebtCDSCDOCoinvestmentReinvestmentPolicyProposalSchema).optional(),
   cdsCdoYieldHedgingOptionContracts: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionContractSchema).optional(),
   cdsCdoYieldHedgingOptionPolicyProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingPolicyProposalSchema).optional(),
+  cdsCdoYieldHedgingOptionListings: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionListingSchema).optional(),
+  cdsCdoYieldHedgingOptionBids: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionBidSchema).optional(),
+  cdsCdoYieldHedgingOptionTransfers: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionTransferSchema).optional(),
+  cdsCdoYieldHedgingOptionMarketSpreads: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionMarketSpreadSchema).optional(),
 
 
 
@@ -4816,6 +4877,10 @@ export const createInitialState = (options: {
     cdsCdoCoinvestmentReinvestmentPolicyProposals: {},
     cdsCdoYieldHedgingOptionContracts: {},
     cdsCdoYieldHedgingOptionPolicyProposals: {},
+    cdsCdoYieldHedgingOptionListings: {},
+    cdsCdoYieldHedgingOptionBids: {},
+    cdsCdoYieldHedgingOptionTransfers: {},
+    cdsCdoYieldHedgingOptionMarketSpreads: {},
 
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
@@ -6016,6 +6081,10 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoCoinvestmentReinvestmentPolicyProposals: rest.cdsCdoCoinvestmentReinvestmentPolicyProposals ? JSON.parse(JSON.stringify(rest.cdsCdoCoinvestmentReinvestmentPolicyProposals)) : undefined,
     cdsCdoYieldHedgingOptionContracts: rest.cdsCdoYieldHedgingOptionContracts ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionContracts)) : undefined,
     cdsCdoYieldHedgingOptionPolicyProposals: rest.cdsCdoYieldHedgingOptionPolicyProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionPolicyProposals)) : undefined,
+    cdsCdoYieldHedgingOptionListings: rest.cdsCdoYieldHedgingOptionListings ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionListings)) : undefined,
+    cdsCdoYieldHedgingOptionBids: rest.cdsCdoYieldHedgingOptionBids ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionBids)) : undefined,
+    cdsCdoYieldHedgingOptionTransfers: rest.cdsCdoYieldHedgingOptionTransfers ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionTransfers)) : undefined,
+    cdsCdoYieldHedgingOptionMarketSpreads: rest.cdsCdoYieldHedgingOptionMarketSpreads ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionMarketSpreads)) : undefined,
 
   };
   return clone;
@@ -18801,11 +18870,13 @@ export function reconcileCDSCDOYieldHedgingOptionPolicyProposals(state: GameStat
       if (pool) {
         pool.premiumPricingSpread = proposal.premiumPricingSpread;
         pool.automatedHedgeEnabled = proposal.automatedHedgeEnabled;
+        pool.dynamicMatchingEnabled = proposal.dynamicMatchingEnabled;
+        pool.dynamicLiquidityFloor = proposal.dynamicLiquidityFloor;
       }
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
-        `[CDO Yield-Hedging Option Policy Approved] Syndicate ${proposal.syndicateId} approved yield-hedging option policy proposal ${proposalId} for CDO ${proposal.cdoId} (Spread: ${proposal.premiumPricingSpread}, Auto-Hedge: ${proposal.automatedHedgeEnabled}).`
+        `[CDO Yield-Hedging Option Policy Approved] Syndicate ${proposal.syndicateId} approved yield-hedging option policy proposal ${proposalId} for CDO ${proposal.cdoId} (Spread: ${proposal.premiumPricingSpread}, Auto-Hedge: ${proposal.automatedHedgeEnabled}, Dynamic Matching: ${proposal.dynamicMatchingEnabled}, Floor: ${proposal.dynamicLiquidityFloor}).`
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.cdsCdoYieldHedgingOptionPolicyProposals[proposalId] = {
@@ -18813,6 +18884,141 @@ export function reconcileCDSCDOYieldHedgingOptionPolicyProposals(state: GameStat
         resolved: true,
         status: "disputed",
       };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCDSCDOYieldHedgingOptionContracts(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cdsCdoYieldHedgingOptionContracts: state.cdsCdoYieldHedgingOptionContracts ? { ...state.cdsCdoYieldHedgingOptionContracts } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    cdsCdoYieldHedgingOptionListings: state.cdsCdoYieldHedgingOptionListings ? { ...state.cdsCdoYieldHedgingOptionListings } : {},
+    cdsCdoYieldHedgingOptionBids: state.cdsCdoYieldHedgingOptionBids ? { ...state.cdsCdoYieldHedgingOptionBids } : {},
+    cdsCdoYieldHedgingOptionTransfers: state.cdsCdoYieldHedgingOptionTransfers ? { ...state.cdsCdoYieldHedgingOptionTransfers } : {},
+  };
+
+  // Reconcile proposed listings
+  if (newState.cdsCdoYieldHedgingOptionListings) {
+    for (const [listingId, listing] of Object.entries(newState.cdsCdoYieldHedgingOptionListings)) {
+      if (listing.status !== "proposed") continue;
+      const sellerSyndicate = newState.syndicates[listing.sellerSyndicateId];
+      if (!sellerSyndicate) continue;
+      const votes = listing.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => sellerSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > sellerSyndicate.members.length / 2;
+      if (passed) {
+        newState.cdsCdoYieldHedgingOptionListings[listingId] = {
+          ...listing,
+          status: "active",
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDO Yield-Hedging Option Listing Active] Option ${listing.optionId} listed for sale by ${listing.sellerSyndicateId} at ask price ${listing.askPrice} gold.`
+        );
+      }
+    }
+  }
+
+  // Reconcile proposed bids
+  if (newState.cdsCdoYieldHedgingOptionBids) {
+    for (const [bidId, bid] of Object.entries(newState.cdsCdoYieldHedgingOptionBids)) {
+      if (bid.status !== "proposed") continue;
+      const bidderSyndicate = newState.syndicates[bid.bidderSyndicateId];
+      if (!bidderSyndicate) continue;
+      const votes = bid.votes || {};
+      const trueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => bidderSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const passed = trueVotes.length > bidderSyndicate.members.length / 2;
+      if (passed) {
+        newState.cdsCdoYieldHedgingOptionBids[bidId] = {
+          ...bid,
+          status: "active",
+        };
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[CDO Yield-Hedging Option Bid Active] Syndicate ${bid.bidderSyndicateId} placed an active bid of ${bid.bidPrice} gold on Option ${bid.optionId}.`
+        );
+      }
+    }
+  }
+
+  // Reconcile proposed transfers
+  if (newState.cdsCdoYieldHedgingOptionTransfers) {
+    for (const [transferId, transfer] of Object.entries(newState.cdsCdoYieldHedgingOptionTransfers)) {
+      if (transfer.status !== "proposed") continue;
+      const sellerSyndicate = newState.syndicates[transfer.sellerSyndicateId];
+      const buyerSyndicate = newState.syndicates[transfer.buyerSyndicateId];
+      if (!sellerSyndicate || !buyerSyndicate) continue;
+
+      const votes = transfer.votes || {};
+      const sellerTrueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => sellerSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const sellerPassed = sellerTrueVotes.length > sellerSyndicate.members.length / 2;
+
+      const buyerTrueVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => buyerSyndicate.members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+      const buyerPassed = buyerTrueVotes.length > buyerSyndicate.members.length / 2;
+
+      if (sellerPassed && buyerPassed) {
+        const optionId = transfer.optionId;
+        const option = newState.cdsCdoYieldHedgingOptionContracts[optionId];
+        if (option) {
+          newState.cdsCdoYieldHedgingOptionTransfers[transferId] = {
+            ...transfer,
+            status: "completed",
+          };
+
+          newState.cdsCdoYieldHedgingOptionContracts[optionId] = {
+            ...option,
+            syndicateId: transfer.buyerSyndicateId,
+          };
+
+          // Perform balance transfer
+          const updatedSeller = {
+            ...sellerSyndicate,
+            warChest: (sellerSyndicate.warChest ?? 0) + transfer.price,
+          };
+          const updatedBuyer = {
+            ...buyerSyndicate,
+            warChest: Math.max(0, (buyerSyndicate.warChest ?? 0) - transfer.price),
+          };
+          newState.syndicates[transfer.sellerSyndicateId] = updatedSeller;
+          newState.syndicates[transfer.buyerSyndicateId] = updatedBuyer;
+
+          // Deactivate listings and bids
+          if (newState.cdsCdoYieldHedgingOptionListings) {
+            for (const [lid, listing] of Object.entries(newState.cdsCdoYieldHedgingOptionListings)) {
+              if (listing.optionId === optionId && listing.status === "active") {
+                newState.cdsCdoYieldHedgingOptionListings[lid] = { ...listing, status: "completed" };
+              }
+            }
+          }
+          if (newState.cdsCdoYieldHedgingOptionBids) {
+            for (const [bidId, b] of Object.entries(newState.cdsCdoYieldHedgingOptionBids)) {
+              if (b.optionId === optionId && b.status === "active") {
+                if (b.bidderSyndicateId === transfer.buyerSyndicateId && b.bidPrice === transfer.price) {
+                  newState.cdsCdoYieldHedgingOptionBids[bidId] = { ...b, status: "accepted" };
+                } else {
+                  newState.cdsCdoYieldHedgingOptionBids[bidId] = { ...b, status: "rejected" };
+                }
+              }
+            }
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[CDO Yield-Hedging Option Transferred] Ownership of Option ${optionId} transferred from ${transfer.sellerSyndicateId} to ${transfer.buyerSyndicateId} at price ${transfer.price} gold.`
+          );
+        }
+      }
     }
   }
 
