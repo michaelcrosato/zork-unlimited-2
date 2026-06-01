@@ -1121,6 +1121,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge legendaryHitmen using LWW (Last-Write-Wins)
+  const legendaryHitmen = { ...stateA.legendaryHitmen };
+  if (stateB.legendaryHitmen) {
+    for (const [id, entryB] of Object.entries(stateB.legendaryHitmen)) {
+      const entryA = legendaryHitmen[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        legendaryHitmen[id] = entryB;
+      }
+    }
+  }
+
+  // Merge decoyConvoys using LWW (Last-Write-Wins)
+  const decoyConvoys = { ...stateA.decoyConvoys };
+  if (stateB.decoyConvoys) {
+    for (const [id, entryB] of Object.entries(stateB.decoyConvoys)) {
+      const entryA = decoyConvoys[id];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        decoyConvoys[id] = entryB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -1185,6 +1207,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     propagandaCampaigns,
     saboteurs,
     eliteEnforcers,
+    legendaryHitmen,
+    decoyConvoys,
   };
 }
 

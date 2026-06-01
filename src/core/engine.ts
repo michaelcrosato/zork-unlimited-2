@@ -2074,6 +2074,43 @@ export function tickProductionLabs(
       currentSeed = nextSeed;
 
       if (raidRoll <= 20) {
+        // Decoy Convoy Diversion (AF-76)
+        const activeDecoys = Object.values(newState.decoyConvoys || {}).filter(
+          d => d.syndicateId === lab.syndicateId && d.status === "en_route"
+        );
+        if (activeDecoys.length > 0) {
+          const decoy = activeDecoys[0];
+          newState.decoyConvoys = {
+            ...(newState.decoyConvoys || {}),
+            [decoy.id]: {
+              ...decoy,
+              status: "diverted" as const,
+              timestamp: newState.step,
+            }
+          };
+          events.push({
+            type: "narration",
+            text: `[Syndicate] Enforcer raid on the lab in ${roomId} was successfully diverted by decoy convoy ${decoy.id}!`,
+          } as any);
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[Syndicate] Raid in ${roomId} was diverted by decoy convoy ${decoy.id}.`);
+          continue; // Skip the raid entirely!
+        }
+
+        // Turf Bribe Diversion (AF-76)
+        const synd = newState.syndicates?.[lab.syndicateId];
+        const turfBribeCost = synd?.turfBribeCost ?? 0;
+        if (synd && turfBribeCost > 0 && (synd.warChest ?? 0) >= turfBribeCost) {
+          synd.warChest = (synd.warChest ?? 0) - turfBribeCost;
+          events.push({
+            type: "narration",
+            text: `[Syndicate] Enforcer raid on the lab in ${roomId} was successfully diverted by paying a turf bribe of ${turfBribeCost} gold from syndicate ${synd.name} war chest!`,
+          } as any);
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(`[Syndicate] Raid in ${roomId} was diverted by paying a turf bribe of ${turfBribeCost} gold from syndicate ${synd.name} war chest.`);
+          continue; // Skip the raid entirely!
+        }
+
         // Check if a raid warning was active for this room at this step
         const hasWarning = Object.values(newState.raidWarnings || {}).some(
           w => w.roomId === roomId && w.active && w.scheduledStep === newState.step
@@ -2198,7 +2235,10 @@ export function tickSmugglingConvoys(
   pack?: CYOAPack | ParserPack
 ): GameState {
   let newState = { ...state };
-  if (!newState.smugglingConvoys || Object.keys(newState.smugglingConvoys).length === 0) {
+  if (
+    (!newState.smugglingConvoys || Object.keys(newState.smugglingConvoys).length === 0) &&
+    (!newState.decoyConvoys || Object.keys(newState.decoyConvoys).length === 0)
+  ) {
     return newState;
   }
 
@@ -2448,7 +2488,85 @@ export function tickSmugglingConvoys(
     updatedConvoys[convoyId] = updatedConvoy;
   }
 
-  newState.smugglingConvoys = updatedConvoys;
+  if (newState.smugglingConvoys && Object.keys(newState.smugglingConvoys).length > 0) {
+    newState.smugglingConvoys = updatedConvoys;
+  }
+
+  if (newState.decoyConvoys && Object.keys(newState.decoyConvoys).length > 0) {
+    const updatedDecoys = { ...newState.decoyConvoys };
+    for (const [decoyId, decoy] of Object.entries(updatedDecoys)) {
+      if (decoy.status !== "en_route") continue;
+
+      const route = newState.tradeRoutes?.[decoy.routeId];
+      if (!route || !route.rooms || route.rooms.length === 0) continue;
+
+      const updatedDecoy = { ...decoy };
+      const nextRoomIndex = updatedDecoy.currentRoomIndex + 1;
+
+      if (nextRoomIndex >= route.rooms.length) {
+        updatedDecoy.status = "completed" as const;
+        updatedDecoy.currentRoomIndex = route.rooms.length - 1;
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate] Decoy convoy ${decoyId} successfully completed its route.`);
+        events.push({
+          type: "narration",
+          text: `🛡️ Decoy convoy ${decoyId} arrived at destination! It successfully distracted enforcer forces along route ${decoy.routeId}.`,
+        } as any);
+      } else {
+        updatedDecoy.currentRoomIndex = nextRoomIndex;
+        const currentRoomId = route.rooms[nextRoomIndex];
+        
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(`[Syndicate] Decoy convoy ${decoyId} advanced to room ${currentRoomId}.`);
+        
+        // Decoy routes distract global enforcement:
+        // 1. Lower enforcer heat in rooms owned by decoy's syndicate
+        if (newState.enforcementHeat && newState.syndicateTurf) {
+          const ourTurfRooms = Object.entries(newState.syndicateTurf)
+            .filter(([_, syndicateId]) => syndicateId === decoy.syndicateId)
+            .map(([roomId, _]) => roomId);
+
+          for (const rId of ourTurfRooms) {
+            const heatEntry = newState.enforcementHeat[rId];
+            if (heatEntry && heatEntry.heat > 0) {
+              newState.enforcementHeat[rId] = {
+                ...heatEntry,
+                heat: Math.max(0, heatEntry.heat - 10),
+                timestamp: newState.step,
+              };
+            }
+          }
+        }
+
+        // 2. Distract bounty hunters: 25% chance per active decoy tick to divert pursuing bounty hunters to decoy's room
+        if (newState.enforcers) {
+          const updatedEnforcers = { ...newState.enforcers };
+          for (const [enfId, enforcer] of Object.entries(updatedEnforcers)) {
+            if (enforcer.isBountyHunter && enforcer.status === "pursuing") {
+              const { value: distractRoll, nextSeed } = PureRand.nextInt(currentSeed, 1, 100);
+              currentSeed = nextSeed;
+              if (distractRoll <= 25) {
+                updatedEnforcers[enfId] = {
+                  ...enforcer,
+                  currentRoom: currentRoomId,
+                  timestamp: newState.step,
+                };
+                newState.journal.push(`[Enforcement] Smuggling Bounty Hunter ${enforcer.name} was distracted by decoy convoy ${decoyId} and redirected to ${currentRoomId}!`);
+                events.push({
+                  type: "narration",
+                  text: `[Enforcement] Smuggling Bounty Hunter ${enforcer.name} was successfully distracted and diverted to ${currentRoomId}!`,
+                } as any);
+              }
+            }
+          }
+          newState.enforcers = updatedEnforcers;
+        }
+      }
+      updatedDecoys[decoyId] = updatedDecoy;
+    }
+    newState.decoyConvoys = updatedDecoys;
+  }
+
   newState.seed = currentSeed;
   return newState;
 }

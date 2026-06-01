@@ -9389,6 +9389,241 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized HIRE_LEGENDARY_HITMAN action (AF-76)
+  if ((action as any).type === "HIRE_LEGENDARY_HITMAN") {
+    const { hitmanId, syndicateId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 300;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!hitmanId) {
+      rejectionReason = `Hitman ID is required to hire a legendary hitman.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to hire a legendary hitman.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Legendary hitman cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to hire legendary hitman costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const legendaryHitmen = { ...(state.legendaryHitmen || {}) };
+      legendaryHitmen[hitmanId] = {
+        id: hitmanId,
+        name: `Hitman ${hitmanId}`,
+        syndicateId,
+        status: "active" as const,
+        timestamp,
+      };
+      newState.legendaryHitmen = legendaryHitmen;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Legendary Hitman Hitman ${hitmanId} was hired by agent ${agentId} for syndicate ${syndicateId}.`);
+
+      customEvents.push({
+        type: "legendary_hitman_hired",
+        agentId,
+        syndicateId,
+        hitmanId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized LAUNCH_DECOY_CONVOY action (AF-76)
+  if ((action as any).type === "LAUNCH_DECOY_CONVOY") {
+    const { decoyId, syndicateId, routeId, timestamp } = action as any;
+    const cost = (action as any).cost ?? 150;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const route = state.tradeRoutes?.[routeId];
+
+    if (!decoyId) {
+      rejectionReason = `Decoy ID is required to launch a decoy convoy.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to launch a decoy convoy.`;
+    } else if (!routeId) {
+      rejectionReason = `Route ID is required to launch a decoy convoy.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Decoy convoy cost ${cost} must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!route) {
+      rejectionReason = `Trade route ${routeId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to launch decoy convoy costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const decoyConvoys = { ...(state.decoyConvoys || {}) };
+      decoyConvoys[decoyId] = {
+        id: decoyId,
+        syndicateId,
+        routeId,
+        currentRoomIndex: 0,
+        status: "en_route" as const,
+        timestamp,
+      };
+      newState.decoyConvoys = decoyConvoys;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Decoy convoy ${decoyId} was launched along route ${routeId} by agent ${agentId} for syndicate ${syndicateId}.`);
+
+      customEvents.push({
+        type: "decoy_convoy_launched",
+        agentId,
+        syndicateId,
+        decoyId,
+        routeId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Ensure the agent is registered in the game state
   const agents = state.agents ? { ...state.agents } : {};
   if (!agents[agentId]) {

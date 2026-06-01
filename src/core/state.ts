@@ -554,6 +554,25 @@ export const EliteEnforcerSchema = z.object({
 });
 export type EliteEnforcer = z.infer<typeof EliteEnforcerSchema>;
 
+export const LegendaryHitmanSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  syndicateId: z.string(),
+  status: z.enum(["active", "retired", "dispatched"]),
+  timestamp: z.number().int(),
+});
+export type LegendaryHitman = z.infer<typeof LegendaryHitmanSchema>;
+
+export const DecoyConvoySchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  routeId: z.string(),
+  currentRoomIndex: z.number().int().nonnegative(),
+  status: z.enum(["en_route", "completed", "diverted"]),
+  timestamp: z.number().int(),
+});
+export type DecoyConvoy = z.infer<typeof DecoyConvoySchema>;
+
 export const GameStateSchema = z.object({
   // identity / determinism
   seed: z.number().int(),
@@ -683,6 +702,8 @@ export const GameStateSchema = z.object({
   propagandaCampaigns: z.record(z.string(), PropagandaCampaignSchema).optional(),
   saboteurs: z.record(z.string(), SaboteurSchema).optional(),
   eliteEnforcers: z.record(z.string(), EliteEnforcerSchema).optional(),
+  legendaryHitmen: z.record(z.string(), LegendaryHitmanSchema).optional(),
+  decoyConvoys: z.record(z.string(), DecoyConvoySchema).optional(),
 });
 
 
@@ -807,6 +828,8 @@ export const createInitialState = (options: {
     propagandaCampaigns: {},
     saboteurs: {},
     eliteEnforcers: {},
+    legendaryHitmen: {},
+    decoyConvoys: {},
   };
 };
 
@@ -1492,6 +1515,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     propagandaCampaigns: rest.propagandaCampaigns ? JSON.parse(JSON.stringify(rest.propagandaCampaigns)) : undefined,
     saboteurs: rest.saboteurs ? JSON.parse(JSON.stringify(rest.saboteurs)) : undefined,
     eliteEnforcers: rest.eliteEnforcers ? JSON.parse(JSON.stringify(rest.eliteEnforcers)) : undefined,
+    legendaryHitmen: rest.legendaryHitmen ? JSON.parse(JSON.stringify(rest.legendaryHitmen)) : undefined,
+    decoyConvoys: rest.decoyConvoys ? JSON.parse(JSON.stringify(rest.decoyConvoys)) : undefined,
   };
   return clone;
 }

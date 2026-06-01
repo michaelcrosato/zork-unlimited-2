@@ -713,6 +713,55 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // 4b. Legendary Hitmen Combat Ticking (AF-76)
+  if (newState.legendaryHitmen) {
+    for (const [hitmanId, hitman] of Object.entries(newState.legendaryHitmen)) {
+      if (hitman.status !== "active") continue;
+
+      // Track and preemptively ambush active enforcer bounty hunters
+      if (newState.enforcers) {
+        const activeBountyHunters = Object.values(newState.enforcers).filter(
+          e => e.isBountyHunter && e.status !== "defeated"
+        );
+
+        if (activeBountyHunters.length > 0) {
+          const targetEnforcer = activeBountyHunters[0];
+          targetEnforcer.status = "defeated";
+          targetEnforcer.timestamp = newState.step;
+
+          // Deactivate their bounty
+          if (newState.bounties && newState.bounties[targetEnforcer.targetId || ""]) {
+            newState.bounties[targetEnforcer.targetId || ""] = {
+              ...newState.bounties[targetEnforcer.targetId || ""],
+              active: false,
+              timestamp: newState.step,
+            };
+          }
+
+          newState.journal.push(`[Hitman] Legendary Hitman ${hitman.name} ambushed and neutralized active bounty hunter ${targetEnforcer.name}!`);
+        } else {
+          // Set counter-bounties on active rival enforcers
+          const activeEnforcers = Object.values(newState.enforcers).filter(
+            e => !e.isBountyHunter && e.status !== "defeated"
+          );
+          if (activeEnforcers.length > 0) {
+            const enf = activeEnforcers[0];
+            if (!newState.bounties) newState.bounties = {};
+            if (!newState.bounties[enf.id] || !newState.bounties[enf.id].active) {
+              newState.bounties[enf.id] = {
+                targetId: enf.id,
+                amount: 200,
+                active: true,
+                timestamp: newState.step,
+              };
+              newState.journal.push(`[Hitman] Legendary Hitman ${hitman.name} placed a 200 gold counter-bounty on active enforcer agency agent ${enf.name}!`);
+            }
+          }
+        }
+      }
+    }
+  }
+
   // 5. Faction Counter-Attacks and Sieges (AF-72)
   if (newState.step > 0 && newState.step % 10 === 0 && newState.territoryControl) {
     const activeControl = { ...newState.territoryControl };
@@ -1198,12 +1247,50 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               }
             }
 
+            // Decoy Convoy Diversion (AF-76)
+            let decoyDiverted = false;
+            let divertedDecoyId = "";
+            const activeDecoys = Object.values(newState.decoyConvoys || {}).filter(
+              d => d.syndicateId === front.syndicateId && d.status === "en_route"
+            );
+            if (activeDecoys.length > 0) {
+              const decoy = activeDecoys[0];
+              decoyDiverted = true;
+              divertedDecoyId = decoy.id;
+              
+              newState.decoyConvoys = {
+                ...(newState.decoyConvoys || {}),
+                [decoy.id]: {
+                  ...decoy,
+                  status: "diverted" as const,
+                  timestamp: newState.step,
+                }
+              };
+              sweepDefended = true;
+            }
+
+            // Turf Bribe Diversion (AF-76)
+            let bribeDiverted = false;
+            let paidBribeAmount = 0;
+            const synd = newState.syndicates?.[front.syndicateId];
+            const turfBribeCost = synd?.turfBribeCost ?? 0;
+            if (!sweepDefended && synd && turfBribeCost > 0 && (synd.warChest ?? 0) >= turfBribeCost) {
+              synd.warChest = (synd.warChest ?? 0) - turfBribeCost;
+              bribeDiverted = true;
+              paidBribeAmount = turfBribeCost;
+              sweepDefended = true;
+            }
+
             if (saboteurDeflection || eliteDeflection) {
               sweepDefended = true;
             }
 
             if (sweepDefended) {
-              if (eliteDeflection) {
+              if (decoyDiverted) {
+                newState.journal.push(`[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully diverted by decoy convoy ${divertedDecoyId}!`);
+              } else if (bribeDiverted && synd) {
+                newState.journal.push(`[Syndicate] Enforcer sweep at front business ${front.id} in room ${front.roomId} was successfully diverted by paying a turf bribe of ${paidBribeAmount} gold from syndicate ${synd.name} war chest!`);
+              } else if (eliteDeflection) {
                 newState.journal.push(`[EliteEnforcer] Elite enforcer ${deflectingEliteName} intercepted and repelled the enforcer sweep at front business ${front.id} in room ${front.roomId}!`);
               } else if (saboteurDeflection) {
                 newState.journal.push(`[Saboteur] Saboteur ${deflectingSaboteurName} successfully deflected the enforcer sweep at front business ${front.id} in room ${front.roomId}!`);
