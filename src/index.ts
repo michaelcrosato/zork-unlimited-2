@@ -81,6 +81,8 @@ export { diagnosePlaytest } from "./agents/debugger.js";
 export type { BugDiagnosis } from "./agents/debugger.js";
 export { fixIdentifiedBug } from "./agents/fixer.js";
 export type { ContentFixResult } from "./agents/fixer.js";
+export { runBlindEvaluation } from "./agents/blind_evaluator.js";
+export type { AnonymizedCandidate, RubricScore, BlindEvalResult } from "./agents/blind_evaluator.js";
 
 // Parser (Stage 2) Modules
 export { ParserExitSchema, ObjectInteractionSchema, ParserObjectSchema, DialogueTopicSchema, DialogueNodeSchema, ParserNPCSchema, ParserRoomSchema, ParserWinConditionSchema, ParserEndingSchema, ParserPackSchema } from "./parser/schema.js";

@@ -555,6 +555,23 @@ export class MockLlmClient implements LlmClient {
     }
 
     if (request.role === "debugger") {
+      const input = request.input as any;
+      if (input && input.option_1) {
+        return {
+          option_1_scores: {
+            effectiveness: 9,
+            efficiency: 8,
+            exploration: 7,
+          },
+          option_2_scores: {
+            effectiveness: 10,
+            efficiency: 9,
+            exploration: 9,
+          },
+          rationale: "Option 2 explored dialogues and items more comprehensively.",
+        } as unknown as T;
+      }
+
       // Simulate debugging a failed run
       return {
         issue_identified: true,
