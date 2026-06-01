@@ -102,7 +102,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           trancheId: "senior",
           autoReinvestThreshold: 1000,
           timestamp: 1010,
-        },
+        } as any,
       },
       mockPack
     );
@@ -125,7 +125,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           proposalId: "reinvest_prop_1",
           vote: true,
           timestamp: 1020,
-        },
+        } as any,
       },
       mockPack
     );
@@ -196,6 +196,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals = {
       "any_prop": {
         proposalId: "any_prop",
+        targetProposalId: "any_prop",
         syndicateId: "alpha",
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
@@ -224,7 +225,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           targetProposalId: "any_prop",
           newMinLiquidityThreshold: 5000,
           timestamp: 1010,
-        },
+        } as any,
       },
       mockPack
     );
@@ -246,7 +247,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           proposalId: "grace_prop_1",
           vote: true,
           timestamp: 1020,
-        },
+        } as any,
       },
       mockPack
     );
