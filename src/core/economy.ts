@@ -8052,7 +8052,12 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
               (alert: any) => targetSyndicates.includes(alert.targetSyndicateId) && alert.status === "authorized" && !alert.resolved
             );
 
-            if (alertActive && pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts) {
+            // Surcharge Cooldown & Panic Override check (AF-255)
+            const isPanicOverrideActive = Object.values((newState as GameState).cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals || {}).some(
+              (prop: any) => prop.cdoId === cdoId && prop.status === "authorized" && prop.panicOverrideActive && prop.cooldownEndStep !== undefined && newState.step <= prop.cooldownEndStep
+            );
+
+            if (alertActive && pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts && !isPanicOverrideActive) {
               for (const [factionId, discount] of Object.entries(pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts)) {
                 const standing = getSyndicateFactionStanding(newState as GameState, sellerSyndicateId, factionId);
                 const isAllied = isFactionAlliedToSyndicate(newState as GameState, sellerSyndicateId, factionId) || standing >= 50;

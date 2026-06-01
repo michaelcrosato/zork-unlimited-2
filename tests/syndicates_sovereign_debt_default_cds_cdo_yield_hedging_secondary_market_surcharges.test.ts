@@ -697,5 +697,159 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(log).toContain("Dynamic MM Liquidity Surcharge");
     expect(log).toContain("30 gold paid, 42 gold compounded into senior tranche margin collateral [Boosted: 40%]");
   });
+
+  it("should propose, vote, and apply surcharge panic override to suspend standing-gated discounts during defaults (AF-255)", () => {
+    let state = setupState();
+
+    // 1. Propose spread penalty policy with surcharge faction standing discounts
+    let res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "surcharge_policy_panic_override_test",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        spreadPenaltyMultiplier: 2.0,
+        spreadPenaltyThresholdPercent: 0.20,
+        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
+        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent
+        marketMakerSurchargeAutoCompound: false,
+        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.30 }, // 30% discount for rangers
+        timestamp: 1100,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Vote to authorize spread penalty policy
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+        proposalId: "surcharge_policy_panic_override_test",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1150,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+    pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
+
+    // Setup active default alert for target syndicate (beta)
+    state.sovereignDebtDefaultAlerts = {
+      alert_1: {
+        alertId: "alert_1",
+        targetSyndicateId: "beta",
+        status: "authorized",
+        resolved: false,
+        timestamp: 1200,
+      } as any,
+    };
+
+    // Set seller standing with rangers to 80 (allied)
+    state.factionRep = {
+      ...state.factionRep,
+      rangers: 80,
+    };
+
+    // Setup active option contract
+    state.cdsCdoYieldHedgingOptionContracts = {
+      opt_1: {
+        optionId: "opt_1",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        coverageAmount: 1000,
+        premiumPaid: 100,
+        strikeRate: 0.05,
+        status: "active",
+        expiryStep: state.step + 10,
+        timestamp: 1000,
+      },
+    };
+
+    // Create listing for the option from alpha (ask 1200 gold)
+    state.cdsCdoYieldHedgingOptionListings = {
+      listing_1: {
+        listingId: "listing_1",
+        optionId: "opt_1",
+        sellerSyndicateId: "alpha",
+        askPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    // Create matching bid from beta (bid 1200 gold)
+    state.cdsCdoYieldHedgingOptionBids = {
+      bid_1: {
+        bidId: "bid_1",
+        optionId: "opt_1",
+        bidderSyndicateId: "beta",
+        bidPrice: 1200,
+        status: "active",
+        timestamp: 1000,
+      },
+    };
+
+    // Set vault balance to 1500 (25% drop below 2000 critical threshold).
+    // Base surcharge is 10%, so scaled surcharge is 10% * 25% = 2.5% (0.025).
+    // Raw surcharge is 1200 * 0.025 = 30 gold.
+    pool!.fractionalizedVault.balance = 1500;
+
+    // 2. Propose surcharge panic override to suspend the standing-gated discount
+    res = multiAgentStep(state, {
+      agentId: "player",
+      action: {
+        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+        proposalId: "surcharge_panic_override_test",
+        cdoId: "cdo_pool_1",
+        syndicateId: "alpha",
+        panicOverrideActive: true,
+        cooldownDuration: 5,
+        timestamp: 1250,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Vote on panic override
+    res = multiAgentStep(state, {
+      agentId: "alice",
+      action: {
+        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+        proposalId: "surcharge_panic_override_test",
+        syndicateId: "alpha",
+        vote: true,
+        timestamp: 1260,
+      } as any,
+    }, mockPack);
+    expect(res.ok).toBe(true);
+    state = res.state;
+
+    // Assert proposal is authorized with cooldownEndStep set
+    const prop = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    expect(prop).toBeDefined();
+    expect(prop!.status).toBe("authorized");
+    expect(prop!.cooldownEndStep).toBe(state.step - 1 + 5);
+
+    // 3. Tick economy to run options trade during authorized panic override
+    const newState = tickEconomy(state, mockPack);
+
+    // Alpha warChest receives 1200 - 60 fee - 30 full surcharge (no discount!) - 125 policy proposal/vote fees + 5000 CDS payout = 25985 gold.
+    expect(newState.syndicates!.beta.warChest).toBe(19800);
+    expect(newState.syndicates!.alpha.warChest).toBe(25985); 
+    // Vault balance receives full 30 surcharge gold: 1500 + 30 = 1530 gold.
+    expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.fractionalizedVault.balance).toBe(1530);
+
+    // Assert journal contains non-discounted surcharge log
+    const tradeLog = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    expect(tradeLog).toBeDefined();
+    expect(tradeLog).toContain("Dynamic MM Liquidity Surcharge");
+    expect(tradeLog).not.toContain("Discounted");
+  });
 });
 
