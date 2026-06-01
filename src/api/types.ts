@@ -147,7 +147,9 @@ export type Action =
   | { type: "PROPOSE_SPONSOR_AUDIT"; auditId: string; syndicateId: string; vaultId: string; factionId: string; timestamp: number }
   | { type: "PROPOSE_SPONSOR_REVOCATION"; revocationId: string; syndicateId: string; vaultId: string; factionId: string; timestamp: number }
   | { type: "VOTE_SPONSOR_AUDIT"; syndicateId: string; auditId: string; vote: boolean; timestamp: number }
-  | { type: "VOTE_SPONSOR_REVOCATION"; syndicateId: string; revocationId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_SPONSOR_REVOCATION"; syndicateId: string; revocationId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_REWARD_SLASH"; proposalId: string; syndicateId: string; targetSyndicateId: string; slashingRate: number; maliciousActor: string; timestamp: number }
+  | { type: "VOTE_REWARD_SLASH"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

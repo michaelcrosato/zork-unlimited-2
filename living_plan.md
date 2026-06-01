@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #116 (Ready for Cycle #117)
-* **Build/Test Status**: 🟢 PASS (All 508 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #117 (Ready for Cycle #118)
+* **Build/Test Status**: 🟢 PASS (All 511 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -694,18 +694,24 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire periodic epoch audit checking, sponsor reserve verification, and automatic revocation/rate penalty reductions inside tickEconomy (`AF-116`).
 - [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-116`).
 
+### Phase 95: Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing & Faction Sponsoring Penalties under Malicious Mesh Routing (Completed)
+- [x] Define slashing proposals, malicious actor lists, and slashing rates in GameState (`AF-117`).
+- [x] Implement `PROPOSE_REWARD_SLASH` and `VOTE_REWARD_SLASH` decentralized consensus actions (`AF-117`).
+- [x] Wire reward slashing to dynamic liquidity mining reward claims inside `reconcileClaimLiquidityRewards`, reducing payouts by consensual slashing rate if target syndicate or members are flagged as malicious (`AF-117`).
+- [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-117`).
+
 ---
 
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-117`
-* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing & Faction Sponsoring Penalties under Malicious Mesh Routing.
-* **Why this matters**: Allow faction sponsors or syndicates to propose and vote to slash locked position rewards or levy strategic tariffs if a node is caught routing duplicate packets or participating in failed mesh discovery loops, establishing absolute trust boundaries under byzantine behaviors in decentralised P2P environments.
+**Task ID**: `AF-118`
+* **Objective**: Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing Recovery & Reputation Rehab Campaigns.
+* **Why this matters**: Allow slashed malicious syndicates or members to propose and vote to purchase reputation rehabilitation campaigns, paying substantial gold into the faction reserve pool to clear their malicious flags and restore standard liquidity mining reward payouts.
 * **Planned Actions**:
-  1. Define slashing proposals, malicious actor lists, and slashing rates in GameState.
-  2. Implement `PROPOSE_REWARD_SLASH` decentralized consensus actions.
-  3. Wire reward slashing to dynamic liquidity mining reward claims inside reconcileClaimLiquidityRewards, reducing payouts by consensual slashing rate if target syndicate or members are flagged as malicious.
-  4. Write comprehensive Vitest integration and mesh convergence tests under high packet congestion.
+  1. Define rehabilitation proposals and gold costs in GameState.
+  2. Implement `PROPOSE_REHAB_CAMPAIGN` and `VOTE_REHAB_CAMPAIGN` decentralized actions.
+  3. Wire successful rehabilitation consensus to remove target actors from `maliciousActors` list and restore original reward payout rates.
+  4. Write comprehensive Vitest integration and mesh convergence tests.
 
 ---
 

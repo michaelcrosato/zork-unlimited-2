@@ -2087,6 +2087,56 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge rewardSlashingProposals using LWW (Last-Write-Wins)
+  const rewardSlashingProposals = { ...stateA.rewardSlashingProposals };
+  if (stateB.rewardSlashingProposals) {
+    for (const [propId, propB] of Object.entries(stateB.rewardSlashingProposals)) {
+      const propA = rewardSlashingProposals[propId];
+      if (!propA) {
+        rewardSlashingProposals[propId] = { ...propB };
+      } else {
+        const mergedVotes = { ...(propA.votes || {}) };
+        if (propB.votes) {
+          for (const [voterId, voteB] of Object.entries(propB.votes)) {
+            const voteA = mergedVotes[voterId];
+            if (!voteA || voteB.timestamp > voteA.timestamp) {
+              mergedVotes[voterId] = voteB;
+            }
+          }
+        }
+        if (propB.timestamp > propA.timestamp) {
+          rewardSlashingProposals[propId] = {
+            ...propB,
+            votes: mergedVotes,
+          };
+        } else {
+          rewardSlashingProposals[propId] = {
+            ...propA,
+            votes: mergedVotes,
+          };
+        }
+      }
+    }
+  }
+
+  // Merge maliciousActors using boolean OR union
+  const maliciousActors = { ...stateA.maliciousActors };
+  if (stateB.maliciousActors) {
+    for (const [actorId, isMalicious] of Object.entries(stateB.maliciousActors)) {
+      if (isMalicious) {
+        maliciousActors[actorId] = true;
+      }
+    }
+  }
+
+  // Merge slashingRates using Max rate value
+  const slashingRates = { ...stateA.slashingRates };
+  if (stateB.slashingRates) {
+    for (const [syndId, rate] of Object.entries(stateB.slashingRates)) {
+      slashingRates[syndId] = Math.max(slashingRates[syndId] ?? 0, rate);
+    }
+  }
+
   // Merge creditDefaultSwapVotes using LWW (Last-Write-Wins)
   const creditDefaultSwapVotes = { ...stateA.creditDefaultSwapVotes };
   if (stateB.creditDefaultSwapVotes) {
@@ -2279,6 +2329,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     factionSponsorPolicies,
     sponsorAuditProposals,
     sponsorRevocationProposals,
+    rewardSlashingProposals,
+    maliciousActors,
+    slashingRates,
   };
 }
 

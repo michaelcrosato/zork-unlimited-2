@@ -1141,6 +1141,22 @@ export const SponsorRevocationProposalSchema = z.object({
   })).optional(),
 });
 export type SponsorRevocationProposal = z.infer<typeof SponsorRevocationProposalSchema>;
+ 
+ 
+export const RewardSlashingProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  targetSyndicateId: z.string(),
+  slashingRate: z.number(),
+  maliciousActor: z.string(),
+  timestamp: z.number().int(),
+  resolved: z.boolean().optional(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type RewardSlashingProposal = z.infer<typeof RewardSlashingProposalSchema>;
 
 
 
@@ -1514,6 +1530,9 @@ export const GameStateSchema = z.object({
   factionSponsorPolicies: z.record(z.string(), z.record(z.string(), FactionSponsorPolicySchema)).optional(),
   sponsorAuditProposals: z.record(z.string(), SponsorAuditProposalSchema).optional(),
   sponsorRevocationProposals: z.record(z.string(), SponsorRevocationProposalSchema).optional(),
+  rewardSlashingProposals: z.record(z.string(), RewardSlashingProposalSchema).optional(),
+  maliciousActors: z.record(z.string(), z.boolean()).optional(),
+  slashingRates: z.record(z.string(), z.number()).optional(),
 });
 
 
@@ -3276,6 +3295,8 @@ export function reconcileClaimLiquidityRewards(state: GameState, pack: any): Gam
     lockedLiquidityPositions: state.lockedLiquidityPositions ? { ...state.lockedLiquidityPositions } : {},
     factionReservePools: state.factionReservePools ? { ...state.factionReservePools } : {},
     factionRep: state.factionRep ? { ...state.factionRep } : {},
+    maliciousActors: state.maliciousActors ? { ...state.maliciousActors } : {},
+    slashingRates: state.slashingRates ? { ...state.slashingRates } : {},
   };
 
   if (!newState.marginAccounts) {
@@ -3341,8 +3362,20 @@ export function reconcileClaimLiquidityRewards(state: GameState, pack: any): Gam
         const sponsorPolicy = newState.factionSponsorPolicies?.[syndicateId]?.[position.vaultId];
         const rewardRate = sponsorPolicy ? sponsorPolicy.rewardRate : 0.05;
         const rewardBase = Math.floor(amount * rewardRate * duration);
+
+        // Apply reward slashing if target syndicate or any member is flagged as malicious
+        let finalRewardBase = rewardBase;
+        const isMalicious = !!(
+          newState.maliciousActors?.[syndicateId] ||
+          (syndicate.members && syndicate.members.some(memberId => newState.maliciousActors?.[memberId]))
+        );
+        if (isMalicious) {
+          const slashRate = newState.slashingRates?.[syndicateId] ?? 0.5; // default 50%
+          finalRewardBase = Math.floor(rewardBase * (1 - slashRate));
+        }
+
         const factionReserves = newState.factionReservePools?.[factionId] ?? 10000;
-        const rewardPaid = Math.min(factionReserves, rewardBase);
+        const rewardPaid = Math.min(factionReserves, finalRewardBase);
 
         // Deduct from faction reserves
         if (!newState.factionReservePools) newState.factionReservePools = {};
@@ -5563,6 +5596,55 @@ export function reconcileSponsorAuditsAndRevocations(state: GameState, pack: any
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
         `[Sponsor Revocation Resolved] Syndicate ${syndicateId} resolved sponsor revocation policy for vault ${vaultId}: sponsored by ${factionId} has been revoked.`
+      );
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileRewardSlashing(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    rewardSlashingProposals: state.rewardSlashingProposals ? { ...state.rewardSlashingProposals } : {},
+    maliciousActors: state.maliciousActors ? { ...state.maliciousActors } : {},
+    slashingRates: state.slashingRates ? { ...state.slashingRates } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.rewardSlashingProposals || {})) {
+    const proposal = newState.rewardSlashingProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, targetSyndicateId, slashingRate, maliciousActor, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.rewardSlashingProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      if (!newState.maliciousActors) newState.maliciousActors = {};
+      newState.maliciousActors[maliciousActor] = true;
+
+      if (targetSyndicateId) {
+        newState.maliciousActors[targetSyndicateId] = true;
+        if (!newState.slashingRates) newState.slashingRates = {};
+        newState.slashingRates[targetSyndicateId] = slashingRate;
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Reward Slashing Resolved] Syndicate ${syndicateId} resolved reward slashing proposal ${proposalId} against target ${targetSyndicateId} (Actor: ${maliciousActor}) at rate ${slashingRate}.`
       );
     }
   }
