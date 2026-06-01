@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #258 (Ready for Cycle #259)
-* **Build/Test Status**: 🟢 PASS (All 860 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #259 (Ready for Cycle #260)
+* **Build/Test Status**: 🟢 PASS (All 862 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1660,15 +1660,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire dynamic consensus adjustments to the tick economy to scale proposal and voting fees based on active parameters (`AF-261`).
 - [x] Write comprehensive Vitest unit and integration tests (`AF-261`).
 
+
+### Phase 240: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment (Completed)
+- [x] Define surcharge panic override extension cancellation grace period minimum liquidity threshold adjustment fee calibration yield-pro-rata auto-reinvestment proposal and voting schemas (`AF-262`).
+- [x] Wire dynamic auto-reinvestment to direct accumulated surcharge calibration fees back into CDO collateral (`AF-262`).
+- [x] Write comprehensive Vitest unit and integration tests (`AF-262`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-262`
-* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment.
-* **Why this matters**: Automatically route collected proposal/voting fees from minimum liquidity threshold adjustments into yield-bearing reinvestments within the CDO stability pool to grow the collateral pool and maintain liquidity buffers above the floor.
+**Task ID**: `AF-263`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Market Maker Liquidity Buffer Dynamic Interest Surcharges Auto-Restock and Compound Faction Standing-Gated Discount Scaling Cooldown & Panic Override Extension Cancellation Grace Period Minimum Liquidity Threshold Adjustment Fee Calibration Yield-Pro-Rata Auto-Reinvestment Governance Caps.
+* **Why this matters**: Limit the maximum total value that can be automatically reinvested via the yield pro-rata channel in any single epoch to protect against collateral concentration and safeguard the pool against tail-risk volatility.
 * **Planned Actions**:
-  1. Define surcharge panic override extension cancellation grace period minimum liquidity threshold adjustment fee calibration yield-pro-rata auto-reinvestment proposal and voting schemas.
-  2. Wire dynamic auto-reinvestment to direct accumulated surcharge calibration fees back into CDO collateral.
+  1. Define surcharge panic override extension cancellation grace period minimum liquidity threshold adjustment fee calibration yield-pro-rata auto-reinvestment governance cap proposals and voting schemas.
+  2. Wire dynamic governance caps checking to tickEconomy to limit auto-reinvestment to the authorized cap threshold.
   3. Write comprehensive Vitest unit and integration tests.
 
 ---
