@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #209 (Ready for Cycle #210)
-* **Build/Test Status**: 🟢 PASS (All 754 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #210 (Ready for Cycle #211)
+* **Build/Test Status**: 🟢 PASS (All 755 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1342,20 +1342,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire the economy tick to automatically purchase volatility insurance options when regional weather volatility indexes spike, maintaining reserves above the reserve floor (`AF-211`).
 - [x] Write comprehensive Vitest integration tests inside `tests/syndicates_swf_reinvestment.test.ts` verifying policy authorization, automated hedging triggers, and reserve balance protections (`AF-211`).
 
+### Phase 190: Weather Forecast Oracle and Dynamic Volatility Hedging (Completed)
+- [x] Define a `PROPOSE_WEATHER_FORECAST_ORACLE` and `VOTE_WEATHER_FORECAST_ORACLE` action schema in `types.ts`, `state.ts` and `sync.ts` (`AF-212`).
+- [x] Implement a forecasting mechanism in the economy tick that queries predicted weather states and reduces/increases the dynamic volatility hedging ratio based on predicted stability (`AF-212`).
+- [x] Write comprehensive Vitest integration tests in `tests/syndicates_swf_reinvestment.test.ts` verifying oracle authorization, forecasting-scaled purchases, and cost optimizations (`AF-212`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-212`
-* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Oracle and Dynamic Price Speculation.
-* **Why this matters**: Introduce weather forecast oracles that dynamically adjust volatility hedging purchase sizes based on predicted weather volatility, optimizing hedging costs and increasing yield during periods of predicted stable weather.
+**Task ID**: `AF-213`
+* **Objective**: Syndicate SWF Sweep Pool Volatility Hedging Speculative Arbitrage and Faction Loyalty Bonuses.
+* **Why this matters**: Scale hedging premiums dynamically based on faction alliance ratings and introduce speculative profit payouts to the sweep pool when predicted volatility reverts to stable weather.
 * **Planned Actions**:
-  1. Define a `PROPOSE_WEATHER_FORECAST_ORACLE` and `VOTE_WEATHER_FORECAST_ORACLE` action schema.
-  2. Implement a forecasting mechanism in the economy tick that queries predicted weather states and reduces/increases the dynamic volatility hedging ratio based on predicted stability.
-  3. Write comprehensive Vitest integration tests in `tests/syndicates_swf_reinvestment.test.ts` verifying oracle authorization, forecasting-scaled purchases, and cost optimizations.
+  1. Define dynamic alliance rating pricing multipliers inside volatility option premium calculations.
+  2. Implement speculative payout triggers in economy ticks that award gold to the sweep pool on successful weather stabilization.
+  3. Write comprehensive Vitest integration tests verifying loyalty discounts and speculative returns.
 
 ---
-
-
 
 ## ⚠️ Risks & Mitigation
 

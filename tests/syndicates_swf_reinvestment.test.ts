@@ -2341,6 +2341,164 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       expect(insurancePools[0].balance).toBe(320);
     });
   });
+
+  describe("AF-212: Weather Forecast Oracle and Dynamic Volatility Hedging", () => {
+    function getWeatherForStep(
+      seed: number,
+      step: number,
+      weatherPool?: string[]
+    ): { weather: string; temperature: string; wind: string } {
+      const defaultWeathers = ["clear", "rain", "fog", "storm"];
+      const weathers = (weatherPool && weatherPool.length > 0) ? weatherPool : defaultWeathers;
+      const temperatures = ["cold", "mild", "hot"];
+      const winds = ["calm", "breezy", "gale", "tempest"];
+
+      const interval = Math.floor(step / 5);
+      const h1 = Math.abs(Math.imul(seed ^ interval, 0x6D2B79F5)) | 0;
+      const weatherIndex = h1 % weathers.length;
+
+      const h2 = Math.abs(Math.imul(h1 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+      const tempIndex = h2 % temperatures.length;
+
+      const h3 = Math.abs(Math.imul(h2 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+      const windIndex = h3 % winds.length;
+
+      return {
+        weather: weathers[weatherIndex],
+        temperature: temperatures[tempIndex],
+        wind: winds[windIndex],
+      };
+    }
+
+    it("should successfully propose, vote to authorize weather forecast oracle, and dynamically adjust volatility hedging size in economy tick", () => {
+      let state = createInitialState({
+        seed: 12345,
+        start: "clearing",
+        varsInit: { gold: 3000 },
+        agentsInit: ["player", "alice"],
+      });
+
+      state.syndicates = {
+        alpha: {
+          id: "alpha",
+          name: "Alpha Syndicate",
+          members: ["player", "alice"],
+          definedBy: "player",
+          timestamp: 1000,
+          warChest: 10000,
+        },
+      };
+
+      // 1. Propose Weather Forecast Oracle
+      let stepResult = multiAgentStep(
+        state,
+        {
+          agentId: "player",
+          action: {
+            type: "PROPOSE_WEATHER_FORECAST_ORACLE",
+            proposalId: "oracle_prop_1",
+            syndicateId: "alpha",
+            oracleReputationThreshold: 70,
+            forecastAccuracyFloor: 90,
+            timestamp: 1005,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult.ok).toBe(true);
+      state = stepResult.state;
+
+      let prop = state.sweepPoolWeatherForecastOracleProposals?.["oracle_prop_1"];
+      expect(prop?.status).toBe("proposed");
+      expect(prop?.resolved).toBe(false);
+
+      // 2. Vote to authorize by Alice
+      let stepResult2 = multiAgentStep(
+        state,
+        {
+          agentId: "alice",
+          action: {
+            type: "VOTE_WEATHER_FORECAST_ORACLE",
+            syndicateId: "alpha",
+            proposalId: "oracle_prop_1",
+            vote: true,
+            timestamp: 1020,
+          } as any,
+        },
+        mockPack
+      );
+
+      expect(stepResult2.ok).toBe(true);
+      state = stepResult2.state;
+
+      let propAfter = state.sweepPoolWeatherForecastOracleProposals?.["oracle_prop_1"];
+      expect(propAfter?.status).toBe("authorized");
+      expect(propAfter?.resolved).toBe(true);
+
+      // Verify GameState fields are updated
+      expect(state.sweepPoolWeatherForecastOracleAuthorized).toBe(true);
+      expect(state.sweepPoolWeatherForecastOracleReputationThreshold).toBe(70);
+      expect(state.sweepPoolWeatherForecastOracleAccuracyFloor).toBe(90);
+
+      // 3. Setup Volatility Hedging Policy
+      state.sweepPoolVolatilityHedgingPolicyAuthorized = true;
+      state.sweepPoolVolatilityHedgingThreshold = 60;
+      state.sweepPoolVolatilityHedgingRatio = 80;
+      state.sweepPoolVolatilityHedgingReserveFloor = 100;
+      state.swfStakingSweepPool = 500;
+
+      // Spiked current weather (to trigger hedging)
+      state.environment = {
+        weather: "storm", // 50
+        temperature: "cold",
+        wind: "tempest", // 30 => total 80 >= 60 threshold
+        lastUpdatedStep: state.step,
+      };
+
+      // Get forecast at step + 5
+      const forecastStep = (state.step ?? 0) + 5;
+      const forecast = getWeatherForStep(state.seed ?? 12345, forecastStep);
+      let fBaseVol = 0;
+      if (forecast.weather === "storm") fBaseVol = 50;
+      else if (forecast.weather === "rain") fBaseVol = 20;
+      else if (forecast.weather === "fog") fBaseVol = 15;
+      else if (forecast.weather === "clear") fBaseVol = 5;
+
+      let fWindVol = 0;
+      if (forecast.wind === "tempest") fWindVol = 30;
+      else if (forecast.wind === "gale") fWindVol = 15;
+      else if (forecast.wind === "breezy") fWindVol = 5;
+
+      const predictedVol = fBaseVol + fWindVol;
+      const baseRatio = state.sweepPoolVolatilityHedgingRatio;
+      const threshold = state.sweepPoolVolatilityHedgingThreshold;
+      const accuracy = state.sweepPoolWeatherForecastOracleAccuracyFloor ?? 100;
+
+      let expectedRatio = baseRatio;
+      if (predictedVol < threshold) {
+        const stabilityFactor = predictedVol / threshold;
+        const scaling = 1 - (1 - stabilityFactor) * (accuracy / 100);
+        expectedRatio = Math.max(0, Math.round(baseRatio * scaling));
+      } else {
+        const volatilityFactor = predictedVol / threshold;
+        const scaling = 1 + (volatilityFactor - 1) * (accuracy / 100);
+        expectedRatio = Math.min(100, Math.round(baseRatio * scaling));
+      }
+
+      const availableGold = Math.max(0, state.swfStakingSweepPool - state.sweepPoolVolatilityHedgingReserveFloor);
+      const expectedHedgeCost = Math.floor(availableGold * (expectedRatio / 100));
+      const expectedNewSweep = state.swfStakingSweepPool - expectedHedgeCost;
+
+      const tickedState = tickEconomy(state, mockPack);
+      expect(tickedState.swfStakingSweepPool).toBe(expectedNewSweep);
+
+      // Verify the insurance pool increased by the correct amount
+      const insurancePools = Object.values(tickedState.swfReinsuranceOptionVolatilityInsurancePools || {});
+      expect(insurancePools.length).toBeGreaterThan(0);
+      expect(insurancePools[0].balance).toBe(expectedHedgeCost);
+    });
+  });
 });
 
 

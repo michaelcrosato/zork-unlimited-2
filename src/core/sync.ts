@@ -39504,6 +39504,11 @@ export function multiAgentStep(
       };
     }
 
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
     };
   }
 

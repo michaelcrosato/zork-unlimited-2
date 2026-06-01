@@ -8767,6 +8767,33 @@ export function tickSWFReinsuranceOptionVolatilityPoolRebalancing(state: GameSta
   return newState;
 }
 
+function getWeatherForStep(
+  seed: number,
+  step: number,
+  weatherPool?: string[]
+): { weather: string; temperature: string; wind: string } {
+  const defaultWeathers = ["clear", "rain", "fog", "storm"];
+  const weathers = (weatherPool && weatherPool.length > 0) ? weatherPool : defaultWeathers;
+  const temperatures = ["cold", "mild", "hot"];
+  const winds = ["calm", "breezy", "gale", "tempest"];
+
+  const interval = Math.floor(step / 5);
+  const h1 = Math.abs(Math.imul(seed ^ interval, 0x6D2B79F5)) | 0;
+  const weatherIndex = h1 % weathers.length;
+
+  const h2 = Math.abs(Math.imul(h1 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+  const tempIndex = h2 % temperatures.length;
+
+  const h3 = Math.abs(Math.imul(h2 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+  const windIndex = h3 % winds.length;
+
+  return {
+    weather: weathers[weatherIndex],
+    temperature: temperatures[tempIndex],
+    wind: winds[windIndex],
+  };
+}
+
 export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
   const newState = {
     ...state,
@@ -8803,7 +8830,47 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
   if (currentWeatherVol >= newState.sweepPoolVolatilityHedgingThreshold) {
     // 3. Spiked! Spend sweep pool gold above the reserve floor
     const availableGold = Math.max(0, (newState.swfStakingSweepPool ?? 0) - newState.sweepPoolVolatilityHedgingReserveFloor);
-    const hedgeCost = Math.floor(availableGold * (newState.sweepPoolVolatilityHedgingRatio / 100));
+
+    let activeRatio = newState.sweepPoolVolatilityHedgingRatio;
+    let forecastLog = "";
+
+    if (newState.sweepPoolWeatherForecastOracleAuthorized) {
+      const seed = newState.seed ?? 12345;
+      const forecastStep = (newState.step ?? 0) + 5;
+      const forecast = getWeatherForStep(seed, forecastStep);
+
+      let fBaseVol = 0;
+      if (forecast.weather === "storm") fBaseVol = 50;
+      else if (forecast.weather === "rain") fBaseVol = 20;
+      else if (forecast.weather === "fog") fBaseVol = 15;
+      else if (forecast.weather === "clear") fBaseVol = 5;
+
+      let fWindVol = 0;
+      if (forecast.wind === "tempest") fWindVol = 30;
+      else if (forecast.wind === "gale") fWindVol = 15;
+      else if (forecast.wind === "breezy") fWindVol = 5;
+
+      const predictedVol = fBaseVol + fWindVol;
+      const threshold = newState.sweepPoolVolatilityHedgingThreshold;
+      const accuracy = newState.sweepPoolWeatherForecastOracleAccuracyFloor ?? 100;
+
+      const oldRatio = activeRatio;
+      if (predictedVol < threshold) {
+        // Stable forecast: reduce hedging ratio
+        const stabilityFactor = predictedVol / threshold;
+        const scaling = 1 - (1 - stabilityFactor) * (accuracy / 100);
+        activeRatio = Math.max(0, Math.round(activeRatio * scaling));
+        forecastLog = ` (Oracle predicted stable weather with volatility ${predictedVol} < Threshold ${threshold}. Dynamically optimized hedging ratio from ${oldRatio}% to ${activeRatio}%).`;
+      } else {
+        // Volatile forecast: increase hedging ratio
+        const volatilityFactor = predictedVol / threshold;
+        const scaling = 1 + (volatilityFactor - 1) * (accuracy / 100);
+        activeRatio = Math.min(100, Math.round(activeRatio * scaling));
+        forecastLog = ` (Oracle predicted volatile weather with volatility ${predictedVol} >= Threshold ${threshold}. Dynamically adjusted hedging ratio from ${oldRatio}% to ${activeRatio}%).`;
+      }
+    }
+
+    const hedgeCost = Math.floor(availableGold * (activeRatio / 100));
 
     if (hedgeCost > 0) {
       newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) - hedgeCost;
@@ -8833,7 +8900,7 @@ export function tickSweepPoolVolatilityHedging(state: GameState): GameState {
       };
 
       newState.journal.push(
-        `[Sweep Pool Volatility Hedging Triggered] Regional weather volatility index spiked to ${currentWeatherVol} >= Threshold ${newState.sweepPoolVolatilityHedgingThreshold}! Automatically purchased volatility insurance options by spending ${hedgeCost} gold from sweep pool reserves, maintaining reserve floor above ${newState.sweepPoolVolatilityHedgingReserveFloor} gold (New Volatility Insurance Pool ${firstPoolKey} Balance: ${pool.balance} gold).`
+        `[Sweep Pool Volatility Hedging Triggered] Regional weather volatility index spiked to ${currentWeatherVol} >= Threshold ${newState.sweepPoolVolatilityHedgingThreshold}! Automatically purchased volatility insurance options by spending ${hedgeCost} gold from sweep pool reserves, maintaining reserve floor above ${newState.sweepPoolVolatilityHedgingReserveFloor} gold (New Volatility Insurance Pool ${firstPoolKey} Balance: ${pool.balance} gold).` + forecastLog
       );
     }
   }
