@@ -3057,6 +3057,8 @@ export const SovereignDebtCDSCDOPoolSchema = z.object({
   yieldHedgingOptionStakingBalances: z.record(z.string(), z.number().int().nonnegative()).optional(),
   yieldHedgingOptionMinSpread: z.number().min(0).optional(),
   yieldHedgingOptionMaxSpread: z.number().min(0).optional(),
+  yieldHedgingOptionSpreadPenaltyMultiplier: z.number().min(1.0).optional(),
+  yieldHedgingOptionSpreadPenaltyThresholdPercent: z.number().min(0.0).max(1.0).optional(),
 });
 export type SovereignDebtCDSCDOPool = z.infer<typeof SovereignDebtCDSCDOPoolSchema>;
 
@@ -3403,6 +3405,23 @@ export const SovereignDebtCDSCDOYieldHedgingOptionSpreadPolicyProposalSchema = z
   })).optional(),
 });
 export type SovereignDebtCDSCDOYieldHedgingOptionSpreadPolicyProposal = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSpreadPolicyProposalSchema>;
+
+export const SovereignDebtCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposalSchema = z.object({
+  proposalId: z.string(),
+  cdoId: z.string(),
+  syndicateId: z.string(),
+  spreadPenaltyMultiplier: z.number().min(1.0),
+  spreadPenaltyThresholdPercent: z.number().min(0.0).max(1.0),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SovereignDebtCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposal = z.infer<typeof SovereignDebtCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposalSchema>;
 
 export const SovereignDebtCDSCDOYieldHedgingOptionListingSchema = z.object({
   listingId: z.string(),
@@ -4463,6 +4482,7 @@ export const GameStateSchema = z.object({
   cdsCdoYieldHedgingOptionFeePolicyProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionFeePolicyProposalSchema).optional(),
   cdsCdoYieldHedgingOptionFeeAdjustmentPolicyProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionFeeAdjustmentPolicyProposalSchema).optional(),
   cdsCdoYieldHedgingOptionSpreadPolicyProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSpreadPolicyProposalSchema).optional(),
+  cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposalSchema).optional(),
   cdsCdoYieldHedgingOptionListings: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionListingSchema).optional(),
   cdsCdoYieldHedgingOptionBids: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionBidSchema).optional(),
   cdsCdoYieldHedgingOptionTransfers: z.record(z.string(), SovereignDebtCDSCDOYieldHedgingOptionTransferSchema).optional(),
@@ -4944,6 +4964,7 @@ export const createInitialState = (options: {
     cdsCdoYieldHedgingOptionFeePolicyProposals: {},
     cdsCdoYieldHedgingOptionFeeAdjustmentPolicyProposals: {},
     cdsCdoYieldHedgingOptionSpreadPolicyProposals: {},
+    cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals: {},
     cdsCdoYieldHedgingOptionListings: {},
     cdsCdoYieldHedgingOptionBids: {},
     cdsCdoYieldHedgingOptionTransfers: {},
@@ -6151,6 +6172,7 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdsCdoYieldHedgingOptionFeePolicyProposals: rest.cdsCdoYieldHedgingOptionFeePolicyProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionFeePolicyProposals)) : undefined,
     cdsCdoYieldHedgingOptionFeeAdjustmentPolicyProposals: rest.cdsCdoYieldHedgingOptionFeeAdjustmentPolicyProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionFeeAdjustmentPolicyProposals)) : undefined,
     cdsCdoYieldHedgingOptionSpreadPolicyProposals: rest.cdsCdoYieldHedgingOptionSpreadPolicyProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSpreadPolicyProposals)) : undefined,
+    cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals: rest.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals)) : undefined,
     cdsCdoYieldHedgingOptionListings: rest.cdsCdoYieldHedgingOptionListings ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionListings)) : undefined,
     cdsCdoYieldHedgingOptionBids: rest.cdsCdoYieldHedgingOptionBids ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionBids)) : undefined,
     cdsCdoYieldHedgingOptionTransfers: rest.cdsCdoYieldHedgingOptionTransfers ? JSON.parse(JSON.stringify(rest.cdsCdoYieldHedgingOptionTransfers)) : undefined,
@@ -19162,6 +19184,60 @@ export function reconcileCDSCDOYieldHedgingOptionSpreadPolicyProposals(state: Ga
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.cdsCdoYieldHedgingOptionSpreadPolicyProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileCDSCDOYieldHedgingOptionSpreadPenaltyPolicyProposals(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals: state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals ? { ...state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals } : {},
+    sovereignDebtCDSCDOPools: state.sovereignDebtCDSCDOPools ? { ...state.sovereignDebtCDSCDOPools } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      const pool = newState.sovereignDebtCDSCDOPools[proposal.cdoId];
+      if (pool) {
+        pool.yieldHedgingOptionSpreadPenaltyMultiplier = proposal.spreadPenaltyMultiplier;
+        pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = proposal.spreadPenaltyThresholdPercent;
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[CDO Yield-Hedging Option Spread Penalty Policy Approved] Syndicate ${proposal.syndicateId} approved spread penalty policy proposal ${proposalId} for CDO ${proposal.cdoId} (Multiplier: ${proposal.spreadPenaltyMultiplier}, Threshold: ${proposal.spreadPenaltyThresholdPercent * 100}%).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals[proposalId] = {
         ...proposal,
         resolved: true,
         status: "disputed",

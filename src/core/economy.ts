@@ -7788,7 +7788,21 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         }
       }
 
-      const spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
+      const poolCDSs = Object.values(newState.sovereignDebtCDSContracts || {}).filter(c => c.cdoId === cdoId);
+      const targetSyndicates = poolCDSs.map(c => c.targetSyndicateId);
+      const alertActive = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
+        (a: any) => targetSyndicates.includes(a.targetSyndicateId) && a.status === "authorized" && !a.resolved
+      );
+
+      let spread = lowestAsk > 0 && highestBid > 0 ? lowestAsk - highestBid : 0;
+      if (alertActive && pool.dynamicLiquidityFloor !== undefined) {
+        const floor = pool.dynamicLiquidityFloor;
+        const vaultBalance = pool.fractionalizedVault?.balance ?? 0;
+        const thresholdPercent = pool.yieldHedgingOptionSpreadPenaltyThresholdPercent ?? 0.20;
+        if (vaultBalance <= floor * (1 + thresholdPercent)) {
+          spread = spread * (pool.yieldHedgingOptionSpreadPenaltyMultiplier ?? 1.0);
+        }
+      }
 
       newState.cdsCdoYieldHedgingOptionMarketSpreads![optionId] = {
         spreadId: optionId,
@@ -7801,12 +7815,6 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
       };
 
       // 3. Enforce dynamic liquidity floor if alert active
-      const poolCDSs = Object.values(newState.sovereignDebtCDSContracts || {}).filter(c => c.cdoId === cdoId);
-      const targetSyndicates = poolCDSs.map(c => c.targetSyndicateId);
-      const alertActive = Object.values(newState.sovereignDebtDefaultAlerts || {}).some(
-        (a: any) => targetSyndicates.includes(a.targetSyndicateId) && a.status === "authorized" && !a.resolved
-      );
-
       let validLowestAsk = lowestAsk;
       let validHighestBid = highestBid;
       if (alertActive && pool.dynamicLiquidityFloor !== undefined) {
@@ -7838,7 +7846,15 @@ export function tickSovereignDebtCDS(state: GameState): GameState {
         const maxSpread = (pool.yieldHedgingOptionMaxSpread ?? Infinity) * scale;
 
         if (lowestAsk > 0 && highestBid > 0) {
-          const spreadVal = lowestAsk - highestBid;
+          let spreadVal = lowestAsk - highestBid;
+          if (alertActive && pool.dynamicLiquidityFloor !== undefined) {
+            const floor = pool.dynamicLiquidityFloor;
+            const vaultBalance = pool.fractionalizedVault?.balance ?? 0;
+            const thresholdPercent = pool.yieldHedgingOptionSpreadPenaltyThresholdPercent ?? 0.20;
+            if (vaultBalance <= floor * (1 + thresholdPercent)) {
+              spreadVal = spreadVal * (pool.yieldHedgingOptionSpreadPenaltyMultiplier ?? 1.0);
+            }
+          }
           if (spreadVal > 0) {
             if (spreadVal < minSpread || spreadVal > maxSpread) {
               validLowestAsk = 0;

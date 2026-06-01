@@ -1,7 +1,7 @@
 # 🌀 AdventureForge: Living Development Plan
 
-* **Autonomous Cycle**: Completed Cycle #243 (Ready for Cycle #244)
-* **Build/Test Status**: 🟢 PASS (All 835 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #244 (Ready for Cycle #245)
+* **Build/Test Status**: 🟢 PASS (All 838 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1584,16 +1584,21 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire checks inside `tickEconomy` dynamic bid-ask matching to block trading if total CDO fractionalized vault balance is below the liquidity floor under default stress (`AF-246`).
 - [x] Write comprehensive unit and integration tests inside `tests/syndicates_sovereign_debt_default_cds_cdo_yield_hedging_secondary_market_liquidity_matching_restrictions.test.ts` (`AF-246`).
 
+### Phase 225: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Spread Penalty (Completed)
+- [x] Add checking logic inside `tickEconomy` spread calculation to apply a dynamic spread penalty multiplier when vault balance is within 20% of the dynamic liquidity floor under default stress (`AF-247`).
+- [x] Implement the dynamic spread penalty policy proposal and vote action handlers in sync engine (`AF-247`).
+- [x] Write comprehensive unit and integration tests asserting proposal, vote, and dynamic spread adjustments under default stress (`AF-247`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-247`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Yield-Hedging Option Secondary Market Liquidity-gated Bid-Ask Dynamic Spread Penalty Adjustments.
-* **Why this matters**: Support dynamic pricing adjustment under stress by widening spreads to penalize options trading as the vault balance approaches the liquidity floor.
+**Task ID**: `AF-248`
+* **Objective**: Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging Option Secondary Market Spread Penalty dynamic auto-decay over steps on default resolution.
+* **Why this matters**: Support smooth pricing transitions back to normal market conditions when defaults are resolved by gradually decaying the spread penalty multiplier back to 1.0.
 * **Planned Actions**:
-  1. Add checking logic inside `tickEconomy` spread calculation to apply a dynamic spread penalty multiplier when vault balance is within 20% of the dynamic liquidity floor under default stress.
-  2. Propose and vote on the dynamic spread penalty adjustment policies.
-  3. Write comprehensive unit and integration tests.
+  1. Add tracking of default resolution step inside GameState.
+  2. Implement linear or step-based auto-decay of the spread penalty multiplier over 5 steps in `tickEconomy`.
+  3. Write comprehensive unit and integration tests verifying the smooth recovery of pricing spreads.
 
 ---
 
