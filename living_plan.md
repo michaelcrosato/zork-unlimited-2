@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #63 (Ready for Cycle #64)
-* **Build/Test Status**: 🟢 PASS (All 285 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #64 (Ready for Cycle #65)
+* **Build/Test Status**: 🟢 PASS (All 290 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -378,19 +378,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Implement reducer actions to bribe, interrogate, or recruit defeated enforcers as informants (`AF-63`).
 - [x] Wire periodic informant updates checking for upcoming regulator sweep schedules (`AF-63`).
 - [x] Integrate automatic safehouse evacuation effects when pre-emptive warnings are active (`AF-63`).
-- [x] Write comprehensive unit and integration tests (`AF-63`).
+### Phase 58: Syndicate Espionage Networks & Wiretapping (Completed)
+- [x] Add `espionageNetworks` and `wiretaps` tracking to `GameStateSchema` (`AF-64`).
+- [x] Implement decentralized action reducers to `ESTABLISH_ESPIONAGE_NETWORK` and `PLACE_WIRETAP` (`AF-64`).
+- [x] Wire periodic espionage ticks within `tickEconomy` to intercept gold fees (faction taxes, rival turf taxes) and leak gossip transaction maps deterministically (`AF-64`).
+- [x] Write comprehensive unit and integration tests (`AF-64`).
 
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-64`
-* **Objective**: Syndicate Espionage Networks & Wiretapping.
-* **Why this matters**: Further extend the intel system by allowing syndicates to establish Espionage Networks in faction-controlled rooms or place Wiretaps on merchant transaction hubs. Wiretaps can intercept rival syndicates' trade conversations or licensing fees, collecting a small fraction of gold and leaking gossip transaction maps deterministically.
+**Task ID**: `AF-65`
+* **Objective**: Syndicate Black Market Informants & Intel Trading.
+* **Why this matters**: Further enhance the syndicate black market by allowing syndicates to trade intelligence reports (e.g. wiretap logs, leaked transaction maps, raid schedules) with black market merchants for gold, dynamic reputation boosts, or strategically timed enforcer bribes.
 * **Planned Actions**:
-  1. Add `espionageNetworks` and `wiretaps` tracking to `GameStateSchema`.
-  2. Implement decentralized action reducers to `ESTABLISH_ESPIONAGE_NETWORK` and `PLACE_WIRETAP`.
-  3. Wire periodic espionage ticks within `tickEconomy` to intercept gold fees and sync routing delta maps.
-  4. Write comprehensive unit and integration tests.
+  1. Add `intelStock` and `intelTransactions` schemas to syndicate state.
+  2. Implement decentralized action reducers `SELL_INTEL_REPORT` and `BUY_INTEL_REPORT`.
+  3. Wire transaction reducers to trigger strategic benefits upon intelligence trading.
+  4. Write comprehensive integration tests.
 
 ---
 

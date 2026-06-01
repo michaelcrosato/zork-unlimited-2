@@ -1,4 +1,4 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers } from "./state.js";
+import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps } from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -742,6 +742,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge espionageNetworks using LWW (Last-Write-Wins)
+  const espionageNetworks = { ...stateA.espionageNetworks };
+  if (stateB.espionageNetworks) {
+    for (const [roomId, entryB] of Object.entries(stateB.espionageNetworks)) {
+      const entryA = espionageNetworks[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        espionageNetworks[roomId] = entryB;
+      }
+    }
+  }
+
+  // Merge wiretaps using LWW (Last-Write-Wins)
+  const wiretaps = { ...stateA.wiretaps };
+  if (stateB.wiretaps) {
+    for (const [roomId, entryB] of Object.entries(stateB.wiretaps)) {
+      const entryA = wiretaps[roomId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        wiretaps[roomId] = entryB;
+      }
+    }
+  }
+
   // Merge safehouses using LWW (Last-Write-Wins)
   const safehouses = { ...stateA.safehouses };
   if (stateB.safehouses) {
@@ -1009,6 +1031,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     undercoverAgents,
     informants,
     raidWarnings,
+    espionageNetworks,
+    wiretaps,
   };
 }
 
@@ -1323,6 +1347,10 @@ export class GossipNode {
 
     // Reconcile syndicate waivers to ensure consensual waiver thresholds align perfectly across the mesh
     convergedState = reconcileSyndicateWaivers(convergedState, this.pack);
+
+    // Reconcile espionage networks and wiretaps
+    convergedState = reconcileEspionageNetworks(convergedState, this.pack);
+    convergedState = reconcileWiretaps(convergedState, this.pack);
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};

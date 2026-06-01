@@ -1,4 +1,4 @@
-import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers } from "./state.js";
+import { GameState, cloneStateWithoutHistory, AgentState, Transaction, reconcileLootClaims, reconcileTerritories, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, findRoom, getRoomExits, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps } from "./state.js";
 import { Action, StepResult, Observation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
@@ -6118,6 +6118,281 @@ export function multiAgentStep(
           consensusThreshold: newConsensusThreshold,
         });
       }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ESTABLISH_ESPIONAGE_NETWORK action (AF-64)
+  if ((action as any).type === "ESTABLISH_ESPIONAGE_NETWORK") {
+    const { roomId, syndicateId, cost, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const roomExists = "rooms" in pack
+      ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
+      : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
+    const syndicate = state.syndicates?.[syndicateId];
+    const isFactionControlled = state.territoryControl?.[roomId] !== undefined;
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to establish an espionage network.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to establish an espionage network.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Espionage network cost ${cost} must be a non-negative integer.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!isFactionControlled) {
+      rejectionReason = `Room ${roomId} is not faction-controlled. Espionage networks require faction territory.`;
+    } else if (state.espionageNetworks?.[roomId]) {
+      rejectionReason = `Room ${roomId} already has an established espionage network.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to establish espionage network costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const espionageNetworks = { ...(state.espionageNetworks || {}) };
+      espionageNetworks[roomId] = {
+        roomId,
+        syndicateId,
+        cost,
+        timestamp,
+      };
+      newState.espionageNetworks = espionageNetworks;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Established espionage network in room ${roomId} for syndicate ${syndicateId} for ${cost} gold by agent ${agentId}.`);
+
+      customEvents.push({
+        type: "espionage_network_established",
+        agentId,
+        roomId,
+        syndicateId,
+        cost,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PLACE_WIRETAP action (AF-64)
+  if ((action as any).type === "PLACE_WIRETAP") {
+    const { roomId, syndicateId, cost, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const roomExists = "rooms" in pack
+      ? (pack as ParserPack).rooms.some((r: any) => r.id === roomId)
+      : (pack as CYOAPack).scenes.some((s: any) => s.id === roomId);
+    const syndicate = state.syndicates?.[syndicateId];
+    
+    let isMerchantHub = false;
+    const p = pack as any;
+    if (p) {
+      if ("rooms" in p) {
+        const room = p.rooms.find((r: any) => r.id === roomId);
+        if (room && room.npcs && room.npcs.length > 0) {
+          isMerchantHub = true;
+        }
+      } else {
+        const scene = p.scenes.find((s: any) => s.id === roomId);
+        if (scene && scene.npcs && scene.npcs.length > 0) {
+          isMerchantHub = true;
+        }
+      }
+    }
+    if (!isMerchantHub && state.frontBusinesses) {
+      if (Object.values(state.frontBusinesses).some(f => f.roomId === roomId)) {
+        isMerchantHub = true;
+      }
+    }
+    if (!isMerchantHub && state.merchantGold) {
+      if (p && p.npcs) {
+        for (const npc of p.npcs) {
+          const npcRoom = p.rooms?.find((r: any) => r.npcs?.includes(npc.id)) || p.scenes?.find((s: any) => s.npcs?.includes(npc.id));
+          if (npcRoom && npcRoom.id === roomId) {
+            isMerchantHub = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!roomId) {
+      rejectionReason = `Room ID is required to place a wiretap.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required to place a wiretap.`;
+    } else if (cost < 0 || !Number.isInteger(cost)) {
+      rejectionReason = `Wiretap cost ${cost} must be a non-negative integer.`;
+    } else if (!roomExists) {
+      rejectionReason = `Room ${roomId} does not exist in pack.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else if (!isMerchantHub) {
+      rejectionReason = `Room ${roomId} is not a merchant transaction hub. Wiretaps require a merchant presence.`;
+    } else if (state.wiretaps?.[roomId]) {
+      rejectionReason = `Room ${roomId} already has an active wiretap.`;
+    } else {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+      if (currentGold < cost) {
+        rejectionReason = `Insufficient gold to place wiretap costing ${cost} (requires ${cost}, has ${currentGold}).`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && syndicate) {
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? (agentId === "player" ? 0 : 100);
+
+      // Deduct gold
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold - cost,
+      };
+
+      const wiretaps = { ...(state.wiretaps || {}) };
+      wiretaps[roomId] = {
+        roomId,
+        syndicateId,
+        cost,
+        timestamp,
+      };
+      newState.wiretaps = wiretaps;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Syndicate] Placed wiretap in room ${roomId} for syndicate ${syndicateId} for ${cost} gold by agent ${agentId}.`);
+
+      customEvents.push({
+        type: "wiretap_placed",
+        agentId,
+        roomId,
+        syndicateId,
+        cost,
+      });
     }
 
     newState.step += 1;

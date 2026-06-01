@@ -50,7 +50,9 @@ export type Action =
   | { type: "EXPOSE_MOLE"; syndicateId: string; targetAgentId: string; timestamp: number }
   | { type: "BRIBE_ENFORCER"; enforcerId: string; syndicateId: string; goldCost?: number; timestamp: number }
   | { type: "INTERROGATE_ENFORCER"; enforcerId: string; syndicateId: string; timestamp: number }
-  | { type: "RECRUIT_ENFORCER"; enforcerId: string; syndicateId: string; timestamp: number };
+  | { type: "RECRUIT_ENFORCER"; enforcerId: string; syndicateId: string; timestamp: number }
+  | { type: "ESTABLISH_ESPIONAGE_NETWORK"; roomId: string; syndicateId: string; cost: number; timestamp: number }
+  | { type: "PLACE_WIRETAP"; roomId: string; syndicateId: string; cost: number; timestamp: number };
 
 
 

@@ -385,6 +385,21 @@ export const RaidWarningSchema = z.object({
 });
 export type RaidWarning = z.infer<typeof RaidWarningSchema>;
 
+export const EspionageNetworkSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  cost: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type EspionageNetwork = z.infer<typeof EspionageNetworkSchema>;
+
+export const WiretapSchema = z.object({
+  roomId: z.string(),
+  syndicateId: z.string(),
+  cost: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+});
+export type Wiretap = z.infer<typeof WiretapSchema>;
 
 
 export const CrimeSyndicateSchema = z.object({
@@ -551,6 +566,8 @@ export const GameStateSchema = z.object({
   undercoverAgents: z.record(z.string(), UndercoverAgentSchema).optional(),
   informants: z.record(z.string(), InformantSchema).optional(),
   raidWarnings: z.record(z.string(), RaidWarningSchema).optional(),
+  espionageNetworks: z.record(z.string(), EspionageNetworkSchema).optional(),
+  wiretaps: z.record(z.string(), WiretapSchema).optional(),
 });
 
 
@@ -1318,6 +1335,10 @@ export function reconcileSyndicateWaivers(state: GameState, pack: any): GameStat
   return newState;
 }
 
+export function reconcileEspionageNetworks(state: GameState, pack: any): GameState {
+  return state;
+}
 
-
-
+export function reconcileWiretaps(state: GameState, pack: any): GameState {
+  return state;
+}

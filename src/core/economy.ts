@@ -542,6 +542,29 @@ export function tickEconomy(state: GameState, pack: any): GameState {
         if (rateMultiplier !== undefined) {
           roomTax = roomTax * rateMultiplier;
         }
+
+        // Check Espionage Network interception! (AF-64)
+        const espionage = newState.espionageNetworks?.[roomId];
+        if (espionage) {
+          const syndicate = newState.syndicates?.[espionage.syndicateId];
+          if (syndicate) {
+            const intercepted = Math.max(1, Math.floor(roomTax * 0.2));
+            roomTax = Math.max(0, roomTax - intercepted);
+
+            // Distribute the intercepted gold to the syndicate members
+            const members = syndicate.members ?? [];
+            const share = members.length > 0 ? Math.floor(intercepted / members.length) : 0;
+            if (share > 0) {
+              if (!newState.vars) newState.vars = {};
+              for (const member of members) {
+                const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + share;
+              }
+            }
+            newState.journal.push(`[Espionage] Espionage Network in room ${roomId} intercepted ${intercepted} gold of faction taxes from faction ${factionId} (Distributed ${share} gold to each member of syndicate ${espionage.syndicateId}).`);
+          }
+        }
+
         totalTaxGold += roomTax;
       }
     }
@@ -845,10 +868,31 @@ export function tickEconomy(state: GameState, pack: any): GameState {
               const outpostBonus = outpost ? outpost.securityLevel * 2 : 0;
               // Tax scales by local turf guard security presence: taxRate * (1 + guardsCount + outpostBonus)
               const taxAmount = taxRate * (1 + guardsCount + outpostBonus);
-              const actualPayout = Math.min(taxAmount, clean);
-              if (actualPayout > 0) {
-                clean -= actualPayout;
+              const fullTaxAmount = Math.min(taxAmount, clean);
+              if (fullTaxAmount > 0) {
+                clean -= fullTaxAmount;
                 frontUpdated = true;
+
+                let actualPayout = fullTaxAmount;
+                const wiretap = newState.wiretaps?.[front.roomId];
+                if (wiretap && wiretap.syndicateId !== controllingSyndicateId) {
+                  const wiretapSyndicate = newState.syndicates?.[wiretap.syndicateId];
+                  if (wiretapSyndicate) {
+                    const intercepted = Math.max(1, Math.floor(fullTaxAmount * 0.2));
+                    actualPayout = Math.max(0, actualPayout - intercepted);
+
+                    const wMembers = wiretapSyndicate.members ?? [];
+                    const wShare = wMembers.length > 0 ? Math.floor(intercepted / wMembers.length) : 0;
+                    if (wShare > 0) {
+                      if (!newState.vars) newState.vars = {};
+                      for (const member of wMembers) {
+                        const memberGoldKey = member === "player" ? "gold" : `gold_${member}`;
+                        newState.vars[memberGoldKey] = (newState.vars[memberGoldKey] ?? 0) + wShare;
+                      }
+                    }
+                    newState.journal.push(`[Espionage] Wiretap in room ${front.roomId} intercepted ${intercepted} gold of turf taxes from rival syndicate ${controllingSyndicateId} (Distributed ${wShare} gold to each member of syndicate ${wiretap.syndicateId}).`);
+                  }
+                }
 
                 // Distribute collected gold among syndicate members
                 const members = controllingSyndicate.members ?? [];
@@ -914,6 +958,29 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
     if (frontsChanged) {
       newState.frontBusinesses = updatedFronts;
+    }
+  }
+
+  // 7. Periodic wiretap intelligence leakage (AF-64)
+  if (newState.step > 0 && newState.step % 5 === 0 && newState.wiretaps) {
+    for (const [roomId, wiretap] of Object.entries(newState.wiretaps)) {
+      const txJournal = newState.transactionJournal || [];
+      const rivalTxs = txJournal.filter(tx => {
+        const syndicate = newState.syndicates?.[wiretap.syndicateId];
+        const isRival = syndicate ? !syndicate.members.includes(tx.agentId) : true;
+        return isRival;
+      }).slice(-3);
+
+      if (rivalTxs.length > 0) {
+        if (!newState.cooperativeSyncLog) newState.cooperativeSyncLog = [];
+        for (const tx of rivalTxs) {
+          const logEntry = `[Wiretap Leak] Room ${roomId} intercepted transaction: Agent ${tx.agentId}, Step ${tx.sequenceNumber}, Action ${tx.action.type}, Timestamp ${tx.timestamp}`;
+          if (!newState.cooperativeSyncLog.includes(logEntry)) {
+            newState.cooperativeSyncLog.push(logEntry);
+            newState.journal.push(logEntry);
+          }
+        }
+      }
     }
   }
 
