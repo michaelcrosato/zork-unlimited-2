@@ -1280,6 +1280,34 @@ export const FactionCdoInsurancePoolProposalSchema = z.object({
 });
 export type FactionCdoInsurancePoolProposal = z.infer<typeof FactionCdoInsurancePoolProposalSchema>;
 
+export const MultiFactionCdoRiskRatingSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  cdoId: z.string(),
+  factionId: z.string(),
+  riskRating: z.enum(["low", "medium", "high"]),
+  basePremiumRate: z.number(),
+  active: z.boolean(),
+  timestamp: z.number().int(),
+});
+export type MultiFactionCdoRiskRating = z.infer<typeof MultiFactionCdoRiskRatingSchema>;
+
+export const MultiFactionCdoRiskRatingProposalSchema = z.object({
+  id: z.string(),
+  syndicateId: z.string(),
+  cdoId: z.string(),
+  factionId: z.string(),
+  riskRating: z.enum(["low", "medium", "high"]),
+  basePremiumRate: z.number(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type MultiFactionCdoRiskRatingProposal = z.infer<typeof MultiFactionCdoRiskRatingProposalSchema>;
+
 
 
 
@@ -1664,6 +1692,8 @@ export const GameStateSchema = z.object({
   cdoMiningBoosters: z.record(z.string(), CdoMiningBoosterSchema).optional(),
   cooperativeYieldCampaignProposals: z.record(z.string(), CooperativeYieldCampaignProposalSchema).optional(),
   factionCdoInsurancePoolProposals: z.record(z.string(), FactionCdoInsurancePoolProposalSchema).optional(),
+  multiFactionCdoRiskRatings: z.record(z.string(), MultiFactionCdoRiskRatingSchema).optional(),
+  multiFactionCdoRiskRatingProposals: z.record(z.string(), MultiFactionCdoRiskRatingProposalSchema).optional(),
   maliciousActors: z.record(z.string(), z.boolean()).optional(),
   slashingRates: z.record(z.string(), z.number()).optional(),
 });
@@ -1871,6 +1901,8 @@ export const createInitialState = (options: {
     cdoMiningBoosters: {},
     cooperativeYieldCampaignProposals: {},
     factionCdoInsurancePoolProposals: {},
+    multiFactionCdoRiskRatings: {},
+    multiFactionCdoRiskRatingProposals: {},
   };
 };
 
@@ -2668,6 +2700,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     cdoMiningBoosters: rest.cdoMiningBoosters ? JSON.parse(JSON.stringify(rest.cdoMiningBoosters)) : undefined,
     cooperativeYieldCampaignProposals: rest.cooperativeYieldCampaignProposals ? JSON.parse(JSON.stringify(rest.cooperativeYieldCampaignProposals)) : undefined,
     factionCdoInsurancePoolProposals: rest.factionCdoInsurancePoolProposals ? JSON.parse(JSON.stringify(rest.factionCdoInsurancePoolProposals)) : undefined,
+    multiFactionCdoRiskRatings: rest.multiFactionCdoRiskRatings ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatings)) : undefined,
+    multiFactionCdoRiskRatingProposals: rest.multiFactionCdoRiskRatingProposals ? JSON.parse(JSON.stringify(rest.multiFactionCdoRiskRatingProposals)) : undefined,
     maliciousActors: rest.maliciousActors ? { ...rest.maliciousActors } : undefined,
     slashingRates: rest.slashingRates ? { ...rest.slashingRates } : undefined,
   };
@@ -6141,6 +6175,56 @@ export function reconcileFactionCdoInsurancePools(state: GameState, pack: any): 
           `[Faction CDO Insurance Pool Resolution Failed] Syndicate ${syndicateId} has insufficient funds in war chest (${syndicate.warChest} < ${initialReserve}) to resolve proposal ${proposalId}.`
         );
       }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileMultiFactionCdoRiskRatings(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    multiFactionCdoRiskRatingProposals: state.multiFactionCdoRiskRatingProposals ? { ...state.multiFactionCdoRiskRatingProposals } : {},
+    multiFactionCdoRiskRatings: state.multiFactionCdoRiskRatings ? { ...state.multiFactionCdoRiskRatings } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.multiFactionCdoRiskRatingProposals || {})) {
+    const proposal = newState.multiFactionCdoRiskRatingProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { syndicateId, cdoId, factionId, riskRating, basePremiumRate, timestamp } = proposal;
+    const syndicate = newState.syndicates?.[syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.multiFactionCdoRiskRatingProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      newState.multiFactionCdoRiskRatings[`${syndicateId}-${cdoId}`] = {
+        id: proposalId,
+        syndicateId,
+        cdoId,
+        factionId,
+        riskRating,
+        basePremiumRate,
+        active: true,
+        timestamp,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[Multi-Faction CDO Risk Rating Resolved] Syndicate ${syndicateId} established risk rating policy for CDO ${cdoId} sponsored by ${factionId} with rating ${riskRating} and base premium ${basePremiumRate}.`
+      );
     }
   }
 

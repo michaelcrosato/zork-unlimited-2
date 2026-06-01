@@ -2546,7 +2546,26 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                         }
 
                         multiplier += riskRatingMarkup + defaultsMarkup + auditAdjustment;
-                        multiplier = Math.max(0.5, Math.round(multiplier * 10) / 10);
+
+                        // Apply Multi-Faction Loyalty CDO Risk Rating adjustments in fallback sweeps
+                        let loyaltyDiscount = 0.0;
+                        if (newState.multiFactionCdoRiskRatings) {
+                          for (const policy of Object.values(newState.multiFactionCdoRiskRatings)) {
+                            if (policy.active && policy.syndicateId === primarySyndId) {
+                              const rank = getSyndicateFactionLoyaltyRank(newState, primarySyndId, policy.factionId);
+                              let discount = 0.0;
+                              if (rank === "Platinum") discount = 0.35;
+                              else if (rank === "Gold") discount = 0.25;
+                              else if (rank === "Silver") discount = 0.15;
+                              else if (rank === "Bronze") discount = 0.05;
+
+                              loyaltyDiscount += discount;
+                            }
+                          }
+                        }
+
+                        multiplier = Math.max(0.5, multiplier - loyaltyDiscount);
+                        multiplier = Math.round(multiplier * 10) / 10;
 
                         const scaledOwed = Math.ceil(borrowAmount * multiplier);
 
@@ -2961,6 +2980,91 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                       remainingDue -= coveredAmount;
                       skipLiquidation = true;
                       newState.journal.push(`[CDO Insurance Shield] Faction CDO Insurance pool for CDO ${cdoId} covered ${coveredAmount} gold of defaulted loan for agent ${agentId}, sparing collateral.`);
+                    }
+                  }
+                }
+
+                // Fallback: Sourcing from reinsurance contracts if primary pool is depleted / insufficient and we have an active Multi-Faction CDO Risk Rating!
+                if (remainingDue > 0 && newState.factionCdoInsurancePools) {
+                  const policyKey = `${syndicateId}-${cdoId}`;
+                  const policy = newState.multiFactionCdoRiskRatings?.[policyKey];
+                  if (policy && policy.active) {
+                    const factionId = policy.factionId;
+                    if (newState.reinsuranceContracts) {
+                      newState.reinsuranceContracts = { ...newState.reinsuranceContracts };
+                      for (const [contractId, contract] of Object.entries(newState.reinsuranceContracts)) {
+                        if (contract.active && (contract.syndicateIdA === syndicateId || contract.syndicateIdB === syndicateId)) {
+                          const partnerSyndId = contract.syndicateIdA === syndicateId ? contract.syndicateIdB : contract.syndicateIdA;
+                          const partnerPool = newState.factionCdoInsurancePools[`${partnerSyndId}-${cdoId}`];
+                          if (partnerPool && partnerPool.insuranceReserve > 0) {
+                            const isAtoB = (syndicateId === contract.syndicateIdA);
+                            const currentBorrowed = isAtoB ? contract.borrowedAfromB : contract.borrowedBfromA;
+                            const maxBorrowable = Math.max(0, contract.maxLiquidityLimit - currentBorrowed);
+
+                            if (maxBorrowable > 0) {
+                              const payoutAmount = Math.min(remainingDue, partnerPool.insuranceReserve, maxBorrowable);
+                              if (payoutAmount > 0) {
+                                const primaryRank = getSyndicateFactionLoyaltyRank(newState, syndicateId, factionId);
+                                const partnerRank = getSyndicateFactionLoyaltyRank(newState, partnerSyndId, factionId);
+
+                                let multiplier = policy.basePremiumRate;
+                                if (policy.riskRating === "high") {
+                                  multiplier += 0.4;
+                                } else if (policy.riskRating === "medium") {
+                                  multiplier += 0.2;
+                                }
+
+                                let discount = 0;
+                                if (primaryRank === "Platinum") discount = 0.3;
+                                else if (primaryRank === "Gold") discount = 0.2;
+                                else if (primaryRank === "Silver") discount = 0.1;
+                                else if (primaryRank === "Bronze") discount = 0.05;
+
+                                multiplier = Math.max(0.5, multiplier - discount);
+                                multiplier = Math.round(multiplier * 100) / 100;
+
+                                const scaledOwed = Math.ceil(payoutAmount * multiplier);
+
+                                // Deduct from partner pool
+                                const updatedPartnerPool = { ...partnerPool };
+                                updatedPartnerPool.insuranceReserve -= payoutAmount;
+                                updatedPartnerPool.timestamp = newState.step;
+                                newState.factionCdoInsurancePools[`${partnerSyndId}-${cdoId}`] = updatedPartnerPool;
+
+                                // Record on contract
+                                const updatedContract = { ...contract };
+                                if (isAtoB) {
+                                  updatedContract.borrowedAfromB += scaledOwed;
+                                } else {
+                                  updatedContract.borrowedBfromA += scaledOwed;
+                                }
+                                updatedContract.timestamp = newState.step;
+                                newState.reinsuranceContracts[contractId] = updatedContract;
+
+                                // Save pricing multiplier
+                                if (!newState.reinsurancePricingMultipliers) {
+                                  newState.reinsurancePricingMultipliers = {};
+                                }
+                                newState.reinsurancePricingMultipliers[contractId] = {
+                                  contractId,
+                                  multiplier,
+                                  timestamp: newState.step,
+                                };
+
+                                remainingDue -= payoutAmount;
+                                collected += payoutAmount;
+                                skipLiquidation = true;
+
+                                if (!newState.journal) newState.journal = [];
+                                newState.journal.push(
+                                  `[Automated Reinsurance Claims Arbitration] Reinsurance contract ${contractId} automatically arbitrated payout of ${payoutAmount} gold from partner pool ${partnerSyndId} to cover CDO ${cdoId} default (Primary Loyalty: ${primaryRank}, Partner Loyalty: ${partnerRank}, Multiplier: ${multiplier}x, Scaled Debt: ${scaledOwed} gold).`
+                                );
+                              }
+                            }
+                          }
+                        }
+                        if (remainingDue <= 0) break;
+                      }
                     }
                   }
                 }
@@ -3630,6 +3734,69 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           leveragedTranchePositions: {},
           timestamp: newState.step,
         };
+      }
+    }
+  }
+
+  // Periodic Multi-Faction CDO Reinsurance Audit Collections (AF-122)
+  if (newState.factionCdoInsurancePools && newState.multiFactionCdoRiskRatings) {
+    newState.factionCdoInsurancePools = { ...newState.factionCdoInsurancePools };
+    for (const [poolKey, pool] of Object.entries(newState.factionCdoInsurancePools)) {
+      const policy = newState.multiFactionCdoRiskRatings[poolKey];
+      if (policy && policy.active) {
+        const { syndicateId, cdoId, factionId } = pool;
+        const syndicate = newState.syndicates?.[syndicateId];
+        if (syndicate) {
+          const loyaltyRank = getSyndicateFactionLoyaltyRank(newState, syndicateId, factionId);
+          const isCompliantRank = isRankAtLeast(loyaltyRank, pool.minLoyaltyRank);
+          const isReserveSafe = pool.insuranceReserve >= 200;
+
+          if (!isCompliantRank || !isReserveSafe) {
+            // Multi-Faction Reinsurance Audit Violation!
+            // Faction Loyalty Rank provides audit mitigation:
+            let auditFee = 100;
+            if (loyaltyRank === "Platinum") {
+              auditFee = 0; // Fully waived!
+            } else if (loyaltyRank === "Gold") {
+              auditFee = 20; // 80% discount
+            } else if (loyaltyRank === "Silver") {
+              auditFee = 50; // 50% discount
+            } else if (loyaltyRank === "Bronze") {
+              auditFee = 80; // 20% discount
+            }
+
+            if (auditFee > 0) {
+              newState.syndicates = { ...newState.syndicates };
+              const updatedSyndicate = { ...syndicate };
+              const actualCollected = Math.min(auditFee, updatedSyndicate.warChest ?? 0);
+              updatedSyndicate.warChest = Math.max(0, (updatedSyndicate.warChest ?? 0) - actualCollected);
+              newState.syndicates[syndicateId] = updatedSyndicate;
+
+              if (!newState.factionReservePools) newState.factionReservePools = {};
+              newState.factionReservePools = { ...newState.factionReservePools };
+              newState.factionReservePools[factionId] = (newState.factionReservePools[factionId] ?? 0) + actualCollected;
+
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Automated Reinsurance Audit Collection] Audit violation detected for CDO ${cdoId} insurance pool ${poolKey} (Compliant Rank: ${isCompliantRank}, Safe Reserve: ${isReserveSafe}). Collected ${actualCollected} gold audit fee from syndicate ${syndicateId} war chest (Loyalty: ${loyaltyRank}).`
+              );
+
+              if (actualCollected < auditFee) {
+                // Add heat and dock credit rating if they can't pay the audit fee
+                if (!newState.creditRatings) newState.creditRatings = {};
+                newState.creditRatings = { ...newState.creditRatings };
+                const r = newState.creditRatings[syndicateId] ?? 100;
+                newState.creditRatings[syndicateId] = Math.max(0, r - 15);
+                newState.journal.push(`[Audit Penalty] Syndicate ${syndicateId} failed to pay full audit fee; credit rating docked by 15.`);
+              }
+            } else {
+              if (!newState.journal) newState.journal = [];
+              newState.journal.push(
+                `[Automated Reinsurance Audit Collection] Audit violation detected for CDO ${cdoId} but fee was fully waived due to Platinum Faction Loyalty.`
+              );
+            }
+          }
+        }
       }
     }
   }

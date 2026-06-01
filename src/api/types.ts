@@ -160,7 +160,9 @@ export type Action =
   | { type: "ESTABLISH_COOPERATIVE_YIELD_CAMPAIGN"; proposalId: string; syndicateId: string; cdoId: string; campaignName: string; factionId: string; bronzeMultiplier: number; silverMultiplier: number; goldMultiplier: number; platinumMultiplier: number; timestamp: number }
   | { type: "VOTE_COOPERATIVE_YIELD_CAMPAIGN"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "ESTABLISH_FACTION_CDO_INSURANCE_POOL"; proposalId: string; syndicateId: string; cdoId: string; factionId: string; initialReserve: number; minLoyaltyRank: "None" | "Bronze" | "Silver" | "Gold" | "Platinum"; payoutRatio: number; timestamp: number }
-  | { type: "VOTE_FACTION_CDO_INSURANCE_POOL"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_FACTION_CDO_INSURANCE_POOL"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_MULTI_FACTION_CDO_RISK_RATING"; proposalId: string; syndicateId: string; cdoId: string; factionId: string; riskRating: "low" | "medium" | "high"; basePremiumRate: number; timestamp: number }
+  | { type: "VOTE_MULTI_FACTION_CDO_RISK_RATING"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

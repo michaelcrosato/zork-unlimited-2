@@ -2281,6 +2281,28 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge multiFactionCdoRiskRatings using LWW (Last-Write-Wins)
+  const multiFactionCdoRiskRatings = { ...stateA.multiFactionCdoRiskRatings };
+  if (stateB.multiFactionCdoRiskRatings) {
+    for (const [key, ratingB] of Object.entries(stateB.multiFactionCdoRiskRatings)) {
+      const ratingA = multiFactionCdoRiskRatings[key];
+      if (!ratingA || ratingB.timestamp > ratingA.timestamp) {
+        multiFactionCdoRiskRatings[key] = { ...ratingB };
+      }
+    }
+  }
+
+  // Merge multiFactionCdoRiskRatingProposals using LWW (Last-Write-Wins)
+  const multiFactionCdoRiskRatingProposals = { ...stateA.multiFactionCdoRiskRatingProposals };
+  if (stateB.multiFactionCdoRiskRatingProposals) {
+    for (const [propId, propB] of Object.entries(stateB.multiFactionCdoRiskRatingProposals)) {
+      const propA = multiFactionCdoRiskRatingProposals[propId];
+      if (!propA || propB.timestamp > propA.timestamp) {
+        multiFactionCdoRiskRatingProposals[propId] = { ...propB };
+      }
+    }
+  }
+
   // Merge maliciousActors using boolean OR union
   const maliciousActors = { ...stateA.maliciousActors };
   if (stateB.maliciousActors) {
@@ -2501,6 +2523,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cdoMiningBoosters,
     cooperativeYieldCampaignProposals,
     factionCdoInsurancePoolProposals,
+    multiFactionCdoRiskRatings,
+    multiFactionCdoRiskRatingProposals,
     maliciousActors,
     slashingRates,
   };
