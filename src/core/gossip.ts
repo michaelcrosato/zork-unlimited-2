@@ -3855,6 +3855,18 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  // Merge swfDeflectionCapAndRefundProposals using LWW (AF-222)
+  const swfDeflectionCapAndRefundProposals = { ...stateA.swfDeflectionCapAndRefundProposals };
+  if (stateB.swfDeflectionCapAndRefundProposals) {
+    for (const [proposalId, entryB] of Object.entries(stateB.swfDeflectionCapAndRefundProposals)) {
+      const entryA = swfDeflectionCapAndRefundProposals[proposalId];
+      if (!entryA || entryB.timestamp > entryA.timestamp) {
+        swfDeflectionCapAndRefundProposals[proposalId] = entryB;
+      }
+    }
+  }
+
+
 
   // Merge sweepPoolRankAdjustFeeCalibrationProposals using LWW (AF-209)
   const sweepPoolRankAdjustFeeCalibrationProposals = { ...stateA.sweepPoolRankAdjustFeeCalibrationProposals };
@@ -3944,6 +3956,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfDeflectionSurchargeBaseRate: stateA.swfDeflectionSurchargeBaseRate !== undefined && stateB.swfDeflectionSurchargeBaseRate !== undefined ? (stateA.swfDeflectionSurchargeBaseRate > stateB.swfDeflectionSurchargeBaseRate ? stateA.swfDeflectionSurchargeBaseRate : stateB.swfDeflectionSurchargeBaseRate) : (stateA.swfDeflectionSurchargeBaseRate ?? stateB.swfDeflectionSurchargeBaseRate ?? 0.05),
     swfDeflectionSurchargePoolDepthScalingFactor: stateA.swfDeflectionSurchargePoolDepthScalingFactor !== undefined && stateB.swfDeflectionSurchargePoolDepthScalingFactor !== undefined ? (stateA.swfDeflectionSurchargePoolDepthScalingFactor > stateB.swfDeflectionSurchargePoolDepthScalingFactor ? stateA.swfDeflectionSurchargePoolDepthScalingFactor : stateB.swfDeflectionSurchargePoolDepthScalingFactor) : (stateA.swfDeflectionSurchargePoolDepthScalingFactor ?? stateB.swfDeflectionSurchargePoolDepthScalingFactor ?? 1.0),
     swfDeflectionSurchargePolicyProposals,
+    swfDeflectionSurchargeCap: stateA.swfDeflectionSurchargeCap !== undefined && stateB.swfDeflectionSurchargeCap !== undefined ? (stateA.swfDeflectionSurchargeCap < stateB.swfDeflectionSurchargeCap ? stateA.swfDeflectionSurchargeCap : stateB.swfDeflectionSurchargeCap) : (stateA.swfDeflectionSurchargeCap ?? stateB.swfDeflectionSurchargeCap ?? 1.0),
+    swfDeflectionSurchargeEmergencyRefundAllocationPercent: stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent !== undefined && stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent !== undefined ? (stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent > stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent ? stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent : stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent) : (stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent ?? stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent ?? 0),
+    swfDeflectionCapAndRefundProposals,
     sweepPoolRankAdjustBaseProposalFee: Math.max(stateA.sweepPoolRankAdjustBaseProposalFee ?? 200, stateB.sweepPoolRankAdjustBaseProposalFee ?? 200),
     sweepPoolRankAdjustBaseVoteFee: Math.max(stateA.sweepPoolRankAdjustBaseVoteFee ?? 50, stateB.sweepPoolRankAdjustBaseVoteFee ?? 50),
     sweepPoolRankAdjustFeeCalibrationProposals,

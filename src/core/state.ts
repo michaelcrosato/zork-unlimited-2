@@ -2875,6 +2875,23 @@ export const SWFDeflectionSurchargePolicyProposalSchema = z.object({
 });
 export type SWFDeflectionSurchargePolicyProposal = z.infer<typeof SWFDeflectionSurchargePolicyProposalSchema>;
 
+export const SWFDeflectionCapAndRefundProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  deflectionCap: z.number(),
+  emergencyRefundAllocationPercent: z.number(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFDeflectionCapAndRefundProposal = z.infer<typeof SWFDeflectionCapAndRefundProposalSchema>;
+
+
 
 
 
@@ -3842,6 +3859,9 @@ export const GameStateSchema = z.object({
   swfDeflectionSurchargeBaseRate: z.number().optional(),
   swfDeflectionSurchargePoolDepthScalingFactor: z.number().optional(),
   swfDeflectionSurchargePolicyProposals: z.record(z.string(), SWFDeflectionSurchargePolicyProposalSchema).optional(),
+  swfDeflectionSurchargeCap: z.number().optional(),
+  swfDeflectionSurchargeEmergencyRefundAllocationPercent: z.number().optional(),
+  swfDeflectionCapAndRefundProposals: z.record(z.string(), SWFDeflectionCapAndRefundProposalSchema).optional(),
 
 
 
@@ -4272,6 +4292,9 @@ export const createInitialState = (options: {
     swfDeflectionSurchargeBaseRate: 0.05,
     swfDeflectionSurchargePoolDepthScalingFactor: 1.0,
     swfDeflectionSurchargePolicyProposals: {},
+    swfDeflectionSurchargeCap: 1.0,
+    swfDeflectionSurchargeEmergencyRefundAllocationPercent: 0,
+    swfDeflectionCapAndRefundProposals: {},
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
 
@@ -5429,6 +5452,9 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfLiquidityMiningRewards: rest.swfLiquidityMiningRewards ? JSON.parse(JSON.stringify(rest.swfLiquidityMiningRewards)) : undefined,
     claimReinsuranceLiquidityMiningRewardsVotes: rest.claimReinsuranceLiquidityMiningRewardsVotes ? JSON.parse(JSON.stringify(rest.claimReinsuranceLiquidityMiningRewardsVotes)) : undefined,
     swfDeflectionSurchargePolicyProposals: rest.swfDeflectionSurchargePolicyProposals ? JSON.parse(JSON.stringify(rest.swfDeflectionSurchargePolicyProposals)) : undefined,
+    swfDeflectionSurchargeCap: rest.swfDeflectionSurchargeCap,
+    swfDeflectionSurchargeEmergencyRefundAllocationPercent: rest.swfDeflectionSurchargeEmergencyRefundAllocationPercent,
+    swfDeflectionCapAndRefundProposals: rest.swfDeflectionCapAndRefundProposals ? JSON.parse(JSON.stringify(rest.swfDeflectionCapAndRefundProposals)) : undefined,
   };
   return clone;
 }
@@ -16934,6 +16960,56 @@ export function reconcileSWFDeflectionSurchargePolicyProposals(state: GameState,
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.swfDeflectionSurchargePolicyProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFDeflectionCapAndRefundProposals(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfDeflectionCapAndRefundProposals: state.swfDeflectionCapAndRefundProposals ? { ...state.swfDeflectionCapAndRefundProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfDeflectionCapAndRefundProposals)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.swfDeflectionCapAndRefundProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      newState.swfDeflectionSurchargeCap = proposal.deflectionCap;
+      newState.swfDeflectionSurchargeEmergencyRefundAllocationPercent = proposal.emergencyRefundAllocationPercent;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Deflection Cap and Refund Resolved] Syndicate ${proposal.syndicateId} authorized deflection cap and refund proposal ${proposalId} (Cap: ${proposal.deflectionCap}, Refund: ${proposal.emergencyRefundAllocationPercent}%).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.swfDeflectionCapAndRefundProposals[proposalId] = {
         ...proposal,
         resolved: true,
         status: "disputed",

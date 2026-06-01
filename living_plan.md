@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #219 (Ready for Cycle #220)
-* **Build/Test Status**: 🟢 PASS (All 772 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #220 (Ready for Cycle #221)
+* **Build/Test Status**: 🟢 PASS (All 773 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1407,16 +1407,22 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire dynamic consensus surcharge parameters to the tick economy (`AF-221`).
 - [x] Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization (`AF-221`).
 
+### Phase 200: Syndicate SWF Deflection Surcharge Policy Cap & Refund Consensus (Completed)
+- [x] Define proposal and voting schemas inside GameState schemas for deflection cap and refund policy (`AF-222`).
+- [x] Implement `PROPOSE_DEFLECTION_CAP_AND_REFUND` and `VOTE_DEFLECTION_CAP_AND_REFUND` decentralized actions and consensus state transitions (`AF-222`).
+- [x] Wire dynamic deflection cap and refund allocations to the tick economy (`AF-222`).
+- [x] Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization (`AF-222`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-222`
-* **Objective**: Syndicate SWF Deflection Surcharge Policy dynamic deflection cap & strategic emergency refunding consensus voting.
-* **Why this matters**: Support proposing and voting on dynamic deflection surcharge caps and strategic refund allocations across the P2P Gossip mesh, allowing syndicates to cooperatively allocate dynamic emergency refunds during extreme liquidity distress via majority consensus.
+**Task ID**: `AF-223`
+* **Objective**: Syndicate SWF Deflection Surcharge dynamic fee adjustment based on total syndicate war chests & strategic alliance liquidity pooling.
+* **Why this matters**: Support proposing and voting on dynamic deflection surcharge adjustments scaling with the collective wealth of allied syndicates, enabling wealthier alliances to subsidize transaction costs for liquidity-constrained allies during severe mesh partitions.
 * **Planned Actions**:
-  1. Define proposal and voting schemas inside GameState schemas for deflection cap and refund policy.
-  2. Implement `PROPOSE_DEFLECTION_CAP_AND_REFUND` and `VOTE_DEFLECTION_CAP_AND_REFUND` decentralized actions and consensus state transitions.
-  3. Wire dynamic deflection cap and refund allocations to the tick economy.
+  1. Define proposal and voting schemas inside GameState schemas for collective reserve-based fee adjustments.
+  2. Implement `PROPOSE_ALLIANCE_LIQUIDITY_SUBSIDY` and `VOTE_ALLIANCE_LIQUIDITY_SUBSIDY` actions and consensus state transitions.
+  3. Wire alliance-subsidized deflection fee adjustments to the tick economy.
   4. Write comprehensive Vitest integration tests asserting consensus updates and mesh synchronization.
 
 ---

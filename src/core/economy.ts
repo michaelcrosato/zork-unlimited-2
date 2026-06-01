@@ -6055,7 +6055,10 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           const baseRate = newState.swfDeflectionSurchargeBaseRate ?? 0.05;
           const depthScaling = newState.swfDeflectionSurchargePoolDepthScalingFactor ?? 1.0;
           const poolDepthFactor = poolCap > 0 ? Math.max(1.0, 1.0 + depthScaling * (1.0 - (poolCurrent / poolCap))) : 1.0;
-          const surchargeRate = baseRate * drawdownCount * poolDepthFactor;
+          let surchargeRate = baseRate * drawdownCount * poolDepthFactor;
+          if (newState.swfDeflectionSurchargeCap !== undefined) {
+            surchargeRate = Math.min(surchargeRate, newState.swfDeflectionSurchargeCap);
+          }
           const deflectionFee = Math.round(drawdown * surchargeRate);
 
           if (deflectionFee > 0 && syndicate) {
@@ -6100,6 +6103,21 @@ export function tickEconomy(state: GameState, pack: any): GameState {
                     }
                   }
                 }
+              }
+            }
+
+            // AF-222: Strategic emergency refunding consensus policy
+            const refundPercent = newState.swfDeflectionSurchargeEmergencyRefundAllocationPercent ?? 0;
+            const rawRefund = Math.round(deflectionFee * (refundPercent / 100));
+            if (rawRefund > 0) {
+              const sweepPool = newState.swfStakingSweepPool ?? 0;
+              const actualRefund = Math.min(rawRefund, sweepPool);
+              if (actualRefund > 0) {
+                syndicate.warChest = (syndicate.warChest ?? 0) + actualRefund;
+                newState.swfStakingSweepPool = sweepPool - actualRefund;
+                newState.journal.push(
+                  `[Security Insurance Pool Drawdown Emergency Refund] Refunded ${actualRefund} gold (Percent: ${refundPercent}%) to Syndicate ${syndicateId} from SWF staking sweep pool (Remaining Sweep Pool: ${newState.swfStakingSweepPool} gold).`
+                );
               }
             }
           }
