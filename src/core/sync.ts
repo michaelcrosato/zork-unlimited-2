@@ -9,7 +9,7 @@ import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
 import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs, reconcileSWFYieldCDOCDSs, reconcileSWFLeverageTargets, reconcileSWFTrancheLeverageTargets, reconcileSWFFractionalReserveRatios, reconcileSWFLockedCollateral, reconcileSWFClaimLiquidityRewards, reconcileCooperativeSovereigntyBonds, getSyndicateAvailableBondShares, reconcileSovereignBondFuturesPositions, reconcileMarginLiquidationInsurancePolicies, reconcileSovereignBondOptions, reconcileSovereignBondVolatilityPositions, reconcileVolatilityHedgedReserveBuffers, reconcileSWFYieldCDOTrancheReinsurance, reconcileSWFYieldCDORiskRatingModels, reconcileSWFYieldCDOTrancheReinsuranceListings, reconcileSWFYieldCDOTrancheReinsuranceBids, reconcileSWFYieldCDOTrancheReinsuranceSales, reconcileCancelSWFYieldCDOTrancheReinsuranceListings, reconcileSWFReinsuranceFuturesContracts, reconcileVolatilityHedgedPremiumPolicies, reconcileSWFReinsuranceOptionsListings, reconcileSWFReinsuranceOptionsBids, reconcileSWFReinsuranceOptionsSales, reconcileExerciseSWFReinsuranceOptions, reconcileSubmitSWFReinsuranceOptionLimitOrders, reconcileCancelSWFReinsuranceOptionLimitOrders, reconcileClaimReinsuranceLiquidityMiningRewards, reconcileSWFReinsuranceOptionTransactionCosts, reconcileSWFReinsuranceOptionMarketMakerRebates, reconcileSWFReinsuranceOptionMargins, reconcileSWFReinsuranceOptionStressTests, reconcileSWFReinsuranceOptionHedging } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
-import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging } from "./state.js";
+import { reconcileSWFSovereignBondArbitragePolicies, SovereignBondLendingPool, reconcileSWFReinsuranceOptionDeltaHedging, reconcileSWFReinsuranceOptionStressTestDeltaHedging, reconcileSWFReinsuranceOptionCrossHedging, reconcileSWFReinsuranceOptionMultiAssetCrossHedging, MultiAssetCrossHedgingAsset, reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging, reconcileSWFMultiFundReinsurance } from "./state.js";
 export interface MultiAgentAction {
   agentId: string;
   action: Action;
@@ -34093,6 +34093,117 @@ export function multiAgentStep(
       });
     }
 
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok ? customEvents : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle ADJUST_SWF_MULTI_FUND_REINSURANCE_POOL action (AF-166)
+  if ((action as any).type === "ADJUST_SWF_MULTI_FUND_REINSURANCE_POOL") {
+    const { poolId, syndicateId, syndicateIds, capitalAllocated, volatilityHedgeRatio, targetYieldRate, historicalVolatility, arbitrageRoutes, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+
+    if (!poolId) {
+      rejectionReason = `Pool ID is required.`;
+    } else if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!syndicateIds || !Array.isArray(syndicateIds) || syndicateIds.length === 0) {
+      rejectionReason = `Participating syndicate IDs are required.`;
+    } else if (!capitalAllocated || typeof capitalAllocated !== "object") {
+      rejectionReason = `Capital allocation map is required.`;
+    } else if (volatilityHedgeRatio === undefined || volatilityHedgeRatio < 0) {
+      rejectionReason = `Volatility hedge ratio must be non-negative.`;
+    } else if (targetYieldRate === undefined || targetYieldRate < 0) {
+      rejectionReason = `Target yield rate must be non-negative.`;
+    } else if (historicalVolatility === undefined || historicalVolatility < 0) {
+      rejectionReason = `Historical volatility must be non-negative.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId}.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const adjustSWFMultiFundReinsuranceVotes = { ...(state.adjustSWFMultiFundReinsuranceVotes || {}) };
+      if (!adjustSWFMultiFundReinsuranceVotes[poolId]) {
+        adjustSWFMultiFundReinsuranceVotes[poolId] = {};
+      }
+      adjustSWFMultiFundReinsuranceVotes[poolId][agentId] = {
+        poolId,
+        syndicateId,
+        syndicateIds,
+        capitalAllocated,
+        volatilityHedgeRatio,
+        targetYieldRate,
+        historicalVolatility,
+        arbitrageRoutes,
+        timestamp,
+      };
+      newState.adjustSWFMultiFundReinsuranceVotes = adjustSWFMultiFundReinsuranceVotes;
+
+      // Reconcile votes
+      newState = reconcileSWFMultiFundReinsurance(newState, pack);
+
+      if (newState.swfMultiFundReinsurancePools?.[poolId]?.active) {
+        customEvents.push({
+          type: "swf_multi_fund_reinsurance_pool_established",
+          poolId,
+          syndicateIds,
+        });
+      }
+    }
+
+    // Maintain history on successful steps
     newState.step += 1;
     if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];

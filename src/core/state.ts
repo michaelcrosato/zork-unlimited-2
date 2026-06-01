@@ -1847,6 +1847,33 @@ export const MarginAccountSchema = z.object({
 });
 export type MarginAccount = z.infer<typeof MarginAccountSchema>;
 
+export const SWFMultiFundReinsurancePoolSchema = z.object({
+  id: z.string(),
+  syndicateIds: z.array(z.string()),
+  capitalAllocated: z.record(z.string(), z.number().int().nonnegative()),
+  totalReserve: z.number().int().nonnegative(),
+  volatilityHedgeRatio: z.number().nonnegative(),
+  targetYieldRate: z.number().nonnegative(),
+  historicalVolatility: z.number().nonnegative(),
+  timestamp: z.number().int(),
+  active: z.boolean(),
+  arbitrageRoutes: z.array(z.string()).optional(),
+});
+export type SWFMultiFundReinsurancePool = z.infer<typeof SWFMultiFundReinsurancePoolSchema>;
+
+export const SWFMultiFundReinsuranceVoteSchema = z.object({
+  poolId: z.string(),
+  syndicateId: z.string(),
+  syndicateIds: z.array(z.string()),
+  capitalAllocated: z.record(z.string(), z.number().int().nonnegative()),
+  volatilityHedgeRatio: z.number().nonnegative(),
+  targetYieldRate: z.number().nonnegative(),
+  historicalVolatility: z.number().nonnegative(),
+  arbitrageRoutes: z.array(z.string()).optional(),
+  timestamp: z.number().int(),
+});
+export type SWFMultiFundReinsuranceVote = z.infer<typeof SWFMultiFundReinsuranceVoteSchema>;
+
 export const CDSTradeProposalSchema = z.object({
   id: z.string(),
   cdsId: z.string(),
@@ -2592,6 +2619,8 @@ export const GameStateSchema = z.object({
   swfYieldCDOCDSs: z.record(z.string(), SWFYieldCDOCDSSchema).optional(),
   swfYieldCDOCDSVotes: z.record(z.string(), z.record(z.string(), SWFYieldCDOCDSVoteSchema)).optional(),
   swfYieldCDOCDSTrades: z.record(z.string(), SWFYieldCDOCDSTradeProposalSchema).optional(),
+  swfMultiFundReinsurancePools: z.record(z.string(), SWFMultiFundReinsurancePoolSchema).optional(),
+  adjustSWFMultiFundReinsuranceVotes: z.record(z.string(), z.record(z.string(), SWFMultiFundReinsuranceVoteSchema)).optional(),
   marginAccounts: z.record(z.string(), MarginAccountSchema).optional(),
   marginRehypothecationVotes: z.record(z.string(), z.record(z.string(), z.object({
     vaultId: z.string(),
@@ -3090,6 +3119,8 @@ export const createInitialState = (options: {
     reinsuranceContracts: {},
     reinsuranceVotes: {},
     reinsuranceTransferVotes: {},
+    swfMultiFundReinsurancePools: {},
+    adjustSWFMultiFundReinsuranceVotes: {},
     executedReinsuranceTransfers: {},
     contagionShields: {},
     contagionShieldVotes: {},
@@ -4001,6 +4032,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     reinsuranceContracts: rest.reinsuranceContracts ? JSON.parse(JSON.stringify(rest.reinsuranceContracts)) : undefined,
     reinsuranceVotes: rest.reinsuranceVotes ? JSON.parse(JSON.stringify(rest.reinsuranceVotes)) : undefined,
     reinsuranceTransferVotes: rest.reinsuranceTransferVotes ? JSON.parse(JSON.stringify(rest.reinsuranceTransferVotes)) : undefined,
+    swfMultiFundReinsurancePools: rest.swfMultiFundReinsurancePools ? JSON.parse(JSON.stringify(rest.swfMultiFundReinsurancePools)) : undefined,
+    adjustSWFMultiFundReinsuranceVotes: rest.adjustSWFMultiFundReinsuranceVotes ? JSON.parse(JSON.stringify(rest.adjustSWFMultiFundReinsuranceVotes)) : undefined,
     executedReinsuranceTransfers: rest.executedReinsuranceTransfers ? { ...rest.executedReinsuranceTransfers } : undefined,
     contagionShields: rest.contagionShields ? JSON.parse(JSON.stringify(rest.contagionShields)) : undefined,
     contagionShieldVotes: rest.contagionShieldVotes ? JSON.parse(JSON.stringify(rest.contagionShieldVotes)) : undefined,
@@ -12857,6 +12890,93 @@ export function reconcileSWFReinsuranceOptionStressTestDeltaCrossHedging(state: 
 
   return newState;
 }
+
+export function reconcileSWFMultiFundReinsurance(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfMultiFundReinsurancePools: state.swfMultiFundReinsurancePools ? { ...state.swfMultiFundReinsurancePools } : {},
+    adjustSWFMultiFundReinsuranceVotes: state.adjustSWFMultiFundReinsuranceVotes ? { ...state.adjustSWFMultiFundReinsuranceVotes } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const poolId of Object.keys(newState.adjustSWFMultiFundReinsuranceVotes || {})) {
+    const votes = newState.adjustSWFMultiFundReinsuranceVotes?.[poolId] || {};
+
+    const voteGroups: Record<string, {
+      poolId: string;
+      syndicateIds: string[];
+      capitalAllocated: Record<string, number>;
+      volatilityHedgeRatio: number;
+      targetYieldRate: number;
+      historicalVolatility: number;
+      arbitrageRoutes?: string[];
+      voters: Set<string>;
+      timestamps: number[];
+    }> = {};
+
+    for (const [voterId, vote] of Object.entries(votes)) {
+      const key = `${vote.poolId}::${vote.syndicateIds.sort().join(",")}::${JSON.stringify(vote.capitalAllocated)}::${vote.volatilityHedgeRatio}::${vote.targetYieldRate}::${vote.historicalVolatility}::${JSON.stringify(vote.arbitrageRoutes ?? [])}`;
+      if (!voteGroups[key]) {
+        voteGroups[key] = {
+          poolId: vote.poolId,
+          syndicateIds: vote.syndicateIds,
+          capitalAllocated: vote.capitalAllocated,
+          volatilityHedgeRatio: vote.volatilityHedgeRatio,
+          targetYieldRate: vote.targetYieldRate,
+          historicalVolatility: vote.historicalVolatility,
+          arbitrageRoutes: vote.arbitrageRoutes,
+          voters: new Set<string>(),
+          timestamps: [],
+        };
+      }
+      voteGroups[key].voters.add(voterId);
+      voteGroups[key].timestamps.push(vote.timestamp);
+    }
+
+    for (const group of Object.values(voteGroups)) {
+      let allSyndicatesApproved = true;
+      for (const syndicateId of group.syndicateIds) {
+        const syndicate = newState.syndicates?.[syndicateId];
+        if (!syndicate) {
+          allSyndicatesApproved = false;
+          break;
+        }
+        const totalMembers = syndicate.members.length;
+        const syndicateApprovals = syndicate.members.filter(m => group.voters.has(m)).length;
+        if (syndicateApprovals <= totalMembers / 2) {
+          allSyndicatesApproved = false;
+          break;
+        }
+      }
+
+      if (allSyndicatesApproved) {
+        newState.swfMultiFundReinsurancePools![poolId] = {
+          id: group.poolId,
+          syndicateIds: group.syndicateIds,
+          capitalAllocated: group.capitalAllocated,
+          totalReserve: Object.values(group.capitalAllocated).reduce((sum, v) => sum + v, 0),
+          volatilityHedgeRatio: group.volatilityHedgeRatio,
+          targetYieldRate: group.targetYieldRate,
+          historicalVolatility: group.historicalVolatility,
+          timestamp: Math.max(...group.timestamps, newState.step),
+          active: true,
+          arbitrageRoutes: group.arbitrageRoutes,
+        };
+
+        delete newState.adjustSWFMultiFundReinsuranceVotes![poolId];
+        
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Multi-Fund Reinsurance Pool Established] Established multi-fund pool ${poolId} for syndicates ${group.syndicateIds.join(", ")} (Total Reserve: ${newState.swfMultiFundReinsurancePools![poolId].totalReserve} gold, Volatility Hedge Ratio: ${group.volatilityHedgeRatio.toFixed(2)}x, Target Yield Rate: ${group.targetYieldRate.toFixed(2)}%).`
+        );
+        break;
+      }
+    }
+  }
+
+  return newState;
+}
+
 
 
 

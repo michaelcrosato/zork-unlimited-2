@@ -6154,7 +6154,131 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // AF-166: Tick SWF Multi-Fund Reinsurance Pools & Arbitrage
+  finalState = tickSWFMultiFundReinsurance(finalState);
+
   return finalState;
+}
+
+export function tickSWFMultiFundReinsurance(state: GameState): GameState {
+  if (!state.swfMultiFundReinsurancePools) return state;
+
+  const newState = {
+    ...state,
+    swfMultiFundReinsurancePools: { ...state.swfMultiFundReinsurancePools },
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+    marginAccounts: state.marginAccounts ? { ...state.marginAccounts } : {},
+    journal: state.journal ? [...state.journal] : [],
+  };
+
+  for (const [poolId, pool] of Object.entries(newState.swfMultiFundReinsurancePools)) {
+    if (!pool.active) continue;
+
+    // 1. Determine current volatility dynamically using state.step and pool's historicalVolatility
+    const stepFluc = (newState.step % 6) * 10;
+    const spotVolatility = Math.max(10.0, pool.historicalVolatility + stepFluc);
+
+    // 2. Automated Rebalancing: calculate required capital based on volatility and hedge ratio
+    const requiredCapitalMultiplier = 1.0 + (spotVolatility / 100.0) * pool.volatilityHedgeRatio;
+    const totalRequired = Math.round(2000 * requiredCapitalMultiplier);
+
+    const participatingSyndicates = pool.syndicateIds;
+    const numSyndicates = participatingSyndicates.length;
+    if (numSyndicates === 0) continue;
+
+    const targetSharePerSyndicate = Math.round(totalRequired / numSyndicates);
+
+    // Track updated allocated capital
+    const newCapitalAllocated = { ...pool.capitalAllocated };
+
+    for (const syndicateId of participatingSyndicates) {
+      const syndicate = newState.syndicates[syndicateId];
+      if (!syndicate) continue;
+
+      const currentAllocated = newCapitalAllocated[syndicateId] ?? 0;
+      if (currentAllocated < targetSharePerSyndicate) {
+        // Need to deposit/increase capital
+        const needed = targetSharePerSyndicate - currentAllocated;
+        const available = syndicate.warChest ?? 0;
+        const toDeposit = Math.min(needed, available);
+
+        if (toDeposit > 0) {
+          newState.syndicates[syndicateId] = {
+            ...syndicate,
+            warChest: Math.max(0, (syndicate.warChest ?? 0) - toDeposit),
+          };
+          newCapitalAllocated[syndicateId] = currentAllocated + toDeposit;
+          newState.journal.push(
+            `[SWF Multi-Fund Rebalance Deposit] Syndicate ${syndicateId} deposited ${toDeposit} gold to Reinsurance Pool ${poolId} to maintain volatility-hedged share of ${targetSharePerSyndicate} gold (Spot Volatility: ${spotVolatility.toFixed(2)}%).`
+          );
+        }
+      } else if (currentAllocated > targetSharePerSyndicate) {
+        // Excess capital refund
+        const excess = currentAllocated - targetSharePerSyndicate;
+        newState.syndicates[syndicateId] = {
+          ...syndicate,
+          warChest: (syndicate.warChest ?? 0) + excess,
+        };
+        newCapitalAllocated[syndicateId] = targetSharePerSyndicate;
+        newState.journal.push(
+          `[SWF Multi-Fund Rebalance Refund] Syndicate ${syndicateId} refunded ${excess} gold of excess reserve from Reinsurance Pool ${poolId} (Target: ${targetSharePerSyndicate} gold, Spot Volatility: ${spotVolatility.toFixed(2)}%).`
+        );
+      }
+    }
+
+    // Update totalReserve
+    const newTotalReserve = Object.values(newCapitalAllocated).reduce((sum, val) => sum + val, 0);
+
+    // 3. Dynamic Yield Arbitrage Routing
+    let arbitrageGoldEarned = 0;
+    if (pool.arbitrageRoutes && pool.arbitrageRoutes.length > 0) {
+      let maxTargetYield = 0.15;
+      for (const routeTarget of pool.arbitrageRoutes) {
+        const targetCdo = newState.swfYieldCDOs?.[routeTarget];
+        if (targetCdo && targetCdo.tranches) {
+          const maxTrancheYield = Math.max(...Object.values(targetCdo.tranches).map((t: any) => t.yieldRate ?? 0));
+          if (maxTrancheYield > maxTargetYield) {
+            maxTargetYield = maxTrancheYield;
+          }
+        }
+      }
+
+      const yieldSpread = maxTargetYield - pool.targetYieldRate;
+      if (yieldSpread > 0) {
+        const routedCapital = Math.round(newTotalReserve * 0.25);
+        arbitrageGoldEarned = Math.round(routedCapital * yieldSpread);
+
+        if (arbitrageGoldEarned > 0) {
+          const sharePerSyndicate = Math.floor(arbitrageGoldEarned / numSyndicates);
+          if (sharePerSyndicate > 0) {
+            for (const syndicateId of participatingSyndicates) {
+              const syndicate = newState.syndicates[syndicateId];
+              if (syndicate) {
+                newState.syndicates[syndicateId] = {
+                  ...syndicate,
+                  warChest: (syndicate.warChest ?? 0) + sharePerSyndicate,
+                };
+              }
+            }
+            newState.journal.push(
+              `[SWF Reinsurance Pool Arbitrage] Pool ${poolId} routed ${routedCapital} gold to high-yield targets, earning ${arbitrageGoldEarned} gold arbitrage yield (distributed ${sharePerSyndicate} gold to each participant).`
+            );
+          }
+        }
+      }
+    }
+
+    // Save updated pool state
+    newState.swfMultiFundReinsurancePools[poolId] = {
+      ...pool,
+      capitalAllocated: newCapitalAllocated,
+      totalReserve: newTotalReserve,
+      historicalVolatility: spotVolatility,
+      timestamp: newState.step,
+    };
+  }
+
+  return newState;
 }
 
 /**
