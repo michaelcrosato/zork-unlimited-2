@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #236 (Ready for Cycle #237)
-* **Build/Test Status**: 🟢 PASS (All 814 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #237 (Ready for Cycle #238)
+* **Build/Test Status**: 🟢 PASS (All 817 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 
 ---
@@ -1541,15 +1541,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 
 ---
 
+### Phase 218: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Reinvestment Tiered Reward Boosters & Reputation Slashing (Completed)
+- [x] Define co-investment reinvestment tiered rewards and multiplier schemas in GameState (`AF-240`).
+- [x] Implement decentralized co-investment policy voting to adjust booster tier ranges and slashing penalties (`AF-240`).
+- [x] Wire the economy tick to calculate and apply tiered reputation and reward multipliers or execute reputation slashes based on the active yield reinvestment ratio (`AF-240`).
+- [x] Write comprehensive Vitest integration tests and run AI Autopilot validator (`AF-240`).
+
+---
+
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-240`
-* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Reinvestment Tiered Reward Boosters & Reputation Slashing.
-* **Why this matters**: Incentive-align syndicates to compound their capital inside the CDO pool to support Sovereign Debt stability rather than continuously draining coupons. Syndicates who maintain high automated yield reinvestment ratios (e.g. >50% reinvestment share gets a 1.2x boost on reputation gains; >80% gets 1.5x) receive tiered reputation and reward multipliers, while a fractional reputation slashing penalty is applied to syndicates who reduce or completely disable their reinvestment share below 10%.
+**Task ID**: `AF-241`
+* **Objective**: Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Auto-Reinvestment Interest Rate Yield-Hedging Option Pools.
+* **Why this matters**: Further expand the complex financial tooling surrounding sovereign debt default by allowing syndicates to purchase "Yield-Hedging Options" on their reinvested CDO tranche yield pools, protecting their accrued interest payouts against sudden volatility shocks or default events. Syndicates can vote to adjust premium pricing spreads and establish automated interest-rate hedges that deflect margin liquidations when default alerts are active.
 * **Planned Actions**:
-  1. Define co-investment reinvestment tiered rewards and multiplier schemas in GameState.
-  2. Implement decentralized co-investment policy voting to adjust booster tier ranges and slashing penalties.
-  3. Wire the economy tick to calculate and apply tiered reputation and reward multipliers or execute reputation slashes based on the active yield reinvestment ratio.
-  4. Write comprehensive Vitest integration tests.
+  1. Define Yield-Hedging Option contract and portfolio schemas in GameState.
+  2. Implement decentralized actions to propose, vote, and purchase Yield-Hedging Options on CDO reinvestment portfolios.
+  3. Wire the economy tick to calculate dynamic hedging premium prices and trigger automatic option settlements when a default alert is broadcast.
+  4. Write comprehensive Vitest unit and integration tests.
 
 ---
 
