@@ -2717,6 +2717,26 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
+  const swfYieldCDOs = { ...stateA.swfYieldCDOs };
+  if (stateB.swfYieldCDOs) {
+    for (const [key, valB] of Object.entries(stateB.swfYieldCDOs)) {
+      const valA = swfYieldCDOs[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        swfYieldCDOs[key] = valB;
+      }
+    }
+  }
+
+  const swfYieldCDOProposals = { ...stateA.swfYieldCDOProposals };
+  if (stateB.swfYieldCDOProposals) {
+    for (const [key, valB] of Object.entries(stateB.swfYieldCDOProposals)) {
+      const valA = swfYieldCDOProposals[key];
+      if (!valA || valB.timestamp > valA.timestamp) {
+        swfYieldCDOProposals[key] = valB;
+      }
+    }
+  }
+
   return {
     ...stateA,
     visited,
@@ -2887,6 +2907,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfYieldTokenProposals,
     swfRiskPools,
     swfRiskPoolProposals,
+    swfYieldCDOs,
+    swfYieldCDOProposals,
   };
 }
 

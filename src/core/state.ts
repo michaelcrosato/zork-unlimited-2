@@ -1598,6 +1598,47 @@ export const SWFRiskPoolProposalSchema = z.object({
 });
 export type SWFRiskPoolProposal = z.infer<typeof SWFRiskPoolProposalSchema>;
 
+export const SWFYieldCDOAssetSchema = z.object({
+  swfYieldTokenId: z.string(),
+  sharesPacked: z.number().int().positive(),
+  value: z.number().int().positive(),
+});
+export type SWFYieldCDOAsset = z.infer<typeof SWFYieldCDOAssetSchema>;
+
+export const SWFYieldCDOTrancheSchema = z.object({
+  trancheId: z.enum(["senior", "mezzanine", "equity"]),
+  yieldRate: z.number(),
+  totalShares: z.number().int().nonnegative(),
+  ownership: z.record(z.string(), z.number().int().nonnegative()),
+  timestamp: z.number().int(),
+});
+export type SWFYieldCDOTranche = z.infer<typeof SWFYieldCDOTrancheSchema>;
+
+export const SWFYieldCDOSchema = z.object({
+  id: z.string(),
+  creatorSyndicateId: z.string(),
+  assets: z.array(SWFYieldCDOAssetSchema),
+  totalValue: z.number().int().positive(),
+  tranches: z.record(z.enum(["senior", "mezzanine", "equity"]), SWFYieldCDOTrancheSchema),
+  timestamp: z.number().int(),
+});
+export type SWFYieldCDO = z.infer<typeof SWFYieldCDOSchema>;
+
+export const SWFYieldCDOPackageProposalSchema = z.object({
+  id: z.string(),
+  proposerSyndicateId: z.string(),
+  assets: z.array(SWFYieldCDOAssetSchema),
+  trancheYieldRates: z.record(z.enum(["senior", "mezzanine", "equity"]), z.number()),
+  trancheTotalShares: z.record(z.enum(["senior", "mezzanine", "equity"]), z.number().int().positive()),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFYieldCDOPackageProposal = z.infer<typeof SWFYieldCDOPackageProposalSchema>;
+
 
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
@@ -2007,6 +2048,8 @@ export const GameStateSchema = z.object({
   swfYieldTokenProposals: z.record(z.string(), SWFYieldTokenProposalSchema).optional(),
   swfRiskPools: z.record(z.string(), SWFRiskPoolSchema).optional(),
   swfRiskPoolProposals: z.record(z.string(), SWFRiskPoolProposalSchema).optional(),
+  swfYieldCDOs: z.record(z.string(), SWFYieldCDOSchema).optional(),
+  swfYieldCDOProposals: z.record(z.string(), SWFYieldCDOPackageProposalSchema).optional(),
 });
 
 
@@ -2238,6 +2281,8 @@ export const createInitialState = (options: {
     swfYieldTokenProposals: {},
     swfRiskPools: {},
     swfRiskPoolProposals: {},
+    swfYieldCDOs: {},
+    swfYieldCDOProposals: {},
   };
 };
 
@@ -3063,6 +3108,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     swfYieldTokenProposals: rest.swfYieldTokenProposals ? JSON.parse(JSON.stringify(rest.swfYieldTokenProposals)) : undefined,
     swfRiskPools: rest.swfRiskPools ? JSON.parse(JSON.stringify(rest.swfRiskPools)) : undefined,
     swfRiskPoolProposals: rest.swfRiskPoolProposals ? JSON.parse(JSON.stringify(rest.swfRiskPoolProposals)) : undefined,
+    swfYieldCDOs: rest.swfYieldCDOs ? JSON.parse(JSON.stringify(rest.swfYieldCDOs)) : undefined,
+    swfYieldCDOProposals: rest.swfYieldCDOProposals ? JSON.parse(JSON.stringify(rest.swfYieldCDOProposals)) : undefined,
   };
   return clone;
 }
@@ -7671,6 +7718,115 @@ export function reconcileSWFRiskPools(state: GameState, pack: any): GameState {
         if (!newState.journal) newState.journal = [];
         newState.journal.push(
           `[Risk Pool Resolution Failed] SWFs have insufficient reserves to establish risk pool ${proposalId}.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFYieldCDOs(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfYieldCDOProposals: state.swfYieldCDOProposals ? { ...state.swfYieldCDOProposals } : {},
+    swfYieldCDOs: state.swfYieldCDOs ? { ...state.swfYieldCDOs } : {},
+    swfYieldTokens: state.swfYieldTokens ? { ...state.swfYieldTokens } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.swfYieldCDOProposals || {})) {
+    const proposal = newState.swfYieldCDOProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { proposerSyndicateId, assets, trancheYieldRates, trancheTotalShares, timestamp } = proposal;
+    const proposerSyndicate = newState.syndicates?.[proposerSyndicateId];
+    if (!proposerSyndicate) continue;
+
+    // Check consensus: requires majority approval from members of the proposing syndicate!
+    const members = proposerSyndicate.members;
+    const votes = proposal.votes || {};
+    const yesVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    if (yesVotes.length > members.length / 2) {
+      // Validate that proposer syndicate has enough shares of each packed yield token!
+      let allAssetsValid = true;
+      for (const asset of assets) {
+        const token = newState.swfYieldTokens?.[asset.swfYieldTokenId];
+        const ownedShares = token?.syndicateShares?.[proposerSyndicateId] ?? 0;
+        if (!token || ownedShares < asset.sharesPacked) {
+          allAssetsValid = false;
+          break;
+        }
+      }
+
+      if (allAssetsValid) {
+        // Deduct packed yield tokens from proposer syndicate's owned shares
+        for (const asset of assets) {
+          const token = newState.swfYieldTokens[asset.swfYieldTokenId];
+          token.syndicateShares[proposerSyndicateId] = (token.syndicateShares[proposerSyndicateId] ?? 0) - asset.sharesPacked;
+        }
+
+        // Calculate total packaged value
+        let totalValue = 0;
+        for (const asset of assets) {
+          totalValue += asset.value;
+        }
+
+        // Create SWF Yield CDO
+        const S_shares = trancheTotalShares.senior;
+        const M_shares = trancheTotalShares.mezzanine;
+        const E_shares = trancheTotalShares.equity;
+
+        const tranches: Record<"senior" | "mezzanine" | "equity", SWFYieldCDOTranche> = {
+          senior: {
+            trancheId: "senior",
+            yieldRate: trancheYieldRates.senior,
+            totalShares: S_shares,
+            ownership: { [proposerSyndicateId]: S_shares },
+            timestamp,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: trancheYieldRates.mezzanine,
+            totalShares: M_shares,
+            ownership: { [proposerSyndicateId]: M_shares },
+            timestamp,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: trancheYieldRates.equity,
+            totalShares: E_shares,
+            ownership: { [proposerSyndicateId]: E_shares },
+            timestamp,
+          },
+        };
+
+        newState.swfYieldCDOs[proposalId] = {
+          id: proposalId,
+          creatorSyndicateId: proposerSyndicateId,
+          assets: [...assets],
+          totalValue,
+          tranches,
+          timestamp,
+        };
+
+        // Resolve proposal
+        newState.swfYieldCDOProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Yield CDO Packaged] Proposer Syndicate ${proposerSyndicateId} successfully packaged ${assets.length} SWF yield derivative tokens into SWF Yield CDO ${proposalId} (Total Value: ${totalValue} gold).`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Yield CDO Packaging Failed] Proposer Syndicate ${proposerSyndicateId} has insufficient owned shares of packed yield tokens to resolve proposal ${proposalId}.`
         );
       }
     }

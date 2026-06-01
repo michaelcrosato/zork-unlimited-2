@@ -3307,6 +3307,145 @@ export function tickEconomy(state: GameState, pack: any): GameState {
     }
   }
 
+  // Periodic SWF Yield CDO Tranche Dividend Distributions & Default waterfalls (AF-131)
+  if (newState.swfYieldCDOs && Object.keys(newState.swfYieldCDOs).length > 0) {
+    newState.swfYieldCDOs = { ...newState.swfYieldCDOs };
+    for (const [cdoId, cdo] of Object.entries(newState.swfYieldCDOs)) {
+      const updatedCdo = {
+        ...cdo,
+        assets: [...cdo.assets],
+        tranches: {
+          senior: { ...cdo.tranches.senior, ownership: { ...cdo.tranches.senior.ownership } },
+          mezzanine: { ...cdo.tranches.mezzanine, ownership: { ...cdo.tranches.mezzanine.ownership } },
+          equity: { ...cdo.tranches.equity, ownership: { ...cdo.tranches.equity.ownership } },
+        },
+        timestamp: newState.step,
+      };
+
+      let cashflowCollected = 0;
+      let totalWriteDown = 0;
+      const remainingAssets: any[] = [];
+
+      for (const asset of updatedCdo.assets) {
+        const token = newState.swfYieldTokens?.[asset.swfYieldTokenId];
+        const portfolio = token ? newState.jointVenturePortfolios?.[token.portfolioId] : undefined;
+
+        if (!token || !portfolio || portfolio.status !== "Active") {
+          // Underlying asset defaulted or portfolio is no longer active!
+          totalWriteDown += asset.value;
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Yield CDO Asset Default] Packed SWF Yield Token ${asset.swfYieldTokenId} inside CDO ${cdoId} defaulted due to inactive underlying portfolio.`
+          );
+        } else {
+          // Perform deterministic default roll check using Mulberry32 PRNG seed!
+          const { value: sweepRoll, nextSeed } = PureRand.nextInt(newState.seed, 1, 100);
+          newState.seed = nextSeed;
+
+          // Arbitrage route has 10% risk, Faction bond has 5% risk!
+          const riskLimit = portfolio.targetType === "ArbitrageRoute" ? 10 : 5;
+
+          if (sweepRoll <= riskLimit) {
+            // Regulators or market crash liquidated the underlying asset!
+            totalWriteDown += asset.value;
+            if (!newState.journal) newState.journal = [];
+            newState.journal.push(
+              `[SWF Yield CDO Asset Default] Packed SWF Yield Token ${asset.swfYieldTokenId} inside CDO ${cdoId} defaulted during enforcer sweep roll (Roll: ${sweepRoll} <= Risk: ${riskLimit}%).`
+            );
+          } else {
+            // Earn yield!
+            const totalTokenYield = Math.floor(portfolio.investedAmount * (portfolio.yieldRate / 100));
+            const assetYield = Math.floor(totalTokenYield * (asset.sharesPacked / token.totalShares));
+            cashflowCollected += assetYield;
+            remainingAssets.push(asset);
+          }
+        }
+      }
+
+      updatedCdo.assets = remainingAssets;
+
+      // Calculate tranche targets
+      const S_target = Math.max(1, Math.floor(updatedCdo.tranches.senior.totalShares * updatedCdo.tranches.senior.yieldRate));
+      const M_target = Math.max(1, Math.floor(updatedCdo.tranches.mezzanine.totalShares * updatedCdo.tranches.mezzanine.yieldRate));
+
+      let remainingCashflow = cashflowCollected;
+      const S_payout = updatedCdo.tranches.senior.totalShares > 0 ? Math.min(remainingCashflow, S_target) : 0;
+      remainingCashflow -= S_payout;
+
+      const M_payout = updatedCdo.tranches.mezzanine.totalShares > 0 ? Math.min(remainingCashflow, M_target) : 0;
+      remainingCashflow -= M_payout;
+
+      const E_payout = updatedCdo.tranches.equity.totalShares > 0 ? remainingCashflow : 0;
+
+      const payouts = [
+        { tranche: updatedCdo.tranches.senior, payout: S_payout },
+        { tranche: updatedCdo.tranches.mezzanine, payout: M_payout },
+        { tranche: updatedCdo.tranches.equity, payout: E_payout },
+      ];
+
+      for (const { tranche, payout } of payouts) {
+        if (payout > 0 && tranche.totalShares > 0) {
+          if (!newState.syndicates) newState.syndicates = {};
+          for (const [syndicateId, ownedShares] of Object.entries(tranche.ownership)) {
+            if (ownedShares > 0) {
+              const syndicate = newState.syndicates[syndicateId];
+              if (syndicate) {
+                const share = Math.floor(payout * (ownedShares / tranche.totalShares));
+                if (share > 0) {
+                  newState.syndicates[syndicateId] = {
+                    ...syndicate,
+                    warChest: (syndicate.warChest ?? 0) + share,
+                  };
+                  if (!newState.journal) newState.journal = [];
+                  newState.journal.push(
+                    `[SWF Yield CDO Yield Payout] Syndicate ${syndicateId} earned ${share} gold payout from SWF Yield CDO ${cdoId} tranche ${tranche.trancheId}.`
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Pro-rata defaults / write-downs applying waterfall to tranche values
+      if (totalWriteDown > 0) {
+        let remainingLoss = totalWriteDown;
+
+        const tranchesOrdered = [
+          updatedCdo.tranches.equity,
+          updatedCdo.tranches.mezzanine,
+          updatedCdo.tranches.senior,
+        ];
+
+        for (const tranche of tranchesOrdered) {
+          if (remainingLoss <= 0) break;
+          const oldTotal = tranche.totalShares;
+          const loss = Math.min(remainingLoss, oldTotal);
+          remainingLoss -= loss;
+
+          const newTotal = oldTotal - loss;
+          tranche.totalShares = newTotal;
+
+          for (const [syndicateId, ownedShares] of Object.entries(tranche.ownership)) {
+            if (oldTotal > 0) {
+              tranche.ownership[syndicateId] = Math.max(0, Math.round(ownedShares * (newTotal / oldTotal)));
+            } else {
+              tranche.ownership[syndicateId] = 0;
+            }
+          }
+
+          if (!newState.journal) newState.journal = [];
+          newState.journal.push(
+            `[SWF Yield CDO Write-Down] CDO ${cdoId} tranche ${tranche.trancheId} written down by -${loss} shares due to asset defaults.`
+          );
+        }
+      }
+
+      updatedCdo.totalValue = Math.max(0, updatedCdo.totalValue - totalWriteDown);
+      newState.swfYieldCDOs[cdoId] = updatedCdo;
+    }
+  }
+
   // Periodic Credit Default Swaps (CDS) Premium Deductions
   if (newState.creditDefaultSwaps && Object.keys(newState.creditDefaultSwaps).length > 0) {
     newState.creditDefaultSwaps = { ...newState.creditDefaultSwaps };

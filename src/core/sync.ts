@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations, reconcileMintSWFYieldTokens, reconcileSWFRiskPools, reconcileSWFYieldCDOs } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -25716,6 +25716,419 @@ export function multiAgentStep(
     if (ok) {
       newState = tickProductionLabs(newState, customEvents, pack);
 
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_SWF_YIELD_CDO action (AF-131)
+  if ((action as any).type === "PROPOSE_SWF_YIELD_CDO") {
+    const { proposalId, proposerSyndicateId, assets, trancheYieldRates, trancheTotalShares, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[proposerSyndicateId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (!proposerSyndicateId) {
+      rejectionReason = `Proposer Syndicate ID is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${proposerSyndicateId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${proposerSyndicateId} and cannot propose SWF yield CDO packaging.`;
+    } else if (!assets || !Array.isArray(assets) || assets.length === 0) {
+      rejectionReason = `Asset pool list is required and cannot be empty.`;
+    } else if (!trancheYieldRates || !trancheYieldRates.senior || !trancheYieldRates.mezzanine || !trancheYieldRates.equity) {
+      rejectionReason = `Custom tranche yield rates (senior, mezzanine, equity) are required.`;
+    } else if (!trancheTotalShares || !trancheTotalShares.senior || !trancheTotalShares.mezzanine || !trancheTotalShares.equity) {
+      rejectionReason = `Tranche total shares (senior, mezzanine, equity) are required.`;
+    } else if (state.swfYieldCDOs?.[proposalId]) {
+      rejectionReason = `SWF Yield CDO with ID ${proposalId} already exists.`;
+    } else {
+      // Validate all assets
+      let assetsValid = true;
+      for (const asset of assets) {
+        if (!asset.swfYieldTokenId || asset.sharesPacked === undefined || asset.sharesPacked <= 0) {
+          rejectionReason = `Invalid asset schema. Each asset must contain swfYieldTokenId and positive sharesPacked.`;
+          assetsValid = false;
+          break;
+        }
+        const token = state.swfYieldTokens?.[asset.swfYieldTokenId];
+        if (!token) {
+          rejectionReason = `SWF Yield Token ${asset.swfYieldTokenId} does not exist.`;
+          assetsValid = false;
+          break;
+        }
+        const ownedShares = token.syndicateShares?.[proposerSyndicateId] ?? 0;
+        if (ownedShares < asset.sharesPacked) {
+          rejectionReason = `Syndicate ${proposerSyndicateId} has insufficient shares of token ${asset.swfYieldTokenId} (owned: ${ownedShares}, requested: ${asset.sharesPacked}).`;
+          assetsValid = false;
+          break;
+        }
+      }
+      if (assetsValid) {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate) {
+      const proposals = { ...(state.swfYieldCDOProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          proposerSyndicateId,
+          assets: [...assets],
+          trancheYieldRates: { ...trancheYieldRates },
+          trancheTotalShares: { ...trancheTotalShares },
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.swfYieldCDOProposals = proposals;
+        newState = reconcileSWFYieldCDOs(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Yield CDO Proposed] Agent ${agentId} proposed packaging ${assets.length} SWF yield tokens into CDO ${proposalId} under Syndicate ${proposerSyndicateId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Yield CDO proposed by ${agentId}: Proposes packaging ${assets.length} SWF yield tokens into structured CDO ${proposalId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_yield_cdo_proposed" as any,
+          proposalId,
+          proposerSyndicateId,
+          assets,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_SWF_YIELD_CDO action (AF-131)
+  if ((action as any).type === "VOTE_SWF_YIELD_CDO") {
+    const { proposalId, syndicateId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.swfYieldCDOProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `SWF Yield CDO packaging proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on SWF Yield CDO proposal.`;
+    } else if (proposal.proposerSyndicateId !== syndicateId) {
+      rejectionReason = `Syndicate ${syndicateId} is not the proposer syndicate for proposal ${proposalId} and cannot vote.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.swfYieldCDOProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.swfYieldCDOProposals = proposalsCopy;
+        newState = reconcileSWFYieldCDOs(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[SWF Yield CDO Voted] Agent ${agentId} in syndicate ${syndicateId} voted ${vote ? "YES" : "NO"} on SWF Yield CDO proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ SWF Yield CDO vote cast by ${agentId}: Voted ${vote ? "YES" : "NO"} on SWF Yield CDO proposal ${proposalId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "swf_yield_cdo_voted" as any,
+          proposalId,
+          syndicateId,
+          vote,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized TRADE_SWF_YIELD_CDO_TRANCHE action (AF-131)
+  if ((action as any).type === "TRADE_SWF_YIELD_CDO_TRANCHE") {
+    const { cdoId, trancheId, sellerSyndicateId, buyerSyndicateId, amount, goldPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const cdo = state.swfYieldCDOs?.[cdoId];
+    const sellerSyndicate = state.syndicates?.[sellerSyndicateId];
+    const buyerSyndicate = state.syndicates?.[buyerSyndicateId];
+    const tranche = cdo?.tranches?.[trancheId as "senior" | "mezzanine" | "equity"];
+    const sellerOwnership = tranche?.ownership?.[sellerSyndicateId] ?? 0;
+
+    if (!cdoId) {
+      rejectionReason = `CDO ID is required to trade SWF Yield CDO tranche.`;
+    } else if (!trancheId) {
+      rejectionReason = `Tranche ID (senior, mezzanine, equity) is required.`;
+    } else if (!sellerSyndicateId) {
+      rejectionReason = `Seller Syndicate ID is required.`;
+    } else if (!buyerSyndicateId) {
+      rejectionReason = `Buyer Syndicate ID is required.`;
+    } else if (amount === undefined || amount <= 0 || !Number.isInteger(amount)) {
+      rejectionReason = `Trade share amount must be a positive integer.`;
+    } else if (goldPrice === undefined || goldPrice < 0 || !Number.isInteger(goldPrice)) {
+      rejectionReason = `Gold price must be a non-negative integer.`;
+    } else if (!cdo) {
+      rejectionReason = `SWF Yield CDO ${cdoId} does not exist.`;
+    } else if (!sellerSyndicate) {
+      rejectionReason = `Seller syndicate ${sellerSyndicateId} does not exist.`;
+    } else if (!buyerSyndicate) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} does not exist.`;
+    } else if (!sellerSyndicate.members.includes(agentId) && !buyerSyndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} must be a member of the buyer or seller syndicate to trade.`;
+    } else if (!tranche) {
+      rejectionReason = `Tranche ${trancheId} does not exist in SWF Yield CDO ${cdoId}.`;
+    } else if (sellerOwnership < amount) {
+      rejectionReason = `Seller syndicate ${sellerSyndicateId} has insufficient owned shares in SWF Yield CDO ${cdoId} tranche ${trancheId} (has ${sellerOwnership}, requested ${amount}).`;
+    } else if (goldPrice > 0 && (buyerSyndicate.warChest ?? 0) < goldPrice) {
+      rejectionReason = `Buyer syndicate ${buyerSyndicateId} has insufficient gold in its war chest to pay price of ${goldPrice} (has ${buyerSyndicate.warChest ?? 0}).`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && cdo && tranche) {
+      const seller = state.syndicates![sellerSyndicateId];
+      const buyer = state.syndicates![buyerSyndicateId];
+
+      newState.swfYieldCDOs = { ...state.swfYieldCDOs };
+      const updatedCdo = {
+        ...cdo,
+        tranches: {
+          ...cdo.tranches,
+          [trancheId as "senior" | "mezzanine" | "equity"]: {
+            ...tranche,
+            ownership: {
+              ...tranche.ownership,
+              [sellerSyndicateId]: sellerOwnership - amount,
+              [buyerSyndicateId]: (tranche.ownership?.[buyerSyndicateId] ?? 0) + amount,
+            },
+            timestamp,
+          },
+        },
+        timestamp,
+      };
+      newState.swfYieldCDOs[cdoId] = updatedCdo;
+
+      if (goldPrice > 0) {
+        newState.syndicates = state.syndicates ? { ...state.syndicates } : {};
+        newState.syndicates[buyerSyndicateId] = {
+          ...buyer,
+          warChest: (buyer.warChest ?? 0) - goldPrice,
+        } as any;
+
+        newState.syndicates[sellerSyndicateId] = {
+          ...seller,
+          warChest: (seller.warChest ?? 0) + goldPrice,
+        } as any;
+      }
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Yield CDO Tranche Trade] Syndicate ${sellerSyndicateId} traded ${amount} shares of SWF Yield CDO ${cdoId} tranche ${trancheId} to Syndicate ${buyerSyndicateId} for ${goldPrice} gold.`
+      );
+
+      customEvents.push({
+        type: "narration",
+        text: `🤝 SWF Yield CDO tranche traded! ${sellerSyndicateId} sold ${amount} shares of ${cdoId} (${trancheId}) to ${buyerSyndicateId} for ${goldPrice} gold.`,
+      } as any);
+
+      customEvents.push({
+        type: "swf_yield_cdo_tranche_traded" as any,
+        cdoId,
+        trancheId,
+        sellerSyndicateId,
+        buyerSyndicateId,
+        amount,
+        goldPrice,
+        agentId,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
       const cloned = cloneStateWithoutHistory(state);
       history.push(cloned);
