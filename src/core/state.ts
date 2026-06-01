@@ -1515,6 +1515,36 @@ export const JointVentureInvestmentProposalSchema = z.object({
 });
 export type JointVentureInvestmentProposal = z.infer<typeof JointVentureInvestmentProposalSchema>;
 
+export const JointVenturePortfolioSwapProposalSchema = z.object({
+  id: z.string(),
+  portfolioId: z.string(),
+  sourceFundId: z.string(),
+  targetFundId: z.string(),
+  proposerSyndicateId: z.string(),
+  goldPrice: z.number().int().nonnegative(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type JointVenturePortfolioSwapProposal = z.infer<typeof JointVenturePortfolioSwapProposalSchema>;
+
+export const JointVentureAssetLiquidationProposalSchema = z.object({
+  id: z.string(),
+  portfolioId: z.string(),
+  proposerSyndicateId: z.string(),
+  liquidateAmount: z.number().int().positive(),
+  timestamp: z.number().int(),
+  resolved: z.boolean(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type JointVentureAssetLiquidationProposal = z.infer<typeof JointVentureAssetLiquidationProposalSchema>;
+
 export const LockedLiquidityEpochPoolSchema = z.object({
   epoch: z.number().int().nonnegative(),
   totalLocked: z.number().int().nonnegative(),
@@ -1917,6 +1947,8 @@ export const GameStateSchema = z.object({
   jointVenturePortfolios: z.record(z.string(), JointVenturePortfolioSchema).optional(),
   sovereignWealthFundProposals: z.record(z.string(), SovereignWealthFundProposalSchema).optional(),
   jointVentureInvestmentProposals: z.record(z.string(), JointVentureInvestmentProposalSchema).optional(),
+  jointVenturePortfolioSwapProposals: z.record(z.string(), JointVenturePortfolioSwapProposalSchema).optional(),
+  jointVentureAssetLiquidationProposals: z.record(z.string(), JointVentureAssetLiquidationProposalSchema).optional(),
 });
 
 
@@ -2142,6 +2174,8 @@ export const createInitialState = (options: {
     jointVenturePortfolios: {},
     sovereignWealthFundProposals: {},
     jointVentureInvestmentProposals: {},
+    jointVenturePortfolioSwapProposals: {},
+    jointVentureAssetLiquidationProposals: {},
   };
 };
 
@@ -7196,6 +7230,178 @@ export function reconcileJointVentureInvestments(state: GameState, pack: any): G
           `[JV Investment Failed] SWF ${fundId} has insufficient reserves (${fundReserves} < ${amount}) to resolve proposal ${proposalId}.`
         );
       }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileJointVenturePortfolioSwaps(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    jointVenturePortfolioSwapProposals: state.jointVenturePortfolioSwapProposals ? { ...state.jointVenturePortfolioSwapProposals } : {},
+    jointVenturePortfolios: state.jointVenturePortfolios ? { ...state.jointVenturePortfolios } : {},
+    sovereignWealthFunds: state.sovereignWealthFunds ? { ...state.sovereignWealthFunds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.jointVenturePortfolioSwapProposals || {})) {
+    const proposal = newState.jointVenturePortfolioSwapProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { portfolioId, sourceFundId, targetFundId, goldPrice, timestamp } = proposal;
+    const sourceFund = newState.sovereignWealthFunds?.[sourceFundId];
+    const targetFund = newState.sovereignWealthFunds?.[targetFundId];
+    const portfolio = newState.jointVenturePortfolios?.[portfolioId];
+
+    if (!sourceFund || !targetFund || !portfolio || portfolio.status !== "Active" || portfolio.fundId !== sourceFundId) continue;
+
+    // Both funds' participating syndicates must approve by majority
+    const sourceSyndicateIds = Object.keys(sourceFund.syndicates);
+    const targetSyndicateIds = Object.keys(targetFund.syndicates);
+    if (sourceSyndicateIds.length === 0 || targetSyndicateIds.length === 0) continue;
+
+    const votes = proposal.votes || {};
+    let allSyndicatesApproved = true;
+
+    // Check source fund syndicates
+    for (const syndicateId of sourceSyndicateIds) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) {
+        allSyndicatesApproved = false;
+        break;
+      }
+      const members = syndicate.members;
+      const yesVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length <= members.length / 2) {
+        allSyndicatesApproved = false;
+        break;
+      }
+    }
+
+    if (!allSyndicatesApproved) continue;
+
+    // Check target fund syndicates
+    for (const syndicateId of targetSyndicateIds) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) {
+        allSyndicatesApproved = false;
+        break;
+      }
+      const members = syndicate.members;
+      const yesVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length <= members.length / 2) {
+        allSyndicatesApproved = false;
+        break;
+      }
+    }
+
+    if (allSyndicatesApproved) {
+      const targetReserves = targetFund.totalReserves;
+      if (targetReserves >= goldPrice) {
+        // Resolve proposal
+        newState.jointVenturePortfolioSwapProposals[proposalId] = {
+          ...proposal,
+          resolved: true,
+        };
+
+        // Transfer funds between SWFs
+        targetFund.totalReserves = targetReserves - goldPrice;
+        sourceFund.totalReserves = (sourceFund.totalReserves ?? 0) + goldPrice;
+
+        // Update portfolio ownership
+        newState.jointVenturePortfolios[portfolioId] = {
+          ...portfolio,
+          fundId: targetFundId,
+          timestamp,
+        };
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[JV Portfolio Swapped] Swapped joint-venture portfolio ${portfolioId} from SWF ${sourceFundId} to SWF ${targetFundId} for ${goldPrice} gold.`
+        );
+      } else {
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[JV Portfolio Swap Failed] SWF ${targetFundId} has insufficient reserves (${targetReserves} < ${goldPrice}) to resolve swap proposal ${proposalId}.`
+        );
+      }
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileJointVentureAssetLiquidations(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    jointVentureAssetLiquidationProposals: state.jointVentureAssetLiquidationProposals ? { ...state.jointVentureAssetLiquidationProposals } : {},
+    jointVenturePortfolios: state.jointVenturePortfolios ? { ...state.jointVenturePortfolios } : {},
+    sovereignWealthFunds: state.sovereignWealthFunds ? { ...state.sovereignWealthFunds } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const proposalId of Object.keys(newState.jointVentureAssetLiquidationProposals || {})) {
+    const proposal = newState.jointVentureAssetLiquidationProposals?.[proposalId];
+    if (!proposal || proposal.resolved) continue;
+
+    const { portfolioId, liquidateAmount, timestamp } = proposal;
+    const portfolio = newState.jointVenturePortfolios?.[portfolioId];
+    if (!portfolio || portfolio.status !== "Active" || portfolio.investedAmount < liquidateAmount) continue;
+
+    const fund = newState.sovereignWealthFunds?.[portfolio.fundId];
+    if (!fund) continue;
+
+    // Check consensus: requires majority approval from each participating syndicate in the SWF owning the portfolio!
+    const participatingSyndicateIds = Object.keys(fund.syndicates);
+    if (participatingSyndicateIds.length === 0) continue;
+
+    const votes = proposal.votes || {};
+    let allSyndicatesApproved = true;
+
+    for (const syndicateId of participatingSyndicateIds) {
+      const syndicate = newState.syndicates?.[syndicateId];
+      if (!syndicate) {
+        allSyndicatesApproved = false;
+        break;
+      }
+      const members = syndicate.members;
+      const yesVotes = Object.entries(votes)
+        .filter(([voterId, voteObj]) => members.includes(voterId) && voteObj.vote === true)
+        .map(([voterId]) => voterId);
+
+      if (yesVotes.length <= members.length / 2) {
+        allSyndicatesApproved = false;
+        break;
+      }
+    }
+
+    if (allSyndicatesApproved) {
+      // Resolve proposal
+      newState.jointVentureAssetLiquidationProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+      };
+
+      // Perform partial or full asset liquidation
+      portfolio.investedAmount -= liquidateAmount;
+      if (portfolio.investedAmount === 0) {
+        portfolio.status = "Closed";
+      }
+
+      // Add liquidated amount back to fund reserves
+      fund.totalReserves += liquidateAmount;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[JV Asset Liquidated] Joint-venture portfolio ${portfolioId} partially liquidated ${liquidateAmount} gold returned to SWF ${portfolio.fundId} reserves.`
+      );
     }
   }
 

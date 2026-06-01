@@ -479,4 +479,224 @@ describe("Syndicate Sovereign Wealth Fund & Faction-Wide Joint-Ventures (AF-128)
     expect(nodeA.localState.syndicates?.claws?.warChest).toBe(100);
     expect(nodeA.localState.sovereignWealthFunds?.swf1?.totalReserves).toBe(100);
   });
+
+  it("should handle joint-venture portfolio swaps across SWFs under consent-gated double-majority consensus", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "hq_room",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice", "bob", "charlie"],
+    });
+
+    state.syndicates = {
+      claws: {
+        id: "claws",
+        name: "Iron Claws",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 100,
+      },
+      fangs: {
+        id: "fangs",
+        name: "Blood Fangs",
+        members: ["bob", "charlie"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 200,
+      },
+    };
+
+    state.sovereignWealthFunds = {
+      swf1: {
+        id: "swf1",
+        syndicates: { claws: 100 },
+        totalReserves: 200,
+        timestamp: 1000,
+      },
+      swf2: {
+        id: "swf2",
+        syndicates: { fangs: 200 },
+        totalReserves: 300,
+        timestamp: 1000,
+      },
+    };
+
+    state.jointVenturePortfolios = {
+      jv1: {
+        id: "jv1",
+        fundId: "swf1",
+        targetType: "ArbitrageRoute",
+        targetId: "route_omega",
+        investedAmount: 100,
+        yieldRate: 15,
+        status: "Active",
+        timestamp: 1010,
+      },
+    };
+
+    // 1. Propose portfolio swap: claws (member of swf1) proposes swapping jv1 to swf2 for 150 gold
+    const proposeAct = {
+      type: "PROPOSE_JOINT_VENTURE_PORTFOLIO_SWAP",
+      proposalId: "ps1",
+      portfolioId: "jv1",
+      sourceFundId: "swf1",
+      targetFundId: "swf2",
+      proposerSyndicateId: "claws",
+      goldPrice: 150,
+      timestamp: 1020,
+    };
+
+    let res = multiAgentStep(state, { agentId: "player", action: proposeAct as any }, mockPack);
+    expect(res.ok).toBe(true);
+    expect(res.state.jointVenturePortfolioSwapProposals?.ps1?.resolved).toBe(false);
+
+    // 2. Alice (claws member) votes YES -> Claws (source SWF) has approved
+    const aliceVote = {
+      type: "VOTE_JOINT_VENTURE_PORTFOLIO_SWAP",
+      proposalId: "ps1",
+      syndicateId: "claws",
+      vote: true,
+      timestamp: 1030,
+    };
+    let resAlice = multiAgentStep(res.state, { agentId: "alice", action: aliceVote as any }, mockPack);
+    expect(resAlice.ok).toBe(true);
+    expect(resAlice.state.jointVenturePortfolioSwapProposals?.ps1?.resolved).toBe(false); // Target SWF syndicates haven't approved
+
+    // 3. Bob (fangs member) votes YES -> Fangs has 1/2 YES (not majority yet)
+    const bobVote = {
+      type: "VOTE_JOINT_VENTURE_PORTFOLIO_SWAP",
+      proposalId: "ps1",
+      syndicateId: "fangs",
+      vote: true,
+      timestamp: 1040,
+    };
+    let resBob = multiAgentStep(resAlice.state, { agentId: "bob", action: bobVote as any }, mockPack);
+    expect(resBob.ok).toBe(true);
+    expect(resBob.state.jointVenturePortfolioSwapProposals?.ps1?.resolved).toBe(false);
+
+    // 4. Charlie (fangs member) votes YES -> Fangs reaches majority YES -> should resolve!
+    const charlieVote = {
+      type: "VOTE_JOINT_VENTURE_PORTFOLIO_SWAP",
+      proposalId: "ps1",
+      syndicateId: "fangs",
+      vote: true,
+      timestamp: 1050,
+    };
+    let resCharlie = multiAgentStep(resBob.state, { agentId: "charlie", action: charlieVote as any }, mockPack);
+    expect(resCharlie.ok).toBe(true);
+
+    const resolvedProp = resCharlie.state.jointVenturePortfolioSwapProposals?.ps1;
+    expect(resolvedProp?.resolved).toBe(true);
+
+    // Check SWF reserves:
+    // swf2 (target) should pay 150: 300 - 150 = 150
+    // swf1 (source) should receive 150: 200 + 150 = 350
+    expect(resCharlie.state.sovereignWealthFunds?.swf2?.totalReserves).toBe(150);
+    expect(resCharlie.state.sovereignWealthFunds?.swf1?.totalReserves).toBe(350);
+
+    // Check portfolio ownership
+    expect(resCharlie.state.jointVenturePortfolios?.jv1?.fundId).toBe("swf2");
+  });
+
+  it("should handle partial and full joint-venture asset liquidations and return gold to SWF reserves", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "hq_room",
+      varsInit: { gold: 1000 },
+      agentsInit: ["player", "alice"],
+    });
+
+    state.syndicates = {
+      claws: {
+        id: "claws",
+        name: "Iron Claws",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 100,
+      },
+    };
+
+    state.sovereignWealthFunds = {
+      swf1: {
+        id: "swf1",
+        syndicates: { claws: 100 },
+        totalReserves: 50,
+        timestamp: 1000,
+      },
+    };
+
+    state.jointVenturePortfolios = {
+      jv1: {
+        id: "jv1",
+        fundId: "swf1",
+        targetType: "ArbitrageRoute",
+        targetId: "route_omega",
+        investedAmount: 100,
+        yieldRate: 15,
+        status: "Active",
+        timestamp: 1010,
+      },
+    };
+
+    // 1. Propose partial asset liquidation: claws proposes liquidating 40 gold from jv1
+    const proposeAct = {
+      type: "PROPOSE_JOINT_VENTURE_ASSET_LIQUIDATION",
+      proposalId: "al1",
+      portfolioId: "jv1",
+      proposerSyndicateId: "claws",
+      liquidateAmount: 40,
+      timestamp: 1020,
+    };
+
+    let res = multiAgentStep(state, { agentId: "player", action: proposeAct as any }, mockPack);
+    expect(res.ok).toBe(true);
+    expect(res.state.jointVentureAssetLiquidationProposals?.al1?.resolved).toBe(false);
+
+    // 2. Alice votes YES -> claws has majority -> should resolve!
+    const aliceVote = {
+      type: "VOTE_JOINT_VENTURE_ASSET_LIQUIDATION",
+      proposalId: "al1",
+      syndicateId: "claws",
+      vote: true,
+      timestamp: 1030,
+    };
+    let resVote = multiAgentStep(res.state, { agentId: "alice", action: aliceVote as any }, mockPack);
+    expect(resVote.ok).toBe(true);
+    expect(resVote.state.jointVentureAssetLiquidationProposals?.al1?.resolved).toBe(true);
+
+    // Check portfolio investedAmount: 100 - 40 = 60
+    // Check SWF reserves: 50 + 40 = 90
+    expect(resVote.state.jointVenturePortfolios?.jv1?.investedAmount).toBe(60);
+    expect(resVote.state.jointVenturePortfolios?.jv1?.status).toBe("Active");
+    expect(resVote.state.sovereignWealthFunds?.swf1?.totalReserves).toBe(90);
+
+    // 3. Now fully liquidate the remaining 60
+    const proposeAct2 = {
+      type: "PROPOSE_JOINT_VENTURE_ASSET_LIQUIDATION",
+      proposalId: "al2",
+      portfolioId: "jv1",
+      proposerSyndicateId: "claws",
+      liquidateAmount: 60,
+      timestamp: 1040,
+    };
+    let res2 = multiAgentStep(resVote.state, { agentId: "player", action: proposeAct2 as any }, mockPack);
+    const aliceVote2 = {
+      type: "VOTE_JOINT_VENTURE_ASSET_LIQUIDATION",
+      proposalId: "al2",
+      syndicateId: "claws",
+      vote: true,
+      timestamp: 1050,
+    };
+    let resVote2 = multiAgentStep(res2.state, { agentId: "alice", action: aliceVote2 as any }, mockPack);
+    expect(resVote2.ok).toBe(true);
+    expect(resVote2.state.jointVentureAssetLiquidationProposals?.al2?.resolved).toBe(true);
+
+    // Portfolio investedAmount: 60 - 60 = 0 -> status Closed
+    // SWF reserves: 90 + 60 = 150
+    expect(resVote2.state.jointVenturePortfolios?.jv1?.investedAmount).toBe(0);
+    expect(resVote2.state.jointVenturePortfolios?.jv1?.status).toBe("Closed");
+    expect(resVote2.state.sovereignWealthFunds?.swf1?.totalReserves).toBe(150);
+  });
 });

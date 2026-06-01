@@ -7,7 +7,7 @@ import { computeStateHash, canonicalStringify } from "./hash.js";
 import { buildObservation } from "../api/observation.js";
 import { signTransaction } from "./security.js";
 import { PureRand } from "./rng.js";
-import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments } from "./state.js";
+import { reconcileSovereignBonds, reconcileSovereignDebtRestructure, reconcileFactionBailouts, reconcileReserveSweeps, reconcileAntiDeficitStabilizationPolicies, reconcileCrossMeshBridges, reconcileSovereignWealthFunds, reconcileJointVentureInvestments, reconcileJointVenturePortfolioSwaps, reconcileJointVentureAssetLiquidations } from "./state.js";
 import { getMerchantGold, getContrabandInInventory, calculateConvoyInsurancePremium, tickEconomy } from "./economy.js";
 export interface MultiAgentAction {
   agentId: string;
@@ -24487,6 +24487,532 @@ export function multiAgentStep(
 
         customEvents.push({
           type: "jv_voted" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          vote,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_JOINT_VENTURE_PORTFOLIO_SWAP action (AF-129)
+  if ((action as any).type === "PROPOSE_JOINT_VENTURE_PORTFOLIO_SWAP") {
+    const { proposalId, portfolioId, sourceFundId, targetFundId, proposerSyndicateId, goldPrice, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[proposerSyndicateId];
+    const sourceFund = state.sovereignWealthFunds?.[sourceFundId];
+    const targetFund = state.sovereignWealthFunds?.[targetFundId];
+    const portfolio = state.jointVenturePortfolios?.[portfolioId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required to propose a portfolio swap.`;
+    } else if (!portfolioId) {
+      rejectionReason = `Portfolio ID is required.`;
+    } else if (!sourceFundId) {
+      rejectionReason = `Source Fund ID is required.`;
+    } else if (!targetFundId) {
+      rejectionReason = `Target Fund ID is required.`;
+    } else if (!proposerSyndicateId) {
+      rejectionReason = `Proposer Syndicate ID is required.`;
+    } else if (goldPrice === undefined || goldPrice < 0 || !Number.isInteger(goldPrice)) {
+      rejectionReason = `Gold price must be a non-negative integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Proposer Syndicate ${proposerSyndicateId} does not exist.`;
+    } else if (!sourceFund) {
+      rejectionReason = `Source SWF ${sourceFundId} does not exist.`;
+    } else if (!targetFund) {
+      rejectionReason = `Target SWF ${targetFundId} does not exist.`;
+    } else if (!portfolio) {
+      rejectionReason = `Joint-Venture Portfolio ${portfolioId} does not exist.`;
+    } else if (portfolio.status !== "Active") {
+      rejectionReason = `Joint-Venture Portfolio ${portfolioId} is not Active.`;
+    } else if (portfolio.fundId !== sourceFundId) {
+      rejectionReason = `Joint-Venture Portfolio ${portfolioId} is not owned by SWF ${sourceFundId}.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposer syndicate ${proposerSyndicateId} and cannot propose swap.`;
+    } else if (!sourceFund.syndicates[proposerSyndicateId]) {
+      rejectionReason = `Syndicate ${proposerSyndicateId} is not a participant in source SWF ${sourceFundId} and cannot propose a swap.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && sourceFund && targetFund && portfolio) {
+      const proposals = { ...(state.jointVenturePortfolioSwapProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          portfolioId,
+          sourceFundId,
+          targetFundId,
+          proposerSyndicateId,
+          goldPrice,
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.jointVenturePortfolioSwapProposals = proposals;
+        newState = reconcileJointVenturePortfolioSwaps(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[JV Portfolio Swap Proposed] Agent ${agentId} proposed swapping portfolio ${portfolioId} from SWF ${sourceFundId} to SWF ${targetFundId} for ${goldPrice} gold.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Joint-Venture Portfolio Swap proposed by ${agentId}: Proposes transferring portfolio ${portfolioId} from SWF ${sourceFundId} to SWF ${targetFundId} for ${goldPrice} gold.`,
+        } as any);
+
+        customEvents.push({
+          type: "jv_portfolio_swap_proposed" as any,
+          proposalId,
+          portfolioId,
+          sourceFundId,
+          targetFundId,
+          proposerSyndicateId,
+          goldPrice,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_JOINT_VENTURE_PORTFOLIO_SWAP action (AF-129)
+  if ((action as any).type === "VOTE_JOINT_VENTURE_PORTFOLIO_SWAP") {
+    const { proposalId, syndicateId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.jointVenturePortfolioSwapProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `Joint-Venture portfolio swap proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on joint-venture portfolio swap proposal.`;
+    } else {
+      // Must be a participating syndicate of either the source SWF or target SWF of the proposal
+      const sourceFund = state.sovereignWealthFunds?.[proposal.sourceFundId];
+      const targetFund = state.sovereignWealthFunds?.[proposal.targetFundId];
+      const isSourceParticipant = sourceFund && sourceFund.syndicates[syndicateId];
+      const isTargetParticipant = targetFund && targetFund.syndicates[syndicateId];
+
+      if (!isSourceParticipant && !isTargetParticipant) {
+        rejectionReason = `Syndicate ${syndicateId} is not a participant in source SWF ${proposal.sourceFundId} or target SWF ${proposal.targetFundId} and cannot vote.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.jointVenturePortfolioSwapProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.jointVenturePortfolioSwapProposals = proposalsCopy;
+        newState = reconcileJointVenturePortfolioSwaps(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[JV Portfolio Swap Voted] Agent ${agentId} in syndicate ${syndicateId} voted ${vote ? "YES" : "NO"} on JV portfolio swap proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Vote cast by ${agentId} in syndicate ${syndicateId} on JV portfolio swap proposal ${proposalId}: ${vote ? "YES" : "NO"}.`,
+        } as any);
+
+        customEvents.push({
+          type: "jv_portfolio_swap_voted" as any,
+          proposalId,
+          syndicateId,
+          agentId,
+          vote,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized PROPOSE_JOINT_VENTURE_ASSET_LIQUIDATION action (AF-129)
+  if ((action as any).type === "PROPOSE_JOINT_VENTURE_ASSET_LIQUIDATION") {
+    const { proposalId, portfolioId, proposerSyndicateId, liquidateAmount, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[proposerSyndicateId];
+    const portfolio = state.jointVenturePortfolios?.[portfolioId];
+
+    if (!proposalId) {
+      rejectionReason = `Proposal ID is required to propose an asset liquidation.`;
+    } else if (!portfolioId) {
+      rejectionReason = `Portfolio ID is required.`;
+    } else if (!proposerSyndicateId) {
+      rejectionReason = `Proposer Syndicate ID is required.`;
+    } else if (liquidateAmount === undefined || liquidateAmount <= 0 || !Number.isInteger(liquidateAmount)) {
+      rejectionReason = `Liquidate amount must be a positive integer.`;
+    } else if (!syndicate) {
+      rejectionReason = `Proposer Syndicate ${proposerSyndicateId} does not exist.`;
+    } else if (!portfolio) {
+      rejectionReason = `Joint-Venture Portfolio ${portfolioId} does not exist.`;
+    } else if (portfolio.status !== "Active") {
+      rejectionReason = `Joint-Venture Portfolio ${portfolioId} is not Active.`;
+    } else if (portfolio.investedAmount < liquidateAmount) {
+      rejectionReason = `Cannot liquidate ${liquidateAmount} gold: portfolio only has ${portfolio.investedAmount} invested.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of proposer syndicate ${proposerSyndicateId} and cannot propose liquidation.`;
+    } else {
+      const fund = state.sovereignWealthFunds?.[portfolio.fundId];
+      if (!fund || !fund.syndicates[proposerSyndicateId]) {
+        rejectionReason = `Syndicate ${proposerSyndicateId} is not a participant in SWF ${portfolio.fundId} owning the portfolio.`;
+      } else {
+        ok = true;
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && portfolio) {
+      const proposals = { ...(state.jointVentureAssetLiquidationProposals || {}) };
+      const existingProposal = proposals[proposalId];
+      if (!existingProposal || timestamp > existingProposal.timestamp) {
+        const votes = existingProposal?.votes ? { ...existingProposal.votes } : {};
+        votes[agentId] = { vote: true, timestamp };
+
+        proposals[proposalId] = {
+          id: proposalId,
+          portfolioId,
+          proposerSyndicateId,
+          liquidateAmount,
+          timestamp,
+          resolved: false,
+          votes,
+        };
+
+        newState.jointVentureAssetLiquidationProposals = proposals;
+        newState = reconcileJointVentureAssetLiquidations(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[JV Asset Liquidation Proposed] Agent ${agentId} proposed liquidating ${liquidateAmount} gold from portfolio ${portfolioId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Joint-Venture Asset Liquidation proposed by ${agentId}: Proposes liquidating ${liquidateAmount} gold from portfolio ${portfolioId}.`,
+        } as any);
+
+        customEvents.push({
+          type: "jv_asset_liquidation_proposed" as any,
+          proposalId,
+          portfolioId,
+          proposerSyndicateId,
+          liquidateAmount,
+          agentId,
+          timestamp,
+        });
+      }
+    }
+
+    newState.step += 1;
+    if (ok) {
+      newState = tickProductionLabs(newState, customEvents, pack);
+
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const cloned = cloneStateWithoutHistory(state);
+      history.push(cloned);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized VOTE_JOINT_VENTURE_ASSET_LIQUIDATION action (AF-129)
+  if ((action as any).type === "VOTE_JOINT_VENTURE_ASSET_LIQUIDATION") {
+    const { proposalId, syndicateId, vote, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const syndicate = state.syndicates?.[syndicateId];
+    const proposals = state.jointVentureAssetLiquidationProposals || {};
+    const proposal = proposals[proposalId];
+
+    if (!syndicateId) {
+      rejectionReason = `Syndicate ID is required.`;
+    } else if (!proposalId) {
+      rejectionReason = `Proposal ID is required.`;
+    } else if (vote === undefined) {
+      rejectionReason = `Vote value is required.`;
+    } else if (!syndicate) {
+      rejectionReason = `Syndicate ${syndicateId} does not exist.`;
+    } else if (!proposal) {
+      rejectionReason = `Joint-Venture asset liquidation proposal ${proposalId} does not exist.`;
+    } else if (!syndicate.members.includes(agentId)) {
+      rejectionReason = `Agent ${agentId} is not a member of syndicate ${syndicateId} and cannot vote on joint-venture asset liquidation proposal.`;
+    } else {
+      // Must be a participating syndicate of the SWF owning the portfolio
+      const portfolio = state.jointVenturePortfolios?.[proposal.portfolioId];
+      if (!portfolio) {
+        rejectionReason = `Joint-Venture Portfolio ${proposal.portfolioId} does not exist.`;
+      } else {
+        const fund = state.sovereignWealthFunds?.[portfolio.fundId];
+        if (!fund || !fund.syndicates[syndicateId]) {
+          rejectionReason = `Syndicate ${syndicateId} is not a participant in SWF ${portfolio.fundId} owning the portfolio and cannot vote.`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+
+    if (ok && syndicate && proposal) {
+      const proposalsCopy = { ...(state.jointVentureAssetLiquidationProposals || {}) };
+      const currentProp = { ...proposalsCopy[proposalId] };
+      const votes = currentProp.votes ? { ...currentProp.votes } : {};
+
+      const existingVote = votes[agentId];
+      if (!existingVote || timestamp > existingVote.timestamp) {
+        votes[agentId] = { vote, timestamp };
+        currentProp.votes = votes;
+        proposalsCopy[proposalId] = currentProp;
+
+        newState.jointVentureAssetLiquidationProposals = proposalsCopy;
+        newState = reconcileJointVentureAssetLiquidations(newState, pack);
+
+        if (!newState.journal) newState.journal = [];
+        newState.journal.push(
+          `[JV Asset Liquidation Voted] Agent ${agentId} in syndicate ${syndicateId} voted ${vote ? "YES" : "NO"} on JV asset liquidation proposal ${proposalId}.`
+        );
+
+        customEvents.push({
+          type: "narration",
+          text: `🗳️ Vote cast by ${agentId} in syndicate ${syndicateId} on JV asset liquidation proposal ${proposalId}: ${vote ? "YES" : "NO"}.`,
+        } as any);
+
+        customEvents.push({
+          type: "jv_asset_liquidation_voted" as any,
           proposalId,
           syndicateId,
           agentId,
