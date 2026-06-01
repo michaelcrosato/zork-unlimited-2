@@ -137,8 +137,9 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
         tranches: {
           senior: {
             trancheId: "senior",
-            yieldRate: 0.05,
-            totalShares: 1000,
+            interestRate: 0.05,
+            sweepRiskExposure: 0.05,
+            totalValue: 1000,
             ownership: {
               alpha: 1000,
             },
@@ -146,15 +147,17 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
-            totalShares: 500,
+            interestRate: 0.10,
+            sweepRiskExposure: 0.10,
+            totalValue: 500,
             ownership: {},
             timestamp: 1000,
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.18,
-            totalShares: 200,
+            interestRate: 0.18,
+            sweepRiskExposure: 0.18,
+            totalValue: 200,
             ownership: {},
             timestamp: 1000,
           },
@@ -200,8 +203,12 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
     // Setup market conditions to trigger liquidation in tickEconomy
     state.swfYieldCDOTrancheRiskRatings = {
       "cdo_1_senior": {
+        id: "cdo_1_senior",
+        swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         riskRating: "C", // high risk -> low value
+        collateralizationRatio: 0.5,
+        defaultCorrelation: 0.5,
         timestamp: 1000,
       },
     };

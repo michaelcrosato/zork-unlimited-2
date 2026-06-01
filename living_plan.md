@@ -1,8 +1,8 @@
 # 🌀 AdventureForge: Living Development Plan
 
 * **Last Updated**: 2026-06-01
-* **Autonomous Cycle**: Completed Cycle #187 (Ready for Cycle #188)
-* **Build/Test Status**: 🟢 PASS (All 700 Vitest tests passing, 0 errors/0 warnings on content validation)
+* **Autonomous Cycle**: Completed Cycle #188 (Ready for Cycle #189)
+* **Build/Test Status**: 🟢 PASS (All 702 Vitest tests passing, 0 errors/0 warnings on content validation)
 
 ---
 
@@ -1183,17 +1183,23 @@ Build, validate, and expand a strictly typed, headless, deterministic text-adven
 - [x] Wire tick economy to dynamically apply waived/refunded penalties upon options margin liquidations (`AF-188`).
 - [x] Write comprehensive Vitest integration and mesh convergence tests (`AF-188`).
 
+### Phase 167: Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance Premium Penalty Waiver Pro-Rata Refund Distributions (Completed)
+- [x] Define pro-rata refund proposal schemas, voting structures, and contribution tracking fields in GameState (`AF-189`).
+- [x] Implement decentralized consensus voting actions `PROPOSE_PENALTY_REFUND` and `VOTE_PENALTY_REFUND` (`AF-189`).
+- [x] Wire tick economy to calculate each syndicate's historical premium contribution share and distribute refund payouts accordingly during options margin call liquidations (`AF-189`).
+- [x] Write comprehensive Vitest unit and integration tests verifying consensus voting, pro-rata share calculations, refund distributions, and gossip mesh convergence (`AF-189`).
+
 ---
 
 ## ⚡ Active Task for Next Cycle
-**Task ID**: `AF-189`
-* **Objective**: Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance Premium Penalty Waiver Pro-Rata Refund Distributions.
-* **Why this matters**: In case of a systemic volatility shock, even if penalty waivers are not fully authorized, syndicates can vote to approve a pro-rata refund of paid penalties to the participating member syndicates based on their historical premium contribution share to prevent full bankruptcy of key market participants.
+**Task ID**: `AF-190`
+* **Objective**: Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility-Hedged Options Pricing Spread Adjustment Voting.
+* **Why this matters**: Volatility options market spreads currently use static parameters. To support more resilient price discovery under massive price actions, syndicate members can vote to adjust dynamic volatility-hedged options premium spreads.
 * **Planned Actions**:
-  1. Define pro-rata refund proposal schemas, voting structures, and contribution tracking fields in GameState.
-  2. Implement decentralized consensus voting actions `PROPOSE_PENALTY_REFUND` and `VOTE_PENALTY_REFUND`.
-  3. Wire tick economy to calculate each syndicate's historical premium contribution share and distribute refund payouts accordingly during options margin call liquidations.
-  4. Write comprehensive Vitest unit and integration tests verifying consensus voting, pro-rata share calculations, refund distributions, and gossip mesh convergence.
+  1. Define dynamic options pricing spread adjustment proposals, voting structures, and parameters in GameState.
+  2. Implement decentralized consensus voting actions `PROPOSE_OPTION_SPREAD_ADJUSTMENT` and `VOTE_OPTION_SPREAD_ADJUSTMENT`.
+  3. Wire tick economy to dynamically adjust reinsurance options bid-ask spread pricing under consensual parameters.
+  4. Write comprehensive Vitest unit and integration tests verifying consensus voting, pricing spread adjustments, and gossip mesh convergence.
 
 ---
 
