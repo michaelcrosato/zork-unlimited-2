@@ -2828,6 +2828,22 @@ export const MultiOracleRefundEscalationProposalSchema = z.object({
 });
 export type MultiOracleRefundEscalationProposal = z.infer<typeof MultiOracleRefundEscalationProposalSchema>;
 
+export const SWFSecurityInsurancePoolProposalSchema = z.object({
+  proposalId: z.string(),
+  syndicateId: z.string(),
+  allocationPercent: z.number().int().nonnegative(),
+  poolCap: z.number().int().nonnegative(),
+  status: z.enum(["proposed", "authorized", "disputed"]).optional(),
+  resolved: z.boolean().optional(),
+  proposerId: z.string(),
+  timestamp: z.number().int(),
+  votes: z.record(z.string(), z.object({
+    vote: z.boolean(),
+    timestamp: z.number().int(),
+  })).optional(),
+});
+export type SWFSecurityInsurancePoolProposal = z.infer<typeof SWFSecurityInsurancePoolProposalSchema>;
+
 
 
 
@@ -3783,6 +3799,11 @@ export const GameStateSchema = z.object({
   sweepPoolWeatherForecastOracleDisputes: z.record(z.string(), SweepPoolWeatherForecastOracleDisputeSchema).optional(),
   multiOraclePenaltyWaiverProposals: z.record(z.string(), MultiOraclePenaltyWaiverProposalSchema).optional(),
   multiOracleRefundEscalationProposals: z.record(z.string(), MultiOracleRefundEscalationProposalSchema).optional(),
+  swfSecurityInsurancePool: z.number().int().nonnegative().optional(),
+  swfSecurityInsurancePoolAuthorized: z.boolean().optional(),
+  swfSecurityInsurancePoolAllocationPercent: z.number().int().nonnegative().optional(),
+  swfSecurityInsurancePoolCap: z.number().int().nonnegative().optional(),
+  swfSecurityInsurancePoolProposals: z.record(z.string(), SWFSecurityInsurancePoolProposalSchema).optional(),
 
 
 
@@ -4205,6 +4226,8 @@ export const createInitialState = (options: {
     weatherForecastOracles: {},
     multiOraclePenaltyWaiverProposals: {},
     multiOracleRefundEscalationProposals: {},
+    swfSecurityInsurancePool: 0,
+    swfSecurityInsurancePoolProposals: {},
     weatherForecastOracleHistory: {},
     weatherForecastOracleIndividualOverrides: {},
 
@@ -9509,8 +9532,14 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
               newState.swfStakingSweepPool = Math.max(0, (newState.swfStakingSweepPool ?? 0) - bounty);
               penaltyLog += `, legacy oracle stake penalty waived, bounty of ${bounty} gold paid to Syndicate ${syndicateId} from Sweep Pool`;
             } else {
-              newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
-              penaltyLog += `, legacy oracle stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+              const allocationPercent = newState.swfSecurityInsurancePoolAllocationPercent ?? 0;
+              const poolCap = newState.swfSecurityInsurancePoolCap ?? Infinity;
+              const currentPool = newState.swfSecurityInsurancePool ?? 0;
+              const spaceLeft = Math.max(0, poolCap - currentPool);
+              const toAllocate = newState.swfSecurityInsurancePoolAuthorized ? Math.min(spaceLeft, Math.floor(sweepPoolShare * (allocationPercent / 100))) : 0;
+              newState.swfSecurityInsurancePool = currentPool + toAllocate;
+              newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare - toAllocate;
+              penaltyLog += `, legacy oracle stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare - toAllocate} gold, Security Insurance Pool Share: ${toAllocate} gold)`;
             }
           }
 
@@ -9546,8 +9575,14 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
               newState.swfStakingSweepPool = Math.max(0, (newState.swfStakingSweepPool ?? 0) - bounty);
               penaltyLog += `, oracle ${oId} stake penalty waived, bounty of ${bounty} gold paid to Syndicate ${syndicateId} from Sweep Pool`;
             } else {
-              newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
-              penaltyLog += `, oracle ${oId} stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare} gold)`;
+              const allocationPercent = newState.swfSecurityInsurancePoolAllocationPercent ?? 0;
+              const poolCap = newState.swfSecurityInsurancePoolCap ?? Infinity;
+              const currentPool = newState.swfSecurityInsurancePool ?? 0;
+              const spaceLeft = Math.max(0, poolCap - currentPool);
+              const toAllocate = newState.swfSecurityInsurancePoolAuthorized ? Math.min(spaceLeft, Math.floor(sweepPoolShare * (allocationPercent / 100))) : 0;
+              newState.swfSecurityInsurancePool = currentPool + toAllocate;
+              newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare - toAllocate;
+              penaltyLog += `, oracle ${oId} stake of ${activeOracleStake} gold slashed (Bounty: ${bounty} gold paid to Syndicate ${syndicateId}, Sweep Pool Share: ${sweepPoolShare - toAllocate} gold, Security Insurance Pool Share: ${toAllocate} gold)`;
             }
           }
 
@@ -9600,15 +9635,24 @@ export function reconcileSweepPoolWeatherForecastOracleDisputes(state: GameState
       const share = Math.floor(disputeStake * 0.5);
       const sweepPoolShare = disputeStake - share;
 
+      let sweepPoolAdd = 0;
       if (activeOracleProvider && newState.syndicates[activeOracleProvider]) {
         const providerSynd = { ...newState.syndicates[activeOracleProvider] };
         providerSynd.warChest = (providerSynd.warChest ?? 0) + share;
         newState.syndicates[activeOracleProvider] = providerSynd;
+        sweepPoolAdd = sweepPoolShare;
       } else {
         // If no provider, all goes to sweep pool
-        newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + share;
+        sweepPoolAdd = disputeStake;
       }
-      newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolShare;
+
+      const allocationPercent = newState.swfSecurityInsurancePoolAllocationPercent ?? 0;
+      const poolCap = newState.swfSecurityInsurancePoolCap ?? Infinity;
+      const currentPool = newState.swfSecurityInsurancePool ?? 0;
+      const spaceLeft = Math.max(0, poolCap - currentPool);
+      const toAllocate = newState.swfSecurityInsurancePoolAuthorized ? Math.min(spaceLeft, Math.floor(sweepPoolAdd * (allocationPercent / 100))) : 0;
+      newState.swfSecurityInsurancePool = currentPool + toAllocate;
+      newState.swfStakingSweepPool = (newState.swfStakingSweepPool ?? 0) + sweepPoolAdd - toAllocate;
 
       if (!newState.journal) newState.journal = [];
       newState.journal.push(
@@ -16695,6 +16739,57 @@ export function reconcileMultiOracleRefundEscalations(state: GameState, pack: an
       );
     } else if (falseVotes.length >= totalMembers / 2) {
       newState.multiOracleRefundEscalationProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "disputed",
+      };
+    }
+  }
+
+  return newState;
+}
+
+export function reconcileSWFSecurityInsurancePoolProposals(state: GameState, pack: any): GameState {
+  const newState = {
+    ...state,
+    swfSecurityInsurancePoolProposals: state.swfSecurityInsurancePoolProposals ? { ...state.swfSecurityInsurancePoolProposals } : {},
+    syndicates: state.syndicates ? { ...state.syndicates } : {},
+  };
+
+  for (const [proposalId, proposal] of Object.entries(newState.swfSecurityInsurancePoolProposals)) {
+    if (proposal.resolved || proposal.status === "authorized" || proposal.status === "disputed") continue;
+
+    const syndicate = newState.syndicates[proposal.syndicateId];
+    if (!syndicate) continue;
+
+    const totalMembers = syndicate.members.length;
+    const votes = proposal.votes || {};
+
+    const trueVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === true)
+      .map(([voterId]) => voterId);
+
+    const falseVotes = Object.entries(votes)
+      .filter(([voterId, voteObj]) => syndicate.members.includes(voterId) && voteObj.vote === false)
+      .map(([voterId]) => voterId);
+
+    if (trueVotes.length > totalMembers / 2) {
+      newState.swfSecurityInsurancePoolProposals[proposalId] = {
+        ...proposal,
+        resolved: true,
+        status: "authorized",
+      };
+
+      newState.swfSecurityInsurancePoolAuthorized = true;
+      newState.swfSecurityInsurancePoolAllocationPercent = proposal.allocationPercent;
+      newState.swfSecurityInsurancePoolCap = proposal.poolCap;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(
+        `[SWF Security Insurance Pool Resolved] Syndicate ${proposal.syndicateId} authorized security insurance pool proposal ${proposalId} (Allocation: ${proposal.allocationPercent}%, Cap: ${proposal.poolCap} gold).`
+      );
+    } else if (falseVotes.length >= totalMembers / 2) {
+      newState.swfSecurityInsurancePoolProposals[proposalId] = {
         ...proposal,
         resolved: true,
         status: "disputed",

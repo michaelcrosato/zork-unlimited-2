@@ -1173,5 +1173,275 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     expect(stepResult3.ok).toBe(false);
     expect(stepResult3.rejectionReason).toContain("does not involve a multi-oracle aggregate forecasting failure");
   });
+
+  it("should support proposing, voting, and authorizing dynamic security insurance pools, allocating penalty yields/surpluses, and respecting pool caps (AF-218)", () => {
+    let state = createInitialState({
+      seed: 12345,
+      start: "clearing",
+      varsInit: { gold: 3000 },
+      agentsInit: ["player", "alice", "bob", "charlie"],
+    });
+
+    state.syndicates = {
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player", "alice"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+    };
+
+    // Before authorizing oracle, proposing insurance pool should reject
+    let stepResult0 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_SECURITY_INSURANCE_POOL",
+          proposalId: "pool_prop_reject",
+          syndicateId: "alpha",
+          allocationPercent: 20,
+          poolCap: 2000,
+          timestamp: 1001,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult0.ok).toBe(false);
+    expect(stepResult0.rejectionReason).toContain("No weather forecast oracle is currently authorized");
+
+    // Propose and authorize Oracle 1
+    state.sweepPoolWeatherForecastOracleAuthorized = true;
+    state.weatherForecastOracles = {
+      "oracle_prop_1": {
+        id: "oracle_prop_1",
+        provider: "alpha",
+        stake: 800,
+        reputation: 100,
+        accuracyFloor: 90,
+        reputationThreshold: 40,
+        timestamp: 1000,
+      }
+    };
+
+    // Now proposal should succeed! Proposing syndicate has allies = 0, proposer warChest = 10000.
+    // Dynamic Proposal Fee: 200 base * allianceScalar(1.0) * reserveScalar(0.5) = 100 gold
+    let stepResult = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_SECURITY_INSURANCE_POOL",
+          proposalId: "pool_prop_1",
+          syndicateId: "alpha",
+          allocationPercent: 30, // 30% allocation
+          poolCap: 300, // 300 gold cap
+          timestamp: 1005,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult.ok).toBe(true);
+    state = stepResult.state;
+    
+    // Proposer war chest decreased by proposal fee (100)
+    expect(state.syndicates?.alpha.warChest).toBe(9900);
+    expect(state.swfSecurityInsurancePoolProposals?.["pool_prop_1"]?.status).toBe("proposed");
+
+    // Alice votes true to authorize (majority is 2/2 > 1)
+    // Dynamic Vote Fee: 50 base * allianceScalar(1.0) * reserveScalar(0.5) = 25 gold
+    let stepResult2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_SECURITY_INSURANCE_POOL",
+          proposalId: "pool_prop_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1010,
+        } as any,
+      },
+      mockPack
+    );
+
+    expect(stepResult2.ok).toBe(true);
+    state = stepResult2.state;
+
+    // Alice war chest decreased by vote fee (28)
+    expect(state.syndicates?.alpha.warChest).toBe(9872);
+    expect(state.swfSecurityInsurancePoolProposals?.["pool_prop_1"]?.status).toBe("authorized");
+    expect(state.swfSecurityInsurancePoolAuthorized).toBe(true);
+    expect(state.swfSecurityInsurancePoolAllocationPercent).toBe(30);
+    expect(state.swfSecurityInsurancePoolCap).toBe(300);
+
+    // Setup weather forecast anomaly
+    state.weatherForecastOracleHistory = {
+      "5": {
+        "oracle_prop_1": 80,
+      }
+    };
+    state.weatherForecastHistory = {
+      "5": 80,
+    };
+    state.weatherForecastAnomalies = [5];
+
+    // File a dispute targeting anomaly at step 5
+    let stepResult3 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "dispute_1",
+          syndicateId: "alpha",
+          anomalyStep: 5,
+          disputeStake: 200,
+          timestamp: 2000,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult3.ok).toBe(true);
+    state = stepResult3.state;
+
+    // Alice votes true to authorize the dispute
+    let stepResult4 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE",
+          syndicateId: "alpha",
+          disputeId: "dispute_1",
+          vote: true,
+          timestamp: 2010,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult4.ok).toBe(true);
+    state = stepResult4.state;
+
+    // Oracle was slashed!
+    // Active oracle stake = 800. Bounty percent = 50%.
+    // Bounty = 400. Remaining slashed stake (penalty yield) = 400.
+    // 30% of 400 = 120 gold allocated to security insurance pool.
+    // Remaining 400 - 120 = 280 gold added to sweep pool.
+    expect(state.swfSecurityInsurancePool).toBe(120);
+    expect(state.swfStakingSweepPool).toBe(280);
+
+    // File a second dispute to test pool cap (let's simulate a dismissed dispute stake slashing of 1000 gold)
+    // Dismissed dispute on anomaly 5. Disputing stake = 1000.
+    // Propose a dispute by Beta (bob)
+    state.syndicates = {
+      ...state.syndicates,
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["bob", "charlie"],
+        definedBy: "bob",
+        timestamp: 1000,
+        warChest: 10000,
+      }
+    };
+
+    let stepResult5 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "dispute_2",
+          syndicateId: "beta",
+          anomalyStep: 5,
+          disputeStake: 1000,
+          timestamp: 3000,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult5.ok).toBe(true);
+    state = stepResult5.state;
+
+    // Bob votes false to dismiss
+    let stepResult6 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE",
+          syndicateId: "beta",
+          disputeId: "dispute_2",
+          vote: false,
+          timestamp: 3010,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult6.ok).toBe(true);
+    state = stepResult6.state;
+
+    // Dispute is dismissed!
+    // Dispute stake = 1000. Since provider is undefined, the entire dispute stake goes to the sweep pool (1000).
+    // The sweep pool share (1000) is allocated to the security insurance pool:
+    // allocationPercent is 30% of 1000 = 300 gold.
+    // Cap is 300 gold. Current pool has 120 gold. Space left = 180 gold.
+    // Since 300 > 180, only 180 gold is allocated!
+    // New security pool balance = 120 + 180 = 300 gold (exactly at cap).
+    // Remaining sweep pool share 1000 - 180 = 820 gold added to sweep pool.
+    // Total sweep pool = 280 (from before) + 820 = 1100 gold.
+    expect(state.swfSecurityInsurancePool).toBe(300);
+    expect(state.swfStakingSweepPool).toBe(1100);
+
+    // Let's trigger another dispute dismissal with stake = 500 gold.
+    let stepResult7 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "PROPOSE_ORACLE_DISPUTE",
+          disputeId: "dispute_3",
+          syndicateId: "beta",
+          anomalyStep: 5,
+          disputeStake: 500,
+          timestamp: 4000,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult7.ok).toBe(true);
+    state = stepResult7.state;
+
+    let stepResult8 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_ORACLE_DISPUTE",
+          syndicateId: "beta",
+          disputeId: "dispute_3",
+          vote: false,
+          timestamp: 4010,
+        } as any,
+      },
+      mockPack
+    );
+    expect(stepResult8.ok).toBe(true);
+    state = stepResult8.state;
+
+    // Dismissed dispute!
+    // Dispute stake = 500. Since provider is undefined, all goes to sweep pool (500).
+    // Space left in insurance pool is 0 (already at cap of 300).
+    // So 0 gold is allocated to the security insurance pool.
+    // All 500 gold added to sweep pool.
+    // Total security pool = 300 gold.
+    // Total sweep pool = 1100 + 500 = 1600 gold.
+    expect(state.swfSecurityInsurancePool).toBe(300);
+    expect(state.swfStakingSweepPool).toBe(1600);
+  });
 });
 

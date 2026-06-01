@@ -230,7 +230,9 @@ export type Action =
   | { type: "PROPOSE_MULTI_ORACLE_PENALTY_WAIVER"; proposalId: string; syndicateId: string; disputeId: string; waivePenalty: boolean; gracePeriodSteps?: number; timestamp: number }
   | { type: "VOTE_MULTI_ORACLE_PENALTY_WAIVER"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
   | { type: "PROPOSE_MULTI_ORACLE_REFUND_ESCALATION"; proposalId: string; syndicateId: string; disputeId: string; refundSurchargePercent: number; timestamp: number }
-  | { type: "VOTE_MULTI_ORACLE_REFUND_ESCALATION"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
+  | { type: "VOTE_MULTI_ORACLE_REFUND_ESCALATION"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number }
+  | { type: "PROPOSE_SECURITY_INSURANCE_POOL"; proposalId: string; syndicateId: string; allocationPercent: number; poolCap: number; timestamp: number }
+  | { type: "VOTE_SECURITY_INSURANCE_POOL"; syndicateId: string; proposalId: string; vote: boolean; timestamp: number };
 
 
 

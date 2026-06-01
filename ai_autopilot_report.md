@@ -1,10 +1,10 @@
 # 🤖 AI Autopilot Living Report
 
-* **Last Updated**: 2026-06-01T16:08:09.812Z
+* **Last Updated**: 2026-06-01T16:11:54.632Z
 * **Autopilot Cycle**: #1
-* **Cycle Duration**: 23.6 seconds
+* **Cycle Duration**: 32.3 seconds
 * **Build Status**: 🟢 PASS
-* **Tests Status**: 🟢 PASS
+* **Tests Status**: 🔴 FAIL
 
 ## 🗺️ Content Packs Audit
 
@@ -23,12 +23,12 @@ Clean compilation.
 
 ### Unit Tests Log
 ```
-✓ tests/syndicates_audits.test.ts (4 tests) 15ms
+Test Files  1 failed | 160 passed (161)
+      Tests  1 failed | 768 passed (769)
+   Start at  09:11:33
+   Duration  19.68s (transform 129.88s, setup 0ms, import 400.13s, tests 50.73s, environment 26ms)
 
- Test Files  161 passed (161)
-      Tests  768 passed (768)
-   Start at  09:07:57
-   Duration  10.67s (transform 39.44s, setup 0ms, import 197.10s, tests 35.12s, environment 21ms)
+[ELIFECYCLE] Test failed. See above for more details.
 ```
 
 ---
