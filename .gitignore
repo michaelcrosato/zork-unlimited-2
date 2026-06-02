@@ -8,6 +8,18 @@ dist/
 coverage/
 *.log
 
+# AI Agent Runtime Output
+AFK_MEMORY.md
+ai_autopilot_report.md
+living_plan.md
+forest_playtest_log.md
+*_explorer_log.json
+*_dropper_log.json
+
+# Temp / Debug / Cache
+scratch/
+cache/
+
 # IDEs & System files
 .DS_Store
 .vscode/
