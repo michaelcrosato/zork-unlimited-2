@@ -24,6 +24,13 @@ function isOutdoorRoom(roomId: string): boolean {
   );
 }
 
+const WEATHER_EFFECTS: Record<string, string> = {
+  clear: "The sky overhead is clear.",
+  rain: "Rain is falling steadily from the gray sky.",
+  fog: "A damp, cold fog clings to the surroundings, reducing visibility.",
+  storm: "A violent storm rages, with howling winds and flashing lightning.",
+};
+
 /**
  * Returns a purely deterministic sensory/atmospheric narration based on room type,
  * seed, and step count. Maintains strict byte-identity and Zork-style vibe.
@@ -96,13 +103,7 @@ export function buildObservation(
 
     let sensoryFlavor = getSensoryFlavor(currentScene.id, state.seed, state.step);
     if (state.environment && isOutdoorRoom(currentScene.id)) {
-      const weatherEffects: Record<string, string> = {
-        clear: "The sky overhead is clear.",
-        rain: "Rain is falling steadily from the gray sky.",
-        fog: "A damp, cold fog clings to the surroundings, reducing visibility.",
-        storm: "A violent storm rages, with howling winds and flashing lightning.",
-      };
-      const wEffect = weatherEffects[state.environment.weather];
+      const wEffect = WEATHER_EFFECTS[state.environment.weather];
       if (wEffect) {
         sensoryFlavor = `${sensoryFlavor} ${wEffect}`;
       }
@@ -170,7 +171,7 @@ export function buildObservation(
   });
 
   // Compile exits
-  const exitsList = getRoomExits(state, room).map((exit: any) => ({
+  const exitsList = getRoomExits(state, room).map((exit) => ({
     direction: exit.direction,
     to: exit.to,
   }));
@@ -180,13 +181,7 @@ export function buildObservation(
 
   let sensoryFlavor = getSensoryFlavor(room.id, state.seed, state.step);
   if (state.environment && isOutdoorRoom(room.id)) {
-    const weatherEffects: Record<string, string> = {
-      clear: "The sky overhead is clear.",
-      rain: "Rain is falling steadily from the gray sky.",
-      fog: "A damp, cold fog clings to the surroundings, reducing visibility.",
-      storm: "A violent storm rages, with howling winds and flashing lightning.",
-    };
-    const wEffect = weatherEffects[state.environment.weather];
+    const wEffect = WEATHER_EFFECTS[state.environment.weather];
     if (wEffect) {
       sensoryFlavor = `${sensoryFlavor} ${wEffect}`;
     }
