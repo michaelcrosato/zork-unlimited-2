@@ -8,7 +8,7 @@
 
 PROMPT="You are the autonomous development agent for AdventureForge, a strictly typed, headless, deterministic text-adventure engine.
 
-YOUR WORKSPACE IS IN: /home/michael_crosato/projects/zork-unlimited-2
+YOUR WORKSPACE IS IN: $(pwd)
 DO NOT work in any temporary or scratch folders outside this directory. All work must be applied directly to this codebase.
 
 CRITICAL: You are executed as a single, discrete cycle within an outer bash loop. You MUST NOT loop indefinitely, run sleep statements, or leave blocking background tasks running. Instead, perform exactly ONE execution cycle of Plan, Build, Verify, Playtest, and Evaluate, write your report, and exit cleanly so the outer loop can capture your work and launch the next cycle.
@@ -111,7 +111,7 @@ while true; do
     if [[ -n $(git status --porcelain) ]]; then
       echo ""
       echo "💾 Staging and committing cycle #$CYCLE changes autonomously..."
-      git add .
+      git add -A
       git commit -m "chore(ai-dev): autonomous cycle #$CYCLE improvements"
       echo "🟢 Committed successfully."
     else
@@ -126,7 +126,7 @@ while true; do
       echo ""
       echo "🛑 CIRCUIT BREAKER TRIGGERED!"
       echo "The autonomous agent has failed consecutively $MAX_FAILURES times."
-      echo "Halthing the dev loop to protect tokens and prevent infinite crash loops."
+      echo "Halting the dev loop to protect tokens and prevent infinite crash loops."
       echo "Please inspect the error logs above and check the current state."
       echo "================================================================================"
       exit $STATUS
