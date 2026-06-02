@@ -1,8 +1,8 @@
 {
   "name": "zork-unlimited-2",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AI-authored deterministic text-adventure engine with headless core, schema validation, and perfect replayability",
+  "main": "dist/index.js",
   "scripts": {
     "test": "vitest run --exclude **/dist/**",
     "test:watch": "vitest --exclude **/dist/**",

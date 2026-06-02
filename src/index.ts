@@ -41,7 +41,7 @@ export type { Condition } from "./core/conditions.js";
 export { EffectSchema, applyEffect, applyEffects } from "./core/effects.js";
 export type { Effect } from "./core/effects.js";
 
-export { StateChangeEvent, NarrationEvent, UnlockExitEvent, OpenObjectEvent, MoveEvent, TakeEvent, DropEvent, DialogueEvent, EndingEvent, RejectedEvent, GameEvent, StepLogEntry } from "./core/events.js";
+export { StateChangeEvent, NarrationEvent, UnlockExitEvent, OpenObjectEvent, MoveEvent, TakeEvent, DropEvent, DialogueEvent, EndingEvent, RejectedEvent, BlackMarketSoldEvent, GameEvent, StepLogEntry } from "./core/events.js";
 
 // Save & Load Serialization
 export { saveGame, loadGame } from "./persist/save_load.js";
