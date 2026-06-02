@@ -90,3 +90,14 @@ export type { ParserExit, ObjectInteraction, ParserObject, DialogueTopic, Dialog
 export { generateLegalActions } from "./parser/legal_actions.js";
 export { normalizeCommandString, mapCommand } from "./parser/command_map.js";
 export { validateParserPack } from "./validate/parser_validator.js";
+
+// Playtest — Blind Playtesting Infrastructure
+export type { PlaytestPersona, PlaytestMetrics, PlaytestInterview, PlaytestSessionResult, PlaytestTurnLog } from "./playtest/types.js";
+export { INTERVIEW_QUESTIONS } from "./playtest/types.js";
+export { PERSONAS, PERSONA_IDS, getPersona } from "./playtest/personas.js";
+export { McpGameClient } from "./playtest/mcp_client.js";
+export type { AdventurePack, ActionResult } from "./playtest/mcp_client.js";
+export { runBlindPlaytest } from "./playtest/blind_playtester.js";
+export type { BlindPlaytestOptions, BlindPlaytestResult } from "./playtest/blind_playtester.js";
+export { readRawFeedback, synthesizeFeedback, writeFeedbackDigest } from "./playtest/synthesize.js";
+

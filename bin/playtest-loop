@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# 🎮 AdventureForge — Blind Playtest Loop
+# ==============================================================================
+# Runs continuous blind playtest sessions in parallel to the dev loop.
+# Each session picks a pack × persona combination, plays the game via MCP,
+# records metrics + interview, and appends to feedback_raw.jsonl.
+#
+# Usage:
+#   bin/playtest-loop                       # Run with defaults
+#   bin/playtest-loop --sessions 20         # Run 20 sessions then stop
+#   bin/playtest-loop --parallel 3          # Run 3 sessions in parallel
+#   bin/playtest-loop --synthesize-every 10 # Synthesize after every 10 sessions
+#
+# Press CTRL+C to stop at any time.
+# ==============================================================================
+
+set -euo pipefail
+
+PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+# Configuration
+MAX_SESSIONS="${1:-0}"  # 0 = infinite
+PARALLEL=1
+SYNTHESIZE_EVERY=10
+SLEEP_BETWEEN=5
+MAX_STEPS=100
+
+# Parse named arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --sessions)     MAX_SESSIONS="$2"; shift 2;;
+    --parallel)     PARALLEL="$2"; shift 2;;
+    --synthesize-every) SYNTHESIZE_EVERY="$2"; shift 2;;
+    --sleep)        SLEEP_BETWEEN="$2"; shift 2;;
+    --max-steps)    MAX_STEPS="$2"; shift 2;;
+    --help|-h)
+      echo "Usage: bin/playtest-loop [options]"
+      echo ""
+      echo "Options:"
+      echo "  --sessions <n>          Max sessions to run (0 = infinite, default: 0)"
+      echo "  --parallel <n>          Concurrent sessions (default: 1)"
+      echo "  --synthesize-every <n>  Run synthesis after every N sessions (default: 10)"
+      echo "  --sleep <s>             Seconds between sessions (default: 5)"
+      echo "  --max-steps <n>         Max steps per session (default: 100)"
+      echo "  --help, -h              Show this help"
+      exit 0
+      ;;
+    *) shift;;
+  esac
+done
+
+# Available packs (discovered from content directory)
+PACKS=(
+  "chapel_pack_v1"
+  "heros_quest_v1"
+  "unlimited_forest_pack"
+  "watchtower_v1"
+)
+
+# Available personas
+PERSONAS=(
+  "explorer"
+  "speedrunner"
+  "adversarial"
+  "narrative_seeker"
+  "new_player"
+  "hoarder"
+  "dialogue_skipper"
+  "wrong_order"
+)
+
+SESSION_COUNT=0
+SESSIONS_SINCE_SYNTHESIS=0
+FAILURES=0
+MAX_CONSECUTIVE_FAILURES=5
+
+echo "================================================================================"
+echo "🎮 Starting Blind Playtest Loop"
+echo "   Max sessions:  ${MAX_SESSIONS:-∞}"
+echo "   Parallel:      $PARALLEL"
+echo "   Synthesize:    every $SYNTHESIZE_EVERY sessions"
+echo "   Max steps:     $MAX_STEPS per session"
+echo "   Sleep:         ${SLEEP_BETWEEN}s between sessions"
+echo "================================================================================"
+echo ""
+
+# Function to run a single playtest session
+run_session() {
+  local pack_idx=$(( RANDOM % ${#PACKS[@]} ))
+  local persona_idx=$(( RANDOM % ${#PERSONAS[@]} ))
+  local pack="${PACKS[$pack_idx]}"
+  local persona="${PERSONAS[$persona_idx]}"
+  local seed=$RANDOM
+
+  echo "🎮 Session #$((SESSION_COUNT + 1)): pack=$pack persona=$persona seed=$seed"
+
+  npx tsx src/bin/playtest-session.ts \
+    --pack "$pack" \
+    --persona "$persona" \
+    --max-steps "$MAX_STEPS" \
+    --seed "$seed" \
+    > /dev/null 2>&1
+
+  return $?
+}
+
+# Function to run synthesis
+run_synthesis() {
+  echo ""
+  echo "📊 Running feedback synthesis..."
+  npx tsx src/bin/synthesize-feedback.ts 2>&1
+  echo ""
+}
+
+# Main loop
+while true; do
+  # Check if we've hit max sessions
+  if [[ "$MAX_SESSIONS" -gt 0 ]] && [[ "$SESSION_COUNT" -ge "$MAX_SESSIONS" ]]; then
+    echo ""
+    echo "✅ Reached max sessions ($MAX_SESSIONS). Running final synthesis..."
+    run_synthesis
+    echo "🏁 Playtest loop complete."
+    exit 0
+  fi
+
+  # Run session(s)
+  if [[ "$PARALLEL" -gt 1 ]]; then
+    # Parallel mode: launch $PARALLEL sessions concurrently
+    pids=()
+    for ((i=0; i<PARALLEL && (MAX_SESSIONS==0 || SESSION_COUNT<MAX_SESSIONS); i++)); do
+      run_session &
+      pids+=($!)
+      SESSION_COUNT=$((SESSION_COUNT + 1))
+      SESSIONS_SINCE_SYNTHESIS=$((SESSIONS_SINCE_SYNTHESIS + 1))
+    done
+
+    # Wait for all to complete
+    for pid in "${pids[@]}"; do
+      if wait "$pid"; then
+        FAILURES=0
+      else
+        FAILURES=$((FAILURES + 1))
+      fi
+    done
+  else
+    # Sequential mode
+    if run_session; then
+      FAILURES=0
+    else
+      FAILURES=$((FAILURES + 1))
+      echo "⚠️  Session failed (consecutive failures: $FAILURES)"
+    fi
+    SESSION_COUNT=$((SESSION_COUNT + 1))
+    SESSIONS_SINCE_SYNTHESIS=$((SESSIONS_SINCE_SYNTHESIS + 1))
+  fi
+
+  # Circuit breaker
+  if [[ "$FAILURES" -ge "$MAX_CONSECUTIVE_FAILURES" ]]; then
+    echo ""
+    echo "🛑 CIRCUIT BREAKER: $MAX_CONSECUTIVE_FAILURES consecutive failures."
+    echo "   Check the MCP server and LLM API configuration."
+    exit 1
+  fi
+
+  # Periodic synthesis
+  if [[ "$SESSIONS_SINCE_SYNTHESIS" -ge "$SYNTHESIZE_EVERY" ]]; then
+    run_synthesis
+    SESSIONS_SINCE_SYNTHESIS=0
+  fi
+
+  echo "   [$SESSION_COUNT sessions complete] Sleeping ${SLEEP_BETWEEN}s..."
+  sleep "$SLEEP_BETWEEN"
+done
