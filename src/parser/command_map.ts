@@ -19341,6 +19341,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a friendly face to face discussion with the": ["TALK"]
 });
 
+// Cycle #94 / Task-F117: Phase 80 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of ascent towards the location of": ["MOVE"],
+  "navigate one's vector of ascent towards the location of the": ["MOVE"],
+  "navigate ones vector of ascent towards the location of": ["MOVE"],
+  "navigate ones vector of ascent towards the location of the": ["MOVE"],
+  "steer one's vector of ascent in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of ascent in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of ascent in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of ascent in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of ascent towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of ascent towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of ascent towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of ascent towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual illustration": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual illustration the": ["LOOK_INSPECT"],
+  "subject to a thorough visual illustration": ["LOOK_INSPECT"],
+  "subject to a thorough visual illustration the": ["LOOK_INSPECT"],
+  "subject to a detailed visual illustration": ["LOOK_INSPECT"],
+  "subject to a detailed visual illustration the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive harvesting of": ["TAKE"],
+  "assume direct exclusive harvesting of the": ["TAKE"],
+  "assume absolute exclusive harvesting of": ["TAKE"],
+  "assume absolute exclusive harvesting of the": ["TAKE"],
+  "assume immediate exclusive harvesting of": ["TAKE"],
+  "assume immediate exclusive harvesting of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive harvesting of": ["DROP"],
+  "divest oneself of all exclusive harvesting of the": ["DROP"],
+  "relinquish all exclusive harvesting of": ["DROP"],
+  "relinquish all exclusive harvesting of the": ["DROP"],
+  "free oneself from all exclusive harvesting of": ["DROP"],
+  "free oneself from all exclusive harvesting of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electromechanically wide open": ["OPEN"],
+  "force completely and electromechanically wide open the": ["OPEN"],
+  "pry completely and electromechanically wide open": ["OPEN"],
+  "pry completely and electromechanically wide open the": ["OPEN"],
+  "fasten completely and electromechanically closed": ["CLOSE"],
+  "fasten completely and electromechanically closed the": ["CLOSE"],
+  "seal completely and electromechanically shut": ["CLOSE"],
+  "seal completely and electromechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all piezoresistive security devices of": ["UNLOCK"],
+  "deactivate all piezoresistive security devices of the": ["UNLOCK"],
+  "bypass all piezoresistive security devices on": ["UNLOCK"],
+  "bypass all piezoresistive security devices on the": ["UNLOCK"],
+  "disengage the primary piezoresistive security device on": ["UNLOCK"],
+  "disengage the primary piezoresistive security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full utilitarian deployment of": ["USE"],
+  "harness the full utilitarian deployment of the": ["USE"],
+  "bring into active utilitarian deployment": ["USE"],
+  "bring into active utilitarian deployment the": ["USE"],
+  "make complete utilitarian deployment of": ["USE"],
+  "make complete utilitarian deployment of the": ["USE"],
+
+  // Combat
+  "initiate a horrifying confrontation against": ["FIGHT"],
+  "initiate a horrifying confrontation against the": ["FIGHT"],
+  "commence a horrifying confrontation against": ["FIGHT"],
+  "commence a horrifying confrontation against the": ["FIGHT"],
+  "engage in a horrifying confrontation against": ["FIGHT"],
+  "engage in a horrifying confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a sociable face to face discussion with": ["TALK"],
+  "initiate a sociable face to face discussion with the": ["TALK"],
+  "engage in a sociable face to face discussion with": ["TALK"],
+  "engage in a sociable face to face discussion with the": ["TALK"],
+  "strike up a sociable face to face discussion with": ["TALK"],
+  "strike up a sociable face to face discussion with the": ["TALK"]
+});
+
 // Cycle #93 / Task-F116: Phase 79 compound verbs
 compoundVerbs.push(
   "navigate one's vector of descent towards the location of the",
@@ -19405,6 +19488,72 @@ compoundVerbs.push(
   "engage in a friendly face to face discussion with",
   "strike up a friendly face to face discussion with the",
   "strike up a friendly face to face discussion with"
+);
+
+// Cycle #94 / Task-F117: Phase 80 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of ascent towards the location of the",
+  "navigate one's vector of ascent towards the location of",
+  "navigate ones vector of ascent towards the location of the",
+  "navigate ones vector of ascent towards the location of",
+  "steer one's vector of ascent in the direction of the coordinates of the",
+  "steer one's vector of ascent in the direction of the coordinates of",
+  "steer ones vector of ascent in the direction of the coordinates of the",
+  "steer ones vector of ascent in the direction of the coordinates of",
+  "direct one's vector of ascent towards the coordinates of the location of the",
+  "direct one's vector of ascent towards the coordinates of the location of",
+  "direct ones vector of ascent towards the coordinates of the location of the",
+  "direct ones vector of ascent towards the coordinates of the location of",
+  "subject to a comprehensive visual illustration the",
+  "subject to a comprehensive visual illustration",
+  "subject to a thorough visual illustration the",
+  "subject to a thorough visual illustration",
+  "subject to a detailed visual illustration the",
+  "subject to a detailed visual illustration",
+  "assume direct exclusive harvesting of the",
+  "assume direct exclusive harvesting of",
+  "assume absolute exclusive harvesting of the",
+  "assume absolute exclusive harvesting of",
+  "assume immediate exclusive harvesting of the",
+  "assume immediate exclusive harvesting of",
+  "divest oneself of all exclusive harvesting of the",
+  "divest oneself of all exclusive harvesting of",
+  "relinquish all exclusive harvesting of the",
+  "relinquish all exclusive harvesting of",
+  "free oneself from all exclusive harvesting of the",
+  "free oneself from all exclusive harvesting of",
+  "force completely and electromechanically wide open the",
+  "force completely and electromechanically wide open",
+  "pry completely and electromechanically wide open the",
+  "pry completely and electromechanically wide open",
+  "fasten completely and electromechanically closed the",
+  "fasten completely and electromechanically closed",
+  "seal completely and electromechanically shut the",
+  "seal completely and electromechanically shut",
+  "deactivate all piezoresistive security devices of the",
+  "deactivate all piezoresistive security devices of",
+  "bypass all piezoresistive security devices on the",
+  "bypass all piezoresistive security devices on",
+  "disengage the primary piezoresistive security device on the",
+  "disengage the primary piezoresistive security device on",
+  "harness the full utilitarian deployment of the",
+  "harness the full utilitarian deployment of",
+  "bring into active utilitarian deployment the",
+  "bring into active utilitarian deployment",
+  "make complete utilitarian deployment of the",
+  "make complete utilitarian deployment of",
+  "initiate a horrifying confrontation against the",
+  "initiate a horrifying confrontation against",
+  "commence a horrifying confrontation against the",
+  "commence a horrifying confrontation against",
+  "engage in a horrifying confrontation against the",
+  "engage in a horrifying confrontation against",
+  "initiate a sociable face to face discussion with the",
+  "initiate a sociable face to face discussion with",
+  "engage in a sociable face to face discussion with the",
+  "engage in a sociable face to face discussion with",
+  "strike up a sociable face to face discussion with the",
+  "strike up a sociable face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
