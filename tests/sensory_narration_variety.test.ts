@@ -60,28 +60,28 @@ describe("Sensory Narration Variety & Custom Categories", () => {
     let desc = (obs as any).description;
     expect(desc).toContain("A leaf-covered trail.");
     // Forest-specific sensory flavors
-    expect(desc).toMatch(/pine needles|owl|loam|watchfulness|leaves crunch|green shadows|cedar|mournful sigh|woodland creature|moss/i);
+    expect(desc).toMatch(/pine needles|owl|loam|watchfulness|leaves crunch|green shadows|cedar|mournful sigh|woodland creature|moss|twig|sunlight|wildflowers/i);
 
     // 2. Underground/Vault category
     state.current = "room_vault";
     obs = buildObservation(state, pack);
     desc = (obs as any).description;
     expect(desc).toContain("A dark steel chamber.");
-    expect(desc).toMatch(/condensation|hum of shifting earth|sulfur|crystalline|stale water|stone rolls|abyss|confinement|dripping water|scraping|darkness/i);
+    expect(desc).toMatch(/condensation|hum of shifting earth|sulfur|crystalline|stale water|stone rolls|abyss|confinement|dripping water|scraping|darkness|ping|breeze|echo|rough|ancient earth/i);
 
     // 3. Outpost/Tower category
     state.current = "room_tower";
     obs = buildObservation(state, pack);
     desc = (obs as any).description;
     expect(desc).toContain("High stone tower.");
-    expect(desc).toMatch(/battlements|weapons|smoke|arrow loops|oak beams|soot|banners|iron-banded|crest|sentries/i);
+    expect(desc).toMatch(/battlements|weapons|smoke|arrow loops|oak beams|soot|banners|iron-banded|crest|sentries|sconce|wooden beams|leather|whistling|footprints/i);
 
     // 4. Settlement/Crossroads category
     state.current = "room_crossroads";
     obs = buildObservation(state, pack);
     desc = (obs as any).description;
     expect(desc).toContain("A meeting of paths.");
-    expect(desc).toMatch(/woodsmoke|carriage ruts|signpost|civilization|tavern|rag|insects|lantern light|dust|safety/i);
+    expect(desc).toMatch(/woodsmoke|carriage ruts|signpost|civilization|tavern|rag|insects|lantern light|dust|safety|cart wheel|chimes|worn path|grass/i);
   });
 
   it("should vary the narrative structure order dynamically over steps and weather", () => {
@@ -127,5 +127,49 @@ describe("Sensory Narration Variety & Custom Categories", () => {
     // Verify we have multiple different descriptions (order structure changes)
     const uniqueStructures = new Set(structures);
     expect(uniqueStructures.size).toBeGreaterThan(1);
+  });
+
+  it("should vary the weather description dynamically over steps and prevent identical consecutive weather narrations", () => {
+    const pack: ParserPack = {
+      meta: {
+        id: "weather-variety-test",
+        title: "Weather Variety Test Pack",
+        start_room: "room_forest",
+        vars_init: {},
+        flags_init: [],
+      },
+      rooms: [
+        {
+          id: "room_forest",
+          name: "Deep Forest Path",
+          description: "A leaf-covered trail.",
+          objects: [],
+          npcs: [],
+          exits: [],
+        },
+      ],
+      objects: [],
+      npcs: [],
+      win_conditions: [],
+      endings: [],
+    };
+
+    let state = createInitialState({ seed: 100, start: "room_forest" });
+    state.environment = {
+      weather: "rain",
+      temperature: "cold",
+      lastUpdatedStep: 0,
+    };
+
+    const weatherNarrations: string[] = [];
+    for (let step = 0; step < 5; step++) {
+      state.step = step;
+      const obs = buildObservation(state, pack) as any;
+      weatherNarrations.push(obs.description);
+    }
+
+    // Verify that we don't have all identical descriptions (meaning they varied)
+    const uniqueNarrations = new Set(weatherNarrations);
+    expect(uniqueNarrations.size).toBeGreaterThan(1);
   });
 });

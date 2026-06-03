@@ -147,13 +147,13 @@ describe("Procedural Weather & Environmental Engine", () => {
     const obsForest = buildObservation(state, pack);
     expect(obsForest.mode).toBe("parser");
     const descForest = (obsForest as any).description;
-    expect(descForest).toContain("Rain is falling steadily from the gray sky.");
+    expect(descForest).toMatch(/rain|drizzle/i);
 
     // Ruined Crypt is an indoor room (contains "crypt")
     state.current = "room_crypt";
     const obsCrypt = buildObservation(state, pack);
     const descCrypt = (obsCrypt as any).description;
-    expect(descCrypt).not.toContain("Rain is falling steadily from the gray sky.");
+    expect(descCrypt).not.toMatch(/rain|drizzle/i);
   });
 
   it("should restrict weather based on room weather_pool and force transitions on room change", () => {

@@ -25,12 +25,64 @@ function isOutdoorRoom(roomId: string): boolean {
   );
 }
 
-const WEATHER_EFFECTS: Record<string, string> = {
-  clear: "The sky overhead is clear.",
-  rain: "Rain is falling steadily from the gray sky.",
-  fog: "A damp, cold fog clings to the surroundings, reducing visibility.",
-  storm: "A violent storm rages, with howling winds and flashing lightning.",
+function mix(a: number, b: number, c: number): number {
+  let h = (a ^ b ^ c) | 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+  h ^= h >>> 16;
+  return (h >>> 0);
+}
+
+const WEATHER_EFFECTS: Record<string, string[]> = {
+  clear: [
+    "The sky overhead is clear.",
+    "Warm sunlight bathes the area.",
+    "A few fluffy white clouds drift lazily across the blue sky.",
+    "The sun shines brightly overhead.",
+    "Clear, open skies stretch out above you.",
+    "A gentle warmth radiates from the clear sky.",
+    "The bright sky overhead is devoid of clouds.",
+    "Soft sunlight filters down from an open, blue sky."
+  ],
+  rain: [
+    "Rain is falling steadily from the gray sky.",
+    "A gentle drizzle dampens the ground.",
+    "Fat rain drops splash against the surroundings.",
+    "The air is thick with the scent of fresh rain.",
+    "Water runs in small streams along the ground as the rain continues.",
+    "A light rain falls, leaving everything cool and wet.",
+    "A steady, soft rainfall drums a rhythm on the earth.",
+    "Cool rain patters down from the gray canopy above."
+  ],
+  fog: [
+    "A damp, cold fog clings to the surroundings, reducing visibility.",
+    "Mist drifts slowly through the area, shrouding everything in gray.",
+    "The fog is thick here, making distant shapes look ghostly.",
+    "A chilly mist hangs low, dampening your clothes.",
+    "Visibility is poor as a heavy shroud of fog settles in.",
+    "Wisps of damp fog roll silently past.",
+    "A dense fog blankets the landscape, dampening sound and sight.",
+    "The damp air is thick with creeping tendrils of cold mist."
+  ],
+  storm: [
+    "A violent storm rages, with howling winds and flashing lightning.",
+    "Thunder rumbles deeply overhead as rain lashes down.",
+    "Fierce gusts of wind whip through the area under a dark, stormy sky.",
+    "Lightning flashes across the blackened heavens, followed by crashing thunder.",
+    "The elements are furious, rain pouring down in torrents amidst the gale.",
+    "A heavy storm sweeps through, lashing the ground with wind and rain.",
+    "Flashes of lightning periodically illuminate the stormy dark.",
+    "Thunderclaps shake the ground as the tempest rages around you."
+  ],
 };
+
+function getWeatherEffect(weather: string, seed: number, step: number, roomId: string): string {
+  const pool = WEATHER_EFFECTS[weather];
+  if (!pool || pool.length === 0) return "";
+  const charSum = roomId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const mixed = mix(seed, step + 42, charSum);
+  return pool[mixed % pool.length];
+}
 
 /**
  * Returns a purely deterministic sensory/atmospheric narration based on room type,
@@ -48,7 +100,12 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "A faint smell of cedar and damp pine needles drifts through the trees.",
       "The wind plays a low, mournful sigh through the high branches.",
       "A small woodland creature rustles in the underbrush and vanishes.",
-      "Moss clings thickly to the north side of the ancient trunks."
+      "Moss clings thickly to the north side of the ancient trunks.",
+      "A dry twig snaps in the undergrowth, though nothing is visible.",
+      "The smell of pine needles and damp earth is sharp and clean.",
+      "Distant bird calls echo briefly and then die away.",
+      "Sunlight filters down in beams through the thick canopy.",
+      "Wildflowers nod gently in the faint breeze."
     ],
     crypt: [
       "A faint smell of incense and damp stonework lingers in the shadows.",
@@ -60,7 +117,12 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "Faint drafts trace cold fingers across the back of your neck.",
       "Cracked tiles shift slightly under your weight with a dry click.",
       "Cobwebs brush against your face like dry, gossamer threads.",
-      "The oppressive darkness seems to actively resist the light."
+      "The oppressive darkness seems to actively resist the light.",
+      "A sudden, chilling draft makes you shiver.",
+      "The walls are cold to the touch and slightly damp.",
+      "Dust hangs thick in the air, catching the light.",
+      "The silence here is profound, broken only by your own breathing.",
+      "Your shadow looms large and distorted against the crypt walls."
     ],
     castle: [
       "The stones here feel intensely cold, radiating an ancient chill.",
@@ -72,7 +134,12 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The air carries a dry, papery scent, like ancient tapestries crumbling to dust.",
       "A distant door groans on iron hinges, somewhere far below.",
       "Your breathing sounds unusually loud against the solid stone walls.",
-      "Shadows stretch long and distorted across the polished flagstones."
+      "Shadows stretch long and distorted across the polished flagstones.",
+      "An old tapestry hangs tattered on the stone wall.",
+      "The flagstones are worn smooth from centuries of footsteps.",
+      "A faint draft rustles through the empty corridor.",
+      "A distant clinking sound echoes from far away.",
+      "The scent of old dust and cold iron is strong."
     ],
     underground: [
       "The walls are slick with condensation, dripping slowly into dark puddles.",
@@ -84,7 +151,12 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The ceiling hangs low, forcing a feeling of heavy confinement.",
       "The sound of distant, slow-dripping water marks the slow passage of time.",
       "Faint, scraping sounds echo from somewhere deep within the rock.",
-      "The absolute darkness beyond is silent and absolute."
+      "The absolute darkness beyond is silent and absolute.",
+      "Water droplets echo with a rhythmic ping as they hit the stones.",
+      "A damp, cool breeze blows from a crack in the rock.",
+      "Your footsteps echo hollowly in the enclosed space.",
+      "The rock face is cold, damp, and rough.",
+      "The heavy smell of ancient earth and stone surrounds you."
     ],
     outpost: [
       "The wind howls fiercely against the reinforced stone battlements.",
@@ -96,7 +168,12 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The sound of flapping banners or flags whips rhythmically in the gale.",
       "Iron-banded doors stand strong, built to withstand a siege.",
       "Scratched shield crests on the walls tell stories of long-past garrisons.",
-      "The masonry is worn smooth in places by the boots of ancient sentries."
+      "The masonry is worn smooth in places by the boots of ancient sentries.",
+      "An empty torch sconce hangs askew on the wall.",
+      "The wooden beams are weather-beaten but solid.",
+      "The smell of old leather and rust lingers.",
+      "A faint whistling sound comes from the narrow windows.",
+      "Dusty footprints are visible in the corner."
     ],
     settlement: [
       "The faint scent of woodsmoke and roasting meat drifts from afar.",
@@ -108,7 +185,12 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The hum of insects rises from the tall grass bordering the path.",
       "Warm sunlight or cozy lantern light softens the edges of the room.",
       "Dust hangs in the air, kicked up by travelers of the road.",
-      "A feeling of temporary safety lingers in the open air."
+      "A feeling of temporary safety lingers in the open air.",
+      "A wooden cart wheel sits broken near the path.",
+      "The faint sound of wind chimes can be heard in the distance.",
+      "A worn path leads through the middle of the area.",
+      "The scent of woodsmoke and soil fills the air.",
+      "Grass grows tall and wild at the edges of the path."
     ]
   };
 
@@ -170,7 +252,8 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
 
   const pool = sensoryData[category];
   const charSum = roomId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const index = Math.abs(seed + step + charSum) % pool.length;
+  const mixed = mix(seed, step, charSum);
+  const index = mixed % pool.length;
   return pool[index];
 }
 
@@ -192,11 +275,11 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
     let sensoryFlavor = getSensoryFlavor(currentScene.id, state.seed, state.step);
     let wEffect = "";
     if (state.environment && isOutdoorRoom(currentScene.id)) {
-      wEffect = WEATHER_EFFECTS[state.environment.weather] ?? "";
+      wEffect = getWeatherEffect(state.environment.weather, state.seed, state.step, currentScene.id);
     }
 
     const sceneCharSum = currentScene.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-    const sceneStructureType = Math.abs(state.seed + state.step + sceneCharSum) % 4;
+    const sceneStructureType = mix(state.seed, state.step + 100, sceneCharSum) % 4;
 
     let text = "";
     if (wEffect) {
@@ -300,11 +383,11 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
   let sensoryFlavor = getSensoryFlavor(room.id, state.seed, state.step);
   let wEffect = "";
   if (state.environment && isOutdoorRoom(room.id)) {
-    wEffect = WEATHER_EFFECTS[state.environment.weather] ?? "";
+    wEffect = getWeatherEffect(state.environment.weather, state.seed, state.step, room.id);
   }
 
   const roomCharSum = room.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-  const roomStructureType = Math.abs(state.seed + state.step + roomCharSum) % 4;
+  const roomStructureType = mix(state.seed, state.step + 100, roomCharSum) % 4;
 
   let description = "";
   if (wEffect) {
