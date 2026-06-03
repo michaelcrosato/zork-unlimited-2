@@ -19258,7 +19258,157 @@ compoundVerbs.push(
   "strike up a congenial face to face discussion with"
 );
 
+// Cycle #93 / Task-F116: Phase 79 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of descent towards the location of": ["MOVE"],
+  "navigate one's vector of descent towards the location of the": ["MOVE"],
+  "navigate ones vector of descent towards the location of": ["MOVE"],
+  "navigate ones vector of descent towards the location of the": ["MOVE"],
+  "steer one's vector of descent in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of descent in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of descent in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of descent in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of descent towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of descent towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of descent towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of descent towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual representation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual representation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual representation": ["LOOK_INSPECT"],
+  "subject to a thorough visual representation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual representation": ["LOOK_INSPECT"],
+  "subject to a detailed visual representation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive obtainment of": ["TAKE"],
+  "assume direct exclusive obtainment of the": ["TAKE"],
+  "assume absolute exclusive obtainment of": ["TAKE"],
+  "assume absolute exclusive obtainment of the": ["TAKE"],
+  "assume immediate exclusive obtainment of": ["TAKE"],
+  "assume immediate exclusive obtainment of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive obtainment of": ["DROP"],
+  "divest oneself of all exclusive obtainment of the": ["DROP"],
+  "relinquish all exclusive obtainment of": ["DROP"],
+  "relinquish all exclusive obtainment of the": ["DROP"],
+  "free oneself from all exclusive obtainment of": ["DROP"],
+  "free oneself from all exclusive obtainment of the": ["DROP"],
+
+  // Open/Close
+  "force completely and thermomechanically wide open": ["OPEN"],
+  "force completely and thermomechanically wide open the": ["OPEN"],
+  "pry completely and thermomechanically wide open": ["OPEN"],
+  "pry completely and thermomechanically wide open the": ["OPEN"],
+  "fasten completely and thermomechanically closed": ["CLOSE"],
+  "fasten completely and thermomechanically closed the": ["CLOSE"],
+  "seal completely and thermomechanically shut": ["CLOSE"],
+  "seal completely and thermomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all pyroelectric security devices of": ["UNLOCK"],
+  "deactivate all pyroelectric security devices of the": ["UNLOCK"],
+  "bypass all pyroelectric security devices on": ["UNLOCK"],
+  "bypass all pyroelectric security devices on the": ["UNLOCK"],
+  "disengage the primary pyroelectric security device on": ["UNLOCK"],
+  "disengage the primary pyroelectric security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full instrumental deployment of": ["USE"],
+  "harness the full instrumental deployment of the": ["USE"],
+  "bring into active instrumental deployment": ["USE"],
+  "bring into active instrumental deployment the": ["USE"],
+  "make complete instrumental deployment of": ["USE"],
+  "make complete instrumental deployment of the": ["USE"],
+
+  // Combat
+  "initiate a terrifying confrontation against": ["FIGHT"],
+  "initiate a terrifying confrontation against the": ["FIGHT"],
+  "commence a terrifying confrontation against": ["FIGHT"],
+  "commence a terrifying confrontation against the": ["FIGHT"],
+  "engage in a terrifying confrontation against": ["FIGHT"],
+  "engage in a terrifying confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a friendly face to face discussion with": ["TALK"],
+  "initiate a friendly face to face discussion with the": ["TALK"],
+  "engage in a friendly face to face discussion with": ["TALK"],
+  "engage in a friendly face to face discussion with the": ["TALK"],
+  "strike up a friendly face to face discussion with": ["TALK"],
+  "strike up a friendly face to face discussion with the": ["TALK"]
+});
+
+// Cycle #93 / Task-F116: Phase 79 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of descent towards the location of the",
+  "navigate one's vector of descent towards the location of",
+  "navigate ones vector of descent towards the location of the",
+  "navigate ones vector of descent towards the location of",
+  "steer one's vector of descent in the direction of the coordinates of the",
+  "steer one's vector of descent in the direction of the coordinates of",
+  "steer ones vector of descent in the direction of the coordinates of the",
+  "steer ones vector of descent in the direction of the coordinates of",
+  "direct one's vector of descent towards the coordinates of the location of the",
+  "direct one's vector of descent towards the coordinates of the location of",
+  "direct ones vector of descent towards the coordinates of the location of the",
+  "direct ones vector of descent towards the coordinates of the location of",
+  "subject to a comprehensive visual representation the",
+  "subject to a comprehensive visual representation",
+  "subject to a thorough visual representation the",
+  "subject to a thorough visual representation",
+  "subject to a detailed visual representation the",
+  "subject to a detailed visual representation",
+  "assume direct exclusive obtainment of the",
+  "assume direct exclusive obtainment of",
+  "assume absolute exclusive obtainment of the",
+  "assume absolute exclusive obtainment of",
+  "assume immediate exclusive obtainment of the",
+  "assume immediate exclusive obtainment of",
+  "divest oneself of all exclusive obtainment of the",
+  "divest oneself of all exclusive obtainment of",
+  "relinquish all exclusive obtainment of the",
+  "relinquish all exclusive obtainment of",
+  "free oneself from all exclusive obtainment of the",
+  "free oneself from all exclusive obtainment of",
+  "force completely and thermomechanically wide open the",
+  "force completely and thermomechanically wide open",
+  "pry completely and thermomechanically wide open the",
+  "pry completely and thermomechanically wide open",
+  "fasten completely and thermomechanically closed the",
+  "fasten completely and thermomechanically closed",
+  "seal completely and thermomechanically shut the",
+  "seal completely and thermomechanically shut",
+  "deactivate all pyroelectric security devices of the",
+  "deactivate all pyroelectric security devices of",
+  "bypass all pyroelectric security devices on the",
+  "bypass all pyroelectric security devices on",
+  "disengage the primary pyroelectric security device on the",
+  "disengage the primary pyroelectric security device on",
+  "harness the full instrumental deployment of the",
+  "harness the full instrumental deployment of",
+  "bring into active instrumental deployment the",
+  "bring into active instrumental deployment",
+  "make complete instrumental deployment of the",
+  "make complete instrumental deployment of",
+  "initiate a terrifying confrontation against the",
+  "initiate a terrifying confrontation against",
+  "commence a terrifying confrontation against the",
+  "commence a terrifying confrontation against",
+  "engage in a terrifying confrontation against the",
+  "engage in a terrifying confrontation against",
+  "initiate a friendly face to face discussion with the",
+  "initiate a friendly face to face discussion with",
+  "engage in a friendly face to face discussion with the",
+  "engage in a friendly face to face discussion with",
+  "strike up a friendly face to face discussion with the",
+  "strike up a friendly face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
+
 
 
 
