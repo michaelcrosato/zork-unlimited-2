@@ -116,9 +116,15 @@ while true; do
   set -o pipefail
 
   if [[ -n "${AI_AGENT_CMD:-}" ]]; then
-    echo "🤖 Executing agent via: $AI_AGENT_CMD"
-    echo "$PROMPT" | eval "$AI_AGENT_CMD" | tee "$AGENT_OUT"
-    STATUS=$?
+    if [[ "$AI_AGENT_CMD" =~ --print$ || "$AI_AGENT_CMD" =~ -p$ || "$AI_AGENT_CMD" =~ --prompt$ ]]; then
+      echo "🤖 Executing agent via: $AI_AGENT_CMD \"[PROMPT]\""
+      eval "$AI_AGENT_CMD \"\$PROMPT\"" | tee "$AGENT_OUT"
+      STATUS=$?
+    else
+      echo "🤖 Executing agent via: $AI_AGENT_CMD"
+      echo "$PROMPT" | eval "$AI_AGENT_CMD" | tee "$AGENT_OUT"
+      STATUS=$?
+    fi
   else
     echo "🤖 Executing agent via 'agy'..."
     agy --dangerously-skip-permissions --print "$PROMPT" | tee "$AGENT_OUT"
