@@ -1745,6 +1745,23 @@ export function step(
         };
       }
 
+      // If the target room doesn't exist, generate it procedurally right now!
+      let targetRoom = findRoom(newState, parserPack, exit.to);
+      if (!targetRoom && parserPack.procedural_templates && parserPack.procedural_templates.length > 0) {
+        const templateId = currentRoom?.template_id || parserPack.procedural_templates[0].id;
+        const res = applyEffects(newState, [{
+          generate_procedural_room: {
+            direction: action.direction,
+            to_id: exit.to,
+            template_id: templateId
+          }
+        } as any], parserPack);
+        newState = res.state;
+        if (res.events) {
+          events.push(...res.events);
+        }
+      }
+
       // Check exit conditions
       const passed = evaluateConditions(newState, exit.conditions);
       if (!passed) {

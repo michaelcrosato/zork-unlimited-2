@@ -448,10 +448,11 @@ export function applyEffect(state: GameState, effect: Effect, pack?: any): { sta
     let roomDesc = description;
     const templateObjects: string[] = [];
     const templateNpcs: string[] = [];
+    let template: any = undefined;
 
     // If template_id is provided, resolve from the pack
     if (template_id && pack && pack.procedural_templates) {
-      const template = pack.procedural_templates.find((t: any) => t.id === template_id);
+      template = pack.procedural_templates.find((t: any) => t.id === template_id);
       if (template) {
         // Deterministic room name generation
         let generatedName = "";
@@ -594,13 +595,26 @@ export function applyEffect(state: GameState, effect: Effect, pack?: any): { sta
 
     const exists = newState.proceduralRooms.some((r: any) => r.id === to_id);
     if (!exists) {
+      const templateExits = template?.exits || [];
+      const newRoomExits = [{ direction: oppDir, to: state.current }];
+      for (const ex of templateExits) {
+        if (!newRoomExits.some((e: any) => e.direction === ex.direction)) {
+          const targetExistsInPack = pack?.rooms?.some((r: any) => r.id === ex.to);
+          const targetId = targetExistsInPack ? ex.to : `${to_id}_${ex.direction}`;
+          newRoomExits.push({
+            ...ex,
+            to: targetId
+          });
+        }
+      }
       newState.proceduralRooms.push({
         id: to_id,
         name: roomName,
         description: roomDesc,
         objects: templateObjects,
         npcs: templateNpcs,
-        exits: [{ direction: oppDir, to: state.current }],
+        exits: newRoomExits,
+        template_id: template_id,
       });
     }
 

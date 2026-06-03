@@ -321,4 +321,105 @@ describe("Stage 2 Procedural Templates & Generators", () => {
     expect(generated.objects).toContain("rusty_sword");
     expect(generated.objects).not.toContain("shield");
   });
+
+  it("should copy template exits and generate new rooms on the fly when traversing exits", () => {
+    const pack: ParserPack = {
+      meta: {
+        id: "exits_procedural_pack",
+        title: "Exits Procedural",
+        start_room: "start",
+        vars_init: {},
+        flags_init: ["generate_room"],
+      },
+      rooms: [
+        {
+          id: "start",
+          name: "Starting Point",
+          description: "Start room.",
+          objects: ["device"],
+          npcs: [],
+          exits: [],
+        },
+      ],
+      objects: [
+        {
+          id: "device",
+          name: "strange device",
+          aliases: ["device"],
+          description: "A device.",
+          takeable: false,
+          quest_critical: false,
+          container: false,
+          openable: false,
+          locked: false,
+          contents: [],
+          interactions: [
+            {
+              verb: "USE",
+              conditions: [{ has_flag: "generate_room" }],
+              effects: [
+                { clear_flag: "generate_room" },
+                {
+                  generate_procedural_room: {
+                    direction: "north",
+                    to_id: "proc_room_1",
+                    template_id: "infinite_dungeon",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      npcs: [],
+      procedural_templates: [
+        {
+          id: "infinite_dungeon",
+          name_pool: ["Dungeon Room"],
+          description_pool: ["A stone chamber."],
+          exits: [
+            { direction: "east", to: "proc_room_2" },
+          ],
+        },
+      ],
+      win_conditions: [],
+      endings: [],
+    };
+
+    let state = createInitialState({
+      seed: 42,
+      start: "start",
+      flagsInit: ["generate_room"],
+    });
+
+    const useRes = step(state, { type: "USE", target: "device", item: "device" }, pack);
+    expect(useRes.ok).toBe(true);
+    state = useRes.state;
+
+    expect(state.proceduralRooms).toHaveLength(1);
+    const room1 = state.proceduralRooms![0];
+    expect(room1.id).toBe("proc_room_1");
+    expect(room1.exits).toEqual([
+      { direction: "south", to: "start" },
+      { direction: "east", to: "proc_room_1_east" },
+    ]);
+
+    const moveNorthRes = step(state, { type: "MOVE", direction: "north" }, pack);
+    expect(moveNorthRes.ok).toBe(true);
+    state = moveNorthRes.state;
+    expect(state.current).toBe("proc_room_1");
+
+    const moveEastRes = step(state, { type: "MOVE", direction: "east" }, pack);
+    expect(moveEastRes.ok).toBe(true);
+    state = moveEastRes.state;
+    expect(state.current).toBe("proc_room_1_east");
+
+    expect(state.proceduralRooms).toHaveLength(2);
+    const room2 = state.proceduralRooms!.find(r => r.id === "proc_room_1_east");
+    expect(room2).toBeDefined();
+    expect(room2!.exits).toEqual([
+      { direction: "west", to: "proc_room_1" },
+      { direction: "east", to: "proc_room_1_east_east" },
+    ]);
+  });
 });
