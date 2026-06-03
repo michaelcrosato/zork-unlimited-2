@@ -915,7 +915,7 @@
           class="form-group"
           style="flex-direction: row; align-items: center; gap: 0.5rem"
         >
-          <label class="form-label" style="margin: 0">Game Pack:</label>
+          <label class="form-label" for="game-pack-select" style="margin: 0">Game Pack:</label>
           <select id="game-pack-select" onchange="switchGamePack()">
             <option value="heros_quest">🏰 Castle of Shadows (RPG)</option>
             <option value="chapel">⛪ The Sealed Crypt (Zork-style)</option>
@@ -927,7 +927,7 @@
           class="form-group"
           style="flex-direction: row; align-items: center; gap: 0.5rem"
         >
-          <label class="form-label" style="margin: 0">Seed:</label>
+          <label class="form-label" for="game-seed-input" style="margin: 0">Seed:</label>
           <input
             type="number"
             id="game-seed-input"
@@ -940,6 +940,8 @@
         <button
           id="audio-toggle-btn"
           onclick="toggleAudio()"
+          aria-label="Toggle audio"
+          aria-pressed="false"
           style="
             font-size: 1.1rem;
             padding: 0.5rem;
@@ -1080,12 +1082,13 @@
 
         <!-- Dynamic input prompt -->
         <div class="input-frame">
-          <span class="prompt-prefix">></span>
+          <span class="prompt-prefix" aria-hidden="true">></span>
           <input
             type="text"
             class="console-input"
             id="console-prompt-input"
             autocomplete="off"
+            aria-label="Command input"
             placeholder="Enter a choice or a command (e.g. 'go west', 'look at chest')..."
           />
         </div>
@@ -2504,6 +2507,7 @@
         const btn = document.getElementById("audio-toggle-btn");
         if (btn) {
           btn.innerText = SynthAudio.enabled ? "🔊" : "🔇";
+          btn.setAttribute("aria-pressed", SynthAudio.enabled.toString());
           btn.style.borderColor = SynthAudio.enabled
             ? "var(--color-primary)"
             : "var(--text-muted)";
