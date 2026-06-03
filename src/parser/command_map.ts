@@ -17654,7 +17654,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a pragmatic face to face discussion with": ["TALK"],
   "engage in a pragmatic face to face discussion with the": ["TALK"],
   "strike up a pragmatic face to face discussion with": ["TALK"],
-  "strike up a pragmatic face to face discussion with the": ["TALK"]
+  "strike up a pragmatic face to face discussion with the": ["TALK"],
+
+  // Cycle #84 / Task-F107: Phase 70 mappings
+  // Move
+  "navigate one's vector of observation towards the location of": ["MOVE"],
+  "navigate one's vector of observation towards the location of the": ["MOVE"],
+  "navigate ones vector of observation towards the location of": ["MOVE"],
+  "navigate ones vector of observation towards the location of the": ["MOVE"],
+  "steer one's vector of observation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of observation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of observation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of observation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of observation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of observation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of observation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of observation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual appraisal": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual appraisal the": ["LOOK_INSPECT"],
+  "subject to a thorough visual appraisal": ["LOOK_INSPECT"],
+  "subject to a thorough visual appraisal the": ["LOOK_INSPECT"],
+  "subject to a detailed visual appraisal": ["LOOK_INSPECT"],
+  "subject to a detailed visual appraisal the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive gathering of": ["TAKE"],
+  "assume direct exclusive gathering of the": ["TAKE"],
+  "assume absolute exclusive gathering of": ["TAKE"],
+  "assume absolute exclusive gathering of the": ["TAKE"],
+  "assume immediate exclusive gathering of": ["TAKE"],
+  "assume immediate exclusive gathering of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive gathering of": ["DROP"],
+  "divest oneself of all exclusive gathering of the": ["DROP"],
+  "relinquish all exclusive gathering of": ["DROP"],
+  "relinquish all exclusive gathering of the": ["DROP"],
+  "free oneself from all exclusive gathering of": ["DROP"],
+  "free oneself from all exclusive gathering of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electrochemically wide open": ["OPEN"],
+  "force completely and electrochemically wide open the": ["OPEN"],
+  "pry completely and electrochemically wide open": ["OPEN"],
+  "pry completely and electrochemically wide open the": ["OPEN"],
+  "fasten completely and electrochemically closed": ["CLOSE"],
+  "fasten completely and electrochemically closed the": ["CLOSE"],
+  "seal completely and electrochemically shut": ["CLOSE"],
+  "seal completely and electrochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all holographic security devices of": ["UNLOCK"],
+  "deactivate all holographic security devices of the": ["UNLOCK"],
+  "bypass all holographic security devices on": ["UNLOCK"],
+  "bypass all holographic security devices on the": ["UNLOCK"],
+  "disengage the primary holographic security device on": ["UNLOCK"],
+  "disengage the primary holographic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full synergistic deployment of": ["USE"],
+  "harness the full synergistic deployment of the": ["USE"],
+  "bring into active synergistic deployment": ["USE"],
+  "bring into active synergistic deployment the": ["USE"],
+  "make complete synergistic deployment of": ["USE"],
+  "make complete synergistic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a perilous confrontation against": ["FIGHT"],
+  "initiate a perilous confrontation against the": ["FIGHT"],
+  "commence a perilous confrontation against": ["FIGHT"],
+  "commence a perilous confrontation against the": ["FIGHT"],
+  "engage in a perilous confrontation against": ["FIGHT"],
+  "engage in a perilous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a tactful face to face discussion with": ["TALK"],
+  "initiate a tactful face to face discussion with the": ["TALK"],
+  "engage in a tactful face to face discussion with": ["TALK"],
+  "engage in a tactful face to face discussion with the": ["TALK"],
+  "strike up a tactful face to face discussion with": ["TALK"],
+  "strike up a tactful face to face discussion with the": ["TALK"]
 });
 
 // Cycle #80 / Task-F103: Phase 66 compound verbs
@@ -17919,6 +18000,72 @@ compoundVerbs.push(
   "engage in a pragmatic face to face discussion with",
   "strike up a pragmatic face to face discussion with the",
   "strike up a pragmatic face to face discussion with"
+);
+
+// Cycle #84 / Task-F107: Phase 70 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of observation towards the location of the",
+  "navigate one's vector of observation towards the location of",
+  "navigate ones vector of observation towards the location of the",
+  "navigate ones vector of observation towards the location of",
+  "steer one's vector of observation in the direction of the coordinates of the",
+  "steer one's vector of observation in the direction of the coordinates of",
+  "steer ones vector of observation in the direction of the coordinates of the",
+  "steer ones vector of observation in the direction of the coordinates of",
+  "direct one's vector of observation towards the coordinates of the location of the",
+  "direct one's vector of observation towards the coordinates of the location of",
+  "direct ones vector of observation towards the coordinates of the location of the",
+  "direct ones vector of observation towards the coordinates of the location of",
+  "subject to a comprehensive visual appraisal the",
+  "subject to a comprehensive visual appraisal",
+  "subject to a thorough visual appraisal the",
+  "subject to a thorough visual appraisal",
+  "subject to a detailed visual appraisal the",
+  "subject to a detailed visual appraisal",
+  "assume direct exclusive gathering of the",
+  "assume direct exclusive gathering of",
+  "assume absolute exclusive gathering of the",
+  "assume absolute exclusive gathering of",
+  "assume immediate exclusive gathering of the",
+  "assume immediate exclusive gathering of",
+  "divest oneself of all exclusive gathering of the",
+  "divest oneself of all exclusive gathering of",
+  "relinquish all exclusive gathering of the",
+  "relinquish all exclusive gathering of",
+  "free oneself from all exclusive gathering of the",
+  "free oneself from all exclusive gathering of",
+  "force completely and electrochemically wide open the",
+  "force completely and electrochemically wide open",
+  "pry completely and electrochemically wide open the",
+  "pry completely and electrochemically wide open",
+  "fasten completely and electrochemically closed the",
+  "fasten completely and electrochemically closed",
+  "seal completely and electrochemically shut the",
+  "seal completely and electrochemically shut",
+  "deactivate all holographic security devices of the",
+  "deactivate all holographic security devices of",
+  "bypass all holographic security devices on the",
+  "bypass all holographic security devices on",
+  "disengage the primary holographic security device on the",
+  "disengage the primary holographic security device on",
+  "harness the full synergistic deployment of the",
+  "harness the full synergistic deployment of",
+  "bring into active synergistic deployment the",
+  "bring into active synergistic deployment",
+  "make complete synergistic deployment of the",
+  "make complete synergistic deployment of",
+  "initiate a perilous confrontation against the",
+  "initiate a perilous confrontation against",
+  "commence a perilous confrontation against the",
+  "commence a perilous confrontation against",
+  "engage in a perilous confrontation against the",
+  "engage in a perilous confrontation against",
+  "initiate a tactful face to face discussion with the",
+  "initiate a tactful face to face discussion with",
+  "engage in a tactful face to face discussion with the",
+  "engage in a tactful face to face discussion with",
+  "strike up a tactful face to face discussion with the",
+  "strike up a tactful face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
