@@ -10478,7 +10478,90 @@ Object.assign(VERB_CATEGORIES, {
   "initiate a discussion with": ["TALK"],
   "initiate a discussion with the": ["TALK"],
   "strike up talk with": ["TALK"],
-  "strike up talk with the": ["TALK"]
+  "strike up talk with the": ["TALK"],
+
+  // Cycle #37 / Task-F60: Phase 23 mappings (expansion requested by playtesters)
+  // Move
+  "direct one's course towards": ["MOVE"],
+  "direct one's course towards the": ["MOVE"],
+  "direct ones course towards": ["MOVE"],
+  "direct ones course towards the": ["MOVE"],
+  "navigate a route towards": ["MOVE"],
+  "navigate a route towards the": ["MOVE"],
+  "journey in the direction of": ["MOVE"],
+  "journey in the direction of the": ["MOVE"],
+
+  // Look/Inspect
+  "carry out an inspection of": ["LOOK_INSPECT"],
+  "carry out an inspection of the": ["LOOK_INSPECT"],
+  "cast a critical eye over": ["LOOK_INSPECT"],
+  "cast a critical eye over the": ["LOOK_INSPECT"],
+  "perform a visual check on": ["LOOK_INSPECT"],
+  "perform a visual check on the": ["LOOK_INSPECT"],
+
+  // Take
+  "take under one's control": ["TAKE"],
+  "take under one's control the": ["TAKE"],
+  "take under ones control": ["TAKE"],
+  "take under ones control the": ["TAKE"],
+  "bring under one's custody": ["TAKE"],
+  "bring under one's custody the": ["TAKE"],
+  "bring under ones custody": ["TAKE"],
+  "bring under ones custody the": ["TAKE"],
+  "gather up into inventory": ["TAKE"],
+  "gather up into inventory the": ["TAKE"],
+
+  // Drop
+  "deposit upon the ground": ["DROP"],
+  "deposit upon the ground the": ["DROP"],
+  "let fall to the earth": ["DROP"],
+  "let fall to the earth the": ["DROP"],
+  "divest ones self of": ["DROP"],
+  "divest ones self of the": ["DROP"],
+  "divest one's self of": ["DROP"],
+  "divest one's self of the": ["DROP"],
+  "free one's self of": ["DROP"],
+  "free one's self of the": ["DROP"],
+
+  // Open/Close
+  "pry completely open": ["OPEN"],
+  "pry completely open the": ["OPEN"],
+  "force completely closed": ["CLOSE"],
+  "force completely closed the": ["CLOSE"],
+  "seal completely closed": ["CLOSE"],
+  "seal completely closed the": ["CLOSE"],
+
+  // Unlock
+  "disengage the lock of": ["UNLOCK"],
+  "disengage the lock of the": ["UNLOCK"],
+  "deactivate security systems on": ["UNLOCK"],
+  "deactivate security systems on the": ["UNLOCK"],
+  "bypass security systems on": ["UNLOCK"],
+  "bypass security systems on the": ["UNLOCK"],
+
+  // Use
+  "harness the functionality of": ["USE"],
+  "harness the functionality of the": ["USE"],
+  "bring into active play": ["USE"],
+  "bring into active play the": ["USE"],
+  "make use of the functions of": ["USE"],
+  "make use of the functions of the": ["USE"],
+
+  // Combat
+  "wage warfare against": ["FIGHT"],
+  "wage warfare against the": ["FIGHT"],
+  "commence hostilities against": ["FIGHT"],
+  "commence hostilities against the": ["FIGHT"],
+  "initiate an assault against": ["FIGHT"],
+  "initiate an assault against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate communication with": ["TALK"],
+  "initiate communication with the": ["TALK"],
+  "strike up communication with": ["TALK"],
+  "strike up communication with the": ["TALK"],
+  "strike up a chat with": ["TALK"],
+  "strike up a chat with the": ["TALK"]
 });
 
 compoundVerbs.push(
@@ -10833,7 +10916,73 @@ compoundVerbs.push(
   "initiate a discussion with the",
   "initiate a discussion with",
   "strike up talk with the",
-  "strike up talk with"
+  "strike up talk with",
+
+  // Phase 23 compound verbs
+  "direct one's course towards the",
+  "direct one's course towards",
+  "direct ones course towards the",
+  "direct ones course towards",
+  "navigate a route towards the",
+  "navigate a route towards",
+  "journey in the direction of the",
+  "journey in the direction of",
+  "carry out an inspection of the",
+  "carry out an inspection of",
+  "cast a critical eye over the",
+  "cast a critical eye over",
+  "perform a visual check on the",
+  "perform a visual check on",
+  "take under one's control the",
+  "take under one's control",
+  "take under ones control the",
+  "take under ones control",
+  "bring under one's custody the",
+  "bring under one's custody",
+  "bring under ones custody the",
+  "bring under ones custody",
+  "gather up into inventory the",
+  "gather up into inventory",
+  "deposit upon the ground the",
+  "deposit upon the ground",
+  "let fall to the earth the",
+  "let fall to the earth",
+  "divest ones self of the",
+  "divest ones self of",
+  "divest one's self of the",
+  "divest one's self of",
+  "free one's self of the",
+  "free one's self of",
+  "pry completely open the",
+  "pry completely open",
+  "force completely closed the",
+  "force completely closed",
+  "seal completely closed the",
+  "seal completely closed",
+  "disengage the lock of the",
+  "disengage the lock of",
+  "deactivate security systems on the",
+  "deactivate security systems on",
+  "bypass security systems on the",
+  "bypass security systems on",
+  "harness the functionality of the",
+  "harness the functionality of",
+  "bring into active play the",
+  "bring into active play",
+  "make use of the functions of the",
+  "make use of the functions of",
+  "wage warfare against the",
+  "wage warfare against",
+  "commence hostilities against the",
+  "commence hostilities against",
+  "initiate an assault against the",
+  "initiate an assault against",
+  "initiate communication with the",
+  "initiate communication with",
+  "strike up communication with the",
+  "strike up communication with",
+  "strike up a chat with the",
+  "strike up a chat with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
