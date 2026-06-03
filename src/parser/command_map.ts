@@ -17331,6 +17331,155 @@ compoundVerbs.push(
   "strike up a literary face to face discussion with"
 );
 
+// Cycle #80 / Task-F103: Phase 66 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of scouting towards the location of": ["MOVE"],
+  "navigate one's vector of scouting towards the location of the": ["MOVE"],
+  "navigate ones vector of scouting towards the location of": ["MOVE"],
+  "navigate ones vector of scouting towards the location of the": ["MOVE"],
+  "steer one's vector of scouting in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of scouting in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of scouting in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of scouting in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of scouting towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of scouting towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of scouting towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of scouting towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual detection": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual detection the": ["LOOK_INSPECT"],
+  "subject to a thorough visual detection": ["LOOK_INSPECT"],
+  "subject to a thorough visual detection the": ["LOOK_INSPECT"],
+  "subject to a detailed visual detection": ["LOOK_INSPECT"],
+  "subject to a detailed visual detection the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive capture of": ["TAKE"],
+  "assume direct exclusive capture of the": ["TAKE"],
+  "assume absolute exclusive capture of": ["TAKE"],
+  "assume absolute exclusive capture of the": ["TAKE"],
+  "assume immediate exclusive capture of": ["TAKE"],
+  "assume immediate exclusive capture of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive capture of": ["DROP"],
+  "divest oneself of all exclusive capture of the": ["DROP"],
+  "relinquish all exclusive capture of": ["DROP"],
+  "relinquish all exclusive capture of the": ["DROP"],
+  "free oneself from all exclusive capture of": ["DROP"],
+  "free oneself from all exclusive capture of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electromagnetically wide open": ["OPEN"],
+  "force completely and electromagnetically wide open the": ["OPEN"],
+  "pry completely and electromagnetically wide open": ["OPEN"],
+  "pry completely and electromagnetically wide open the": ["OPEN"],
+  "fasten completely and electromagnetically closed": ["CLOSE"],
+  "fasten completely and electromagnetically closed the": ["CLOSE"],
+  "seal completely and electromagnetically shut": ["CLOSE"],
+  "seal completely and electromagnetically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all gravitational security devices of": ["UNLOCK"],
+  "deactivate all gravitational security devices of the": ["UNLOCK"],
+  "bypass all gravitational security devices on": ["UNLOCK"],
+  "bypass all gravitational security devices on the": ["UNLOCK"],
+  "disengage the primary gravitational security device on": ["UNLOCK"],
+  "disengage the primary gravitational security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full evolutionary deployment of": ["USE"],
+  "harness the full evolutionary deployment of the": ["USE"],
+  "bring into active evolutionary deployment": ["USE"],
+  "bring into active evolutionary deployment the": ["USE"],
+  "make complete evolutionary deployment of": ["USE"],
+  "make complete evolutionary deployment of the": ["USE"],
+
+  // Combat
+  "initiate a titanic confrontation against": ["FIGHT"],
+  "initiate a titanic confrontation against the": ["FIGHT"],
+  "commence a titanic confrontation against": ["FIGHT"],
+  "commence a titanic confrontation against the": ["FIGHT"],
+  "engage in a titanic confrontation against": ["FIGHT"],
+  "engage in a titanic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an academic face to face discussion with": ["TALK"],
+  "initiate an academic face to face discussion with the": ["TALK"],
+  "engage in an academic face to face discussion with": ["TALK"],
+  "engage in an academic face to face discussion with the": ["TALK"],
+  "strike up an academic face to face discussion with": ["TALK"],
+  "strike up an academic face to face discussion with the": ["TALK"]
+});
+
+// Cycle #80 / Task-F103: Phase 66 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of scouting towards the location of the",
+  "navigate one's vector of scouting towards the location of",
+  "navigate ones vector of scouting towards the location of the",
+  "navigate ones vector of scouting towards the location of",
+  "steer one's vector of scouting in the direction of the coordinates of the",
+  "steer one's vector of scouting in the direction of the coordinates of",
+  "steer ones vector of scouting in the direction of the coordinates of the",
+  "steer ones vector of scouting in the direction of the coordinates of",
+  "direct one's vector of scouting towards the coordinates of the location of the",
+  "direct one's vector of scouting towards the coordinates of the location of",
+  "direct ones vector of scouting towards the coordinates of the location of the",
+  "direct ones vector of scouting towards the coordinates of the location of",
+  "subject to a comprehensive visual detection the",
+  "subject to a comprehensive visual detection",
+  "subject to a thorough visual detection the",
+  "subject to a thorough visual detection",
+  "subject to a detailed visual detection the",
+  "subject to a detailed visual detection",
+  "assume direct exclusive capture of the",
+  "assume direct exclusive capture of",
+  "assume absolute exclusive capture of the",
+  "assume absolute exclusive capture of",
+  "assume immediate exclusive capture of the",
+  "assume immediate exclusive capture of",
+  "divest oneself of all exclusive capture of the",
+  "divest oneself of all exclusive capture of",
+  "relinquish all exclusive capture of the",
+  "relinquish all exclusive capture of",
+  "free oneself from all exclusive capture of the",
+  "free oneself from all exclusive capture of",
+  "force completely and electromagnetically wide open the",
+  "force completely and electromagnetically wide open",
+  "pry completely and electromagnetically wide open the",
+  "pry completely and electromagnetically wide open",
+  "fasten completely and electromagnetically closed the",
+  "fasten completely and electromagnetically closed",
+  "seal completely and electromagnetically shut the",
+  "seal completely and electromagnetically shut",
+  "deactivate all gravitational security devices of the",
+  "deactivate all gravitational security devices of",
+  "bypass all gravitational security devices on the",
+  "bypass all gravitational security devices on",
+  "disengage the primary gravitational security device on the",
+  "disengage the primary gravitational security device on",
+  "harness the full evolutionary deployment of the",
+  "harness the full evolutionary deployment of",
+  "bring into active evolutionary deployment the",
+  "bring into active evolutionary deployment",
+  "make complete evolutionary deployment of the",
+  "make complete evolutionary deployment of",
+  "initiate a titanic confrontation against the",
+  "initiate a titanic confrontation against",
+  "commence a titanic confrontation against the",
+  "commence a titanic confrontation against",
+  "engage in a titanic confrontation against the",
+  "engage in a titanic confrontation against",
+  "initiate an academic face to face discussion with the",
+  "initiate an academic face to face discussion with",
+  "engage in an academic face to face discussion with the",
+  "engage in an academic face to face discussion with",
+  "strike up an academic face to face discussion with the",
+  "strike up an academic face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
