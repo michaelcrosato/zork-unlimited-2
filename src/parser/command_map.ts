@@ -15096,7 +15096,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a cooperative face to face discussion with": ["TALK"],
   "engage in a cooperative face to face discussion with the": ["TALK"],
   "strike up a cooperative face to face discussion with": ["TALK"],
-  "strike up a cooperative face to face discussion with the": ["TALK"]
+  "strike up a cooperative face to face discussion with the": ["TALK"],
+
+  // Phase 54
+  // Move
+  "navigate one's vector of transition towards the location of": ["MOVE"],
+  "navigate one's vector of transition towards the location of the": ["MOVE"],
+  "navigate ones vector of transition towards the location of": ["MOVE"],
+  "navigate ones vector of transition towards the location of the": ["MOVE"],
+  "steer one's vector of transition in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of transition in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of transition in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of transition in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of transition towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of transition towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of transition towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of transition towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual apprehension": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual apprehension the": ["LOOK_INSPECT"],
+  "subject to a thorough visual apprehension": ["LOOK_INSPECT"],
+  "subject to a thorough visual apprehension the": ["LOOK_INSPECT"],
+  "subject to a detailed visual apprehension": ["LOOK_INSPECT"],
+  "subject to a detailed visual apprehension the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive governance of": ["TAKE"],
+  "assume direct exclusive governance of the": ["TAKE"],
+  "assume absolute exclusive governance of": ["TAKE"],
+  "assume absolute exclusive governance of the": ["TAKE"],
+  "assume immediate exclusive governance of": ["TAKE"],
+  "assume immediate exclusive governance of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive governance of": ["DROP"],
+  "divest oneself of all exclusive governance of the": ["DROP"],
+  "relinquish all exclusive governance of": ["DROP"],
+  "relinquish all exclusive governance of the": ["DROP"],
+  "free oneself from all exclusive governance of": ["DROP"],
+  "free oneself from all exclusive governance of the": ["DROP"],
+
+  // Open/Close
+  "force completely and preventatively wide open": ["OPEN"],
+  "force completely and preventatively wide open the": ["OPEN"],
+  "pry completely and preventatively wide open": ["OPEN"],
+  "pry completely and preventatively wide open the": ["OPEN"],
+  "fasten completely and preventatively closed": ["CLOSE"],
+  "fasten completely and preventatively closed the": ["CLOSE"],
+  "seal completely and preventatively shut": ["CLOSE"],
+  "seal completely and preventatively shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all database security devices of": ["UNLOCK"],
+  "deactivate all database security devices of the": ["UNLOCK"],
+  "bypass all database security devices on": ["UNLOCK"],
+  "bypass all database security devices on the": ["UNLOCK"],
+  "disengage the primary database security device on": ["UNLOCK"],
+  "disengage the primary database security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full analytical deployment of": ["USE"],
+  "harness the full analytical deployment of the": ["USE"],
+  "bring into active analytical deployment": ["USE"],
+  "bring into active analytical deployment the": ["USE"],
+  "make complete analytical deployment of": ["USE"],
+  "make complete analytical deployment of the": ["USE"],
+
+  // Combat
+  "initiate a formidable confrontation against": ["FIGHT"],
+  "initiate a formidable confrontation against the": ["FIGHT"],
+  "commence a formidable confrontation against": ["FIGHT"],
+  "commence a formidable confrontation against the": ["FIGHT"],
+  "engage in a formidable confrontation against": ["FIGHT"],
+  "engage in a formidable confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a harmonious face to face discussion with": ["TALK"],
+  "initiate a harmonious face to face discussion with the": ["TALK"],
+  "engage in a harmonious face to face discussion with": ["TALK"],
+  "engage in a harmonious face to face discussion with the": ["TALK"],
+  "strike up a harmonious face to face discussion with": ["TALK"],
+  "strike up a harmonious face to face discussion with the": ["TALK"]
 });
 
 compoundVerbs.push(
@@ -15546,7 +15627,71 @@ compoundVerbs.push(
   "engage in a cooperative face to face discussion with the",
   "engage in a cooperative face to face discussion with",
   "strike up a cooperative face to face discussion with the",
-  "strike up a cooperative face to face discussion with"
+  "strike up a cooperative face to face discussion with",
+
+  // Phase 54 compound verbs
+  "navigate one's vector of transition towards the location of the",
+  "navigate one's vector of transition towards the location of",
+  "navigate ones vector of transition towards the location of the",
+  "navigate ones vector of transition towards the location of",
+  "steer one's vector of transition in the direction of the coordinates of the",
+  "steer one's vector of transition in the direction of the coordinates of",
+  "steer ones vector of transition in the direction of the coordinates of the",
+  "steer ones vector of transition in the direction of the coordinates of",
+  "direct one's vector of transition towards the coordinates of the location of the",
+  "direct one's vector of transition towards the coordinates of the location of",
+  "direct ones vector of transition towards the coordinates of the location of the",
+  "direct ones vector of transition towards the coordinates of the location of",
+  "subject to a comprehensive visual apprehension the",
+  "subject to a comprehensive visual apprehension",
+  "subject to a thorough visual apprehension the",
+  "subject to a thorough visual apprehension",
+  "subject to a detailed visual apprehension the",
+  "subject to a detailed visual apprehension",
+  "assume direct exclusive governance of the",
+  "assume direct exclusive governance of",
+  "assume absolute exclusive governance of the",
+  "assume absolute exclusive governance of",
+  "assume immediate exclusive governance of the",
+  "assume immediate exclusive governance of",
+  "divest oneself of all exclusive governance of the",
+  "divest oneself of all exclusive governance of",
+  "relinquish all exclusive governance of the",
+  "relinquish all exclusive governance of",
+  "free oneself from all exclusive governance of the",
+  "free oneself from all exclusive governance of",
+  "force completely and preventatively wide open the",
+  "force completely and preventatively wide open",
+  "pry completely and preventatively wide open the",
+  "pry completely and preventatively wide open",
+  "fasten completely and preventatively closed the",
+  "fasten completely and preventatively closed",
+  "seal completely and preventatively shut the",
+  "seal completely and preventatively shut",
+  "deactivate all database security devices of the",
+  "deactivate all database security devices of",
+  "bypass all database security devices on the",
+  "bypass all database security devices on",
+  "disengage the primary database security device on the",
+  "disengage the primary database security device on",
+  "harness the full analytical deployment of the",
+  "harness the full analytical deployment of",
+  "bring into active analytical deployment the",
+  "bring into active analytical deployment",
+  "make complete analytical deployment of the",
+  "make complete analytical deployment of",
+  "initiate a formidable confrontation against the",
+  "initiate a formidable confrontation against",
+  "commence a formidable confrontation against the",
+  "commence a formidable confrontation against",
+  "engage in a formidable confrontation against the",
+  "engage in a formidable confrontation against",
+  "initiate a harmonious face to face discussion with the",
+  "initiate a harmonious face to face discussion with",
+  "engage in a harmonious face to face discussion with the",
+  "engage in a harmonious face to face discussion with",
+  "strike up a harmonious face to face discussion with the",
+  "strike up a harmonious face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
