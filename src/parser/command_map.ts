@@ -14769,6 +14769,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a philosophical face to face discussion with the": ["TALK"]
 });
 
+// Cycle #64 / Task-F87: Phase 50 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of relocation towards the location of": ["MOVE"],
+  "navigate one's vector of relocation towards the location of the": ["MOVE"],
+  "navigate ones vector of relocation towards the location of": ["MOVE"],
+  "navigate ones vector of relocation towards the location of the": ["MOVE"],
+  "steer one's vector of relocation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of relocation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of relocation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of relocation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of relocation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of relocation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of relocation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of relocation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual identification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual identification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual identification": ["LOOK_INSPECT"],
+  "subject to a thorough visual identification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual identification": ["LOOK_INSPECT"],
+  "subject to a detailed visual identification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive conservatorship of": ["TAKE"],
+  "assume direct exclusive conservatorship of the": ["TAKE"],
+  "assume absolute exclusive conservatorship of": ["TAKE"],
+  "assume absolute exclusive conservatorship of the": ["TAKE"],
+  "assume immediate exclusive conservatorship of": ["TAKE"],
+  "assume immediate exclusive conservatorship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive conservatorship of": ["DROP"],
+  "divest oneself of all exclusive conservatorship of the": ["DROP"],
+  "relinquish all exclusive conservatorship of": ["DROP"],
+  "relinquish all exclusive conservatorship of the": ["DROP"],
+  "free oneself from all exclusive conservatorship of": ["DROP"],
+  "free oneself from all exclusive conservatorship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and systematically wide open": ["OPEN"],
+  "force completely and systematically wide open the": ["OPEN"],
+  "pry completely and systematically wide open": ["OPEN"],
+  "pry completely and systematically wide open the": ["OPEN"],
+  "fasten completely and systematically closed": ["CLOSE"],
+  "fasten completely and systematically closed the": ["CLOSE"],
+  "seal completely and systematically shut": ["CLOSE"],
+  "seal completely and systematically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all firewall security devices of": ["UNLOCK"],
+  "deactivate all firewall security devices of the": ["UNLOCK"],
+  "bypass all firewall security devices on": ["UNLOCK"],
+  "bypass all firewall security devices on the": ["UNLOCK"],
+  "disengage the primary firewall security device on": ["UNLOCK"],
+  "disengage the primary firewall security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full methodical deployment of": ["USE"],
+  "harness the full methodical deployment of the": ["USE"],
+  "bring into active methodical deployment": ["USE"],
+  "bring into active methodical deployment the": ["USE"],
+  "make complete methodical deployment of": ["USE"],
+  "make complete methodical deployment of the": ["USE"],
+
+  // Combat
+  "initiate a contentious confrontation against": ["FIGHT"],
+  "initiate a contentious confrontation against the": ["FIGHT"],
+  "commence a contentious confrontation against": ["FIGHT"],
+  "commence a contentious confrontation against the": ["FIGHT"],
+  "engage in a contentious confrontation against": ["FIGHT"],
+  "engage in a contentious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an analytical face to face discussion with": ["TALK"],
+  "initiate an analytical face to face discussion with the": ["TALK"],
+  "engage in an analytical face to face discussion with": ["TALK"],
+  "engage in an analytical face to face discussion with the": ["TALK"],
+  "strike up an analytical face to face discussion with": ["TALK"],
+  "strike up an analytical face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -14960,7 +15043,71 @@ compoundVerbs.push(
   "engage in a philosophical face to face discussion with the",
   "engage in a philosophical face to face discussion with",
   "strike up a philosophical face to face discussion with the",
-  "strike up a philosophical face to face discussion with"
+  "strike up a philosophical face to face discussion with",
+
+  // Phase 50 compound verbs
+  "navigate one's vector of relocation towards the location of the",
+  "navigate one's vector of relocation towards the location of",
+  "navigate ones vector of relocation towards the location of the",
+  "navigate ones vector of relocation towards the location of",
+  "steer one's vector of relocation in the direction of the coordinates of the",
+  "steer one's vector of relocation in the direction of the coordinates of",
+  "steer ones vector of relocation in the direction of the coordinates of the",
+  "steer ones vector of relocation in the direction of the coordinates of",
+  "direct one's vector of relocation towards the coordinates of the location of the",
+  "direct one's vector of relocation towards the coordinates of the location of",
+  "direct ones vector of relocation towards the coordinates of the location of the",
+  "direct ones vector of relocation towards the coordinates of the location of",
+  "subject to a comprehensive visual identification the",
+  "subject to a comprehensive visual identification",
+  "subject to a thorough visual identification the",
+  "subject to a thorough visual identification",
+  "subject to a detailed visual identification the",
+  "subject to a detailed visual identification",
+  "assume direct exclusive conservatorship of the",
+  "assume direct exclusive conservatorship of",
+  "assume absolute exclusive conservatorship of the",
+  "assume absolute exclusive conservatorship of",
+  "assume immediate exclusive conservatorship of the",
+  "assume immediate exclusive conservatorship of",
+  "divest oneself of all exclusive conservatorship of the",
+  "divest oneself of all exclusive conservatorship of",
+  "relinquish all exclusive conservatorship of the",
+  "relinquish all exclusive conservatorship of",
+  "free oneself from all exclusive conservatorship of the",
+  "free oneself from all exclusive conservatorship of",
+  "force completely and systematically wide open the",
+  "force completely and systematically wide open",
+  "pry completely and systematically wide open the",
+  "pry completely and systematically wide open",
+  "fasten completely and systematically closed the",
+  "fasten completely and systematically closed",
+  "seal completely and systematically shut the",
+  "seal completely and systematically shut",
+  "deactivate all firewall security devices of the",
+  "deactivate all firewall security devices of",
+  "bypass all firewall security devices on the",
+  "bypass all firewall security devices on",
+  "disengage the primary firewall security device on the",
+  "disengage the primary firewall security device on",
+  "harness the full methodical deployment of the",
+  "harness the full methodical deployment of",
+  "bring into active methodical deployment the",
+  "bring into active methodical deployment",
+  "make complete methodical deployment of the",
+  "make complete methodical deployment of",
+  "initiate a contentious confrontation against the",
+  "initiate a contentious confrontation against",
+  "commence a contentious confrontation against the",
+  "commence a contentious confrontation against",
+  "engage in a contentious confrontation against the",
+  "engage in a contentious confrontation against",
+  "initiate an analytical face to face discussion with the",
+  "initiate an analytical face to face discussion with",
+  "engage in an analytical face to face discussion with the",
+  "engage in an analytical face to face discussion with",
+  "strike up an analytical face to face discussion with the",
+  "strike up an analytical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
