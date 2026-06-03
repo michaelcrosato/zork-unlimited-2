@@ -14686,6 +14686,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an intellectual face to face discussion with the": ["TALK"]
 });
 
+// Cycle #63 / Task-F86: Phase 49 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of transit towards the location of": ["MOVE"],
+  "navigate one's vector of transit towards the location of the": ["MOVE"],
+  "navigate ones vector of transit towards the location of": ["MOVE"],
+  "navigate ones vector of transit towards the location of the": ["MOVE"],
+  "steer one's vector of transit in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of transit in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of transit in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of transit in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of transit towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of transit towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of transit towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of transit towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual validation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual validation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual validation": ["LOOK_INSPECT"],
+  "subject to a thorough visual validation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual validation": ["LOOK_INSPECT"],
+  "subject to a detailed visual validation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive curatorship of": ["TAKE"],
+  "assume direct exclusive curatorship of the": ["TAKE"],
+  "assume absolute exclusive curatorship of": ["TAKE"],
+  "assume absolute exclusive curatorship of the": ["TAKE"],
+  "assume immediate exclusive curatorship of": ["TAKE"],
+  "assume immediate exclusive curatorship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive curatorship of": ["DROP"],
+  "divest oneself of all exclusive curatorship of the": ["DROP"],
+  "relinquish all exclusive curatorship of": ["DROP"],
+  "relinquish all exclusive curatorship of the": ["DROP"],
+  "free oneself from all exclusive curatorship of": ["DROP"],
+  "free oneself from all exclusive curatorship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and automatically wide open": ["OPEN"],
+  "force completely and automatically wide open the": ["OPEN"],
+  "pry completely and automatically wide open": ["OPEN"],
+  "pry completely and automatically wide open the": ["OPEN"],
+  "fasten completely and automatically closed": ["CLOSE"],
+  "fasten completely and automatically closed the": ["CLOSE"],
+  "seal completely and automatically shut": ["CLOSE"],
+  "seal completely and automatically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all algorithmic security devices of": ["UNLOCK"],
+  "deactivate all algorithmic security devices of the": ["UNLOCK"],
+  "bypass all algorithmic security devices on": ["UNLOCK"],
+  "bypass all algorithmic security devices on the": ["UNLOCK"],
+  "disengage the primary algorithmic security device on": ["UNLOCK"],
+  "disengage the primary algorithmic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full experimental deployment of": ["USE"],
+  "harness the full experimental deployment of the": ["USE"],
+  "bring into active experimental deployment": ["USE"],
+  "bring into active experimental deployment the": ["USE"],
+  "make complete experimental deployment of": ["USE"],
+  "make complete experimental deployment of the": ["USE"],
+
+  // Combat
+  "initiate a pugnacious confrontation against": ["FIGHT"],
+  "initiate a pugnacious confrontation against the": ["FIGHT"],
+  "commence a pugnacious confrontation against": ["FIGHT"],
+  "commence a pugnacious confrontation against the": ["FIGHT"],
+  "engage in a pugnacious confrontation against": ["FIGHT"],
+  "engage in a pugnacious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a philosophical face to face discussion with": ["TALK"],
+  "initiate a philosophical face to face discussion with the": ["TALK"],
+  "engage in a philosophical face to face discussion with": ["TALK"],
+  "engage in a philosophical face to face discussion with the": ["TALK"],
+  "strike up a philosophical face to face discussion with": ["TALK"],
+  "strike up a philosophical face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -14813,7 +14896,71 @@ compoundVerbs.push(
   "engage in an intellectual face to face discussion with the",
   "engage in an intellectual face to face discussion with",
   "strike up an intellectual face to face discussion with the",
-  "strike up an intellectual face to face discussion with"
+  "strike up an intellectual face to face discussion with",
+
+  // Phase 49 compound verbs
+  "navigate one's vector of transit towards the location of the",
+  "navigate one's vector of transit towards the location of",
+  "navigate ones vector of transit towards the location of the",
+  "navigate ones vector of transit towards the location of",
+  "steer one's vector of transit in the direction of the coordinates of the",
+  "steer one's vector of transit in the direction of the coordinates of",
+  "steer ones vector of transit in the direction of the coordinates of the",
+  "steer ones vector of transit in the direction of the coordinates of",
+  "direct one's vector of transit towards the coordinates of the location of the",
+  "direct one's vector of transit towards the coordinates of the location of",
+  "direct ones vector of transit towards the coordinates of the location of the",
+  "direct ones vector of transit towards the coordinates of the location of",
+  "subject to a comprehensive visual validation the",
+  "subject to a comprehensive visual validation",
+  "subject to a thorough visual validation the",
+  "subject to a thorough visual validation",
+  "subject to a detailed visual validation the",
+  "subject to a detailed visual validation",
+  "assume direct exclusive curatorship of the",
+  "assume direct exclusive curatorship of",
+  "assume absolute exclusive curatorship of the",
+  "assume absolute exclusive curatorship of",
+  "assume immediate exclusive curatorship of the",
+  "assume immediate exclusive curatorship of",
+  "divest oneself of all exclusive curatorship of the",
+  "divest oneself of all exclusive curatorship of",
+  "relinquish all exclusive curatorship of the",
+  "relinquish all exclusive curatorship of",
+  "free oneself from all exclusive curatorship of the",
+  "free oneself from all exclusive curatorship of",
+  "force completely and automatically wide open the",
+  "force completely and automatically wide open",
+  "pry completely and automatically wide open the",
+  "pry completely and automatically wide open",
+  "fasten completely and automatically closed the",
+  "fasten completely and automatically closed",
+  "seal completely and automatically shut the",
+  "seal completely and automatically shut",
+  "deactivate all algorithmic security devices of the",
+  "deactivate all algorithmic security devices of",
+  "bypass all algorithmic security devices on the",
+  "bypass all algorithmic security devices on",
+  "disengage the primary algorithmic security device on the",
+  "disengage the primary algorithmic security device on",
+  "harness the full experimental deployment of the",
+  "harness the full experimental deployment of",
+  "bring into active experimental deployment the",
+  "bring into active experimental deployment",
+  "make complete experimental deployment of the",
+  "make complete experimental deployment of",
+  "initiate a pugnacious confrontation against the",
+  "initiate a pugnacious confrontation against",
+  "commence a pugnacious confrontation against the",
+  "commence a pugnacious confrontation against",
+  "engage in a pugnacious confrontation against the",
+  "engage in a pugnacious confrontation against",
+  "initiate a philosophical face to face discussion with the",
+  "initiate a philosophical face to face discussion with",
+  "engage in a philosophical face to face discussion with the",
+  "engage in a philosophical face to face discussion with",
+  "strike up a philosophical face to face discussion with the",
+  "strike up a philosophical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
