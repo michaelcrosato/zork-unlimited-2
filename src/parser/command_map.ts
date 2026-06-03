@@ -1194,6 +1194,45 @@ const VERB_CATEGORIES: Record<string, string[]> = {
   "sell the to": ["SELL"],
   "sell to the": ["SELL"],
   "trade the to the": ["SELL"],
+
+  // Cycle #26 / Phase 12 Synonym Expansion
+  "vault to": ["MOVE"],
+  "skitter to": ["MOVE"],
+  "scud to": ["MOVE"],
+  "flit to": ["MOVE"],
+  "wend one's way to": ["MOVE"],
+  "wend ones way to": ["MOVE"],
+  "vault": ["MOVE"],
+  "skitter": ["MOVE"],
+  "scud": ["MOVE"],
+  "flit": ["MOVE"],
+  "wend": ["MOVE"],
+  "contemplate": ["LOOK_INSPECT"],
+  "inspect the contents of": ["LOOK_INSPECT"],
+  "look through the contents of": ["LOOK_INSPECT"],
+  "cart off": ["TAKE"],
+  "pluck": ["TAKE"],
+  "lay hands on": ["TAKE"],
+  "cart off the": ["TAKE"],
+  "pluck the": ["TAKE"],
+  "throw down": ["DROP"],
+  "throw down the": ["DROP"],
+  "block up": ["CLOSE"],
+  "block up the": ["CLOSE"],
+  "crack lock on": ["UNLOCK", "USE"],
+  "disengage lock on": ["UNLOCK", "USE"],
+  "undo the lock on": ["UNLOCK", "USE"],
+  "gulp down the": ["USE"],
+  "gulp down": ["USE"],
+  "don the": ["USE"],
+  "lay into": ["FIGHT"],
+  "lay into the": ["FIGHT"],
+  "deal blow to": ["FIGHT"],
+  "deal blow to the": ["FIGHT"],
+  "exchange words with": ["TALK", "ASK"],
+  "exchange words with the": ["TALK", "ASK"],
+  "hold conversation with": ["TALK", "ASK"],
+  "hold conversation with the": ["TALK", "ASK"],
 };
 
 // Map engine action type to canonical categories to check verb matches.
@@ -1939,6 +1978,39 @@ const compoundVerbs = [
   "bash gate",
   "shatter lock",
   "destroy barrier",
+
+  // Cycle #26 / Phase 12 Compound Verbs
+  "vault to",
+  "skitter to",
+  "scud to",
+  "flit to",
+  "wend one's way to",
+  "wend ones way to",
+  "inspect the contents of",
+  "look through the contents of",
+  "cart off",
+  "lay hands on",
+  "cart off the",
+  "pluck the",
+  "throw down",
+  "throw down the",
+  "unload the",
+  "block up",
+  "block up the",
+  "crack lock on",
+  "disengage lock on",
+  "undo the lock on",
+  "gulp down the",
+  "gulp down",
+  "don the",
+  "lay into",
+  "lay into the",
+  "deal blow to",
+  "deal blow to the",
+  "exchange words with",
+  "exchange words with the",
+  "hold conversation with",
+  "hold conversation with the",
 ].sort((a, b) => b.length - a.length);
 
 function levenshtein(a: string, b: string): number {
@@ -3557,9 +3629,14 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
                 ["inspect item", "look at"],
                 ["examine object", "look at"],
                 ["peer down into", "look at"],
+                ["unlock", "crack lock on"],
+                ["unlock", "disengage lock on"],
+                ["unlock", "undo the lock on"],
               ];
               const hasPair = commonPairs.some(
-                ([v1, v2]) => (userVerb === v1 && cmdVerb === v2) || (userVerb === v2 && cmdVerb === v1)
+                ([v1, v2]) =>
+                  (userVerb === v1 && (cmdVerb === v2 || cmdVerb.startsWith(v2 + " "))) ||
+                  (userVerb === v2 && (cmdVerb === v1 || cmdVerb.startsWith(v1 + " ")))
               );
               if (hasPair) {
                 verbBoost = 0.2;
