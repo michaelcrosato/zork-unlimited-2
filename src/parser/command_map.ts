@@ -17492,7 +17492,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a scientific face to face discussion with": ["TALK"],
   "engage in a scientific face to face discussion with the": ["TALK"],
   "strike up a scientific face to face discussion with": ["TALK"],
-  "strike up a scientific face to face discussion with the": ["TALK"]
+  "strike up a scientific face to face discussion with the": ["TALK"],
+
+  // Cycle #82 / Task-F105: Phase 68 mappings
+  // Move
+  "navigate one's vector of surveillance towards the location of": ["MOVE"],
+  "navigate one's vector of surveillance towards the location of the": ["MOVE"],
+  "navigate ones vector of surveillance towards the location of": ["MOVE"],
+  "navigate ones vector of surveillance towards the location of the": ["MOVE"],
+  "steer one's vector of surveillance in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of surveillance in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of surveillance in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of surveillance in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of surveillance towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of surveillance towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of surveillance towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of surveillance towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual diagnosis": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual diagnosis the": ["LOOK_INSPECT"],
+  "subject to a thorough visual diagnosis": ["LOOK_INSPECT"],
+  "subject to a thorough visual diagnosis the": ["LOOK_INSPECT"],
+  "subject to a detailed visual diagnosis": ["LOOK_INSPECT"],
+  "subject to a detailed visual diagnosis the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive allocation of": ["TAKE"],
+  "assume direct exclusive allocation of the": ["TAKE"],
+  "assume absolute exclusive allocation of": ["TAKE"],
+  "assume absolute exclusive allocation of the": ["TAKE"],
+  "assume immediate exclusive allocation of": ["TAKE"],
+  "assume immediate exclusive allocation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive allocation of": ["DROP"],
+  "divest oneself of all exclusive allocation of the": ["DROP"],
+  "relinquish all exclusive allocation of": ["DROP"],
+  "relinquish all exclusive allocation of the": ["DROP"],
+  "free oneself from all exclusive allocation of": ["DROP"],
+  "free oneself from all exclusive allocation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and biochemically wide open": ["OPEN"],
+  "force completely and biochemically wide open the": ["OPEN"],
+  "pry completely and biochemically wide open": ["OPEN"],
+  "pry completely and biochemically wide open the": ["OPEN"],
+  "fasten completely and biochemically closed": ["CLOSE"],
+  "fasten completely and biochemically closed the": ["CLOSE"],
+  "seal completely and biochemically shut": ["CLOSE"],
+  "seal completely and biochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all electrostatic security devices of": ["UNLOCK"],
+  "deactivate all electrostatic security devices of the": ["UNLOCK"],
+  "bypass all electrostatic security devices on": ["UNLOCK"],
+  "bypass all electrostatic security devices on the": ["UNLOCK"],
+  "disengage the primary electrostatic security device on": ["UNLOCK"],
+  "disengage the primary electrostatic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full integrated deployment of": ["USE"],
+  "harness the full integrated deployment of the": ["USE"],
+  "bring into active integrated deployment": ["USE"],
+  "bring into active integrated deployment the": ["USE"],
+  "make complete integrated deployment of": ["USE"],
+  "make complete integrated deployment of the": ["USE"],
+
+  // Combat
+  "initiate an apocalyptic confrontation against": ["FIGHT"],
+  "initiate an apocalyptic confrontation against the": ["FIGHT"],
+  "commence an apocalyptic confrontation against": ["FIGHT"],
+  "commence an apocalyptic confrontation against the": ["FIGHT"],
+  "engage in an apocalyptic confrontation against": ["FIGHT"],
+  "engage in an apocalyptic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a rational face to face discussion with": ["TALK"],
+  "initiate a rational face to face discussion with the": ["TALK"],
+  "engage in a rational face to face discussion with": ["TALK"],
+  "engage in a rational face to face discussion with the": ["TALK"],
+  "strike up a rational face to face discussion with": ["TALK"],
+  "strike up a rational face to face discussion with the": ["TALK"]
 });
 
 // Cycle #80 / Task-F103: Phase 66 compound verbs
@@ -17625,6 +17706,72 @@ compoundVerbs.push(
   "engage in a scientific face to face discussion with",
   "strike up a scientific face to face discussion with the",
   "strike up a scientific face to face discussion with"
+);
+
+// Cycle #82 / Task-F105: Phase 68 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of surveillance towards the location of the",
+  "navigate one's vector of surveillance towards the location of",
+  "navigate ones vector of surveillance towards the location of the",
+  "navigate ones vector of surveillance towards the location of",
+  "steer one's vector of surveillance in the direction of the coordinates of the",
+  "steer one's vector of surveillance in the direction of the coordinates of",
+  "steer ones vector of surveillance in the direction of the coordinates of the",
+  "steer ones vector of surveillance in the direction of the coordinates of",
+  "direct one's vector of surveillance towards the coordinates of the location of the",
+  "direct one's vector of surveillance towards the coordinates of the location of",
+  "direct ones vector of surveillance towards the coordinates of the location of the",
+  "direct ones vector of surveillance towards the coordinates of the location of",
+  "subject to a comprehensive visual diagnosis the",
+  "subject to a comprehensive visual diagnosis",
+  "subject to a thorough visual diagnosis the",
+  "subject to a thorough visual diagnosis",
+  "subject to a detailed visual diagnosis the",
+  "subject to a detailed visual diagnosis",
+  "assume direct exclusive allocation of the",
+  "assume direct exclusive allocation of",
+  "assume absolute exclusive allocation of the",
+  "assume absolute exclusive allocation of",
+  "assume immediate exclusive allocation of the",
+  "assume immediate exclusive allocation of",
+  "divest oneself of all exclusive allocation of the",
+  "divest oneself of all exclusive allocation of",
+  "relinquish all exclusive allocation of the",
+  "relinquish all exclusive allocation of",
+  "free oneself from all exclusive allocation of the",
+  "free oneself from all exclusive allocation of",
+  "force completely and biochemically wide open the",
+  "force completely and biochemically wide open",
+  "pry completely and biochemically wide open the",
+  "pry completely and biochemically wide open",
+  "fasten completely and biochemically closed the",
+  "fasten completely and biochemically closed",
+  "seal completely and biochemically shut the",
+  "seal completely and biochemically shut",
+  "deactivate all electrostatic security devices of the",
+  "deactivate all electrostatic security devices of",
+  "bypass all electrostatic security devices on the",
+  "bypass all electrostatic security devices on",
+  "disengage the primary electrostatic security device on the",
+  "disengage the primary electrostatic security device on",
+  "harness the full integrated deployment of the",
+  "harness the full integrated deployment of",
+  "bring into active integrated deployment the",
+  "bring into active integrated deployment",
+  "make complete integrated deployment of the",
+  "make complete integrated deployment of",
+  "initiate an apocalyptic confrontation against the",
+  "initiate an apocalyptic confrontation against",
+  "commence an apocalyptic confrontation against the",
+  "commence an apocalyptic confrontation against",
+  "engage in an apocalyptic confrontation against the",
+  "engage in an apocalyptic confrontation against",
+  "initiate a rational face to face discussion with the",
+  "initiate a rational face to face discussion with",
+  "engage in a rational face to face discussion with the",
+  "engage in a rational face to face discussion with",
+  "strike up a rational face to face discussion with the",
+  "strike up a rational face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
