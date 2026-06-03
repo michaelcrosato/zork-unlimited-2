@@ -10253,7 +10253,80 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a discussion with": ["TALK"],
   "engage in a discussion with the": ["TALK"],
   "have a talk with": ["TALK"],
-  "have a talk with the": ["TALK"]
+  "have a talk with the": ["TALK"],
+
+  // Cycle #34 / Task-F57: Phase 20 mappings (expansion requested by playtesters)
+  // Move
+  "make one's way to": ["MOVE"],
+  "make one's way to the": ["MOVE"],
+  "make ones way to": ["MOVE"],
+  "make ones way to the": ["MOVE"],
+  "steer a course to": ["MOVE"],
+  "steer a course to the": ["MOVE"],
+  "undertake a journey to": ["MOVE"],
+  "undertake a journey to the": ["MOVE"],
+
+  // Look/Inspect
+  "do a walkthrough of": ["LOOK_INSPECT"],
+  "do a walkthrough of the": ["LOOK_INSPECT"],
+  "run an inspection over": ["LOOK_INSPECT"],
+  "run an inspection over the": ["LOOK_INSPECT"],
+  "cast one's gaze at": ["LOOK_INSPECT"],
+  "cast one's gaze at the": ["LOOK_INSPECT"],
+  "cast ones gaze at": ["LOOK_INSPECT"],
+  "cast ones gaze at the": ["LOOK_INSPECT"],
+
+  // Take
+  "take ownership of": ["TAKE"],
+  "take ownership of the": ["TAKE"],
+  "assume control of": ["TAKE"],
+  "assume control of the": ["TAKE"],
+  "take charge of": ["TAKE"],
+  "take charge of the": ["TAKE"],
+
+  // Drop
+  "let go of": ["DROP"],
+  "let go of the": ["DROP"],
+  "cast down": ["DROP"],
+  "cast down the": ["DROP"],
+  "rid oneself of": ["DROP"],
+  "rid oneself of the": ["DROP"],
+
+  // Open/Close
+  "fling wide open": ["OPEN"],
+  "fling wide open the": ["OPEN"],
+  "slam shut": ["CLOSE"],
+  "slam shut the": ["CLOSE"],
+  "force shut": ["CLOSE"],
+  "force shut the": ["CLOSE"],
+
+  // Unlock
+  "disengage the lock on": ["UNLOCK"],
+  "disengage the lock on the": ["UNLOCK"],
+  "bypass the security of": ["UNLOCK"],
+  "bypass the security of the": ["UNLOCK"],
+  "clear the locks on": ["UNLOCK"],
+  "clear the locks on the": ["UNLOCK"],
+
+  // Use
+  "bring into action": ["USE"],
+  "bring into action the": ["USE"],
+  "put into service": ["USE"],
+  "put into service the": ["USE"],
+  "resort to the use of": ["USE"],
+  "resort to the use of the": ["USE"],
+
+  // Combat
+  "initiate a fight with": ["FIGHT"],
+  "initiate a fight with the": ["FIGHT"],
+  "launch an attack against": ["FIGHT"],
+  "launch an attack against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a chat with": ["TALK"],
+  "initiate a chat with the": ["TALK"],
+  "engage in a conversation with": ["TALK"],
+  "engage in a conversation with the": ["TALK"]
 });
 
 compoundVerbs.push(
@@ -10434,7 +10507,63 @@ compoundVerbs.push(
   "engage in a discussion with the",
   "engage in a discussion with",
   "have a talk with the",
-  "have a talk with"
+  "have a talk with",
+
+  // Phase 20 compound verbs
+  "make one's way to the",
+  "make one's way to",
+  "make ones way to the",
+  "make ones way to",
+  "steer a course to the",
+  "steer a course to",
+  "undertake a journey to the",
+  "undertake a journey to",
+  "do a walkthrough of the",
+  "do a walkthrough of",
+  "run an inspection over the",
+  "run an inspection over",
+  "cast one's gaze at the",
+  "cast one's gaze at",
+  "cast ones gaze at the",
+  "cast ones gaze at",
+  "take ownership of the",
+  "take ownership of",
+  "assume control of the",
+  "assume control of",
+  "take charge of the",
+  "take charge of",
+  "let go of the",
+  "let go of",
+  "cast down the",
+  "cast down",
+  "rid oneself of the",
+  "rid oneself of",
+  "fling wide open the",
+  "fling wide open",
+  "slam shut the",
+  "slam shut",
+  "force shut the",
+  "force shut",
+  "disengage the lock on the",
+  "disengage the lock on",
+  "bypass the security of the",
+  "bypass the security of",
+  "clear the locks on the",
+  "clear the locks on",
+  "bring into action the",
+  "bring into action",
+  "put into service the",
+  "put into service",
+  "resort to the use of the",
+  "resort to the use of",
+  "initiate a fight with the",
+  "initiate a fight with",
+  "launch an attack against the",
+  "launch an attack against",
+  "initiate a chat with the",
+  "initiate a chat with",
+  "engage in a conversation with the",
+  "engage in a conversation with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
