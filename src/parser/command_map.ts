@@ -10177,6 +10177,85 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a chat with the": ["TALK"]
 });
 
+// Cycle #33 / Task-F56: Phase 19 mappings (expansion requested by playtesters)
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "make one's way towards": ["MOVE"],
+  "make one's way towards the": ["MOVE"],
+  "make ones way towards": ["MOVE"],
+  "make ones way towards the": ["MOVE"],
+  "steer a course towards": ["MOVE"],
+  "steer a course towards the": ["MOVE"],
+  "take a hike to": ["MOVE"],
+  "take a hike to the": ["MOVE"],
+
+  // Look/Inspect
+  "run a check over": ["LOOK_INSPECT"],
+  "run a check over the": ["LOOK_INSPECT"],
+  "do an inspection of": ["LOOK_INSPECT"],
+  "do an inspection of the": ["LOOK_INSPECT"],
+  "have a look at": ["LOOK_INSPECT"],
+  "have a look at the": ["LOOK_INSPECT"],
+
+  // Take
+  "take control of": ["TAKE"],
+  "take control of the": ["TAKE"],
+  "take possession of": ["TAKE"],
+  "take possession of the": ["TAKE"],
+  "gain custody of": ["TAKE"],
+  "gain custody of the": ["TAKE"],
+
+  // Drop
+  "cast to the ground": ["DROP"],
+  "cast to the ground the": ["DROP"],
+  "throw to the ground": ["DROP"],
+  "throw to the ground the": ["DROP"],
+  "drop down": ["DROP"],
+  "drop down the": ["DROP"],
+
+  // Open/Close
+  "push wide open": ["OPEN"],
+  "push wide open the": ["OPEN"],
+  "pull wide open": ["OPEN"],
+  "pull wide open the": ["OPEN"],
+  "press close": ["CLOSE"],
+  "press close the": ["CLOSE"],
+  "shut tight": ["CLOSE"],
+  "shut tight the": ["CLOSE"],
+
+  // Unlock
+  "crack the locks on": ["UNLOCK"],
+  "crack the locks on the": ["UNLOCK"],
+  "disengage the locks on": ["UNLOCK"],
+  "disengage the locks on the": ["UNLOCK"],
+  "bypass the security on": ["UNLOCK"],
+  "bypass the security on the": ["UNLOCK"],
+
+  // Use
+  "put to action": ["USE"],
+  "put to action the": ["USE"],
+  "turn to the use of": ["USE"],
+  "turn to the use of the": ["USE"],
+  "employ the use of": ["USE"],
+  "employ the use of the": ["USE"],
+
+  // Combat
+  "initiate battle with": ["FIGHT"],
+  "initiate battle with the": ["FIGHT"],
+  "wage a battle against": ["FIGHT"],
+  "wage a battle against the": ["FIGHT"],
+  "initiate combat against": ["FIGHT"],
+  "initiate combat against the": ["FIGHT"],
+
+  // Dialogue
+  "strike up a conversation with": ["TALK"],
+  "strike up a conversation with the": ["TALK"],
+  "engage in a discussion with": ["TALK"],
+  "engage in a discussion with the": ["TALK"],
+  "have a talk with": ["TALK"],
+  "have a talk with the": ["TALK"]
+});
+
 compoundVerbs.push(
   "wing one's way to the",
   "wing one's way to",
@@ -10295,7 +10374,67 @@ compoundVerbs.push(
   "strike up a discussion with the",
   "strike up a discussion with",
   "engage in a chat with the",
-  "engage in a chat with"
+  "engage in a chat with",
+
+  // Phase 19 compound verbs
+  "make one's way towards the",
+  "make one's way towards",
+  "make ones way towards the",
+  "make ones way towards",
+  "steer a course towards the",
+  "steer a course towards",
+  "take a hike to the",
+  "take a hike to",
+  "run a check over the",
+  "run a check over",
+  "do an inspection of the",
+  "do an inspection of",
+  "have a look at the",
+  "have a look at",
+  "take control of the",
+  "take control of",
+  "take possession of the",
+  "take possession of",
+  "gain custody of the",
+  "gain custody of",
+  "cast to the ground the",
+  "cast to the ground",
+  "throw to the ground the",
+  "throw to the ground",
+  "drop down the",
+  "drop down",
+  "push wide open the",
+  "push wide open",
+  "pull wide open the",
+  "pull wide open",
+  "press close the",
+  "press close",
+  "shut tight the",
+  "shut tight",
+  "crack the locks on the",
+  "crack the locks on",
+  "disengage the locks on the",
+  "disengage the locks on",
+  "bypass the security on the",
+  "bypass the security on",
+  "put to action the",
+  "put to action",
+  "turn to the use of the",
+  "turn to the use of",
+  "employ the use of the",
+  "employ the use of",
+  "initiate battle with the",
+  "initiate battle with",
+  "wage a battle against the",
+  "wage a battle against",
+  "initiate combat against the",
+  "initiate combat against",
+  "strike up a conversation with the",
+  "strike up a conversation with",
+  "engage in a discussion with the",
+  "engage in a discussion with",
+  "have a talk with the",
+  "have a talk with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
