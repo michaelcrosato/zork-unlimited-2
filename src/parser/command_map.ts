@@ -19556,6 +19556,155 @@ compoundVerbs.push(
   "strike up a sociable face to face discussion with"
 );
 
+// Cycle #95 / Task-F118: Phase 81 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of repositioning towards the location of": ["MOVE"],
+  "navigate one's vector of repositioning towards the location of the": ["MOVE"],
+  "navigate ones vector of repositioning towards the location of": ["MOVE"],
+  "navigate ones vector of repositioning towards the location of the": ["MOVE"],
+  "steer one's vector of repositioning in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of repositioning in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of repositioning in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of repositioning in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of repositioning towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of repositioning towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of repositioning towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of repositioning towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual delineation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual delineation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual delineation": ["LOOK_INSPECT"],
+  "subject to a thorough visual delineation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual delineation": ["LOOK_INSPECT"],
+  "subject to a detailed visual delineation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive garnering of": ["TAKE"],
+  "assume direct exclusive garnering of the": ["TAKE"],
+  "assume absolute exclusive garnering of": ["TAKE"],
+  "assume absolute exclusive garnering of the": ["TAKE"],
+  "assume immediate exclusive garnering of": ["TAKE"],
+  "assume immediate exclusive garnering of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive garnering of": ["DROP"],
+  "divest oneself of all exclusive garnering of the": ["DROP"],
+  "relinquish all exclusive garnering of": ["DROP"],
+  "relinquish all exclusive garnering of the": ["DROP"],
+  "free oneself from all exclusive garnering of": ["DROP"],
+  "free oneself from all exclusive garnering of the": ["DROP"],
+
+  // Open/Close
+  "force completely and optomechanically wide open": ["OPEN"],
+  "force completely and optomechanically wide open the": ["OPEN"],
+  "pry completely and optomechanically wide open": ["OPEN"],
+  "pry completely and optomechanically wide open the": ["OPEN"],
+  "fasten completely and optomechanically closed": ["CLOSE"],
+  "fasten completely and optomechanically closed the": ["CLOSE"],
+  "seal completely and optomechanically shut": ["CLOSE"],
+  "seal completely and optomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all ferroelectric security devices of": ["UNLOCK"],
+  "deactivate all ferroelectric security devices of the": ["UNLOCK"],
+  "bypass all ferroelectric security devices on": ["UNLOCK"],
+  "bypass all ferroelectric security devices on the": ["UNLOCK"],
+  "disengage the primary ferroelectric security device on": ["UNLOCK"],
+  "disengage the primary ferroelectric security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full efficacious deployment of": ["USE"],
+  "harness the full efficacious deployment of the": ["USE"],
+  "bring into active efficacious deployment": ["USE"],
+  "bring into active efficacious deployment the": ["USE"],
+  "make complete efficacious deployment of": ["USE"],
+  "make complete efficacious deployment of the": ["USE"],
+
+  // Combat
+  "initiate a ghastly confrontation against": ["FIGHT"],
+  "initiate a ghastly confrontation against the": ["FIGHT"],
+  "commence a ghastly confrontation against": ["FIGHT"],
+  "commence a ghastly confrontation against the": ["FIGHT"],
+  "engage in a ghastly confrontation against": ["FIGHT"],
+  "engage in a ghastly confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a neighborly face to face discussion with": ["TALK"],
+  "initiate a neighborly face to face discussion with the": ["TALK"],
+  "engage in a neighborly face to face discussion with": ["TALK"],
+  "engage in a neighborly face to face discussion with the": ["TALK"],
+  "strike up a neighborly face to face discussion with": ["TALK"],
+  "strike up a neighborly face to face discussion with the": ["TALK"]
+});
+
+// Cycle #95 / Task-F118: Phase 81 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of repositioning towards the location of the",
+  "navigate one's vector of repositioning towards the location of",
+  "navigate ones vector of repositioning towards the location of the",
+  "navigate ones vector of repositioning towards the location of",
+  "steer one's vector of repositioning in the direction of the coordinates of the",
+  "steer one's vector of repositioning in the direction of the coordinates of",
+  "steer ones vector of repositioning in the direction of the coordinates of the",
+  "steer ones vector of repositioning in the direction of the coordinates of",
+  "direct one's vector of repositioning towards the coordinates of the location of the",
+  "direct one's vector of repositioning towards the coordinates of the location of",
+  "direct ones vector of repositioning towards the coordinates of the location of the",
+  "direct ones vector of repositioning towards the coordinates of the location of",
+  "subject to a comprehensive visual delineation the",
+  "subject to a comprehensive visual delineation",
+  "subject to a thorough visual delineation the",
+  "subject to a thorough visual delineation",
+  "subject to a detailed visual delineation the",
+  "subject to a detailed visual delineation",
+  "assume direct exclusive garnering of the",
+  "assume direct exclusive garnering of",
+  "assume absolute exclusive garnering of the",
+  "assume absolute exclusive garnering of",
+  "assume immediate exclusive garnering of the",
+  "assume immediate exclusive garnering of",
+  "divest oneself of all exclusive garnering of the",
+  "divest oneself of all exclusive garnering of",
+  "relinquish all exclusive garnering of the",
+  "relinquish all exclusive garnering of",
+  "free oneself from all exclusive garnering of the",
+  "free oneself from all exclusive garnering of",
+  "force completely and optomechanically wide open the",
+  "force completely and optomechanically wide open",
+  "pry completely and optomechanically wide open the",
+  "pry completely and optomechanically wide open",
+  "fasten completely and optomechanically closed the",
+  "fasten completely and optomechanically closed",
+  "seal completely and optomechanically shut the",
+  "seal completely and optomechanically shut",
+  "deactivate all ferroelectric security devices of the",
+  "deactivate all ferroelectric security devices of",
+  "bypass all ferroelectric security devices on the",
+  "bypass all ferroelectric security devices on",
+  "disengage the primary ferroelectric security device on the",
+  "disengage the primary ferroelectric security device on",
+  "harness the full efficacious deployment of the",
+  "harness the full efficacious deployment of",
+  "bring into active efficacious deployment the",
+  "bring into active efficacious deployment",
+  "make complete efficacious deployment of the",
+  "make complete efficacious deployment of",
+  "initiate a ghastly confrontation against the",
+  "initiate a ghastly confrontation against",
+  "commence a ghastly confrontation against the",
+  "commence a ghastly confrontation against",
+  "engage in a ghastly confrontation against the",
+  "engage in a ghastly confrontation against",
+  "initiate a neighborly face to face discussion with the",
+  "initiate a neighborly face to face discussion with",
+  "engage in a neighborly face to face discussion with the",
+  "engage in a neighborly face to face discussion with",
+  "strike up a neighborly face to face discussion with the",
+  "strike up a neighborly face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
