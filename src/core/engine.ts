@@ -2881,6 +2881,7 @@ export function step(
         }
       }
       newState.questStage[rootNodeVar] = startNodeId;
+      newState.flags[`dialogue_node_visited_${npc.id}_${startNodeId}`] = true;
 
       const welcomeNode = npc.dialogue.nodes.find((n) => n.id === startNodeId);
 
@@ -2942,6 +2943,9 @@ export function step(
         }
       }
 
+      // Auto-flag the chosen topic
+      newState.flags[`dialogue_topic_chosen_${npc.id}_${topic.id}`] = true;
+
       // Apply topic-level effects
       if (topic.effects && topic.effects.length > 0) {
         const effectResult = applyEffects(newState, topic.effects, pack);
@@ -2973,6 +2977,7 @@ export function step(
         });
       } else if (nextNodeId) {
         newState.questStage[nodeVarName] = nextNodeId;
+        newState.flags[`dialogue_node_visited_${npc.id}_${nextNodeId}`] = true;
         const nextNode = npc.dialogue.nodes.find((n) => n.id === nextNodeId);
         if (nextNode) {
           // Apply node effects

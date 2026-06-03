@@ -37,6 +37,18 @@ export const ConditionSchema: z.ZodType<any> = z.lazy(() =>
         value: z.number(),
       }),
     }),
+    z.object({
+      faction_prestige_gte: z.object({
+        faction: z.string(),
+        value: z.number(),
+      }),
+    }),
+    z.object({
+      faction_prestige_lte: z.object({
+        faction: z.string(),
+        value: z.number(),
+      }),
+    }),
     z.object({ guild_contract_active: z.string() }),
     z.object({ guild_contract_completed: z.string() }),
     z.object({
@@ -103,6 +115,8 @@ export type Condition =
   | { temperature_is: string }
   | { wind_is: string }
   | { guild_prestige_gte: { guild: string; value: number } }
+  | { faction_prestige_gte: { faction: string; value: number } }
+  | { faction_prestige_lte: { faction: string; value: number } }
   | { guild_contract_active: string }
   | { guild_contract_completed: string }
   | { faction_rep_gte: { faction: string; value: number } }
@@ -199,6 +213,34 @@ export function evaluateCondition(state: GameState, cond: Condition): boolean {
     const { guild, value } = cond.guild_prestige_gte;
     const currentPrestige = state.guildPrestige?.[`player-${guild}`] ?? 0;
     return currentPrestige >= value;
+  }
+  if ("faction_prestige_gte" in cond) {
+    const { faction, value } = cond.faction_prestige_gte;
+    const factionRepVal = state.factionRep?.[faction];
+    const guildPrestigeVal = state.guildPrestige?.[`player-${faction}`];
+    let factionPrestige = 0;
+    if (factionRepVal !== undefined && guildPrestigeVal !== undefined) {
+      factionPrestige = Math.max(factionRepVal, guildPrestigeVal);
+    } else if (factionRepVal !== undefined) {
+      factionPrestige = factionRepVal;
+    } else if (guildPrestigeVal !== undefined) {
+      factionPrestige = guildPrestigeVal;
+    }
+    return factionPrestige >= value;
+  }
+  if ("faction_prestige_lte" in cond) {
+    const { faction, value } = cond.faction_prestige_lte;
+    const factionRepVal = state.factionRep?.[faction];
+    const guildPrestigeVal = state.guildPrestige?.[`player-${faction}`];
+    let factionPrestige = 0;
+    if (factionRepVal !== undefined && guildPrestigeVal !== undefined) {
+      factionPrestige = Math.max(factionRepVal, guildPrestigeVal);
+    } else if (factionRepVal !== undefined) {
+      factionPrestige = factionRepVal;
+    } else if (guildPrestigeVal !== undefined) {
+      factionPrestige = guildPrestigeVal;
+    }
+    return factionPrestige <= value;
   }
   if ("guild_contract_active" in cond) {
     const contractId = cond.guild_contract_active;
