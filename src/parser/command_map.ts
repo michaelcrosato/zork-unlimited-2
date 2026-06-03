@@ -14222,5 +14222,155 @@ compoundVerbs.push(
   "strike up a serious face to face discussion with"
 );
 
+// Cycle #59 / Task-F82: Phase 45 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of travel towards the location of": ["MOVE"],
+  "navigate one's vector of travel towards the location of the": ["MOVE"],
+  "navigate ones vector of travel towards the location of": ["MOVE"],
+  "navigate ones vector of travel towards the location of the": ["MOVE"],
+  "steer one's vector of travel in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of travel in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of travel in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of travel in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of travel towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of travel towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of travel towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of travel towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual audit": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual audit the": ["LOOK_INSPECT"],
+  "subject to a thorough visual audit": ["LOOK_INSPECT"],
+  "subject to a thorough visual audit the": ["LOOK_INSPECT"],
+  "subject to a detailed visual audit": ["LOOK_INSPECT"],
+  "subject to a detailed visual audit the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive custody of": ["TAKE"],
+  "assume direct exclusive custody of the": ["TAKE"],
+  "assume absolute exclusive custody of": ["TAKE"],
+  "assume absolute exclusive custody of the": ["TAKE"],
+  "assume immediate exclusive custody of": ["TAKE"],
+  "assume immediate exclusive custody of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive custody of": ["DROP"],
+  "divest oneself of all exclusive custody of the": ["DROP"],
+  "relinquish all exclusive custody of": ["DROP"],
+  "relinquish all exclusive custody of the": ["DROP"],
+  "free oneself from all exclusive custody of": ["DROP"],
+  "free oneself from all exclusive custody of the": ["DROP"],
+
+  // Open/Close
+  "force completely and unconditionally wide open": ["OPEN"],
+  "force completely and unconditionally wide open the": ["OPEN"],
+  "pry completely and unconditionally wide open": ["OPEN"],
+  "pry completely and unconditionally wide open the": ["OPEN"],
+  "fasten completely and unconditionally closed": ["CLOSE"],
+  "fasten completely and unconditionally closed the": ["CLOSE"],
+  "seal completely and unconditionally shut": ["CLOSE"],
+  "seal completely and unconditionally shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all biometric security devices of": ["UNLOCK"],
+  "deactivate all biometric security devices of the": ["UNLOCK"],
+  "bypass all biometric security devices on": ["UNLOCK"],
+  "bypass all biometric security devices on the": ["UNLOCK"],
+  "disengage the primary biometric security device on": ["UNLOCK"],
+  "disengage the primary biometric security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full tactical deployment of": ["USE"],
+  "harness the full tactical deployment of the": ["USE"],
+  "bring into active tactical deployment": ["USE"],
+  "bring into active tactical deployment the": ["USE"],
+  "make complete tactical deployment of": ["USE"],
+  "make complete tactical deployment of the": ["USE"],
+
+  // Combat
+  "initiate an adversarial confrontation against": ["FIGHT"],
+  "initiate an adversarial confrontation against the": ["FIGHT"],
+  "commence an adversarial confrontation against": ["FIGHT"],
+  "commence an adversarial confrontation against the": ["FIGHT"],
+  "engage in an adversarial confrontation against": ["FIGHT"],
+  "engage in an adversarial confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a constructive face to face discussion with": ["TALK"],
+  "initiate a constructive face to face discussion with the": ["TALK"],
+  "engage in a constructive face to face discussion with": ["TALK"],
+  "engage in a constructive face to face discussion with the": ["TALK"],
+  "strike up a constructive face to face discussion with": ["TALK"],
+  "strike up a constructive face to face discussion with the": ["TALK"]
+});
+
+compoundVerbs.push(
+  // Phase 45 compound verbs
+  "navigate one's vector of travel towards the location of the",
+  "navigate one's vector of travel towards the location of",
+  "navigate ones vector of travel towards the location of the",
+  "navigate ones vector of travel towards the location of",
+  "steer one's vector of travel in the direction of the coordinates of the",
+  "steer one's vector of travel in the direction of the coordinates of",
+  "steer ones vector of travel in the direction of the coordinates of the",
+  "steer ones vector of travel in the direction of the coordinates of",
+  "direct one's vector of travel towards the coordinates of the location of the",
+  "direct one's vector of travel towards the coordinates of the location of",
+  "direct ones vector of travel towards the coordinates of the location of the",
+  "direct ones vector of travel towards the coordinates of the location of",
+  "subject to a comprehensive visual audit the",
+  "subject to a comprehensive visual audit",
+  "subject to a thorough visual audit the",
+  "subject to a thorough visual audit",
+  "subject to a detailed visual audit the",
+  "subject to a detailed visual audit",
+  "assume direct exclusive custody of the",
+  "assume direct exclusive custody of",
+  "assume absolute exclusive custody of the",
+  "assume absolute exclusive custody of",
+  "assume immediate exclusive custody of the",
+  "assume immediate exclusive custody of",
+  "divest oneself of all exclusive custody of the",
+  "divest oneself of all exclusive custody of",
+  "relinquish all exclusive custody of the",
+  "relinquish all exclusive custody of",
+  "free oneself from all exclusive custody of the",
+  "free oneself from all exclusive custody of",
+  "force completely and unconditionally wide open the",
+  "force completely and unconditionally wide open",
+  "pry completely and unconditionally wide open the",
+  "pry completely and unconditionally wide open",
+  "fasten completely and unconditionally closed the",
+  "fasten completely and unconditionally closed",
+  "seal completely and unconditionally shut the",
+  "seal completely and unconditionally shut",
+  "deactivate all biometric security devices of the",
+  "deactivate all biometric security devices of",
+  "bypass all biometric security devices on the",
+  "bypass all biometric security devices on",
+  "disengage the primary biometric security device on the",
+  "disengage the primary biometric security device on",
+  "harness the full tactical deployment of the",
+  "harness the full tactical deployment of",
+  "bring into active tactical deployment the",
+  "bring into active tactical deployment",
+  "make complete tactical deployment of the",
+  "make complete tactical deployment of",
+  "initiate an adversarial confrontation against the",
+  "initiate an adversarial confrontation against",
+  "commence an adversarial confrontation against the",
+  "commence an adversarial confrontation against",
+  "engage in an adversarial confrontation against the",
+  "engage in an adversarial confrontation against",
+  "initiate a constructive face to face discussion with the",
+  "initiate a constructive face to face discussion with",
+  "engage in a constructive face to face discussion with the",
+  "engage in a constructive face to face discussion with",
+  "strike up a constructive face to face discussion with the",
+  "strike up a constructive face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
+
 
