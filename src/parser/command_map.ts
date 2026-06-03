@@ -20164,7 +20164,87 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a casual face to face discussion with": ["TALK"],
   "engage in a casual face to face discussion with the": ["TALK"],
   "strike up a casual face to face discussion with": ["TALK"],
-  "strike up a casual face to face discussion with the": ["TALK"]
+  "strike up a casual face to face discussion with the": ["TALK"],
+
+  // Cycle #100 / Task-F123: Phase 86 movement verbs
+  "navigate one's vector of deviation towards the location of": ["MOVE"],
+  "navigate one's vector of deviation towards the location of the": ["MOVE"],
+  "navigate ones vector of deviation towards the location of": ["MOVE"],
+  "navigate ones vector of deviation towards the location of the": ["MOVE"],
+  "steer one's vector of deviation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of deviation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of deviation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of deviation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of deviation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of deviation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of deviation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of deviation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual revelation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual revelation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual revelation": ["LOOK_INSPECT"],
+  "subject to a thorough visual revelation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual revelation": ["LOOK_INSPECT"],
+  "subject to a detailed visual revelation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive aggregation of": ["TAKE"],
+  "assume direct exclusive aggregation of the": ["TAKE"],
+  "assume absolute exclusive aggregation of": ["TAKE"],
+  "assume absolute exclusive aggregation of the": ["TAKE"],
+  "assume immediate exclusive aggregation of": ["TAKE"],
+  "assume immediate exclusive aggregation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive aggregation of": ["DROP"],
+  "divest oneself of all exclusive aggregation of the": ["DROP"],
+  "relinquish all exclusive aggregation of": ["DROP"],
+  "relinquish all exclusive aggregation of the": ["DROP"],
+  "free oneself from all exclusive aggregation of": ["DROP"],
+  "free oneself from all exclusive aggregation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and nucleomechanically wide open": ["OPEN"],
+  "force completely and nucleomechanically wide open the": ["OPEN"],
+  "pry completely and nucleomechanically wide open": ["OPEN"],
+  "pry completely and nucleomechanically wide open the": ["OPEN"],
+  "fasten completely and nucleomechanically closed": ["CLOSE"],
+  "fasten completely and nucleomechanically closed the": ["CLOSE"],
+  "seal completely and nucleomechanically shut": ["CLOSE"],
+  "seal completely and nucleomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all antiferromagnetic security devices of": ["UNLOCK"],
+  "deactivate all antiferromagnetic security devices of the": ["UNLOCK"],
+  "bypass all antiferromagnetic security devices on": ["UNLOCK"],
+  "bypass all antiferromagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary antiferromagnetic security device on": ["UNLOCK"],
+  "disengage the primary antiferromagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full propitious deployment of": ["USE"],
+  "harness the full propitious deployment of the": ["USE"],
+  "bring into active propitious deployment": ["USE"],
+  "bring into active propitious deployment the": ["USE"],
+  "make complete propitious deployment of": ["USE"],
+  "make complete propitious deployment of the": ["USE"],
+
+  // Combat
+  "initiate a sinister confrontation against": ["FIGHT"],
+  "initiate a sinister confrontation against the": ["FIGHT"],
+  "commence a sinister confrontation against": ["FIGHT"],
+  "commence a sinister confrontation against the": ["FIGHT"],
+  "engage in a sinister confrontation against": ["FIGHT"],
+  "engage in a sinister confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a jovial face to face discussion with": ["TALK"],
+  "initiate a jovial face to face discussion with the": ["TALK"],
+  "engage in a jovial face to face discussion with": ["TALK"],
+  "engage in a jovial face to face discussion with the": ["TALK"],
+  "strike up a jovial face to face discussion with": ["TALK"],
+  "strike up a jovial face to face discussion with the": ["TALK"]
 });
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -20297,6 +20377,72 @@ compoundVerbs.push(
   "engage in a casual face to face discussion with",
   "strike up a casual face to face discussion with the",
   "strike up a casual face to face discussion with"
+);
+
+// Cycle #100 / Task-F123: Phase 86 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of deviation towards the location of the",
+  "navigate one's vector of deviation towards the location of",
+  "navigate ones vector of deviation towards the location of the",
+  "navigate ones vector of deviation towards the location of",
+  "steer one's vector of deviation in the direction of the coordinates of the",
+  "steer one's vector of deviation in the direction of the coordinates of",
+  "steer ones vector of deviation in the direction of the coordinates of the",
+  "steer ones vector of deviation in the direction of the coordinates of",
+  "direct one's vector of deviation towards the coordinates of the location of the",
+  "direct one's vector of deviation towards the coordinates of the location of",
+  "direct ones vector of deviation towards the coordinates of the location of the",
+  "direct ones vector of deviation towards the coordinates of the location of",
+  "subject to a comprehensive visual revelation the",
+  "subject to a comprehensive visual revelation",
+  "subject to a thorough visual revelation the",
+  "subject to a thorough visual revelation",
+  "subject to a detailed visual revelation the",
+  "subject to a detailed visual revelation",
+  "assume direct exclusive aggregation of the",
+  "assume direct exclusive aggregation of",
+  "assume absolute exclusive aggregation of the",
+  "assume absolute exclusive aggregation of",
+  "assume immediate exclusive aggregation of the",
+  "assume immediate exclusive aggregation of",
+  "divest oneself of all exclusive aggregation of the",
+  "divest oneself of all exclusive aggregation of",
+  "relinquish all exclusive aggregation of the",
+  "relinquish all exclusive aggregation of",
+  "free oneself from all exclusive aggregation of the",
+  "free oneself from all exclusive aggregation of",
+  "force completely and nucleomechanically wide open the",
+  "force completely and nucleomechanically wide open",
+  "pry completely and nucleomechanically wide open the",
+  "pry completely and nucleomechanically wide open",
+  "fasten completely and nucleomechanically closed the",
+  "fasten completely and nucleomechanically closed",
+  "seal completely and nucleomechanically shut the",
+  "seal completely and nucleomechanically shut",
+  "deactivate all antiferromagnetic security devices of the",
+  "deactivate all antiferromagnetic security devices of",
+  "bypass all antiferromagnetic security devices on the",
+  "bypass all antiferromagnetic security devices on",
+  "disengage the primary antiferromagnetic security device on the",
+  "disengage the primary antiferromagnetic security device on",
+  "harness the full propitious deployment of the",
+  "harness the full propitious deployment of",
+  "bring into active propitious deployment the",
+  "bring into active propitious deployment",
+  "make complete propitious deployment of the",
+  "make complete propitious deployment of",
+  "initiate a sinister confrontation against the",
+  "initiate a sinister confrontation against",
+  "commence a sinister confrontation against the",
+  "commence a sinister confrontation against",
+  "engage in a sinister confrontation against the",
+  "engage in a sinister confrontation against",
+  "initiate a jovial face to face discussion with the",
+  "initiate a jovial face to face discussion with",
+  "engage in a jovial face to face discussion with the",
+  "engage in a jovial face to face discussion with",
+  "strike up a jovial face to face discussion with the",
+  "strike up a jovial face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
