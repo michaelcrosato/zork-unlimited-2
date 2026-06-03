@@ -13477,5 +13477,154 @@ compoundVerbs.push(
   "strike up a comprehensive face to face discussion with"
 );
 
+// Cycle #54 / Task-F77: Phase 40 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's heading towards the location of": ["MOVE"],
+  "navigate one's heading towards the location of the": ["MOVE"],
+  "navigate ones heading towards the location of": ["MOVE"],
+  "navigate ones heading towards the location of the": ["MOVE"],
+  "steer one's heading in the direction of the coordinates of": ["MOVE"],
+  "steer one's heading in the direction of the coordinates of the": ["MOVE"],
+  "steer ones heading in the direction of the coordinates of": ["MOVE"],
+  "steer ones heading in the direction of the coordinates of the": ["MOVE"],
+  "direct one's heading towards the coordinates of the location of": ["MOVE"],
+  "direct one's heading towards the coordinates of the location of the": ["MOVE"],
+  "direct ones heading towards the coordinates of the location of": ["MOVE"],
+  "direct ones heading towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual assessment": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual assessment the": ["LOOK_INSPECT"],
+  "subject to a thorough visual assessment": ["LOOK_INSPECT"],
+  "subject to a thorough visual assessment the": ["LOOK_INSPECT"],
+  "subject to a detailed visual assessment": ["LOOK_INSPECT"],
+  "subject to a detailed visual assessment the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct stewardship of": ["TAKE"],
+  "assume direct stewardship of the": ["TAKE"],
+  "assume absolute stewardship of": ["TAKE"],
+  "assume absolute stewardship of the": ["TAKE"],
+  "assume immediate stewardship of": ["TAKE"],
+  "assume immediate stewardship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all stewardship of": ["DROP"],
+  "divest oneself of all stewardship of the": ["DROP"],
+  "relinquish all stewardship of": ["DROP"],
+  "relinquish all stewardship of the": ["DROP"],
+  "free oneself from all stewardship of": ["DROP"],
+  "free oneself from all stewardship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and absolutely wide open": ["OPEN"],
+  "force completely and absolutely wide open the": ["OPEN"],
+  "pry completely and absolutely wide open": ["OPEN"],
+  "pry completely and absolutely wide open the": ["OPEN"],
+  "fasten completely and absolutely closed": ["CLOSE"],
+  "fasten completely and absolutely closed the": ["CLOSE"],
+  "seal completely and absolutely shut": ["CLOSE"],
+  "seal completely and absolutely shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all perimeter security devices of": ["UNLOCK"],
+  "deactivate all perimeter security devices of the": ["UNLOCK"],
+  "bypass all perimeter security devices on": ["UNLOCK"],
+  "bypass all perimeter security devices on the": ["UNLOCK"],
+  "disengage the primary perimeter security device on": ["UNLOCK"],
+  "disengage the primary perimeter security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full physical deployment of": ["USE"],
+  "harness the full physical deployment of the": ["USE"],
+  "bring into active physical deployment": ["USE"],
+  "bring into active physical deployment the": ["USE"],
+  "make complete physical deployment of": ["USE"],
+  "make complete physical deployment of the": ["USE"],
+
+  // Combat
+  "initiate a lethal confrontation against": ["FIGHT"],
+  "initiate a lethal confrontation against the": ["FIGHT"],
+  "commence a lethal confrontation against": ["FIGHT"],
+  "commence a lethal confrontation against the": ["FIGHT"],
+  "engage in a lethal confrontation against": ["FIGHT"],
+  "engage in a lethal confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a formal face to face discussion with": ["TALK"],
+  "initiate a formal face to face discussion with the": ["TALK"],
+  "engage in a formal face to face discussion with": ["TALK"],
+  "engage in a formal face to face discussion with the": ["TALK"],
+  "strike up a formal face to face discussion with": ["TALK"],
+  "strike up a formal face to face discussion with the": ["TALK"]
+});
+
+compoundVerbs.push(
+  // Phase 40 compound verbs
+  "navigate one's heading towards the location of the",
+  "navigate one's heading towards the location of",
+  "navigate ones heading towards the location of the",
+  "navigate ones heading towards the location of",
+  "steer one's heading in the direction of the coordinates of the",
+  "steer one's heading in the direction of the coordinates of",
+  "steer ones heading in the direction of the coordinates of the",
+  "steer ones heading in the direction of the coordinates of",
+  "direct one's heading towards the coordinates of the location of the",
+  "direct one's heading towards the coordinates of the location of",
+  "direct ones heading towards the coordinates of the location of the",
+  "direct ones heading towards the coordinates of the location of",
+  "subject to a comprehensive visual assessment the",
+  "subject to a comprehensive visual assessment",
+  "subject to a thorough visual assessment the",
+  "subject to a thorough visual assessment",
+  "subject to a detailed visual assessment the",
+  "subject to a detailed visual assessment",
+  "assume direct stewardship of the",
+  "assume direct stewardship of",
+  "assume absolute stewardship of the",
+  "assume absolute stewardship of",
+  "assume immediate stewardship of the",
+  "assume immediate stewardship of",
+  "divest oneself of all stewardship of the",
+  "divest oneself of all stewardship of",
+  "relinquish all stewardship of the",
+  "relinquish all stewardship of",
+  "free oneself from all stewardship of the",
+  "free oneself from all stewardship of",
+  "force completely and absolutely wide open the",
+  "force completely and absolutely wide open",
+  "pry completely and absolutely wide open the",
+  "pry completely and absolutely wide open",
+  "fasten completely and absolutely closed the",
+  "fasten completely and absolutely closed",
+  "seal completely and absolutely shut the",
+  "seal completely and absolutely shut",
+  "deactivate all perimeter security devices of the",
+  "deactivate all perimeter security devices of",
+  "bypass all perimeter security devices on the",
+  "bypass all perimeter security devices on",
+  "disengage the primary perimeter security device on the",
+  "disengage the primary perimeter security device on",
+  "harness the full physical deployment of the",
+  "harness the full physical deployment of",
+  "bring into active physical deployment the",
+  "bring into active physical deployment",
+  "make complete physical deployment of the",
+  "make complete physical deployment of",
+  "initiate a lethal confrontation against the",
+  "initiate a lethal confrontation against",
+  "commence a lethal confrontation against the",
+  "commence a lethal confrontation against",
+  "engage in a lethal confrontation against the",
+  "engage in a lethal confrontation against",
+  "initiate a formal face to face discussion with the",
+  "initiate a formal face to face discussion with",
+  "engage in a formal face to face discussion with the",
+  "engage in a formal face to face discussion with",
+  "strike up a formal face to face discussion with the",
+  "strike up a formal face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
