@@ -19109,6 +19109,155 @@ compoundVerbs.push(
   "strike up an agreeable face to face discussion with"
 );
 
+// Cycle #92 / Task-F115: Phase 78 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of departure towards the location of": ["MOVE"],
+  "navigate one's vector of departure towards the location of the": ["MOVE"],
+  "navigate ones vector of departure towards the location of": ["MOVE"],
+  "navigate ones vector of departure towards the location of the": ["MOVE"],
+  "steer one's vector of departure in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of departure in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of departure in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of departure in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of departure towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of departure towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of departure towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of departure towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual depiction": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual depiction the": ["LOOK_INSPECT"],
+  "subject to a thorough visual depiction": ["LOOK_INSPECT"],
+  "subject to a thorough visual depiction the": ["LOOK_INSPECT"],
+  "subject to a detailed visual depiction": ["LOOK_INSPECT"],
+  "subject to a detailed visual depiction the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive ownership of": ["TAKE"],
+  "assume direct exclusive ownership of the": ["TAKE"],
+  "assume absolute exclusive ownership of": ["TAKE"],
+  "assume absolute exclusive ownership of the": ["TAKE"],
+  "assume immediate exclusive ownership of": ["TAKE"],
+  "assume immediate exclusive ownership of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive ownership of": ["DROP"],
+  "divest oneself of all exclusive ownership of the": ["DROP"],
+  "relinquish all exclusive ownership of": ["DROP"],
+  "relinquish all exclusive ownership of the": ["DROP"],
+  "free oneself from all exclusive ownership of": ["DROP"],
+  "free oneself from all exclusive ownership of the": ["DROP"],
+
+  // Open/Close
+  "force completely and hydrodynamically wide open": ["OPEN"],
+  "force completely and hydrodynamically wide open the": ["OPEN"],
+  "pry completely and hydrodynamically wide open": ["OPEN"],
+  "pry completely and hydrodynamically wide open the": ["OPEN"],
+  "fasten completely and hydrodynamically closed": ["CLOSE"],
+  "fasten completely and hydrodynamically closed the": ["CLOSE"],
+  "seal completely and hydrodynamically shut": ["CLOSE"],
+  "seal completely and hydrodynamically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all thermobaric security devices of": ["UNLOCK"],
+  "deactivate all thermobaric security devices of the": ["UNLOCK"],
+  "bypass all thermobaric security devices on": ["UNLOCK"],
+  "bypass all thermobaric security devices on the": ["UNLOCK"],
+  "disengage the primary thermobaric security device on": ["UNLOCK"],
+  "disengage the primary thermobaric security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full inventive deployment of": ["USE"],
+  "harness the full inventive deployment of the": ["USE"],
+  "bring into active inventive deployment": ["USE"],
+  "bring into active inventive deployment the": ["USE"],
+  "make complete inventive deployment of": ["USE"],
+  "make complete inventive deployment of the": ["USE"],
+
+  // Combat
+  "initiate a monstrous confrontation against": ["FIGHT"],
+  "initiate a monstrous confrontation against the": ["FIGHT"],
+  "commence a monstrous confrontation against": ["FIGHT"],
+  "commence a monstrous confrontation against the": ["FIGHT"],
+  "engage in a monstrous confrontation against": ["FIGHT"],
+  "engage in a monstrous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a congenial face to face discussion with": ["TALK"],
+  "initiate a congenial face to face discussion with the": ["TALK"],
+  "engage in a congenial face to face discussion with": ["TALK"],
+  "engage in a congenial face to face discussion with the": ["TALK"],
+  "strike up a congenial face to face discussion with": ["TALK"],
+  "strike up a congenial face to face discussion with the": ["TALK"]
+});
+
+// Cycle #92 / Task-F115: Phase 78 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of departure towards the location of the",
+  "navigate one's vector of departure towards the location of",
+  "navigate ones vector of departure towards the location of the",
+  "navigate ones vector of departure towards the location of",
+  "steer one's vector of departure in the direction of the coordinates of the",
+  "steer one's vector of departure in the direction of the coordinates of",
+  "steer ones vector of departure in the direction of the coordinates of the",
+  "steer ones vector of departure in the direction of the coordinates of",
+  "direct one's vector of departure towards the coordinates of the location of the",
+  "direct one's vector of departure towards the coordinates of the location of",
+  "direct ones vector of departure towards the coordinates of the location of the",
+  "direct ones vector of departure towards the coordinates of the location of",
+  "subject to a comprehensive visual depiction the",
+  "subject to a comprehensive visual depiction",
+  "subject to a thorough visual depiction the",
+  "subject to a thorough visual depiction",
+  "subject to a detailed visual depiction the",
+  "subject to a detailed visual depiction",
+  "assume direct exclusive ownership of the",
+  "assume direct exclusive ownership of",
+  "assume absolute exclusive ownership of the",
+  "assume absolute exclusive ownership of",
+  "assume immediate exclusive ownership of the",
+  "assume immediate exclusive ownership of",
+  "divest oneself of all exclusive ownership of the",
+  "divest oneself of all exclusive ownership of",
+  "relinquish all exclusive ownership of the",
+  "relinquish all exclusive ownership of",
+  "free oneself from all exclusive ownership of the",
+  "free oneself from all exclusive ownership of",
+  "force completely and hydrodynamically wide open the",
+  "force completely and hydrodynamically wide open",
+  "pry completely and hydrodynamically wide open the",
+  "pry completely and hydrodynamically wide open",
+  "fasten completely and hydrodynamically closed the",
+  "fasten completely and hydrodynamically closed",
+  "seal completely and hydrodynamically shut the",
+  "seal completely and hydrodynamically shut",
+  "deactivate all thermobaric security devices of the",
+  "deactivate all thermobaric security devices of",
+  "bypass all thermobaric security devices on the",
+  "bypass all thermobaric security devices on",
+  "disengage the primary thermobaric security device on the",
+  "disengage the primary thermobaric security device on",
+  "harness the full inventive deployment of the",
+  "harness the full inventive deployment of",
+  "bring into active inventive deployment the",
+  "bring into active inventive deployment",
+  "make complete inventive deployment of the",
+  "make complete inventive deployment of",
+  "initiate a monstrous confrontation against the",
+  "initiate a monstrous confrontation against",
+  "commence a monstrous confrontation against the",
+  "commence a monstrous confrontation against",
+  "engage in a monstrous confrontation against the",
+  "engage in a monstrous confrontation against",
+  "initiate a congenial face to face discussion with the",
+  "initiate a congenial face to face discussion with",
+  "engage in a congenial face to face discussion with the",
+  "engage in a congenial face to face discussion with",
+  "strike up a congenial face to face discussion with the",
+  "strike up a congenial face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
