@@ -20324,7 +20324,87 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a convivial face to face discussion with": ["TALK"],
   "engage in a convivial face to face discussion with the": ["TALK"],
   "strike up a convivial face to face discussion with": ["TALK"],
-  "strike up a convivial face to face discussion with the": ["TALK"]
+  "strike up a convivial face to face discussion with the": ["TALK"],
+
+  // Cycle #102 / Task-F125: Phase 88 movement verbs
+  "navigate one's vector of deflection towards the location of": ["MOVE"],
+  "navigate one's vector of deflection towards the location of the": ["MOVE"],
+  "navigate ones vector of deflection towards the location of": ["MOVE"],
+  "navigate ones vector of deflection towards the location of the": ["MOVE"],
+  "steer one's vector of deflection in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of deflection in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of deflection in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of deflection in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of deflection towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of deflection towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of deflection towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of deflection towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual elucidation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual elucidation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual elucidation": ["LOOK_INSPECT"],
+  "subject to a thorough visual elucidation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual elucidation": ["LOOK_INSPECT"],
+  "subject to a detailed visual elucidation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive assimilation of": ["TAKE"],
+  "assume direct exclusive assimilation of the": ["TAKE"],
+  "assume absolute exclusive assimilation of": ["TAKE"],
+  "assume absolute exclusive assimilation of the": ["TAKE"],
+  "assume immediate exclusive assimilation of": ["TAKE"],
+  "assume immediate exclusive assimilation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive assimilation of": ["DROP"],
+  "divest oneself of all exclusive assimilation of the": ["DROP"],
+  "relinquish all exclusive assimilation of": ["DROP"],
+  "relinquish all exclusive assimilation of the": ["DROP"],
+  "free oneself from all exclusive assimilation of": ["DROP"],
+  "free oneself from all exclusive assimilation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and thermofluidically wide open": ["OPEN"],
+  "force completely and thermofluidically wide open the": ["OPEN"],
+  "pry completely and thermofluidically wide open": ["OPEN"],
+  "pry completely and thermofluidically wide open the": ["OPEN"],
+  "fasten completely and thermofluidically closed": ["CLOSE"],
+  "fasten completely and thermofluidically closed the": ["CLOSE"],
+  "seal completely and thermofluidically shut": ["CLOSE"],
+  "seal completely and thermofluidically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all thermomagnetic security devices of": ["UNLOCK"],
+  "deactivate all thermomagnetic security devices of the": ["UNLOCK"],
+  "bypass all thermomagnetic security devices on": ["UNLOCK"],
+  "bypass all thermomagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary thermomagnetic security device on": ["UNLOCK"],
+  "disengage the primary thermomagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full felicitous deployment of": ["USE"],
+  "harness the full felicitous deployment of the": ["USE"],
+  "bring into active felicitous deployment": ["USE"],
+  "bring into active felicitous deployment the": ["USE"],
+  "make complete felicitous deployment of": ["USE"],
+  "make complete felicitous deployment of the": ["USE"],
+
+  // Combat
+  "initiate a nefarious confrontation against": ["FIGHT"],
+  "initiate a nefarious confrontation against the": ["FIGHT"],
+  "commence a nefarious confrontation against": ["FIGHT"],
+  "commence a nefarious confrontation against the": ["FIGHT"],
+  "engage in a nefarious confrontation against": ["FIGHT"],
+  "engage in a nefarious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a gregarious face to face discussion with": ["TALK"],
+  "initiate a gregarious face to face discussion with the": ["TALK"],
+  "engage in a gregarious face to face discussion with": ["TALK"],
+  "engage in a gregarious face to face discussion with the": ["TALK"],
+  "strike up a gregarious face to face discussion with": ["TALK"],
+  "strike up a gregarious face to face discussion with the": ["TALK"]
 });
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -20589,6 +20669,72 @@ compoundVerbs.push(
   "engage in a convivial face to face discussion with",
   "strike up a convivial face to face discussion with the",
   "strike up a convivial face to face discussion with"
+);
+
+// Cycle #102 / Task-F125: Phase 88 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of deflection towards the location of the",
+  "navigate one's vector of deflection towards the location of",
+  "navigate ones vector of deflection towards the location of the",
+  "navigate ones vector of deflection towards the location of",
+  "steer one's vector of deflection in the direction of the coordinates of the",
+  "steer one's vector of deflection in the direction of the coordinates of",
+  "steer ones vector of deflection in the direction of the coordinates of the",
+  "steer ones vector of deflection in the direction of the coordinates of",
+  "direct one's vector of deflection towards the coordinates of the location of the",
+  "direct one's vector of deflection towards the coordinates of the location of",
+  "direct ones vector of deflection towards the coordinates of the location of the",
+  "direct ones vector of deflection towards the coordinates of the location of",
+  "subject to a comprehensive visual elucidation the",
+  "subject to a comprehensive visual elucidation",
+  "subject to a thorough visual elucidation the",
+  "subject to a thorough visual elucidation",
+  "subject to a detailed visual elucidation the",
+  "subject to a detailed visual elucidation",
+  "assume direct exclusive assimilation of the",
+  "assume direct exclusive assimilation of",
+  "assume absolute exclusive assimilation of the",
+  "assume absolute exclusive assimilation of",
+  "assume immediate exclusive assimilation of the",
+  "assume immediate exclusive assimilation of",
+  "divest oneself of all exclusive assimilation of the",
+  "divest oneself of all exclusive assimilation of",
+  "relinquish all exclusive assimilation of the",
+  "relinquish all exclusive assimilation of",
+  "free oneself from all exclusive assimilation of the",
+  "free oneself from all exclusive assimilation of",
+  "force completely and thermofluidically wide open the",
+  "force completely and thermofluidically wide open",
+  "pry completely and thermofluidically wide open the",
+  "pry completely and thermofluidically wide open",
+  "fasten completely and thermofluidically closed the",
+  "fasten completely and thermofluidically closed",
+  "seal completely and thermofluidically shut the",
+  "seal completely and thermofluidically shut",
+  "deactivate all thermomagnetic security devices of the",
+  "deactivate all thermomagnetic security devices of",
+  "bypass all thermomagnetic security devices on the",
+  "bypass all thermomagnetic security devices on",
+  "disengage the primary thermomagnetic security device on the",
+  "disengage the primary thermomagnetic security device on",
+  "harness the full felicitous deployment of the",
+  "harness the full felicitous deployment of",
+  "bring into active felicitous deployment the",
+  "bring into active felicitous deployment",
+  "make complete felicitous deployment of the",
+  "make complete felicitous deployment of",
+  "initiate a nefarious confrontation against the",
+  "initiate a nefarious confrontation against",
+  "commence a nefarious confrontation against the",
+  "commence a nefarious confrontation against",
+  "engage in a nefarious confrontation against the",
+  "engage in a nefarious confrontation against",
+  "initiate a gregarious face to face discussion with the",
+  "initiate a gregarious face to face discussion with",
+  "engage in a gregarious face to face discussion with the",
+  "engage in a gregarious face to face discussion with",
+  "strike up a gregarious face to face discussion with the",
+  "strike up a gregarious face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
