@@ -15678,6 +15678,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a cordial face to face discussion with the": ["TALK"]
 });
 
+// Cycle #75 / Task-F98: Phase 61 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of odyssey towards the location of": ["MOVE"],
+  "navigate one's vector of odyssey towards the location of the": ["MOVE"],
+  "navigate ones vector of odyssey towards the location of": ["MOVE"],
+  "navigate ones vector of odyssey towards the location of the": ["MOVE"],
+  "steer one's vector of odyssey in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of odyssey in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of odyssey in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of odyssey in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of odyssey towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of odyssey towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of odyssey towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of odyssey towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual contemplation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual contemplation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual contemplation": ["LOOK_INSPECT"],
+  "subject to a thorough visual contemplation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual contemplation": ["LOOK_INSPECT"],
+  "subject to a detailed visual contemplation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive procurement of": ["TAKE"],
+  "assume direct exclusive procurement of the": ["TAKE"],
+  "assume absolute exclusive procurement of": ["TAKE"],
+  "assume absolute exclusive procurement of the": ["TAKE"],
+  "assume immediate exclusive procurement of": ["TAKE"],
+  "assume immediate exclusive procurement of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive procurement of": ["DROP"],
+  "divest oneself of all exclusive procurement of the": ["DROP"],
+  "relinquish all exclusive procurement of": ["DROP"],
+  "relinquish all exclusive procurement of the": ["DROP"],
+  "free oneself from all exclusive procurement of": ["DROP"],
+  "free oneself from all exclusive procurement of the": ["DROP"],
+
+  // Open/Close
+  "force completely and operationally wide open": ["OPEN"],
+  "force completely and operationally wide open the": ["OPEN"],
+  "pry completely and operationally wide open": ["OPEN"],
+  "pry completely and operationally wide open the": ["OPEN"],
+  "fasten completely and operationally closed": ["CLOSE"],
+  "fasten completely and operationally closed the": ["CLOSE"],
+  "seal completely and operationally shut": ["CLOSE"],
+  "seal completely and operationally shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all peripheral security devices of": ["UNLOCK"],
+  "deactivate all peripheral security devices of the": ["UNLOCK"],
+  "bypass all peripheral security devices on": ["UNLOCK"],
+  "bypass all peripheral security devices on the": ["UNLOCK"],
+  "disengage the primary peripheral security device on": ["UNLOCK"],
+  "disengage the primary peripheral security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full dynamic deployment of": ["USE"],
+  "harness the full dynamic deployment of the": ["USE"],
+  "bring into active dynamic deployment": ["USE"],
+  "bring into active dynamic deployment the": ["USE"],
+  "make complete dynamic deployment of": ["USE"],
+  "make complete dynamic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a destructive confrontation against": ["FIGHT"],
+  "initiate a destructive confrontation against the": ["FIGHT"],
+  "commence a destructive confrontation against": ["FIGHT"],
+  "commence a destructive confrontation against the": ["FIGHT"],
+  "engage in a destructive confrontation against": ["FIGHT"],
+  "engage in a destructive confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an insightful face to face discussion with": ["TALK"],
+  "initiate an insightful face to face discussion with the": ["TALK"],
+  "engage in an insightful face to face discussion with": ["TALK"],
+  "engage in an insightful face to face discussion with the": ["TALK"],
+  "strike up an insightful face to face discussion with": ["TALK"],
+  "strike up an insightful face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -16584,6 +16667,72 @@ compoundVerbs.push(
   "engage in a cordial face to face discussion with",
   "strike up a cordial face to face discussion with the",
   "strike up a cordial face to face discussion with"
+);
+
+// Cycle #75 / Task-F98: Phase 61 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of odyssey towards the location of the",
+  "navigate one's vector of odyssey towards the location of",
+  "navigate ones vector of odyssey towards the location of the",
+  "navigate ones vector of odyssey towards the location of",
+  "steer one's vector of odyssey in the direction of the coordinates of the",
+  "steer one's vector of odyssey in the direction of the coordinates of",
+  "steer ones vector of odyssey in the direction of the coordinates of the",
+  "steer ones vector of odyssey in the direction of the coordinates of",
+  "direct one's vector of odyssey towards the coordinates of the location of the",
+  "direct one's vector of odyssey towards the coordinates of the location of",
+  "direct ones vector of odyssey towards the coordinates of the location of the",
+  "direct ones vector of odyssey towards the coordinates of the location of",
+  "subject to a comprehensive visual contemplation the",
+  "subject to a comprehensive visual contemplation",
+  "subject to a thorough visual contemplation the",
+  "subject to a thorough visual contemplation",
+  "subject to a detailed visual contemplation the",
+  "subject to a detailed visual contemplation",
+  "assume direct exclusive procurement of the",
+  "assume direct exclusive procurement of",
+  "assume absolute exclusive procurement of the",
+  "assume absolute exclusive procurement of",
+  "assume immediate exclusive procurement of the",
+  "assume immediate exclusive procurement of",
+  "divest oneself of all exclusive procurement of the",
+  "divest oneself of all exclusive procurement of",
+  "relinquish all exclusive procurement of the",
+  "relinquish all exclusive procurement of",
+  "free oneself from all exclusive procurement of the",
+  "free oneself from all exclusive procurement of",
+  "force completely and operationally wide open the",
+  "force completely and operationally wide open",
+  "pry completely and operationally wide open the",
+  "pry completely and operationally wide open",
+  "fasten completely and operationally closed the",
+  "fasten completely and operationally closed",
+  "seal completely and operationally shut the",
+  "seal completely and operationally shut",
+  "deactivate all peripheral security devices of the",
+  "deactivate all peripheral security devices of",
+  "bypass all peripheral security devices on the",
+  "bypass all peripheral security devices on",
+  "disengage the primary peripheral security device on the",
+  "disengage the primary peripheral security device on",
+  "harness the full dynamic deployment of the",
+  "harness the full dynamic deployment of",
+  "bring into active dynamic deployment the",
+  "bring into active dynamic deployment",
+  "make complete dynamic deployment of the",
+  "make complete dynamic deployment of",
+  "initiate a destructive confrontation against the",
+  "initiate a destructive confrontation against",
+  "commence a destructive confrontation against the",
+  "commence a destructive confrontation against",
+  "engage in a destructive confrontation against the",
+  "engage in a destructive confrontation against",
+  "initiate an insightful face to face discussion with the",
+  "initiate an insightful face to face discussion with",
+  "engage in an insightful face to face discussion with the",
+  "engage in an insightful face to face discussion with",
+  "strike up an insightful face to face discussion with the",
+  "strike up an insightful face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
