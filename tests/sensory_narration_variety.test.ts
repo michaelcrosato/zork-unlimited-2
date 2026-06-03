@@ -83,4 +83,49 @@ describe("Sensory Narration Variety & Custom Categories", () => {
     expect(desc).toContain("A meeting of paths.");
     expect(desc).toMatch(/woodsmoke|carriage ruts|signpost|civilization|tavern|rag|insects|lantern light|dust|safety/i);
   });
+
+  it("should vary the narrative structure order dynamically over steps and weather", () => {
+    const pack: ParserPack = {
+      meta: {
+        id: "structure-variety-test",
+        title: "Structure Variety Test Pack",
+        start_room: "room_forest",
+        vars_init: {},
+        flags_init: [],
+      },
+      rooms: [
+        {
+          id: "room_forest",
+          name: "Deep Forest Path",
+          description: "A leaf-covered trail.",
+          objects: [],
+          npcs: [],
+          exits: [],
+        },
+      ],
+      objects: [],
+      npcs: [],
+      win_conditions: [],
+      endings: [],
+    };
+
+    let state = createInitialState({ seed: 42, start: "room_forest" });
+    state.environment = {
+      weather: "rain",
+      temperature: "cold",
+      lastUpdatedStep: 0,
+    };
+
+    const structures: string[] = [];
+    // Collect descriptions over 4 steps
+    for (let step = 0; step < 4; step++) {
+      state.step = step;
+      const obs = buildObservation(state, pack);
+      structures.push((obs as any).description);
+    }
+
+    // Verify we have multiple different descriptions (order structure changes)
+    const uniqueStructures = new Set(structures);
+    expect(uniqueStructures.size).toBeGreaterThan(1);
+  });
 });

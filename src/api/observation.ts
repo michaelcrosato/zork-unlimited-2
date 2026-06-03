@@ -190,13 +190,32 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
     const availableChoices = currentScene.choices.filter((choice) => evaluateConditions(state, choice.conditions));
 
     let sensoryFlavor = getSensoryFlavor(currentScene.id, state.seed, state.step);
+    let wEffect = "";
     if (state.environment && isOutdoorRoom(currentScene.id)) {
-      const wEffect = WEATHER_EFFECTS[state.environment.weather];
-      if (wEffect) {
-        sensoryFlavor = `${sensoryFlavor} ${wEffect}`;
+      wEffect = WEATHER_EFFECTS[state.environment.weather] ?? "";
+    }
+
+    const sceneCharSum = currentScene.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+    const sceneStructureType = Math.abs(state.seed + state.step + sceneCharSum) % 4;
+
+    let text = "";
+    if (wEffect) {
+      if (sceneStructureType === 0) {
+        text = `${currentScene.text} ${sensoryFlavor} ${wEffect}`;
+      } else if (sceneStructureType === 1) {
+        text = `${sensoryFlavor} ${currentScene.text} ${wEffect}`;
+      } else if (sceneStructureType === 2) {
+        text = `${wEffect} ${currentScene.text} ${sensoryFlavor}`;
+      } else {
+        text = `${currentScene.text} ${wEffect} ${sensoryFlavor}`;
+      }
+    } else {
+      if (sceneStructureType % 2 === 0) {
+        text = `${currentScene.text} ${sensoryFlavor}`;
+      } else {
+        text = `${sensoryFlavor} ${currentScene.text}`;
       }
     }
-    const text = `${currentScene.text} ${sensoryFlavor}`;
 
     const choices = availableChoices.map((c) => ({
       id: c.id,
@@ -279,13 +298,32 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
   const legalActions = generateLegalActions(state, parserPack);
 
   let sensoryFlavor = getSensoryFlavor(room.id, state.seed, state.step);
+  let wEffect = "";
   if (state.environment && isOutdoorRoom(room.id)) {
-    const wEffect = WEATHER_EFFECTS[state.environment.weather];
-    if (wEffect) {
-      sensoryFlavor = `${sensoryFlavor} ${wEffect}`;
+    wEffect = WEATHER_EFFECTS[state.environment.weather] ?? "";
+  }
+
+  const roomCharSum = room.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+  const roomStructureType = Math.abs(state.seed + state.step + roomCharSum) % 4;
+
+  let description = "";
+  if (wEffect) {
+    if (roomStructureType === 0) {
+      description = `${room.description} ${sensoryFlavor} ${wEffect}`;
+    } else if (roomStructureType === 1) {
+      description = `${sensoryFlavor} ${room.description} ${wEffect}`;
+    } else if (roomStructureType === 2) {
+      description = `${wEffect} ${room.description} ${sensoryFlavor}`;
+    } else {
+      description = `${room.description} ${wEffect} ${sensoryFlavor}`;
+    }
+  } else {
+    if (roomStructureType % 2 === 0) {
+      description = `${room.description} ${sensoryFlavor}`;
+    } else {
+      description = `${sensoryFlavor} ${room.description}`;
     }
   }
-  const description = `${room.description} ${sensoryFlavor}`;
 
   return {
     mode: "parser",
