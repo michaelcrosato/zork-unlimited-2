@@ -19720,6 +19720,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a hospitable face to face discussion with the": ["TALK"]
 });
 
+// Cycle #97 / Task-F120: Phase 83 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of realignment towards the location of": ["MOVE"],
+  "navigate one's vector of realignment towards the location of the": ["MOVE"],
+  "navigate ones vector of realignment towards the location of": ["MOVE"],
+  "navigate ones vector of realignment towards the location of the": ["MOVE"],
+  "steer one's vector of realignment in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of realignment in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of realignment in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of realignment in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of realignment towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of realignment towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of realignment towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of realignment towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual rendering": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual rendering the": ["LOOK_INSPECT"],
+  "subject to a thorough visual rendering": ["LOOK_INSPECT"],
+  "subject to a thorough visual rendering the": ["LOOK_INSPECT"],
+  "subject to a detailed visual rendering": ["LOOK_INSPECT"],
+  "subject to a detailed visual rendering the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive hoarding of": ["TAKE"],
+  "assume direct exclusive hoarding of the": ["TAKE"],
+  "assume absolute exclusive hoarding of": ["TAKE"],
+  "assume absolute exclusive hoarding of the": ["TAKE"],
+  "assume immediate exclusive hoarding of": ["TAKE"],
+  "assume immediate exclusive hoarding of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive hoarding of": ["DROP"],
+  "divest oneself of all exclusive hoarding of the": ["DROP"],
+  "relinquish all exclusive hoarding of": ["DROP"],
+  "relinquish all exclusive hoarding of the": ["DROP"],
+  "free oneself from all exclusive hoarding of": ["DROP"],
+  "free oneself from all exclusive hoarding of the": ["DROP"],
+
+  // Open/Close
+  "force completely and nanomechanically wide open": ["OPEN"],
+  "force completely and nanomechanically wide open the": ["OPEN"],
+  "pry completely and nanomechanically wide open": ["OPEN"],
+  "pry completely and nanomechanically wide open the": ["OPEN"],
+  "fasten completely and nanomechanically closed": ["CLOSE"],
+  "fasten completely and nanomechanically closed the": ["CLOSE"],
+  "seal completely and nanomechanically shut": ["CLOSE"],
+  "seal completely and nanomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all ferromagnetic security devices of": ["UNLOCK"],
+  "deactivate all ferromagnetic security devices of the": ["UNLOCK"],
+  "bypass all ferromagnetic security devices on": ["UNLOCK"],
+  "bypass all ferromagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary ferromagnetic security device on": ["UNLOCK"],
+  "disengage the primary ferromagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full resourceful deployment of": ["USE"],
+  "harness the full resourceful deployment of the": ["USE"],
+  "bring into active resourceful deployment": ["USE"],
+  "bring into active resourceful deployment the": ["USE"],
+  "make complete resourceful deployment of": ["USE"],
+  "make complete resourceful deployment of the": ["USE"],
+
+  // Combat
+  "initiate a hideous confrontation against": ["FIGHT"],
+  "initiate a hideous confrontation against the": ["FIGHT"],
+  "commence a hideous confrontation against": ["FIGHT"],
+  "commence a hideous confrontation against the": ["FIGHT"],
+  "engage in a hideous confrontation against": ["FIGHT"],
+  "engage in a hideous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a companionable face to face discussion with": ["TALK"],
+  "initiate a companionable face to face discussion with the": ["TALK"],
+  "engage in a companionable face to face discussion with": ["TALK"],
+  "engage in a companionable face to face discussion with the": ["TALK"],
+  "strike up a companionable face to face discussion with": ["TALK"],
+  "strike up a companionable face to face discussion with the": ["TALK"]
+});
+
 // Cycle #95 / Task-F118: Phase 81 compound verbs
 compoundVerbs.push(
   "navigate one's vector of repositioning towards the location of the",
@@ -19850,6 +19933,72 @@ compoundVerbs.push(
   "engage in a hospitable face to face discussion with",
   "strike up a hospitable face to face discussion with the",
   "strike up a hospitable face to face discussion with"
+);
+
+// Cycle #97 / Task-F120: Phase 83 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of realignment towards the location of the",
+  "navigate one's vector of realignment towards the location of",
+  "navigate ones vector of realignment towards the location of the",
+  "navigate ones vector of realignment towards the location of",
+  "steer one's vector of realignment in the direction of the coordinates of the",
+  "steer one's vector of realignment in the direction of the coordinates of",
+  "steer ones vector of realignment in the direction of the coordinates of the",
+  "steer ones vector of realignment in the direction of the coordinates of",
+  "direct one's vector of realignment towards the coordinates of the location of the",
+  "direct one's vector of realignment towards the coordinates of the location of",
+  "direct ones vector of realignment towards the coordinates of the location of the",
+  "direct ones vector of realignment towards the coordinates of the location of",
+  "subject to a comprehensive visual rendering the",
+  "subject to a comprehensive visual rendering",
+  "subject to a thorough visual rendering the",
+  "subject to a thorough visual rendering",
+  "subject to a detailed visual rendering the",
+  "subject to a detailed visual rendering",
+  "assume direct exclusive hoarding of the",
+  "assume direct exclusive hoarding of",
+  "assume absolute exclusive hoarding of the",
+  "assume absolute exclusive hoarding of",
+  "assume immediate exclusive hoarding of the",
+  "assume immediate exclusive hoarding of",
+  "divest oneself of all exclusive hoarding of the",
+  "divest oneself of all exclusive hoarding of",
+  "relinquish all exclusive hoarding of the",
+  "relinquish all exclusive hoarding of",
+  "free oneself from all exclusive hoarding of the",
+  "free oneself from all exclusive hoarding of",
+  "force completely and nanomechanically wide open the",
+  "force completely and nanomechanically wide open",
+  "pry completely and nanomechanically wide open the",
+  "pry completely and nanomechanically wide open",
+  "fasten completely and nanomechanically closed the",
+  "fasten completely and nanomechanically closed",
+  "seal completely and nanomechanically shut the",
+  "seal completely and nanomechanically shut",
+  "deactivate all ferromagnetic security devices of the",
+  "deactivate all ferromagnetic security devices of",
+  "bypass all ferromagnetic security devices on the",
+  "bypass all ferromagnetic security devices on",
+  "disengage the primary ferromagnetic security device on the",
+  "disengage the primary ferromagnetic security device on",
+  "harness the full resourceful deployment of the",
+  "harness the full resourceful deployment of",
+  "bring into active resourceful deployment the",
+  "bring into active resourceful deployment",
+  "make complete resourceful deployment of the",
+  "make complete resourceful deployment of",
+  "initiate a hideous confrontation against the",
+  "initiate a hideous confrontation against",
+  "commence a hideous confrontation against the",
+  "commence a hideous confrontation against",
+  "engage in a hideous confrontation against the",
+  "engage in a hideous confrontation against",
+  "initiate a companionable face to face discussion with the",
+  "initiate a companionable face to face discussion with",
+  "engage in a companionable face to face discussion with the",
+  "engage in a companionable face to face discussion with",
+  "strike up a companionable face to face discussion with the",
+  "strike up a companionable face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
