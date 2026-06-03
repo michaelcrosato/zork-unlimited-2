@@ -16735,6 +16735,155 @@ compoundVerbs.push(
   "strike up an insightful face to face discussion with"
 );
 
+// Cycle #76 / Task-F99: Phase 62 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of pilgrimage towards the location of": ["MOVE"],
+  "navigate one's vector of pilgrimage towards the location of the": ["MOVE"],
+  "navigate ones vector of pilgrimage towards the location of": ["MOVE"],
+  "navigate ones vector of pilgrimage towards the location of the": ["MOVE"],
+  "steer one's vector of pilgrimage in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of pilgrimage in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of pilgrimage in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of pilgrimage in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of pilgrimage towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of pilgrimage towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of pilgrimage towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of pilgrimage towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual study": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual study the": ["LOOK_INSPECT"],
+  "subject to a thorough visual study": ["LOOK_INSPECT"],
+  "subject to a thorough visual study the": ["LOOK_INSPECT"],
+  "subject to a detailed visual study": ["LOOK_INSPECT"],
+  "subject to a detailed visual study the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive requisition of": ["TAKE"],
+  "assume direct exclusive requisition of the": ["TAKE"],
+  "assume absolute exclusive requisition of": ["TAKE"],
+  "assume absolute exclusive requisition of the": ["TAKE"],
+  "assume immediate exclusive requisition of": ["TAKE"],
+  "assume immediate exclusive requisition of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive requisition of": ["DROP"],
+  "divest oneself of all exclusive requisition of the": ["DROP"],
+  "relinquish all exclusive requisition of": ["DROP"],
+  "relinquish all exclusive requisition of the": ["DROP"],
+  "free oneself from all exclusive requisition of": ["DROP"],
+  "free oneself from all exclusive requisition of the": ["DROP"],
+
+  // Open/Close
+  "force completely and mathematically wide open": ["OPEN"],
+  "force completely and mathematically wide open the": ["OPEN"],
+  "pry completely and mathematically wide open": ["OPEN"],
+  "pry completely and mathematically wide open the": ["OPEN"],
+  "fasten completely and mathematically closed": ["CLOSE"],
+  "fasten completely and mathematically closed the": ["CLOSE"],
+  "seal completely and mathematically shut": ["CLOSE"],
+  "seal completely and mathematically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all acoustic security devices of": ["UNLOCK"],
+  "deactivate all acoustic security devices of the": ["UNLOCK"],
+  "bypass all acoustic security devices on": ["UNLOCK"],
+  "bypass all acoustic security devices on the": ["UNLOCK"],
+  "disengage the primary acoustic security device on": ["UNLOCK"],
+  "disengage the primary acoustic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full heuristic deployment of": ["USE"],
+  "harness the full heuristic deployment of the": ["USE"],
+  "bring into active heuristic deployment": ["USE"],
+  "bring into active heuristic deployment the": ["USE"],
+  "make complete heuristic deployment of": ["USE"],
+  "make complete heuristic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a devastating confrontation against": ["FIGHT"],
+  "initiate a devastating confrontation against the": ["FIGHT"],
+  "commence a devastating confrontation against": ["FIGHT"],
+  "commence a devastating confrontation against the": ["FIGHT"],
+  "engage in a devastating confrontation against": ["FIGHT"],
+  "engage in a devastating confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a profound face to face discussion with": ["TALK"],
+  "initiate a profound face to face discussion with the": ["TALK"],
+  "engage in a profound face to face discussion with": ["TALK"],
+  "engage in a profound face to face discussion with the": ["TALK"],
+  "strike up a profound face to face discussion with": ["TALK"],
+  "strike up a profound face to face discussion with the": ["TALK"]
+});
+
+// Cycle #76 / Task-F99: Phase 62 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of pilgrimage towards the location of the",
+  "navigate one's vector of pilgrimage towards the location of",
+  "navigate ones vector of pilgrimage towards the location of the",
+  "navigate ones vector of pilgrimage towards the location of",
+  "steer one's vector of pilgrimage in the direction of the coordinates of the",
+  "steer one's vector of pilgrimage in the direction of the coordinates of",
+  "steer ones vector of pilgrimage in the direction of the coordinates of the",
+  "steer ones vector of pilgrimage in the direction of the coordinates of",
+  "direct one's vector of pilgrimage towards the coordinates of the location of the",
+  "direct one's vector of pilgrimage towards the coordinates of the location of",
+  "direct ones vector of pilgrimage towards the coordinates of the location of the",
+  "direct ones vector of pilgrimage towards the coordinates of the location of",
+  "subject to a comprehensive visual study the",
+  "subject to a comprehensive visual study",
+  "subject to a thorough visual study the",
+  "subject to a thorough visual study",
+  "subject to a detailed visual study the",
+  "subject to a detailed visual study",
+  "assume direct exclusive requisition of the",
+  "assume direct exclusive requisition of",
+  "assume absolute exclusive requisition of the",
+  "assume absolute exclusive requisition of",
+  "assume immediate exclusive requisition of the",
+  "assume immediate exclusive requisition of",
+  "divest oneself of all exclusive requisition of the",
+  "divest oneself of all exclusive requisition of",
+  "relinquish all exclusive requisition of the",
+  "relinquish all exclusive requisition of",
+  "free oneself from all exclusive requisition of the",
+  "free oneself from all exclusive requisition of",
+  "force completely and mathematically wide open the",
+  "force completely and mathematically wide open",
+  "pry completely and mathematically wide open the",
+  "pry completely and mathematically wide open",
+  "fasten completely and mathematically closed the",
+  "fasten completely and mathematically closed",
+  "seal completely and mathematically shut the",
+  "seal completely and mathematically shut",
+  "deactivate all acoustic security devices of the",
+  "deactivate all acoustic security devices of",
+  "bypass all acoustic security devices on the",
+  "bypass all acoustic security devices on",
+  "disengage the primary acoustic security device on the",
+  "disengage the primary acoustic security device on",
+  "harness the full heuristic deployment of the",
+  "harness the full heuristic deployment of",
+  "bring into active heuristic deployment the",
+  "bring into active heuristic deployment",
+  "make complete heuristic deployment of the",
+  "make complete heuristic deployment of",
+  "initiate a devastating confrontation against the",
+  "initiate a devastating confrontation against",
+  "commence a devastating confrontation against the",
+  "commence a devastating confrontation against",
+  "engage in a devastating confrontation against the",
+  "engage in a devastating confrontation against",
+  "initiate a profound face to face discussion with the",
+  "initiate a profound face to face discussion with",
+  "engage in a profound face to face discussion with the",
+  "engage in a profound face to face discussion with",
+  "strike up a profound face to face discussion with the",
+  "strike up a profound face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
