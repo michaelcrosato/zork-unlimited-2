@@ -14603,6 +14603,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a professional face to face discussion with the": ["TALK"]
 });
 
+// Cycle #62 / Task-F85: Phase 48 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of navigation towards the location of": ["MOVE"],
+  "navigate one's vector of navigation towards the location of the": ["MOVE"],
+  "navigate ones vector of navigation towards the location of": ["MOVE"],
+  "navigate ones vector of navigation towards the location of the": ["MOVE"],
+  "steer one's vector of navigation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of navigation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of navigation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of navigation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of navigation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of navigation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of navigation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of navigation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual certification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual certification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual certification": ["LOOK_INSPECT"],
+  "subject to a thorough visual certification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual certification": ["LOOK_INSPECT"],
+  "subject to a detailed visual certification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive trusteeship of": ["TAKE"],
+  "assume direct exclusive trusteeship of the": ["TAKE"],
+  "assume absolute exclusive trusteeship of": ["TAKE"],
+  "assume absolute exclusive trusteeship of the": ["TAKE"],
+  "assume immediate exclusive trusteeship of": ["TAKE"],
+  "assume immediate exclusive trusteeship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive trusteeship of": ["DROP"],
+  "divest oneself of all exclusive trusteeship of the": ["DROP"],
+  "relinquish all exclusive trusteeship of": ["DROP"],
+  "relinquish all exclusive trusteeship of the": ["DROP"],
+  "free oneself from all exclusive trusteeship of": ["DROP"],
+  "free oneself from all exclusive trusteeship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and autonomously wide open": ["OPEN"],
+  "force completely and autonomously wide open the": ["OPEN"],
+  "pry completely and autonomously wide open": ["OPEN"],
+  "pry completely and autonomously wide open the": ["OPEN"],
+  "fasten completely and autonomously closed": ["CLOSE"],
+  "fasten completely and autonomously closed the": ["CLOSE"],
+  "seal completely and autonomously shut": ["CLOSE"],
+  "seal completely and autonomously shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all cryptographic security devices of": ["UNLOCK"],
+  "deactivate all cryptographic security devices of the": ["UNLOCK"],
+  "bypass all cryptographic security devices on": ["UNLOCK"],
+  "bypass all cryptographic security devices on the": ["UNLOCK"],
+  "disengage the primary cryptographic security device on": ["UNLOCK"],
+  "disengage the primary cryptographic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full advanced deployment of": ["USE"],
+  "harness the full advanced deployment of the": ["USE"],
+  "bring into active advanced deployment": ["USE"],
+  "bring into active advanced deployment the": ["USE"],
+  "make complete advanced deployment of": ["USE"],
+  "make complete advanced deployment of the": ["USE"],
+
+  // Combat
+  "initiate a belligerent confrontation against": ["FIGHT"],
+  "initiate a belligerent confrontation against the": ["FIGHT"],
+  "commence a belligerent confrontation against": ["FIGHT"],
+  "commence a belligerent confrontation against the": ["FIGHT"],
+  "engage in a belligerent confrontation against": ["FIGHT"],
+  "engage in a belligerent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an intellectual face to face discussion with": ["TALK"],
+  "initiate an intellectual face to face discussion with the": ["TALK"],
+  "engage in an intellectual face to face discussion with": ["TALK"],
+  "engage in an intellectual face to face discussion with the": ["TALK"],
+  "strike up an intellectual face to face discussion with": ["TALK"],
+  "strike up an intellectual face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -14666,7 +14749,71 @@ compoundVerbs.push(
   "engage in a professional face to face discussion with the",
   "engage in a professional face to face discussion with",
   "strike up a professional face to face discussion with the",
-  "strike up a professional face to face discussion with"
+  "strike up a professional face to face discussion with",
+
+  // Phase 48 compound verbs
+  "navigate one's vector of navigation towards the location of the",
+  "navigate one's vector of navigation towards the location of",
+  "navigate ones vector of navigation towards the location of the",
+  "navigate ones vector of navigation towards the location of",
+  "steer one's vector of navigation in the direction of the coordinates of the",
+  "steer one's vector of navigation in the direction of the coordinates of",
+  "steer ones vector of navigation in the direction of the coordinates of the",
+  "steer ones vector of navigation in the direction of the coordinates of",
+  "direct one's vector of navigation towards the coordinates of the location of the",
+  "direct one's vector of navigation towards the coordinates of the location of",
+  "direct ones vector of navigation towards the coordinates of the location of the",
+  "direct ones vector of navigation towards the coordinates of the location of",
+  "subject to a comprehensive visual certification the",
+  "subject to a comprehensive visual certification",
+  "subject to a thorough visual certification the",
+  "subject to a thorough visual certification",
+  "subject to a detailed visual certification the",
+  "subject to a detailed visual certification",
+  "assume direct exclusive trusteeship of the",
+  "assume direct exclusive trusteeship of",
+  "assume absolute exclusive trusteeship of the",
+  "assume absolute exclusive trusteeship of",
+  "assume immediate exclusive trusteeship of the",
+  "assume immediate exclusive trusteeship of",
+  "divest oneself of all exclusive trusteeship of the",
+  "divest oneself of all exclusive trusteeship of",
+  "relinquish all exclusive trusteeship of the",
+  "relinquish all exclusive trusteeship of",
+  "free oneself from all exclusive trusteeship of the",
+  "free oneself from all exclusive trusteeship of",
+  "force completely and autonomously wide open the",
+  "force completely and autonomously wide open",
+  "pry completely and autonomously wide open the",
+  "pry completely and autonomously wide open",
+  "fasten completely and autonomously closed the",
+  "fasten completely and autonomously closed",
+  "seal completely and autonomously shut the",
+  "seal completely and autonomously shut",
+  "deactivate all cryptographic security devices of the",
+  "deactivate all cryptographic security devices of",
+  "bypass all cryptographic security devices on the",
+  "bypass all cryptographic security devices on",
+  "disengage the primary cryptographic security device on the",
+  "disengage the primary cryptographic security device on",
+  "harness the full advanced deployment of the",
+  "harness the full advanced deployment of",
+  "bring into active advanced deployment the",
+  "bring into active advanced deployment",
+  "make complete advanced deployment of the",
+  "make complete advanced deployment of",
+  "initiate a belligerent confrontation against the",
+  "initiate a belligerent confrontation against",
+  "commence a belligerent confrontation against the",
+  "commence a belligerent confrontation against",
+  "engage in a belligerent confrontation against the",
+  "engage in a belligerent confrontation against",
+  "initiate an intellectual face to face discussion with the",
+  "initiate an intellectual face to face discussion with",
+  "engage in an intellectual face to face discussion with the",
+  "engage in an intellectual face to face discussion with",
+  "strike up an intellectual face to face discussion with the",
+  "strike up an intellectual face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
