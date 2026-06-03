@@ -18811,6 +18811,155 @@ compoundVerbs.push(
   "strike up a courteous face to face discussion with"
 );
 
+// Cycle #90 / Task-F113: Phase 76 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of approach towards the location of": ["MOVE"],
+  "navigate one's vector of approach towards the location of the": ["MOVE"],
+  "navigate ones vector of approach towards the location of": ["MOVE"],
+  "navigate ones vector of approach towards the location of the": ["MOVE"],
+  "steer one's vector of approach in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of approach in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of approach in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of approach in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of approach towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of approach towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of approach towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of approach towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual specification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual specification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual specification": ["LOOK_INSPECT"],
+  "subject to a thorough visual specification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual specification": ["LOOK_INSPECT"],
+  "subject to a detailed visual specification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive adoption of": ["TAKE"],
+  "assume direct exclusive adoption of the": ["TAKE"],
+  "assume absolute exclusive adoption of": ["TAKE"],
+  "assume absolute exclusive adoption of the": ["TAKE"],
+  "assume immediate exclusive adoption of": ["TAKE"],
+  "assume immediate exclusive adoption of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive adoption of": ["DROP"],
+  "divest oneself of all exclusive adoption of the": ["DROP"],
+  "relinquish all exclusive adoption of": ["DROP"],
+  "relinquish all exclusive adoption of the": ["DROP"],
+  "free oneself from all exclusive adoption of": ["DROP"],
+  "free oneself from all exclusive adoption of the": ["DROP"],
+
+  // Open/Close
+  "force completely and sonically wide open": ["OPEN"],
+  "force completely and sonically wide open the": ["OPEN"],
+  "pry completely and sonically wide open": ["OPEN"],
+  "pry completely and sonically wide open the": ["OPEN"],
+  "fasten completely and sonically closed": ["CLOSE"],
+  "fasten completely and sonically closed the": ["CLOSE"],
+  "seal completely and sonically shut": ["CLOSE"],
+  "seal completely and sonically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all electrodynamic security devices of": ["UNLOCK"],
+  "deactivate all electrodynamic security devices of the": ["UNLOCK"],
+  "bypass all electrodynamic security devices on": ["UNLOCK"],
+  "bypass all electrodynamic security devices on the": ["UNLOCK"],
+  "disengage the primary electrodynamic security device on": ["UNLOCK"],
+  "disengage the primary electrodynamic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full intuitive deployment of": ["USE"],
+  "harness the full intuitive deployment of the": ["USE"],
+  "bring into active intuitive deployment": ["USE"],
+  "bring into active intuitive deployment the": ["USE"],
+  "make complete intuitive deployment of": ["USE"],
+  "make complete intuitive deployment of the": ["USE"],
+
+  // Combat
+  "initiate a terrible confrontation against": ["FIGHT"],
+  "initiate a terrible confrontation against the": ["FIGHT"],
+  "commence a terrible confrontation against": ["FIGHT"],
+  "commence a terrible confrontation against the": ["FIGHT"],
+  "engage in a terrible confrontation against": ["FIGHT"],
+  "engage in a terrible confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a polite face to face discussion with": ["TALK"],
+  "initiate a polite face to face discussion with the": ["TALK"],
+  "engage in a polite face to face discussion with": ["TALK"],
+  "engage in a polite face to face discussion with the": ["TALK"],
+  "strike up a polite face to face discussion with": ["TALK"],
+  "strike up a polite face to face discussion with the": ["TALK"]
+});
+
+// Cycle #90 / Task-F113: Phase 76 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of approach towards the location of the",
+  "navigate one's vector of approach towards the location of",
+  "navigate ones vector of approach towards the location of the",
+  "navigate ones vector of approach towards the location of",
+  "steer one's vector of approach in the direction of the coordinates of the",
+  "steer one's vector of approach in the direction of the coordinates of",
+  "steer ones vector of approach in the direction of the coordinates of the",
+  "steer ones vector of approach in the direction of the coordinates of",
+  "direct one's vector of approach towards the coordinates of the location of the",
+  "direct one's vector of approach towards the coordinates of the location of",
+  "direct ones vector of approach towards the coordinates of the location of the",
+  "direct ones vector of approach towards the coordinates of the location of",
+  "subject to a comprehensive visual specification the",
+  "subject to a comprehensive visual specification",
+  "subject to a thorough visual specification the",
+  "subject to a thorough visual specification",
+  "subject to a detailed visual specification the",
+  "subject to a detailed visual specification",
+  "assume direct exclusive adoption of the",
+  "assume direct exclusive adoption of",
+  "assume absolute exclusive adoption of the",
+  "assume absolute exclusive adoption of",
+  "assume immediate exclusive adoption of the",
+  "assume immediate exclusive adoption of",
+  "divest oneself of all exclusive adoption of the",
+  "divest oneself of all exclusive adoption of",
+  "relinquish all exclusive adoption of the",
+  "relinquish all exclusive adoption of",
+  "free oneself from all exclusive adoption of the",
+  "free oneself from all exclusive adoption of",
+  "force completely and sonically wide open the",
+  "force completely and sonically wide open",
+  "pry completely and sonically wide open the",
+  "pry completely and sonically wide open",
+  "fasten completely and sonically closed the",
+  "fasten completely and sonically closed",
+  "seal completely and sonically shut the",
+  "seal completely and sonically shut",
+  "deactivate all electrodynamic security devices of the",
+  "deactivate all electrodynamic security devices of",
+  "bypass all electrodynamic security devices on the",
+  "bypass all electrodynamic security devices on",
+  "disengage the primary electrodynamic security device on the",
+  "disengage the primary electrodynamic security device on",
+  "harness the full intuitive deployment of the",
+  "harness the full intuitive deployment of",
+  "bring into active intuitive deployment the",
+  "bring into active intuitive deployment",
+  "make complete intuitive deployment of the",
+  "make complete intuitive deployment of",
+  "initiate a terrible confrontation against the",
+  "initiate a terrible confrontation against",
+  "commence a terrible confrontation against the",
+  "commence a terrible confrontation against",
+  "engage in a terrible confrontation against the",
+  "engage in a terrible confrontation against",
+  "initiate a polite face to face discussion with the",
+  "initiate a polite face to face discussion with",
+  "engage in a polite face to face discussion with the",
+  "engage in a polite face to face discussion with",
+  "strike up a polite face to face discussion with the",
+  "strike up a polite face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
