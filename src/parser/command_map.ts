@@ -18960,6 +18960,155 @@ compoundVerbs.push(
   "strike up a polite face to face discussion with"
 );
 
+// Cycle #91 / Task-F114: Phase 77 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of arrival towards the location of": ["MOVE"],
+  "navigate one's vector of arrival towards the location of the": ["MOVE"],
+  "navigate ones vector of arrival towards the location of": ["MOVE"],
+  "navigate ones vector of arrival towards the location of the": ["MOVE"],
+  "steer one's vector of arrival in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of arrival in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of arrival in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of arrival in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of arrival towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of arrival towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of arrival towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of arrival towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual description": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual description the": ["LOOK_INSPECT"],
+  "subject to a thorough visual description": ["LOOK_INSPECT"],
+  "subject to a thorough visual description the": ["LOOK_INSPECT"],
+  "subject to a detailed visual description": ["LOOK_INSPECT"],
+  "subject to a detailed visual description the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive selection of": ["TAKE"],
+  "assume direct exclusive selection of the": ["TAKE"],
+  "assume absolute exclusive selection of": ["TAKE"],
+  "assume absolute exclusive selection of the": ["TAKE"],
+  "assume immediate exclusive selection of": ["TAKE"],
+  "assume immediate exclusive selection of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive selection of": ["DROP"],
+  "divest oneself of all exclusive selection of the": ["DROP"],
+  "relinquish all exclusive selection of": ["DROP"],
+  "relinquish all exclusive selection of the": ["DROP"],
+  "free oneself from all exclusive selection of": ["DROP"],
+  "free oneself from all exclusive selection of the": ["DROP"],
+
+  // Open/Close
+  "force completely and aerodynamically wide open": ["OPEN"],
+  "force completely and aerodynamically wide open the": ["OPEN"],
+  "pry completely and aerodynamically wide open": ["OPEN"],
+  "pry completely and aerodynamically wide open the": ["OPEN"],
+  "fasten completely and aerodynamically closed": ["CLOSE"],
+  "fasten completely and aerodynamically closed the": ["CLOSE"],
+  "seal completely and aerodynamically shut": ["CLOSE"],
+  "seal completely and aerodynamically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all barometric security devices of": ["UNLOCK"],
+  "deactivate all barometric security devices of the": ["UNLOCK"],
+  "bypass all barometric security devices on": ["UNLOCK"],
+  "bypass all barometric security devices on the": ["UNLOCK"],
+  "disengage the primary barometric security device on": ["UNLOCK"],
+  "disengage the primary barometric security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full creative deployment of": ["USE"],
+  "harness the full creative deployment of the": ["USE"],
+  "bring into active creative deployment": ["USE"],
+  "bring into active creative deployment the": ["USE"],
+  "make complete creative deployment of": ["USE"],
+  "make complete creative deployment of the": ["USE"],
+
+  // Combat
+  "initiate a frightful confrontation against": ["FIGHT"],
+  "initiate a frightful confrontation against the": ["FIGHT"],
+  "commence a frightful confrontation against": ["FIGHT"],
+  "commence a frightful confrontation against the": ["FIGHT"],
+  "engage in a frightful confrontation against": ["FIGHT"],
+  "engage in a frightful confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an agreeable face to face discussion with": ["TALK"],
+  "initiate an agreeable face to face discussion with the": ["TALK"],
+  "engage in an agreeable face to face discussion with": ["TALK"],
+  "engage in an agreeable face to face discussion with the": ["TALK"],
+  "strike up an agreeable face to face discussion with": ["TALK"],
+  "strike up an agreeable face to face discussion with the": ["TALK"]
+});
+
+// Cycle #91 / Task-F114: Phase 77 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of arrival towards the location of the",
+  "navigate one's vector of arrival towards the location of",
+  "navigate ones vector of arrival towards the location of the",
+  "navigate ones vector of arrival towards the location of",
+  "steer one's vector of arrival in the direction of the coordinates of the",
+  "steer one's vector of arrival in the direction of the coordinates of",
+  "steer ones vector of arrival in the direction of the coordinates of the",
+  "steer ones vector of arrival in the direction of the coordinates of",
+  "direct one's vector of arrival towards the coordinates of the location of the",
+  "direct one's vector of arrival towards the coordinates of the location of",
+  "direct ones vector of arrival towards the coordinates of the location of the",
+  "direct ones vector of arrival towards the coordinates of the location of",
+  "subject to a comprehensive visual description the",
+  "subject to a comprehensive visual description",
+  "subject to a thorough visual description the",
+  "subject to a thorough visual description",
+  "subject to a detailed visual description the",
+  "subject to a detailed visual description",
+  "assume direct exclusive selection of the",
+  "assume direct exclusive selection of",
+  "assume absolute exclusive selection of the",
+  "assume absolute exclusive selection of",
+  "assume immediate exclusive selection of the",
+  "assume immediate exclusive selection of",
+  "divest oneself of all exclusive selection of the",
+  "divest oneself of all exclusive selection of",
+  "relinquish all exclusive selection of the",
+  "relinquish all exclusive selection of",
+  "free oneself from all exclusive selection of the",
+  "free oneself from all exclusive selection of",
+  "force completely and aerodynamically wide open the",
+  "force completely and aerodynamically wide open",
+  "pry completely and aerodynamically wide open the",
+  "pry completely and aerodynamically wide open",
+  "fasten completely and aerodynamically closed the",
+  "fasten completely and aerodynamically closed",
+  "seal completely and aerodynamically shut the",
+  "seal completely and aerodynamically shut",
+  "deactivate all barometric security devices of the",
+  "deactivate all barometric security devices of",
+  "bypass all barometric security devices on the",
+  "bypass all barometric security devices on",
+  "disengage the primary barometric security device on the",
+  "disengage the primary barometric security device on",
+  "harness the full creative deployment of the",
+  "harness the full creative deployment of",
+  "bring into active creative deployment the",
+  "bring into active creative deployment",
+  "make complete creative deployment of the",
+  "make complete creative deployment of",
+  "initiate a frightful confrontation against the",
+  "initiate a frightful confrontation against",
+  "commence a frightful confrontation against the",
+  "commence a frightful confrontation against",
+  "engage in a frightful confrontation against the",
+  "engage in a frightful confrontation against",
+  "initiate an agreeable face to face discussion with the",
+  "initiate an agreeable face to face discussion with",
+  "engage in an agreeable face to face discussion with the",
+  "engage in an agreeable face to face discussion with",
+  "strike up an agreeable face to face discussion with the",
+  "strike up an agreeable face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
