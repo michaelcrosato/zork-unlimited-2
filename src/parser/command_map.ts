@@ -20404,7 +20404,87 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a gregarious face to face discussion with": ["TALK"],
   "engage in a gregarious face to face discussion with the": ["TALK"],
   "strike up a gregarious face to face discussion with": ["TALK"],
-  "strike up a gregarious face to face discussion with the": ["TALK"]
+  "strike up a gregarious face to face discussion with the": ["TALK"],
+
+  // Cycle #103 / Task-F126: Phase 89 movement verbs
+  "navigate one's vector of dispersion towards the location of": ["MOVE"],
+  "navigate one's vector of dispersion towards the location of the": ["MOVE"],
+  "navigate ones vector of dispersion towards the location of": ["MOVE"],
+  "navigate ones vector of dispersion towards the location of the": ["MOVE"],
+  "steer one's vector of dispersion in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of dispersion in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of dispersion in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of dispersion in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of dispersion towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of dispersion towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of dispersion towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of dispersion towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual explication": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual explication the": ["LOOK_INSPECT"],
+  "subject to a thorough visual explication": ["LOOK_INSPECT"],
+  "subject to a thorough visual explication the": ["LOOK_INSPECT"],
+  "subject to a detailed visual explication": ["LOOK_INSPECT"],
+  "subject to a detailed visual explication the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive monopolization of": ["TAKE"],
+  "assume direct exclusive monopolization of the": ["TAKE"],
+  "assume absolute exclusive monopolization of": ["TAKE"],
+  "assume absolute exclusive monopolization of the": ["TAKE"],
+  "assume immediate exclusive monopolization of": ["TAKE"],
+  "assume immediate exclusive monopolization of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive monopolization of": ["DROP"],
+  "divest oneself of all exclusive monopolization of the": ["DROP"],
+  "relinquish all exclusive monopolization of": ["DROP"],
+  "relinquish all exclusive monopolization of the": ["DROP"],
+  "free oneself from all exclusive monopolization of": ["DROP"],
+  "free oneself from all exclusive monopolization of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electrohydrodynamically wide open": ["OPEN"],
+  "force completely and electrohydrodynamically wide open the": ["OPEN"],
+  "pry completely and electrohydrodynamically wide open": ["OPEN"],
+  "pry completely and electrohydrodynamically wide open the": ["OPEN"],
+  "fasten completely and electrohydrodynamically closed": ["CLOSE"],
+  "fasten completely and electrohydrodynamically closed the": ["CLOSE"],
+  "seal completely and electrohydrodynamically shut": ["CLOSE"],
+  "seal completely and electrohydrodynamically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all superparamagnetic security devices of": ["UNLOCK"],
+  "deactivate all superparamagnetic security devices of the": ["UNLOCK"],
+  "bypass all superparamagnetic security devices on": ["UNLOCK"],
+  "bypass all superparamagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary superparamagnetic security device on": ["UNLOCK"],
+  "disengage the primary superparamagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full meritorious deployment of": ["USE"],
+  "harness the full meritorious deployment of the": ["USE"],
+  "bring into active meritorious deployment": ["USE"],
+  "bring into active meritorious deployment the": ["USE"],
+  "make complete meritorious deployment of": ["USE"],
+  "make complete meritorious deployment of the": ["USE"],
+
+  // Combat
+  "initiate an odious confrontation against": ["FIGHT"],
+  "initiate an odious confrontation against the": ["FIGHT"],
+  "commence an odious confrontation against": ["FIGHT"],
+  "commence an odious confrontation against the": ["FIGHT"],
+  "engage in an odious confrontation against": ["FIGHT"],
+  "engage in an odious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a salutary face to face discussion with": ["TALK"],
+  "initiate a salutary face to face discussion with the": ["TALK"],
+  "engage in a salutary face to face discussion with": ["TALK"],
+  "engage in a salutary face to face discussion with the": ["TALK"],
+  "strike up a salutary face to face discussion with": ["TALK"],
+  "strike up a salutary face to face discussion with the": ["TALK"]
 });
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -20735,6 +20815,72 @@ compoundVerbs.push(
   "engage in a gregarious face to face discussion with",
   "strike up a gregarious face to face discussion with the",
   "strike up a gregarious face to face discussion with"
+);
+
+// Cycle #103 / Task-F126: Phase 89 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of dispersion towards the location of the",
+  "navigate one's vector of dispersion towards the location of",
+  "navigate ones vector of dispersion towards the location of the",
+  "navigate ones vector of dispersion towards the location of",
+  "steer one's vector of dispersion in the direction of the coordinates of the",
+  "steer one's vector of dispersion in the direction of the coordinates of",
+  "steer ones vector of dispersion in the direction of the coordinates of the",
+  "steer ones vector of dispersion in the direction of the coordinates of",
+  "direct one's vector of dispersion towards the coordinates of the location of the",
+  "direct one's vector of dispersion towards the coordinates of the location of",
+  "direct ones vector of dispersion towards the coordinates of the location of the",
+  "direct ones vector of dispersion towards the coordinates of the location of",
+  "subject to a comprehensive visual explication the",
+  "subject to a comprehensive visual explication",
+  "subject to a thorough visual explication the",
+  "subject to a thorough visual explication",
+  "subject to a detailed visual explication the",
+  "subject to a detailed visual explication",
+  "assume direct exclusive monopolization of the",
+  "assume direct exclusive monopolization of",
+  "assume absolute exclusive monopolization of the",
+  "assume absolute exclusive monopolization of",
+  "assume immediate exclusive monopolization of the",
+  "assume immediate exclusive monopolization of",
+  "divest oneself of all exclusive monopolization of the",
+  "divest oneself of all exclusive monopolization of",
+  "relinquish all exclusive monopolization of the",
+  "relinquish all exclusive monopolization of",
+  "free oneself from all exclusive monopolization of the",
+  "free oneself from all exclusive monopolization of",
+  "force completely and electrohydrodynamically wide open the",
+  "force completely and electrohydrodynamically wide open",
+  "pry completely and electrohydrodynamically wide open the",
+  "pry completely and electrohydrodynamically wide open",
+  "fasten completely and electrohydrodynamically closed the",
+  "fasten completely and electrohydrodynamically closed",
+  "seal completely and electrohydrodynamically shut the",
+  "seal completely and electrohydrodynamically shut",
+  "deactivate all superparamagnetic security devices of the",
+  "deactivate all superparamagnetic security devices of",
+  "bypass all superparamagnetic security devices on the",
+  "bypass all superparamagnetic security devices on",
+  "disengage the primary superparamagnetic security device on the",
+  "disengage the primary superparamagnetic security device on",
+  "harness the full meritorious deployment of the",
+  "harness the full meritorious deployment of",
+  "bring into active meritorious deployment the",
+  "bring into active meritorious deployment",
+  "make complete meritorious deployment of the",
+  "make complete meritorious deployment of",
+  "initiate an odious confrontation against the",
+  "initiate an odious confrontation against",
+  "commence an odious confrontation against the",
+  "commence an odious confrontation against",
+  "engage in an odious confrontation against the",
+  "engage in an odious confrontation against",
+  "initiate a salutary face to face discussion with the",
+  "initiate a salutary face to face discussion with",
+  "engage in a salutary face to face discussion with the",
+  "engage in a salutary face to face discussion with",
+  "strike up a salutary face to face discussion with the",
+  "strike up a salutary face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
