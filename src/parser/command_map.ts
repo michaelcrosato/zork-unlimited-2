@@ -16818,6 +16818,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a profound face to face discussion with the": ["TALK"]
 });
 
+// Cycle #77 / Task-F100: Phase 63 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of excursion towards the location of": ["MOVE"],
+  "navigate one's vector of excursion towards the location of the": ["MOVE"],
+  "navigate ones vector of excursion towards the location of": ["MOVE"],
+  "navigate ones vector of excursion towards the location of the": ["MOVE"],
+  "steer one's vector of excursion in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of excursion in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of excursion in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of excursion in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of excursion towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of excursion towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of excursion towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of excursion towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual surveillance": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual surveillance the": ["LOOK_INSPECT"],
+  "subject to a thorough visual surveillance": ["LOOK_INSPECT"],
+  "subject to a thorough visual surveillance the": ["LOOK_INSPECT"],
+  "subject to a detailed visual surveillance": ["LOOK_INSPECT"],
+  "subject to a detailed visual surveillance the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive confiscation of": ["TAKE"],
+  "assume direct exclusive confiscation of the": ["TAKE"],
+  "assume absolute exclusive confiscation of": ["TAKE"],
+  "assume absolute exclusive confiscation of the": ["TAKE"],
+  "assume immediate exclusive confiscation of": ["TAKE"],
+  "assume immediate exclusive confiscation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive confiscation of": ["DROP"],
+  "divest oneself of all exclusive confiscation of the": ["DROP"],
+  "relinquish all exclusive confiscation of": ["DROP"],
+  "relinquish all exclusive confiscation of the": ["DROP"],
+  "free oneself from all exclusive confiscation of": ["DROP"],
+  "free oneself from all exclusive confiscation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and pneumatically wide open": ["OPEN"],
+  "force completely and pneumatically wide open the": ["OPEN"],
+  "pry completely and pneumatically wide open": ["OPEN"],
+  "pry completely and pneumatically wide open the": ["OPEN"],
+  "fasten completely and pneumatically closed": ["CLOSE"],
+  "fasten completely and pneumatically closed the": ["CLOSE"],
+  "seal completely and pneumatically shut": ["CLOSE"],
+  "seal completely and pneumatically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all magnetic security devices of": ["UNLOCK"],
+  "deactivate all magnetic security devices of the": ["UNLOCK"],
+  "bypass all magnetic security devices on": ["UNLOCK"],
+  "bypass all magnetic security devices on the": ["UNLOCK"],
+  "disengage the primary magnetic security device on": ["UNLOCK"],
+  "disengage the primary magnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full systemic deployment of": ["USE"],
+  "harness the full systemic deployment of the": ["USE"],
+  "bring into active systemic deployment": ["USE"],
+  "bring into active systemic deployment the": ["USE"],
+  "make complete systemic deployment of": ["USE"],
+  "make complete systemic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a savage confrontation against": ["FIGHT"],
+  "initiate a savage confrontation against the": ["FIGHT"],
+  "commence a savage confrontation against": ["FIGHT"],
+  "commence a savage confrontation against the": ["FIGHT"],
+  "engage in a savage confrontation against": ["FIGHT"],
+  "engage in a savage confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a meaningful face to face discussion with": ["TALK"],
+  "initiate a meaningful face to face discussion with the": ["TALK"],
+  "engage in a meaningful face to face discussion with": ["TALK"],
+  "engage in a meaningful face to face discussion with the": ["TALK"],
+  "strike up a meaningful face to face discussion with": ["TALK"],
+  "strike up a meaningful face to face discussion with the": ["TALK"]
+});
+
 // Cycle #76 / Task-F99: Phase 62 compound verbs
 compoundVerbs.push(
   "navigate one's vector of pilgrimage towards the location of the",
@@ -16882,6 +16965,72 @@ compoundVerbs.push(
   "engage in a profound face to face discussion with",
   "strike up a profound face to face discussion with the",
   "strike up a profound face to face discussion with"
+);
+
+// Cycle #77 / Task-F100: Phase 63 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of excursion towards the location of the",
+  "navigate one's vector of excursion towards the location of",
+  "navigate ones vector of excursion towards the location of the",
+  "navigate ones vector of excursion towards the location of",
+  "steer one's vector of excursion in the direction of the coordinates of the",
+  "steer one's vector of excursion in the direction of the coordinates of",
+  "steer ones vector of excursion in the direction of the coordinates of the",
+  "steer ones vector of excursion in the direction of the coordinates of",
+  "direct one's vector of excursion towards the coordinates of the location of the",
+  "direct one's vector of excursion towards the coordinates of the location of",
+  "direct ones vector of excursion towards the coordinates of the location of the",
+  "direct ones vector of excursion towards the coordinates of the location of",
+  "subject to a comprehensive visual surveillance the",
+  "subject to a comprehensive visual surveillance",
+  "subject to a thorough visual surveillance the",
+  "subject to a thorough visual surveillance",
+  "subject to a detailed visual surveillance the",
+  "subject to a detailed visual surveillance",
+  "assume direct exclusive confiscation of the",
+  "assume direct exclusive confiscation of",
+  "assume absolute exclusive confiscation of the",
+  "assume absolute exclusive confiscation of",
+  "assume immediate exclusive confiscation of the",
+  "assume immediate exclusive confiscation of",
+  "divest oneself of all exclusive confiscation of the",
+  "divest oneself of all exclusive confiscation of",
+  "relinquish all exclusive confiscation of the",
+  "relinquish all exclusive confiscation of",
+  "free oneself from all exclusive confiscation of the",
+  "free oneself from all exclusive confiscation of",
+  "force completely and pneumatically wide open the",
+  "force completely and pneumatically wide open",
+  "pry completely and pneumatically wide open the",
+  "pry completely and pneumatically wide open",
+  "fasten completely and pneumatically closed the",
+  "fasten completely and pneumatically closed",
+  "seal completely and pneumatically shut the",
+  "seal completely and pneumatically shut",
+  "deactivate all magnetic security devices of the",
+  "deactivate all magnetic security devices of",
+  "bypass all magnetic security devices on the",
+  "bypass all magnetic security devices on",
+  "disengage the primary magnetic security device on the",
+  "disengage the primary magnetic security device on",
+  "harness the full systemic deployment of the",
+  "harness the full systemic deployment of",
+  "bring into active systemic deployment the",
+  "bring into active systemic deployment",
+  "make complete systemic deployment of the",
+  "make complete systemic deployment of",
+  "initiate a savage confrontation against the",
+  "initiate a savage confrontation against",
+  "commence a savage confrontation against the",
+  "commence a savage confrontation against",
+  "engage in a savage confrontation against the",
+  "engage in a savage confrontation against",
+  "initiate a meaningful face to face discussion with the",
+  "initiate a meaningful face to face discussion with",
+  "engage in a meaningful face to face discussion with the",
+  "engage in a meaningful face to face discussion with",
+  "strike up a meaningful face to face discussion with the",
+  "strike up a meaningful face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
