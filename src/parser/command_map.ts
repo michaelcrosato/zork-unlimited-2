@@ -14935,6 +14935,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a deliberative face to face discussion with the": ["TALK"]
 });
 
+// Cycle #66 / Task-F89: Phase 52 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of transfer towards the location of": ["MOVE"],
+  "navigate one's vector of transfer towards the location of the": ["MOVE"],
+  "navigate ones vector of transfer towards the location of": ["MOVE"],
+  "navigate ones vector of transfer towards the location of the": ["MOVE"],
+  "steer one's vector of transfer in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of transfer in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of transfer in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of transfer in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of transfer towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of transfer towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of transfer towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of transfer towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual discernment": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual discernment the": ["LOOK_INSPECT"],
+  "subject to a thorough visual discernment": ["LOOK_INSPECT"],
+  "subject to a thorough visual discernment the": ["LOOK_INSPECT"],
+  "subject to a detailed visual discernment": ["LOOK_INSPECT"],
+  "subject to a detailed visual discernment the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive executorship of": ["TAKE"],
+  "assume direct exclusive executorship of the": ["TAKE"],
+  "assume absolute exclusive executorship of": ["TAKE"],
+  "assume absolute exclusive executorship of the": ["TAKE"],
+  "assume immediate exclusive executorship of": ["TAKE"],
+  "assume immediate exclusive executorship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive executorship of": ["DROP"],
+  "divest oneself of all exclusive executorship of the": ["DROP"],
+  "relinquish all exclusive executorship of": ["DROP"],
+  "relinquish all exclusive executorship of the": ["DROP"],
+  "free oneself from all exclusive executorship of": ["DROP"],
+  "free oneself from all exclusive executorship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and intentionally wide open": ["OPEN"],
+  "force completely and intentionally wide open the": ["OPEN"],
+  "pry completely and intentionally wide open": ["OPEN"],
+  "pry completely and intentionally wide open the": ["OPEN"],
+  "fasten completely and intentionally closed": ["CLOSE"],
+  "fasten completely and intentionally closed the": ["CLOSE"],
+  "seal completely and intentionally shut": ["CLOSE"],
+  "seal completely and intentionally shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all network security devices of": ["UNLOCK"],
+  "deactivate all network security devices of the": ["UNLOCK"],
+  "bypass all network security devices on": ["UNLOCK"],
+  "bypass all network security devices on the": ["UNLOCK"],
+  "disengage the primary network security device on": ["UNLOCK"],
+  "disengage the primary network security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full procedural deployment of": ["USE"],
+  "harness the full procedural deployment of the": ["USE"],
+  "bring into active procedural deployment": ["USE"],
+  "bring into active procedural deployment the": ["USE"],
+  "make complete procedural deployment of": ["USE"],
+  "make complete procedural deployment of the": ["USE"],
+
+  // Combat
+  "initiate a truculent confrontation against": ["FIGHT"],
+  "initiate a truculent confrontation against the": ["FIGHT"],
+  "commence a truculent confrontation against": ["FIGHT"],
+  "commence a truculent confrontation against the": ["FIGHT"],
+  "engage in a truculent confrontation against": ["FIGHT"],
+  "engage in a truculent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a collaborative face to face discussion with": ["TALK"],
+  "initiate a collaborative face to face discussion with the": ["TALK"],
+  "engage in a collaborative face to face discussion with": ["TALK"],
+  "engage in a collaborative face to face discussion with the": ["TALK"],
+  "strike up a collaborative face to face discussion with": ["TALK"],
+  "strike up a collaborative face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -15254,7 +15337,71 @@ compoundVerbs.push(
   "engage in a deliberative face to face discussion with the",
   "engage in a deliberative face to face discussion with",
   "strike up a deliberative face to face discussion with the",
-  "strike up a deliberative face to face discussion with"
+  "strike up a deliberative face to face discussion with",
+
+  // Phase 52 compound verbs
+  "navigate one's vector of transfer towards the location of the",
+  "navigate one's vector of transfer towards the location of",
+  "navigate ones vector of transfer towards the location of the",
+  "navigate ones vector of transfer towards the location of",
+  "steer one's vector of transfer in the direction of the coordinates of the",
+  "steer one's vector of transfer in the direction of the coordinates of",
+  "steer ones vector of transfer in the direction of the coordinates of the",
+  "steer ones vector of transfer in the direction of the coordinates of",
+  "direct one's vector of transfer towards the coordinates of the location of the",
+  "direct one's vector of transfer towards the coordinates of the location of",
+  "direct ones vector of transfer towards the coordinates of the location of the",
+  "direct ones vector of transfer towards the coordinates of the location of",
+  "subject to a comprehensive visual discernment the",
+  "subject to a comprehensive visual discernment",
+  "subject to a thorough visual discernment the",
+  "subject to a thorough visual discernment",
+  "subject to a detailed visual discernment the",
+  "subject to a detailed visual discernment",
+  "assume direct exclusive executorship of the",
+  "assume direct exclusive executorship of",
+  "assume absolute exclusive executorship of the",
+  "assume absolute exclusive executorship of",
+  "assume immediate exclusive executorship of the",
+  "assume immediate exclusive executorship of",
+  "divest oneself of all exclusive executorship of the",
+  "divest oneself of all exclusive executorship of",
+  "relinquish all exclusive executorship of the",
+  "relinquish all exclusive executorship of",
+  "free oneself from all exclusive executorship of the",
+  "free oneself from all exclusive executorship of",
+  "force completely and intentionally wide open the",
+  "force completely and intentionally wide open",
+  "pry completely and intentionally wide open the",
+  "pry completely and intentionally wide open",
+  "fasten completely and intentionally closed the",
+  "fasten completely and intentionally closed",
+  "seal completely and intentionally shut the",
+  "seal completely and intentionally shut",
+  "deactivate all network security devices of the",
+  "deactivate all network security devices of",
+  "bypass all network security devices on the",
+  "bypass all network security devices on",
+  "disengage the primary network security device on the",
+  "disengage the primary network security device on",
+  "harness the full procedural deployment of the",
+  "harness the full procedural deployment of",
+  "bring into active procedural deployment the",
+  "bring into active procedural deployment",
+  "make complete procedural deployment of the",
+  "make complete procedural deployment of",
+  "initiate a truculent confrontation against the",
+  "initiate a truculent confrontation against",
+  "commence a truculent confrontation against the",
+  "commence a truculent confrontation against",
+  "engage in a truculent confrontation against the",
+  "engage in a truculent confrontation against",
+  "initiate a collaborative face to face discussion with the",
+  "initiate a collaborative face to face discussion with",
+  "engage in a collaborative face to face discussion with the",
+  "engage in a collaborative face to face discussion with",
+  "strike up a collaborative face to face discussion with the",
+  "strike up a collaborative face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
