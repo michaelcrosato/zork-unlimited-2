@@ -14852,6 +14852,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an analytical face to face discussion with the": ["TALK"]
 });
 
+// Cycle #65 / Task-F88: Phase 51 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of migration towards the location of": ["MOVE"],
+  "navigate one's vector of migration towards the location of the": ["MOVE"],
+  "navigate ones vector of migration towards the location of": ["MOVE"],
+  "navigate ones vector of migration towards the location of the": ["MOVE"],
+  "steer one's vector of migration in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of migration in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of migration in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of migration in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of migration towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of migration towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of migration towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of migration towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual recognition": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual recognition the": ["LOOK_INSPECT"],
+  "subject to a thorough visual recognition": ["LOOK_INSPECT"],
+  "subject to a thorough visual recognition the": ["LOOK_INSPECT"],
+  "subject to a detailed visual recognition": ["LOOK_INSPECT"],
+  "subject to a detailed visual recognition the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive proprietorship of": ["TAKE"],
+  "assume direct exclusive proprietorship of the": ["TAKE"],
+  "assume absolute exclusive proprietorship of": ["TAKE"],
+  "assume absolute exclusive proprietorship of the": ["TAKE"],
+  "assume immediate exclusive proprietorship of": ["TAKE"],
+  "assume immediate exclusive proprietorship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive proprietorship of": ["DROP"],
+  "divest oneself of all exclusive proprietorship of the": ["DROP"],
+  "relinquish all exclusive proprietorship of": ["DROP"],
+  "relinquish all exclusive proprietorship of the": ["DROP"],
+  "free oneself from all exclusive proprietorship of": ["DROP"],
+  "free oneself from all exclusive proprietorship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and deliberately wide open": ["OPEN"],
+  "force completely and deliberately wide open the": ["OPEN"],
+  "pry completely and deliberately wide open": ["OPEN"],
+  "pry completely and deliberately wide open the": ["OPEN"],
+  "fasten completely and deliberately closed": ["CLOSE"],
+  "fasten completely and deliberately closed the": ["CLOSE"],
+  "seal completely and deliberately shut": ["CLOSE"],
+  "seal completely and deliberately shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all virtual security devices of": ["UNLOCK"],
+  "deactivate all virtual security devices of the": ["UNLOCK"],
+  "bypass all virtual security devices on": ["UNLOCK"],
+  "bypass all virtual security devices on the": ["UNLOCK"],
+  "disengage the primary virtual security device on": ["UNLOCK"],
+  "disengage the primary virtual security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full logistical deployment of": ["USE"],
+  "harness the full logistical deployment of the": ["USE"],
+  "bring into active logistical deployment": ["USE"],
+  "bring into active logistical deployment the": ["USE"],
+  "make complete logistical deployment of": ["USE"],
+  "make complete logistical deployment of the": ["USE"],
+
+  // Combat
+  "initiate a bellicose confrontation against": ["FIGHT"],
+  "initiate a bellicose confrontation against the": ["FIGHT"],
+  "commence a bellicose confrontation against": ["FIGHT"],
+  "commence a bellicose confrontation against the": ["FIGHT"],
+  "engage in a bellicose confrontation against": ["FIGHT"],
+  "engage in a bellicose confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a deliberative face to face discussion with": ["TALK"],
+  "initiate a deliberative face to face discussion with the": ["TALK"],
+  "engage in a deliberative face to face discussion with": ["TALK"],
+  "engage in a deliberative face to face discussion with the": ["TALK"],
+  "strike up a deliberative face to face discussion with": ["TALK"],
+  "strike up a deliberative face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -15107,7 +15190,71 @@ compoundVerbs.push(
   "engage in an analytical face to face discussion with the",
   "engage in an analytical face to face discussion with",
   "strike up an analytical face to face discussion with the",
-  "strike up an analytical face to face discussion with"
+  "strike up an analytical face to face discussion with",
+
+  // Phase 51 compound verbs
+  "navigate one's vector of migration towards the location of the",
+  "navigate one's vector of migration towards the location of",
+  "navigate ones vector of migration towards the location of the",
+  "navigate ones vector of migration towards the location of",
+  "steer one's vector of migration in the direction of the coordinates of the",
+  "steer one's vector of migration in the direction of the coordinates of",
+  "steer ones vector of migration in the direction of the coordinates of the",
+  "steer ones vector of migration in the direction of the coordinates of",
+  "direct one's vector of migration towards the coordinates of the location of the",
+  "direct one's vector of migration towards the coordinates of the location of",
+  "direct ones vector of migration towards the coordinates of the location of the",
+  "direct ones vector of migration towards the coordinates of the location of",
+  "subject to a comprehensive visual recognition the",
+  "subject to a comprehensive visual recognition",
+  "subject to a thorough visual recognition the",
+  "subject to a thorough visual recognition",
+  "subject to a detailed visual recognition the",
+  "subject to a detailed visual recognition",
+  "assume direct exclusive proprietorship of the",
+  "assume direct exclusive proprietorship of",
+  "assume absolute exclusive proprietorship of the",
+  "assume absolute exclusive proprietorship of",
+  "assume immediate exclusive proprietorship of the",
+  "assume immediate exclusive proprietorship of",
+  "divest oneself of all exclusive proprietorship of the",
+  "divest oneself of all exclusive proprietorship of",
+  "relinquish all exclusive proprietorship of the",
+  "relinquish all exclusive proprietorship of",
+  "free oneself from all exclusive proprietorship of the",
+  "free oneself from all exclusive proprietorship of",
+  "force completely and deliberately wide open the",
+  "force completely and deliberately wide open",
+  "pry completely and deliberately wide open the",
+  "pry completely and deliberately wide open",
+  "fasten completely and deliberately closed the",
+  "fasten completely and deliberately closed",
+  "seal completely and deliberately shut the",
+  "seal completely and deliberately shut",
+  "deactivate all virtual security devices of the",
+  "deactivate all virtual security devices of",
+  "bypass all virtual security devices on the",
+  "bypass all virtual security devices on",
+  "disengage the primary virtual security device on the",
+  "disengage the primary virtual security device on",
+  "harness the full logistical deployment of the",
+  "harness the full logistical deployment of",
+  "bring into active logistical deployment the",
+  "bring into active logistical deployment",
+  "make complete logistical deployment of the",
+  "make complete logistical deployment of",
+  "initiate a bellicose confrontation against the",
+  "initiate a bellicose confrontation against",
+  "commence a bellicose confrontation against the",
+  "commence a bellicose confrontation against",
+  "engage in a bellicose confrontation against the",
+  "engage in a bellicose confrontation against",
+  "initiate a deliberative face to face discussion with the",
+  "initiate a deliberative face to face discussion with",
+  "engage in a deliberative face to face discussion with the",
+  "engage in a deliberative face to face discussion with",
+  "strike up a deliberative face to face discussion with the",
+  "strike up a deliberative face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
