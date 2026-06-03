@@ -19,6 +19,7 @@ export const CYOASceneSchema = z.object({
   on_enter: z.array(EffectSchema).default([]),
   is_ending: z.boolean().default(false),
   choices: z.array(CYOAChoiceSchema).default([]),
+  weather_pool: z.array(z.string()).optional(),
 });
 
 export type CYOAScene = z.infer<typeof CYOASceneSchema>;

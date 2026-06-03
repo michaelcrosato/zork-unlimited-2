@@ -28,6 +28,39 @@ export const ConditionSchema: z.ZodType<any> = z.lazy(() =>
         value: z.number(),
       }),
     }),
+    z.object({ weather_is: z.string() }),
+    z.object({ temperature_is: z.string() }),
+    z.object({
+      faction_rep_gte: z.object({
+        faction: z.string(),
+        value: z.number(),
+      }),
+    }),
+    z.object({
+      faction_rep_lte: z.object({
+        faction: z.string(),
+        value: z.number(),
+      }),
+    }),
+    z.object({
+      alliance_is: z.object({
+        faction_a: z.string(),
+        faction_b: z.string(),
+        relationship: z.enum(["allied", "hostile", "neutral"]),
+      }),
+    }),
+    z.object({
+      enforcer_heat_gte: z.object({
+        room: z.string().optional(),
+        value: z.number(),
+      }),
+    }),
+    z.object({
+      enforcer_heat_lte: z.object({
+        room: z.string().optional(),
+        value: z.number(),
+      }),
+    }),
     z.object({ all_of: z.array(ConditionSchema) }),
     z.object({ any_of: z.array(ConditionSchema) }),
     z.object({ none_of: z.array(ConditionSchema) }),
@@ -44,6 +77,29 @@ export type Condition =
   | { var_gte: { name: string; value: number } }
   | { var_lte: { name: string; value: number } }
   | { var_eq: { name: string; value: number } }
+  | { weather_is: string }
+  | { temperature_is: string }
+  | { faction_rep_gte: { faction: string; value: number } }
+  | { faction_rep_lte: { faction: string; value: number } }
+  | {
+      alliance_is: {
+        faction_a: string;
+        faction_b: string;
+        relationship: "allied" | "hostile" | "neutral";
+      };
+    }
+  | {
+      enforcer_heat_gte: {
+        room?: string;
+        value: number;
+      };
+    }
+  | {
+      enforcer_heat_lte: {
+        room?: string;
+        value: number;
+      };
+    }
   | { all_of: Condition[] }
   | { any_of: Condition[] }
   | { none_of: Condition[] };
@@ -84,6 +140,43 @@ export function evaluateCondition(state: GameState, cond: Condition): boolean {
     const { name, value } = cond.var_eq;
     const currentVal = state.vars[name] ?? 0;
     return currentVal === value;
+  }
+  if ("weather_is" in cond) {
+    const expected = cond.weather_is;
+    const current = state.environment?.weather ?? "clear";
+    return current === expected;
+  }
+  if ("temperature_is" in cond) {
+    const expected = cond.temperature_is;
+    const current = state.environment?.temperature ?? "mild";
+    return current === expected;
+  }
+  if ("faction_rep_gte" in cond) {
+    const { faction, value } = cond.faction_rep_gte;
+    const currentRep = state.factionRep?.[faction] ?? 0;
+    return currentRep >= value;
+  }
+  if ("faction_rep_lte" in cond) {
+    const { faction, value } = cond.faction_rep_lte;
+    const currentRep = state.factionRep?.[faction] ?? 0;
+    return currentRep <= value;
+  }
+  if ("alliance_is" in cond) {
+    const { faction_a, faction_b, relationship } = cond.alliance_is;
+    const rel = state.alliances?.[faction_a]?.[faction_b] ?? "neutral";
+    return rel === relationship;
+  }
+  if ("enforcer_heat_gte" in cond) {
+    const { room, value } = cond.enforcer_heat_gte;
+    const targetRoom = room ?? state.current;
+    const currentHeat = state.enforcementHeat?.[targetRoom]?.heat ?? 0;
+    return currentHeat >= value;
+  }
+  if ("enforcer_heat_lte" in cond) {
+    const { room, value } = cond.enforcer_heat_lte;
+    const targetRoom = room ?? state.current;
+    const currentHeat = state.enforcementHeat?.[targetRoom]?.heat ?? 0;
+    return currentHeat <= value;
   }
   if ("all_of" in cond) {
     return cond.all_of.every((c) => evaluateCondition(state, c));

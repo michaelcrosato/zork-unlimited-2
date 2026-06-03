@@ -1,8 +1,8 @@
 # 🤖 AI Autopilot Living Report
 
-* **Last Updated**: 2026-05-31T23:12:40.198Z
+* **Last Updated**: 2026-06-01T01:31:13.087Z
 * **Autopilot Cycle**: #1
-* **Cycle Duration**: 4.3 seconds
+* **Cycle Duration**: 10.1 seconds
 * **Build Status**: 🟢 PASS
 * **Tests Status**: 🟢 PASS
 
@@ -11,7 +11,7 @@
 | Content Pack | Type | Validated | Errors | Warnings | Playtest Steps | Final Outcome | Playtest Result |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Hero's Quest: The Castle of Shadows** | Parser | 🟢 YES | 0 | 7 | 24 | `ending_victory` | 🟢 SUCCESS
-| **The Sealed Crypt** | Parser | 🟢 YES | 0 | 6 | 21 | `ending_victory` | 🟢 SUCCESS
+| **The Sealed Crypt** | Parser | 🟢 YES | 0 | 0 | 21 | `ending_victory` | 🟢 SUCCESS
 | **The Watchtower Road** | CYOA | 🟢 YES | 0 | 0 | 3 | `ending_escape` | 🟢 SUCCESS
 
 ## 📊 Detailed Metrics & System Logs
@@ -23,12 +23,12 @@ Clean compilation.
 
 ### Unit Tests Log
 ```
-✓ tests/personas.test.ts (10 tests) 12ms
+✓ should validate the trade pack without errors  4047ms
 
- Test Files  12 passed (12)
-      Tests  59 passed (59)
-   Start at  16:12:39
-   Duration  436ms (transform 1.85s, setup 0ms, import 3.10s, tests 104ms, environment 1ms)
+ Test Files  42 passed (42)
+      Tests  227 passed (227)
+   Start at  18:31:07
+   Duration  4.87s (transform 9.31s, setup 0ms, import 19.63s, tests 5.50s, environment 8ms)
 ```
 
 ---

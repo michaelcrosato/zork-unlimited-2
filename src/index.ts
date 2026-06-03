@@ -1,8 +1,34 @@
 // Core State & Logic
-export { GameStateSchema, ObjectRuntimeSchema, createInitialState } from "./core/state.js";
+export { GameStateSchema, ObjectRuntimeSchema, createInitialState, getFactionRepInit, getTerritoryControlInit, reconcileTerritories, reconcileAlliances, reconcileTariffPolicies } from "./core/state.js";
 export type { GameState, ObjectRuntime } from "./core/state.js";
 
 export { step } from "./core/engine.js";
+export { multiAgentStep, buildObservationForAgent } from "./core/sync.js";
+export type { MultiAgentAction } from "./core/sync.js";
+
+// Gossip & P2P Sync
+export {
+  GossipNode,
+  isClockBehind,
+  mergeVectorClocks,
+  getTransactionId,
+  mergeAndSortTransactions,
+  mergeMonotonicStateFields,
+  reconstructState,
+  compressRLE,
+  decompressRLE,
+  deltaEncode,
+  deltaDecode,
+  compressStateDiff,
+  decompressStateDiff,
+  GossipPacketFragmenter
+} from "./core/gossip.js";
+export type { VectorClock, GossipMessage, GossipFragment } from "./core/gossip.js";
+export { DecentralizedDungeonExpedition } from "./core/expedition.js";
+
+// Network & Mesh Discovery
+export { NetworkDiscovery, MeshNode, MeshNetwork } from "./core/network.js";
+export type { PresenceAnnouncement, RoutedPacket } from "./core/network.js";
 
 // Hashing & Seeded PRNG
 export { PureRand } from "./core/rng.js";

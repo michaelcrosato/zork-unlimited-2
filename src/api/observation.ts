@@ -5,6 +5,25 @@ import { CYOAObservation, ParserObservation, Observation } from "./types.js";
 import { evaluateConditions } from "../core/conditions.js";
 import { generateLegalActions } from "../parser/legal_actions.js";
 
+function isOutdoorRoom(roomId: string): boolean {
+  const idLower = roomId.toLowerCase();
+  return (
+    idLower.includes("forest") ||
+    idLower.includes("garden") ||
+    idLower.includes("entrance") ||
+    idLower.includes("yard") ||
+    idLower.includes("clearing") ||
+    idLower.includes("road") ||
+    idLower.includes("path") ||
+    idLower.includes("outside") ||
+    idLower.includes("exterior") ||
+    idLower.includes("glade") ||
+    idLower.includes("courtyard") ||
+    idLower.includes("cliff") ||
+    idLower.includes("mountains")
+  );
+}
+
 /**
  * Returns a purely deterministic sensory/atmospheric narration based on room type,
  * seed, and step count. Maintains strict byte-identity and Zork-style vibe.
@@ -75,7 +94,19 @@ export function buildObservation(
       evaluateConditions(state, choice.conditions),
     );
 
-    const sensoryFlavor = getSensoryFlavor(currentScene.id, state.seed, state.step);
+    let sensoryFlavor = getSensoryFlavor(currentScene.id, state.seed, state.step);
+    if (state.environment && isOutdoorRoom(currentScene.id)) {
+      const weatherEffects: Record<string, string> = {
+        clear: "The sky overhead is clear.",
+        rain: "Rain is falling steadily from the gray sky.",
+        fog: "A damp, cold fog clings to the surroundings, reducing visibility.",
+        storm: "A violent storm rages, with howling winds and flashing lightning.",
+      };
+      const wEffect = weatherEffects[state.environment.weather];
+      if (wEffect) {
+        sensoryFlavor = `${sensoryFlavor} ${wEffect}`;
+      }
+    }
     const text = `${currentScene.text} ${sensoryFlavor}`;
 
     return {
@@ -147,7 +178,19 @@ export function buildObservation(
   // Compile available legal actions
   const legalActions = generateLegalActions(state, parserPack);
 
-  const sensoryFlavor = getSensoryFlavor(room.id, state.seed, state.step);
+  let sensoryFlavor = getSensoryFlavor(room.id, state.seed, state.step);
+  if (state.environment && isOutdoorRoom(room.id)) {
+    const weatherEffects: Record<string, string> = {
+      clear: "The sky overhead is clear.",
+      rain: "Rain is falling steadily from the gray sky.",
+      fog: "A damp, cold fog clings to the surroundings, reducing visibility.",
+      storm: "A violent storm rages, with howling winds and flashing lightning.",
+    };
+    const wEffect = weatherEffects[state.environment.weather];
+    if (wEffect) {
+      sensoryFlavor = `${sensoryFlavor} ${wEffect}`;
+    }
+  }
   const description = `${room.description} ${sensoryFlavor}`;
 
   return {

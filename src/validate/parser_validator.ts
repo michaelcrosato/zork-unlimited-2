@@ -1,6 +1,6 @@
 import { ParserPack, ParserPackSchema } from "../parser/schema.js";
 import { ValidationReport, ValidationFinding } from "./report.js";
-import { createInitialState, GameState } from "../core/state.js";
+import { createInitialState, GameState, getFactionRepInit } from "../core/state.js";
 import { step } from "../core/engine.js";
 import { Action } from "../api/types.js";
 import { generateLegalActions } from "../parser/legal_actions.js";
@@ -23,10 +23,14 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
     start: startRoom,
     varsInit: pack.meta.vars_init,
     flagsInit: pack.meta.flags_init,
+    factionRepInit: getFactionRepInit(pack),
   });
 
+  const packStr = JSON.stringify(pack);
+  const hasWeather = packStr.includes('"weather_is"') || packStr.includes('"temperature_is"');
+
   const getStateKey = (state: GameState): string => {
-    const clean = {
+    const clean: any = {
       current: state.current,
       flags: state.flags,
       vars: state.vars,
@@ -36,6 +40,15 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
       ended: state.ended,
       endingId: state.endingId,
     };
+    if (state.merchantInventories) {
+      clean.merchantInventories = state.merchantInventories;
+    }
+    if (hasWeather && state.environment) {
+      clean.environment = {
+        weather: state.environment.weather,
+        temperature: state.environment.temperature,
+      };
+    }
     return canonicalStringify(clean);
   };
 
@@ -449,6 +462,44 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
       code: "DEATH_STATE_LOGGED",
       message: `Pack contains death endings. Confirmed: all death states are fully recoverable via the CLI restore loops.`,
       where: ["endings"],
+    });
+  }
+
+  // 10. Procedural Room Templates Verification
+  if (pack.procedural_templates) {
+    const templateIds = new Set<string>();
+    pack.procedural_templates.forEach((temp) => {
+      if (templateIds.has(temp.id)) {
+        findings.push({
+          severity: "error",
+          code: "DUPLICATE_TEMPLATE_ID",
+          message: `Duplicate procedural template ID: '${temp.id}'.`,
+          where: [`procedural_templates:${temp.id}`],
+        });
+      }
+      templateIds.add(temp.id);
+
+      temp.possible_objects?.forEach((objId) => {
+        if (!objectIds.has(objId)) {
+          findings.push({
+            severity: "error",
+            code: "REFERENCE_ERROR",
+            message: `Procedural template '${temp.id}' references non-existent possible_object '${objId}'.`,
+            where: [`procedural_templates:${temp.id}`],
+          });
+        }
+      });
+
+      temp.possible_npcs?.forEach((npcId) => {
+        if (!npcIds.has(npcId)) {
+          findings.push({
+            severity: "error",
+            code: "REFERENCE_ERROR",
+            message: `Procedural template '${temp.id}' references non-existent possible_npc '${npcId}'.`,
+            where: [`procedural_templates:${temp.id}`],
+          });
+        }
+      });
     });
   }
 

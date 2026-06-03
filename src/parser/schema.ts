@@ -34,6 +34,9 @@ export const ParserObjectSchema = z.object({
   key_id: z.string().optional(),
   contents: z.array(z.string()).optional().default([]),
   interactions: z.array(ObjectInteractionSchema).optional().default([]),
+  cost: z.number().optional(),
+  climate_pricing: z.record(z.string(), z.number()).optional(),
+  contraband: z.boolean().optional(),
 });
 
 export type ParserObject = z.infer<typeof ParserObjectSchema>;
@@ -82,6 +85,15 @@ export const ParserNPCSchema = z.object({
   defense: z.number().optional(),
   gold: z.number().optional(),
   xp: z.number().optional(),
+  // Economy and Reputation
+  gold_limit: z.number().optional(),
+  restock_interval: z.number().optional(),
+  possible_items: z.array(z.string()).optional(),
+  climate_pricing: z.record(z.string(), z.number()).optional(),
+  min_rep: z.number().optional(),
+  faction: z.string().optional(),
+  dynamic_pricing: z.boolean().optional(),
+  max_heat: z.number().optional(),
 });
 
 export type ParserNPC = z.infer<typeof ParserNPCSchema>;
@@ -93,6 +105,8 @@ export const ParserRoomSchema = z.object({
   objects: z.array(z.string()).default([]), // Object IDs currently in this room
   npcs: z.array(z.string()).optional().default([]), // NPC IDs in this room
   exits: z.array(ParserExitSchema).default([]),
+  weather_pool: z.array(z.string()).optional(),
+  faction: z.string().optional(),
 });
 
 export type ParserRoom = z.infer<typeof ParserRoomSchema>;
@@ -113,6 +127,27 @@ export const ParserEndingSchema = z.object({
 
 export type ParserEnding = z.infer<typeof ParserEndingSchema>;
 
+export const ProceduralRoomTemplateSchema = z.object({
+  id: z.string(),
+  name_pool: z.array(z.string()),
+  description_pool: z.array(z.string()),
+  possible_objects: z.array(z.string()).optional().default([]),
+  possible_npcs: z.array(z.string()).optional().default([]),
+  exits: z.array(ParserExitSchema).optional().default([]),
+  weather_pool: z.array(z.string()).optional(),
+});
+
+export type ProceduralRoomTemplate = z.infer<typeof ProceduralRoomTemplateSchema>;
+
+export const FactionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  initial_rep: z.number().optional().default(0),
+});
+
+export type Faction = z.infer<typeof FactionSchema>;
+
 export const ParserPackSchema = z.object({
   meta: z.object({
     id: z.string(),
@@ -124,8 +159,17 @@ export const ParserPackSchema = z.object({
   rooms: z.array(ParserRoomSchema),
   objects: z.array(ParserObjectSchema).default([]),
   npcs: z.array(ParserNPCSchema).default([]),
+  factions: z.array(FactionSchema).optional(),
   win_conditions: z.array(ParserWinConditionSchema).default([]),
   endings: z.array(ParserEndingSchema).default([]),
+  procedural_templates: z.array(ProceduralRoomTemplateSchema).optional(),
+  network_templates: z.object({
+    arrival: z.string().optional(),
+    departure: z.string().optional(),
+    sync: z.string().optional(),
+    territory_conquest: z.string().optional(),
+    alliance_battle: z.string().optional(),
+  }).optional(),
 });
 
 export type ParserPack = z.infer<typeof ParserPackSchema>;

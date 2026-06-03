@@ -60,6 +60,14 @@ export type RejectedEvent = {
   reason: string;
 };
 
+export type BlackMarketSoldEvent = {
+  type: "black_market_sold";
+  agentId: string;
+  roomId: string;
+  itemId: string;
+  price: number;
+};
+
 export type GameEvent =
   | StateChangeEvent
   | NarrationEvent
@@ -70,7 +78,8 @@ export type GameEvent =
   | DropEvent
   | DialogueEvent
   | EndingEvent
-  | RejectedEvent;
+  | RejectedEvent
+  | BlackMarketSoldEvent;
 
 export type StepLogEntry = {
   action: Action;

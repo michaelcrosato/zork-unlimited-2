@@ -17,7 +17,9 @@ export function canonicalStringify(val: unknown): string {
   }
   if (typeof val === "object") {
     const obj = val as Record<string, unknown>;
-    const sortedKeys = Object.keys(obj).sort();
+    const sortedKeys = Object.keys(obj)
+      .filter((key) => obj[key] !== undefined)
+      .sort();
     const parts = sortedKeys.map(
       (key) => `${JSON.stringify(key)}:${canonicalStringify(obj[key])}`
     );
@@ -38,7 +40,8 @@ export function computeSha256(data: string): string {
  * Returns the full 64-character hex string.
  */
 export function computeStateHash(state: GameState): string {
-  const canonical = canonicalStringify(state);
+  const { stateHistory, journal, cooperativeSyncLog, ...rest } = state;
+  const canonical = canonicalStringify(rest);
   return computeSha256(canonical);
 }
 

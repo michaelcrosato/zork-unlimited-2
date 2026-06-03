@@ -325,6 +325,30 @@ export function generateLegalActions(
           action: { type: "GIVE", item: itemId, npc: npc.id },
         });
       });
+
+      // BUY/SELL from Merchant
+      if (state.merchantInventories && state.merchantInventories[npc.id]) {
+        const merchantStock = state.merchantInventories[npc.id];
+        merchantStock.forEach((itemId) => {
+          const itemObj = pack.objects.find((o) => o.id === itemId);
+          actions.push({
+            id: `buy_${itemId}_from_${npc.id}`,
+            command: `buy ${itemObj?.name.toLowerCase() ?? itemId} from ${npc.name.toLowerCase()}`,
+            action: { type: "BUY", item: itemId, npc: npc.id },
+          });
+        });
+
+        state.inventory.forEach((itemId) => {
+          const itemObj = pack.objects.find((o) => o.id === itemId);
+          if (itemObj && !itemObj.quest_critical) {
+            actions.push({
+              id: `sell_${itemId}_to_${npc.id}`,
+              command: `sell ${itemObj.name.toLowerCase()} to ${npc.name.toLowerCase()}`,
+              action: { type: "SELL", item: itemId, npc: npc.id },
+            });
+          }
+        });
+      }
     }
   });
 
