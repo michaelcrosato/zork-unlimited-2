@@ -10564,6 +10564,90 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a chat with the": ["TALK"]
 });
 
+// Cycle #38 / Task-F61: Phase 24 mappings (expansion requested by playtesters)
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "direct one's steps towards": ["MOVE"],
+  "direct one's steps towards the": ["MOVE"],
+  "direct ones steps towards": ["MOVE"],
+  "direct ones steps towards the": ["MOVE"],
+  "journey towards the location of": ["MOVE"],
+  "journey towards the location of the": ["MOVE"],
+  "navigate in the direction of": ["MOVE"],
+  "navigate in the direction of the": ["MOVE"],
+
+  // Look/Inspect
+  "perform a visual inspection of": ["LOOK_INSPECT"],
+  "perform a visual inspection of the": ["LOOK_INSPECT"],
+  "cast one's critical gaze upon": ["LOOK_INSPECT"],
+  "cast one's critical gaze upon the": ["LOOK_INSPECT"],
+  "cast ones critical gaze upon": ["LOOK_INSPECT"],
+  "cast ones critical gaze upon the": ["LOOK_INSPECT"],
+  "carry out a detailed inspection of": ["LOOK_INSPECT"],
+  "carry out a detailed inspection of the": ["LOOK_INSPECT"],
+
+  // Take
+  "bring under one's own control": ["TAKE"],
+  "bring under one's own control the": ["TAKE"],
+  "bring under ones own control": ["TAKE"],
+  "bring under ones own control the": ["TAKE"],
+  "take into one's own custody": ["TAKE"],
+  "take into one's own custody the": ["TAKE"],
+  "take into ones own custody": ["TAKE"],
+  "take into ones own custody the": ["TAKE"],
+  "secure possession of": ["TAKE"],
+  "secure possession of the": ["TAKE"],
+
+  // Drop
+  "let fall upon the ground": ["DROP"],
+  "let fall upon the ground the": ["DROP"],
+  "divest oneself of the custody of": ["DROP"],
+  "divest oneself of the custody of the": ["DROP"],
+  "free oneself from the possession of": ["DROP"],
+  "free oneself from the possession of the": ["DROP"],
+
+  // Open/Close
+  "force entirely wide open": ["OPEN"],
+  "force entirely wide open the": ["OPEN"],
+  "force completely shut": ["CLOSE"],
+  "force completely shut the": ["CLOSE"],
+  "latch completely closed": ["CLOSE"],
+  "latch completely closed the": ["CLOSE"],
+
+  // Unlock
+  "disengage all the locks on": ["UNLOCK"],
+  "disengage all the locks on the": ["UNLOCK"],
+  "deactivate the security lock on": ["UNLOCK"],
+  "deactivate the security lock on the": ["UNLOCK"],
+  "bypass the security locks on": ["UNLOCK"],
+  "bypass the security locks on the": ["UNLOCK"],
+
+  // Use
+  "harness the full power of": ["USE"],
+  "harness the full power of the": ["USE"],
+  "bring into active service": ["USE"],
+  "bring into active service the": ["USE"],
+  "make full use of the functions of": ["USE"],
+  "make full use of the functions of the": ["USE"],
+
+  // Combat
+  "wage active warfare against": ["FIGHT"],
+  "wage active warfare against the": ["FIGHT"],
+  "commence an assault against": ["FIGHT"],
+  "commence an assault against the": ["FIGHT"],
+  "initiate combat operations against": ["FIGHT"],
+  "initiate combat operations against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a conversation with": ["TALK"],
+  "initiate a conversation with the": ["TALK"],
+  "strike up a dialogue with": ["TALK"],
+  "strike up a dialogue with the": ["TALK"],
+  "engage in verbal communication with": ["TALK"],
+  "engage in verbal communication with the": ["TALK"]
+});
+
+
 compoundVerbs.push(
   "wing one's way to the",
   "wing one's way to",
@@ -10982,7 +11066,71 @@ compoundVerbs.push(
   "strike up communication with the",
   "strike up communication with",
   "strike up a chat with the",
-  "strike up a chat with"
+  "strike up a chat with",
+
+  // Phase 24 compound verbs
+  "direct one's steps towards the",
+  "direct one's steps towards",
+  "direct ones steps towards the",
+  "direct ones steps towards",
+  "journey towards the location of the",
+  "journey towards the location of",
+  "navigate in the direction of the",
+  "navigate in the direction of",
+  "perform a visual inspection of the",
+  "perform a visual inspection of",
+  "cast one's critical gaze upon the",
+  "cast one's critical gaze upon",
+  "cast ones critical gaze upon the",
+  "cast ones critical gaze upon",
+  "carry out a detailed inspection of the",
+  "carry out a detailed inspection of",
+  "bring under one's own control the",
+  "bring under one's own control",
+  "bring under ones own control the",
+  "bring under ones own control",
+  "take into one's own custody the",
+  "take into one's own custody",
+  "take into ones own custody the",
+  "take into ones own custody",
+  "secure possession of the",
+  "secure possession of",
+  "let fall upon the ground the",
+  "let fall upon the ground",
+  "divest oneself of the custody of the",
+  "divest oneself of the custody of",
+  "free oneself from the possession of the",
+  "free oneself from the possession of",
+  "force entirely wide open the",
+  "force entirely wide open",
+  "force completely shut the",
+  "force completely shut",
+  "latch completely closed the",
+  "latch completely closed",
+  "disengage all the locks on the",
+  "disengage all the locks on",
+  "deactivate the security lock on the",
+  "deactivate the security lock on",
+  "bypass the security locks on the",
+  "bypass the security locks on",
+  "harness the full power of the",
+  "harness the full power of",
+  "bring into active service the",
+  "bring into active service",
+  "make full use of the functions of the",
+  "make full use of the functions of",
+  "wage active warfare against the",
+  "wage active warfare against",
+  "commence an assault against the",
+  "commence an assault against",
+  "initiate combat operations against the",
+  "initiate combat operations against",
+  "initiate a conversation with the",
+  "initiate a conversation with",
+  "strike up a dialogue with the",
+  "strike up a dialogue with",
+  "engage in verbal communication with the",
+  "engage in verbal communication with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
