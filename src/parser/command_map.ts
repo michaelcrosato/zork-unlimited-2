@@ -20084,6 +20084,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an amicable face to face discussion with the": ["TALK"]
 });
 
+// Cycle #99 / Task-F122: Phase 85 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of redirection towards the location of": ["MOVE"],
+  "navigate one's vector of redirection towards the location of the": ["MOVE"],
+  "navigate ones vector of redirection towards the location of": ["MOVE"],
+  "navigate ones vector of redirection towards the location of the": ["MOVE"],
+  "steer one's vector of redirection in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of redirection in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of redirection in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of redirection in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of redirection towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of redirection towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of redirection towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of redirection towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual presentation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual presentation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual presentation": ["LOOK_INSPECT"],
+  "subject to a thorough visual presentation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual presentation": ["LOOK_INSPECT"],
+  "subject to a detailed visual presentation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive accumulation of": ["TAKE"],
+  "assume direct exclusive accumulation of the": ["TAKE"],
+  "assume absolute exclusive accumulation of": ["TAKE"],
+  "assume absolute exclusive accumulation of the": ["TAKE"],
+  "assume immediate exclusive accumulation of": ["TAKE"],
+  "assume immediate exclusive accumulation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive accumulation of": ["DROP"],
+  "divest oneself of all exclusive accumulation of the": ["DROP"],
+  "relinquish all exclusive accumulation of": ["DROP"],
+  "relinquish all exclusive accumulation of the": ["DROP"],
+  "free oneself from all exclusive accumulation of": ["DROP"],
+  "free oneself from all exclusive accumulation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and micromechanically wide open": ["OPEN"],
+  "force completely and micromechanically wide open the": ["OPEN"],
+  "pry completely and micromechanically wide open": ["OPEN"],
+  "pry completely and micromechanically wide open the": ["OPEN"],
+  "fasten completely and micromechanically closed": ["CLOSE"],
+  "fasten completely and micromechanically closed the": ["CLOSE"],
+  "seal completely and micromechanically shut": ["CLOSE"],
+  "seal completely and micromechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all diamagnetic security devices of": ["UNLOCK"],
+  "deactivate all diamagnetic security devices of the": ["UNLOCK"],
+  "bypass all diamagnetic security devices on": ["UNLOCK"],
+  "bypass all diamagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary diamagnetic security device on": ["UNLOCK"],
+  "disengage the primary diamagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full beneficial deployment of": ["USE"],
+  "harness the full beneficial deployment of the": ["USE"],
+  "bring into active beneficial deployment": ["USE"],
+  "bring into active beneficial deployment the": ["USE"],
+  "make complete beneficial deployment of": ["USE"],
+  "make complete beneficial deployment of the": ["USE"],
+
+  // Combat
+  "initiate an ominous confrontation against": ["FIGHT"],
+  "initiate an ominous confrontation against the": ["FIGHT"],
+  "commence an ominous confrontation against": ["FIGHT"],
+  "commence an ominous confrontation against the": ["FIGHT"],
+  "engage in an ominous confrontation against": ["FIGHT"],
+  "engage in an ominous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a casual face to face discussion with": ["TALK"],
+  "initiate a casual face to face discussion with the": ["TALK"],
+  "engage in a casual face to face discussion with": ["TALK"],
+  "engage in a casual face to face discussion with the": ["TALK"],
+  "strike up a casual face to face discussion with": ["TALK"],
+  "strike up a casual face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -20148,6 +20231,72 @@ compoundVerbs.push(
   "engage in an amicable face to face discussion with",
   "strike up an amicable face to face discussion with the",
   "strike up an amicable face to face discussion with"
+);
+
+// Cycle #99 / Task-F122: Phase 85 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of redirection towards the location of the",
+  "navigate one's vector of redirection towards the location of",
+  "navigate ones vector of redirection towards the location of the",
+  "navigate ones vector of redirection towards the location of",
+  "steer one's vector of redirection in the direction of the coordinates of the",
+  "steer one's vector of redirection in the direction of the coordinates of",
+  "steer ones vector of redirection in the direction of the coordinates of the",
+  "steer ones vector of redirection in the direction of the coordinates of",
+  "direct one's vector of redirection towards the coordinates of the location of the",
+  "direct one's vector of redirection towards the coordinates of the location of",
+  "direct ones vector of redirection towards the coordinates of the location of the",
+  "direct ones vector of redirection towards the coordinates of the location of",
+  "subject to a comprehensive visual presentation the",
+  "subject to a comprehensive visual presentation",
+  "subject to a thorough visual presentation the",
+  "subject to a thorough visual presentation",
+  "subject to a detailed visual presentation the",
+  "subject to a detailed visual presentation",
+  "assume direct exclusive accumulation of the",
+  "assume direct exclusive accumulation of",
+  "assume absolute exclusive accumulation of the",
+  "assume absolute exclusive accumulation of",
+  "assume immediate exclusive accumulation of the",
+  "assume immediate exclusive accumulation of",
+  "divest oneself of all exclusive accumulation of the",
+  "divest oneself of all exclusive accumulation of",
+  "relinquish all exclusive accumulation of the",
+  "relinquish all exclusive accumulation of",
+  "free oneself from all exclusive accumulation of the",
+  "free oneself from all exclusive accumulation of",
+  "force completely and micromechanically wide open the",
+  "force completely and micromechanically wide open",
+  "pry completely and micromechanically wide open the",
+  "pry completely and micromechanically wide open",
+  "fasten completely and micromechanically closed the",
+  "fasten completely and micromechanically closed",
+  "seal completely and micromechanically shut the",
+  "seal completely and micromechanically shut",
+  "deactivate all diamagnetic security devices of the",
+  "deactivate all diamagnetic security devices of",
+  "bypass all diamagnetic security devices on the",
+  "bypass all diamagnetic security devices on",
+  "disengage the primary diamagnetic security device on the",
+  "disengage the primary diamagnetic security device on",
+  "harness the full beneficial deployment of the",
+  "harness the full beneficial deployment of",
+  "bring into active beneficial deployment the",
+  "bring into active beneficial deployment",
+  "make complete beneficial deployment of the",
+  "make complete beneficial deployment of",
+  "initiate an ominous confrontation against the",
+  "initiate an ominous confrontation against",
+  "commence an ominous confrontation against the",
+  "commence an ominous confrontation against",
+  "engage in an ominous confrontation against the",
+  "engage in an ominous confrontation against",
+  "initiate a casual face to face discussion with the",
+  "initiate a casual face to face discussion with",
+  "engage in a casual face to face discussion with the",
+  "engage in a casual face to face discussion with",
+  "strike up a casual face to face discussion with the",
+  "strike up a casual face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
