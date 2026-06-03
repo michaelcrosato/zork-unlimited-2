@@ -20244,7 +20244,87 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a jovial face to face discussion with": ["TALK"],
   "engage in a jovial face to face discussion with the": ["TALK"],
   "strike up a jovial face to face discussion with": ["TALK"],
-  "strike up a jovial face to face discussion with the": ["TALK"]
+  "strike up a jovial face to face discussion with the": ["TALK"],
+
+  // Cycle #101 / Task-F124: Phase 87 movement verbs
+  "navigate one's vector of divergence towards the location of": ["MOVE"],
+  "navigate one's vector of divergence towards the location of the": ["MOVE"],
+  "navigate ones vector of divergence towards the location of": ["MOVE"],
+  "navigate ones vector of divergence towards the location of the": ["MOVE"],
+  "steer one's vector of divergence in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of divergence in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of divergence in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of divergence in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of divergence towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of divergence towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of divergence towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of divergence towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual exposition": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual exposition the": ["LOOK_INSPECT"],
+  "subject to a thorough visual exposition": ["LOOK_INSPECT"],
+  "subject to a thorough visual exposition the": ["LOOK_INSPECT"],
+  "subject to a detailed visual exposition": ["LOOK_INSPECT"],
+  "subject to a detailed visual exposition the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive consolidation of": ["TAKE"],
+  "assume direct exclusive consolidation of the": ["TAKE"],
+  "assume absolute exclusive consolidation of": ["TAKE"],
+  "assume absolute exclusive consolidation of the": ["TAKE"],
+  "assume immediate exclusive consolidation of": ["TAKE"],
+  "assume immediate exclusive consolidation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive consolidation of": ["DROP"],
+  "divest oneself of all exclusive consolidation of the": ["DROP"],
+  "relinquish all exclusive consolidation of": ["DROP"],
+  "relinquish all exclusive consolidation of the": ["DROP"],
+  "free oneself from all exclusive consolidation of": ["DROP"],
+  "free oneself from all exclusive consolidation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and magnetohydrodynamically wide open": ["OPEN"],
+  "force completely and magnetohydrodynamically wide open the": ["OPEN"],
+  "pry completely and magnetohydrodynamically wide open": ["OPEN"],
+  "pry completely and magnetohydrodynamically wide open the": ["OPEN"],
+  "fasten completely and magnetohydrodynamically closed": ["CLOSE"],
+  "fasten completely and magnetohydrodynamically closed the": ["CLOSE"],
+  "seal completely and magnetohydrodynamically shut": ["CLOSE"],
+  "seal completely and magnetohydrodynamically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all ferrimagnetic security devices of": ["UNLOCK"],
+  "deactivate all ferrimagnetic security devices of the": ["UNLOCK"],
+  "bypass all ferrimagnetic security devices on": ["UNLOCK"],
+  "bypass all ferrimagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary ferrimagnetic security device on": ["UNLOCK"],
+  "disengage the primary ferrimagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full expeditious deployment of": ["USE"],
+  "harness the full expeditious deployment of the": ["USE"],
+  "bring into active expeditious deployment": ["USE"],
+  "bring into active expeditious deployment the": ["USE"],
+  "make complete expeditious deployment of": ["USE"],
+  "make complete expeditious deployment of the": ["USE"],
+
+  // Combat
+  "initiate a pernicious confrontation against": ["FIGHT"],
+  "initiate a pernicious confrontation against the": ["FIGHT"],
+  "commence a pernicious confrontation against": ["FIGHT"],
+  "commence a pernicious confrontation against the": ["FIGHT"],
+  "engage in a pernicious confrontation against": ["FIGHT"],
+  "engage in a pernicious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a convivial face to face discussion with": ["TALK"],
+  "initiate a convivial face to face discussion with the": ["TALK"],
+  "engage in a convivial face to face discussion with": ["TALK"],
+  "engage in a convivial face to face discussion with the": ["TALK"],
+  "strike up a convivial face to face discussion with": ["TALK"],
+  "strike up a convivial face to face discussion with the": ["TALK"]
 });
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -20443,6 +20523,72 @@ compoundVerbs.push(
   "engage in a jovial face to face discussion with",
   "strike up a jovial face to face discussion with the",
   "strike up a jovial face to face discussion with"
+);
+
+// Cycle #101 / Task-F124: Phase 87 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of divergence towards the location of the",
+  "navigate one's vector of divergence towards the location of",
+  "navigate ones vector of divergence towards the location of the",
+  "navigate ones vector of divergence towards the location of",
+  "steer one's vector of divergence in the direction of the coordinates of the",
+  "steer one's vector of divergence in the direction of the coordinates of",
+  "steer ones vector of divergence in the direction of the coordinates of the",
+  "steer ones vector of divergence in the direction of the coordinates of",
+  "direct one's vector of divergence towards the coordinates of the location of the",
+  "direct one's vector of divergence towards the coordinates of the location of",
+  "direct ones vector of divergence towards the coordinates of the location of the",
+  "direct ones vector of divergence towards the coordinates of the location of",
+  "subject to a comprehensive visual exposition the",
+  "subject to a comprehensive visual exposition",
+  "subject to a thorough visual exposition the",
+  "subject to a thorough visual exposition",
+  "subject to a detailed visual exposition the",
+  "subject to a detailed visual exposition",
+  "assume direct exclusive consolidation of the",
+  "assume direct exclusive consolidation of",
+  "assume absolute exclusive consolidation of the",
+  "assume absolute exclusive consolidation of",
+  "assume immediate exclusive consolidation of the",
+  "assume immediate exclusive consolidation of",
+  "divest oneself of all exclusive consolidation of the",
+  "divest oneself of all exclusive consolidation of",
+  "relinquish all exclusive consolidation of the",
+  "relinquish all exclusive consolidation of",
+  "free oneself from all exclusive consolidation of the",
+  "free oneself from all exclusive consolidation of",
+  "force completely and magnetohydrodynamically wide open the",
+  "force completely and magnetohydrodynamically wide open",
+  "pry completely and magnetohydrodynamically wide open the",
+  "pry completely and magnetohydrodynamically wide open",
+  "fasten completely and magnetohydrodynamically closed the",
+  "fasten completely and magnetohydrodynamically closed",
+  "seal completely and magnetohydrodynamically shut the",
+  "seal completely and magnetohydrodynamically shut",
+  "deactivate all ferrimagnetic security devices of the",
+  "deactivate all ferrimagnetic security devices of",
+  "bypass all ferrimagnetic security devices on the",
+  "bypass all ferrimagnetic security devices on",
+  "disengage the primary ferrimagnetic security device on the",
+  "disengage the primary ferrimagnetic security device on",
+  "harness the full expeditious deployment of the",
+  "harness the full expeditious deployment of",
+  "bring into active expeditious deployment the",
+  "bring into active expeditious deployment",
+  "make complete expeditious deployment of the",
+  "make complete expeditious deployment of",
+  "initiate a pernicious confrontation against the",
+  "initiate a pernicious confrontation against",
+  "commence a pernicious confrontation against the",
+  "commence a pernicious confrontation against",
+  "engage in a pernicious confrontation against the",
+  "engage in a pernicious confrontation against",
+  "initiate a convivial face to face discussion with the",
+  "initiate a convivial face to face discussion with",
+  "engage in a convivial face to face discussion with the",
+  "engage in a convivial face to face discussion with",
+  "strike up a convivial face to face discussion with the",
+  "strike up a convivial face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
