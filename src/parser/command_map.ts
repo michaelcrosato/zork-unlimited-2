@@ -11349,6 +11349,95 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a direct verbal conversation with the": ["TALK"]
 });
 
+// Cycle #47 / Task-F70: Phase 33 mappings (expansion requested by playtesters)
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's course in the direction of the coordinates of": ["MOVE"],
+  "navigate one's course in the direction of the coordinates of the": ["MOVE"],
+  "navigate ones course in the direction of the coordinates of": ["MOVE"],
+  "navigate ones course in the direction of the coordinates of the": ["MOVE"],
+  "steer one's journey towards the coordinates of": ["MOVE"],
+  "steer one's journey towards the coordinates of the": ["MOVE"],
+  "steer ones journey towards the coordinates of": ["MOVE"],
+  "steer ones journey towards the coordinates of the": ["MOVE"],
+  "direct one's journey towards the location of": ["MOVE"],
+  "direct one's journey towards the location of the": ["MOVE"],
+  "direct ones journey towards the location of": ["MOVE"],
+  "direct ones journey towards the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "conduct a thorough visual examination on": ["LOOK_INSPECT"],
+  "conduct a thorough visual examination on the": ["LOOK_INSPECT"],
+  "carry out a detailed visual check on the details of": ["LOOK_INSPECT"],
+  "carry out a detailed visual check on the details of the": ["LOOK_INSPECT"],
+  "cast one's inquisitive eyes upon the details of": ["LOOK_INSPECT"],
+  "cast one's inquisitive eyes upon the details of the": ["LOOK_INSPECT"],
+  "cast ones inquisitive eyes upon the details of": ["LOOK_INSPECT"],
+  "cast ones inquisitive eyes upon the details of the": ["LOOK_INSPECT"],
+
+  // Take
+  "bring under one's immediate possession": ["TAKE"],
+  "bring under one's immediate possession the": ["TAKE"],
+  "bring under ones immediate possession": ["TAKE"],
+  "bring under ones immediate possession the": ["TAKE"],
+  "take into one's absolute custody": ["TAKE"],
+  "take into one's absolute custody the": ["TAKE"],
+  "take into ones absolute custody": ["TAKE"],
+  "take into ones absolute custody the": ["TAKE"],
+  "assume direct physical possession of": ["TAKE"],
+  "assume direct physical possession of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of the direct custody of": ["DROP"],
+  "divest oneself of the direct custody of the": ["DROP"],
+  "let drop directly onto the earth surface": ["DROP"],
+  "let drop directly onto the earth surface the": ["DROP"],
+  "free oneself from the absolute custody of": ["DROP"],
+  "free oneself from the absolute custody of the": ["DROP"],
+
+  // Open/Close
+  "swing entirely and completely wide open": ["OPEN"],
+  "swing entirely and completely wide open the": ["OPEN"],
+  "pry fully and completely wide open": ["OPEN"],
+  "pry fully and completely wide open the": ["OPEN"],
+  "latch entirely and securely closed": ["CLOSE"],
+  "latch entirely and securely closed the": ["CLOSE"],
+  "seal entirely and securely closed": ["CLOSE"],
+  "seal entirely and securely closed the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all mechanical security systems on": ["UNLOCK"],
+  "deactivate all mechanical security systems on the": ["UNLOCK"],
+  "bypass all mechanical security systems of": ["UNLOCK"],
+  "bypass all mechanical security systems of the": ["UNLOCK"],
+  "disengage the primary security lock mechanism on": ["UNLOCK"],
+  "disengage the primary security lock mechanism on the": ["UNLOCK"],
+
+  // Use
+  "harness the full mechanical capability of": ["USE"],
+  "harness the full mechanical capability of the": ["USE"],
+  "bring into active operational service": ["USE"],
+  "bring into active operational service the": ["USE"],
+  "make complete active use of": ["USE"],
+  "make complete active use of the": ["USE"],
+
+  // Combat
+  "wage direct physical combat against": ["FIGHT"],
+  "wage direct physical combat against the": ["FIGHT"],
+  "commence active combat operations against": ["FIGHT"],
+  "commence active combat operations against the": ["FIGHT"],
+  "initiate offensive physical warfare against": ["FIGHT"],
+  "initiate offensive physical warfare against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a detailed verbal discussion with": ["TALK"],
+  "initiate a detailed verbal discussion with the": ["TALK"],
+  "engage in a detailed verbal conversation with": ["TALK"],
+  "engage in a detailed verbal conversation with the": ["TALK"],
+  "strike up a detailed verbal conversation with": ["TALK"],
+  "strike up a detailed verbal conversation with the": ["TALK"]
+});
+
 
 
 compoundVerbs.push(
@@ -12382,8 +12471,80 @@ compoundVerbs.push(
   "initiate a direct verbal dialogue with",
   "engage in a direct verbal discussion with the",
   "engage in a direct verbal discussion with",
-  "strike up a direct verbal conversation with the",
-  "strike up a direct verbal conversation with"
+  "strike up a direct verbal conversation with",
+  "strike up a direct verbal conversation with the"
+);
+
+compoundVerbs.push(
+  // Phase 33 compound verbs
+  "navigate one's course in the direction of the coordinates of the",
+  "navigate one's course in the direction of the coordinates of",
+  "navigate ones course in the direction of the coordinates of the",
+  "navigate ones course in the direction of the coordinates of",
+  "steer one's journey towards the coordinates of the",
+  "steer one's journey towards the coordinates of",
+  "steer ones journey towards the coordinates of the",
+  "steer ones journey towards the coordinates of",
+  "direct one's journey towards the location of the",
+  "direct one's journey towards the location of",
+  "direct ones journey towards the location of the",
+  "direct ones journey towards the location of",
+  "conduct a thorough visual examination on the",
+  "conduct a thorough visual examination on",
+  "carry out a detailed visual check on the details of the",
+  "carry out a detailed visual check on the details of",
+  "cast one's inquisitive eyes upon the details of the",
+  "cast one's inquisitive eyes upon the details of",
+  "cast ones inquisitive eyes upon the details of the",
+  "cast ones inquisitive eyes upon the details of",
+  "bring under one's immediate possession the",
+  "bring under one's immediate possession",
+  "bring under ones immediate possession the",
+  "bring under ones immediate possession",
+  "take into one's absolute custody the",
+  "take into one's absolute custody",
+  "take into ones absolute custody the",
+  "take into ones absolute custody",
+  "assume direct physical possession of the",
+  "assume direct physical possession of",
+  "divest oneself of the direct custody of the",
+  "divest oneself of the direct custody of",
+  "let drop directly onto the earth surface the",
+  "let drop directly onto the earth surface",
+  "free oneself from the absolute custody of the",
+  "free oneself from the absolute custody of",
+  "swing entirely and completely wide open the",
+  "swing entirely and completely wide open",
+  "pry fully and completely wide open the",
+  "pry fully and completely wide open",
+  "latch entirely and securely closed the",
+  "latch entirely and securely closed",
+  "seal entirely and securely closed the",
+  "seal entirely and securely closed",
+  "deactivate all mechanical security systems on the",
+  "deactivate all mechanical security systems on",
+  "bypass all mechanical security systems of the",
+  "bypass all mechanical security systems of",
+  "disengage the primary security lock mechanism on the",
+  "disengage the primary security lock mechanism on",
+  "harness the full mechanical capability of the",
+  "harness the full mechanical capability of",
+  "bring into active operational service the",
+  "bring into active operational service",
+  "make complete active use of the",
+  "make complete active use of",
+  "wage direct physical combat against the",
+  "wage direct physical combat against",
+  "commence active combat operations against the",
+  "commence active combat operations against",
+  "initiate offensive physical warfare against the",
+  "initiate offensive physical warfare against",
+  "initiate a detailed verbal discussion with the",
+  "initiate a detailed verbal discussion with",
+  "engage in a detailed verbal conversation with the",
+  "engage in a detailed verbal conversation with",
+  "strike up a detailed verbal conversation with the",
+  "strike up a detailed verbal conversation with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
