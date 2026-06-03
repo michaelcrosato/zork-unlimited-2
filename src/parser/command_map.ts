@@ -20001,6 +20001,155 @@ compoundVerbs.push(
   "strike up a companionable face to face discussion with"
 );
 
+// Cycle #98 / Task-F121: Phase 84 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of adjustment towards the location of": ["MOVE"],
+  "navigate one's vector of adjustment towards the location of the": ["MOVE"],
+  "navigate ones vector of adjustment towards the location of": ["MOVE"],
+  "navigate ones vector of adjustment towards the location of the": ["MOVE"],
+  "steer one's vector of adjustment in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of adjustment in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of adjustment in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of adjustment in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of adjustment towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of adjustment towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of adjustment towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of adjustment towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual manifestation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual manifestation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual manifestation": ["LOOK_INSPECT"],
+  "subject to a thorough visual manifestation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual manifestation": ["LOOK_INSPECT"],
+  "subject to a detailed visual manifestation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive stockpiling of": ["TAKE"],
+  "assume direct exclusive stockpiling of the": ["TAKE"],
+  "assume absolute exclusive stockpiling of": ["TAKE"],
+  "assume absolute exclusive stockpiling of the": ["TAKE"],
+  "assume immediate exclusive stockpiling of": ["TAKE"],
+  "assume immediate exclusive stockpiling of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive stockpiling of": ["DROP"],
+  "divest oneself of all exclusive stockpiling of the": ["DROP"],
+  "relinquish all exclusive stockpiling of": ["DROP"],
+  "relinquish all exclusive stockpiling of the": ["DROP"],
+  "free oneself from all exclusive stockpiling of": ["DROP"],
+  "free oneself from all exclusive stockpiling of the": ["DROP"],
+
+  // Open/Close
+  "force completely and magnetomechanically wide open": ["OPEN"],
+  "force completely and magnetomechanically wide open the": ["OPEN"],
+  "pry completely and magnetomechanically wide open": ["OPEN"],
+  "pry completely and magnetomechanically wide open the": ["OPEN"],
+  "fasten completely and magnetomechanically closed": ["CLOSE"],
+  "fasten completely and magnetomechanically closed the": ["CLOSE"],
+  "seal completely and magnetomechanically shut": ["CLOSE"],
+  "seal completely and magnetomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all paramagnetic security devices of": ["UNLOCK"],
+  "deactivate all paramagnetic security devices of the": ["UNLOCK"],
+  "bypass all paramagnetic security devices on": ["UNLOCK"],
+  "bypass all paramagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary paramagnetic security device on": ["UNLOCK"],
+  "disengage the primary paramagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full advantageous deployment of": ["USE"],
+  "harness the full advantageous deployment of the": ["USE"],
+  "bring into active advantageous deployment": ["USE"],
+  "bring into active advantageous deployment the": ["USE"],
+  "make complete advantageous deployment of": ["USE"],
+  "make complete advantageous deployment of the": ["USE"],
+
+  // Combat
+  "initiate a gruesome confrontation against": ["FIGHT"],
+  "initiate a gruesome confrontation against the": ["FIGHT"],
+  "commence a gruesome confrontation against": ["FIGHT"],
+  "commence a gruesome confrontation against the": ["FIGHT"],
+  "engage in a gruesome confrontation against": ["FIGHT"],
+  "engage in a gruesome confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an amicable face to face discussion with": ["TALK"],
+  "initiate an amicable face to face discussion with the": ["TALK"],
+  "engage in an amicable face to face discussion with": ["TALK"],
+  "engage in an amicable face to face discussion with the": ["TALK"],
+  "strike up an amicable face to face discussion with": ["TALK"],
+  "strike up an amicable face to face discussion with the": ["TALK"]
+});
+
+// Cycle #98 / Task-F121: Phase 84 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of adjustment towards the location of the",
+  "navigate one's vector of adjustment towards the location of",
+  "navigate ones vector of adjustment towards the location of the",
+  "navigate ones vector of adjustment towards the location of",
+  "steer one's vector of adjustment in the direction of the coordinates of the",
+  "steer one's vector of adjustment in the direction of the coordinates of",
+  "steer ones vector of adjustment in the direction of the coordinates of the",
+  "steer ones vector of adjustment in the direction of the coordinates of",
+  "direct one's vector of adjustment towards the coordinates of the location of the",
+  "direct one's vector of adjustment towards the coordinates of the location of",
+  "direct ones vector of adjustment towards the coordinates of the location of the",
+  "direct ones vector of adjustment towards the coordinates of the location of",
+  "subject to a comprehensive visual manifestation the",
+  "subject to a comprehensive visual manifestation",
+  "subject to a thorough visual manifestation the",
+  "subject to a thorough visual manifestation",
+  "subject to a detailed visual manifestation the",
+  "subject to a detailed visual manifestation",
+  "assume direct exclusive stockpiling of the",
+  "assume direct exclusive stockpiling of",
+  "assume absolute exclusive stockpiling of the",
+  "assume absolute exclusive stockpiling of",
+  "assume immediate exclusive stockpiling of the",
+  "assume immediate exclusive stockpiling of",
+  "divest oneself of all exclusive stockpiling of the",
+  "divest oneself of all exclusive stockpiling of",
+  "relinquish all exclusive stockpiling of the",
+  "relinquish all exclusive stockpiling of",
+  "free oneself from all exclusive stockpiling of the",
+  "free oneself from all exclusive stockpiling of",
+  "force completely and magnetomechanically wide open the",
+  "force completely and magnetomechanically wide open",
+  "pry completely and magnetomechanically wide open the",
+  "pry completely and magnetomechanically wide open",
+  "fasten completely and magnetomechanically closed the",
+  "fasten completely and magnetomechanically closed",
+  "seal completely and magnetomechanically shut the",
+  "seal completely and magnetomechanically shut",
+  "deactivate all paramagnetic security devices of the",
+  "deactivate all paramagnetic security devices of",
+  "bypass all paramagnetic security devices on the",
+  "bypass all paramagnetic security devices on",
+  "disengage the primary paramagnetic security device on the",
+  "disengage the primary paramagnetic security device on",
+  "harness the full advantageous deployment of the",
+  "harness the full advantageous deployment of",
+  "bring into active advantageous deployment the",
+  "bring into active advantageous deployment",
+  "make complete advantageous deployment of the",
+  "make complete advantageous deployment of",
+  "initiate a gruesome confrontation against the",
+  "initiate a gruesome confrontation against",
+  "commence a gruesome confrontation against the",
+  "commence a gruesome confrontation against",
+  "engage in a gruesome confrontation against the",
+  "engage in a gruesome confrontation against",
+  "initiate an amicable face to face discussion with the",
+  "initiate an amicable face to face discussion with",
+  "engage in an amicable face to face discussion with the",
+  "engage in an amicable face to face discussion with",
+  "strike up an amicable face to face discussion with the",
+  "strike up an amicable face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
