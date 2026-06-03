@@ -19636,7 +19636,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a neighborly face to face discussion with": ["TALK"],
   "engage in a neighborly face to face discussion with the": ["TALK"],
   "strike up a neighborly face to face discussion with": ["TALK"],
-  "strike up a neighborly face to face discussion with the": ["TALK"]
+  "strike up a neighborly face to face discussion with the": ["TALK"],
+
+  // Cycle #96 / Task-F119: Phase 82 synonyms
+  // Movement
+  "navigate one's vector of reorientation towards the location of": ["MOVE"],
+  "navigate one's vector of reorientation towards the location of the": ["MOVE"],
+  "navigate ones vector of reorientation towards the location of": ["MOVE"],
+  "navigate ones vector of reorientation towards the location of the": ["MOVE"],
+  "steer one's vector of reorientation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of reorientation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of reorientation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of reorientation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of reorientation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of reorientation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of reorientation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of reorientation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual portrayal": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual portrayal the": ["LOOK_INSPECT"],
+  "subject to a thorough visual portrayal": ["LOOK_INSPECT"],
+  "subject to a thorough visual portrayal the": ["LOOK_INSPECT"],
+  "subject to a detailed visual portrayal": ["LOOK_INSPECT"],
+  "subject to a detailed visual portrayal the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive amassing of": ["TAKE"],
+  "assume direct exclusive amassing of the": ["TAKE"],
+  "assume absolute exclusive amassing of": ["TAKE"],
+  "assume absolute exclusive amassing of the": ["TAKE"],
+  "assume immediate exclusive amassing of": ["TAKE"],
+  "assume immediate exclusive amassing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive amassing of": ["DROP"],
+  "divest oneself of all exclusive amassing of the": ["DROP"],
+  "relinquish all exclusive amassing of": ["DROP"],
+  "relinquish all exclusive amassing of the": ["DROP"],
+  "free oneself from all exclusive amassing of": ["DROP"],
+  "free oneself from all exclusive amassing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and piezomechanically wide open": ["OPEN"],
+  "force completely and piezomechanically wide open the": ["OPEN"],
+  "pry completely and piezomechanically wide open": ["OPEN"],
+  "pry completely and piezomechanically wide open the": ["OPEN"],
+  "fasten completely and piezomechanically closed": ["CLOSE"],
+  "fasten completely and piezomechanically closed the": ["CLOSE"],
+  "seal completely and piezomechanically shut": ["CLOSE"],
+  "seal completely and piezomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all ferroelastic security devices of": ["UNLOCK"],
+  "deactivate all ferroelastic security devices of the": ["UNLOCK"],
+  "bypass all ferroelastic security devices on": ["UNLOCK"],
+  "bypass all ferroelastic security devices on the": ["UNLOCK"],
+  "disengage the primary ferroelastic security device on": ["UNLOCK"],
+  "disengage the primary ferroelastic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full expedient deployment of": ["USE"],
+  "harness the full expedient deployment of the": ["USE"],
+  "bring into active expedient deployment": ["USE"],
+  "bring into active expedient deployment the": ["USE"],
+  "make complete expedient deployment of": ["USE"],
+  "make complete expedient deployment of the": ["USE"],
+
+  // Combat
+  "initiate a grisly confrontation against": ["FIGHT"],
+  "initiate a grisly confrontation against the": ["FIGHT"],
+  "commence a grisly confrontation against": ["FIGHT"],
+  "commence a grisly confrontation against the": ["FIGHT"],
+  "engage in a grisly confrontation against": ["FIGHT"],
+  "engage in a grisly confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a hospitable face to face discussion with": ["TALK"],
+  "initiate a hospitable face to face discussion with the": ["TALK"],
+  "engage in a hospitable face to face discussion with": ["TALK"],
+  "engage in a hospitable face to face discussion with the": ["TALK"],
+  "strike up a hospitable face to face discussion with": ["TALK"],
+  "strike up a hospitable face to face discussion with the": ["TALK"]
 });
 
 // Cycle #95 / Task-F118: Phase 81 compound verbs
@@ -19703,6 +19784,72 @@ compoundVerbs.push(
   "engage in a neighborly face to face discussion with",
   "strike up a neighborly face to face discussion with the",
   "strike up a neighborly face to face discussion with"
+);
+
+// Cycle #96 / Task-F119: Phase 82 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of reorientation towards the location of the",
+  "navigate one's vector of reorientation towards the location of",
+  "navigate ones vector of reorientation towards the location of the",
+  "navigate ones vector of reorientation towards the location of",
+  "steer one's vector of reorientation in the direction of the coordinates of the",
+  "steer one's vector of reorientation in the direction of the coordinates of",
+  "steer ones vector of reorientation in the direction of the coordinates of the",
+  "steer ones vector of reorientation in the direction of the coordinates of",
+  "direct one's vector of reorientation towards the coordinates of the location of the",
+  "direct one's vector of reorientation towards the coordinates of the location of",
+  "direct ones vector of reorientation towards the coordinates of the location of the",
+  "direct ones vector of reorientation towards the coordinates of the location of",
+  "subject to a comprehensive visual portrayal the",
+  "subject to a comprehensive visual portrayal",
+  "subject to a thorough visual portrayal the",
+  "subject to a thorough visual portrayal",
+  "subject to a detailed visual portrayal the",
+  "subject to a detailed visual portrayal",
+  "assume direct exclusive amassing of the",
+  "assume direct exclusive amassing of",
+  "assume absolute exclusive amassing of the",
+  "assume absolute exclusive amassing of",
+  "assume immediate exclusive amassing of the",
+  "assume immediate exclusive amassing of",
+  "divest oneself of all exclusive amassing of the",
+  "divest oneself of all exclusive amassing of",
+  "relinquish all exclusive amassing of the",
+  "relinquish all exclusive amassing of",
+  "free oneself from all exclusive amassing of the",
+  "free oneself from all exclusive amassing of",
+  "force completely and piezomechanically wide open the",
+  "force completely and piezomechanically wide open",
+  "pry completely and piezomechanically wide open the",
+  "pry completely and piezomechanically wide open",
+  "fasten completely and piezomechanically closed the",
+  "fasten completely and piezomechanically closed",
+  "seal completely and piezomechanically shut the",
+  "seal completely and piezomechanically shut",
+  "deactivate all ferroelastic security devices of the",
+  "deactivate all ferroelastic security devices of",
+  "bypass all ferroelastic security devices on the",
+  "bypass all ferroelastic security devices on",
+  "disengage the primary ferroelastic security device on the",
+  "disengage the primary ferroelastic security device on",
+  "harness the full expedient deployment of the",
+  "harness the full expedient deployment of",
+  "bring into active expedient deployment the",
+  "bring into active expedient deployment",
+  "make complete expedient deployment of the",
+  "make complete expedient deployment of",
+  "initiate a grisly confrontation against the",
+  "initiate a grisly confrontation against",
+  "commence a grisly confrontation against the",
+  "commence a grisly confrontation against",
+  "engage in a grisly confrontation against the",
+  "engage in a grisly confrontation against",
+  "initiate a hospitable face to face discussion with the",
+  "initiate a hospitable face to face discussion with",
+  "engage in a hospitable face to face discussion with the",
+  "engage in a hospitable face to face discussion with",
+  "strike up a hospitable face to face discussion with the",
+  "strike up a hospitable face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
