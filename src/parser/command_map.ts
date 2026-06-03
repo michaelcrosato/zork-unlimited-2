@@ -10019,6 +10019,142 @@ compoundVerbs.push(
   "engage in dialogue with"
 );
 
+// Cycle #31 / Task-F54: Phase 17 mappings (expansion requested by playtesters)
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "wing one's way to": ["MOVE"],
+  "wing one's way to the": ["MOVE"],
+  "wing ones way to": ["MOVE"],
+  "wing ones way to the": ["MOVE"],
+  "make tracks for": ["MOVE"],
+  "make tracks for the": ["MOVE"],
+  "hightail it to": ["MOVE"],
+  "hightail it to the": ["MOVE"],
+
+  // Look/Inspect
+  "run a check on": ["LOOK_INSPECT"],
+  "run a check on the": ["LOOK_INSPECT"],
+  "cast a glance at": ["LOOK_INSPECT"],
+  "cast a glance at the": ["LOOK_INSPECT"],
+  "pore over": ["LOOK_INSPECT"],
+  "pore over the": ["LOOK_INSPECT"],
+
+  // Take
+  "walk off with": ["TAKE"],
+  "walk off with the": ["TAKE"],
+  "lay claim to": ["TAKE"],
+  "lay claim to the": ["TAKE"],
+  "bring under one's control": ["TAKE"],
+  "bring under one's control the": ["TAKE"],
+  "bring under ones control": ["TAKE"],
+  "bring under ones control the": ["TAKE"],
+
+  // Drop
+  "wash one's hands of": ["DROP"],
+  "wash one's hands of the": ["DROP"],
+  "wash ones hands of": ["DROP"],
+  "wash ones hands of the": ["DROP"],
+  "throw overboard": ["DROP"],
+  "throw overboard the": ["DROP"],
+  "set aside": ["DROP"],
+  "set aside the": ["DROP"],
+
+  // Open/Close
+  "swing wide open": ["OPEN"],
+  "swing wide open the": ["OPEN"],
+  "draw close": ["CLOSE"],
+  "draw close the": ["CLOSE"],
+  "fasten tight": ["CLOSE"],
+  "fasten tight the": ["CLOSE"],
+
+  // Unlock
+  "deactivate security on": ["UNLOCK"],
+  "deactivate security on the": ["UNLOCK"],
+  "disengage locks on": ["UNLOCK"],
+  "disengage locks on the": ["UNLOCK"],
+  "pop the locks on": ["UNLOCK"],
+  "pop the locks on the": ["UNLOCK"],
+
+  // Use
+  "bring to bear": ["USE"],
+  "bring to bear the": ["USE"],
+  "put to use": ["USE"],
+  "put to use the": ["USE"],
+
+  // Combat
+  "engage in battle against": ["FIGHT"],
+  "engage in battle against the": ["FIGHT"],
+  "wage conflict against": ["FIGHT"],
+  "wage conflict against the": ["FIGHT"],
+  "unleash an attack on": ["FIGHT"],
+  "unleash an attack on the": ["FIGHT"],
+
+  // Dialogue
+  "have a chat with": ["TALK"],
+  "have a chat with the": ["TALK"],
+  "hold conversation with": ["TALK"],
+  "hold conversation with the": ["TALK"]
+});
+
+compoundVerbs.push(
+  "wing one's way to the",
+  "wing one's way to",
+  "wing ones way to the",
+  "wing ones way to",
+  "make tracks for the",
+  "make tracks for",
+  "hightail it to the",
+  "hightail it to",
+  "run a check on the",
+  "run a check on",
+  "cast a glance at the",
+  "cast a glance at",
+  "pore over the",
+  "pore over",
+  "walk off with the",
+  "walk off with",
+  "lay claim to the",
+  "lay claim to",
+  "bring under one's control the",
+  "bring under one's control",
+  "bring under ones control the",
+  "bring under ones control",
+  "wash one's hands of the",
+  "wash one's hands of",
+  "wash ones hands of the",
+  "wash ones hands of",
+  "throw overboard the",
+  "throw overboard",
+  "set aside the",
+  "set aside",
+  "swing wide open the",
+  "swing wide open",
+  "draw close the",
+  "draw close",
+  "fasten tight the",
+  "fasten tight",
+  "deactivate security on the",
+  "deactivate security on",
+  "disengage locks on the",
+  "disengage locks on",
+  "pop the locks on the",
+  "pop the locks on",
+  "bring to bear the",
+  "bring to bear",
+  "put to use the",
+  "put to use",
+  "engage in battle against the",
+  "engage in battle against",
+  "wage conflict against the",
+  "wage conflict against",
+  "unleash an attack on the",
+  "unleash an attack on",
+  "have a chat with the",
+  "have a chat with",
+  "hold conversation with the",
+  "hold conversation with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
