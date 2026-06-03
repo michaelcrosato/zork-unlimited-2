@@ -17182,6 +17182,155 @@ compoundVerbs.push(
   "strike up a scholarly face to face discussion with"
 );
 
+// Cycle #79 / Task-F102: Phase 65 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of patrol towards the location of": ["MOVE"],
+  "navigate one's vector of patrol towards the location of the": ["MOVE"],
+  "navigate ones vector of patrol towards the location of": ["MOVE"],
+  "navigate ones vector of patrol towards the location of the": ["MOVE"],
+  "steer one's vector of patrol in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of patrol in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of patrol in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of patrol in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of patrol towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of patrol towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of patrol towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of patrol towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual tracking": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual tracking the": ["LOOK_INSPECT"],
+  "subject to a thorough visual tracking": ["LOOK_INSPECT"],
+  "subject to a thorough visual tracking the": ["LOOK_INSPECT"],
+  "subject to a detailed visual tracking": ["LOOK_INSPECT"],
+  "subject to a detailed visual tracking the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive recovery of": ["TAKE"],
+  "assume direct exclusive recovery of the": ["TAKE"],
+  "assume absolute exclusive recovery of": ["TAKE"],
+  "assume absolute exclusive recovery of the": ["TAKE"],
+  "assume immediate exclusive recovery of": ["TAKE"],
+  "assume immediate exclusive recovery of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive recovery of": ["DROP"],
+  "divest oneself of all exclusive recovery of the": ["DROP"],
+  "relinquish all exclusive recovery of": ["DROP"],
+  "relinquish all exclusive recovery of the": ["DROP"],
+  "free oneself from all exclusive recovery of": ["DROP"],
+  "free oneself from all exclusive recovery of the": ["DROP"],
+
+  // Open/Close
+  "force completely and thermodynamically wide open": ["OPEN"],
+  "force completely and thermodynamically wide open the": ["OPEN"],
+  "pry completely and thermodynamically wide open": ["OPEN"],
+  "pry completely and thermodynamically wide open the": ["OPEN"],
+  "fasten completely and thermodynamically closed": ["CLOSE"],
+  "fasten completely and thermodynamically closed the": ["CLOSE"],
+  "seal completely and thermodynamically shut": ["CLOSE"],
+  "seal completely and thermodynamically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all proximity security devices of": ["UNLOCK"],
+  "deactivate all proximity security devices of the": ["UNLOCK"],
+  "bypass all proximity security devices on": ["UNLOCK"],
+  "bypass all proximity security devices on the": ["UNLOCK"],
+  "disengage the primary proximity security device on": ["UNLOCK"],
+  "disengage the primary proximity security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full ultimate deployment of": ["USE"],
+  "harness the full ultimate deployment of the": ["USE"],
+  "bring into active ultimate deployment": ["USE"],
+  "bring into active ultimate deployment the": ["USE"],
+  "make complete ultimate deployment of": ["USE"],
+  "make complete ultimate deployment of the": ["USE"],
+
+  // Combat
+  "initiate a colossal confrontation against": ["FIGHT"],
+  "initiate a colossal confrontation against the": ["FIGHT"],
+  "commence a colossal confrontation against": ["FIGHT"],
+  "commence a colossal confrontation against the": ["FIGHT"],
+  "engage in a colossal confrontation against": ["FIGHT"],
+  "engage in a colossal confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a literary face to face discussion with": ["TALK"],
+  "initiate a literary face to face discussion with the": ["TALK"],
+  "engage in a literary face to face discussion with": ["TALK"],
+  "engage in a literary face to face discussion with the": ["TALK"],
+  "strike up a literary face to face discussion with": ["TALK"],
+  "strike up a literary face to face discussion with the": ["TALK"]
+});
+
+// Cycle #79 / Task-F102: Phase 65 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of patrol towards the location of the",
+  "navigate one's vector of patrol towards the location of",
+  "navigate ones vector of patrol towards the location of the",
+  "navigate ones vector of patrol towards the location of",
+  "steer one's vector of patrol in the direction of the coordinates of the",
+  "steer one's vector of patrol in the direction of the coordinates of",
+  "steer ones vector of patrol in the direction of the coordinates of the",
+  "steer ones vector of patrol in the direction of the coordinates of",
+  "direct one's vector of patrol towards the coordinates of the location of the",
+  "direct one's vector of patrol towards the coordinates of the location of",
+  "direct ones vector of patrol towards the coordinates of the location of the",
+  "direct ones vector of patrol towards the coordinates of the location of",
+  "subject to a comprehensive visual tracking the",
+  "subject to a comprehensive visual tracking",
+  "subject to a thorough visual tracking the",
+  "subject to a thorough visual tracking",
+  "subject to a detailed visual tracking the",
+  "subject to a detailed visual tracking",
+  "assume direct exclusive recovery of the",
+  "assume direct exclusive recovery of",
+  "assume absolute exclusive recovery of the",
+  "assume absolute exclusive recovery of",
+  "assume immediate exclusive recovery of the",
+  "assume immediate exclusive recovery of",
+  "divest oneself of all exclusive recovery of the",
+  "divest oneself of all exclusive recovery of",
+  "relinquish all exclusive recovery of the",
+  "relinquish all exclusive recovery of",
+  "free oneself from all exclusive recovery of the",
+  "free oneself from all exclusive recovery of",
+  "force completely and thermodynamically wide open the",
+  "force completely and thermodynamically wide open",
+  "pry completely and thermodynamically wide open the",
+  "pry completely and thermodynamically wide open",
+  "fasten completely and thermodynamically closed the",
+  "fasten completely and thermodynamically closed",
+  "seal completely and thermodynamically shut the",
+  "seal completely and thermodynamically shut",
+  "deactivate all proximity security devices of the",
+  "deactivate all proximity security devices of",
+  "bypass all proximity security devices on the",
+  "bypass all proximity security devices on",
+  "disengage the primary proximity security device on the",
+  "disengage the primary proximity security device on",
+  "harness the full ultimate deployment of the",
+  "harness the full ultimate deployment of",
+  "bring into active ultimate deployment the",
+  "bring into active ultimate deployment",
+  "make complete ultimate deployment of the",
+  "make complete ultimate deployment of",
+  "initiate a colossal confrontation against the",
+  "initiate a colossal confrontation against",
+  "commence a colossal confrontation against the",
+  "commence a colossal confrontation against",
+  "engage in a colossal confrontation against the",
+  "engage in a colossal confrontation against",
+  "initiate a literary face to face discussion with the",
+  "initiate a literary face to face discussion with",
+  "engage in a literary face to face discussion with the",
+  "engage in a literary face to face discussion with",
+  "strike up a literary face to face discussion with the",
+  "strike up a literary face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
