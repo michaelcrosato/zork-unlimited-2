@@ -17902,6 +17902,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an amiable face to face discussion with the": ["TALK"]
 });
 
+// Cycle #87 / Task-F110: Phase 73 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of interception towards the location of": ["MOVE"],
+  "navigate one's vector of interception towards the location of the": ["MOVE"],
+  "navigate ones vector of interception towards the location of": ["MOVE"],
+  "navigate ones vector of interception towards the location of the": ["MOVE"],
+  "steer one's vector of interception in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of interception in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of interception in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of interception in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of interception towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of interception towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of interception towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of interception towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual cataloging": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual cataloging the": ["LOOK_INSPECT"],
+  "subject to a thorough visual cataloging": ["LOOK_INSPECT"],
+  "subject to a thorough visual cataloging the": ["LOOK_INSPECT"],
+  "subject to a detailed visual cataloging": ["LOOK_INSPECT"],
+  "subject to a detailed visual cataloging the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive extraction of": ["TAKE"],
+  "assume direct exclusive extraction of the": ["TAKE"],
+  "assume absolute exclusive extraction of": ["TAKE"],
+  "assume absolute exclusive extraction of the": ["TAKE"],
+  "assume immediate exclusive extraction of": ["TAKE"],
+  "assume immediate exclusive extraction of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive extraction of": ["DROP"],
+  "divest oneself of all exclusive extraction of the": ["DROP"],
+  "relinquish all exclusive extraction of": ["DROP"],
+  "relinquish all exclusive extraction of the": ["DROP"],
+  "free oneself from all exclusive extraction of": ["DROP"],
+  "free oneself from all exclusive extraction of the": ["DROP"],
+
+  // Open/Close
+  "force completely and piezoelectrically wide open": ["OPEN"],
+  "force completely and piezoelectrically wide open the": ["OPEN"],
+  "pry completely and piezoelectrically wide open": ["OPEN"],
+  "pry completely and piezoelectrically wide open the": ["OPEN"],
+  "fasten completely and piezoelectrically closed": ["CLOSE"],
+  "fasten completely and piezoelectrically closed the": ["CLOSE"],
+  "seal completely and piezoelectrically shut": ["CLOSE"],
+  "seal completely and piezoelectrically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all superconducting security devices of": ["UNLOCK"],
+  "deactivate all superconducting security devices of the": ["UNLOCK"],
+  "bypass all superconducting security devices on": ["UNLOCK"],
+  "bypass all superconducting security devices on the": ["UNLOCK"],
+  "disengage the primary superconducting security device on": ["UNLOCK"],
+  "disengage the primary superconducting security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full streamlined deployment of": ["USE"],
+  "harness the full streamlined deployment of the": ["USE"],
+  "bring into active streamlined deployment": ["USE"],
+  "bring into active streamlined deployment the": ["USE"],
+  "make complete streamlined deployment of": ["USE"],
+  "make complete streamlined deployment of the": ["USE"],
+
+  // Combat
+  "initiate a calamitous confrontation against": ["FIGHT"],
+  "initiate a calamitous confrontation against the": ["FIGHT"],
+  "commence a calamitous confrontation against": ["FIGHT"],
+  "commence a calamitous confrontation against the": ["FIGHT"],
+  "engage in a calamitous confrontation against": ["FIGHT"],
+  "engage in a calamitous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a pleasant face to face discussion with": ["TALK"],
+  "initiate a pleasant face to face discussion with the": ["TALK"],
+  "engage in a pleasant face to face discussion with": ["TALK"],
+  "engage in a pleasant face to face discussion with the": ["TALK"],
+  "strike up a pleasant face to face discussion with": ["TALK"],
+  "strike up a pleasant face to face discussion with the": ["TALK"]
+});
+
 // Cycle #80 / Task-F103: Phase 66 compound verbs
 compoundVerbs.push(
   "navigate one's vector of scouting towards the location of the",
@@ -18362,6 +18445,72 @@ compoundVerbs.push(
   "engage in an amiable face to face discussion with",
   "strike up an amiable face to face discussion with the",
   "strike up an amiable face to face discussion with"
+);
+
+// Cycle #87 / Task-F110: Phase 73 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of interception towards the location of the",
+  "navigate one's vector of interception towards the location of",
+  "navigate ones vector of interception towards the location of the",
+  "navigate ones vector of interception towards the location of",
+  "steer one's vector of interception in the direction of the coordinates of the",
+  "steer one's vector of interception in the direction of the coordinates of",
+  "steer ones vector of interception in the direction of the coordinates of the",
+  "steer ones vector of interception in the direction of the coordinates of",
+  "direct one's vector of interception towards the coordinates of the location of the",
+  "direct one's vector of interception towards the coordinates of the location of",
+  "direct ones vector of interception towards the coordinates of the location of the",
+  "direct ones vector of interception towards the coordinates of the location of",
+  "subject to a comprehensive visual cataloging the",
+  "subject to a comprehensive visual cataloging",
+  "subject to a thorough visual cataloging the",
+  "subject to a thorough visual cataloging",
+  "subject to a detailed visual cataloging the",
+  "subject to a detailed visual cataloging",
+  "assume direct exclusive extraction of the",
+  "assume direct exclusive extraction of",
+  "assume absolute exclusive extraction of the",
+  "assume absolute exclusive extraction of",
+  "assume immediate exclusive extraction of the",
+  "assume immediate exclusive extraction of",
+  "divest oneself of all exclusive extraction of the",
+  "divest oneself of all exclusive extraction of",
+  "relinquish all exclusive extraction of the",
+  "relinquish all exclusive extraction of",
+  "free oneself from all exclusive extraction of the",
+  "free oneself from all exclusive extraction of",
+  "force completely and piezoelectrically wide open the",
+  "force completely and piezoelectrically wide open",
+  "pry completely and piezoelectrically wide open the",
+  "pry completely and piezoelectrically wide open",
+  "fasten completely and piezoelectrically closed the",
+  "fasten completely and piezoelectrically closed",
+  "seal completely and piezoelectrically shut the",
+  "seal completely and piezoelectrically shut",
+  "deactivate all superconducting security devices of the",
+  "deactivate all superconducting security devices of",
+  "bypass all superconducting security devices on the",
+  "bypass all superconducting security devices on",
+  "disengage the primary superconducting security device on the",
+  "disengage the primary superconducting security device on",
+  "harness the full streamlined deployment of the",
+  "harness the full streamlined deployment of",
+  "bring into active streamlined deployment the",
+  "bring into active streamlined deployment",
+  "make complete streamlined deployment of the",
+  "make complete streamlined deployment of",
+  "initiate a calamitous confrontation against the",
+  "initiate a calamitous confrontation against",
+  "commence a calamitous confrontation against the",
+  "commence a calamitous confrontation against",
+  "engage in a calamitous confrontation against the",
+  "engage in a calamitous confrontation against",
+  "initiate a pleasant face to face discussion with the",
+  "initiate a pleasant face to face discussion with",
+  "engage in a pleasant face to face discussion with the",
+  "engage in a pleasant face to face discussion with",
+  "strike up a pleasant face to face discussion with the",
+  "strike up a pleasant face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
