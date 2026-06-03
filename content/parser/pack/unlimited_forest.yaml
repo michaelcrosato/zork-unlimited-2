@@ -4,6 +4,7 @@ meta:
   start_room: clearing
   vars_init:
     score: 0
+    gold: 50
   flags_init: [ shovel_undug ]
 
 rooms:
@@ -17,9 +18,9 @@ rooms:
 
   - id: deep_forest
     name: "Deep Forest"
-    description: "The canopy blocks out most of the sun. It feels gloomy and silent."
+    description: "The canopy blocks out most of the sun. It feels gloomy and silent. A goblin merchant sits on a mossy log here."
     objects: []
-    npcs: []
+    npcs: [ goblin_merchant ]
     exits:
       - { direction: east, to: clearing }
 
@@ -48,6 +49,48 @@ objects:
               name: "Hidden Glade"
               description: "A beautiful hidden glade has been revealed here. Wildflowers of all colors grow in abundance."
           - narrate: "You dig vigorously into the earthen mound with the shovel. After a few scoops, you uncover a hidden passage leading east!"
+
+  - id: gold_ring
+    name: "gold ring"
+    aliases: [ ring, gold ring, golden ring ]
+    description: "A shiny golden ring that glimmers under any light."
+    takeable: true
+
+npcs:
+  - id: goblin_merchant
+    name: "goblin merchant"
+    description: "A green-skinned goblin merchant wearing a purple vest and a monocle."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Greetings, tall one! I have rare goods. I can sell you a shiny golden ring for 30 gold. Or, if you have a golden ring, I can buy it back for 15 gold."
+          topics:
+            - { id: buy_ring, prompt: "Buy gold ring (30 gold)", goto: bought_ring }
+            - { id: sell_ring, prompt: "Sell gold ring (15 gold)", goto: sold_ring }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: bought_ring
+          npc_text: "A fine choice! The ring is yours."
+          effects:
+            - trade_item:
+                give_gold: 30
+                receive_item: gold_ring
+                fail_msg: "\"You do not have enough gold!\" he cackles."
+                success_msg: "You trade 30 gold for a beautiful gold ring."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: sold_ring
+          npc_text: "Excellent business! Here is your gold."
+          effects:
+            - trade_item:
+                give_item: gold_ring
+                receive_gold: 15
+                fail_msg: "\"You do not possess the ring!\" he snarls."
+                success_msg: "You trade your gold ring for 15 gold."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
 
 win_conditions:
   - id: reach_glade
