@@ -15015,7 +15015,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a collaborative face to face discussion with": ["TALK"],
   "engage in a collaborative face to face discussion with the": ["TALK"],
   "strike up a collaborative face to face discussion with": ["TALK"],
-  "strike up a collaborative face to face discussion with the": ["TALK"]
+  "strike up a collaborative face to face discussion with the": ["TALK"],
+
+  // Phase 53
+  // Move
+  "navigate one's vector of passage towards the location of": ["MOVE"],
+  "navigate one's vector of passage towards the location of the": ["MOVE"],
+  "navigate ones vector of passage towards the location of": ["MOVE"],
+  "navigate ones vector of passage towards the location of the": ["MOVE"],
+  "steer one's vector of passage in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of passage in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of passage in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of passage in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of passage towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of passage towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of passage towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of passage towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual comprehension": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual comprehension the": ["LOOK_INSPECT"],
+  "subject to a thorough visual comprehension": ["LOOK_INSPECT"],
+  "subject to a thorough visual comprehension the": ["LOOK_INSPECT"],
+  "subject to a detailed visual comprehension": ["LOOK_INSPECT"],
+  "subject to a detailed visual comprehension the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive administration of": ["TAKE"],
+  "assume direct exclusive administration of the": ["TAKE"],
+  "assume absolute exclusive administration of": ["TAKE"],
+  "assume absolute exclusive administration of the": ["TAKE"],
+  "assume immediate exclusive administration of": ["TAKE"],
+  "assume immediate exclusive administration of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive administration of": ["DROP"],
+  "divest oneself of all exclusive administration of the": ["DROP"],
+  "relinquish all exclusive administration of": ["DROP"],
+  "relinquish all exclusive administration of the": ["DROP"],
+  "free oneself from all exclusive administration of": ["DROP"],
+  "free oneself from all exclusive administration of the": ["DROP"],
+
+  // Open/Close
+  "force completely and selectively wide open": ["OPEN"],
+  "force completely and selectively wide open the": ["OPEN"],
+  "pry completely and selectively wide open": ["OPEN"],
+  "pry completely and selectively wide open the": ["OPEN"],
+  "fasten completely and selectively closed": ["CLOSE"],
+  "fasten completely and selectively closed the": ["CLOSE"],
+  "seal completely and selectively shut": ["CLOSE"],
+  "seal completely and selectively shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all mainframe security devices of": ["UNLOCK"],
+  "deactivate all mainframe security devices of the": ["UNLOCK"],
+  "bypass all mainframe security devices on": ["UNLOCK"],
+  "bypass all mainframe security devices on the": ["UNLOCK"],
+  "disengage the primary mainframe security device on": ["UNLOCK"],
+  "disengage the primary mainframe security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full diagnostic deployment of": ["USE"],
+  "harness the full diagnostic deployment of the": ["USE"],
+  "bring into active diagnostic deployment": ["USE"],
+  "bring into active diagnostic deployment the": ["USE"],
+  "make complete diagnostic deployment of": ["USE"],
+  "make complete diagnostic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a vehement confrontation against": ["FIGHT"],
+  "initiate a vehement confrontation against the": ["FIGHT"],
+  "commence a vehement confrontation against": ["FIGHT"],
+  "commence a vehement confrontation against the": ["FIGHT"],
+  "engage in a vehement confrontation against": ["FIGHT"],
+  "engage in a vehement confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a cooperative face to face discussion with": ["TALK"],
+  "initiate a cooperative face to face discussion with the": ["TALK"],
+  "engage in a cooperative face to face discussion with": ["TALK"],
+  "engage in a cooperative face to face discussion with the": ["TALK"],
+  "strike up a cooperative face to face discussion with": ["TALK"],
+  "strike up a cooperative face to face discussion with the": ["TALK"]
 });
 
 compoundVerbs.push(
@@ -15401,7 +15482,71 @@ compoundVerbs.push(
   "engage in a collaborative face to face discussion with the",
   "engage in a collaborative face to face discussion with",
   "strike up a collaborative face to face discussion with the",
-  "strike up a collaborative face to face discussion with"
+  "strike up a collaborative face to face discussion with",
+
+  // Phase 53 compound verbs
+  "navigate one's vector of passage towards the location of the",
+  "navigate one's vector of passage towards the location of",
+  "navigate ones vector of passage towards the location of the",
+  "navigate ones vector of passage towards the location of",
+  "steer one's vector of passage in the direction of the coordinates of the",
+  "steer one's vector of passage in the direction of the coordinates of",
+  "steer ones vector of passage in the direction of the coordinates of the",
+  "steer ones vector of passage in the direction of the coordinates of",
+  "direct one's vector of passage towards the coordinates of the location of the",
+  "direct one's vector of passage towards the coordinates of the location of",
+  "direct ones vector of passage towards the coordinates of the location of the",
+  "direct ones vector of passage towards the coordinates of the location of",
+  "subject to a comprehensive visual comprehension the",
+  "subject to a comprehensive visual comprehension",
+  "subject to a thorough visual comprehension the",
+  "subject to a thorough visual comprehension",
+  "subject to a detailed visual comprehension the",
+  "subject to a detailed visual comprehension",
+  "assume direct exclusive administration of the",
+  "assume direct exclusive administration of",
+  "assume absolute exclusive administration of the",
+  "assume absolute exclusive administration of",
+  "assume immediate exclusive administration of the",
+  "assume immediate exclusive administration of",
+  "divest oneself of all exclusive administration of the",
+  "divest oneself of all exclusive administration of",
+  "relinquish all exclusive administration of the",
+  "relinquish all exclusive administration of",
+  "free oneself from all exclusive administration of the",
+  "free oneself from all exclusive administration of",
+  "force completely and selectively wide open the",
+  "force completely and selectively wide open",
+  "pry completely and selectively wide open the",
+  "pry completely and selectively wide open",
+  "fasten completely and selectively closed the",
+  "fasten completely and selectively closed",
+  "seal completely and selectively shut the",
+  "seal completely and selectively shut",
+  "deactivate all mainframe security devices of the",
+  "deactivate all mainframe security devices of",
+  "bypass all mainframe security devices on the",
+  "bypass all mainframe security devices on",
+  "disengage the primary mainframe security device on the",
+  "disengage the primary mainframe security device on",
+  "harness the full diagnostic deployment of the",
+  "harness the full diagnostic deployment of",
+  "bring into active diagnostic deployment the",
+  "bring into active diagnostic deployment",
+  "make complete diagnostic deployment of the",
+  "make complete diagnostic deployment of",
+  "initiate a vehement confrontation against the",
+  "initiate a vehement confrontation against",
+  "commence a vehement confrontation against the",
+  "commence a vehement confrontation against",
+  "engage in a vehement confrontation against the",
+  "engage in a vehement confrontation against",
+  "initiate a cooperative face to face discussion with the",
+  "initiate a cooperative face to face discussion with",
+  "engage in a cooperative face to face discussion with the",
+  "engage in a cooperative face to face discussion with",
+  "strike up a cooperative face to face discussion with the",
+  "strike up a cooperative face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
