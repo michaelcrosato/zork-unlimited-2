@@ -23,6 +23,7 @@ rooms:
     description: "You stand before the towering iron gates of the Castle of Shadows. The gates are shut tight. To the west lies a steep Castle Wall that looks climbable."
     objects: [ gate_lever ]
     npcs: [ royal_scout ]
+    weather_pool: [ clear, rain, fog ]
     exits:
       - direction: west
         to: castle_wall
@@ -36,6 +37,7 @@ rooms:
     description: "A sheer stone wall rises up into the darkness. Handholds are sparse, but a skilled climber could scale it to reach the battlements above."
     objects: [ stone_wall ]
     npcs: []
+    weather_pool: [ clear, rain, storm ]
     exits:
       - direction: east
         to: castle_gates
@@ -49,6 +51,7 @@ rooms:
     description: "Wind howls across the castle battlements. From here, a stone stairway leads down into the Castle Courtyard."
     objects: []
     npcs: []
+    weather_pool: [ clear, rain, storm ]
     exits:
       - direction: down
         to: castle_courtyard
@@ -58,6 +61,7 @@ rooms:
     description: "A wide cobblestone courtyard. A menacing Goblin Guard stands in the center, blocking access to the inner rooms: the Library to the west, the Armory to the east, and the Dungeon to the north."
     objects: []
     npcs: [ goblin_guard ]
+    weather_pool: [ clear, rain, fog, storm ]
     exits:
       - direction: south
         to: castle_gates
@@ -292,7 +296,32 @@ npcs:
     description: "A keen-eyed scout wearing leather armor, watching the castle from the shadows."
     dialogue:
       root: greet
+      greeting_overrides:
+        - node: greet_fog
+          conditions: [ { weather_is: "fog" } ]
+        - node: greet_storm
+          conditions: [ { weather_is: "storm" } ]
       nodes:
+        - id: greet_fog
+          npc_text: "Be careful out there, traveler. The fog is dense today, obscuring the path to the courtyard."
+          topics:
+            - { id: ask_contracts, prompt: "Ask about scout contracts", goto: contract_list }
+            - { id: check_prestige, prompt: "Ask about your scouts prestige", goto: prestige_info }
+            - { id: request_badge, prompt: "Request a Scout Badge (Requires 50 Royal Scouts Prestige)", goto: give_badge, conditions: [ { guild_prestige_gte: { guild: "royal_scouts", value: 50 } }, { none_of: [ { has_item: "scout_badge" } ] } ] }
+            - { id: turn_in_smuggle, prompt: "Report delivery of the broadsword to the Castle Wall", goto: smuggle_success, conditions: [ { guild_contract_active: "c_smuggle_broadsword" }, { has_item: "broadsword" }, { visited: "castle_wall" } ] }
+            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_defeated_goblin_guard" } ] }
+            - { id: turn_in_seal, prompt: "Report delivery of the Royal Seal to the Castle Wall", goto: seal_success, conditions: [ { guild_contract_active: "c_smuggle_royal_seal" }, { has_item: "royal_seal" }, { visited: "castle_wall" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: greet_storm
+          npc_text: "A storm is raging! The castle wall is slick and the wind is howling across the battlements."
+          topics:
+            - { id: ask_contracts, prompt: "Ask about scout contracts", goto: contract_list }
+            - { id: check_prestige, prompt: "Ask about your scouts prestige", goto: prestige_info }
+            - { id: request_badge, prompt: "Request a Scout Badge (Requires 50 Royal Scouts Prestige)", goto: give_badge, conditions: [ { guild_prestige_gte: { guild: "royal_scouts", value: 50 } }, { none_of: [ { has_item: "scout_badge" } ] } ] }
+            - { id: turn_in_smuggle, prompt: "Report delivery of the broadsword to the Castle Wall", goto: smuggle_success, conditions: [ { guild_contract_active: "c_smuggle_broadsword" }, { has_item: "broadsword" }, { visited: "castle_wall" } ] }
+            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_defeated_goblin_guard" } ] }
+            - { id: turn_in_seal, prompt: "Report delivery of the Royal Seal to the Castle Wall", goto: seal_success, conditions: [ { guild_contract_active: "c_smuggle_royal_seal" }, { has_item: "royal_seal" }, { visited: "castle_wall" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
         - id: greet
           npc_text: "Greetings, traveler. I am a scout for the King. We need agents to perform contracts. Do you wish to help?"
           topics:

@@ -13,6 +13,7 @@ rooms:
     description: "A beautiful sunlit clearing in the heart of the forest. The trees press in close, but a path leads west. Steep rocks lead up to a cliffside."
     objects: [ shovel, mound ]
     npcs: [ guild_master ]
+    weather_pool: [ clear, rain, fog ]
     exits:
       - { direction: west, to: deep_forest }
       - direction: up
@@ -30,6 +31,7 @@ rooms:
     description: "The canopy blocks out most of the sun. It feels gloomy and silent. A goblin merchant sits on a mossy log here."
     objects: []
     npcs: [ goblin_merchant, goblin_thief ]
+    weather_pool: [ fog, rain ]
     exits:
       - { direction: east, to: clearing }
 
@@ -38,6 +40,7 @@ rooms:
     description: "A high cliffside overlooking the forest below. The rocks here are slick and steep."
     objects: []
     npcs: []
+    weather_pool: [ clear, rain, storm ]
     exits:
       - { direction: down, to: clearing }
 
@@ -72,17 +75,25 @@ objects:
     aliases: [ ring, gold ring, golden ring ]
     description: "A shiny golden ring that glimmers under any light."
     takeable: true
+    cost: 30
 
   - id: leather_boots
     name: "leather boots"
     aliases: [ boots, leather boots ]
     description: "Sturdy leather boots that provide excellent traction on slick surfaces."
     takeable: true
+    cost: 20
+    climate_pricing:
+      rain: 1.5
+      storm: 2.0
 
 npcs:
   - id: goblin_merchant
     name: "goblin merchant"
     description: "A green-skinned goblin merchant wearing a purple vest and a monocle."
+    climate_pricing:
+      fog: 1.5
+      rain: 0.8
     dialogue:
       root: greet
       nodes:
@@ -132,7 +143,28 @@ npcs:
     description: "A hooded figure wearing the emblem of the Smugglers Guild."
     dialogue:
       root: greet
+      greeting_overrides:
+        - node: greet_fog
+          conditions: [ { weather_is: "fog" } ]
+        - node: greet_rain
+          conditions: [ { weather_is: "rain" } ]
       nodes:
+        - id: greet_fog
+          npc_text: "The fog is thick today. Watch your step, and carry a lantern if you travel out of this clearing!"
+          topics:
+            - { id: ask_contracts, prompt: "Ask about available contracts", goto: contract_list }
+            - { id: check_prestige, prompt: "Check your prestige", goto: prestige_info }
+            - { id: turn_in_smuggle, prompt: "Report completion of the smuggling contract", goto: turn_in_success, conditions: [ { guild_contract_active: "c_smuggle_ring" }, { has_item: "gold_ring" }, { visited: "cliffside" } ] }
+            - { id: turn_in_enforce, prompt: "Report completion of the enforcement contract", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_thief" }, { has_flag: "npc_defeated_goblin_thief" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: greet_rain
+          npc_text: "This rain is miserable. The rocks leading up to the cliffside are too slick to climb without leather boots."
+          topics:
+            - { id: ask_contracts, prompt: "Ask about available contracts", goto: contract_list }
+            - { id: check_prestige, prompt: "Check your prestige", goto: prestige_info }
+            - { id: turn_in_smuggle, prompt: "Report completion of the smuggling contract", goto: turn_in_success, conditions: [ { guild_contract_active: "c_smuggle_ring" }, { has_item: "gold_ring" }, { visited: "cliffside" } ] }
+            - { id: turn_in_enforce, prompt: "Report completion of the enforcement contract", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_thief" }, { has_flag: "npc_defeated_goblin_thief" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
         - id: greet
           npc_text: "Welcome to the Smugglers outpost. If you want to increase your prestige and earn gold, I have contracts for you. Or, if you have finished a contract, report to me."
           topics:
