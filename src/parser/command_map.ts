@@ -17819,6 +17819,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a productive face to face discussion with the": ["TALK"]
 });
 
+// Cycle #86 / Task-F109: Phase 72 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of pursuit towards the location of": ["MOVE"],
+  "navigate one's vector of pursuit towards the location of the": ["MOVE"],
+  "navigate ones vector of pursuit towards the location of": ["MOVE"],
+  "navigate ones vector of pursuit towards the location of the": ["MOVE"],
+  "steer one's vector of pursuit in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of pursuit in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of pursuit in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of pursuit in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of pursuit towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of pursuit towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of pursuit towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of pursuit towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual dissection": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual dissection the": ["LOOK_INSPECT"],
+  "subject to a thorough visual dissection": ["LOOK_INSPECT"],
+  "subject to a thorough visual dissection the": ["LOOK_INSPECT"],
+  "subject to a detailed visual dissection": ["LOOK_INSPECT"],
+  "subject to a detailed visual dissection the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive reclamation of": ["TAKE"],
+  "assume direct exclusive reclamation of the": ["TAKE"],
+  "assume absolute exclusive reclamation of": ["TAKE"],
+  "assume absolute exclusive reclamation of the": ["TAKE"],
+  "assume immediate exclusive reclamation of": ["TAKE"],
+  "assume immediate exclusive reclamation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive reclamation of": ["DROP"],
+  "divest oneself of all exclusive reclamation of the": ["DROP"],
+  "relinquish all exclusive reclamation of": ["DROP"],
+  "relinquish all exclusive reclamation of the": ["DROP"],
+  "free oneself from all exclusive reclamation of": ["DROP"],
+  "free oneself from all exclusive reclamation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and cryogenically wide open": ["OPEN"],
+  "force completely and cryogenically wide open the": ["OPEN"],
+  "pry completely and cryogenically wide open": ["OPEN"],
+  "pry completely and cryogenically wide open the": ["OPEN"],
+  "fasten completely and cryogenically closed": ["CLOSE"],
+  "fasten completely and cryogenically closed the": ["CLOSE"],
+  "seal completely and cryogenically shut": ["CLOSE"],
+  "seal completely and cryogenically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all subatomic security devices of": ["UNLOCK"],
+  "deactivate all subatomic security devices of the": ["UNLOCK"],
+  "bypass all subatomic security devices on": ["UNLOCK"],
+  "bypass all subatomic security devices on the": ["UNLOCK"],
+  "disengage the primary subatomic security device on": ["UNLOCK"],
+  "disengage the primary subatomic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full harmonized deployment of": ["USE"],
+  "harness the full harmonized deployment of the": ["USE"],
+  "bring into active harmonized deployment": ["USE"],
+  "bring into active harmonized deployment the": ["USE"],
+  "make complete harmonized deployment of": ["USE"],
+  "make complete harmonized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a furious confrontation against": ["FIGHT"],
+  "initiate a furious confrontation against the": ["FIGHT"],
+  "commence a furious confrontation against": ["FIGHT"],
+  "commence a furious confrontation against the": ["FIGHT"],
+  "engage in a furious confrontation against": ["FIGHT"],
+  "engage in a furious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an amiable face to face discussion with": ["TALK"],
+  "initiate an amiable face to face discussion with the": ["TALK"],
+  "engage in an amiable face to face discussion with": ["TALK"],
+  "engage in an amiable face to face discussion with the": ["TALK"],
+  "strike up an amiable face to face discussion with": ["TALK"],
+  "strike up an amiable face to face discussion with the": ["TALK"]
+});
+
 // Cycle #80 / Task-F103: Phase 66 compound verbs
 compoundVerbs.push(
   "navigate one's vector of scouting towards the location of the",
@@ -18213,6 +18296,72 @@ compoundVerbs.push(
   "engage in a productive face to face discussion with",
   "strike up a productive face to face discussion with the",
   "strike up a productive face to face discussion with"
+);
+
+// Cycle #86 / Task-F109: Phase 72 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of pursuit towards the location of the",
+  "navigate one's vector of pursuit towards the location of",
+  "navigate ones vector of pursuit towards the location of the",
+  "navigate ones vector of pursuit towards the location of",
+  "steer one's vector of pursuit in the direction of the coordinates of the",
+  "steer one's vector of pursuit in the direction of the coordinates of",
+  "steer ones vector of pursuit in the direction of the coordinates of the",
+  "steer ones vector of pursuit in the direction of the coordinates of",
+  "direct one's vector of pursuit towards the coordinates of the location of the",
+  "direct one's vector of pursuit towards the coordinates of the location of",
+  "direct ones vector of pursuit towards the coordinates of the location of the",
+  "direct ones vector of pursuit towards the coordinates of the location of",
+  "subject to a comprehensive visual dissection the",
+  "subject to a comprehensive visual dissection",
+  "subject to a thorough visual dissection the",
+  "subject to a thorough visual dissection",
+  "subject to a detailed visual dissection the",
+  "subject to a detailed visual dissection",
+  "assume direct exclusive reclamation of the",
+  "assume direct exclusive reclamation of",
+  "assume absolute exclusive reclamation of the",
+  "assume absolute exclusive reclamation of",
+  "assume immediate exclusive reclamation of the",
+  "assume immediate exclusive reclamation of",
+  "divest oneself of all exclusive reclamation of the",
+  "divest oneself of all exclusive reclamation of",
+  "relinquish all exclusive reclamation of the",
+  "relinquish all exclusive reclamation of",
+  "free oneself from all exclusive reclamation of the",
+  "free oneself from all exclusive reclamation of",
+  "force completely and cryogenically wide open the",
+  "force completely and cryogenically wide open",
+  "pry completely and cryogenically wide open the",
+  "pry completely and cryogenically wide open",
+  "fasten completely and cryogenically closed the",
+  "fasten completely and cryogenically closed",
+  "seal completely and cryogenically shut the",
+  "seal completely and cryogenically shut",
+  "deactivate all subatomic security devices of the",
+  "deactivate all subatomic security devices of",
+  "bypass all subatomic security devices on the",
+  "bypass all subatomic security devices on",
+  "disengage the primary subatomic security device on the",
+  "disengage the primary subatomic security device on",
+  "harness the full harmonized deployment of the",
+  "harness the full harmonized deployment of",
+  "bring into active harmonized deployment the",
+  "bring into active harmonized deployment",
+  "make complete harmonized deployment of the",
+  "make complete harmonized deployment of",
+  "initiate a furious confrontation against the",
+  "initiate a furious confrontation against",
+  "commence a furious confrontation against the",
+  "commence a furious confrontation against",
+  "engage in a furious confrontation against the",
+  "engage in a furious confrontation against",
+  "initiate an amiable face to face discussion with the",
+  "initiate an amiable face to face discussion with",
+  "engage in an amiable face to face discussion with the",
+  "engage in an amiable face to face discussion with",
+  "strike up an amiable face to face discussion with the",
+  "strike up an amiable face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
