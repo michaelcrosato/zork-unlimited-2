@@ -6731,6 +6731,45 @@ compoundVerbs.push(
   "deploy the"
 );
 
+// Cycle #14 / Task-F40: Expanded synonym mappings Phase 5 for movement, combat, and use categories
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  saunter: ["MOVE"],
+  trudge: ["MOVE"],
+  hike: ["MOVE"],
+
+  // Combat
+  "wage war on": ["FIGHT"],
+  "strike down": ["FIGHT"],
+  "lay waste to": ["FIGHT"],
+
+  // Use
+  exploit: ["USE"],
+  employ: ["USE"],
+  apply: ["USE"],
+
+  // Compound Movement
+  "trudge to": ["MOVE"],
+  "hike to": ["MOVE"],
+  "saunter to": ["MOVE"],
+
+  // Compound Use
+  "put to use": ["USE"],
+  "make use of": ["USE"]
+});
+
+compoundVerbs.push(
+  "trudge to",
+  "hike to",
+  "saunter to",
+  "wage war on",
+  "strike down",
+  "lay waste to",
+  "put to use",
+  "make use of"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
+
 
 
