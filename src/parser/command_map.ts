@@ -5754,5 +5754,206 @@ SYNONYM_GROUPS.push(
   ]
 );
 
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  sprint: ["MOVE"],
+  clamber: ["MOVE"],
+  scramble: ["MOVE"],
+  trek: ["MOVE"],
+  navigate: ["MOVE"],
+  retreat: ["MOVE", "FLEE"],
+
+  // Look
+  survey: ["LOOK_INSPECT"],
+  eyeball: ["LOOK_INSPECT"],
+  peruse: ["LOOK_INSPECT"],
+
+  // Take
+  grab: ["TAKE"],
+  gather: ["TAKE"],
+  pocket: ["TAKE"],
+  seize: ["TAKE"],
+  pilfer: ["TAKE"],
+  loot: ["TAKE"],
+
+  // Drop
+  discard: ["DROP"],
+  dump: ["DROP"],
+  shed: ["DROP"],
+  toss: ["DROP"],
+  fling: ["DROP"],
+
+  // Open
+  unseal: ["OPEN"],
+  unlatch: ["OPEN"],
+
+  // Close
+  shut: ["CLOSE"],
+  fasten: ["CLOSE"],
+
+  // Unlock
+  unbolt: ["UNLOCK"],
+
+  // Use
+  activate: ["USE"],
+  trigger: ["USE"],
+  operate: ["USE"],
+  engage: ["USE"],
+  utilize: ["USE"],
+  apply: ["USE"],
+
+  // Talk
+  greet: ["TALK", "ASK"],
+  address: ["TALK", "ASK"],
+  hail: ["TALK", "ASK"],
+
+  // Ask
+  inquire: ["ASK"],
+  interrogate: ["ASK"],
+  demand: ["ASK"],
+
+  // Give
+  hand: ["GIVE"],
+  present: ["GIVE"],
+  deliver: ["GIVE"],
+  transfer: ["GIVE"],
+
+  // Inventory
+  bag: ["INVENTORY"],
+  carrying: ["INVENTORY"],
+
+  // Fight
+  strike: ["FIGHT"],
+  attack: ["FIGHT"],
+  assault: ["FIGHT"],
+  hit: ["FIGHT"],
+  clash: ["FIGHT"],
+
+  // Cast
+  conjure: ["CAST"],
+  invoke: ["CAST"],
+  release: ["CAST"],
+
+  // Flee
+  escape: ["FLEE"],
+  withdraw: ["FLEE"]
+});
+
+compoundVerbs.push(
+  "take a look at the",
+  "take a look at",
+  "get a look at the",
+  "get a look at",
+  "strike a blow at the",
+  "strike a blow at",
+  "strike at the",
+  "strike at",
+  "cast a spell on the",
+  "cast a spell on",
+  "throw a fireball at the",
+  "throw a fireball at",
+  "flee away from the",
+  "flee away from",
+  "greet the",
+  "talk with the",
+  "speak with the",
+  "converse with the"
+);
+
+SYNONYM_GROUPS.push(
+  // Light sources
+  [
+    "lamp",
+    "lantern",
+    "torch",
+    "light",
+    "candle",
+    "beacon",
+    "flashlight",
+    "flame",
+    "illumination"
+  ],
+  // Doors and exits
+  [
+    "door",
+    "gate",
+    "portal",
+    "entrance",
+    "exit",
+    "entryway",
+    "doorway",
+    "hatch",
+    "barrier",
+    "grate",
+    "portcullis",
+    "archway"
+  ],
+  // Ropes and coils
+  [
+    "rope",
+    "coil",
+    "cable",
+    "chain",
+    "cord",
+    "line",
+    "string",
+    "tether",
+    "lasso"
+  ],
+  // Digging tools
+  [
+    "shovel",
+    "spade",
+    "trowel",
+    "scoop",
+    "mattock",
+    "pickaxe",
+    "implement",
+    "tool"
+  ],
+  // Enemies / Hostiles
+  [
+    "enemy",
+    "foe",
+    "adversary",
+    "hostile",
+    "opponent",
+    "monster",
+    "beast",
+    "creature",
+    "knight",
+    "goblin",
+    "bandit",
+    "thug",
+    "boss",
+    "sheriff",
+    "enforcer",
+    "capo"
+  ],
+  // Bandits / Thieves
+  [
+    "bandit",
+    "thug",
+    "thief",
+    "rogue",
+    "brigand",
+    "outlaw",
+    "raider",
+    "robber",
+    "marauder"
+  ],
+  // Key variations
+  [
+    "key",
+    "brass_key",
+    "iron_key",
+    "vault_key",
+    "passkey",
+    "lockpick",
+    "pick"
+  ]
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
+
 

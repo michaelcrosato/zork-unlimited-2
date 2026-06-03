@@ -744,4 +744,40 @@ describe("mapCommand", () => {
     expect(mapCommand("shop knife from vendor", actions).action).toEqual({ type: "BUY", item: "knife" });
     expect(mapCommand("vend knife to dealer", actions).action).toEqual({ type: "SELL", item: "knife" });
   });
+
+  it("handles the newest expanded synonyms, compound verbs, and concept groups", () => {
+    const actions = [
+      { id: "move-east", command: "go east", action: { type: "MOVE" as const, direction: "east" } },
+      { id: "look-lamp", command: "look at lantern", action: { type: "LOOK" as const, target: "lamp" } },
+      { id: "take-rope", command: "take coil of rope", action: { type: "TAKE" as const, item: "rope" } },
+      { id: "drop-shovel", command: "drop rusty shovel", action: { type: "DROP" as const, item: "shovel" } },
+      { id: "open-gate", command: "open iron gate", action: { type: "OPEN" as const, target: "gate" } },
+      { id: "close-door", command: "close wooden door", action: { type: "CLOSE" as const, target: "door" } },
+      { id: "unlock-gate", command: "unlock gate with brass key", action: { type: "UNLOCK" as const, target: "gate" } },
+      { id: "use-switch", command: "use stone switch", action: { type: "USE" as const, target: "switch" } },
+      { id: "talk-capo", command: "talk to smuggler capo", action: { type: "TALK" as const, npc: "capo" } },
+      { id: "give-token", command: "give smuggler token", action: { type: "GIVE" as const, item: "token" } },
+      { id: "fight-knight", command: "fight shadow knight", action: { type: "FIGHT" as const, npc: "knight" } },
+      { id: "cast-spell", command: "cast fireball at shadow knight", action: { type: "CAST" as const, spell: "fireball", target: "knight" } },
+      { id: "flee-knight", command: "flee from shadow knight", action: { type: "FLEE" as const } }
+    ];
+
+    expect(mapCommand("sprint east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("survey the lamp", actions).action).toEqual({ type: "LOOK", target: "lamp" });
+    expect(mapCommand("grab the cable", actions).action).toEqual({ type: "TAKE", item: "rope" });
+    expect(mapCommand("toss the spade", actions).action).toEqual({ type: "DROP", item: "shovel" });
+    expect(mapCommand("unseal the portal", actions).action).toEqual({ type: "OPEN", target: "gate" });
+    expect(mapCommand("shut the doorway", actions).action).toEqual({ type: "CLOSE", target: "door" });
+    expect(mapCommand("unlock the entryway with the keys", actions).action).toEqual({ type: "UNLOCK", target: "gate" });
+    expect(mapCommand("activate the handle", actions).action).toEqual({ type: "USE", target: "switch" });
+    expect(mapCommand("greet the boss", actions).action).toEqual({ type: "TALK", npc: "capo" });
+    expect(mapCommand("deliver the pass", actions).action).toEqual({ type: "GIVE", item: "token" });
+    expect(mapCommand("strike the adversary", actions).action).toEqual({ type: "FIGHT", npc: "knight" });
+    expect(mapCommand("throw a fireball at the monster", actions).action).toEqual({
+      type: "CAST",
+      spell: "fireball",
+      target: "knight"
+    });
+    expect(mapCommand("escape", actions).action).toEqual({ type: "FLEE" });
+  });
 });
