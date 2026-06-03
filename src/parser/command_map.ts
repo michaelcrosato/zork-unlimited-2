@@ -20484,7 +20484,87 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a salutary face to face discussion with": ["TALK"],
   "engage in a salutary face to face discussion with the": ["TALK"],
   "strike up a salutary face to face discussion with": ["TALK"],
-  "strike up a salutary face to face discussion with the": ["TALK"]
+  "strike up a salutary face to face discussion with the": ["TALK"],
+
+  // Cycle #102 / Task-F125: Phase 90 movement verbs
+  "navigate one's vector of refraction towards the location of": ["MOVE"],
+  "navigate one's vector of refraction towards the location of the": ["MOVE"],
+  "navigate ones vector of refraction towards the location of": ["MOVE"],
+  "navigate ones vector of refraction towards the location of the": ["MOVE"],
+  "steer one's vector of refraction in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of refraction in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of refraction in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of refraction in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of refraction towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of refraction towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of refraction towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of refraction towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual amplification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual amplification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual amplification": ["LOOK_INSPECT"],
+  "subject to a thorough visual amplification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual amplification": ["LOOK_INSPECT"],
+  "subject to a detailed visual amplification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive commandeering of": ["TAKE"],
+  "assume direct exclusive commandeering of the": ["TAKE"],
+  "assume absolute exclusive commandeering of": ["TAKE"],
+  "assume absolute exclusive commandeering of the": ["TAKE"],
+  "assume immediate exclusive commandeering of": ["TAKE"],
+  "assume immediate exclusive commandeering of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive commandeering of": ["DROP"],
+  "divest oneself of all exclusive commandeering of the": ["DROP"],
+  "relinquish all exclusive commandeering of": ["DROP"],
+  "relinquish all exclusive commandeering of the": ["DROP"],
+  "free oneself from all exclusive commandeering of": ["DROP"],
+  "free oneself from all exclusive commandeering of the": ["DROP"],
+
+  // Open/Close
+  "force completely and magnetofluidically wide open": ["OPEN"],
+  "force completely and magnetofluidically wide open the": ["OPEN"],
+  "pry completely and magnetofluidically wide open": ["OPEN"],
+  "pry completely and magnetofluidically wide open the": ["OPEN"],
+  "fasten completely and magnetofluidically closed": ["CLOSE"],
+  "fasten completely and magnetofluidically closed the": ["CLOSE"],
+  "seal completely and magnetofluidically shut": ["CLOSE"],
+  "seal completely and magnetofluidically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all piezomagnetic security devices of": ["UNLOCK"],
+  "deactivate all piezomagnetic security devices of the": ["UNLOCK"],
+  "bypass all piezomagnetic security devices on": ["UNLOCK"],
+  "bypass all piezomagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary piezomagnetic security device on": ["UNLOCK"],
+  "disengage the primary piezomagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full superlative deployment of": ["USE"],
+  "harness the full superlative deployment of the": ["USE"],
+  "bring into active superlative deployment": ["USE"],
+  "bring into active superlative deployment the": ["USE"],
+  "make complete superlative deployment of": ["USE"],
+  "make complete superlative deployment of the": ["USE"],
+
+  // Combat
+  "initiate a malignant confrontation against": ["FIGHT"],
+  "initiate a malignant confrontation against the": ["FIGHT"],
+  "commence a malignant confrontation against": ["FIGHT"],
+  "commence a malignant confrontation against the": ["FIGHT"],
+  "engage in a malignant confrontation against": ["FIGHT"],
+  "engage in a malignant confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a magnanimous face to face discussion with": ["TALK"],
+  "initiate a magnanimous face to face discussion with the": ["TALK"],
+  "engage in a magnanimous face to face discussion with": ["TALK"],
+  "engage in a magnanimous face to face discussion with the": ["TALK"],
+  "strike up a magnanimous face to face discussion with": ["TALK"],
+  "strike up a magnanimous face to face discussion with the": ["TALK"]
 });
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -20881,6 +20961,72 @@ compoundVerbs.push(
   "engage in a salutary face to face discussion with",
   "strike up a salutary face to face discussion with the",
   "strike up a salutary face to face discussion with"
+);
+
+// Cycle #104 / Task-F127: Phase 90 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of refraction towards the location of the",
+  "navigate one's vector of refraction towards the location of",
+  "navigate ones vector of refraction towards the location of the",
+  "navigate ones vector of refraction towards the location of",
+  "steer one's vector of refraction in the direction of the coordinates of the",
+  "steer one's vector of refraction in the direction of the coordinates of",
+  "steer ones vector of refraction in the direction of the coordinates of the",
+  "steer ones vector of refraction in the direction of the coordinates of",
+  "direct one's vector of refraction towards the coordinates of the location of the",
+  "direct one's vector of refraction towards the coordinates of the location of",
+  "direct ones vector of refraction towards the coordinates of the location of the",
+  "direct ones vector of refraction towards the coordinates of the location of",
+  "subject to a comprehensive visual amplification the",
+  "subject to a comprehensive visual amplification",
+  "subject to a thorough visual amplification the",
+  "subject to a thorough visual amplification",
+  "subject to a detailed visual amplification the",
+  "subject to a detailed visual amplification",
+  "assume direct exclusive commandeering of the",
+  "assume direct exclusive commandeering of",
+  "assume absolute exclusive commandeering of the",
+  "assume absolute exclusive commandeering of",
+  "assume immediate exclusive commandeering of the",
+  "assume immediate exclusive commandeering of",
+  "divest oneself of all exclusive commandeering of the",
+  "divest oneself of all exclusive commandeering of",
+  "relinquish all exclusive commandeering of the",
+  "relinquish all exclusive commandeering of",
+  "free oneself from all exclusive commandeering of the",
+  "free oneself from all exclusive commandeering of",
+  "force completely and magnetofluidically wide open the",
+  "force completely and magnetofluidically wide open",
+  "pry completely and magnetofluidically wide open the",
+  "pry completely and magnetofluidically wide open",
+  "fasten completely and magnetofluidically closed the",
+  "fasten completely and magnetofluidically closed",
+  "seal completely and magnetofluidically shut the",
+  "seal completely and magnetofluidically shut",
+  "deactivate all piezomagnetic security devices of the",
+  "deactivate all piezomagnetic security devices of",
+  "bypass all piezomagnetic security devices on the",
+  "bypass all piezomagnetic security devices on",
+  "disengage the primary piezomagnetic security device on the",
+  "disengage the primary piezomagnetic security device on",
+  "harness the full superlative deployment of the",
+  "harness the full superlative deployment of",
+  "bring into active superlative deployment the",
+  "bring into active superlative deployment",
+  "make complete superlative deployment of the",
+  "make complete superlative deployment of",
+  "initiate a malignant confrontation against the",
+  "initiate a malignant confrontation against",
+  "commence a malignant confrontation against the",
+  "commence a malignant confrontation against",
+  "engage in a malignant confrontation against the",
+  "engage in a malignant confrontation against",
+  "initiate a magnanimous face to face discussion with the",
+  "initiate a magnanimous face to face discussion with",
+  "engage in a magnanimous face to face discussion with the",
+  "engage in a magnanimous face to face discussion with",
+  "strike up a magnanimous face to face discussion with the",
+  "strike up a magnanimous face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
