@@ -13030,7 +13030,153 @@ compoundVerbs.push(
   "strike up a detailed personal conversation with"
 );
 
+// Cycle #51 / Task-F74: Phase 37 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector towards the location of": ["MOVE"],
+  "navigate one's vector towards the location of the": ["MOVE"],
+  "navigate ones vector towards the location of": ["MOVE"],
+  "navigate ones vector towards the location of the": ["MOVE"],
+  "steer one's vector in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a detailed visual scrutiny": ["LOOK_INSPECT"],
+  "subject to a detailed visual scrutiny the": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual scrutiny": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual scrutiny the": ["LOOK_INSPECT"],
+  "subject to a thorough visual scrutiny": ["LOOK_INSPECT"],
+  "subject to a thorough visual scrutiny the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct personal custodianship of": ["TAKE"],
+  "assume direct personal custodianship of the": ["TAKE"],
+  "assume absolute personal custodianship of": ["TAKE"],
+  "assume absolute personal custodianship of the": ["TAKE"],
+  "assume immediate personal custodianship of": ["TAKE"],
+  "assume immediate personal custodianship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all personal custodianship of": ["DROP"],
+  "divest oneself of all personal custodianship of the": ["DROP"],
+  "relinquish all personal custodianship of": ["DROP"],
+  "relinquish all personal custodianship of the": ["DROP"],
+  "free oneself from all personal custodianship of": ["DROP"],
+  "free oneself from all personal custodianship of the": ["DROP"],
+
+  // Open/Close
+  "force entirely and completely wide open": ["OPEN"],
+  "force entirely and completely wide open the": ["OPEN"],
+  "pry entirely and securely wide open": ["OPEN"],
+  "pry entirely and securely wide open the": ["OPEN"],
+  "fasten entirely and securely locked": ["CLOSE"],
+  "fasten entirely and securely locked the": ["CLOSE"],
+  "seal entirely and securely locked": ["CLOSE"],
+  "seal entirely and securely locked the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all mechanical security devices of": ["UNLOCK"],
+  "deactivate all mechanical security devices of the": ["UNLOCK"],
+  "bypass all mechanical security devices on": ["UNLOCK"],
+  "bypass all mechanical security devices on the": ["UNLOCK"],
+  "disengage the primary mechanical security device on": ["UNLOCK"],
+  "disengage the primary mechanical security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full operational deployment of": ["USE"],
+  "harness the full operational deployment of the": ["USE"],
+  "bring into active mechanical deployment": ["USE"],
+  "bring into active mechanical deployment the": ["USE"],
+  "make complete active deployment of": ["USE"],
+  "make complete active deployment of the": ["USE"],
+
+  // Combat
+  "initiate a martial engagement against": ["FIGHT"],
+  "initiate a martial engagement against the": ["FIGHT"],
+  "commence a martial engagement against": ["FIGHT"],
+  "commence a martial engagement against the": ["FIGHT"],
+  "engage in a martial encounter with": ["FIGHT"],
+  "engage in a martial encounter with the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a detailed face to face talk with": ["TALK"],
+  "initiate a detailed face to face talk with the": ["TALK"],
+  "engage in a detailed face to face dialogue with": ["TALK"],
+  "engage in a detailed face to face dialogue with the": ["TALK"],
+  "strike up a detailed face to face conversation with": ["TALK"],
+  "strike up a detailed face to face conversation with the": ["TALK"]
+});
+
+compoundVerbs.push(
+  // Phase 37 compound verbs
+  "navigate one's vector towards the location of the",
+  "navigate one's vector towards the location of",
+  "navigate ones vector towards the location of the",
+  "navigate ones vector towards the location of",
+  "steer one's vector in the direction of the coordinates of the",
+  "steer one's vector in the direction of the coordinates of",
+  "steer ones vector in the direction of the coordinates of the",
+  "steer ones vector in the direction of the coordinates of",
+  "direct one's vector towards the coordinates of the location of the",
+  "direct one's vector towards the coordinates of the location of",
+  "direct ones vector towards the coordinates of the location of the",
+  "direct ones vector towards the coordinates of the location of",
+  "subject to a detailed visual scrutiny the",
+  "subject to a detailed visual scrutiny",
+  "subject to a comprehensive visual scrutiny the",
+  "subject to a comprehensive visual scrutiny",
+  "subject to a thorough visual scrutiny the",
+  "subject to a thorough visual scrutiny",
+  "assume direct personal custodianship of the",
+  "assume direct personal custodianship of",
+  "assume absolute personal custodianship of the",
+  "assume absolute personal custodianship of",
+  "assume immediate personal custodianship of the",
+  "assume immediate personal custodianship of",
+  "divest oneself of all personal custodianship of the",
+  "divest oneself of all personal custodianship of",
+  "relinquish all personal custodianship of the",
+  "relinquish all personal custodianship of",
+  "free oneself from all personal custodianship of the",
+  "free oneself from all personal custodianship of",
+  "force entirely and completely wide open the",
+  "force entirely and completely wide open",
+  "pry entirely and securely wide open the",
+  "pry entirely and securely wide open",
+  "fasten entirely and securely locked the",
+  "fasten entirely and securely locked",
+  "seal entirely and securely locked the",
+  "seal entirely and securely locked",
+  "deactivate all mechanical security devices of the",
+  "deactivate all mechanical security devices of",
+  "bypass all mechanical security devices on the",
+  "bypass all mechanical security devices on",
+  "disengage the primary mechanical security device on the",
+  "disengage the primary mechanical security device on",
+  "harness the full operational deployment of the",
+  "harness the full operational deployment of",
+  "bring into active mechanical deployment the",
+  "bring into active mechanical deployment",
+  "make complete active deployment of the",
+  "make complete active deployment of",
+  "initiate a martial engagement against the",
+  "initiate a martial engagement against",
+  "commence a martial engagement against the",
+  "commence a martial engagement against",
+  "engage in a martial encounter with the",
+  "engage in a martial encounter with",
+  "initiate a detailed face to face talk with the",
+  "initiate a detailed face to face talk with",
+  "engage in a detailed face to face dialogue with the",
+  "engage in a detailed face to face dialogue with",
+  "strike up a detailed face to face conversation with the",
+  "strike up a detailed face to face conversation with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
-
-
-
