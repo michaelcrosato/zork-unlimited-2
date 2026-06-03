@@ -20567,6 +20567,90 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a magnanimous face to face discussion with the": ["TALK"]
 });
 
+// Cycle #106 / Task-F128: Phase 91 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of diffraction towards the location of": ["MOVE"],
+  "navigate one's vector of diffraction towards the location of the": ["MOVE"],
+  "navigate ones vector of diffraction towards the location of": ["MOVE"],
+  "navigate ones vector of diffraction towards the location of the": ["MOVE"],
+  "steer one's vector of diffraction in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of diffraction in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of diffraction in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of diffraction in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of diffraction towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of diffraction towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of diffraction towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of diffraction towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual clarification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual clarification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual clarification": ["LOOK_INSPECT"],
+  "subject to a thorough visual clarification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual clarification": ["LOOK_INSPECT"],
+  "subject to a detailed visual clarification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive expropriation of": ["TAKE"],
+  "assume direct exclusive expropriation of the": ["TAKE"],
+  "assume absolute exclusive expropriation of": ["TAKE"],
+  "assume absolute exclusive expropriation of the": ["TAKE"],
+  "assume immediate exclusive expropriation of": ["TAKE"],
+  "assume immediate exclusive expropriation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive expropriation of": ["DROP"],
+  "divest oneself of all exclusive expropriation of the": ["DROP"],
+  "relinquish all exclusive expropriation of": ["DROP"],
+  "relinquish all exclusive expropriation of the": ["DROP"],
+  "free oneself from all exclusive expropriation of": ["DROP"],
+  "free oneself from all exclusive expropriation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and photofluidically wide open": ["OPEN"],
+  "force completely and photofluidically wide open the": ["OPEN"],
+  "pry completely and photofluidically wide open": ["OPEN"],
+  "pry completely and photofluidically wide open the": ["OPEN"],
+  "fasten completely and photofluidically closed": ["CLOSE"],
+  "fasten completely and photofluidically closed the": ["CLOSE"],
+  "seal completely and photofluidically shut": ["CLOSE"],
+  "seal completely and photofluidically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all helimagnetic security devices of": ["UNLOCK"],
+  "deactivate all helimagnetic security devices of the": ["UNLOCK"],
+  "bypass all helimagnetic security devices on": ["UNLOCK"],
+  "bypass all helimagnetic security devices on the": ["UNLOCK"],
+  "disengage the primary helimagnetic security device on": ["UNLOCK"],
+  "disengage the primary helimagnetic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full illustrious deployment of": ["USE"],
+  "harness the full illustrious deployment of the": ["USE"],
+  "bring into active illustrious deployment": ["USE"],
+  "bring into active illustrious deployment the": ["USE"],
+  "make complete illustrious deployment of": ["USE"],
+  "make complete illustrious deployment of the": ["USE"],
+
+  // Combat
+  "initiate a virulent confrontation against": ["FIGHT"],
+  "initiate a virulent confrontation against the": ["FIGHT"],
+  "commence a virulent confrontation against": ["FIGHT"],
+  "commence a virulent confrontation against the": ["FIGHT"],
+  "engage in a virulent confrontation against": ["FIGHT"],
+  "engage in a virulent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a scintillating face to face discussion with": ["TALK"],
+  "initiate a scintillating face to face discussion with the": ["TALK"],
+  "engage in a scintillating face to face discussion with": ["TALK"],
+  "engage in a scintillating face to face discussion with the": ["TALK"],
+  "strike up a scintillating face to face discussion with": ["TALK"],
+  "strike up a scintillating face to face discussion with the": ["TALK"]
+});
+
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -21027,6 +21111,72 @@ compoundVerbs.push(
   "engage in a magnanimous face to face discussion with",
   "strike up a magnanimous face to face discussion with the",
   "strike up a magnanimous face to face discussion with"
+);
+
+// Cycle #106 / Task-F128: Phase 91 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of diffraction towards the location of the",
+  "navigate one's vector of diffraction towards the location of",
+  "navigate ones vector of diffraction towards the location of the",
+  "navigate ones vector of diffraction towards the location of",
+  "steer one's vector of diffraction in the direction of the coordinates of the",
+  "steer one's vector of diffraction in the direction of the coordinates of",
+  "steer ones vector of diffraction in the direction of the coordinates of the",
+  "steer ones vector of diffraction in the direction of the coordinates of",
+  "direct one's vector of diffraction towards the coordinates of the location of the",
+  "direct one's vector of diffraction towards the coordinates of the location of",
+  "direct ones vector of diffraction towards the coordinates of the location of the",
+  "direct ones vector of diffraction towards the coordinates of the location of",
+  "subject to a comprehensive visual clarification the",
+  "subject to a comprehensive visual clarification",
+  "subject to a thorough visual clarification the",
+  "subject to a thorough visual clarification",
+  "subject to a detailed visual clarification the",
+  "subject to a detailed visual clarification",
+  "assume direct exclusive expropriation of the",
+  "assume direct exclusive expropriation of",
+  "assume absolute exclusive expropriation of the",
+  "assume absolute exclusive expropriation of",
+  "assume immediate exclusive expropriation of the",
+  "assume immediate exclusive expropriation of",
+  "divest oneself of all exclusive expropriation of the",
+  "divest oneself of all exclusive expropriation of",
+  "relinquish all exclusive expropriation of the",
+  "relinquish all exclusive expropriation of",
+  "free oneself from all exclusive expropriation of the",
+  "free oneself from all exclusive expropriation of",
+  "force completely and photofluidically wide open the",
+  "force completely and photofluidically wide open",
+  "pry completely and photofluidically wide open the",
+  "pry completely and photofluidically wide open",
+  "fasten completely and photofluidically closed the",
+  "fasten completely and photofluidically closed",
+  "seal completely and photofluidically shut the",
+  "seal completely and photofluidically shut",
+  "deactivate all helimagnetic security devices of the",
+  "deactivate all helimagnetic security devices of",
+  "bypass all helimagnetic security devices on the",
+  "bypass all helimagnetic security devices on",
+  "disengage the primary helimagnetic security device on the",
+  "disengage the primary helimagnetic security device on",
+  "harness the full illustrious deployment of the",
+  "harness the full illustrious deployment of",
+  "bring into active illustrious deployment the",
+  "bring into active illustrious deployment",
+  "make complete illustrious deployment of the",
+  "make complete illustrious deployment of",
+  "initiate a virulent confrontation against the",
+  "initiate a virulent confrontation against",
+  "commence a virulent confrontation against the",
+  "commence a virulent confrontation against",
+  "engage in a virulent confrontation against the",
+  "engage in a virulent confrontation against",
+  "initiate a scintillating face to face discussion with the",
+  "initiate a scintillating face to face discussion with",
+  "engage in a scintillating face to face discussion with the",
+  "engage in a scintillating face to face discussion with",
+  "strike up a scintillating face to face discussion with the",
+  "strike up a scintillating face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
