@@ -9596,7 +9596,90 @@ Object.assign(VERB_CATEGORIES, {
   "exchange greetings with": ["TALK"],
   "exchange greetings with the": ["TALK"],
   "have discourse with": ["TALK"],
-  "have discourse with the": ["TALK"]
+  "have discourse with the": ["TALK"],
+
+  // Cycle #29 / Task-F52: Phase 15 mappings (expansion requested by playtesters)
+  // Move
+  "steer one's course to": ["MOVE"],
+  "steer one's course to the": ["MOVE"],
+  "steer ones course to": ["MOVE"],
+  "steer ones course to the": ["MOVE"],
+  "tread one's path to": ["MOVE"],
+  "tread one's path to the": ["MOVE"],
+  "tread ones path to": ["MOVE"],
+  "tread ones path to the": ["MOVE"],
+  "navigate one's way to": ["MOVE"],
+  "navigate one's way to the": ["MOVE"],
+  "navigate ones way to": ["MOVE"],
+  "navigate ones way to the": ["MOVE"],
+
+  // Look/Inspect
+  "run one's eyes over": ["LOOK_INSPECT"],
+  "run one's eyes over the": ["LOOK_INSPECT"],
+  "run ones eyes over": ["LOOK_INSPECT"],
+  "run ones eyes over the": ["LOOK_INSPECT"],
+  "take a gander at": ["LOOK_INSPECT"],
+  "take a gander at the": ["LOOK_INSPECT"],
+  "examine closely": ["LOOK_INSPECT"],
+  "examine closely the": ["LOOK_INSPECT"],
+
+  // Take
+  "gain possession of": ["TAKE"],
+  "gain possession of the": ["TAKE"],
+  "get one's hands on": ["TAKE"],
+  "get one's hands on the": ["TAKE"],
+  "get ones hands on": ["TAKE"],
+  "get ones hands on the": ["TAKE"],
+  "lay hands upon": ["TAKE"],
+  "lay hands upon the": ["TAKE"],
+
+  // Drop
+  "dispense with": ["DROP"],
+  "dispense with the": ["DROP"],
+  "cast aside": ["DROP"],
+  "cast aside the": ["DROP"],
+  "throw aside": ["DROP"],
+  "throw aside the": ["DROP"],
+
+  // Open/Close
+  "throw wide open": ["OPEN"],
+  "throw wide open the": ["OPEN"],
+  "throw open": ["OPEN"],
+  "throw open the": ["OPEN"],
+  "pull shut": ["CLOSE"],
+  "pull shut the": ["CLOSE"],
+  "push shut": ["CLOSE"],
+  "push shut the": ["CLOSE"],
+
+  // Unlock
+  "pop the lock on": ["UNLOCK"],
+  "pop the lock on the": ["UNLOCK"],
+  "undo lock on": ["UNLOCK"],
+  "undo lock on the": ["UNLOCK"],
+
+  // Use
+  "bring into play": ["USE"],
+  "bring into play the": ["USE"],
+  "resort to the use of": ["USE"],
+  "resort to the use of the": ["USE"],
+
+  // Combat
+  "do battle with": ["FIGHT"],
+  "do battle with the": ["FIGHT"],
+  "wage war against": ["FIGHT"],
+  "wage war against the": ["FIGHT"],
+  "throw down with": ["FIGHT"],
+  "throw down with the": ["FIGHT"],
+  "trade blows with": ["FIGHT"],
+  "trade blows with the": ["FIGHT"],
+
+  // Dialogue
+  "enter into conversation with": ["TALK"],
+  "enter into conversation with the": ["TALK"],
+  "strike up conversation with": ["TALK"],
+  "strike up conversation with the": ["TALK"],
+  "engage in talk with": ["TALK"],
+  "engage in talk with the": ["TALK"]
 });
 
 compoundVerbs.push(
@@ -9721,7 +9804,73 @@ compoundVerbs.push(
   "exchange greetings with the",
   "exchange greetings with",
   "have discourse with the",
-  "have discourse with"
+  "have discourse with",
+
+  // Phase 15 compound verbs
+  "steer one's course to the",
+  "steer one's course to",
+  "steer ones course to the",
+  "steer ones course to",
+  "tread one's path to the",
+  "tread one's path to",
+  "tread ones path to the",
+  "tread ones path to",
+  "navigate one's way to the",
+  "navigate one's way to",
+  "navigate ones way to the",
+  "navigate ones way to",
+  "run one's eyes over the",
+  "run one's eyes over",
+  "run ones eyes over the",
+  "run ones eyes over",
+  "take a gander at the",
+  "take a gander at",
+  "examine closely the",
+  "examine closely",
+  "gain possession of the",
+  "gain possession of",
+  "get one's hands on the",
+  "get one's hands on",
+  "get ones hands on the",
+  "get ones hands on",
+  "lay hands upon the",
+  "lay hands upon",
+  "dispense with the",
+  "dispense with",
+  "cast aside the",
+  "cast aside",
+  "throw aside the",
+  "throw aside",
+  "throw wide open the",
+  "throw wide open",
+  "throw open the",
+  "throw open",
+  "pull shut the",
+  "pull shut",
+  "push shut the",
+  "push shut",
+  "pop the lock on the",
+  "pop the lock on",
+  "undo lock on the",
+  "undo lock on",
+  "bring into play the",
+  "bring into play",
+  "resort to the use of the",
+  "resort to the use of",
+  "do battle with the",
+  "do battle with",
+  "wage war against the",
+  "wage war against",
+  "throw down with the",
+  "throw down with",
+  "trade blows with the",
+  "trade blows with",
+  "enter into conversation with the",
+  "enter into conversation with",
+  "strike up conversation with the",
+  "strike up conversation with",
+  "engage in talk with the",
+  "engage in talk with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
