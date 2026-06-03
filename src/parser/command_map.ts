@@ -8678,8 +8678,8 @@ Object.assign(VERB_CATEGORIES, {
   // Open/Close
   "unbar": ["OPEN"],
   "unbar the": ["OPEN"],
-  "unbolt": ["UNLOCK", "USE", "OPEN"],
-  "unbolt the": ["UNLOCK", "USE", "OPEN"],
+  "unbolt": ["UNLOCK", "OPEN"],
+  "unbolt the": ["UNLOCK", "OPEN"],
   "unlock and swing open": ["OPEN"],
   "unlock and swing open the": ["OPEN"],
   "crack open": ["OPEN"],
