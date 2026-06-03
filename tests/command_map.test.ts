@@ -626,4 +626,52 @@ describe("mapCommand", () => {
     expect(mapCommand("join herb and water", actions).action).toEqual({ type: "CRAFT", recipeId: "brew_potion" });
     expect(mapCommand("connect herb to water", actions).action).toEqual({ type: "CRAFT", recipeId: "brew_potion" });
   });
+
+  it("handles Cycle #59 newly added synonyms and complex verb structures", () => {
+    const actions = [
+      { id: "move-east", command: "go east", action: { type: "MOVE" as const, direction: "east" } },
+      { id: "look-scroll", command: "look scroll", action: { type: "LOOK" as const, target: "scroll" } },
+      { id: "take-receptacle", command: "take wooden container", action: { type: "TAKE" as const, item: "container" } },
+      { id: "drop-sabre", command: "drop sharp sabre", action: { type: "DROP" as const, item: "sabre" } },
+      { id: "open-hatch", command: "open iron hatch", action: { type: "OPEN" as const, target: "hatch" } },
+      { id: "close-grate", command: "close rusty grate", action: { type: "CLOSE" as const, target: "grate" } },
+      {
+        id: "unlock-hatch",
+        command: "unlock iron hatch with key",
+        action: { type: "UNLOCK" as const, target: "hatch" },
+      },
+      { id: "use-brew", command: "use magic brew", action: { type: "USE" as const, item: "brew" } },
+      { id: "talk-clerk", command: "talk to shopkeeper clerk", action: { type: "TALK" as const, npc: "clerk" } },
+      { id: "give-gold", command: "give money to enforcer", action: { type: "GIVE" as const, target: "enforcer" } },
+      { id: "fight-brigand", command: "fight outlaw brigand", action: { type: "FIGHT" as const, npc: "brigand" } },
+      {
+        id: "cast-magic",
+        command: "cast magic on brigand",
+        action: { type: "CAST" as const, spell: "spell", target: "brigand" },
+      },
+      { id: "flee-brigand", command: "flee brigand", action: { type: "FLEE" as const } },
+      { id: "buy-knife", command: "buy sharp knife from merchant", action: { type: "BUY" as const, item: "knife" } },
+      { id: "sell-knife", command: "sell sharp knife to merchant", action: { type: "SELL" as const, item: "knife" } },
+    ];
+
+    expect(mapCommand("walk towards the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("read the scroll", actions).action).toEqual({ type: "LOOK", target: "scroll" });
+    expect(mapCommand("grab the wooden container", actions).action).toEqual({ type: "TAKE", item: "container" });
+    expect(mapCommand("get rid of the sabre", actions).action).toEqual({ type: "DROP", item: "sabre" });
+    expect(mapCommand("open the hatch", actions).action).toEqual({ type: "OPEN", target: "hatch" });
+    expect(mapCommand("close the grate", actions).action).toEqual({ type: "CLOSE", target: "grate" });
+    expect(mapCommand("unlock the hatch", actions).action).toEqual({ type: "UNLOCK", target: "hatch" });
+    expect(mapCommand("drink the magic brew", actions).action).toEqual({ type: "USE", item: "brew" });
+    expect(mapCommand("talk with the clerk", actions).action).toEqual({ type: "TALK", npc: "clerk" });
+    expect(mapCommand("give the money to enforcer", actions).action).toEqual({ type: "GIVE", target: "enforcer" });
+    expect(mapCommand("fight the brigand", actions).action).toEqual({ type: "FIGHT", npc: "brigand" });
+    expect(mapCommand("cast spell on the brigand", actions).action).toEqual({
+      type: "CAST",
+      spell: "spell",
+      target: "brigand",
+    });
+    expect(mapCommand("run away from the brigand", actions).action).toEqual({ type: "FLEE" });
+    expect(mapCommand("buy the knife from merchant", actions).action).toEqual({ type: "BUY", item: "knife" });
+    expect(mapCommand("sell the knife to merchant", actions).action).toEqual({ type: "SELL", item: "knife" });
+  });
 });
