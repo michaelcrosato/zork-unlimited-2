@@ -15429,6 +15429,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an earnest face to face discussion with the": ["TALK"]
 });
 
+// Cycle #72 / Task-F95: Phase 58 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of traversal towards the location of": ["MOVE"],
+  "navigate one's vector of traversal towards the location of the": ["MOVE"],
+  "navigate ones vector of traversal towards the location of": ["MOVE"],
+  "navigate ones vector of traversal towards the location of the": ["MOVE"],
+  "steer one's vector of traversal in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of traversal in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of traversal in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of traversal in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of traversal towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of traversal towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of traversal towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of traversal towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual inquiry": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual inquiry the": ["LOOK_INSPECT"],
+  "subject to a thorough visual inquiry": ["LOOK_INSPECT"],
+  "subject to a thorough visual inquiry the": ["LOOK_INSPECT"],
+  "subject to a detailed visual inquiry": ["LOOK_INSPECT"],
+  "subject to a detailed visual inquiry the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive retention of": ["TAKE"],
+  "assume direct exclusive retention of the": ["TAKE"],
+  "assume absolute exclusive retention of": ["TAKE"],
+  "assume absolute exclusive retention of the": ["TAKE"],
+  "assume immediate exclusive retention of": ["TAKE"],
+  "assume immediate exclusive retention of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive retention of": ["DROP"],
+  "divest oneself of all exclusive retention of the": ["DROP"],
+  "relinquish all exclusive retention of": ["DROP"],
+  "relinquish all exclusive retention of the": ["DROP"],
+  "free oneself from all exclusive retention of": ["DROP"],
+  "free oneself from all exclusive retention of the": ["DROP"],
+
+  // Open/Close
+  "force completely and procedurally wide open": ["OPEN"],
+  "force completely and procedurally wide open the": ["OPEN"],
+  "pry completely and procedurally wide open": ["OPEN"],
+  "pry completely and procedurally wide open the": ["OPEN"],
+  "fasten completely and procedurally closed": ["CLOSE"],
+  "fasten completely and procedurally closed the": ["CLOSE"],
+  "seal completely and procedurally shut": ["CLOSE"],
+  "seal completely and procedurally shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all optical security devices of": ["UNLOCK"],
+  "deactivate all optical security devices of the": ["UNLOCK"],
+  "bypass all optical security devices on": ["UNLOCK"],
+  "bypass all optical security devices on the": ["UNLOCK"],
+  "disengage the primary optical security device on": ["UNLOCK"],
+  "disengage the primary optical security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full adaptive deployment of": ["USE"],
+  "harness the full adaptive deployment of the": ["USE"],
+  "bring into active adaptive deployment": ["USE"],
+  "bring into active adaptive deployment the": ["USE"],
+  "make complete adaptive deployment of": ["USE"],
+  "make complete adaptive deployment of the": ["USE"],
+
+  // Combat
+  "initiate a relentless confrontation against": ["FIGHT"],
+  "initiate a relentless confrontation against the": ["FIGHT"],
+  "commence a relentless confrontation against": ["FIGHT"],
+  "commence a relentless confrontation against the": ["FIGHT"],
+  "engage in a relentless confrontation against": ["FIGHT"],
+  "engage in a relentless confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a sincere face to face discussion with": ["TALK"],
+  "initiate a sincere face to face discussion with the": ["TALK"],
+  "engage in a sincere face to face discussion with": ["TALK"],
+  "engage in a sincere face to face discussion with the": ["TALK"],
+  "strike up a sincere face to face discussion with": ["TALK"],
+  "strike up a sincere face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -16137,6 +16220,72 @@ compoundVerbs.push(
   "engage in an earnest face to face discussion with",
   "strike up an earnest face to face discussion with the",
   "strike up an earnest face to face discussion with"
+);
+
+// Cycle #72 / Task-F95: Phase 58 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of traversal towards the location of the",
+  "navigate one's vector of traversal towards the location of",
+  "navigate ones vector of traversal towards the location of the",
+  "navigate ones vector of traversal towards the location of",
+  "steer one's vector of traversal in the direction of the coordinates of the",
+  "steer one's vector of traversal in the direction of the coordinates of",
+  "steer ones vector of traversal in the direction of the coordinates of the",
+  "steer ones vector of traversal in the direction of the coordinates of",
+  "direct one's vector of traversal towards the coordinates of the location of the",
+  "direct one's vector of traversal towards the coordinates of the location of",
+  "direct ones vector of traversal towards the coordinates of the location of the",
+  "direct ones vector of traversal towards the coordinates of the location of",
+  "subject to a comprehensive visual inquiry the",
+  "subject to a comprehensive visual inquiry",
+  "subject to a thorough visual inquiry the",
+  "subject to a thorough visual inquiry",
+  "subject to a detailed visual inquiry the",
+  "subject to a detailed visual inquiry",
+  "assume direct exclusive retention of the",
+  "assume direct exclusive retention of",
+  "assume absolute exclusive retention of the",
+  "assume absolute exclusive retention of",
+  "assume immediate exclusive retention of the",
+  "assume immediate exclusive retention of",
+  "divest oneself of all exclusive retention of the",
+  "divest oneself of all exclusive retention of",
+  "relinquish all exclusive retention of the",
+  "relinquish all exclusive retention of",
+  "free oneself from all exclusive retention of the",
+  "free oneself from all exclusive retention of",
+  "force completely and procedurally wide open the",
+  "force completely and procedurally wide open",
+  "pry completely and procedurally wide open the",
+  "pry completely and procedurally wide open",
+  "fasten completely and procedurally closed the",
+  "fasten completely and procedurally closed",
+  "seal completely and procedurally shut the",
+  "seal completely and procedurally shut",
+  "deactivate all optical security devices of the",
+  "deactivate all optical security devices of",
+  "bypass all optical security devices on the",
+  "bypass all optical security devices on",
+  "disengage the primary optical security device on the",
+  "disengage the primary optical security device on",
+  "harness the full adaptive deployment of the",
+  "harness the full adaptive deployment of",
+  "bring into active adaptive deployment the",
+  "bring into active adaptive deployment",
+  "make complete adaptive deployment of the",
+  "make complete adaptive deployment of",
+  "initiate a relentless confrontation against the",
+  "initiate a relentless confrontation against",
+  "commence a relentless confrontation against the",
+  "commence a relentless confrontation against",
+  "engage in a relentless confrontation against the",
+  "engage in a relentless confrontation against",
+  "initiate a sincere face to face discussion with the",
+  "initiate a sincere face to face discussion with",
+  "engage in a sincere face to face discussion with the",
+  "engage in a sincere face to face discussion with",
+  "strike up a sincere face to face discussion with the",
+  "strike up a sincere face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
