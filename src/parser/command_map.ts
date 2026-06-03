@@ -10096,6 +10096,87 @@ Object.assign(VERB_CATEGORIES, {
   "hold conversation with the": ["TALK"]
 });
 
+// Cycle #32 / Task-F55: Phase 18 mappings (expansion requested by playtesters)
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "make a run for": ["MOVE"],
+  "make a run for the": ["MOVE"],
+  "take a walk to": ["MOVE"],
+  "take a walk to the": ["MOVE"],
+  "press onward to": ["MOVE"],
+  "press onward to the": ["MOVE"],
+
+  // Look/Inspect
+  "run an analysis on": ["LOOK_INSPECT"],
+  "run an analysis on the": ["LOOK_INSPECT"],
+  "do a scan of": ["LOOK_INSPECT"],
+  "do a scan of the": ["LOOK_INSPECT"],
+  "cast one's eyes on": ["LOOK_INSPECT"],
+  "cast one's eyes on the": ["LOOK_INSPECT"],
+  "cast ones eyes on": ["LOOK_INSPECT"],
+  "cast ones eyes on the": ["LOOK_INSPECT"],
+
+  // Take
+  "make away with": ["TAKE"],
+  "make away with the": ["TAKE"],
+  "seize possession of": ["TAKE"],
+  "seize possession of the": ["TAKE"],
+  "lay claim on": ["TAKE"],
+  "lay claim on the": ["TAKE"],
+
+  // Drop
+  "fling aside": ["DROP"],
+  "fling aside the": ["DROP"],
+  "cast overboard": ["DROP"],
+  "cast overboard the": ["DROP"],
+  "disburden one's self of": ["DROP"],
+  "disburden one's self of the": ["DROP"],
+  "disburden ones self of": ["DROP"],
+  "disburden ones self of the": ["DROP"],
+
+  // Open/Close
+  "slide wide open": ["OPEN"],
+  "slide wide open the": ["OPEN"],
+  "fasten close": ["CLOSE"],
+  "fasten close the": ["CLOSE"],
+  "seal tight": ["CLOSE"],
+  "seal tight the": ["CLOSE"],
+
+  // Unlock
+  "release the locks on": ["UNLOCK"],
+  "release the locks on the": ["UNLOCK"],
+  "bypass the locks on": ["UNLOCK"],
+  "bypass the locks on the": ["UNLOCK"],
+  "undo the locks on": ["UNLOCK"],
+  "undo the locks on the": ["UNLOCK"],
+
+  // Use
+  "find a use for": ["USE"],
+  "find a use for the": ["USE"],
+  "put into action": ["USE"],
+  "put into action the": ["USE"],
+  "avail one's self of": ["USE"],
+  "avail one's self of the": ["USE"],
+  "avail ones self of": ["USE"],
+  "avail ones self of the": ["USE"],
+
+  // Combat
+  "launch an assault on": ["FIGHT"],
+  "launch an assault on the": ["FIGHT"],
+  "carry out an attack on": ["FIGHT"],
+  "carry out an attack on the": ["FIGHT"],
+  "wage combat against": ["FIGHT"],
+  "wage combat against the": ["FIGHT"],
+
+  // Dialogue
+  "have words with": ["TALK"],
+  "have words with the": ["TALK"],
+  "strike up a discussion with": ["TALK"],
+  "strike up a discussion with the": ["TALK"],
+  "engage in a chat with": ["TALK"],
+  "engage in a chat with the": ["TALK"]
+});
+
 compoundVerbs.push(
   "wing one's way to the",
   "wing one's way to",
@@ -10152,7 +10233,69 @@ compoundVerbs.push(
   "have a chat with the",
   "have a chat with",
   "hold conversation with the",
-  "hold conversation with"
+  "hold conversation with",
+
+  // Phase 18 compound verbs
+  "make a run for the",
+  "make a run for",
+  "take a walk to the",
+  "take a walk to",
+  "press onward to the",
+  "press onward to",
+  "run an analysis on the",
+  "run an analysis on",
+  "do a scan of the",
+  "do a scan of",
+  "cast one's eyes on the",
+  "cast one's eyes on",
+  "cast ones eyes on the",
+  "cast ones eyes on",
+  "make away with the",
+  "make away with",
+  "seize possession of the",
+  "seize possession of",
+  "lay claim on the",
+  "lay claim on",
+  "fling aside the",
+  "fling aside",
+  "cast overboard the",
+  "cast overboard",
+  "disburden one's self of the",
+  "disburden one's self of",
+  "disburden ones self of the",
+  "disburden ones self of",
+  "slide wide open the",
+  "slide wide open",
+  "fasten close the",
+  "fasten close",
+  "seal tight the",
+  "seal tight",
+  "release the locks on the",
+  "release the locks on",
+  "bypass the locks on the",
+  "bypass the locks on",
+  "undo the locks on the",
+  "undo the locks on",
+  "find a use for the",
+  "find a use for",
+  "put into action the",
+  "put into action",
+  "avail one's self of the",
+  "avail one's self of",
+  "avail ones self of the",
+  "avail ones self of",
+  "launch an assault on the",
+  "launch an assault on",
+  "carry out an attack on the",
+  "carry out an attack on",
+  "wage combat against the",
+  "wage combat against",
+  "have words with the",
+  "have words with",
+  "strike up a discussion with the",
+  "strike up a discussion with",
+  "engage in a chat with the",
+  "engage in a chat with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
