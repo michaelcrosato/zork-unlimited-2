@@ -14520,6 +14520,155 @@ compoundVerbs.push(
   "strike up a diplomatic face to face discussion with"
 );
 
+// Cycle #61 / Task-F84: Phase 47 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of displacement towards the location of": ["MOVE"],
+  "navigate one's vector of displacement towards the location of the": ["MOVE"],
+  "navigate ones vector of displacement towards the location of": ["MOVE"],
+  "navigate ones vector of displacement towards the location of the": ["MOVE"],
+  "steer one's vector of displacement in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of displacement in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of displacement in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of displacement in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of displacement towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of displacement towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of displacement towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of displacement towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual authentication": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual authentication the": ["LOOK_INSPECT"],
+  "subject to a thorough visual authentication": ["LOOK_INSPECT"],
+  "subject to a thorough visual authentication the": ["LOOK_INSPECT"],
+  "subject to a detailed visual authentication": ["LOOK_INSPECT"],
+  "subject to a detailed visual authentication the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive stewardship of": ["TAKE"],
+  "assume direct exclusive stewardship of the": ["TAKE"],
+  "assume absolute exclusive stewardship of": ["TAKE"],
+  "assume absolute exclusive stewardship of the": ["TAKE"],
+  "assume immediate exclusive stewardship of": ["TAKE"],
+  "assume immediate exclusive stewardship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive stewardship of": ["DROP"],
+  "divest oneself of all exclusive stewardship of the": ["DROP"],
+  "relinquish all exclusive stewardship of": ["DROP"],
+  "relinquish all exclusive stewardship of the": ["DROP"],
+  "free oneself from all exclusive stewardship of": ["DROP"],
+  "free oneself from all exclusive stewardship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and unilaterally wide open": ["OPEN"],
+  "force completely and unilaterally wide open the": ["OPEN"],
+  "pry completely and unilaterally wide open": ["OPEN"],
+  "pry completely and unilaterally wide open the": ["OPEN"],
+  "fasten completely and unilaterally closed": ["CLOSE"],
+  "fasten completely and unilaterally closed the": ["CLOSE"],
+  "seal completely and unilaterally shut": ["CLOSE"],
+  "seal completely and unilaterally shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all nanotech security devices of": ["UNLOCK"],
+  "deactivate all nanotech security devices of the": ["UNLOCK"],
+  "bypass all nanotech security devices on": ["UNLOCK"],
+  "bypass all nanotech security devices on the": ["UNLOCK"],
+  "disengage the primary nanotech security device on": ["UNLOCK"],
+  "disengage the primary nanotech security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full specialized deployment of": ["USE"],
+  "harness the full specialized deployment of the": ["USE"],
+  "bring into active specialized deployment": ["USE"],
+  "bring into active specialized deployment the": ["USE"],
+  "make complete specialized deployment of": ["USE"],
+  "make complete specialized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a combative confrontation against": ["FIGHT"],
+  "initiate a combative confrontation against the": ["FIGHT"],
+  "commence a combative confrontation against": ["FIGHT"],
+  "commence a combative confrontation against the": ["FIGHT"],
+  "engage in a combative confrontation against": ["FIGHT"],
+  "engage in a combative confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a professional face to face discussion with": ["TALK"],
+  "initiate a professional face to face discussion with the": ["TALK"],
+  "engage in a professional face to face discussion with": ["TALK"],
+  "engage in a professional face to face discussion with the": ["TALK"],
+  "strike up a professional face to face discussion with": ["TALK"],
+  "strike up a professional face to face discussion with the": ["TALK"]
+});
+
+compoundVerbs.push(
+  // Phase 47 compound verbs
+  "navigate one's vector of displacement towards the location of the",
+  "navigate one's vector of displacement towards the location of",
+  "navigate ones vector of displacement towards the location of the",
+  "navigate ones vector of displacement towards the location of",
+  "steer one's vector of displacement in the direction of the coordinates of the",
+  "steer one's vector of displacement in the direction of the coordinates of",
+  "steer ones vector of displacement in the direction of the coordinates of the",
+  "steer ones vector of displacement in the direction of the coordinates of",
+  "direct one's vector of displacement towards the coordinates of the location of the",
+  "direct one's vector of displacement towards the coordinates of the location of",
+  "direct ones vector of displacement towards the coordinates of the location of the",
+  "direct ones vector of displacement towards the coordinates of the location of",
+  "subject to a comprehensive visual authentication the",
+  "subject to a comprehensive visual authentication",
+  "subject to a thorough visual authentication the",
+  "subject to a thorough visual authentication",
+  "subject to a detailed visual authentication the",
+  "subject to a detailed visual authentication",
+  "assume direct exclusive stewardship of the",
+  "assume direct exclusive stewardship of",
+  "assume absolute exclusive stewardship of the",
+  "assume absolute exclusive stewardship of",
+  "assume immediate exclusive stewardship of the",
+  "assume immediate exclusive stewardship of",
+  "divest oneself of all exclusive stewardship of the",
+  "divest oneself of all exclusive stewardship of",
+  "relinquish all exclusive stewardship of the",
+  "relinquish all exclusive stewardship of",
+  "free oneself from all exclusive stewardship of the",
+  "free oneself from all exclusive stewardship of",
+  "force completely and unilaterally wide open the",
+  "force completely and unilaterally wide open",
+  "pry completely and unilaterally wide open the",
+  "pry completely and unilaterally wide open",
+  "fasten completely and unilaterally closed the",
+  "fasten completely and unilaterally closed",
+  "seal completely and unilaterally shut the",
+  "seal completely and unilaterally shut",
+  "deactivate all nanotech security devices of the",
+  "deactivate all nanotech security devices of",
+  "bypass all nanotech security devices on the",
+  "bypass all nanotech security devices on",
+  "disengage the primary nanotech security device on the",
+  "disengage the primary nanotech security device on",
+  "harness the full specialized deployment of the",
+  "harness the full specialized deployment of",
+  "bring into active specialized deployment the",
+  "bring into active specialized deployment",
+  "make complete specialized deployment of the",
+  "make complete specialized deployment of",
+  "initiate a combative confrontation against the",
+  "initiate a combative confrontation against",
+  "commence a combative confrontation against the",
+  "commence a combative confrontation against",
+  "engage in a combative confrontation against the",
+  "engage in a combative confrontation against",
+  "initiate a professional face to face discussion with the",
+  "initiate a professional face to face discussion with",
+  "engage in a professional face to face discussion with the",
+  "engage in a professional face to face discussion with",
+  "strike up a professional face to face discussion with the",
+  "strike up a professional face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
