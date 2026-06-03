@@ -15512,6 +15512,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a sincere face to face discussion with the": ["TALK"]
 });
 
+// Cycle #73 / Task-F96: Phase 59 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of voyage towards the location of": ["MOVE"],
+  "navigate one's vector of voyage towards the location of the": ["MOVE"],
+  "navigate ones vector of voyage towards the location of": ["MOVE"],
+  "navigate ones vector of voyage towards the location of the": ["MOVE"],
+  "steer one's vector of voyage in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of voyage in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of voyage in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of voyage in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of voyage towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of voyage towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of voyage towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of voyage towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual survey": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual survey the": ["LOOK_INSPECT"],
+  "subject to a thorough visual survey": ["LOOK_INSPECT"],
+  "subject to a thorough visual survey the": ["LOOK_INSPECT"],
+  "subject to a detailed visual survey": ["LOOK_INSPECT"],
+  "subject to a detailed visual survey the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive appropriation of": ["TAKE"],
+  "assume direct exclusive appropriation of the": ["TAKE"],
+  "assume absolute exclusive appropriation of": ["TAKE"],
+  "assume absolute exclusive appropriation of the": ["TAKE"],
+  "assume immediate exclusive appropriation of": ["TAKE"],
+  "assume immediate exclusive appropriation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive appropriation of": ["DROP"],
+  "divest oneself of all exclusive appropriation of the": ["DROP"],
+  "relinquish all exclusive appropriation of": ["DROP"],
+  "relinquish all exclusive appropriation of the": ["DROP"],
+  "free oneself from all exclusive appropriation of": ["DROP"],
+  "free oneself from all exclusive appropriation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and structurally wide open": ["OPEN"],
+  "force completely and structurally wide open the": ["OPEN"],
+  "pry completely and structurally wide open": ["OPEN"],
+  "pry completely and structurally wide open the": ["OPEN"],
+  "fasten completely and structurally closed": ["CLOSE"],
+  "fasten completely and structurally closed the": ["CLOSE"],
+  "seal completely and structurally shut": ["CLOSE"],
+  "seal completely and structurally shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all software security devices of": ["UNLOCK"],
+  "deactivate all software security devices of the": ["UNLOCK"],
+  "bypass all software security devices on": ["UNLOCK"],
+  "bypass all software security devices on the": ["UNLOCK"],
+  "disengage the primary software security device on": ["UNLOCK"],
+  "disengage the primary software security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full logical deployment of": ["USE"],
+  "harness the full logical deployment of the": ["USE"],
+  "bring into active logical deployment": ["USE"],
+  "bring into active logical deployment the": ["USE"],
+  "make complete logical deployment of": ["USE"],
+  "make complete logical deployment of the": ["USE"],
+
+  // Combat
+  "initiate a merciless confrontation against": ["FIGHT"],
+  "initiate a merciless confrontation against the": ["FIGHT"],
+  "commence a merciless confrontation against": ["FIGHT"],
+  "commence a merciless confrontation against the": ["FIGHT"],
+  "engage in a merciless confrontation against": ["FIGHT"],
+  "engage in a merciless confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a respectful face to face discussion with": ["TALK"],
+  "initiate a respectful face to face discussion with the": ["TALK"],
+  "engage in a respectful face to face discussion with": ["TALK"],
+  "engage in a respectful face to face discussion with the": ["TALK"],
+  "strike up a respectful face to face discussion with": ["TALK"],
+  "strike up a respectful face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -16286,6 +16369,72 @@ compoundVerbs.push(
   "engage in a sincere face to face discussion with",
   "strike up a sincere face to face discussion with the",
   "strike up a sincere face to face discussion with"
+);
+
+// Cycle #73 / Task-F96: Phase 59 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of voyage towards the location of the",
+  "navigate one's vector of voyage towards the location of",
+  "navigate ones vector of voyage towards the location of the",
+  "navigate ones vector of voyage towards the location of",
+  "steer one's vector of voyage in the direction of the coordinates of the",
+  "steer one's vector of voyage in the direction of the coordinates of",
+  "steer ones vector of voyage in the direction of the coordinates of the",
+  "steer ones vector of voyage in the direction of the coordinates of",
+  "direct one's vector of voyage towards the coordinates of the location of the",
+  "direct one's vector of voyage towards the coordinates of the location of",
+  "direct ones vector of voyage towards the coordinates of the location of the",
+  "direct ones vector of voyage towards the coordinates of the location of",
+  "subject to a comprehensive visual survey the",
+  "subject to a comprehensive visual survey",
+  "subject to a thorough visual survey the",
+  "subject to a thorough visual survey",
+  "subject to a detailed visual survey the",
+  "subject to a detailed visual survey",
+  "assume direct exclusive appropriation of the",
+  "assume direct exclusive appropriation of",
+  "assume absolute exclusive appropriation of the",
+  "assume absolute exclusive appropriation of",
+  "assume immediate exclusive appropriation of the",
+  "assume immediate exclusive appropriation of",
+  "divest oneself of all exclusive appropriation of the",
+  "divest oneself of all exclusive appropriation of",
+  "relinquish all exclusive appropriation of the",
+  "relinquish all exclusive appropriation of",
+  "free oneself from all exclusive appropriation of the",
+  "free oneself from all exclusive appropriation of",
+  "force completely and structurally wide open the",
+  "force completely and structurally wide open",
+  "pry completely and structurally wide open the",
+  "pry completely and structurally wide open",
+  "fasten completely and structurally closed the",
+  "fasten completely and structurally closed",
+  "seal completely and structurally shut the",
+  "seal completely and structurally shut",
+  "deactivate all software security devices of the",
+  "deactivate all software security devices of",
+  "bypass all software security devices on the",
+  "bypass all software security devices on",
+  "disengage the primary software security device on the",
+  "disengage the primary software security device on",
+  "harness the full logical deployment of the",
+  "harness the full logical deployment of",
+  "bring into active logical deployment the",
+  "bring into active logical deployment",
+  "make complete logical deployment of the",
+  "make complete logical deployment of",
+  "initiate a merciless confrontation against the",
+  "initiate a merciless confrontation against",
+  "commence a merciless confrontation against the",
+  "commence a merciless confrontation against",
+  "engage in a merciless confrontation against the",
+  "engage in a merciless confrontation against",
+  "initiate a respectful face to face discussion with the",
+  "initiate a respectful face to face discussion with",
+  "engage in a respectful face to face discussion with the",
+  "engage in a respectful face to face discussion with",
+  "strike up a respectful face to face discussion with the",
+  "strike up a respectful face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
