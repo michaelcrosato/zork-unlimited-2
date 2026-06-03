@@ -110,14 +110,18 @@ while true; do
   echo "🌀 RUNNING AUTONOMOUS CYCLE #$CYCLE"
   echo "================================================================================"
   
-  # Run the agent using AI_AGENT_CMD if set, otherwise fallback to agy
+  # Run the agent and redirect output to capture semantic commit descriptions
+  mkdir -p "$(dirname "$0")/../cache"
+  AGENT_OUT="$(dirname "$0")/../cache/agent_output.log"
+  set -o pipefail
+
   if [[ -n "${AI_AGENT_CMD:-}" ]]; then
     echo "🤖 Executing agent via: $AI_AGENT_CMD"
-    echo "$PROMPT" | eval "$AI_AGENT_CMD"
+    echo "$PROMPT" | eval "$AI_AGENT_CMD" | tee "$AGENT_OUT"
     STATUS=$?
   else
     echo "🤖 Executing agent via 'agy'..."
-    agy --dangerously-skip-permissions --print "$PROMPT"
+    agy --dangerously-skip-permissions --print "$PROMPT" | tee "$AGENT_OUT"
     STATUS=$?
   fi
   
@@ -129,8 +133,13 @@ while true; do
     if [[ -n $(git status --porcelain) ]]; then
       echo ""
       echo "💾 Staging and committing cycle #$CYCLE changes autonomously..."
+      
+      # Extract the first bullet point under Work Completed from the agent output log
+      RAW_SUMMARY=$(grep -i -A 4 "## Work Completed" "$AGENT_OUT" | grep -E "^\s*[\*-]" | head -n 1 | sed 's/^[[:space:]]*[\*-][[:space:]]*//' | xargs)
+      COMMIT_MSG=${RAW_SUMMARY:-"autonomous cycle #$CYCLE improvements"}
+
       git add -A
-      git commit -m "chore(ai-dev): autonomous cycle #$CYCLE improvements"
+      git commit -m "chore(ai-dev): $COMMIT_MSG"
       echo "🟢 Committed successfully."
     else
       echo ""
