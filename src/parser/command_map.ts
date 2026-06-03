@@ -9679,7 +9679,90 @@ Object.assign(VERB_CATEGORIES, {
   "strike up conversation with": ["TALK"],
   "strike up conversation with the": ["TALK"],
   "engage in talk with": ["TALK"],
-  "engage in talk with the": ["TALK"]
+  "engage in talk with the": ["TALK"],
+
+  // Cycle #30 / Task-F53: Phase 16 mappings (expansion requested by playtesters)
+  // Move
+  "proceed along the path to": ["MOVE"],
+  "proceed along the path to the": ["MOVE"],
+  "proceed along path to": ["MOVE"],
+  "proceed along path to the": ["MOVE"],
+  "make a beeline for": ["MOVE"],
+  "make a beeline for the": ["MOVE"],
+  "wend one's way to": ["MOVE"],
+  "wend one's way to the": ["MOVE"],
+  "wend ones way to": ["MOVE"],
+  "wend ones way to the": ["MOVE"],
+
+  // Look/Inspect
+  "check out": ["LOOK_INSPECT"],
+  "check out the": ["LOOK_INSPECT"],
+  "take a look at": ["LOOK_INSPECT"],
+  "take a look at the": ["LOOK_INSPECT"],
+  "peer closely at": ["LOOK_INSPECT"],
+  "peer closely at the": ["LOOK_INSPECT"],
+
+  // Take
+  "appropriate": ["TAKE"],
+  "appropriate the": ["TAKE"],
+  "help oneself to": ["TAKE"],
+  "help oneself to the": ["TAKE"],
+  "help ones self to": ["TAKE"],
+  "help ones self to the": ["TAKE"],
+  "make off with": ["TAKE"],
+  "make off with the": ["TAKE"],
+
+  // Drop
+  "part with": ["DROP"],
+  "part with the": ["DROP"],
+  "jettison": ["DROP"],
+  "jettison the": ["DROP"],
+  "relinquish control of": ["DROP"],
+  "relinquish control of the": ["DROP"],
+
+  // Open/Close
+  "swing open": ["OPEN"],
+  "swing open the": ["OPEN"],
+  "slide open": ["OPEN"],
+  "slide open the": ["OPEN"],
+  "seal shut": ["CLOSE"],
+  "seal shut the": ["CLOSE"],
+  "swing shut": ["CLOSE"],
+  "swing shut the": ["CLOSE"],
+
+  // Unlock
+  "crack the lock on": ["UNLOCK"],
+  "crack the lock on the": ["UNLOCK"],
+  "deactivate the lock on": ["UNLOCK"],
+  "deactivate the lock on the": ["UNLOCK"],
+  "clear the lock on": ["UNLOCK"],
+  "clear the lock on the": ["UNLOCK"],
+
+  // Use
+  "make use of": ["USE"],
+  "make use of the": ["USE"],
+  "employ the services of": ["USE"],
+  "employ the services of the": ["USE"],
+  "put to work": ["USE"],
+  "put to work the": ["USE"],
+
+  // Combat
+  "assault": ["FIGHT"],
+  "assault the": ["FIGHT"],
+  "initiate combat with": ["FIGHT"],
+  "initiate combat with the": ["FIGHT"],
+  "launch an attack on": ["FIGHT"],
+  "launch an attack on the": ["FIGHT"],
+  "engage in battle with": ["FIGHT"],
+  "engage in battle with the": ["FIGHT"],
+
+  // Dialogue
+  "commune with": ["TALK"],
+  "commune with the": ["TALK"],
+  "exchange words with": ["TALK"],
+  "exchange words with the": ["TALK"],
+  "engage in dialogue with": ["TALK"],
+  "engage in dialogue with the": ["TALK"]
 });
 
 compoundVerbs.push(
@@ -9870,7 +9953,70 @@ compoundVerbs.push(
   "strike up conversation with the",
   "strike up conversation with",
   "engage in talk with the",
-  "engage in talk with"
+  "engage in talk with",
+
+  // Phase 16 compound verbs
+  "proceed along the path to the",
+  "proceed along the path to",
+  "proceed along path to the",
+  "proceed along path to",
+  "make a beeline for the",
+  "make a beeline for",
+  "wend one's way to the",
+  "wend one's way to",
+  "wend ones way to the",
+  "wend ones way to",
+  "check out the",
+  "check out",
+  "take a look at the",
+  "take a look at",
+  "peer closely at the",
+  "peer closely at",
+  "appropriate the",
+  "help oneself to the",
+  "help oneself to",
+  "help ones self to the",
+  "help ones self to",
+  "make off with the",
+  "make off with",
+  "part with the",
+  "part with",
+  "jettison the",
+  "relinquish control of the",
+  "relinquish control of",
+  "swing open the",
+  "swing open",
+  "slide open the",
+  "slide open",
+  "seal shut the",
+  "seal shut",
+  "swing shut the",
+  "swing shut",
+  "crack the lock on the",
+  "crack the lock on",
+  "deactivate the lock on the",
+  "deactivate the lock on",
+  "clear the lock on the",
+  "clear the lock on",
+  "make use of the",
+  "make use of",
+  "employ the services of the",
+  "employ the services of",
+  "put to work the",
+  "put to work",
+  "assault the",
+  "initiate combat with the",
+  "initiate combat with",
+  "launch an attack on the",
+  "launch an attack on",
+  "engage in battle with the",
+  "engage in battle with",
+  "commune with the",
+  "commune with",
+  "exchange words with the",
+  "exchange words with",
+  "engage in dialogue with the",
+  "engage in dialogue with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
