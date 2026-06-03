@@ -17411,7 +17411,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an academic face to face discussion with": ["TALK"],
   "engage in an academic face to face discussion with the": ["TALK"],
   "strike up an academic face to face discussion with": ["TALK"],
-  "strike up an academic face to face discussion with the": ["TALK"]
+  "strike up an academic face to face discussion with the": ["TALK"],
+
+  // Cycle #81 / Task-F104: Phase 67 mappings
+  // Move
+  "navigate one's vector of reconnaissance towards the location of": ["MOVE"],
+  "navigate one's vector of reconnaissance towards the location of the": ["MOVE"],
+  "navigate ones vector of reconnaissance towards the location of": ["MOVE"],
+  "navigate ones vector of reconnaissance towards the location of the": ["MOVE"],
+  "steer one's vector of reconnaissance in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of reconnaissance in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of reconnaissance in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of reconnaissance in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of reconnaissance towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of reconnaissance towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of reconnaissance towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of reconnaissance towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual screening": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual screening the": ["LOOK_INSPECT"],
+  "subject to a thorough visual screening": ["LOOK_INSPECT"],
+  "subject to a thorough visual screening the": ["LOOK_INSPECT"],
+  "subject to a detailed visual screening": ["LOOK_INSPECT"],
+  "subject to a detailed visual screening the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive securement of": ["TAKE"],
+  "assume direct exclusive securement of the": ["TAKE"],
+  "assume absolute exclusive securement of": ["TAKE"],
+  "assume absolute exclusive securement of the": ["TAKE"],
+  "assume immediate exclusive securement of": ["TAKE"],
+  "assume immediate exclusive securement of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive securement of": ["DROP"],
+  "divest oneself of all exclusive securement of the": ["DROP"],
+  "relinquish all exclusive securement of": ["DROP"],
+  "relinquish all exclusive securement of the": ["DROP"],
+  "free oneself from all exclusive securement of": ["DROP"],
+  "free oneself from all exclusive securement of the": ["DROP"],
+
+  // Open/Close
+  "force completely and biomechanically wide open": ["OPEN"],
+  "force completely and biomechanically wide open the": ["OPEN"],
+  "pry completely and biomechanically wide open": ["OPEN"],
+  "pry completely and biomechanically wide open the": ["OPEN"],
+  "fasten completely and biomechanically closed": ["CLOSE"],
+  "fasten completely and biomechanically closed the": ["CLOSE"],
+  "seal completely and biomechanically shut": ["CLOSE"],
+  "seal completely and biomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all atmospheric security devices of": ["UNLOCK"],
+  "deactivate all atmospheric security devices of the": ["UNLOCK"],
+  "bypass all atmospheric security devices on": ["UNLOCK"],
+  "bypass all atmospheric security devices on the": ["UNLOCK"],
+  "disengage the primary atmospheric security device on": ["UNLOCK"],
+  "disengage the primary atmospheric security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full architectural deployment of": ["USE"],
+  "harness the full architectural deployment of the": ["USE"],
+  "bring into active architectural deployment": ["USE"],
+  "bring into active architectural deployment the": ["USE"],
+  "make complete architectural deployment of": ["USE"],
+  "make complete architectural deployment of the": ["USE"],
+
+  // Combat
+  "initiate a cataclysmic confrontation against": ["FIGHT"],
+  "initiate a cataclysmic confrontation against the": ["FIGHT"],
+  "commence a cataclysmic confrontation against": ["FIGHT"],
+  "commence a cataclysmic confrontation against the": ["FIGHT"],
+  "engage in a cataclysmic confrontation against": ["FIGHT"],
+  "engage in a cataclysmic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a scientific face to face discussion with": ["TALK"],
+  "initiate a scientific face to face discussion with the": ["TALK"],
+  "engage in a scientific face to face discussion with": ["TALK"],
+  "engage in a scientific face to face discussion with the": ["TALK"],
+  "strike up a scientific face to face discussion with": ["TALK"],
+  "strike up a scientific face to face discussion with the": ["TALK"]
 });
 
 // Cycle #80 / Task-F103: Phase 66 compound verbs
@@ -17478,6 +17559,72 @@ compoundVerbs.push(
   "engage in an academic face to face discussion with",
   "strike up an academic face to face discussion with the",
   "strike up an academic face to face discussion with"
+);
+
+// Cycle #81 / Task-F104: Phase 67 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of reconnaissance towards the location of the",
+  "navigate one's vector of reconnaissance towards the location of",
+  "navigate ones vector of reconnaissance towards the location of the",
+  "navigate ones vector of reconnaissance towards the location of",
+  "steer one's vector of reconnaissance in the direction of the coordinates of the",
+  "steer one's vector of reconnaissance in the direction of the coordinates of",
+  "steer ones vector of reconnaissance in the direction of the coordinates of the",
+  "steer ones vector of reconnaissance in the direction of the coordinates of",
+  "direct one's vector of reconnaissance towards the coordinates of the location of the",
+  "direct one's vector of reconnaissance towards the coordinates of the location of",
+  "direct ones vector of reconnaissance towards the coordinates of the location of the",
+  "direct ones vector of reconnaissance towards the coordinates of the location of",
+  "subject to a comprehensive visual screening the",
+  "subject to a comprehensive visual screening",
+  "subject to a thorough visual screening the",
+  "subject to a thorough visual screening",
+  "subject to a detailed visual screening the",
+  "subject to a detailed visual screening",
+  "assume direct exclusive securement of the",
+  "assume direct exclusive securement of",
+  "assume absolute exclusive securement of the",
+  "assume absolute exclusive securement of",
+  "assume immediate exclusive securement of the",
+  "assume immediate exclusive securement of",
+  "divest oneself of all exclusive securement of the",
+  "divest oneself of all exclusive securement of",
+  "relinquish all exclusive securement of the",
+  "relinquish all exclusive securement of",
+  "free oneself from all exclusive securement of the",
+  "free oneself from all exclusive securement of",
+  "force completely and biomechanically wide open the",
+  "force completely and biomechanically wide open",
+  "pry completely and biomechanically wide open the",
+  "pry completely and biomechanically wide open",
+  "fasten completely and biomechanically closed the",
+  "fasten completely and biomechanically closed",
+  "seal completely and biomechanically shut the",
+  "seal completely and biomechanically shut",
+  "deactivate all atmospheric security devices of the",
+  "deactivate all atmospheric security devices of",
+  "bypass all atmospheric security devices on the",
+  "bypass all atmospheric security devices on",
+  "disengage the primary atmospheric security device on the",
+  "disengage the primary atmospheric security device on",
+  "harness the full architectural deployment of the",
+  "harness the full architectural deployment of",
+  "bring into active architectural deployment the",
+  "bring into active architectural deployment",
+  "make complete architectural deployment of the",
+  "make complete architectural deployment of",
+  "initiate a cataclysmic confrontation against the",
+  "initiate a cataclysmic confrontation against",
+  "commence a cataclysmic confrontation against the",
+  "commence a cataclysmic confrontation against",
+  "engage in a cataclysmic confrontation against the",
+  "engage in a cataclysmic confrontation against",
+  "initiate a scientific face to face discussion with the",
+  "initiate a scientific face to face discussion with",
+  "engage in a scientific face to face discussion with the",
+  "engage in a scientific face to face discussion with",
+  "strike up a scientific face to face discussion with the",
+  "strike up a scientific face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
