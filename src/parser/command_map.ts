@@ -10403,7 +10403,82 @@ Object.assign(VERB_CATEGORIES, {
   "initiate dialogue with": ["TALK"],
   "initiate dialogue with the": ["TALK"],
   "enter conversation with": ["TALK"],
-  "enter conversation with the": ["TALK"]
+  "enter conversation with the": ["TALK"],
+
+  // Cycle #36 / Task-F59: Phase 22 mappings (expansion requested by playtesters)
+  // Move
+  "undertake a journey towards": ["MOVE"],
+  "undertake a journey towards the": ["MOVE"],
+  "undertake travel towards": ["MOVE"],
+  "undertake travel towards the": ["MOVE"],
+  "steer one's steps towards": ["MOVE"],
+  "steer one's steps towards the": ["MOVE"],
+  "steer ones steps towards": ["MOVE"],
+  "steer ones steps towards the": ["MOVE"],
+
+  // Look/Inspect
+  "perform an analysis on": ["LOOK_INSPECT"],
+  "perform an analysis on the": ["LOOK_INSPECT"],
+  "conduct an analysis on": ["LOOK_INSPECT"],
+  "conduct an analysis on the": ["LOOK_INSPECT"],
+  "run a diagnostic on": ["LOOK_INSPECT"],
+  "run a diagnostic on the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume control over": ["TAKE"],
+  "assume control over the": ["TAKE"],
+  "gather into inventory": ["TAKE"],
+  "gather into inventory the": ["TAKE"],
+  "take into possession": ["TAKE"],
+  "take into possession the": ["TAKE"],
+
+  // Drop
+  "cast to the earth": ["DROP"],
+  "cast to the earth the": ["DROP"],
+  "toss onto the ground": ["DROP"],
+  "toss onto the ground the": ["DROP"],
+  "free ones self of": ["DROP"],
+  "free ones self of the": ["DROP"],
+
+  // Open/Close
+  "force completely open": ["OPEN"],
+  "force completely open the": ["OPEN"],
+  "shut entirely": ["CLOSE"],
+  "shut entirely the": ["CLOSE"],
+  "seal completely": ["CLOSE"],
+  "seal completely the": ["CLOSE"],
+
+  // Unlock
+  "deactivate the locking system on": ["UNLOCK"],
+  "deactivate the locking system on the": ["UNLOCK"],
+  "bypass the locking system of": ["UNLOCK"],
+  "bypass the locking system of the": ["UNLOCK"],
+  "disable the locking system on": ["UNLOCK"],
+  "disable the locking system on the": ["UNLOCK"],
+
+  // Use
+  "utilize the functions of": ["USE"],
+  "utilize the functions of the": ["USE"],
+  "employ the functions of": ["USE"],
+  "employ the functions of the": ["USE"],
+  "put to service": ["USE"],
+  "put to service the": ["USE"],
+
+  // Combat
+  "launch an assault against": ["FIGHT"],
+  "launch an assault against the": ["FIGHT"],
+  "initiate hostilities against": ["FIGHT"],
+  "initiate hostilities against the": ["FIGHT"],
+  "enter combat with": ["FIGHT"],
+  "enter combat with the": ["FIGHT"],
+
+  // Dialogue
+  "engage in discussion with": ["TALK"],
+  "engage in discussion with the": ["TALK"],
+  "initiate a discussion with": ["TALK"],
+  "initiate a discussion with the": ["TALK"],
+  "strike up talk with": ["TALK"],
+  "strike up talk with the": ["TALK"]
 });
 
 compoundVerbs.push(
@@ -10700,7 +10775,65 @@ compoundVerbs.push(
   "initiate dialogue with the",
   "initiate dialogue with",
   "enter conversation with the",
-  "enter conversation with"
+  "enter conversation with",
+
+  // Phase 22 compound verbs
+  "undertake a journey towards the",
+  "undertake a journey towards",
+  "undertake travel towards the",
+  "undertake travel towards",
+  "steer one's steps towards the",
+  "steer one's steps towards",
+  "steer ones steps towards the",
+  "steer ones steps towards",
+  "perform an analysis on the",
+  "perform an analysis on",
+  "conduct an analysis on the",
+  "conduct an analysis on",
+  "run a diagnostic on the",
+  "run a diagnostic on",
+  "assume control over the",
+  "assume control over",
+  "gather into inventory the",
+  "gather into inventory",
+  "take into possession the",
+  "take into possession",
+  "cast to the earth the",
+  "cast to the earth",
+  "toss onto the ground the",
+  "toss onto the ground",
+  "free ones self of the",
+  "free ones self of",
+  "force completely open the",
+  "force completely open",
+  "shut entirely the",
+  "shut entirely",
+  "seal completely the",
+  "seal completely",
+  "deactivate the locking system on the",
+  "deactivate the locking system on",
+  "bypass the locking system of the",
+  "bypass the locking system of",
+  "disable the locking system on the",
+  "disable the locking system on",
+  "utilize the functions of the",
+  "utilize the functions of",
+  "employ the functions of the",
+  "employ the functions of",
+  "put to service the",
+  "put to service",
+  "launch an assault against the",
+  "launch an assault against",
+  "initiate hostilities against the",
+  "initiate hostilities against",
+  "enter combat with the",
+  "enter combat with",
+  "engage in discussion with the",
+  "engage in discussion with",
+  "initiate a discussion with the",
+  "initiate a discussion with",
+  "strike up talk with the",
+  "strike up talk with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
