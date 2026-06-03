@@ -84,6 +84,11 @@ function getWeatherEffect(weather: string, seed: number, step: number, roomId: s
   return pool[mixed % pool.length];
 }
 
+function decapitalize(str: string): string {
+  if (!str) return "";
+  return str.charAt(0).toLowerCase() + str.slice(1);
+}
+
 /**
  * Returns a purely deterministic sensory/atmospheric narration based on room type,
  * seed, and step count. Maintains strict byte-identity and Zork-style vibe.
@@ -105,7 +110,17 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The smell of pine needles and damp earth is sharp and clean.",
       "Distant bird calls echo briefly and then die away.",
       "Sunlight filters down in beams through the thick canopy.",
-      "Wildflowers nod gently in the faint breeze."
+      "Wildflowers nod gently in the faint breeze.",
+      "The soft chirp of crickets rises from the shadowed ferns.",
+      "A gentle hum of insects plays in the warm air.",
+      "Dewdrops cling to the spiderwebs spun between the low branches.",
+      "The air is cool, carrying the sweet scent of blooming jasmine.",
+      "Pine cones litter the forest floor, half-buried under mossy roots.",
+      "A sudden flutter of wings erupts from the canopy as a bird takes flight.",
+      "The ground here is spongy with decades of decayed leaves.",
+      "A trickle of water from a hidden spring murmurs nearby.",
+      "Pockets of warm air drift through the cooler forest paths.",
+      "A spider crawls slowly across a rotten log near your feet."
     ],
     crypt: [
       "A faint smell of incense and damp stonework lingers in the shadows.",
@@ -122,7 +137,17 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The walls are cold to the touch and slightly damp.",
       "Dust hangs thick in the air, catching the light.",
       "The silence here is profound, broken only by your own breathing.",
-      "Your shadow looms large and distorted against the crypt walls."
+      "Your shadow looms large and distorted against the crypt walls.",
+      "The smell of damp earth and slow decay is heavy in the stillness.",
+      "A faint echo of a distant whisper seems to bounce off the stone walls.",
+      "The temperature drops sharply, leaving your breath visible as pale mist.",
+      "A shadow passes quickly at the edge of your vision, gone when you turn.",
+      "Moisture beads on the low stone ceiling, reflecting your light like tiny stars.",
+      "The quiet is absolute, a heavy weight that seems to stifle sound.",
+      "Ancient engravings on the stone floor are almost worn away by time.",
+      "A sense of dread, faint but persistent, settles in your stomach.",
+      "The stone slabs underfoot are icy cold, even through your soles.",
+      "A small pile of crumbled mortar lies in the corner, disturbed recently."
     ],
     castle: [
       "The stones here feel intensely cold, radiating an ancient chill.",
@@ -139,7 +164,17 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The flagstones are worn smooth from centuries of footsteps.",
       "A faint draft rustles through the empty corridor.",
       "A distant clinking sound echoes from far away.",
-      "The scent of old dust and cold iron is strong."
+      "The scent of old dust and cold iron is strong.",
+      "Muted sunlight struggles to penetrate the narrow slit windows.",
+      "The faint smell of tallow and old candle wax hangs in the air.",
+      "A scratch of tiny claws suggests mice nesting behind the paneling.",
+      "The high walls seem to press in, thick with centuries of secrets.",
+      "A light breeze whispers through the arrow slits, carrying a chill.",
+      "Your footsteps produce a double-echo in the long, empty hallway.",
+      "Heavy iron brackets are bolted deep into the solid masonry.",
+      "A draft sweeps dust across the floor in tiny, twisting eddies.",
+      "The stone archways overhead show fine cracks from age and settling.",
+      "An oppressive weight of history clings to the grand, silent halls."
     ],
     underground: [
       "The walls are slick with condensation, dripping slowly into dark puddles.",
@@ -156,7 +191,17 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "A damp, cool breeze blows from a crack in the rock.",
       "Your footsteps echo hollowly in the enclosed space.",
       "The rock face is cold, damp, and rough.",
-      "The heavy smell of ancient earth and stone surrounds you."
+      "The heavy smell of ancient earth and stone surrounds you.",
+      "The air is heavy and humid, making it slightly harder to breathe.",
+      "A slow trickle of muddy water runs down a nearby fissure.",
+      "Tiny cave crickets scatter as you approach, disappearing into cracks.",
+      "The silence is periodically broken by the deep, low groan of the earth.",
+      "Slick patches of moss or algae make the rocky floor treacherous.",
+      "A cool draft blowing from ahead suggests a larger cavern nearby.",
+      "The mineral scent of iron and wet stone is sharp in your nose.",
+      "A high-pitched squeak of a bat echoes briefly from the darkness above.",
+      "The rock formations look like frozen, melting pillars in the shadows.",
+      "A layer of fine silt covers the flat surfaces, undisturbed for ages."
     ],
     outpost: [
       "The wind howls fiercely against the reinforced stone battlements.",
@@ -173,7 +218,17 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The wooden beams are weather-beaten but solid.",
       "The smell of old leather and rust lingers.",
       "A faint whistling sound comes from the narrow windows.",
-      "Dusty footprints are visible in the corner."
+      "Dusty footprints are visible in the corner.",
+      "Rust-flecked iron rings are set into the stone, once used for tethering.",
+      "The cold wood of the floorboards creaks under your weight.",
+      "Narrow arrow slits slice the incoming light into thin, bright blades.",
+      "A faint smell of oil and old leather hangs near the weapon racks.",
+      "The distant horizon is visible through the battlements, vast and empty.",
+      "Old scratch marks on the table suggest sentries playing games to pass the time.",
+      "The air is drafty and brisk, constantly moving through the chamber.",
+      "A discarded buckle from a piece of armor lies tarnished in the dust.",
+      "Heavy iron bolts secure the window shutters against the elements.",
+      "The structure feels solid and functional, built for utility, not comfort."
     ],
     settlement: [
       "The faint scent of woodsmoke and roasting meat drifts from afar.",
@@ -190,7 +245,17 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The faint sound of wind chimes can be heard in the distance.",
       "A worn path leads through the middle of the area.",
       "The scent of woodsmoke and soil fills the air.",
-      "Grass grows tall and wild at the edges of the path."
+      "Grass grows tall and wild at the edges of the path.",
+      "The chatter of birds nesting in nearby eaves fills the air.",
+      "A gentle breeze carries the smell of freshly cut hay and damp straw.",
+      "Scattered hoofprints are pressed deep into the dried mud of the path.",
+      "A warm draft blows from a nearby chimney, smelling of cedarwood.",
+      "The sound of a distant hammer striking an anvil rings out rhythmically.",
+      "A patch of wild herbs grows near the fence, smelling of mint.",
+      "Discarded straw and loose twigs are scattered across the path.",
+      "A post for hitching horses stands weathered and empty near the trail.",
+      "The distant lowing of cattle drifts lazily on the warm wind.",
+      "The soft rustle of laundry drying on a line can be heard nearby."
     ]
   };
 
@@ -279,7 +344,7 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
     }
 
     const sceneCharSum = currentScene.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-    const sceneStructureType = mix(state.seed, state.step + 100, sceneCharSum) % 4;
+    const sceneStructureType = mix(state.seed, state.step + 100, sceneCharSum) % 6;
 
     let text = "";
     if (wEffect) {
@@ -289,14 +354,26 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
         text = `${sensoryFlavor} ${currentScene.text} ${wEffect}`;
       } else if (sceneStructureType === 2) {
         text = `${wEffect} ${currentScene.text} ${sensoryFlavor}`;
-      } else {
+      } else if (sceneStructureType === 3) {
         text = `${currentScene.text} ${wEffect} ${sensoryFlavor}`;
+      } else if (sceneStructureType === 4) {
+        text = `${sensoryFlavor} ${wEffect} ${currentScene.text}`;
+      } else {
+        text = `${wEffect} ${sensoryFlavor} ${currentScene.text}`;
       }
     } else {
-      if (sceneStructureType % 2 === 0) {
+      if (sceneStructureType === 0) {
         text = `${currentScene.text} ${sensoryFlavor}`;
-      } else {
+      } else if (sceneStructureType === 1) {
         text = `${sensoryFlavor} ${currentScene.text}`;
+      } else if (sceneStructureType === 2) {
+        text = `Around you, ${decapitalize(sensoryFlavor)} ${currentScene.text}`;
+      } else if (sceneStructureType === 3) {
+        text = `${currentScene.text} Meanwhile, ${decapitalize(sensoryFlavor)}`;
+      } else if (sceneStructureType === 4) {
+        text = `Here, ${currentScene.text} ${sensoryFlavor}`;
+      } else {
+        text = `${sensoryFlavor} Nearby, ${currentScene.text}`;
       }
     }
 
@@ -387,7 +464,7 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
   }
 
   const roomCharSum = room.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-  const roomStructureType = mix(state.seed, state.step + 100, roomCharSum) % 4;
+  const roomStructureType = mix(state.seed, state.step + 100, roomCharSum) % 6;
 
   let description = "";
   if (wEffect) {
@@ -397,14 +474,26 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
       description = `${sensoryFlavor} ${room.description} ${wEffect}`;
     } else if (roomStructureType === 2) {
       description = `${wEffect} ${room.description} ${sensoryFlavor}`;
-    } else {
+    } else if (roomStructureType === 3) {
       description = `${room.description} ${wEffect} ${sensoryFlavor}`;
+    } else if (roomStructureType === 4) {
+      description = `${sensoryFlavor} ${wEffect} ${room.description}`;
+    } else {
+      description = `${wEffect} ${sensoryFlavor} ${room.description}`;
     }
   } else {
-    if (roomStructureType % 2 === 0) {
+    if (roomStructureType === 0) {
       description = `${room.description} ${sensoryFlavor}`;
-    } else {
+    } else if (roomStructureType === 1) {
       description = `${sensoryFlavor} ${room.description}`;
+    } else if (roomStructureType === 2) {
+      description = `Around you, ${decapitalize(sensoryFlavor)} ${room.description}`;
+    } else if (roomStructureType === 3) {
+      description = `${room.description} Meanwhile, ${decapitalize(sensoryFlavor)}`;
+    } else if (roomStructureType === 4) {
+      description = `Here, ${room.description} ${sensoryFlavor}`;
+    } else {
+      description = `${sensoryFlavor} Nearby, ${room.description}`;
     }
   }
 

@@ -60,28 +60,28 @@ describe("Sensory Narration Variety & Custom Categories", () => {
     let desc = (obs as any).description;
     expect(desc).toContain("A leaf-covered trail.");
     // Forest-specific sensory flavors
-    expect(desc).toMatch(/pine needles|owl|loam|watchfulness|leaves crunch|green shadows|cedar|mournful sigh|woodland creature|moss|twig|sunlight|wildflowers/i);
+    expect(desc).toMatch(/pine needles|owl|loam|watchfulness|leaves crunch|green shadows|cedar|mournful sigh|woodland creature|moss|twig|sunlight|wildflowers|bird|crickets|insects|spiderwebs|jasmine|pine cones|spongy|spring|pockets|rotten log/i);
 
     // 2. Underground/Vault category
     state.current = "room_vault";
     obs = buildObservation(state, pack);
     desc = (obs as any).description;
     expect(desc).toContain("A dark steel chamber.");
-    expect(desc).toMatch(/condensation|hum of shifting earth|sulfur|crystalline|stale water|stone rolls|abyss|confinement|dripping water|scraping|darkness|ping|breeze|echo|rough|ancient earth/i);
+    expect(desc).toMatch(/condensation|hum of shifting earth|sulfur|crystalline|stale water|stone rolls|abyss|confinement|dripping water|scraping|darkness|ping|breeze|echo|rough|ancient earth|heavy and humid|trickle|fissure|cave crickets|groan|algae|treacherous|cool draft|cavern|mineral scent|wet stone|squeak|bat|rock formations|pillars|silt/i);
 
     // 3. Outpost/Tower category
     state.current = "room_tower";
     obs = buildObservation(state, pack);
     desc = (obs as any).description;
     expect(desc).toContain("High stone tower.");
-    expect(desc).toMatch(/battlements|weapons|smoke|arrow loops|oak beams|soot|banners|iron-banded|crest|sentries|sconce|wooden beams|leather|whistling|footprints/i);
+    expect(desc).toMatch(/battlements|weapons|smoke|arrow loops|oak beams|soot|banners|iron-banded|crest|sentries|sconce|wooden beams|leather|whistling|footprints|iron rings|tethering|floorboards|arrow slits|bright blades|smell of oil|horizon|scratch marks|drafty and brisk|buckle|armor|iron bolts|window shutters|utility/i);
 
     // 4. Settlement/Crossroads category
     state.current = "room_crossroads";
     obs = buildObservation(state, pack);
     desc = (obs as any).description;
     expect(desc).toContain("A meeting of paths.");
-    expect(desc).toMatch(/woodsmoke|carriage ruts|signpost|civilization|tavern|rag|insects|lantern light|dust|safety|cart wheel|chimes|worn path|grass/i);
+    expect(desc).toMatch(/woodsmoke|carriage ruts|signpost|civilization|tavern|rag|insects|lantern light|dust|safety|cart wheel|chimes|worn path|grass|birds nesting|eaves|freshly cut hay|damp straw|hoofprints|chimney|cedarwood|hammer|anvil|wild herbs|mint|discarded straw|twigs|hitching horses|cattle|laundry/i);
   });
 
   it("should vary the narrative structure order dynamically over steps and weather", () => {
