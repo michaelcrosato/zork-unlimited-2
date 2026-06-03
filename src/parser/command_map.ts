@@ -6640,6 +6640,97 @@ compoundVerbs.push(
   "strike up a chat with"
 );
 
+// Cycle #8 / Task-F39: Expanded synonym mappings Phase 4 for movement, inspection, combat, dialogue, trading, and interaction categories
+Object.assign(VERB_CATEGORIES, {
+  // Restore/Merge multi-category words
+  interact: ["USE", "TALK", "ASK"],
+  engage: ["MOVE", "FIGHT", "USE"],
+
+  // Movement
+  scurry: ["MOVE"],
+  strut: ["MOVE"],
+  hasten: ["MOVE"],
+  amble: ["MOVE"],
+
+  // Inspection/Looking
+  grok: ["LOOK_INSPECT"],
+  scrutinize: ["LOOK_INSPECT"],
+  peruse: ["LOOK_INSPECT"],
+
+  // Combat
+  obliterate: ["FIGHT"],
+  eliminate: ["FIGHT"],
+  exterminate: ["FIGHT"],
+  eradicate: ["FIGHT"],
+  neutralize: ["FIGHT"],
+
+  // Dialogue
+  consult: ["TALK", "ASK"],
+  confer: ["TALK", "ASK"],
+  negotiate: ["TALK", "ASK"],
+
+  // Trading
+  barter: ["BUY", "SELL"],
+
+  // Use
+  deploy: ["USE"],
+  activate: ["USE"],
+  trigger: ["USE"],
+
+  // Compound Movement
+  "scurry to the": ["MOVE"],
+  "scurry to": ["MOVE"],
+  "make haste to the": ["MOVE"],
+  "make haste to": ["MOVE"],
+
+  // Compound Combat
+  "exterminate the": ["FIGHT"],
+  "obliterate the": ["FIGHT"],
+  "eradicate the": ["FIGHT"],
+  "neutralize the": ["FIGHT"],
+
+  // Compound Dialogue
+  "seek advice from the": ["TALK", "ASK"],
+  "seek advice from": ["TALK", "ASK"],
+  "have a conversation with the": ["TALK", "ASK"],
+  "have a conversation with": ["TALK", "ASK"],
+  "confer with the": ["TALK", "ASK"],
+  "confer with": ["TALK", "ASK"],
+
+  // Compound Trading
+  "barter with the": ["BUY", "SELL"],
+  "barter with": ["BUY", "SELL"],
+  "procure from the": ["BUY"],
+  "procure from": ["BUY"],
+
+  // Compound Use
+  "activate the": ["USE"],
+  "deploy the": ["USE"]
+});
+
+compoundVerbs.push(
+  "scurry to the",
+  "scurry to",
+  "make haste to the",
+  "make haste to",
+  "exterminate the",
+  "obliterate the",
+  "eradicate the",
+  "neutralize the",
+  "seek advice from the",
+  "seek advice from",
+  "have a conversation with the",
+  "have a conversation with",
+  "confer with the",
+  "confer with",
+  "barter with the",
+  "barter with",
+  "procure from the",
+  "procure from",
+  "activate the",
+  "deploy the"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
