@@ -13924,5 +13924,154 @@ compoundVerbs.push(
   "strike up a direct face to face discussion with"
 );
 
+// Cycle #57 / Task-F80: Phase 43 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's orientation towards the location of": ["MOVE"],
+  "navigate one's orientation towards the location of the": ["MOVE"],
+  "navigate ones orientation towards the location of": ["MOVE"],
+  "navigate ones orientation towards the location of the": ["MOVE"],
+  "steer one's orientation in the direction of the coordinates of": ["MOVE"],
+  "steer one's orientation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones orientation in the direction of the coordinates of": ["MOVE"],
+  "steer ones orientation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's orientation towards the coordinates of the location of": ["MOVE"],
+  "direct one's orientation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones orientation towards the coordinates of the location of": ["MOVE"],
+  "direct ones orientation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual observation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual observation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual observation": ["LOOK_INSPECT"],
+  "subject to a thorough visual observation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual observation": ["LOOK_INSPECT"],
+  "subject to a detailed visual observation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive custodianship of": ["TAKE"],
+  "assume direct exclusive custodianship of the": ["TAKE"],
+  "assume absolute exclusive custodianship of": ["TAKE"],
+  "assume absolute exclusive custodianship of the": ["TAKE"],
+  "assume immediate exclusive custodianship of": ["TAKE"],
+  "assume immediate exclusive custodianship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive custodianship of": ["DROP"],
+  "divest oneself of all exclusive custodianship of the": ["DROP"],
+  "relinquish all exclusive custodianship of": ["DROP"],
+  "relinquish all exclusive custodianship of the": ["DROP"],
+  "free oneself from all exclusive custodianship of": ["DROP"],
+  "free oneself from all exclusive custodianship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and irreversibly wide open": ["OPEN"],
+  "force completely and irreversibly wide open the": ["OPEN"],
+  "pry completely and irreversibly wide open": ["OPEN"],
+  "pry completely and irreversibly wide open the": ["OPEN"],
+  "fasten completely and irreversibly closed": ["CLOSE"],
+  "fasten completely and irreversibly closed the": ["CLOSE"],
+  "seal completely and irreversibly shut": ["CLOSE"],
+  "seal completely and irreversibly shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all digital security devices of": ["UNLOCK"],
+  "deactivate all digital security devices of the": ["UNLOCK"],
+  "bypass all digital security devices on": ["UNLOCK"],
+  "bypass all digital security devices on the": ["UNLOCK"],
+  "disengage the primary digital security device on": ["UNLOCK"],
+  "disengage the primary digital security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full systematic deployment of": ["USE"],
+  "harness the full systematic deployment of the": ["USE"],
+  "bring into active systematic deployment": ["USE"],
+  "bring into active systematic deployment the": ["USE"],
+  "make complete systematic deployment of": ["USE"],
+  "make complete systematic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an aggressive confrontation against": ["FIGHT"],
+  "initiate an aggressive confrontation against the": ["FIGHT"],
+  "commence an aggressive confrontation against": ["FIGHT"],
+  "commence an aggressive confrontation against the": ["FIGHT"],
+  "engage in an aggressive confrontation against": ["FIGHT"],
+  "engage in an aggressive confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a candid face to face discussion with": ["TALK"],
+  "initiate a candid face to face discussion with the": ["TALK"],
+  "engage in a candid face to face discussion with": ["TALK"],
+  "engage in a candid face to face discussion with the": ["TALK"],
+  "strike up a candid face to face discussion with": ["TALK"],
+  "strike up a candid face to face discussion with the": ["TALK"]
+});
+
+compoundVerbs.push(
+  // Phase 43 compound verbs
+  "navigate one's orientation towards the location of the",
+  "navigate one's orientation towards the location of",
+  "navigate ones orientation towards the location of the",
+  "navigate ones orientation towards the location of",
+  "steer one's orientation in the direction of the coordinates of the",
+  "steer one's orientation in the direction of the coordinates of",
+  "steer ones orientation in the direction of the coordinates of the",
+  "steer ones orientation in the direction of the coordinates of",
+  "direct one's orientation towards the coordinates of the location of the",
+  "direct one's orientation towards the coordinates of the location of",
+  "direct ones orientation towards the coordinates of the location of the",
+  "direct ones orientation towards the coordinates of the location of",
+  "subject to a comprehensive visual observation the",
+  "subject to a comprehensive visual observation",
+  "subject to a thorough visual observation the",
+  "subject to a thorough visual observation",
+  "subject to a detailed visual observation the",
+  "subject to a detailed visual observation",
+  "assume direct exclusive custodianship of the",
+  "assume direct exclusive custodianship of",
+  "assume absolute exclusive custodianship of the",
+  "assume absolute exclusive custodianship of",
+  "assume immediate exclusive custodianship of the",
+  "assume immediate exclusive custodianship of",
+  "divest oneself of all exclusive custodianship of the",
+  "divest oneself of all exclusive custodianship of",
+  "relinquish all exclusive custodianship of the",
+  "relinquish all exclusive custodianship of",
+  "free oneself from all exclusive custodianship of the",
+  "free oneself from all exclusive custodianship of",
+  "force completely and irreversibly wide open the",
+  "force completely and irreversibly wide open",
+  "pry completely and irreversibly wide open the",
+  "pry completely and irreversibly wide open",
+  "fasten completely and irreversibly closed the",
+  "fasten completely and irreversibly closed",
+  "seal completely and irreversibly shut the",
+  "seal completely and irreversibly shut",
+  "deactivate all digital security devices of the",
+  "deactivate all digital security devices of",
+  "bypass all digital security devices on the",
+  "bypass all digital security devices on",
+  "disengage the primary digital security device on the",
+  "disengage the primary digital security device on",
+  "harness the full systematic deployment of the",
+  "harness the full systematic deployment of",
+  "bring into active systematic deployment the",
+  "bring into active systematic deployment",
+  "make complete systematic deployment of the",
+  "make complete systematic deployment of",
+  "initiate an aggressive confrontation against the",
+  "initiate an aggressive confrontation against",
+  "commence an aggressive confrontation against the",
+  "commence an aggressive confrontation against",
+  "engage in an aggressive confrontation against the",
+  "engage in an aggressive confrontation against",
+  "initiate a candid face to face discussion with the",
+  "initiate a candid face to face discussion with",
+  "engage in a candid face to face discussion with the",
+  "engage in a candid face to face discussion with",
+  "strike up a candid face to face discussion with the",
+  "strike up a candid face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
