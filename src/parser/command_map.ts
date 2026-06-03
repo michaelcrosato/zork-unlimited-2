@@ -14371,6 +14371,155 @@ compoundVerbs.push(
   "strike up a constructive face to face discussion with"
 );
 
+// Cycle #60 / Task-F83: Phase 46 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of progression towards the location of": ["MOVE"],
+  "navigate one's vector of progression towards the location of the": ["MOVE"],
+  "navigate ones vector of progression towards the location of": ["MOVE"],
+  "navigate ones vector of progression towards the location of the": ["MOVE"],
+  "steer one's vector of progression in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of progression in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of progression in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of progression in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of progression towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of progression towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of progression towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of progression towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual verification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual verification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual verification": ["LOOK_INSPECT"],
+  "subject to a thorough visual verification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual verification": ["LOOK_INSPECT"],
+  "subject to a detailed visual verification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive guardianship of": ["TAKE"],
+  "assume direct exclusive guardianship of the": ["TAKE"],
+  "assume absolute exclusive guardianship of": ["TAKE"],
+  "assume absolute exclusive guardianship of the": ["TAKE"],
+  "assume immediate exclusive guardianship of": ["TAKE"],
+  "assume immediate exclusive guardianship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive guardianship of": ["DROP"],
+  "divest oneself of all exclusive guardianship of the": ["DROP"],
+  "relinquish all exclusive guardianship of": ["DROP"],
+  "relinquish all exclusive guardianship of the": ["DROP"],
+  "free oneself from all exclusive guardianship of": ["DROP"],
+  "free oneself from all exclusive guardianship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and decisively wide open": ["OPEN"],
+  "force completely and decisively wide open the": ["OPEN"],
+  "pry completely and decisively wide open": ["OPEN"],
+  "pry completely and decisively wide open the": ["OPEN"],
+  "fasten completely and decisively closed": ["CLOSE"],
+  "fasten completely and decisively closed the": ["CLOSE"],
+  "seal completely and decisively shut": ["CLOSE"],
+  "seal completely and decisively shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all quantum security devices of": ["UNLOCK"],
+  "deactivate all quantum security devices of the": ["UNLOCK"],
+  "bypass all quantum security devices on": ["UNLOCK"],
+  "bypass all quantum security devices on the": ["UNLOCK"],
+  "disengage the primary quantum security device on": ["UNLOCK"],
+  "disengage the primary quantum security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full purposeful deployment of": ["USE"],
+  "harness the full purposeful deployment of the": ["USE"],
+  "bring into active purposeful deployment": ["USE"],
+  "bring into active purposeful deployment the": ["USE"],
+  "make complete purposeful deployment of": ["USE"],
+  "make complete purposeful deployment of the": ["USE"],
+
+  // Combat
+  "initiate an antagonistic confrontation against": ["FIGHT"],
+  "initiate an antagonistic confrontation against the": ["FIGHT"],
+  "commence an antagonistic confrontation against": ["FIGHT"],
+  "commence an antagonistic confrontation against the": ["FIGHT"],
+  "engage in an antagonistic confrontation against": ["FIGHT"],
+  "engage in an antagonistic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a diplomatic face to face discussion with": ["TALK"],
+  "initiate a diplomatic face to face discussion with the": ["TALK"],
+  "engage in a diplomatic face to face discussion with": ["TALK"],
+  "engage in a diplomatic face to face discussion with the": ["TALK"],
+  "strike up a diplomatic face to face discussion with": ["TALK"],
+  "strike up a diplomatic face to face discussion with the": ["TALK"]
+});
+
+compoundVerbs.push(
+  // Phase 46 compound verbs
+  "navigate one's vector of progression towards the location of the",
+  "navigate one's vector of progression towards the location of",
+  "navigate ones vector of progression towards the location of the",
+  "navigate ones vector of progression towards the location of",
+  "steer one's vector of progression in the direction of the coordinates of the",
+  "steer one's vector of progression in the direction of the coordinates of",
+  "steer ones vector of progression in the direction of the coordinates of the",
+  "steer ones vector of progression in the direction of the coordinates of",
+  "direct one's vector of progression towards the coordinates of the location of the",
+  "direct one's vector of progression towards the coordinates of the location of",
+  "direct ones vector of progression towards the coordinates of the location of the",
+  "direct ones vector of progression towards the coordinates of the location of",
+  "subject to a comprehensive visual verification the",
+  "subject to a comprehensive visual verification",
+  "subject to a thorough visual verification the",
+  "subject to a thorough visual verification",
+  "subject to a detailed visual verification the",
+  "subject to a detailed visual verification",
+  "assume direct exclusive guardianship of the",
+  "assume direct exclusive guardianship of",
+  "assume absolute exclusive guardianship of the",
+  "assume absolute exclusive guardianship of",
+  "assume immediate exclusive guardianship of the",
+  "assume immediate exclusive guardianship of",
+  "divest oneself of all exclusive guardianship of the",
+  "divest oneself of all exclusive guardianship of",
+  "relinquish all exclusive guardianship of the",
+  "relinquish all exclusive guardianship of",
+  "free oneself from all exclusive guardianship of the",
+  "free oneself from all exclusive guardianship of",
+  "force completely and decisively wide open the",
+  "force completely and decisively wide open",
+  "pry completely and decisively wide open the",
+  "pry completely and decisively wide open",
+  "fasten completely and decisively closed the",
+  "fasten completely and decisively closed",
+  "seal completely and decisively shut the",
+  "seal completely and decisively shut",
+  "deactivate all quantum security devices of the",
+  "deactivate all quantum security devices of",
+  "bypass all quantum security devices on the",
+  "bypass all quantum security devices on",
+  "disengage the primary quantum security device on the",
+  "disengage the primary quantum security device on",
+  "harness the full purposeful deployment of the",
+  "harness the full purposeful deployment of",
+  "bring into active purposeful deployment the",
+  "bring into active purposeful deployment",
+  "make complete purposeful deployment of the",
+  "make complete purposeful deployment of",
+  "initiate an antagonistic confrontation against the",
+  "initiate an antagonistic confrontation against",
+  "commence an antagonistic confrontation against the",
+  "commence an antagonistic confrontation against",
+  "engage in an antagonistic confrontation against the",
+  "engage in an antagonistic confrontation against",
+  "initiate a diplomatic face to face discussion with the",
+  "initiate a diplomatic face to face discussion with",
+  "engage in a diplomatic face to face discussion with the",
+  "engage in a diplomatic face to face discussion with",
+  "strike up a diplomatic face to face discussion with the",
+  "strike up a diplomatic face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
