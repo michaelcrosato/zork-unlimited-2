@@ -1,5 +1,234 @@
 import { ParserPack, ParserPackSchema } from "../parser/schema.js";
 import { ValidationReport, ValidationFinding } from "./report.js";
+import { createInitialState, GameState } from "../core/state.js";
+import { step } from "../core/engine.js";
+import { Action } from "../api/types.js";
+import { generateLegalActions } from "../parser/legal_actions.js";
+import { canonicalStringify } from "../core/hash.js";
+
+/**
+ * Explores the entire state space of a Parser pack using BFS to identify
+ * unsolvable games, soft-locks (e.g. dropping quest items), and unreachable win conditions/objects.
+ */
+export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
+  if (!pack.win_conditions || pack.win_conditions.length === 0) {
+    return [];
+  }
+
+  const findings: ValidationFinding[] = [];
+  const startRoom = pack.meta.start_room;
+
+  const initialState = createInitialState({
+    seed: 42,
+    start: startRoom,
+    varsInit: pack.meta.vars_init,
+    flagsInit: pack.meta.flags_init,
+  });
+
+  const getStateKey = (state: GameState): string => {
+    const clean = {
+      current: state.current,
+      flags: state.flags,
+      vars: state.vars,
+      inventory: [...state.inventory].sort(),
+      objectState: state.objectState,
+      questStage: state.questStage,
+      ended: state.ended,
+      endingId: state.endingId,
+    };
+    return canonicalStringify(clean);
+  };
+
+  // State-space search (BFS)
+  const queue: GameState[] = [initialState];
+  const visited = new Map<string, GameState>();
+  const parentMap = new Map<string, string[]>();
+  const transitionGraph = new Map<string, Set<string>>();
+  const transitionActions = new Map<string, Action>();
+
+  const initialKey = getStateKey(initialState);
+  visited.set(initialKey, initialState);
+
+  const maxStates = 2000;
+  let statesExplored = 0;
+  let limitReached = false;
+
+  while (queue.length > 0) {
+    const currState = queue.shift()!;
+    const currKey = getStateKey(currState);
+    statesExplored++;
+
+    if (statesExplored > maxStates) {
+      limitReached = true;
+      break;
+    }
+
+    if (currState.ended) {
+      continue;
+    }
+
+    const legalActions = generateLegalActions(currState, pack);
+
+    for (const legalAct of legalActions) {
+      if (legalAct.action.type === "DROP") {
+        continue;
+      }
+      const result = step(currState, legalAct.action, pack);
+      if (result.ok) {
+        const nextKey = getStateKey(result.state);
+
+        if (!transitionGraph.has(currKey)) {
+          transitionGraph.set(currKey, new Set());
+        }
+        transitionGraph.get(currKey)!.add(nextKey);
+
+        if (!visited.has(nextKey)) {
+          visited.set(nextKey, result.state);
+          queue.push(result.state);
+        }
+
+        if (!parentMap.has(nextKey)) {
+          parentMap.set(nextKey, []);
+        }
+        if (!parentMap.get(nextKey)!.includes(currKey)) {
+          parentMap.get(nextKey)!.push(currKey);
+        }
+
+        const transitionId = `${currKey}->${nextKey}`;
+        if (!transitionActions.has(transitionId)) {
+          transitionActions.set(transitionId, legalAct.action);
+        }
+      }
+    }
+  }
+
+  if (limitReached) {
+    findings.push({
+      severity: "info",
+      code: "PATHFINDER_LIMIT_REACHED",
+      message: `State-space pathfinder capped at ${maxStates} states explored to avoid timeout.`,
+      where: ["pathfinder"],
+    });
+  }
+
+  const endingKeys = new Set<string>();
+  for (const [key, state] of visited.entries()) {
+    if (state.ended) {
+      endingKeys.add(key);
+    }
+  }
+
+  const canReachEnding = new Set<string>(endingKeys);
+  const backQueue = Array.from(endingKeys);
+
+  while (backQueue.length > 0) {
+    const currKey = backQueue.shift()!;
+    const parents = parentMap.get(currKey) ?? [];
+    for (const p of parents) {
+      if (!canReachEnding.has(p)) {
+        canReachEnding.add(p);
+        backQueue.push(p);
+      }
+    }
+  }
+
+  let softLockCount = 0;
+  for (const [key, state] of visited.entries()) {
+    if (!state.ended && !canReachEnding.has(key)) {
+      const parents = parentMap.get(key) ?? [];
+      let reportedSpecific = false;
+
+      for (const p of parents) {
+        if (canReachEnding.has(p)) {
+          const action = transitionActions.get(`${p}->${key}`);
+          if (action) {
+            if (action.type === "DROP") {
+              const droppedObj = pack.objects.find((o) => o.id === action.item);
+              if (droppedObj && droppedObj.quest_critical) {
+                findings.push({
+                  severity: "error",
+                  code: "SOFTLOCK_QUEST_ITEM",
+                  message: `'${droppedObj.name}' can be dropped in '${state.current}', making the game unsolvable.`,
+                  where: [`object:${droppedObj.id}`, `room:${state.current}`],
+                });
+                reportedSpecific = true;
+              }
+            }
+          }
+        }
+      }
+
+      if (!reportedSpecific) {
+        softLockCount++;
+        if (softLockCount <= 5) {
+          findings.push({
+            severity: "warning",
+            code: "SOFTLOCK_DETECTED",
+            message: `Reachable state in room '${state.current}' has no sequence of actions leading to a win condition.`,
+            where: [`room:${state.current}`],
+          });
+        }
+      }
+    }
+  }
+
+  if (softLockCount > 5) {
+    findings.push({
+      severity: "warning",
+      code: "SOFTLOCK_DETECTED",
+      message: `And ${softLockCount - 5} other reachable states are soft-locked.`,
+      where: ["pathfinder"],
+    });
+  }
+
+  const startKey = getStateKey(initialState);
+  if (!canReachEnding.has(startKey)) {
+    findings.push({
+      severity: "error",
+      code: "UNSOLVABLE_GAME",
+      message: `The game is unsolvable: there is no sequence of actions from the starting room '${startRoom}' that leads to a win condition.`,
+      where: [`room:${startRoom}`],
+    });
+  }
+
+  // Check unreachable win conditions
+  const reachedEndings = new Set<string>();
+  for (const [key, state] of visited.entries()) {
+    if (state.ended && state.endingId) {
+      reachedEndings.add(state.endingId);
+    }
+  }
+  for (const winCond of pack.win_conditions) {
+    if (!reachedEndings.has(winCond.ending)) {
+      findings.push({
+        severity: "warning",
+        code: "UNREACHABLE_WIN_CONDITION",
+        message: `Win condition '${winCond.id}' for ending '${winCond.ending}' is never reachable from the starting state.`,
+        where: [`win_condition:${winCond.id}`],
+      });
+    }
+  }
+
+  // Check for unobtainable takeable objects
+  const obtainedObjects = new Set<string>();
+  for (const state of visited.values()) {
+    for (const itemId of state.inventory) {
+      obtainedObjects.add(itemId);
+    }
+  }
+  for (const obj of pack.objects) {
+    if (obj.takeable && !obtainedObjects.has(obj.id)) {
+      findings.push({
+        severity: "warning",
+        code: "UNOBTAINABLE_OBJECT",
+        message: `Takeable object '${obj.id}' is never obtainable on any reachable path.`,
+        where: [`object:${obj.id}`],
+      });
+    }
+  }
+
+  return findings;
+}
 
 /**
  * Validates a ParserPack against all architectural, reachability, and safety checks.
@@ -140,6 +369,18 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
             where: [`npc:${npc.id}`, `node:${node.id}`, `topic:${topic.id}`],
           });
         }
+        if (topic.routing) {
+          topic.routing.forEach((route, idx) => {
+            if (!route.end && route.goto && !nodeIds.has(route.goto)) {
+              findings.push({
+                severity: "error",
+                code: "REFERENCE_ERROR",
+                message: `Dialogue node '${node.id}' topic '${topic.id}' routing[${idx}] goto destination '${route.goto}' does not exist.`,
+                where: [`npc:${npc.id}`, `node:${node.id}`, `topic:${topic.id}`],
+              });
+            }
+          });
+        }
       });
     });
   });
@@ -178,7 +419,7 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
 
   if (maxScore > 0) {
     findings.push({
-      severity: "warning",
+      severity: "info",
       code: "MAX_SCORE_REPORT",
       message: `Content pack contains score rewards. Maximum potential score calculated: ${maxScore} points.`,
       where: ["meta:vars_init"],
@@ -204,12 +445,16 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
 
   if (containsDeathState) {
     findings.push({
-      severity: "warning",
+      severity: "info",
       code: "DEATH_STATE_LOGGED",
       message: `Pack contains death endings. Confirmed: all death states are fully recoverable via the CLI restore loops.`,
       where: ["endings"],
     });
   }
+
+  // 9. Graph-based state-space pathfinder
+  const pathfinderFindings = checkParserSoftlocks(pack);
+  findings.push(...pathfinderFindings);
 
   const ok = !findings.some((f) => f.severity === "error");
 

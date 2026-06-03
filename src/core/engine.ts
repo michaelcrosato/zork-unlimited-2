@@ -775,16 +775,51 @@ export function step(
         };
       }
 
+      // Evaluate topic-level conditions
+      if (topic.conditions && topic.conditions.length > 0) {
+        const conditionsPassed = evaluateConditions(newState, topic.conditions);
+        if (!conditionsPassed) {
+          return {
+            state,
+            events: [{ type: "rejected", reason: `Conditions for topic '${action.topic}' are not met.` }],
+            ok: false,
+            rejectionReason: `You can't ask about that right now.`,
+          };
+        }
+      }
+
+      // Apply topic-level effects
+      if (topic.effects && topic.effects.length > 0) {
+        const effectResult = applyEffects(newState, topic.effects);
+        newState = effectResult.state;
+        events.push(...effectResult.events);
+      }
+
+      // Determine next action or transition (evaluate dynamic routing first)
+      let nextNodeId = topic.goto;
+      let shouldEnd = !!topic.end;
+
+      if (topic.routing && topic.routing.length > 0) {
+        for (const route of topic.routing) {
+          const conditionsPassed = evaluateConditions(newState, route.conditions ?? []);
+          if (conditionsPassed) {
+            nextNodeId = route.goto;
+            shouldEnd = !!route.end;
+            break;
+          }
+        }
+      }
+
       // Apply transition
-      if (topic.end) {
+      if (shouldEnd) {
         newState.flags[`in_dialogue_with_${npc.id}`] = false;
         events.push({
           type: "narration",
           text: `You say goodbye to ${npc.name}.`,
         });
-      } else if (topic.goto) {
-        newState.questStage[nodeVarName] = topic.goto;
-        const nextNode = npc.dialogue.nodes.find((n) => n.id === topic.goto);
+      } else if (nextNodeId) {
+        newState.questStage[nodeVarName] = nextNodeId;
+        const nextNode = npc.dialogue.nodes.find((n) => n.id === nextNodeId);
         if (nextNode) {
           // Apply node effects
           const effectResult = applyEffects(newState, nextNode.effects);
@@ -794,7 +829,7 @@ export function step(
           events.push({
             type: "dialogue",
             npcId: npc.id,
-            nodeId: topic.goto,
+            nodeId: nextNodeId,
             text: nextNode.npc_text,
           });
           events.push({

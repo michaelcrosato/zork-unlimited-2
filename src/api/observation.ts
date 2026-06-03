@@ -6,6 +6,54 @@ import { evaluateConditions } from "../core/conditions.js";
 import { generateLegalActions } from "../parser/legal_actions.js";
 
 /**
+ * Returns a purely deterministic sensory/atmospheric narration based on room type,
+ * seed, and step count. Maintains strict byte-identity and Zork-style vibe.
+ */
+function getSensoryFlavor(roomId: string, seed: number, step: number): string {
+  const sensoryData: Record<string, string[]> = {
+    forest: [
+      "A cold breeze rustles the dry pine needles overhead.",
+      "The distant hoot of an owl echoes through the darkening woods.",
+      "Mist clings low to the damp earth, smelling of rich loam.",
+      "A sense of quiet watchfulness hangs heavily in the air."
+    ],
+    crypt: [
+      "A faint smell of incense and damp stonework lingers in the shadows.",
+      "Your footsteps kick up tiny clouds of ancient, silent dust.",
+      "Dust motes dance lazily in the thin shafts of pale light.",
+      "The heavy, chilly silence of the deep earth presses against your ears."
+    ],
+    castle: [
+      "The stones here feel intensely cold, radiating an ancient chill.",
+      "Echoes of long-forgotten footsteps seem to whisper from the masonry.",
+      "The drafty corridors carry the faint, metallic scent of iron and rust.",
+      "A low draft makes the shadows dance flickeringly along the walls."
+    ]
+  };
+
+  let category = "castle";
+  const idLower = roomId.toLowerCase();
+  if (idLower.includes("forest") || idLower.includes("garden") || idLower.includes("entrance")) {
+    category = "forest";
+  } else if (
+    idLower.includes("chapel") ||
+    idLower.includes("crypt") ||
+    idLower.includes("sacristy") ||
+    idLower.includes("altar") ||
+    idLower.includes("well") ||
+    idLower.includes("catacombs") ||
+    idLower.includes("yard")
+  ) {
+    category = "crypt";
+  }
+
+  const pool = sensoryData[category];
+  const charSum = roomId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const index = Math.abs(seed + step + charSum) % pool.length;
+  return pool[index];
+}
+
+/**
  * Compiles a structured, schema-valid Observation for the AI playtester based
  * on the current GameState and either a CYOAPack or a ParserPack.
  */
@@ -27,10 +75,13 @@ export function buildObservation(
       evaluateConditions(state, choice.conditions),
     );
 
+    const sensoryFlavor = getSensoryFlavor(currentScene.id, state.seed, state.step);
+    const text = `${currentScene.text} ${sensoryFlavor}`;
+
     return {
       mode: "cyoa",
       scene_id: state.current,
-      text: currentScene.text,
+      text,
       state: {
         flags: Object.keys(state.flags).filter((f) => state.flags[f]),
         vars: { ...state.vars },
@@ -96,10 +147,13 @@ export function buildObservation(
   // Compile available legal actions
   const legalActions = generateLegalActions(state, parserPack);
 
+  const sensoryFlavor = getSensoryFlavor(room.id, state.seed, state.step);
+  const description = `${room.description} ${sensoryFlavor}`;
+
   return {
     mode: "parser",
     room: room.id,
-    description: room.description,
+    description,
     visible_objects: visibleObjects,
     exits: exitsList,
     inventory: [...state.inventory],

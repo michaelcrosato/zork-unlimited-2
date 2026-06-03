@@ -1,0 +1,1019 @@
+{
+  "success": false,
+  "error": "Playtest ended without reaching a terminal game ending.",
+  "logs": [
+    {
+      "step": 1,
+      "location": "castle_gates",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "go_north",
+        "look_gate_lever",
+        "inspect_gate_lever"
+      ],
+      "chosen_action_id": "go_west",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"castle_gates\",\"to\":\"castle_wall\",\"direction\":\"west\"}",
+        "{\"type\":\"narration\",\"text\":\"A sheer stone wall rises up into the darkness. Handholds are sparse, but a skilled climber could scale it to reach the battlements above.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 2,
+      "location": "castle_wall",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_east",
+        "go_up",
+        "look_stone_wall",
+        "inspect_stone_wall",
+        "use_self_on_stone_wall"
+      ],
+      "chosen_action_id": "use_self_on_stone_wall",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"[Skill Check] Rolling CLIMBING (Difficulty: 10): Rolled 13 + Skill 5 = 18. 🟢 SUCCESS!\"}",
+        "{\"type\":\"narration\",\"text\":\"You attempt to scale the castle wall...\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 3,
+      "location": "castle_wall",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_east",
+        "go_up",
+        "look_stone_wall",
+        "inspect_stone_wall",
+        "use_self_on_stone_wall"
+      ],
+      "chosen_action_id": "go_up",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"castle_wall\",\"to\":\"battlements\",\"direction\":\"up\"}",
+        "{\"type\":\"narration\",\"text\":\"Wind howls across the castle battlements. From here, a stone stairway leads down into the Castle Courtyard.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 4,
+      "location": "battlements",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_down"
+      ],
+      "chosen_action_id": "go_down",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"battlements\",\"to\":\"castle_courtyard\",\"direction\":\"down\"}",
+        "{\"type\":\"narration\",\"text\":\"A wide cobblestone courtyard. A menacing Goblin Guard stands in the center, blocking access to the inner rooms: the Library to the west, the Armory to the east, and the Dungeon to the north.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 5,
+      "location": "castle_courtyard",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_west",
+        "go_east",
+        "go_north",
+        "talk_goblin_guard"
+      ],
+      "chosen_action_id": "talk_goblin_guard",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"state_change\",\"effect\":\"start_combat\",\"flag\":\"goblin_guard\"}",
+        "{\"type\":\"dialogue\",\"npcId\":\"goblin_guard\",\"nodeId\":\"greet\",\"text\":\"You dare enter the castle? Prepare to fight, human!\"}",
+        "{\"type\":\"narration\",\"text\":\"You dare enter the castle? Prepare to fight, human!\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 6,
+      "location": "castle_courtyard",
+      "available_actions": [
+        "look_combat",
+        "inventory_combat",
+        "fight_goblin_guard",
+        "cast_fireball",
+        "cast_heal",
+        "flee_combat"
+      ],
+      "chosen_action_id": "fight_goblin_guard",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"⚔️ You strike the Goblin Guard for 10 damage! (Enemy HP: 2/12)\\n💥 The Goblin Guard strikes you for 2 damage! (HP: 18/20)\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 7,
+      "location": "castle_courtyard",
+      "available_actions": [
+        "look_combat",
+        "inventory_combat",
+        "fight_goblin_guard",
+        "cast_fireball",
+        "cast_heal",
+        "flee_combat"
+      ],
+      "chosen_action_id": "fight_goblin_guard",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"⚔️ You strike the Goblin Guard for 6 damage! (Enemy HP: 0/12)\\n🏆 VICTORY! You have defeated the Goblin Guard! You earn 25 gold and 50 XP.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 8,
+      "location": "castle_courtyard",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_west",
+        "go_east",
+        "go_north"
+      ],
+      "chosen_action_id": "go_west",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"castle_courtyard\",\"to\":\"library\",\"direction\":\"west\"}",
+        "{\"type\":\"narration\",\"text\":\"Shelves packed with ancient books rise to the ceiling. A mysterious leather-bound spell scroll rests on a wooden pedestal.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 9,
+      "location": "library",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_east",
+        "look_spell_scroll",
+        "inspect_spell_scroll",
+        "take_spell_scroll",
+        "read_spell_scroll"
+      ],
+      "chosen_action_id": "take_spell_scroll",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"take\",\"item\":\"spell_scroll\"}",
+        "{\"type\":\"narration\",\"text\":\"Taken.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 10,
+      "location": "library",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_east",
+        "look_spell_scroll",
+        "inspect_spell_scroll",
+        "drop_spell_scroll",
+        "read_spell_scroll"
+      ],
+      "chosen_action_id": "read_spell_scroll",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"state_change\",\"effect\":\"inc_var\",\"variable\":\"intelligence\",\"value\":18}",
+        "{\"type\":\"state_change\",\"effect\":\"inc_var\",\"variable\":\"mana\",\"value\":15}",
+        "{\"type\":\"state_change\",\"effect\":\"inc_var\",\"variable\":\"score\",\"value\":20}",
+        "{\"type\":\"drop\",\"item\":\"spell_scroll\"}",
+        "{\"type\":\"narration\",\"text\":\"You read the magical scroll! Glowing runes expand your mind, increasing your intelligence and restoring mana! The scroll crumbles into sparkling dust.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 11,
+      "location": "library",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_east"
+      ],
+      "chosen_action_id": "go_east",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"library\",\"to\":\"castle_courtyard\",\"direction\":\"east\"}",
+        "{\"type\":\"narration\",\"text\":\"A wide cobblestone courtyard. A menacing Goblin Guard stands in the center, blocking access to the inner rooms: the Library to the west, the Armory to the east, and the Dungeon to the north.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 12,
+      "location": "castle_courtyard",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_west",
+        "go_east",
+        "go_north"
+      ],
+      "chosen_action_id": "go_east",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"castle_courtyard\",\"to\":\"armory\",\"direction\":\"east\"}",
+        "{\"type\":\"narration\",\"text\":\"Racks of rusty weapons line the walls. A pristine steel broadsword rests on a velvet cushion.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 13,
+      "location": "armory",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "take_broadsword"
+      ],
+      "chosen_action_id": "take_broadsword",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"take\",\"item\":\"broadsword\"}",
+        "{\"type\":\"state_change\",\"effect\":\"inc_var\",\"variable\":\"strength\",\"value\":18}",
+        "{\"type\":\"state_change\",\"effect\":\"inc_var\",\"variable\":\"score\",\"value\":40}",
+        "{\"type\":\"narration\",\"text\":\"You wield the steel broadsword! Your physical power increases!\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 14,
+      "location": "armory",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword"
+      ],
+      "chosen_action_id": "go_west",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"armory\",\"to\":\"castle_courtyard\",\"direction\":\"west\"}",
+        "{\"type\":\"narration\",\"text\":\"A wide cobblestone courtyard. A menacing Goblin Guard stands in the center, blocking access to the inner rooms: the Library to the west, the Armory to the east, and the Dungeon to the north.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 15,
+      "location": "castle_courtyard",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_west",
+        "go_east",
+        "go_north",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword"
+      ],
+      "chosen_action_id": "go_north",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"castle_courtyard\",\"to\":\"dungeons\",\"direction\":\"north\"}",
+        "{\"type\":\"narration\",\"text\":\"Damp cells line this dark hallway. In the center stands the terrifying Shadow Knight, glowing with dark magic. To the north lies the Treasury.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 16,
+      "location": "dungeons",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_north",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "talk_shadow_knight",
+        "give_broadsword_to_shadow_knight"
+      ],
+      "chosen_action_id": "talk_shadow_knight",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"state_change\",\"effect\":\"start_combat\",\"flag\":\"shadow_knight\"}",
+        "{\"type\":\"dialogue\",\"npcId\":\"shadow_knight\",\"nodeId\":\"greet\",\"text\":\"Foolish mortal! You shall bleed in the shadows!\"}",
+        "{\"type\":\"narration\",\"text\":\"Foolish mortal! You shall bleed in the shadows!\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 17,
+      "location": "dungeons",
+      "available_actions": [
+        "look_combat",
+        "inventory_combat",
+        "fight_shadow_knight",
+        "cast_fireball",
+        "cast_heal",
+        "flee_combat"
+      ],
+      "chosen_action_id": "cast_fireball",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"🔥 You cast Fireball! Searing flames consume the Shadow Knight for 14 fire damage! (Enemy HP: 10/24)\\n💥 The Shadow Knight strikes you for 3 damage! (HP: 15/20)\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 18,
+      "location": "dungeons",
+      "available_actions": [
+        "look_combat",
+        "inventory_combat",
+        "fight_shadow_knight",
+        "cast_fireball",
+        "cast_heal",
+        "flee_combat"
+      ],
+      "chosen_action_id": "cast_fireball",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"🔥 You cast Fireball! Searing flames consume the Shadow Knight for 11 fire damage! (Enemy HP: 0/24)\\n🏆 VICTORY! You have defeated the Shadow Knight! You earn 50 gold and 100 XP.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 19,
+      "location": "dungeons",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_north",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword"
+      ],
+      "chosen_action_id": "go_north",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"dungeons\",\"to\":\"treasury\",\"direction\":\"north\"}",
+        "{\"type\":\"narration\",\"text\":\"Piles of copper and silver lie scattered about. In the center sits a small, locked, iron-bound chest. An exit leads east to the King's Throne Room.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 20,
+      "location": "treasury",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_east",
+        "look_treasury_chest",
+        "inspect_treasury_chest",
+        "open_treasury_chest",
+        "use_self_on_treasury_chest",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "use_broadsword_on_treasury_chest"
+      ],
+      "chosen_action_id": "use_self_on_treasury_chest",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"[Skill Check] Rolling LOCKPICKING (Difficulty: 12): Rolled 18 + Skill 4 = 22. 🟢 SUCCESS!\"}",
+        "{\"type\":\"narration\",\"text\":\"You carefully pull out your lockpicks and work on the chest lock...\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 21,
+      "location": "treasury",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_east",
+        "look_treasury_chest",
+        "inspect_treasury_chest",
+        "open_treasury_chest",
+        "use_self_on_treasury_chest",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "use_broadsword_on_treasury_chest"
+      ],
+      "chosen_action_id": "open_treasury_chest",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"state_change\",\"effect\":\"set_flag\",\"flag\":\"chest_opened\"}",
+        "{\"type\":\"take\",\"item\":\"royal_crown\"}",
+        "{\"type\":\"state_change\",\"effect\":\"inc_var\",\"variable\":\"gold\",\"value\":175}",
+        "{\"type\":\"state_change\",\"effect\":\"inc_var\",\"variable\":\"score\",\"value\":70}",
+        "{\"type\":\"narration\",\"text\":\"You pop open the chest! Inside is the legendary Royal Crown and 100 gold coins!\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 22,
+      "location": "treasury",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_south",
+        "go_east",
+        "look_treasury_chest",
+        "inspect_treasury_chest",
+        "open_treasury_chest",
+        "use_self_on_treasury_chest",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "use_broadsword_on_treasury_chest",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "use_royal_crown_on_treasury_chest"
+      ],
+      "chosen_action_id": "go_east",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"move\",\"from\":\"treasury\",\"to\":\"throne_room\",\"direction\":\"east\"}",
+        "{\"type\":\"narration\",\"text\":\"The magnificent Throne Room of the King. King Aldous sits upon his throne, looking weary. Speak to him.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 23,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 24,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 25,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 26,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 27,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 28,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 29,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 30,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 31,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 32,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 33,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 34,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 35,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 36,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 37,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 38,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 39,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 40,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 41,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 42,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 43,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 44,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 45,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 46,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 47,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 48,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_crown",
+        "dialogue_king_aldous_help",
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_help",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"help_accepted\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}",
+        "{\"type\":\"narration\",\"text\":\"Thank you, brave hero! Find my crown and return it to me.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 49,
+      "location": "throne_room",
+      "available_actions": [
+        "dialogue_king_aldous_bye"
+      ],
+      "chosen_action_id": "dialogue_king_aldous_bye",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"narration\",\"text\":\"You say goodbye to King Aldous.\"}"
+      ],
+      "result": "progress"
+    },
+    {
+      "step": 50,
+      "location": "throne_room",
+      "available_actions": [
+        "look_room",
+        "inventory",
+        "go_west",
+        "look_broadsword",
+        "inspect_broadsword",
+        "drop_broadsword",
+        "look_royal_crown",
+        "inspect_royal_crown",
+        "drop_royal_crown",
+        "talk_king_aldous",
+        "give_broadsword_to_king_aldous",
+        "give_royal_crown_to_king_aldous"
+      ],
+      "chosen_action_id": "talk_king_aldous",
+      "reason": "Chosen by playtester under the 'explorer' persona.",
+      "expected": "Progress through the game",
+      "actual_effects": [
+        "{\"type\":\"dialogue\",\"npcId\":\"king_aldous\",\"nodeId\":\"greet\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}",
+        "{\"type\":\"narration\",\"text\":\"Ah, traveler. The castle has fallen to shadows, and my crown is locked in the treasury. Can you restore my kingdom?\"}"
+      ],
+      "result": "progress"
+    }
+  ]
+}

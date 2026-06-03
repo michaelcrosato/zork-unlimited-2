@@ -38,11 +38,22 @@ export const ParserObjectSchema = z.object({
 
 export type ParserObject = z.infer<typeof ParserObjectSchema>;
 
+export const DialogueRouteSchema = z.object({
+  goto: z.string().optional(),
+  end: z.boolean().optional().default(false),
+  conditions: z.array(ConditionSchema).optional().default([]),
+});
+
+export type DialogueRoute = z.infer<typeof DialogueRouteSchema>;
+
 export const DialogueTopicSchema = z.object({
   id: z.string(),
   prompt: z.string(),
   goto: z.string().optional(),
   end: z.boolean().optional().default(false),
+  conditions: z.array(ConditionSchema).optional().default([]),
+  effects: z.array(EffectSchema).optional().default([]),
+  routing: z.array(DialogueRouteSchema).optional(),
 });
 
 export type DialogueTopic = z.infer<typeof DialogueTopicSchema>;
