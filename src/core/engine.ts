@@ -1797,6 +1797,59 @@ export function step(
         }
       }
 
+      // Weather slick rocks check
+      const hasBootsInPack = parserPack.objects?.some((o) => o.id === "leather_boots");
+      if (hasBootsInPack && newState.environment) {
+        const weather = newState.environment.weather;
+        const destLower = exit.to.toLowerCase();
+        const currentLower = state.current.toLowerCase();
+        const isSlickSurface =
+          destLower.includes("cliff") ||
+          destLower.includes("mountain") ||
+          destLower.includes("rock") ||
+          destLower.includes("peak") ||
+          currentLower.includes("cliff") ||
+          currentLower.includes("mountain") ||
+          currentLower.includes("rock") ||
+          currentLower.includes("peak");
+
+        if (isSlickSurface && (weather === "rain" || weather === "storm") && !newState.inventory.includes("leather_boots")) {
+          return {
+            state,
+            events: [
+              {
+                type: "rejected",
+                reason:
+                  "The rocks are too slick to climb in the rain. You need sturdy boots for traction.",
+              },
+            ],
+            ok: false,
+            rejectionReason: "The rocks are too slick to climb in the rain. You need sturdy boots for traction.",
+          };
+        }
+      }
+
+      // Fog visibility/light-source check
+      const hasLightInPack = parserPack.objects?.some((o) => o.id === "lantern" || o.id === "torch");
+      if (hasLightInPack && (isDestOutdoor || isCurrentOutdoor) && newState.environment) {
+        const weather = newState.environment.weather;
+        if (weather === "fog" && !newState.inventory.includes("lantern") && !newState.inventory.includes("torch")) {
+          return {
+            state,
+            events: [
+              {
+                type: "rejected",
+                reason:
+                  "The dense, clinging fog obscures all paths! You need a light source like a lantern or torch to find your way.",
+              },
+            ],
+            ok: false,
+            rejectionReason: "The dense, clinging fog obscures all paths! You need a light source like a lantern or torch to find your way.",
+          };
+        }
+      }
+
+
       // Territory-based exit traversal constraints & faction tax mechanics
       const destRoomId = exit.to;
       const isHiddenPassageUsed = Object.values(state.hiddenPassages || {}).some(

@@ -81,7 +81,15 @@ function getWeatherEffect(weather: string, seed: number, step: number, roomId: s
   if (!pool || pool.length === 0) return "";
   const charSum = roomId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const mixed = mix(seed, step + 42, charSum);
-  return pool[mixed % pool.length];
+  let index = mixed % pool.length;
+  if (step > 0) {
+    const prevMixed = mix(seed, step - 1 + 42, charSum);
+    const prevIndex = prevMixed % pool.length;
+    if (index === prevIndex) {
+      index = (index + 1) % pool.length;
+    }
+  }
+  return pool[index];
 }
 
 function decapitalize(str: string): string {
@@ -318,7 +326,14 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
   const pool = sensoryData[category];
   const charSum = roomId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const mixed = mix(seed, step, charSum);
-  const index = mixed % pool.length;
+  let index = mixed % pool.length;
+  if (step > 0) {
+    const prevMixed = mix(seed, step - 1, charSum);
+    const prevIndex = prevMixed % pool.length;
+    if (index === prevIndex) {
+      index = (index + 1) % pool.length;
+    }
+  }
   return pool[index];
 }
 
@@ -344,7 +359,13 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
     }
 
     const sceneCharSum = currentScene.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-    const sceneStructureType = mix(state.seed, state.step + 100, sceneCharSum) % 6;
+    let sceneStructureType = mix(state.seed, state.step + 100, sceneCharSum) % 12;
+    if (state.step > 0) {
+      const prevStructureType = mix(state.seed, (state.step - 1) + 100, sceneCharSum) % 12;
+      if (sceneStructureType === prevStructureType) {
+        sceneStructureType = (sceneStructureType + 1) % 12;
+      }
+    }
 
     let text = "";
     if (wEffect) {
@@ -358,8 +379,20 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
         text = `${currentScene.text} ${wEffect} ${sensoryFlavor}`;
       } else if (sceneStructureType === 4) {
         text = `${sensoryFlavor} ${wEffect} ${currentScene.text}`;
-      } else {
+      } else if (sceneStructureType === 5) {
         text = `${wEffect} ${sensoryFlavor} ${currentScene.text}`;
+      } else if (sceneStructureType === 6) {
+        text = `As ${decapitalize(wEffect)} ${currentScene.text} ${sensoryFlavor}`;
+      } else if (sceneStructureType === 7) {
+        text = `${sensoryFlavor} Outside, ${decapitalize(wEffect)} ${currentScene.text}`;
+      } else if (sceneStructureType === 8) {
+        text = `${currentScene.text} In the background, ${decapitalize(wEffect)} Meanwhile, ${decapitalize(sensoryFlavor)}`;
+      } else if (sceneStructureType === 9) {
+        text = `You notice that ${decapitalize(sensoryFlavor)} ${currentScene.text} Above, ${decapitalize(wEffect)}`;
+      } else if (sceneStructureType === 10) {
+        text = `Under ${decapitalize(wEffect)} ${sensoryFlavor} ${currentScene.text}`;
+      } else {
+        text = `${currentScene.text} The environment shows that ${decapitalize(wEffect)} while ${decapitalize(sensoryFlavor)}`;
       }
     } else {
       if (sceneStructureType === 0) {
@@ -372,8 +405,20 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
         text = `${currentScene.text} Meanwhile, ${decapitalize(sensoryFlavor)}`;
       } else if (sceneStructureType === 4) {
         text = `Here, ${currentScene.text} ${sensoryFlavor}`;
-      } else {
+      } else if (sceneStructureType === 5) {
         text = `${sensoryFlavor} Nearby, ${currentScene.text}`;
+      } else if (sceneStructureType === 6) {
+        text = `A glance shows that ${decapitalize(sensoryFlavor)} ${currentScene.text}`;
+      } else if (sceneStructureType === 7) {
+        text = `${currentScene.text} You cannot help but notice that ${decapitalize(sensoryFlavor)}`;
+      } else if (sceneStructureType === 8) {
+        text = `From where you stand, ${decapitalize(sensoryFlavor)} ${currentScene.text}`;
+      } else if (sceneStructureType === 9) {
+        text = `${currentScene.text} A soft sound or draft suggests that ${decapitalize(sensoryFlavor)}`;
+      } else if (sceneStructureType === 10) {
+        text = `In this place, ${decapitalize(sensoryFlavor)} ${currentScene.text}`;
+      } else {
+        text = `${currentScene.text} It is quiet, save for when ${decapitalize(sensoryFlavor)}`;
       }
     }
 
@@ -464,7 +509,13 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
   }
 
   const roomCharSum = room.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-  const roomStructureType = mix(state.seed, state.step + 100, roomCharSum) % 6;
+  let roomStructureType = mix(state.seed, state.step + 100, roomCharSum) % 12;
+  if (state.step > 0) {
+    const prevStructureType = mix(state.seed, (state.step - 1) + 100, roomCharSum) % 12;
+    if (roomStructureType === prevStructureType) {
+      roomStructureType = (roomStructureType + 1) % 12;
+    }
+  }
 
   let description = "";
   if (wEffect) {
@@ -478,8 +529,20 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
       description = `${room.description} ${wEffect} ${sensoryFlavor}`;
     } else if (roomStructureType === 4) {
       description = `${sensoryFlavor} ${wEffect} ${room.description}`;
-    } else {
+    } else if (roomStructureType === 5) {
       description = `${wEffect} ${sensoryFlavor} ${room.description}`;
+    } else if (roomStructureType === 6) {
+      description = `As ${decapitalize(wEffect)} ${room.description} ${sensoryFlavor}`;
+    } else if (roomStructureType === 7) {
+      description = `${sensoryFlavor} Outside, ${decapitalize(wEffect)} ${room.description}`;
+    } else if (roomStructureType === 8) {
+      description = `${room.description} In the background, ${decapitalize(wEffect)} Meanwhile, ${decapitalize(sensoryFlavor)}`;
+    } else if (roomStructureType === 9) {
+      description = `You notice that ${decapitalize(sensoryFlavor)} ${room.description} Above, ${decapitalize(wEffect)}`;
+    } else if (roomStructureType === 10) {
+      description = `Under ${decapitalize(wEffect)} ${sensoryFlavor} ${room.description}`;
+    } else {
+      description = `${room.description} The environment shows that ${decapitalize(wEffect)} while ${decapitalize(sensoryFlavor)}`;
     }
   } else {
     if (roomStructureType === 0) {
@@ -492,8 +555,20 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
       description = `${room.description} Meanwhile, ${decapitalize(sensoryFlavor)}`;
     } else if (roomStructureType === 4) {
       description = `Here, ${room.description} ${sensoryFlavor}`;
-    } else {
+    } else if (roomStructureType === 5) {
       description = `${sensoryFlavor} Nearby, ${room.description}`;
+    } else if (roomStructureType === 6) {
+      description = `A glance shows that ${decapitalize(sensoryFlavor)} ${room.description}`;
+    } else if (roomStructureType === 7) {
+      description = `${room.description} You cannot help but notice that ${decapitalize(sensoryFlavor)}`;
+    } else if (roomStructureType === 8) {
+      description = `From where you stand, ${decapitalize(sensoryFlavor)} ${room.description}`;
+    } else if (roomStructureType === 9) {
+      description = `${room.description} A soft sound or draft suggests that ${decapitalize(sensoryFlavor)}`;
+    } else if (roomStructureType === 10) {
+      description = `In this place, ${decapitalize(sensoryFlavor)} ${room.description}`;
+    } else {
+      description = `${room.description} It is quiet, save for when ${decapitalize(sensoryFlavor)}`;
     }
   }
 
