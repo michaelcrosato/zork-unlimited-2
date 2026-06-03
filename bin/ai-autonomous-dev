@@ -141,6 +141,31 @@ while true; do
       git add -A
       git commit -m "chore(ai-dev): $COMMIT_MSG"
       echo "🟢 Committed successfully."
+
+      # Push and merge to main
+      CURRENT_BRANCH=$(git branch --show-current)
+      echo "📤 Pushing branch '$CURRENT_BRANCH' to origin..."
+      if git push origin "$CURRENT_BRANCH"; then
+        if [[ "$CURRENT_BRANCH" != "main" ]]; then
+          echo "🔄 Merging '$CURRENT_BRANCH' into main..."
+          # Save current branch and ensure we switch back on error or exit
+          if git checkout main; then
+            if git pull origin main && git merge "$CURRENT_BRANCH" --no-edit && git push origin main; then
+              echo "🟢 Successfully merged and pushed to main."
+            else
+              echo "🔴 Failed to pull, merge, or push main."
+            fi
+            # Always switch back to the starting branch
+            git checkout "$CURRENT_BRANCH"
+          else
+            echo "🔴 Failed to checkout main."
+          fi
+        else
+          echo "🟢 Successfully pushed main to origin."
+        fi
+      else
+        echo "🔴 Failed to push current branch '$CURRENT_BRANCH' to origin."
+      fi
     else
       echo ""
       echo "➖ No changes detected in cycle #$CYCLE. Skipping Git commit."
