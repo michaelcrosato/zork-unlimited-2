@@ -15346,6 +15346,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a cordial face to face discussion with the": ["TALK"]
 });
 
+// Cycle #71 / Task-F94: Phase 57 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of discovery towards the location of": ["MOVE"],
+  "navigate one's vector of discovery towards the location of the": ["MOVE"],
+  "navigate ones vector of discovery towards the location of": ["MOVE"],
+  "navigate ones vector of discovery towards the location of the": ["MOVE"],
+  "steer one's vector of discovery in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of discovery in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of discovery in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of discovery in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of discovery towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of discovery towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of discovery towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of discovery towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual perusal": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual perusal the": ["LOOK_INSPECT"],
+  "subject to a thorough visual perusal": ["LOOK_INSPECT"],
+  "subject to a thorough visual perusal the": ["LOOK_INSPECT"],
+  "subject to a detailed visual perusal": ["LOOK_INSPECT"],
+  "subject to a detailed visual perusal the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive possession and command of": ["TAKE"],
+  "assume direct exclusive possession and command of the": ["TAKE"],
+  "assume absolute exclusive possession and command of": ["TAKE"],
+  "assume absolute exclusive possession and command of the": ["TAKE"],
+  "assume immediate exclusive possession and command of": ["TAKE"],
+  "assume immediate exclusive possession and command of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive possession and command of": ["DROP"],
+  "divest oneself of all exclusive possession and command of the": ["DROP"],
+  "relinquish all exclusive possession and command of": ["DROP"],
+  "relinquish all exclusive possession and command of the": ["DROP"],
+  "free oneself from all exclusive possession and command of": ["DROP"],
+  "free oneself from all exclusive possession and command of the": ["DROP"],
+
+  // Open/Close
+  "force completely and seamlessly wide open": ["OPEN"],
+  "force completely and seamlessly wide open the": ["OPEN"],
+  "pry completely and seamlessly wide open": ["OPEN"],
+  "pry completely and seamlessly wide open the": ["OPEN"],
+  "fasten completely and seamlessly closed": ["CLOSE"],
+  "fasten completely and seamlessly closed the": ["CLOSE"],
+  "seal completely and seamlessly shut": ["CLOSE"],
+  "seal completely and seamlessly shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all hardware security devices of": ["UNLOCK"],
+  "deactivate all hardware security devices of the": ["UNLOCK"],
+  "bypass all hardware security devices on": ["UNLOCK"],
+  "bypass all hardware security devices on the": ["UNLOCK"],
+  "disengage the primary hardware security device on": ["UNLOCK"],
+  "disengage the primary hardware security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full automated deployment of": ["USE"],
+  "harness the full automated deployment of the": ["USE"],
+  "bring into active automated deployment": ["USE"],
+  "bring into active automated deployment the": ["USE"],
+  "make complete automated deployment of": ["USE"],
+  "make complete automated deployment of the": ["USE"],
+
+  // Combat
+  "initiate a ruthless confrontation against": ["FIGHT"],
+  "initiate a ruthless confrontation against the": ["FIGHT"],
+  "commence a ruthless confrontation against": ["FIGHT"],
+  "commence a ruthless confrontation against the": ["FIGHT"],
+  "engage in a ruthless confrontation against": ["FIGHT"],
+  "engage in a ruthless confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an earnest face to face discussion with": ["TALK"],
+  "initiate an earnest face to face discussion with the": ["TALK"],
+  "engage in an earnest face to face discussion with": ["TALK"],
+  "engage in an earnest face to face discussion with the": ["TALK"],
+  "strike up an earnest face to face discussion with": ["TALK"],
+  "strike up an earnest face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -15988,6 +16071,72 @@ compoundVerbs.push(
   "engage in a cordial face to face discussion with",
   "strike up a cordial face to face discussion with the",
   "strike up a cordial face to face discussion with"
+);
+
+// Cycle #71 / Task-F94: Phase 57 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of discovery towards the location of the",
+  "navigate one's vector of discovery towards the location of",
+  "navigate ones vector of discovery towards the location of the",
+  "navigate ones vector of discovery towards the location of",
+  "steer one's vector of discovery in the direction of the coordinates of the",
+  "steer one's vector of discovery in the direction of the coordinates of",
+  "steer ones vector of discovery in the direction of the coordinates of the",
+  "steer ones vector of discovery in the direction of the coordinates of",
+  "direct one's vector of discovery towards the coordinates of the location of the",
+  "direct one's vector of discovery towards the coordinates of the location of",
+  "direct ones vector of discovery towards the coordinates of the location of the",
+  "direct ones vector of discovery towards the coordinates of the location of",
+  "subject to a comprehensive visual perusal the",
+  "subject to a comprehensive visual perusal",
+  "subject to a thorough visual perusal the",
+  "subject to a thorough visual perusal",
+  "subject to a detailed visual perusal the",
+  "subject to a detailed visual perusal",
+  "assume direct exclusive possession and command of the",
+  "assume direct exclusive possession and command of",
+  "assume absolute exclusive possession and command of the",
+  "assume absolute exclusive possession and command of",
+  "assume immediate exclusive possession and command of the",
+  "assume immediate exclusive possession and command of",
+  "divest oneself of all exclusive possession and command of the",
+  "divest oneself of all exclusive possession and command of",
+  "relinquish all exclusive possession and command of the",
+  "relinquish all exclusive possession and command of",
+  "free oneself from all exclusive possession and command of the",
+  "free oneself from all exclusive possession and command of",
+  "force completely and seamlessly wide open the",
+  "force completely and seamlessly wide open",
+  "pry completely and seamlessly wide open the",
+  "pry completely and seamlessly wide open",
+  "fasten completely and seamlessly closed the",
+  "fasten completely and seamlessly closed",
+  "seal completely and seamlessly shut the",
+  "seal completely and seamlessly shut",
+  "deactivate all hardware security devices of the",
+  "deactivate all hardware security devices of",
+  "bypass all hardware security devices on the",
+  "bypass all hardware security devices on",
+  "disengage the primary hardware security device on the",
+  "disengage the primary hardware security device on",
+  "harness the full automated deployment of the",
+  "harness the full automated deployment of",
+  "bring into active automated deployment the",
+  "bring into active automated deployment",
+  "make complete automated deployment of the",
+  "make complete automated deployment of",
+  "initiate a ruthless confrontation against the",
+  "initiate a ruthless confrontation against",
+  "commence a ruthless confrontation against the",
+  "commence a ruthless confrontation against",
+  "engage in a ruthless confrontation against the",
+  "engage in a ruthless confrontation against",
+  "initiate an earnest face to face discussion with the",
+  "initiate an earnest face to face discussion with",
+  "engage in an earnest face to face discussion with the",
+  "engage in an earnest face to face discussion with",
+  "strike up an earnest face to face discussion with the",
+  "strike up an earnest face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
