@@ -10904,6 +10904,95 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a direct dialogue with the": ["TALK"]
 });
 
+// Cycle #42 / Task-F65: Phase 28 mappings (expansion requested by playtesters)
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "steer one's steps in the direction of": ["MOVE"],
+  "steer one's steps in the direction of the": ["MOVE"],
+  "steer ones steps in the direction of": ["MOVE"],
+  "steer ones steps in the direction of the": ["MOVE"],
+  "navigate one's course towards": ["MOVE"],
+  "navigate one's course towards the": ["MOVE"],
+  "navigate ones course towards": ["MOVE"],
+  "navigate ones course towards the": ["MOVE"],
+  "direct one's journey in the direction of": ["MOVE"],
+  "direct one's journey in the direction of the": ["MOVE"],
+  "direct ones journey in the direction of": ["MOVE"],
+  "direct ones journey in the direction of the": ["MOVE"],
+
+  // Look/Inspect
+  "carry out a visual inspection of": ["LOOK_INSPECT"],
+  "carry out a visual inspection of the": ["LOOK_INSPECT"],
+  "conduct a detailed investigation on": ["LOOK_INSPECT"],
+  "conduct a detailed investigation on the": ["LOOK_INSPECT"],
+  "cast one's critical gaze upon": ["LOOK_INSPECT"],
+  "cast one's critical gaze upon the": ["LOOK_INSPECT"],
+  "cast ones critical gaze upon": ["LOOK_INSPECT"],
+  "cast ones critical gaze upon the": ["LOOK_INSPECT"],
+
+  // Take
+  "bring under one's absolute ownership": ["TAKE"],
+  "bring under one's absolute ownership the": ["TAKE"],
+  "bring under ones absolute ownership": ["TAKE"],
+  "bring under ones absolute ownership the": ["TAKE"],
+  "take into one's immediate custody": ["TAKE"],
+  "take into one's immediate custody the": ["TAKE"],
+  "take into ones immediate custody": ["TAKE"],
+  "take into ones immediate custody the": ["TAKE"],
+  "assume direct possession of": ["TAKE"],
+  "assume direct possession of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of the absolute ownership of": ["DROP"],
+  "divest oneself of the absolute ownership of the": ["DROP"],
+  "let fall directly to the ground": ["DROP"],
+  "let fall directly to the ground the": ["DROP"],
+  "free oneself from the custody of": ["DROP"],
+  "free oneself from the custody of the": ["DROP"],
+
+  // Open/Close
+  "force completely open": ["OPEN"],
+  "force completely open the": ["OPEN"],
+  "pry completely open": ["OPEN"],
+  "pry completely open the": ["OPEN"],
+  "lock completely shut": ["CLOSE"],
+  "lock completely shut the": ["CLOSE"],
+  "fasten entirely shut": ["CLOSE"],
+  "fasten entirely shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate the locking mechanism on": ["UNLOCK"],
+  "deactivate the locking mechanism on the": ["UNLOCK"],
+  "bypass the locking mechanism of": ["UNLOCK"],
+  "bypass the locking mechanism of the": ["UNLOCK"],
+  "disengage all locking mechanisms on": ["UNLOCK"],
+  "disengage all locking mechanisms on the": ["UNLOCK"],
+
+  // Use
+  "harness the full functionality of": ["USE"],
+  "harness the full functionality of the": ["USE"],
+  "bring into immediate active service": ["USE"],
+  "bring into immediate active service the": ["USE"],
+  "make full active use of": ["USE"],
+  "make full active use of the": ["USE"],
+
+  // Combat
+  "wage physical warfare against": ["FIGHT"],
+  "wage physical warfare against the": ["FIGHT"],
+  "commence active combat against": ["FIGHT"],
+  "commence active combat against the": ["FIGHT"],
+  "initiate offensive hostilities against": ["FIGHT"],
+  "initiate offensive hostilities against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a verbal conversation with": ["TALK"],
+  "initiate a verbal conversation with the": ["TALK"],
+  "engage in a verbal conversation with": ["TALK"],
+  "engage in a verbal conversation with the": ["TALK"],
+  "strike up a personal dialogue with": ["TALK"],
+  "strike up a personal dialogue with the": ["TALK"]
+});
+
 
 
 compoundVerbs.push(
@@ -11588,7 +11677,77 @@ compoundVerbs.push(
   "engage in a verbal discussion with the",
   "engage in a verbal discussion with",
   "strike up a direct dialogue with the",
-  "strike up a direct dialogue with"
+  "strike up a direct dialogue with",
+
+  // Phase 28 compound verbs
+  "steer one's steps in the direction of the",
+  "steer one's steps in the direction of",
+  "steer ones steps in the direction of the",
+  "steer ones steps in the direction of",
+  "navigate one's course towards the",
+  "navigate one's course towards",
+  "navigate ones course towards the",
+  "navigate ones course towards",
+  "direct one's journey in the direction of the",
+  "direct one's journey in the direction of",
+  "direct ones journey in the direction of the",
+  "direct ones journey in the direction of",
+  "carry out a visual inspection of the",
+  "carry out a visual inspection of",
+  "conduct a detailed investigation on the",
+  "conduct a detailed investigation on",
+  "cast one's critical gaze upon the",
+  "cast one's critical gaze upon",
+  "cast ones critical gaze upon the",
+  "cast ones critical gaze upon",
+  "bring under one's absolute ownership the",
+  "bring under one's absolute ownership",
+  "bring under ones absolute ownership the",
+  "bring under ones absolute ownership",
+  "take into one's immediate custody the",
+  "take into one's immediate custody",
+  "take into ones immediate custody the",
+  "take into ones immediate custody",
+  "assume direct possession of the",
+  "assume direct possession of",
+  "divest oneself of the absolute ownership of the",
+  "divest oneself of the absolute ownership of",
+  "let fall directly to the ground the",
+  "let fall directly to the ground",
+  "free oneself from the custody of the",
+  "free oneself from the custody of",
+  "force completely open the",
+  "force completely open",
+  "pry completely open the",
+  "pry completely open",
+  "lock completely shut the",
+  "lock completely shut",
+  "fasten entirely shut the",
+  "fasten entirely shut",
+  "deactivate the locking mechanism on the",
+  "deactivate the locking mechanism on",
+  "bypass the locking mechanism of the",
+  "bypass the locking mechanism of",
+  "disengage all locking mechanisms on the",
+  "disengage all locking mechanisms on",
+  "harness the full functionality of the",
+  "harness the full functionality of",
+  "bring into immediate active service the",
+  "bring into immediate active service",
+  "make full active use of the",
+  "make full active use of",
+  "wage physical warfare against the",
+  "wage physical warfare against",
+  "commence active combat against the",
+  "commence active combat against",
+  "initiate offensive hostilities against the",
+  "initiate offensive hostilities against",
+  "initiate a verbal conversation with the",
+  "initiate a verbal conversation with",
+  "engage in a verbal conversation with the",
+  "engage in a verbal conversation with",
+  "strike up a personal dialogue with the",
+  "strike up a personal dialogue with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
