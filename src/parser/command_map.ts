@@ -15180,6 +15180,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a harmonious face to face discussion with the": ["TALK"]
 });
 
+// Cycle #69 / Task-F92: Phase 55 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of locomotion towards the location of": ["MOVE"],
+  "navigate one's vector of locomotion towards the location of the": ["MOVE"],
+  "navigate ones vector of locomotion towards the location of": ["MOVE"],
+  "navigate ones vector of locomotion towards the location of the": ["MOVE"],
+  "steer one's vector of locomotion in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of locomotion in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of locomotion in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of locomotion in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of locomotion towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of locomotion towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of locomotion towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of locomotion towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual perception": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual perception the": ["LOOK_INSPECT"],
+  "subject to a thorough visual perception": ["LOOK_INSPECT"],
+  "subject to a thorough visual perception the": ["LOOK_INSPECT"],
+  "subject to a detailed visual perception": ["LOOK_INSPECT"],
+  "subject to a detailed visual perception the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive dominion of": ["TAKE"],
+  "assume direct exclusive dominion of the": ["TAKE"],
+  "assume absolute exclusive dominion of": ["TAKE"],
+  "assume absolute exclusive dominion of the": ["TAKE"],
+  "assume immediate exclusive dominion of": ["TAKE"],
+  "assume immediate exclusive dominion of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive dominion of": ["DROP"],
+  "divest oneself of all exclusive dominion of the": ["DROP"],
+  "relinquish all exclusive dominion of": ["DROP"],
+  "relinquish all exclusive dominion of the": ["DROP"],
+  "free oneself from all exclusive dominion of": ["DROP"],
+  "free oneself from all exclusive dominion of the": ["DROP"],
+
+  // Open/Close
+  "force completely and proactively wide open": ["OPEN"],
+  "force completely and proactively wide open the": ["OPEN"],
+  "pry completely and proactively wide open": ["OPEN"],
+  "pry completely and proactively wide open the": ["OPEN"],
+  "fasten completely and proactively closed": ["CLOSE"],
+  "fasten completely and proactively closed the": ["CLOSE"],
+  "seal completely and proactively shut": ["CLOSE"],
+  "seal completely and proactively shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all neural security devices of": ["UNLOCK"],
+  "deactivate all neural security devices of the": ["UNLOCK"],
+  "bypass all neural security devices on": ["UNLOCK"],
+  "bypass all neural security devices on the": ["UNLOCK"],
+  "disengage the primary neural security device on": ["UNLOCK"],
+  "disengage the primary neural security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full empirical deployment of": ["USE"],
+  "harness the full empirical deployment of the": ["USE"],
+  "bring into active empirical deployment": ["USE"],
+  "bring into active empirical deployment the": ["USE"],
+  "make complete empirical deployment of": ["USE"],
+  "make complete empirical deployment of the": ["USE"],
+
+  // Combat
+  "initiate a ferocious confrontation against": ["FIGHT"],
+  "initiate a ferocious confrontation against the": ["FIGHT"],
+  "commence a ferocious confrontation against": ["FIGHT"],
+  "commence a ferocious confrontation against the": ["FIGHT"],
+  "engage in a ferocious confrontation against": ["FIGHT"],
+  "engage in a ferocious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a confidential face to face discussion with": ["TALK"],
+  "initiate a confidential face to face discussion with the": ["TALK"],
+  "engage in a confidential face to face discussion with": ["TALK"],
+  "engage in a confidential face to face discussion with the": ["TALK"],
+  "strike up a confidential face to face discussion with": ["TALK"],
+  "strike up a confidential face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -15691,7 +15774,71 @@ compoundVerbs.push(
   "engage in a harmonious face to face discussion with the",
   "engage in a harmonious face to face discussion with",
   "strike up a harmonious face to face discussion with the",
-  "strike up a harmonious face to face discussion with"
+  "strike up a harmonious face to face discussion with",
+
+  // Phase 55 compound verbs
+  "navigate one's vector of locomotion towards the location of the",
+  "navigate one's vector of locomotion towards the location of",
+  "navigate ones vector of locomotion towards the location of the",
+  "navigate ones vector of locomotion towards the location of",
+  "steer one's vector of locomotion in the direction of the coordinates of the",
+  "steer one's vector of locomotion in the direction of the coordinates of",
+  "steer ones vector of locomotion in the direction of the coordinates of the",
+  "steer ones vector of locomotion in the direction of the coordinates of",
+  "direct one's vector of locomotion towards the coordinates of the location of the",
+  "direct one's vector of locomotion towards the coordinates of the location of",
+  "direct ones vector of locomotion towards the coordinates of the location of the",
+  "direct ones vector of locomotion towards the coordinates of the location of",
+  "subject to a comprehensive visual perception the",
+  "subject to a comprehensive visual perception",
+  "subject to a thorough visual perception the",
+  "subject to a thorough visual perception",
+  "subject to a detailed visual perception the",
+  "subject to a detailed visual perception",
+  "assume direct exclusive dominion of the",
+  "assume direct exclusive dominion of",
+  "assume absolute exclusive dominion of the",
+  "assume absolute exclusive dominion of",
+  "assume immediate exclusive dominion of the",
+  "assume immediate exclusive dominion of",
+  "divest oneself of all exclusive dominion of the",
+  "divest oneself of all exclusive dominion of",
+  "relinquish all exclusive dominion of the",
+  "relinquish all exclusive dominion of",
+  "free oneself from all exclusive dominion of the",
+  "free oneself from all exclusive dominion of",
+  "force completely and proactively wide open the",
+  "force completely and proactively wide open",
+  "pry completely and proactively wide open the",
+  "pry completely and proactively wide open",
+  "fasten completely and proactively closed the",
+  "fasten completely and proactively closed",
+  "seal completely and proactively shut the",
+  "seal completely and proactively shut",
+  "deactivate all neural security devices of the",
+  "deactivate all neural security devices of",
+  "bypass all neural security devices on the",
+  "bypass all neural security devices on",
+  "disengage the primary neural security device on the",
+  "disengage the primary neural security device on",
+  "harness the full empirical deployment of the",
+  "harness the full empirical deployment of",
+  "bring into active empirical deployment the",
+  "bring into active empirical deployment",
+  "make complete empirical deployment of the",
+  "make complete empirical deployment of",
+  "initiate a ferocious confrontation against the",
+  "initiate a ferocious confrontation against",
+  "commence a ferocious confrontation against the",
+  "commence a ferocious confrontation against",
+  "engage in a ferocious confrontation against the",
+  "engage in a ferocious confrontation against",
+  "initiate a confidential face to face discussion with the",
+  "initiate a confidential face to face discussion with",
+  "engage in a confidential face to face discussion with the",
+  "engage in a confidential face to face discussion with",
+  "strike up a confidential face to face discussion with the",
+  "strike up a confidential face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
