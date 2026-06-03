@@ -10,6 +10,13 @@ export const EffectSchema = z.union([
   z.object({ add_item: z.string() }),
   z.object({ remove_item: z.string() }),
   z.object({
+    change_weather: z.object({
+      weather: z.string().optional(),
+      temperature: z.string().optional(),
+      wind: z.string().optional(),
+    }),
+  }),
+  z.object({
     set_var: z.object({
       name: z.string(),
       value: z.number(),
@@ -445,6 +452,24 @@ export function applyEffect(
     return {
       state: newState,
       event: { type: "narration", text: msg },
+    };
+  }
+
+  if ("change_weather" in effect) {
+    const { weather, temperature, wind } = effect.change_weather;
+    const currentEnv = newState.environment || { weather: "clear", temperature: "mild", wind: "calm", lastUpdatedStep: newState.step };
+    newState.environment = {
+      ...currentEnv,
+      weather: weather ?? currentEnv.weather,
+      temperature: temperature ?? currentEnv.temperature,
+      wind: wind ?? currentEnv.wind ?? "calm",
+      lastUpdatedStep: newState.step,
+    };
+    const text = `The environment changes: weather is now ${newState.environment.weather}, temperature is ${newState.environment.temperature}, wind is ${newState.environment.wind ?? "calm"}.`;
+    newState.journal.push(`[Environment] ${text}`);
+    return {
+      state: newState,
+      event: { type: "narration", text }
     };
   }
 

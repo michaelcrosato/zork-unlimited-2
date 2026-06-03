@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 import { readFileSync, readdirSync, existsSync } from "fs";
-import { resolve, join, basename } from "path";
+import { resolve, join, basename, dirname } from "path";
+import { fileURLToPath } from "url";
 import { parse as parseYaml } from "yaml";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -53,7 +54,7 @@ const server = new Server(
 
 // Helper: Discover all adventure packs in content directory
 function findPacks(): Array<{ id: string; title: string; type: "cyoa" | "parser"; path: string }> {
-  const rootDir = "/home/michael_crosato/projects/zork-unlimited-2";
+  const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
   const paths = [
     { type: "cyoa" as const, dir: join(rootDir, "content/cyoa/pack") },
     { type: "parser" as const, dir: join(rootDir, "content/parser/pack") },
@@ -354,7 +355,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       if (matchedPack) {
         packPath = matchedPack.path;
       } else {
-        const rootDir = "/home/michael_crosato/projects/zork-unlimited-2";
+        const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
         packPath = resolve(rootDir, adventureId);
       }
 
