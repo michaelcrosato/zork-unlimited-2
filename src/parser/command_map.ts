@@ -9439,6 +9439,134 @@ compoundVerbs.push(
   "shoot the breeze with"
 );
 
+// Cycle #27 / Task-F50: Phase 13 mappings (expansion requested by playtesters)
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "betake oneself to": ["MOVE"],
+  "betake oneself to the": ["MOVE"],
+  "repair to": ["MOVE"],
+  "repair to the": ["MOVE"],
+  "make one's way to": ["MOVE"],
+  "make one's way to the": ["MOVE"],
+  "make ones way to": ["MOVE"],
+  "make ones way to the": ["MOVE"],
+
+  // Look/Inspect
+  "cast one's eyes upon": ["LOOK_INSPECT"],
+  "cast one's eyes upon the": ["LOOK_INSPECT"],
+  "cast ones eyes upon": ["LOOK_INSPECT"],
+  "cast ones eyes upon the": ["LOOK_INSPECT"],
+  "cast an eye over": ["LOOK_INSPECT"],
+  "cast an eye over the": ["LOOK_INSPECT"],
+
+  // Take
+  "seize hold of": ["TAKE"],
+  "seize hold of the": ["TAKE"],
+  "lay one's hands on": ["TAKE"],
+  "lay one's hands on the": ["TAKE"],
+  "lay ones hands on": ["TAKE"],
+  "lay ones hands on the": ["TAKE"],
+
+  // Drop
+  "let drop": ["DROP"],
+  "let drop the": ["DROP"],
+
+  // Open/Close
+  "push open": ["OPEN"],
+  "push open the": ["OPEN"],
+  "pull open": ["OPEN"],
+  "pull open the": ["OPEN"],
+  "latch shut": ["CLOSE"],
+  "latch shut the": ["CLOSE"],
+  "fasten shut": ["CLOSE"],
+  "fasten shut the": ["CLOSE"],
+
+  // Unlock
+  "unbolt lock on": ["UNLOCK"],
+  "unbolt lock on the": ["UNLOCK"],
+  "unbar lock on": ["UNLOCK"],
+  "unbar lock on the": ["UNLOCK"],
+
+  // Use
+  "harness the power of": ["USE"],
+  "harness the power of the": ["USE"],
+  "put in action": ["USE"],
+  "put in action the": ["USE"],
+  "put into service": ["USE"],
+  "put into service the": ["USE"],
+
+  // Combat
+  "strike blows at": ["FIGHT"],
+  "strike blows at the": ["FIGHT"],
+  "exchange blows with": ["FIGHT"],
+  "exchange blows with the": ["FIGHT"],
+  "lay blows upon": ["FIGHT"],
+  "lay blows upon the": ["FIGHT"],
+  "clobber": ["FIGHT"],
+  "clobber the": ["FIGHT"],
+
+  // Dialogue
+  "check in with": ["TALK"],
+  "check in with the": ["TALK"],
+  "have talk with": ["TALK"],
+  "have talk with the": ["TALK"]
+});
+
+compoundVerbs.push(
+  "betake oneself to the",
+  "betake oneself to",
+  "repair to the",
+  "repair to",
+  "make one's way to the",
+  "make one's way to",
+  "make ones way to the",
+  "make ones way to",
+  "cast one's eyes upon the",
+  "cast one's eyes upon",
+  "cast ones eyes upon the",
+  "cast ones eyes upon",
+  "cast an eye over the",
+  "cast an eye over",
+  "seize hold of the",
+  "seize hold of",
+  "lay one's hands on the",
+  "lay one's hands on",
+  "lay ones hands on the",
+  "lay ones hands on",
+  "let drop the",
+  "let drop",
+  "push open the",
+  "push open",
+  "pull open the",
+  "pull open",
+  "latch shut the",
+  "latch shut",
+  "fasten shut the",
+  "fasten shut",
+  "unbolt lock on the",
+  "unbolt lock on",
+  "unbar lock on the",
+  "unbar lock on",
+  "harness the power of the",
+  "harness the power of",
+  "put in action the",
+  "put in action",
+  "put into service the",
+  "put into service",
+  "strike blows at the",
+  "strike blows at",
+  "exchange blows with the",
+  "exchange blows with",
+  "lay blows upon the",
+  "lay blows upon",
+  "clobber the",
+  "clobber",
+  "check in with the",
+  "check in with",
+  "have talk with the",
+  "have talk with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
