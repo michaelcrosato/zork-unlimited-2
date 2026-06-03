@@ -33,6 +33,14 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("proceed toward east", actions).action).toEqual({ type: "MOVE", direction: "east" });
     expect(mapCommand("hasten to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
     expect(mapCommand("direct oneself to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("glide to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("make a run to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("dash off to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("hie oneself to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("run along to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("slide to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("sashay to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("stride to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
   });
 
   it("should map newly added inspection verbs to LOOK action", () => {
@@ -49,6 +57,14 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("eyeball altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
     expect(mapCommand("scan visually altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
     expect(mapCommand("observe closely altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("goggle at altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("look upon altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("peek at altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("take a look at altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("check out altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("look over altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("give a look to altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("size up altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
   });
 
   it("should map newly added take verbs to TAKE action", () => {
@@ -62,6 +78,12 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("seize control of katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
     expect(mapCommand("snag katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
     expect(mapCommand("acquire possession of katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("make off with katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("run off with katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("walk away with katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("clutch katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("secure possession of katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("collar katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
   });
 
   it("should map newly added drop verbs to DROP action", () => {
@@ -75,6 +97,10 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("part with boots", actions).action).toEqual({ type: "DROP", item: "boots" });
     expect(mapCommand("shed boots", actions).action).toEqual({ type: "DROP", item: "boots" });
     expect(mapCommand("abandon boots", actions).action).toEqual({ type: "DROP", item: "boots" });
+    expect(mapCommand("dump down boots", actions).action).toEqual({ type: "DROP", item: "boots" });
+    expect(mapCommand("toss out boots", actions).action).toEqual({ type: "DROP", item: "boots" });
+    expect(mapCommand("throw out boots", actions).action).toEqual({ type: "DROP", item: "boots" });
+    expect(mapCommand("let go of boots", actions).action).toEqual({ type: "DROP", item: "boots" });
   });
 
   it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
@@ -85,12 +111,19 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("spread open vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
     expect(mapCommand("pry open vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
     expect(mapCommand("force open vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
+    expect(mapCommand("unwrap vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
+    expect(mapCommand("slide open vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
+    expect(mapCommand("jerk open vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
     expect(mapCommand("bar door", actions).action).toEqual({ type: "CLOSE", target: "door" });
     expect(mapCommand("bolt door", actions).action).toEqual({ type: "CLOSE", target: "door" });
     expect(mapCommand("lock shut door", actions).action).toEqual({ type: "CLOSE", target: "door" });
     expect(mapCommand("secure shut door", actions).action).toEqual({ type: "CLOSE", target: "door" });
     expect(mapCommand("fasten door", actions).action).toEqual({ type: "CLOSE", target: "door" });
     expect(mapCommand("make fast door", actions).action).toEqual({ type: "CLOSE", target: "door" });
+    expect(mapCommand("shut up door", actions).action).toEqual({ type: "CLOSE", target: "door" });
+    expect(mapCommand("slide shut door", actions).action).toEqual({ type: "CLOSE", target: "door" });
+    expect(mapCommand("slam shut door", actions).action).toEqual({ type: "CLOSE", target: "door" });
+    expect(mapCommand("push to door", actions).action).toEqual({ type: "CLOSE", target: "door" });
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
@@ -101,6 +134,12 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("disable the lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
     expect(mapCommand("solve the lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
     expect(mapCommand("key open chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("key unlock chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("unlock lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("free the lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("pick the lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("bypass lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("undo the lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
   });
 
   it("should map newly added use verbs to USE action", () => {
@@ -117,6 +156,11 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("imbibe lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
     expect(mapCommand("don oneself in lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
     expect(mapCommand("put on lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("utilize the use of lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("avail oneself of lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("partake of lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("quaff lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("swill lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
   });
 
   it("should map newly added combat verbs to FIGHT action", () => {
@@ -132,6 +176,9 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("pummel ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
     expect(mapCommand("vanquish ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
     expect(mapCommand("slaughter ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
+    expect(mapCommand("wage battle with ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
+    expect(mapCommand("deal a blow to ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
+    expect(mapCommand("lay waste to ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
@@ -143,5 +190,9 @@ describe("Parser Synonym Expansion Phase 11 (Task-F48)", () => {
     expect(mapCommand("hold a conversation with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
     expect(mapCommand("commune with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
     expect(mapCommand("socialize with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
+    expect(mapCommand("parley with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
+    expect(mapCommand("hold a talk with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
+    expect(mapCommand("chew the fat with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
+    expect(mapCommand("shoot the breeze with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
   });
 });
