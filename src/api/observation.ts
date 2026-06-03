@@ -1,4 +1,4 @@
-import { GameState } from "../core/state.js";
+import { GameState, findRoom, getRoomExits } from "../core/state.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
 import { CYOAObservation, ParserObservation, Observation } from "./types.js";
@@ -97,7 +97,7 @@ export function buildObservation(
 
   // Otherwise, it is a ParserPack
   const parserPack = pack as ParserPack;
-  const room = parserPack.rooms.find((r) => r.id === state.current);
+  const room = findRoom(state, parserPack, state.current);
   if (!room) {
     throw new Error(
       `Current room '${state.current}' not found in parser pack.`,
@@ -106,7 +106,7 @@ export function buildObservation(
 
   // Compile visible objects (including contents of OPEN containers in the room)
   const visibleObjects: { id: string; name: string }[] = [];
-  room.objects.forEach((objId) => {
+  room.objects.forEach((objId: string) => {
     const obj = parserPack.objects.find((o) => o.id === objId);
     if (obj) {
       const runtime = state.objectState[obj.id];
@@ -139,7 +139,7 @@ export function buildObservation(
   });
 
   // Compile exits
-  const exitsList = room.exits.map((exit) => ({
+  const exitsList = getRoomExits(state, room).map((exit: any) => ({
     direction: exit.direction,
     to: exit.to,
   }));

@@ -23,6 +23,7 @@ export const GameStateSchema = z.object({
   vars: z.record(z.string(), z.number()),
   inventory: z.array(z.string()),
   objectState: z.record(z.string(), ObjectRuntimeSchema),
+  proceduralRooms: z.array(z.any()).optional(),
 
   // narrative
   journal: z.array(z.string()),
@@ -57,9 +58,44 @@ export const createInitialState = (options: {
     vars: options.varsInit ?? {},
     inventory: [],
     objectState: {},
+    proceduralRooms: [],
     journal: [],
     questStage: {},
     ended: false,
     endingId: null,
   };
 };
+
+export function findRoom(state: GameState, pack: any, roomId: string): any | undefined {
+  if (state.proceduralRooms) {
+    const procRoom = state.proceduralRooms.find((r: any) => r.id === roomId);
+    if (procRoom) return procRoom;
+  }
+  if (pack && pack.rooms) {
+    return pack.rooms.find((r: any) => r.id === roomId);
+  }
+  return undefined;
+}
+
+export function getRoomExits(state: GameState, currentRoom: any): any[] {
+  const exits = [...(currentRoom.exits || [])];
+  const prefix = `procedural_exit_${currentRoom.id}_`;
+  Object.keys(state.flags).forEach((flag) => {
+    if (flag.startsWith(prefix) && state.flags[flag]) {
+      const rest = flag.substring(prefix.length);
+      const parts = rest.split("_to_");
+      if (parts.length === 2) {
+        const direction = parts[0];
+        const to = parts[1];
+        if (!exits.some((e) => e.direction === direction)) {
+          exits.push({
+            direction,
+            to,
+            conditions: []
+          });
+        }
+      }
+    }
+  });
+  return exits;
+}

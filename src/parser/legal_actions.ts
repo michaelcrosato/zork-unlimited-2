@@ -1,4 +1,4 @@
-import { GameState } from "../core/state.js";
+import { GameState, findRoom, getRoomExits } from "../core/state.js";
 import { ParserPack, ParserRoom, ParserObject, ParserNPC } from "./schema.js";
 import { AvailableAction } from "../api/types.js";
 import { evaluateConditions } from "../core/conditions.js";
@@ -99,7 +99,7 @@ export function generateLegalActions(
   }
 
   // 1. Resolve current room
-  const room = pack.rooms.find((r) => r.id === state.current);
+  const room = findRoom(state, pack, state.current);
   if (!room) {
     return actions;
   }
@@ -118,7 +118,8 @@ export function generateLegalActions(
   });
 
   // 3. Move Exits
-  room.exits.forEach((exit) => {
+  const roomExits = getRoomExits(state, room);
+  roomExits.forEach((exit) => {
     actions.push({
       id: `go_${exit.direction}`,
       command: `go ${exit.direction}`,
@@ -305,7 +306,7 @@ export function generateLegalActions(
   });
 
   // 6. NPCs in Room
-  room.npcs.forEach((npcId) => {
+  room.npcs.forEach((npcId: string) => {
     if (state.flags[`npc_dead_${npcId}`]) return;
     const npc = pack.npcs.find((n) => n.id === npcId);
     if (npc) {

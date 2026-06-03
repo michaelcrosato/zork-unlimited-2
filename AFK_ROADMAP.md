@@ -14,7 +14,10 @@ This roadmap lists the prioritized backlog of engineering, debugging, and narrat
     *   *Description*: Enhance the game's observation narration to dynamically inject atmospheric/sensory flavor text based on the room's environment, state flags, and step count. [x] Done.
 
 ### 3. 🚀 [NEW FEATURES]
-*   **Task-F1**: **Stage 2 Procedural Dungeons & Dynamic Content Hooks**
-    *   *Description*: Implement a new state effect `generate_procedural_room` inside the core transition reducer to generate dynamic room expansions on demand. Build a new test pack `content/parser/pack/unlimited_forest.yaml` utilizing this template.
-*   **Task-F2**: **Subprocess MCP Playtesting Harness (`mcp_playtest.ts`)**
-    *   *Description*: Write an automated script that programmatically launches the MCP server on stdio transport, executes a play session on `unlimited_forest.yaml` using a variety of logical and chaotic edge-case inputs, asserts state coherence, and terminates cleanly.
+*   **Task-F1**: **Stage 2 Procedural Dungeons & Dynamic Content Hooks** (Completed)
+    *   *Description*: Implement a new state effect `generate_procedural_room` inside the core transition reducer to generate dynamic room expansions on demand. Build a new test pack `content/parser/pack/unlimited_forest.yaml` utilizing this template. [x] Done.
+*   **Task-F2**: **Subprocess MCP Playtesting Harness (`mcp_playtest.ts`)** (Completed)
+    *   *Description*: Write an automated script that programmatically launches the MCP server on stdio transport, executes a play session on `unlimited_forest.yaml` using a variety of logical and chaotic edge-case inputs, asserts state coherence, and terminates cleanly. [x] Done.
+*   **Task-F3**: **Procedural Merchant & Inventory Trading Systems**
+    *   *Description*: Add an `NPC_TRADE` interaction effect and custom game state variables (`gold`, etc.) to support procedurally stocking merchant items, allowing dynamic buying/selling mechanics completely driven by the parser state engine.
+
