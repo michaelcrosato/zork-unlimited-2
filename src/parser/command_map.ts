@@ -5577,4 +5577,182 @@ SYNONYM_GROUPS.push(
 );
 
 // Always ensure all compoundVerbs are sorted by length to prevent substring prefix mismatch bugs
+// Cycle #68: Parser Synonym Expansion (Q4 Playtester Priority)
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  advance: ["MOVE"],
+  proceed: ["MOVE"],
+  journey: ["MOVE"],
+  migrate: ["MOVE"],
+
+  // Look/Inspect
+  study: ["LOOK_INSPECT"],
+  scan: ["LOOK_INSPECT"],
+  gawk: ["LOOK_INSPECT"],
+  peer: ["LOOK_INSPECT"],
+
+  // Take
+  snatch: ["TAKE"],
+  claim: ["TAKE"],
+  pilfer: ["TAKE"],
+  filch: ["TAKE"],
+
+  // Drop
+  abandon: ["DROP"],
+  forfeit: ["DROP"],
+
+  // Open
+  pry: ["OPEN"],
+  part: ["OPEN"],
+
+  // Close
+  seal: ["CLOSE"],
+  block: ["CLOSE"],
+
+  // Unlock
+  decrypt: ["UNLOCK", "USE"],
+  decode: ["UNLOCK", "USE"],
+
+  // Use
+  employ: ["USE"],
+  harness: ["USE"],
+  wield: ["USE"],
+
+  // Talk
+  chat: ["TALK", "ASK"],
+  parley: ["TALK", "ASK"],
+
+  // Ask
+  query: ["ASK"],
+
+  // Give
+  offer: ["GIVE"],
+  donate: ["GIVE"],
+
+  // Inventory
+  inv: ["INVENTORY"],
+  possessions: ["INVENTORY"],
+
+  // Fight
+  skirmish: ["FIGHT"],
+  brawl: ["FIGHT"],
+
+  // Cast
+  evoke: ["CAST"],
+  channel: ["CAST"],
+
+  // Flee
+  depart: ["FLEE"],
+  abscond: ["FLEE"],
+
+  // Buy
+  shop: ["BUY"],
+
+  // Sell
+  vend: ["SELL"]
+});
+
+compoundVerbs.push(
+  // Strike a deal / business with merchant
+  "strike a deal with the",
+  "strike a deal with",
+  "make a deal with the",
+  "make a deal with",
+  "do business with the",
+  "do business with",
+
+  // Engage in dialogue
+  "have a conversation with the",
+  "have a conversation with",
+  "have a chat with the",
+  "have a chat with",
+  "have a talk with the",
+  "have a talk with",
+  "engage in conversation with the",
+  "engage in conversation with",
+
+  // Cast spell
+  "cast a spell on the",
+  "cast a spell on",
+  "cast a spell at the",
+  "cast a spell at",
+
+  // Inspect contents
+  "inspect the contents of the",
+  "inspect the contents of",
+  "examine the contents of the",
+  "examine the contents of",
+
+  // Take possession / get rid of
+  "take possession of the",
+  "take possession of",
+  "get rid of the",
+  "get rid of",
+
+  // Move
+  "make progress towards",
+  "make progress to"
+);
+
+SYNONYM_GROUPS.push(
+  // NPC Boss/Capo synonym group
+  [
+    "capo",
+    "boss",
+    "leader",
+    "chief",
+    "head",
+    "commander"
+  ],
+  // Merchant/Shopkeeper synonym group
+  [
+    "merchant",
+    "trader",
+    "shopkeeper",
+    "vendor",
+    "dealer",
+    "seller",
+    "monger",
+    "barterer"
+  ],
+  // Money/Gold/Currency synonym group
+  [
+    "gold",
+    "coin",
+    "coins",
+    "money",
+    "funds",
+    "currency",
+    "cash",
+    "wealth",
+    "loot",
+    "riches",
+    "credits"
+  ],
+  // Potion/Elixir/Flask synonym group
+  [
+    "potion",
+    "elixir",
+    "phial",
+    "flask",
+    "vial",
+    "draught",
+    "brew",
+    "tonic"
+  ],
+  // Scroll/Book/Tome synonym group
+  [
+    "scroll",
+    "book",
+    "tome",
+    "parchment",
+    "document",
+    "manuscript",
+    "ledger",
+    "journal",
+    "diary"
+  ]
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
+
