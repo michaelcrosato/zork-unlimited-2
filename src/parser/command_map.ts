@@ -17573,7 +17573,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a rational face to face discussion with": ["TALK"],
   "engage in a rational face to face discussion with the": ["TALK"],
   "strike up a rational face to face discussion with": ["TALK"],
-  "strike up a rational face to face discussion with the": ["TALK"]
+  "strike up a rational face to face discussion with the": ["TALK"],
+
+  // Cycle #83 / Task-F106: Phase 69 mappings
+  // Move
+  "navigate one's vector of investigation towards the location of": ["MOVE"],
+  "navigate one's vector of investigation towards the location of the": ["MOVE"],
+  "navigate ones vector of investigation towards the location of": ["MOVE"],
+  "navigate ones vector of investigation towards the location of the": ["MOVE"],
+  "steer one's vector of investigation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of investigation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of investigation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of investigation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of investigation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of investigation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of investigation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of investigation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual scan": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual scan the": ["LOOK_INSPECT"],
+  "subject to a thorough visual scan": ["LOOK_INSPECT"],
+  "subject to a thorough visual scan the": ["LOOK_INSPECT"],
+  "subject to a detailed visual scan": ["LOOK_INSPECT"],
+  "subject to a detailed visual scan the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive retrieval of": ["TAKE"],
+  "assume direct exclusive retrieval of the": ["TAKE"],
+  "assume absolute exclusive retrieval of": ["TAKE"],
+  "assume absolute exclusive retrieval of the": ["TAKE"],
+  "assume immediate exclusive retrieval of": ["TAKE"],
+  "assume immediate exclusive retrieval of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive retrieval of": ["DROP"],
+  "divest oneself of all exclusive retrieval of the": ["DROP"],
+  "relinquish all exclusive retrieval of": ["DROP"],
+  "relinquish all exclusive retrieval of the": ["DROP"],
+  "free oneself from all exclusive retrieval of": ["DROP"],
+  "free oneself from all exclusive retrieval of the": ["DROP"],
+
+  // Open/Close
+  "force completely and cybernetically wide open": ["OPEN"],
+  "force completely and cybernetically wide open the": ["OPEN"],
+  "pry completely and cybernetically wide open": ["OPEN"],
+  "pry completely and cybernetically wide open the": ["OPEN"],
+  "fasten completely and cybernetically closed": ["CLOSE"],
+  "fasten completely and cybernetically closed the": ["CLOSE"],
+  "seal completely and cybernetically shut": ["CLOSE"],
+  "seal completely and cybernetically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all ultrasonic security devices of": ["UNLOCK"],
+  "deactivate all ultrasonic security devices of the": ["UNLOCK"],
+  "bypass all ultrasonic security devices on": ["UNLOCK"],
+  "bypass all ultrasonic security devices on the": ["UNLOCK"],
+  "disengage the primary ultrasonic security device on": ["UNLOCK"],
+  "disengage the primary ultrasonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full synchronized deployment of": ["USE"],
+  "harness the full synchronized deployment of the": ["USE"],
+  "bring into active synchronized deployment": ["USE"],
+  "bring into active synchronized deployment the": ["USE"],
+  "make complete synchronized deployment of": ["USE"],
+  "make complete synchronized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a ruinous confrontation against": ["FIGHT"],
+  "initiate a ruinous confrontation against the": ["FIGHT"],
+  "commence a ruinous confrontation against": ["FIGHT"],
+  "commence a ruinous confrontation against the": ["FIGHT"],
+  "engage in a ruinous confrontation against": ["FIGHT"],
+  "engage in a ruinous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a pragmatic face to face discussion with": ["TALK"],
+  "initiate a pragmatic face to face discussion with the": ["TALK"],
+  "engage in a pragmatic face to face discussion with": ["TALK"],
+  "engage in a pragmatic face to face discussion with the": ["TALK"],
+  "strike up a pragmatic face to face discussion with": ["TALK"],
+  "strike up a pragmatic face to face discussion with the": ["TALK"]
 });
 
 // Cycle #80 / Task-F103: Phase 66 compound verbs
@@ -17772,6 +17853,72 @@ compoundVerbs.push(
   "engage in a rational face to face discussion with",
   "strike up a rational face to face discussion with the",
   "strike up a rational face to face discussion with"
+);
+
+// Cycle #83 / Task-F106: Phase 69 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of investigation towards the location of the",
+  "navigate one's vector of investigation towards the location of",
+  "navigate ones vector of investigation towards the location of the",
+  "navigate ones vector of investigation towards the location of",
+  "steer one's vector of investigation in the direction of the coordinates of the",
+  "steer one's vector of investigation in the direction of the coordinates of",
+  "steer ones vector of investigation in the direction of the coordinates of the",
+  "steer ones vector of investigation in the direction of the coordinates of",
+  "direct one's vector of investigation towards the coordinates of the location of the",
+  "direct one's vector of investigation towards the coordinates of the location of",
+  "direct ones vector of investigation towards the coordinates of the location of the",
+  "direct ones vector of investigation towards the coordinates of the location of",
+  "subject to a comprehensive visual scan the",
+  "subject to a comprehensive visual scan",
+  "subject to a thorough visual scan the",
+  "subject to a thorough visual scan",
+  "subject to a detailed visual scan the",
+  "subject to a detailed visual scan",
+  "assume direct exclusive retrieval of the",
+  "assume direct exclusive retrieval of",
+  "assume absolute exclusive retrieval of the",
+  "assume absolute exclusive retrieval of",
+  "assume immediate exclusive retrieval of the",
+  "assume immediate exclusive retrieval of",
+  "divest oneself of all exclusive retrieval of the",
+  "divest oneself of all exclusive retrieval of",
+  "relinquish all exclusive retrieval of the",
+  "relinquish all exclusive retrieval of",
+  "free oneself from all exclusive retrieval of the",
+  "free oneself from all exclusive retrieval of",
+  "force completely and cybernetically wide open the",
+  "force completely and cybernetically wide open",
+  "pry completely and cybernetically wide open the",
+  "pry completely and cybernetically wide open",
+  "fasten completely and cybernetically closed the",
+  "fasten completely and cybernetically closed",
+  "seal completely and cybernetically shut the",
+  "seal completely and cybernetically shut",
+  "deactivate all ultrasonic security devices of the",
+  "deactivate all ultrasonic security devices of",
+  "bypass all ultrasonic security devices on the",
+  "bypass all ultrasonic security devices on",
+  "disengage the primary ultrasonic security device on the",
+  "disengage the primary ultrasonic security device on",
+  "harness the full synchronized deployment of the",
+  "harness the full synchronized deployment of",
+  "bring into active synchronized deployment the",
+  "bring into active synchronized deployment",
+  "make complete synchronized deployment of the",
+  "make complete synchronized deployment of",
+  "initiate a ruinous confrontation against the",
+  "initiate a ruinous confrontation against",
+  "commence a ruinous confrontation against the",
+  "commence a ruinous confrontation against",
+  "engage in a ruinous confrontation against the",
+  "engage in a ruinous confrontation against",
+  "initiate a pragmatic face to face discussion with the",
+  "initiate a pragmatic face to face discussion with",
+  "engage in a pragmatic face to face discussion with the",
+  "engage in a pragmatic face to face discussion with",
+  "strike up a pragmatic face to face discussion with the",
+  "strike up a pragmatic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
