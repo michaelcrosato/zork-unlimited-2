@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Sp
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -69,7 +69,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Sp
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -153,7 +153,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Sp
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -219,8 +219,8 @@ describe("Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Sp
     const ownedShares = tickedState.swfYieldCDOs?.["cdo_1"]?.tranches?.senior?.ownership?.["alpha"] ?? 0;
 
     expect(ownedShares).toBeGreaterThan(50);
-    expect(tickedState.journal?.some(j => j.includes("[Delta Hedging Rebalancing]"))).toBe(true);
-    expect(tickedState.journal?.some(j => j.includes("purchased"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("[Delta Hedging Rebalancing]"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("purchased"))).toBe(true);
   });
 
   it("should sell underlying CDO tranche tokens back to the pool when option price delta is below target - tolerance", () => {
@@ -267,7 +267,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Sp
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -323,7 +323,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Delta Hedging & Automated Sp
     // Verify rebalancing sold tranche tokens
     const ownedShares = tickedState.swfYieldCDOs?.["cdo_1"]?.tranches?.senior?.ownership?.["alpha"] ?? 0;
     expect(ownedShares).toBeLessThan(400);
-    expect(tickedState.journal?.some(j => j.includes("[Delta Hedging Rebalancing]"))).toBe(true);
-    expect(tickedState.journal?.some(j => j.includes("sold"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("[Delta Hedging Rebalancing]"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("sold"))).toBe(true);
   });
 });

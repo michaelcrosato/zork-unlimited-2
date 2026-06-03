@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta He
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -69,7 +69,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta He
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -155,7 +155,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta He
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -272,6 +272,6 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta He
     // Under stress delta policy (Target: 0.8), difference is ~0.03 which is within tolerance (0.05).
     // So if stress delta policy was successfully targeted, no transaction rebalancing is needed because delta (0.83) is within tolerance of Target (0.8).
     // Let's verify that stress delta was targeted!
-    expect(tickedState.journal?.some(j => j.includes("[Stress-Test-Aware Delta Hedging Reallocation]"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("[Stress-Test-Aware Delta Hedging Reallocation]"))).toBe(true);
   });
 });

@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility-
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -63,7 +63,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility-
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -86,7 +86,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility-
         bondId: "index_1",
         volatility: 20.0,
         timestamp: 1000,
-      }
+      },
     };
 
     // 1. Propose volatility floor
@@ -160,15 +160,16 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility-
     // Average Volatility is 20%. Minimum floor is 20 * 0.5 = 10 gold.
     // Dynamic floor should enforce minimum spread to be 10 gold.
     let afterMetricsState = recalculateReinsuranceOptionOrderBookMetrics(state);
-    
+
     const depth = afterMetricsState.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
     expect(depth).toBeDefined();
     expect(depth?.bidAskSpread).toBe(10); // raised from 2 to 10 gold!
 
     // Verify journal contains applied volatility floor logs
-    const hasFloorLog = afterMetricsState.journal?.some(j =>
-      j.includes("[SWF Reinsurance Option Volatility Floor Enforced]") &&
-      j.includes("Raised bid-ask spread from 2 to 10 gold")
+    const hasFloorLog = afterMetricsState.journal?.some(
+      (j) =>
+        j.includes("[SWF Reinsurance Option Volatility Floor Enforced]") &&
+        j.includes("Raised bid-ask spread from 2 to 10 gold")
     );
     expect(hasFloorLog).toBe(true);
   });

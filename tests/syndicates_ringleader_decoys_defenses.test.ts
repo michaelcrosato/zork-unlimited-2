@@ -116,39 +116,51 @@ describe("Smuggler Syndicate Cartel Contraband Smuggling Ringleaders, Multi-Node
     };
 
     // 1. Rejects if syndicateId is invalid
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "APPOINT_SMUGGLING_RINGLEADER",
-        syndicateId: "invalid_synd",
-        ringleaderId: "player",
-        timestamp: 10,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "APPOINT_SMUGGLING_RINGLEADER",
+          syndicateId: "invalid_synd",
+          ringleaderId: "player",
+          timestamp: 10,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(false);
 
     // 2. Rejects if proposed ringleader is not a syndicate member
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "APPOINT_SMUGGLING_RINGLEADER",
-        syndicateId: "synd_1",
-        ringleaderId: "non_member",
-        timestamp: 10,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "APPOINT_SMUGGLING_RINGLEADER",
+          syndicateId: "synd_1",
+          ringleaderId: "non_member",
+          timestamp: 10,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(false);
 
     // 3. Succeeds and sets smugglingRingleader
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "APPOINT_SMUGGLING_RINGLEADER",
-        syndicateId: "synd_1",
-        ringleaderId: "agent_b",
-        timestamp: 10,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "APPOINT_SMUGGLING_RINGLEADER",
+          syndicateId: "synd_1",
+          ringleaderId: "agent_b",
+          timestamp: 10,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.syndicates?.["synd_1"].smugglingRingleader).toBe("agent_b");
   });
@@ -271,17 +283,21 @@ describe("Smuggler Syndicate Cartel Contraband Smuggling Ringleaders, Multi-Node
     };
 
     // 1. Deploy interceptor decoy
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "DEPLOY_INTERCEPTOR_DECOY",
-        decoyId: "decoy_omega",
-        syndicateId: "synd_1",
-        routeId: "route_1",
-        cost: 300,
-        timestamp: 10,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "DEPLOY_INTERCEPTOR_DECOY",
+          decoyId: "decoy_omega",
+          syndicateId: "synd_1",
+          routeId: "route_1",
+          cost: 300,
+          timestamp: 10,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.vars["gold"]).toBe(700);
     expect(res.state.interceptorDecoys?.["decoy_omega"]).toBeDefined();
@@ -309,13 +325,17 @@ describe("Smuggler Syndicate Cartel Contraband Smuggling Ringleaders, Multi-Node
     borderState.seed = testSeed;
 
     // Trigger movement containing border smuggling checks
-    let moveRes = multiAgentStep(borderState, {
-      agentId: "player",
-      action: {
-        type: "MOVE",
-        direction: "NORTH",
+    let moveRes = multiAgentStep(
+      borderState,
+      {
+        agentId: "player",
+        action: {
+          type: "MOVE",
+          direction: "NORTH",
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     // Should pass safely because the interceptor decoy deflated/misled the border patrol!
     expect(moveRes.ok).toBe(true);
     expect(moveRes.state.current).toBe("border");
@@ -343,30 +363,38 @@ describe("Smuggler Syndicate Cartel Contraband Smuggling Ringleaders, Multi-Node
     };
 
     // 1. Establish Black Ops Safehouse
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "ESTABLISH_BLACK_OPS_SAFEHOUSE",
-        safehouseId: "safehouse_alpha",
-        roomId: "market",
-        syndicateId: "synd_1",
-        cost: 500,
-        timestamp: 100,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "ESTABLISH_BLACK_OPS_SAFEHOUSE",
+          safehouseId: "safehouse_alpha",
+          roomId: "market",
+          syndicateId: "synd_1",
+          cost: 500,
+          timestamp: 100,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.blackOpsSafehouses?.["safehouse_alpha"]).toBeDefined();
 
     // 2. Upgrade defenses
-    res = multiAgentStep(res.state, {
-      agentId: "player",
-      action: {
-        type: "UPGRADE_SAFEHOUSE_DEFENSES",
-        safehouseId: "safehouse_alpha",
-        upgradeCost: 500,
-        timestamp: 200,
+    res = multiAgentStep(
+      res.state,
+      {
+        agentId: "player",
+        action: {
+          type: "UPGRADE_SAFEHOUSE_DEFENSES",
+          safehouseId: "safehouse_alpha",
+          upgradeCost: 500,
+          timestamp: 200,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.blackOpsSafehouses?.["safehouse_alpha"].defenses).toBe(1);
     expect(res.state.vars["gold"]).toBe(200); // 1200 - 500 - 500 = 200

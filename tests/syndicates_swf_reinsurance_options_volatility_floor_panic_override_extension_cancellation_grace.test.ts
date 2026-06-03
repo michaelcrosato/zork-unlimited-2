@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -63,7 +63,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -127,7 +127,8 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
     expect(res.ok).toBe(true);
     state = res.state;
 
-    let graceProp = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals?.["grace_1"];
+    let graceProp =
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals?.["grace_1"];
     expect(graceProp).toBeDefined();
     expect(graceProp?.status).toBe("proposed");
     expect(graceProp?.graceDuration).toBe(3);
@@ -143,7 +144,9 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
     res = multiAgentStep(state, { agentId: "bob", action: voteGraceBob as any }, mockPack);
     expect(res.ok).toBe(true);
     state = res.state;
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals?.["grace_1"]?.status).toBe("authorized");
+    expect(
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals?.["grace_1"]?.status
+    ).toBe("authorized");
 
     // 4. Bob votes to authorize the cancellation proposal cancel_1
     const voteCancelBob = {
@@ -158,7 +161,8 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
     state = res.state;
 
     // Cancellation authorized, and since grace duration of 3 was authorized, cooldownEndStep is scheduled to step + 3 (which was calculated when step was 3, so 3+3=6. Since step is now 4, it is 6)
-    const cancelProp = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
+    const cancelProp =
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
     expect(cancelProp?.status).toBe("authorized");
     expect(cancelProp?.remainingGraceSteps).toBe(3);
 
@@ -170,21 +174,24 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
 
     // Economy Tick 1
     state = tickEconomy(state, mockPack);
-    let cancelPropTick1 = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
+    let cancelPropTick1 =
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
     expect(cancelPropTick1?.remainingGraceSteps).toBe(2);
     let targetOverrideTick1 = state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.["override_1"];
     expect(targetOverrideTick1?.cooldownEndStep).toBe(6); // step + remaining = 4 + 2 = 6
 
     // Economy Tick 2
     state = tickEconomy(state, mockPack);
-    let cancelPropTick2 = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
+    let cancelPropTick2 =
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
     expect(cancelPropTick2?.remainingGraceSteps).toBe(1);
     let targetOverrideTick2 = state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.["override_1"];
     expect(targetOverrideTick2?.cooldownEndStep).toBe(5); // step + remaining = 4 + 1 = 5
 
     // Economy Tick 3 - Grace Period ends, cooldownEndStep cleared
     state = tickEconomy(state, mockPack);
-    let cancelPropTick3 = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
+    let cancelPropTick3 =
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
     expect(cancelPropTick3?.remainingGraceSteps).toBe(0);
     let targetOverrideTick3 = state.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.["override_1"];
     expect(targetOverrideTick3?.cooldownEndStep).toBeUndefined(); // Cooldown ends, override terminated early!
@@ -225,7 +232,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -270,7 +277,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
         status: "proposed",
         proposerId: "player",
         timestamp: 1000,
-      }
+      },
     };
 
     const proposeGraceActionNegative = {
@@ -354,8 +361,14 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
 
     const merged = mergeMonotonicStateFields(stateA, stateB);
 
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals?.["grace_1"]).toBeDefined();
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes?.["grace_1"]?.["player"]).toBeDefined();
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes?.["grace_1"]?.["alice"]).toBeDefined();
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals?.["grace_1"]
+    ).toBeDefined();
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes?.["grace_1"]?.["player"]
+    ).toBeDefined();
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes?.["grace_1"]?.["alice"]
+    ).toBeDefined();
   });
 });

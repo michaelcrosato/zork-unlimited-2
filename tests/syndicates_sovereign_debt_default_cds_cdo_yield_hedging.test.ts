@@ -126,18 +126,22 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     let state = setupState();
 
     // 1. Propose yield-hedging policy
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_POLICY",
-        proposalId: "policy_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        premiumPricingSpread: 0.1,
-        automatedHedgeEnabled: true,
-        timestamp: 1100,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_POLICY",
+          proposalId: "policy_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          premiumPricingSpread: 0.1,
+          automatedHedgeEnabled: true,
+          timestamp: 1100,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -148,16 +152,20 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     expect(state.syndicates?.alpha.warChest).toBe(19900);
 
     // 2. Vote to authorize
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_POLICY",
-        proposalId: "policy_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_POLICY",
+          proposalId: "policy_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -182,17 +190,21 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     expect(premium).toBe(200);
 
     // Purchase option contract
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PURCHASE_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        coverageAmount: 2000,
-        timestamp: 1200,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PURCHASE_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          coverageAmount: 2000,
+          timestamp: 1200,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -306,6 +318,10 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     expect(trancheMC).toBe(3000);
 
     // Reputation did not get penalised / margin Call did not lead to liquidation because collateral was high enough!
-    expect(finalState.journal?.some(j => j.includes("[CDO Yield-Hedging Option Settled]") && j.includes("Auto-hedge deposited"))).toBe(true);
+    expect(
+      finalState.journal?.some(
+        (j) => j.includes("[CDO Yield-Hedging Option Settled]") && j.includes("Auto-hedge deposited")
+      )
+    ).toBe(true);
   });
 });

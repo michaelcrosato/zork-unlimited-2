@@ -305,8 +305,8 @@ describe("Syndicate Turf Guard Heavy Armored Defense Outposts & Tactical Defense
     expect(finalState.frontBusinesses?.["merchant_timmy"]).toBeDefined();
 
     const front = finalState.frontBusinesses?.["merchant_timmy"]!;
-    const isRepelled = finalState.journal.some(line => line.includes("successfully repelled"));
-    const isMitigated = finalState.journal.some(line => line.includes("mitigating sweep losses"));
+    const isRepelled = finalState.journal.some((line) => line.includes("successfully repelled"));
+    const isMitigated = finalState.journal.some((line) => line.includes("mitigating sweep losses"));
 
     expect(isRepelled || isMitigated).toBe(true);
 
@@ -444,7 +444,7 @@ describe("Syndicate Turf Guard Heavy Armored Defense Outposts & Tactical Defense
         cooldownSteps: 5,
         timestamp: 1008,
         defense: 10,
-      }
+      },
     };
 
     let count = 0;
@@ -453,9 +453,9 @@ describe("Syndicate Turf Guard Heavy Armored Defense Outposts & Tactical Defense
     while (count < 20 && !raidFound) {
       const events: any[] = [];
       nextState = tickProductionLabs(nextState, events, mockPack);
-      if (events.some(e => e.text && e.text.includes("successfully repelled the enforcement raid"))) {
+      if (events.some((e) => e.text && e.text.includes("successfully repelled the enforcement raid"))) {
         raidFound = true;
-        const event = events.find(e => e.text && e.text.includes("successfully repelled the enforcement raid"));
+        const event = events.find((e) => e.text && e.text.includes("successfully repelled the enforcement raid"));
         expect(event.text).toContain("with 1 tactical turrets successfully repelled");
       }
       nextState.step += 5; // make sure the next tick also produces

@@ -90,7 +90,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pools & Risk Diversifica
     let res3 = multiAgentStep(state, { agentId: "player", action: act3 as any }, mockPack);
     expect(res3.ok).toBe(true);
     expect(res3.state.vars.gold).toBe(300); // 500 - 200
-    
+
     const pool = res3.state.jointLoanInsurancePools?.blood_fangs;
     expect(pool).toBeDefined();
     expect(pool?.poolGold).toBe(200);
@@ -122,9 +122,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pools & Risk Diversifica
         id: "group1",
         syndicateId: "blood_fangs",
         members: ["player", "alice"],
-        collaterals: [
-          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" }
-        ],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "clearing" }],
         amount: 500,
         interestAccrued: 0,
         borrowStep: 1,
@@ -159,7 +157,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pools & Risk Diversifica
     let res2 = multiAgentStep(state, { agentId: "player", action: act1 as any }, mockPack);
     expect(res2.ok).toBe(true);
     expect(res2.state.vars.gold).toBe(250); // 300 - 50
-    
+
     // Pool gold should receive the premium paid: 100 + 50 = 150
     expect(res2.state.jointLoanInsurancePools?.blood_fangs?.poolGold).toBe(150);
 
@@ -264,7 +262,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pools & Risk Diversifica
     // Player is insured: Pool pays min(210, 300) = 210. Remaining Due = 0. Player spared!
     // Alice is not insured: Alice has 0 gold. Swept 0 gold, remaining due = 210. Alice defaulted!
     state.step = 15;
-    
+
     let ticked = tickEconomy(state, mockPack);
 
     // 1. Insurance Pool gold should be: 300 - 210 = 90

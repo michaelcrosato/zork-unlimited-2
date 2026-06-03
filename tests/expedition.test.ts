@@ -98,13 +98,13 @@ const testPack = {
 describe("Decentralized Cooperative Dungeon Expedition Framework", () => {
   it("should initialize a mesh network of explorer nodes successfully", () => {
     const expedition = new DecentralizedDungeonExpedition(testPack, 101);
-    
+
     const alice = expedition.spawnPeer("alice");
     const bob = expedition.spawnPeer("bob");
     const charlie = expedition.spawnPeer("charlie");
 
     expect(expedition.peers.size).toBe(3);
-    
+
     // Verify full mesh connections
     expect(alice.peers.has("bob")).toBe(true);
     expect(alice.peers.has("charlie")).toBe(true);

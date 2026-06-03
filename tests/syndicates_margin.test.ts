@@ -143,9 +143,30 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
         assets: [],
         totalValue: 300,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 150, ownership: { buyer_corp: 150 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 90, ownership: { buyer_corp: 90 }, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 60, ownership: { buyer_corp: 60 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 150,
+            ownership: { buyer_corp: 150 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 90,
+            ownership: { buyer_corp: 90 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 60,
+            ownership: { buyer_corp: 60 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -254,9 +275,30 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
         timestamp: 1000,
         assets: [],
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 200, ownership: { night_stalkers: 200 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 0, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 0, ownership: {}, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 200,
+            ownership: { night_stalkers: 200 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
         },
       },
     };
@@ -336,9 +378,30 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
         timestamp: 1000,
         assets: [],
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 100, ownership: { blood_fangs: 100 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 0, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 0, ownership: {}, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 100,
+            ownership: { blood_fangs: 100 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
         },
       },
     };
@@ -366,7 +429,7 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
         collateral: 50,
         leveragedCDSIds: ["cds_margin"],
         leveragedTranchePositions: {
-          "cdo_test_1_senior": {
+          cdo_test_1_senior: {
             cdoId: "cdo_test_1",
             trancheId: "senior",
             borrowedAmount: 70,
@@ -418,7 +481,9 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
     // 5. Verify journal entries were appended
     const journalStr = JSON.stringify(tick2.journal);
     expect(journalStr).toContain("margin balance fell below maintenance threshold");
-    expect(journalStr).toContain("Swept 10 gold from Syndicate blood_fangs war chest to cover margin deficit of 10 gold");
+    expect(journalStr).toContain(
+      "Swept 10 gold from Syndicate blood_fangs war chest to cover margin deficit of 10 gold"
+    );
   });
 
   it("should successfully merge margin accounts across Gossip mesh using LWW", () => {
@@ -505,7 +570,7 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
     let resAuth2 = multiAgentStep(state, { agentId: "alice", action: auth2 as any }, mockPack);
     expect(resAuth2.ok).toBe(true);
     state = resAuth2.state;
-    
+
     // Check that rehypothecation is authorized!
     const marginAccount = state.marginAccounts?.blood_fangs;
     expect(marginAccount?.rehypothecationAuthorized).toBe(true);
@@ -538,12 +603,12 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
       ruinous_pool: {
         vaultId: "ruinous_pool",
         name: "Ruinous Vault",
-        interestRate: 0.50,
+        interestRate: 0.5,
         sweepRisk: 1.0, // 100% risk!
         timestamp: 1000,
-      }
+      },
     };
-    
+
     // Vote to authorize ruinous_pool
     const authRuinous1 = {
       type: "AUTHORIZE_MARGIN_REHYPOTHECATION",
@@ -561,7 +626,7 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
       timestamp: 1006,
     };
     state = multiAgentStep(state, { agentId: "alice", action: authRuinous2 as any }, mockPack).state;
-    
+
     expect(state.marginAccounts?.blood_fangs?.rehypothecationVaultId).toBe("ruinous_pool");
     expect(state.marginAccounts?.blood_fangs?.rehypothecationPercentage).toBe(60);
 
@@ -596,14 +661,14 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
     stateA.marginRehypothecationVotes = {
       blood_fangs: {
         player: { vaultId: "high_yield", percentage: 50, timestamp: 1200 },
-      }
+      },
     };
     let stateB = createInitialState({ seed: 12345, start: "clearing" });
     stateB.marginRehypothecationVotes = {
       blood_fangs: {
         player: { vaultId: "risk_venture", percentage: 70, timestamp: 1300 }, // newer
         alice: { vaultId: "high_yield", percentage: 50, timestamp: 1100 },
-      }
+      },
     };
 
     let merged = mergeMonotonicStateFields(stateA, stateB);
@@ -894,16 +959,34 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
       let stateA = createInitialState({ seed: 12345, start: "clearing" });
       stateA.marginRebalancingPolicyVotes = {
         blood_fangs: {
-          player: { enabled: true, vaultTargets: { safe_savings: 100 }, liquidityBufferRatio: 10, bufferTriggerRatio: 1.2, timestamp: 1500 },
-        }
+          player: {
+            enabled: true,
+            vaultTargets: { safe_savings: 100 },
+            liquidityBufferRatio: 10,
+            bufferTriggerRatio: 1.2,
+            timestamp: 1500,
+          },
+        },
       };
 
       let stateB = createInitialState({ seed: 12345, start: "clearing" });
       stateB.marginRebalancingPolicyVotes = {
         blood_fangs: {
-          player: { enabled: false, vaultTargets: { safe_savings: 50, high_yield: 50 }, liquidityBufferRatio: 20, bufferTriggerRatio: 1.5, timestamp: 1600 }, // newer
-          alice: { enabled: true, vaultTargets: { safe_savings: 100 }, liquidityBufferRatio: 10, bufferTriggerRatio: 1.2, timestamp: 1400 },
-        }
+          player: {
+            enabled: false,
+            vaultTargets: { safe_savings: 50, high_yield: 50 },
+            liquidityBufferRatio: 20,
+            bufferTriggerRatio: 1.5,
+            timestamp: 1600,
+          }, // newer
+          alice: {
+            enabled: true,
+            vaultTargets: { safe_savings: 100 },
+            liquidityBufferRatio: 10,
+            bufferTriggerRatio: 1.2,
+            timestamp: 1400,
+          },
+        },
       };
 
       let merged = mergeMonotonicStateFields(stateA, stateB);
@@ -915,4 +998,3 @@ describe("Syndicate Bank CDO & CDS Margin Accounts & Collateral Call Liquidation
     });
   });
 });
-

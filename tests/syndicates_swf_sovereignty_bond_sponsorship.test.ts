@@ -26,7 +26,7 @@ describe("Syndicate SWF Sovereignty Bond Sponsorship & Cooperative Yield Redistr
             direction: "east",
             to: "forest",
             conditions: [],
-          }
+          },
         ],
       },
       {
@@ -37,7 +37,7 @@ describe("Syndicate SWF Sovereignty Bond Sponsorship & Cooperative Yield Redistr
         npcs: [],
         exits: [],
         faction: "rangers", // Faction controls this room
-      }
+      },
     ],
     objects: [],
     npcs: [],

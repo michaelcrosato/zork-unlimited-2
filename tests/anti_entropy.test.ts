@@ -131,7 +131,7 @@ describe("Gossip Anti-Entropy Recovery Mechanism Tests", () => {
 
     // Trigger Anti-Entropy background recovery
     net.antiEntropyIntervalMs = 100;
-    
+
     // Tick the network to fire the anti-entropy check and deliver all packets
     // Anti-entropy will exchange digests, identify that alice/bob/charlie are out of sync,
     // generate anti_entropy_requests, send delta GossipMessages, and merge them.

@@ -73,7 +73,7 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
     const act3 = {
       type: "ADJUST_RESERVE_RATIO",
       syndicateId: "blood_fangs",
-      reserveRatio: 0.30,
+      reserveRatio: 0.3,
       timestamp: 1000,
     };
     let res3 = multiAgentStep(state, { agentId: "bob", action: act3 as any }, mockPack);
@@ -84,19 +84,19 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
     let res4 = multiAgentStep(state, { agentId: "player", action: act3 as any }, mockPack);
     expect(res4.ok).toBe(true);
     // Consensus ratio should be 0.30 (first vote creates majority/consensus)
-    expect(res4.state.secondaryReserves?.blood_fangs?.reserveRatio).toBe(0.30);
+    expect(res4.state.secondaryReserves?.blood_fangs?.reserveRatio).toBe(0.3);
 
     // 5. Vote by other member (alice) proposing a different ratio (0.40)
     const act4 = {
       type: "ADJUST_RESERVE_RATIO",
       syndicateId: "blood_fangs",
-      reserveRatio: 0.40,
+      reserveRatio: 0.4,
       timestamp: 1050,
     };
     let res5 = multiAgentStep(res4.state, { agentId: "alice", action: act4 as any }, mockPack);
     expect(res5.ok).toBe(true);
     // There's a tie: 0.30 (1 vote) vs 0.40 (1 vote). Descending tie-breaker rules should prefer the higher ratio (0.40).
-    expect(res5.state.secondaryReserves?.blood_fangs?.reserveRatio).toBe(0.40);
+    expect(res5.state.secondaryReserves?.blood_fangs?.reserveRatio).toBe(0.4);
   });
 
   it("should enforce secondary reserve ratio compliance checks and automatic deductions in tickEconomy", () => {
@@ -130,7 +130,7 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
 
     // Register active insurance policy for player
     state.agentPremiumPolicies = {
-      "player_group_1": {
+      player_group_1: {
         agentId: "player",
         syndicateId: "blood_fangs",
         groupId: "group_1",
@@ -145,7 +145,7 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
       blood_fangs: {
         syndicateId: "blood_fangs",
         reserveGold: 0,
-        reserveRatio: 0.20,
+        reserveRatio: 0.2,
         timestamp: 1000,
       },
     };
@@ -153,7 +153,7 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
     // Create a mock joint loan default where player owes 100 gold + interest
     state.step = 10;
     state.jointLoans = {
-      "group_1": {
+      group_1: {
         id: "group_1",
         syndicateId: "blood_fangs",
         members: ["player", "alice"],
@@ -203,7 +203,7 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
 
     expect(ticked.secondaryReserves?.blood_fangs?.reserveGold).toBe(100);
     expect(ticked.jointLoanInsurancePools?.blood_fangs?.poolGold).toBe(295);
-    expect(ticked.journal.some(j => j.includes("completed ratio compliance check: deducted 100 gold"))).toBe(true);
+    expect(ticked.journal.some((j) => j.includes("completed ratio compliance check: deducted 100 gold"))).toBe(true);
   });
 
   it("should handle EXECUTE_AUTOMATED_BAILOUT validations and manual execution", () => {
@@ -268,7 +268,7 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
       shadow_brokers: {
         syndicateId: "shadow_brokers",
         reserveGold: 200,
-        reserveRatio: 0.20,
+        reserveRatio: 0.2,
         timestamp: 1000,
       },
     };
@@ -364,14 +364,14 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
       shadow_brokers: {
         syndicateId: "shadow_brokers",
         reserveGold: 150, // available secondary reserves!
-        reserveRatio: 0.20,
+        reserveRatio: 0.2,
         timestamp: 1000,
       },
     };
 
     // Player premium policy
     state.agentPremiumPolicies = {
-      "player_group_1": {
+      player_group_1: {
         agentId: "player",
         syndicateId: "blood_fangs",
         groupId: "group_1",
@@ -384,13 +384,11 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
     // Group loan default of 100 gold + 5% interest (105 gold total)
     state.step = 10;
     state.jointLoans = {
-      "group_1": {
+      group_1: {
         id: "group_1",
         syndicateId: "blood_fangs",
         members: ["player"],
-        collaterals: [
-          { agentId: "player", collateralType: "safehouse", collateralId: "sh_player" },
-        ],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "sh_player" }],
         amount: 100,
         interestAccrued: 0,
         borrowStep: 1,
@@ -425,8 +423,8 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
 
     expect(ticked.secondaryReserves?.shadow_brokers?.reserveGold).toBe(45);
     expect(ticked.jointLoanInsurancePools?.blood_fangs?.poolGold).toBe(0);
-    expect(Object.values(ticked.automatedBailouts || {}).some(b => b.bailoutAmount === 105)).toBe(true);
-    expect(ticked.journal.some(j => j.includes("Automated secondary reserve bailout triggered"))).toBe(true);
+    expect(Object.values(ticked.automatedBailouts || {}).some((b) => b.bailoutAmount === 105)).toBe(true);
+    expect(ticked.journal.some((j) => j.includes("Automated secondary reserve bailout triggered"))).toBe(true);
   });
 
   it("should merge secondaryReserves, reserveRatioVotes, and automatedBailouts via Gossip mergeMonotonicStateFields", () => {
@@ -445,7 +443,7 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
       blood_fangs: {
         syndicateId: "blood_fangs",
         reserveGold: 100,
-        reserveRatio: 0.20,
+        reserveRatio: 0.2,
         timestamp: 1000,
       },
     };
@@ -454,7 +452,7 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
       blood_fangs: {
         syndicateId: "blood_fangs",
         reserveGold: 150, // B is newer
-        reserveRatio: 0.30,
+        reserveRatio: 0.3,
         timestamp: 1050,
       },
       shadow_brokers: {
@@ -467,13 +465,13 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
 
     stateA.reserveRatioVotes = {
       blood_fangs: {
-        player: { reserveRatio: 0.20, timestamp: 1000 },
+        player: { reserveRatio: 0.2, timestamp: 1000 },
       },
     };
 
     stateB.reserveRatioVotes = {
       blood_fangs: {
-        player: { reserveRatio: 0.30, timestamp: 1050 }, // B is newer
+        player: { reserveRatio: 0.3, timestamp: 1050 }, // B is newer
         alice: { reserveRatio: 0.25, timestamp: 1020 },
       },
     };
@@ -502,11 +500,11 @@ describe("Syndicate Bank Reinsurance Automated Liquidity Pool Bailouts & Seconda
 
     // Verify secondaryReserves merged
     expect(merged.secondaryReserves?.blood_fangs?.reserveGold).toBe(150);
-    expect(merged.secondaryReserves?.blood_fangs?.reserveRatio).toBe(0.30);
+    expect(merged.secondaryReserves?.blood_fangs?.reserveRatio).toBe(0.3);
     expect(merged.secondaryReserves?.shadow_brokers?.reserveGold).toBe(300);
 
     // Verify reserveRatioVotes merged
-    expect(merged.reserveRatioVotes?.blood_fangs?.player?.reserveRatio).toBe(0.30);
+    expect(merged.reserveRatioVotes?.blood_fangs?.player?.reserveRatio).toBe(0.3);
     expect(merged.reserveRatioVotes?.blood_fangs?.alice?.reserveRatio).toBe(0.25);
 
     // Verify automatedBailouts merged

@@ -63,13 +63,7 @@ export type PlaytestMetrics = {
    * - `quit_bored` — persona quit due to boredom
    * - `max_steps` — hit the maximum step limit
    */
-  outcome:
-    | "completed"
-    | "stuck"
-    | "died"
-    | "quit_confused"
-    | "quit_bored"
-    | "max_steps";
+  outcome: "completed" | "stuck" | "died" | "quit_confused" | "quit_bored" | "max_steps";
   /** Identifier of the ending reached, or `null` if none. */
   endingReached: string | null;
   /** Number of times the player character died during the session. */
@@ -165,53 +159,43 @@ export type InterviewQuestionEntry = {
 export const INTERVIEW_QUESTIONS: readonly InterviewQuestionEntry[] = [
   {
     key: "q01_fun",
-    question:
-      "Did you have fun? Yes/no and why. What kept you playing or made you want to stop?",
+    question: "Did you have fun? Yes/no and why. What kept you playing or made you want to stop?",
   },
   {
     key: "q02_best",
-    question:
-      "What did you enjoy most? The single best moment or feature.",
+    question: "What did you enjoy most? The single best moment or feature.",
   },
   {
     key: "q03_worst",
-    question:
-      "What did you dislike most? The single worst moment or frustration.",
+    question: "What did you dislike most? The single worst moment or frustration.",
   },
   {
     key: "q04_one_change",
-    question:
-      "If you could change ONE thing about this game, what would it be?",
+    question: "If you could change ONE thing about this game, what would it be?",
   },
   {
     key: "q05_confused",
-    question:
-      "Were you ever confused about what to do next? Where? For how long? What did you try?",
+    question: "Were you ever confused about what to do next? Where? For how long? What did you try?",
   },
   {
     key: "q06_commands",
-    question:
-      "Did the game understand your commands? Any times you typed something reasonable and got rejected?",
+    question: "Did the game understand your commands? Any times you typed something reasonable and got rejected?",
   },
   {
     key: "q07_story",
-    question:
-      "Did the story make sense? Could you follow what was happening and why?",
+    question: "Did the story make sense? Could you follow what was happening and why?",
   },
   {
     key: "q08_ending",
-    question:
-      "How did the game end for you? Was the ending satisfying, abrupt, or confusing?",
+    question: "How did the game end for you? Was the ending satisfying, abrupt, or confusing?",
   },
   {
     key: "q09_difficulty",
-    question:
-      "Was the difficulty right? Too easy, too hard, or just right? Any specific puzzle that was unfair?",
+    question: "Was the difficulty right? Too easy, too hard, or just right? Any specific puzzle that was unfair?",
   },
   {
     key: "q10_recommend",
-    question:
-      "Would you play this game again or recommend it? Why or why not?",
+    question: "Would you play this game again or recommend it? Why or why not?",
   },
 ] as const;
 

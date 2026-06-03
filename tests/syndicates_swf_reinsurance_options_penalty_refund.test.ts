@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -71,7 +71,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -147,8 +147,8 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
           },
           mezzanine: {
             trancheId: "mezzanine",
-            interestRate: 0.10,
-            sweepRiskExposure: 0.10,
+            interestRate: 0.1,
+            sweepRiskExposure: 0.1,
             totalValue: 500,
             ownership: {},
             timestamp: 1000,
@@ -173,7 +173,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
         prunedRoutesCount: 0,
         timestamp: 1000,
         leveragedTranchePositions: {
-          "cdo_1_senior": {
+          cdo_1_senior: {
             cdoId: "cdo_1",
             trancheId: "senior",
             borrowedAmount: 5000,
@@ -202,7 +202,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
 
     // Setup market conditions to trigger liquidation in tickEconomy
     state.swfYieldCDOTrancheRiskRatings = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         id: "cdo_1_senior",
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
@@ -214,7 +214,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
     };
 
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 0.8,
@@ -240,7 +240,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Reinsurance
     expect(liquidatedState.syndicates?.["beta"]?.warChest).toBe(10039);
 
     // Verify journal contains penalty refund logs
-    const hasRefundLog = liquidatedState.journal?.some(j =>
+    const hasRefundLog = liquidatedState.journal?.some((j) =>
       j.includes("[Option Penalty Refund] Distributed refund of")
     );
     expect(hasRefundLog).toBe(true);

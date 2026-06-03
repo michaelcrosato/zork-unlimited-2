@@ -11,9 +11,9 @@ export type AnonymizedCandidate = {
 
 export type RubricScore = {
   effectiveness: number; // 0-10 (Goal completion)
-  efficiency: number;    // 0-10 (Turn/step count optimization and zero rejections)
-  exploration: number;   // 0-10 (Interactions, dialogues, and item coverage)
-  reasoning: string;     // Qualitative rationale
+  efficiency: number; // 0-10 (Turn/step count optimization and zero rejections)
+  exploration: number; // 0-10 (Interactions, dialogues, and item coverage)
+  reasoning: string; // Qualitative rationale
 };
 
 export type BlindEvalResult = {
@@ -88,8 +88,8 @@ Assign integer scores from 0 to 10 for both options across all categories.`,
         rubric: {
           effectiveness: "Goal completion rate. Reaching a win ending is 10/10; getting stuck or dying is < 5/10.",
           efficiency: "Minimizing step counts and avoiding rejected/invalid commands.",
-          exploration: "Exhausting dialogue trees, inspecting items, and visiting distinct rooms."
-        }
+          exploration: "Exhausting dialogue trees, inspecting items, and visiting distinct rooms.",
+        },
       },
       schema: {
         type: "object",
@@ -144,8 +144,8 @@ This is a swapped order validation sweep to verify consistency and combat positi
         rubric: {
           effectiveness: "Goal completion rate. Reaching a win ending is 10/10; getting stuck or dying is < 5/10.",
           efficiency: "Minimizing step counts and avoiding rejected/invalid commands.",
-          exploration: "Exhausting dialogue trees, inspecting items, and visiting distinct rooms."
-        }
+          exploration: "Exhausting dialogue trees, inspecting items, and visiting distinct rooms.",
+        },
       },
       schema: {
         type: "object",
@@ -179,7 +179,8 @@ This is a swapped order validation sweep to verify consistency and combat positi
   }
 
   // 5. Aggregate scores mathematically across both sweeps to derive swap-balanced average scores
-  const alphaEffectiveness = (scoreSweep1.option_1_scores.effectiveness + scoreSweep2.option_2_scores.effectiveness) / 2;
+  const alphaEffectiveness =
+    (scoreSweep1.option_1_scores.effectiveness + scoreSweep2.option_2_scores.effectiveness) / 2;
   const alphaEfficiency = (scoreSweep1.option_1_scores.efficiency + scoreSweep2.option_2_scores.efficiency) / 2;
   const alphaExploration = (scoreSweep1.option_1_scores.exploration + scoreSweep2.option_2_scores.exploration) / 2;
 
@@ -193,11 +194,12 @@ This is a swapped order validation sweep to verify consistency and combat positi
   const blindedWinnerKey = alphaTotal > betaTotal ? "alpha" : betaTotal > alphaTotal ? "beta" : "tie";
 
   // 6. Decryption of candidate identities
-  const winnerId = blindedWinnerKey === "alpha"
-    ? candidateAlpha.candidateId
-    : blindedWinnerKey === "beta"
-    ? candidateBeta.candidateId
-    : "Tie Game";
+  const winnerId =
+    blindedWinnerKey === "alpha"
+      ? candidateAlpha.candidateId
+      : blindedWinnerKey === "beta"
+        ? candidateBeta.candidateId
+        : "Tie Game";
 
   const decryptionLog = `Blind Decryption: Candidate Alpha was resolved to '${candidateAlpha.candidateId}'. Candidate Beta was resolved to '${candidateBeta.candidateId}'. Winner resolved to '${winnerId}'.`;
 

@@ -130,45 +130,53 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     // 1. Propose policy with surcharge parameters
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.0,
-        spreadPenaltyThresholdPercent: 0.20,
-        marketMakerSurchargeRate: 0.15, // 15% max surcharge rate
-        marketMakerSurchargeThresholdPercent: 0.30, // 30% MM buffer threshold percent
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.0,
+          spreadPenaltyThresholdPercent: 0.2,
+          marketMakerSurchargeRate: 0.15, // 15% max surcharge rate
+          marketMakerSurchargeThresholdPercent: 0.3, // 30% MM buffer threshold percent
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     const prop = state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals?.surcharge_policy_1;
     expect(prop).toBeDefined();
     expect(prop!.marketMakerSurchargeRate).toBe(0.15);
-    expect(prop!.marketMakerSurchargeThresholdPercent).toBe(0.30);
+    expect(prop!.marketMakerSurchargeThresholdPercent).toBe(0.3);
 
     // 2. Vote to authorize
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
     expect(pool!.yieldHedgingOptionMarketMakerSurchargeRate).toBe(0.15);
-    expect(pool!.yieldHedgingOptionMarketMakerBufferThresholdPercent).toBe(0.30);
+    expect(pool!.yieldHedgingOptionMarketMakerBufferThresholdPercent).toBe(0.3);
   });
 
   it("should scale and apply dynamic MM surcharge under liquidity stress during options trade", () => {
@@ -176,8 +184,8 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
 
     const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
     // Set surcharge rate to 10% (0.10) and threshold to 20% (0.20)
-    pool.yieldHedgingOptionMarketMakerSurchargeRate = 0.10;
-    pool.yieldHedgingOptionMarketMakerBufferThresholdPercent = 0.20;
+    pool.yieldHedgingOptionMarketMakerSurchargeRate = 0.1;
+    pool.yieldHedgingOptionMarketMakerBufferThresholdPercent = 0.2;
     pool.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
 
     // Setup active option contract
@@ -251,7 +259,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(newState.cdsCdoYieldHedgingOptionBids?.bid_1.status).toBe("accepted");
 
     // Assert journal contains the dynamic MM surcharge info
-    const log = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    const log = newState.journal!.find((m) => m.includes("[CDO Yield-Hedging Option Traded]"));
     expect(log).toBeDefined();
     expect(log).toContain("Dynamic MM Liquidity Surcharge");
     expect(log).toContain("25 gold deposited to vault");
@@ -262,8 +270,8 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
-    pool.yieldHedgingOptionMarketMakerSurchargeRate = 0.10;
-    pool.yieldHedgingOptionMarketMakerBufferThresholdPercent = 0.20;
+    pool.yieldHedgingOptionMarketMakerSurchargeRate = 0.1;
+    pool.yieldHedgingOptionMarketMakerBufferThresholdPercent = 0.2;
     pool.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
 
     state.cdsCdoYieldHedgingOptionContracts = {
@@ -320,22 +328,26 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     // 1. Propose policy with surcharge and auto-compounding parameters
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_compounding",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.0,
-        spreadPenaltyThresholdPercent: 0.20,
-        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
-        marketMakerSurchargeThresholdPercent: 0.20, // 20% MM buffer threshold percent
-        marketMakerSurchargeAutoCompound: true,
-        marketMakerSurchargeCompoundTrancheId: "senior",
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_compounding",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.0,
+          spreadPenaltyThresholdPercent: 0.2,
+          marketMakerSurchargeRate: 0.1, // 10% max surcharge rate
+          marketMakerSurchargeThresholdPercent: 0.2, // 20% MM buffer threshold percent
+          marketMakerSurchargeAutoCompound: true,
+          marketMakerSurchargeCompoundTrancheId: "senior",
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -346,22 +358,26 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(prop!.marketMakerSurchargeCompoundTrancheId).toBe("senior");
 
     // 2. Vote to authorize
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_compounding",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_compounding",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
-    expect(pool!.yieldHedgingOptionMarketMakerSurchargeRate).toBe(0.10);
-    expect(pool!.yieldHedgingOptionMarketMakerBufferThresholdPercent).toBe(0.20);
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeRate).toBe(0.1);
+    expect(pool!.yieldHedgingOptionMarketMakerBufferThresholdPercent).toBe(0.2);
     expect(pool!.yieldHedgingOptionMarketMakerSurchargeAutoCompound).toBe(true);
     expect(pool!.yieldHedgingOptionMarketMakerSurchargeCompoundTrancheId).toBe("senior");
     pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
@@ -435,7 +451,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.tranches.senior.marginCollateral?.alpha).toBe(3025);
 
     // Assert journal contains compounding info
-    const log = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    const log = newState.journal!.find((m) => m.includes("[CDO Yield-Hedging Option Traded]"));
     expect(log).toBeDefined();
     expect(log).toContain("Dynamic MM Liquidity Surcharge");
     expect(log).toContain("25 gold compounded into senior tranche margin collateral");
@@ -446,46 +462,54 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     // 1. Propose policy with surcharge faction standing discounts
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_standing_discount",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.0,
-        spreadPenaltyThresholdPercent: 0.20,
-        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
-        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent (<= 1.0)
-        marketMakerSurchargeAutoCompound: false,
-        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.30 }, // 30% discount for rangers faction
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_standing_discount",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.0,
+          spreadPenaltyThresholdPercent: 0.2,
+          marketMakerSurchargeRate: 0.1, // 10% max surcharge rate
+          marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent (<= 1.0)
+          marketMakerSurchargeAutoCompound: false,
+          marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.3 }, // 30% discount for rangers faction
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Verify fields on proposal
     const prop = state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals?.surcharge_policy_standing_discount;
     expect(prop).toBeDefined();
-    expect(prop!.marketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+    expect(prop!.marketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.3 });
 
     // 2. Vote to authorize
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_standing_discount",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_standing_discount",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
-    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.3 });
     pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
 
     // Setup active default alert for target syndicate (beta)
@@ -564,7 +588,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.fractionalizedVault.balance).toBe(1521);
 
     // Assert journal contains discounted surcharge info
-    const log = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    const log = newState.journal!.find((m) => m.includes("[CDO Yield-Hedging Option Traded]"));
     expect(log).toBeDefined();
     expect(log).toContain("Dynamic MM Liquidity Surcharge");
     expect(log).toContain("21 gold deposited to vault [Discounted: 30%]");
@@ -574,47 +598,55 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     // 1. Propose policy with surcharge faction standing discounts and auto-compounding
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_standing_boost",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.0,
-        spreadPenaltyThresholdPercent: 0.20,
-        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
-        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent (<= 1.0)
-        marketMakerSurchargeAutoCompound: true,
-        marketMakerSurchargeCompoundTrancheId: "senior",
-        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.40 }, // 40% boost for rangers faction
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_standing_boost",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.0,
+          spreadPenaltyThresholdPercent: 0.2,
+          marketMakerSurchargeRate: 0.1, // 10% max surcharge rate
+          marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent (<= 1.0)
+          marketMakerSurchargeAutoCompound: true,
+          marketMakerSurchargeCompoundTrancheId: "senior",
+          marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.4 }, // 40% boost for rangers faction
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Verify fields on proposal
     const prop = state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals?.surcharge_policy_standing_boost;
     expect(prop).toBeDefined();
-    expect(prop!.marketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.40 });
+    expect(prop!.marketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.4 });
 
     // 2. Vote to authorize
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_standing_boost",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_standing_boost",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
-    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.40 });
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.4 });
     pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
 
     // Setup active default alert for target syndicate (beta)
@@ -692,7 +724,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.tranches.senior.marginCollateral?.alpha).toBe(3042);
 
     // Assert journal contains boosted surcharge info
-    const log = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    const log = newState.journal!.find((m) => m.includes("[CDO Yield-Hedging Option Traded]"));
     expect(log).toBeDefined();
     expect(log).toContain("Dynamic MM Liquidity Surcharge");
     expect(log).toContain("30 gold paid, 42 gold compounded into senior tranche margin collateral [Boosted: 40%]");
@@ -702,41 +734,49 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     // 1. Propose spread penalty policy with surcharge faction standing discounts
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_panic_override_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.0,
-        spreadPenaltyThresholdPercent: 0.20,
-        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
-        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent
-        marketMakerSurchargeAutoCompound: false,
-        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.30 }, // 30% discount for rangers
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_panic_override_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.0,
+          spreadPenaltyThresholdPercent: 0.2,
+          marketMakerSurchargeRate: 0.1, // 10% max surcharge rate
+          marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent
+          marketMakerSurchargeAutoCompound: false,
+          marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.3 }, // 30% discount for rangers
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote to authorize spread penalty policy
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_panic_override_test",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_panic_override_test",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
-    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.3 });
     pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
 
     // Setup active default alert for target syndicate (beta)
@@ -801,32 +841,40 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     pool!.fractionalizedVault.balance = 1500;
 
     // 2. Propose surcharge panic override to suspend the standing-gated discount
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
-        proposalId: "surcharge_panic_override_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        panicOverrideActive: true,
-        cooldownDuration: 5,
-        timestamp: 1250,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+          proposalId: "surcharge_panic_override_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          panicOverrideActive: true,
+          cooldownDuration: 5,
+          timestamp: 1250,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote on panic override
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
-        proposalId: "surcharge_panic_override_test",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1260,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+          proposalId: "surcharge_panic_override_test",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1260,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -841,12 +889,12 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
 
     // Alpha warChest receives 1200 - 60 fee - 30 full surcharge (no discount!) - 125 policy proposal/vote fees + 5000 CDS payout = 25985 gold.
     expect(newState.syndicates!.beta.warChest).toBe(19800);
-    expect(newState.syndicates!.alpha.warChest).toBe(25985); 
+    expect(newState.syndicates!.alpha.warChest).toBe(25985);
     // Vault balance receives full 30 surcharge gold: 1500 + 30 = 1530 gold.
     expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.fractionalizedVault.balance).toBe(1530);
 
     // Assert journal contains non-discounted surcharge log
-    const tradeLog = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    const tradeLog = newState.journal!.find((m) => m.includes("[CDO Yield-Hedging Option Traded]"));
     expect(tradeLog).toBeDefined();
     expect(tradeLog).toContain("Dynamic MM Liquidity Surcharge");
     expect(tradeLog).not.toContain("Discounted");
@@ -856,41 +904,49 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     // 1. Propose spread penalty policy with surcharge faction standing discounts
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_panic_override_ext_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.0,
-        spreadPenaltyThresholdPercent: 0.20,
-        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
-        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent
-        marketMakerSurchargeAutoCompound: false,
-        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.30 }, // 30% discount for rangers
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_panic_override_ext_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.0,
+          spreadPenaltyThresholdPercent: 0.2,
+          marketMakerSurchargeRate: 0.1, // 10% max surcharge rate
+          marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent
+          marketMakerSurchargeAutoCompound: false,
+          marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.3 }, // 30% discount for rangers
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote to authorize spread penalty policy
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_panic_override_ext_test",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_panic_override_ext_test",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
-    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.3 });
     pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
 
     // Setup active default alert for target syndicate (beta)
@@ -955,32 +1011,40 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     pool!.fractionalizedVault.balance = 1500;
 
     // 2. Propose surcharge panic override to suspend the standing-gated discount
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
-        proposalId: "surcharge_panic_override_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        panicOverrideActive: true,
-        cooldownDuration: 5,
-        timestamp: 1250,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+          proposalId: "surcharge_panic_override_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          panicOverrideActive: true,
+          cooldownDuration: 5,
+          timestamp: 1250,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote on panic override
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
-        proposalId: "surcharge_panic_override_test",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1260,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+          proposalId: "surcharge_panic_override_test",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1260,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -992,32 +1056,40 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(initialCooldownEnd).toBe(state.step - 1 + 5);
 
     // 3. Propose panic override extension
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION",
-        proposalId: "surcharge_panic_override_ext_test",
-        targetProposalId: "surcharge_panic_override_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        extensionDuration: 10,
-        timestamp: 1270,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION",
+          proposalId: "surcharge_panic_override_ext_test",
+          targetProposalId: "surcharge_panic_override_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          extensionDuration: 10,
+          timestamp: 1270,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote on panic override extension
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION",
-        proposalId: "surcharge_panic_override_ext_test",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1280,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION",
+          proposalId: "surcharge_panic_override_ext_test",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1280,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -1034,7 +1106,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     // Vault balance receives full 30 surcharge gold: 1500 + 30 = 1530 gold.
     expect(newState.sovereignDebtCDSCDOPools?.cdo_pool_1.fractionalizedVault.balance).toBe(1530);
 
-    const tradeLog = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    const tradeLog = newState.journal!.find((m) => m.includes("[CDO Yield-Hedging Option Traded]"));
     expect(tradeLog).toBeDefined();
     expect(tradeLog).toContain("Dynamic MM Liquidity Surcharge");
     expect(tradeLog).not.toContain("Discounted");
@@ -1074,7 +1146,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
 
     const postExpiryState = tickEconomy(newState, mockPack);
     // After expiration, standing-gated discount is active again (30% discount on 30 gold surcharge = 9 gold discount, so 21 gold surcharge).
-    const postExpiryTradeLog = postExpiryState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    const postExpiryTradeLog = postExpiryState.journal!.find((m) => m.includes("[CDO Yield-Hedging Option Traded]"));
     expect(postExpiryTradeLog).toBeDefined();
     expect(postExpiryTradeLog).toContain("Discounted");
   });
@@ -1083,41 +1155,49 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     // 1. Propose spread penalty policy with surcharge faction standing discounts
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_panic_override_cancel_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.0,
-        spreadPenaltyThresholdPercent: 0.20,
-        marketMakerSurchargeRate: 0.10, // 10% max surcharge rate
-        marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent
-        marketMakerSurchargeAutoCompound: false,
-        marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.30 }, // 30% discount for rangers
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_panic_override_cancel_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.0,
+          spreadPenaltyThresholdPercent: 0.2,
+          marketMakerSurchargeRate: 0.1, // 10% max surcharge rate
+          marketMakerSurchargeThresholdPercent: 1.0, // 100% MM buffer threshold percent
+          marketMakerSurchargeAutoCompound: false,
+          marketMakerSurchargeFactionStandingDiscounts: { rangers: 0.3 }, // 30% discount for rangers
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote to authorize spread penalty policy
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "surcharge_policy_panic_override_cancel_test",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "surcharge_policy_panic_override_cancel_test",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
-    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.30 });
+    expect(pool!.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts).toEqual({ rangers: 0.3 });
     pool!.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
 
     // Setup active default alert for target syndicate (beta)
@@ -1179,32 +1259,40 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     pool!.fractionalizedVault.balance = 1500;
 
     // 2. Propose surcharge panic override to suspend the standing-gated discount
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
-        proposalId: "surcharge_panic_override_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        panicOverrideActive: true,
-        cooldownDuration: 5,
-        timestamp: 1250,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+          proposalId: "surcharge_panic_override_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          panicOverrideActive: true,
+          cooldownDuration: 5,
+          timestamp: 1250,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote on panic override
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
-        proposalId: "surcharge_panic_override_test",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1260,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+          proposalId: "surcharge_panic_override_test",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1260,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -1214,32 +1302,40 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(prop!.status).toBe("authorized");
 
     // 3. Propose override extension cancellation
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
-        proposalId: "cancel_prop_1",
-        targetProposalId: "surcharge_panic_override_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        timestamp: 1270,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
+          proposalId: "cancel_prop_1",
+          targetProposalId: "surcharge_panic_override_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          timestamp: 1270,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Proposing cancellation automatically registers proposer vote = true.
     // Vote on override extension cancellation by other syndicate member (Alice) to authorize it.
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
-        proposalId: "cancel_prop_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1280,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
+          proposalId: "cancel_prop_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1280,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -1251,7 +1347,7 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     // 4. Tick economy - standing-gated discount should be active (since override is cancelled early!)
     const newState = tickEconomy(state, mockPack);
 
-    const tradeLog = newState.journal!.find(m => m.includes("[CDO Yield-Hedging Option Traded]"));
+    const tradeLog = newState.journal!.find((m) => m.includes("[CDO Yield-Hedging Option Traded]"));
     expect(tradeLog).toBeDefined();
     expect(tradeLog).toContain("Discounted");
   });
@@ -1260,10 +1356,10 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let state = setupState();
 
     const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
-    pool.yieldHedgingOptionMarketMakerSurchargeRate = 0.10;
-    pool.yieldHedgingOptionMarketMakerBufferThresholdPercent = 0.20;
+    pool.yieldHedgingOptionMarketMakerSurchargeRate = 0.1;
+    pool.yieldHedgingOptionMarketMakerBufferThresholdPercent = 0.2;
     pool.yieldHedgingOptionSecondaryFeePercent = 0.05; // 5% base secondary fee
-    pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts = { alpha_faction: 0.10 };
+    pool.yieldHedgingOptionMarketMakerSurchargeFactionStandingDiscounts = { alpha_faction: 0.1 };
 
     state.factionRep = {
       alpha: 100,
@@ -1309,34 +1405,42 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
 
     // Alpha syndicate has member "player" (repreputation with alpha_faction is allied/above threshold)
     // Put pool into critical liquidity stress
-    pool.fractionalizedVault.balance = 600; 
+    pool.fractionalizedVault.balance = 600;
 
     // 1. Propose and authorize a surcharge panic override proposal
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
-        proposalId: "surcharge_panic_override_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        panicOverrideActive: true,
-        cooldownDuration: 10,
-        timestamp: 1200,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+          proposalId: "surcharge_panic_override_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          panicOverrideActive: true,
+          cooldownDuration: 10,
+          timestamp: 1200,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
-        proposalId: "surcharge_panic_override_test",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1250,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE",
+          proposalId: "surcharge_panic_override_test",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1250,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -1346,66 +1450,83 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     expect(prop!.panicOverrideActive).toBe(true);
 
     // 2. Propose a cancellation proposal
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
-        proposalId: "cancel_prop_1",
-        targetProposalId: "surcharge_panic_override_test",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        timestamp: 1270,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
+          proposalId: "cancel_prop_1",
+          targetProposalId: "surcharge_panic_override_test",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          timestamp: 1270,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // 3. Propose a grace period proposal targeting the cancellation proposal with graceDuration = 5 steps
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE",
-        proposalId: "grace_prop_1",
-        targetProposalId: "cancel_prop_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        graceDuration: 5,
-        timestamp: 1280,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE",
+          proposalId: "grace_prop_1",
+          targetProposalId: "cancel_prop_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          graceDuration: 5,
+          timestamp: 1280,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote to authorize the grace proposal
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE",
-        proposalId: "grace_prop_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1290,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE",
+          proposalId: "grace_prop_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1290,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Verify remainingGraceSteps and graceDuration are registered on the cancellation proposal
-    const cancelProp = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
+    const cancelProp =
+      state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
     expect(cancelProp!.remainingGraceSteps).toBe(5);
     expect(cancelProp!.graceDuration).toBe(5);
 
     // Vote to authorize the cancellation proposal itself
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
-        proposalId: "cancel_prop_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1300,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SURCHARGE_PANIC_OVERRIDE_EXTENSION_CANCELLATION",
+          proposalId: "cancel_prop_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1300,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -1423,22 +1544,25 @@ describe("Syndicate SWF Sovereign Debt CDO Tranche Co-Investment Yield-Hedging O
     let tickedState = tickEconomy(state, mockPack);
     // At the end of tickEconomy, remainingGraceSteps was decremented from 5 to 4.
     // Next tick will use remainingGraceSteps = 4, so overrideMultiplier = 1 - (4 / 5) = 0.20 (20% discount applied).
-    const updatedCancel = tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
+    const updatedCancel =
+      tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
     expect(updatedCancel!.remainingGraceSteps).toBe(4);
 
-    const updatedOverride = tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    const updatedOverride =
+      tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
     expect(updatedOverride!.cooldownEndStep).toBe(tickedState.step + 4);
 
     // After 4 more ticks, remaining grace steps will reach 0 and the override will terminate.
     for (let i = 0; i < 4; i++) {
       tickedState = tickEconomy(tickedState, mockPack);
     }
-    const finalCancel = tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
+    const finalCancel =
+      tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationProposals?.cancel_prop_1;
     expect(finalCancel!.remainingGraceSteps).toBe(0);
 
-    const finalOverride = tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
+    const finalOverride =
+      tickedState.cdsCdoYieldHedgingOptionSurchargePanicOverrideProposals?.surcharge_panic_override_test;
     expect(finalOverride!.panicOverrideActive).toBe(false);
     expect(finalOverride!.cooldownEndStep).toBeUndefined();
   });
 });
-

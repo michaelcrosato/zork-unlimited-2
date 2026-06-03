@@ -15,7 +15,7 @@ describe("AF-164: Procedural Weather Wind & Real-Time Traversal Restrictions", (
 
   it("should evaluate wind_is condition modifier correctly", () => {
     const state = createInitialState({ seed: 42, start: "room_start" });
-    
+
     // Default wind should be calm
     expect(evaluateCondition(state, { wind_is: "calm" })).toBe(true);
     expect(evaluateCondition(state, { wind_is: "gale" })).toBe(false);
@@ -35,8 +35,8 @@ describe("AF-164: Procedural Weather Wind & Real-Time Traversal Restrictions", (
       change_weather: {
         weather: "rain",
         temperature: "cold",
-        wind: "tempest"
-      }
+        wind: "tempest",
+      },
     };
 
     const { state: updatedState, event } = applyEffect(state, effect);
@@ -65,7 +65,7 @@ describe("AF-164: Procedural Weather Wind & Real-Time Traversal Restrictions", (
           objects: [],
           npcs: [],
           exits: [],
-        }
+        },
       ],
       objects: [],
       npcs: [],
@@ -74,13 +74,17 @@ describe("AF-164: Procedural Weather Wind & Real-Time Traversal Restrictions", (
     };
 
     const state = createInitialState({ seed: 100, start: "room_start" });
-    
-    const result = step(state, {
-      type: "CHANGE_WEATHER",
-      weather: "storm",
-      wind: "gale",
-      temperature: "cold"
-    }, pack);
+
+    const result = step(
+      state,
+      {
+        type: "CHANGE_WEATHER",
+        weather: "storm",
+        wind: "gale",
+        temperature: "cold",
+      },
+      pack
+    );
 
     expect(result.ok).toBe(true);
     expect(result.state.environment?.weather).toBe("storm");
@@ -113,15 +117,15 @@ describe("AF-164: Procedural Weather Wind & Real-Time Traversal Restrictions", (
           objects: [],
           npcs: [],
           exits: [{ direction: "south", to: "room_start_clearing", conditions: [] }],
-        }
+        },
       ],
       objects: [
         {
           id: "heavy_cloak",
           name: "Heavy Cloak",
           description: "A thick wool cloak.",
-          takeable: true
-        }
+          takeable: true,
+        },
       ],
       npcs: [],
       win_conditions: [],
@@ -129,13 +133,13 @@ describe("AF-164: Procedural Weather Wind & Real-Time Traversal Restrictions", (
     };
 
     let state = createInitialState({ seed: 999, start: "room_start_clearing" });
-    
+
     // Set environmental weather to storm & wind to tempest
     state.environment = {
       weather: "storm",
       temperature: "cold",
       wind: "tempest",
-      lastUpdatedStep: 0
+      lastUpdatedStep: 0,
     };
 
     // 1. Try to move to the destination without heavy_cloak: should be blocked

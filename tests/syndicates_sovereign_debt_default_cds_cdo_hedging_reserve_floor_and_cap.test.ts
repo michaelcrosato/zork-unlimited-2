@@ -326,7 +326,7 @@ describe("Syndicate SWF Sovereign Debt Default CDS CDO Tranche Cross-Tranche Hed
     expect(synd?.warChest).toBe(1100);
 
     // Verify journal does NOT contain clamping alert
-    const clampingLog = tickedState.journal?.some(log => log.includes("clamped"));
+    const clampingLog = tickedState.journal?.some((log) => log.includes("clamped"));
     expect(clampingLog).toBe(false);
   });
 });

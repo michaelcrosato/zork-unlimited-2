@@ -101,7 +101,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Incentives (AF-114)", () => {
 
     let res2 = multiAgentStep(res1.state, { agentId: "alice", action: action2 as any }, mockPack);
     expect(res2.ok).toBe(true);
-    
+
     // Position must be successfully locked and votes cleared
     expect(res2.state.lockedCollateralVotes?.alpha_squad).toBeUndefined();
     const pos = res2.state.lockedLiquidityPositions?.alpha_squad?.[0];

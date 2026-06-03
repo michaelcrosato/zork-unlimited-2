@@ -126,34 +126,42 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     let state = setupState();
 
     // 1. Propose policy with dynamic matching and liquidity floor
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_POLICY",
-        proposalId: "policy_secondary",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        premiumPricingSpread: 0.1,
-        automatedHedgeEnabled: true,
-        dynamicMatchingEnabled: true,
-        dynamicLiquidityFloor: 500,
-        timestamp: 1100,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_POLICY",
+          proposalId: "policy_secondary",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          premiumPricingSpread: 0.1,
+          automatedHedgeEnabled: true,
+          dynamicMatchingEnabled: true,
+          dynamicLiquidityFloor: 500,
+          timestamp: 1100,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // 2. Vote to authorize
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_POLICY",
-        proposalId: "policy_secondary",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_POLICY",
+          proposalId: "policy_secondary",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -186,16 +194,20 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     };
 
     // 1. Propose listing option
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "LIST_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        askPrice: 600,
-        timestamp: 1200,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "LIST_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          askPrice: 600,
+          timestamp: 1200,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -203,32 +215,40 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     expect(state.cdsCdoYieldHedgingOptionListings?.opt_1.status).toBe("proposed");
 
     // Alice votes to activate listing
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "LIST_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        askPrice: 600,
-        timestamp: 1210,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "LIST_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          askPrice: 600,
+          timestamp: 1210,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
     expect(state.cdsCdoYieldHedgingOptionListings?.opt_1.status).toBe("active");
 
     // 2. Propose bid on option from Beta Syndicate (only bob is in Beta, so it should activate immediately)
-    res = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "BID_ON_CDO_YIELD_HEDGING_OPTION",
-        bidId: "bid_opt_1",
-        optionId: "opt_1",
-        bidderSyndicateId: "beta",
-        bidPrice: 800,
-        timestamp: 1220,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "BID_ON_CDO_YIELD_HEDGING_OPTION",
+          bidId: "bid_opt_1",
+          optionId: "opt_1",
+          bidderSyndicateId: "beta",
+          bidPrice: 800,
+          timestamp: 1220,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
     expect(state.cdsCdoYieldHedgingOptionBids?.bid_opt_1.status).toBe("active");
@@ -287,44 +307,56 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     };
 
     // 1. Propose low-price listing (400 ask price - below 500 floor)
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "LIST_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        askPrice: 400,
-        timestamp: 1200,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "LIST_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          askPrice: 400,
+          timestamp: 1200,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "LIST_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        askPrice: 400,
-        timestamp: 1210,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "LIST_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          askPrice: 400,
+          timestamp: 1210,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // 2. Propose low-price bid (450 bid price - below 500 floor but matches ask)
-    res = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "BID_ON_CDO_YIELD_HEDGING_OPTION",
-        bidId: "bid_opt_1",
-        optionId: "opt_1",
-        bidderSyndicateId: "beta",
-        bidPrice: 450,
-        timestamp: 1220,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "BID_ON_CDO_YIELD_HEDGING_OPTION",
+          bidId: "bid_opt_1",
+          optionId: "opt_1",
+          bidderSyndicateId: "beta",
+          bidPrice: 450,
+          timestamp: 1220,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -355,17 +387,21 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     };
 
     // Propose transfer from Alpha to Beta for 800 gold
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 800,
-        timestamp: 1200,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 800,
+          timestamp: 1200,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -373,32 +409,40 @@ describe("Syndicate SWF Sovereign Debt Default CDO Tranche Yield-Hedging Option 
     expect(state.cdsCdoYieldHedgingOptionTransfers?.opt_1_alpha_beta.status).toBe("proposed");
 
     // Alice votes (majority of seller syndicate alpha)
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 800,
-        timestamp: 1210,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 800,
+          timestamp: 1210,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Bob votes (majority of buyer syndicate beta - since bob is sole member)
-    res = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 800,
-        timestamp: 1220,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 800,
+          timestamp: 1220,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 

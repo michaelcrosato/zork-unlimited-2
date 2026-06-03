@@ -65,9 +65,30 @@ describe("Syndicate Bank CDO Credit Default Swaps (CDS) & Synthetic Leverage (AF
         assets: [],
         totalValue: 300,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 150, ownership: { buyer_corp: 150 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 90, ownership: { buyer_corp: 90 }, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 60, ownership: { buyer_corp: 60 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 150,
+            ownership: { buyer_corp: 150 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 90,
+            ownership: { buyer_corp: 90 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 60,
+            ownership: { buyer_corp: 60 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -231,9 +252,30 @@ describe("Syndicate Bank CDO Credit Default Swaps (CDS) & Synthetic Leverage (AF
         ],
         totalValue: 300,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 150, ownership: { buyer_corp: 150 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 90, ownership: { buyer_corp: 90 }, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 60, ownership: { buyer_corp: 60 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 150,
+            ownership: { buyer_corp: 150 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 90,
+            ownership: { buyer_corp: 90 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 60,
+            ownership: { buyer_corp: 60 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -248,7 +290,7 @@ describe("Syndicate Bank CDO Credit Default Swaps (CDS) & Synthetic Leverage (AF
         cdoId: "cdo_test_1",
         trancheId: "mezzanine",
         notionalValue: 45, // 45 notional (exactly half of mezzanine value 90)
-        premiumRate: 0.0,  // set to 0.0 to focus on default settlement only
+        premiumRate: 0.0, // set to 0.0 to focus on default settlement only
         timestamp: 1000,
         active: true,
       },
@@ -419,7 +461,11 @@ describe("Syndicate Bank CDO Credit Default Swaps (CDS) & Synthetic Leverage (AF
       timestamp: 1015,
     };
 
-    let propWriterRes = multiAgentStep(acceptRes.state, { agentId: "alice", action: proposeWriterTrade as any }, mockPack);
+    let propWriterRes = multiAgentStep(
+      acceptRes.state,
+      { agentId: "alice", action: proposeWriterTrade as any },
+      mockPack
+    );
     expect(propWriterRes.ok).toBe(true);
 
     // 4. Test validation: third_corp has 400 gold, what if price was 500 gold?
@@ -434,7 +480,11 @@ describe("Syndicate Bank CDO Credit Default Swaps (CDS) & Synthetic Leverage (AF
       timestamp: 1016,
     };
 
-    let propExpensiveRes = multiAgentStep(acceptRes.state, { agentId: "alice", action: proposeTooExpensiveTrade as any }, mockPack);
+    let propExpensiveRes = multiAgentStep(
+      acceptRes.state,
+      { agentId: "alice", action: proposeTooExpensiveTrade as any },
+      mockPack
+    );
     expect(propExpensiveRes.ok).toBe(true);
 
     const acceptExpensiveTrade = {
@@ -443,7 +493,11 @@ describe("Syndicate Bank CDO Credit Default Swaps (CDS) & Synthetic Leverage (AF
       timestamp: 1020,
     };
 
-    let acceptExpensiveRes = multiAgentStep(propExpensiveRes.state, { agentId: "bob", action: acceptExpensiveTrade as any }, mockPack);
+    let acceptExpensiveRes = multiAgentStep(
+      propExpensiveRes.state,
+      { agentId: "bob", action: acceptExpensiveTrade as any },
+      mockPack
+    );
     expect(acceptExpensiveRes.ok).toBe(false); // Insufficient gold!
     expect(acceptExpensiveRes.rejectionReason).toContain("insufficient gold");
 
@@ -454,7 +508,11 @@ describe("Syndicate Bank CDO Credit Default Swaps (CDS) & Synthetic Leverage (AF
       timestamp: 1025,
     };
 
-    let acceptWriterRes = multiAgentStep(propWriterRes.state, { agentId: "bob", action: acceptWriterTrade as any }, mockPack);
+    let acceptWriterRes = multiAgentStep(
+      propWriterRes.state,
+      { agentId: "bob", action: acceptWriterTrade as any },
+      mockPack
+    );
     expect(acceptWriterRes.ok).toBe(true);
 
     // Assert gold transfer: third_corp paid 200 (400 -> 200), writer_corp received 200 (1000 -> 1200)

@@ -55,9 +55,27 @@ describe("Syndicate SWF Yield CDO CDS Tranche Reinsurance & Dynamic Risk Ratings
         assets: [],
         totalValue: 500,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.05, totalShares: 250, ownership: { buyer_corp: 250 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 150, ownership: { buyer_corp: 150 }, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.10, totalShares: 100, ownership: { buyer_corp: 100 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 250,
+            ownership: { buyer_corp: 250 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 150,
+            ownership: { buyer_corp: 150 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.1,
+            totalShares: 100,
+            ownership: { buyer_corp: 100 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -168,13 +186,31 @@ describe("Syndicate SWF Yield CDO CDS Tranche Reinsurance & Dynamic Risk Ratings
         creatorSyndicateId: "buyer_corp",
         assets: [
           // Underlying packed token that is missing/inactive in state, forcing a default write-down!
-          { swfYieldTokenId: "missing_token_1", sharesPacked: 100, value: 200 }
+          { swfYieldTokenId: "missing_token_1", sharesPacked: 100, value: 200 },
         ],
         totalValue: 500,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.05, totalShares: 250, ownership: { buyer_corp: 250 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 150, ownership: { buyer_corp: 150 }, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.10, totalShares: 100, ownership: { buyer_corp: 100 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 250,
+            ownership: { buyer_corp: 250 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 150,
+            ownership: { buyer_corp: 150 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.1,
+            totalShares: 100,
+            ownership: { buyer_corp: 100 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -225,7 +261,7 @@ describe("Syndicate SWF Yield CDO CDS Tranche Reinsurance & Dynamic Risk Ratings
     // Assert that dynamic correlation logs are recorded!
     expect(state.swfCDODefaultCorrelationLogs).toBeDefined();
     expect(state.swfCDODefaultCorrelationLogs?.length).toBeGreaterThan(0);
-    const mezzanineLogs = state.swfCDODefaultCorrelationLogs?.filter(l => l.trancheId === "mezzanine");
+    const mezzanineLogs = state.swfCDODefaultCorrelationLogs?.filter((l) => l.trancheId === "mezzanine");
     expect(mezzanineLogs?.[0].defaulted).toBe(true);
   });
 
@@ -256,9 +292,27 @@ describe("Syndicate SWF Yield CDO CDS Tranche Reinsurance & Dynamic Risk Ratings
         assets: [],
         totalValue: 500,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.05, totalShares: 250, ownership: { buyer_corp: 250 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 150, ownership: { buyer_corp: 150 }, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.10, totalShares: 100, ownership: { buyer_corp: 100 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 250,
+            ownership: { buyer_corp: 250 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 150,
+            ownership: { buyer_corp: 150 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.1,
+            totalShares: 100,
+            ownership: { buyer_corp: 100 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },

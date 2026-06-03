@@ -1,6 +1,52 @@
 import { GameState, cloneMerchantInventories, getSafehouseStorageCapacity, getSyndicateBankCapacity, getCollateralValue, getSecondaryReserveVaults, getSyndicateFactionLoyaltyRank, isRankAtLeast, getBondCurrentYield, getBondVolatility, calculateOptionPremium, recalculateSWFYieldCDORiskRatings, getCDOTrancheReinsurancePremiumRate, SWFReinsuranceOptionOrderBookDepth, reconcileSWFYieldCDOCDSs, SWFReinsuranceOptionVolatilityInsurancePool, SWFMultiFundReinsurancePool, SWFReinsuranceOptionCrossSyndicatePool, getSyndicateFactionStanding, distributeOptionFeeDividends, isFactionAlliedToSyndicate } from "./state.js";
 import { PureRand } from "./rng.js";
 
+export function getPlayerAlignedFactions(state: GameState, traderId: string = "player"): string[] {
+  const aligned = new Set<string>();
+
+  const traderSyndicates = Object.values(state.syndicates || {}).filter(s => s.members.includes(traderId));
+  for (const s of traderSyndicates) {
+    aligned.add(s.id);
+  }
+
+  if (state.factionRep) {
+    for (const [factionId, rep] of Object.entries(state.factionRep)) {
+      if (rep > 0) {
+        aligned.add(factionId);
+      }
+    }
+  }
+
+  if (state.guildPrestige) {
+    for (const [prestigeKey, score] of Object.entries(state.guildPrestige)) {
+      if (prestigeKey.startsWith(`${traderId}-`) && score >= 50) {
+        const factionId = prestigeKey.substring(traderId.length + 1);
+        aligned.add(factionId);
+      }
+    }
+  }
+
+  if (state.guildMemberships && state.guildMemberships[traderId]) {
+    for (const guildId of state.guildMemberships[traderId]) {
+      aligned.add(guildId);
+    }
+  }
+
+  return Array.from(aligned);
+}
+
+export function isRivalFaction(state: GameState, factionA: string, factionB: string): boolean {
+  if (state.factionWars?.[factionA]?.[factionB] === true ||
+      state.factionWars?.[factionB]?.[factionA] === true) {
+    return true;
+  }
+  if (state.alliances?.[factionA]?.[factionB] === "hostile" ||
+      state.alliances?.[factionB]?.[factionA] === "hostile") {
+    return true;
+  }
+  return false;
+}
+
 /**
  * Calculates dynamic trade cost or payout based on base price, weather climate_pricing, and NPC reputation.
  */
@@ -101,20 +147,42 @@ export function calculateTradePrice(
 
   // 4. Faction Territory Merchant Tariff (AF-35)
   if (controllingFactionId && !isSafehouse) {
-    const hasLicense = state.merchantLicenses?.[traderId]?.includes(controllingFactionId) || false;
+    let hasLicense = state.merchantLicenses?.[traderId]?.includes(controllingFactionId) || false;
+    let isRival = false;
+    let rivalFactionId = "";
+    const playerAligned = getPlayerAlignedFactions(state, traderId);
+    for (const f of playerAligned) {
+      if (isRivalFaction(state, controllingFactionId, f)) {
+        isRival = true;
+        rivalFactionId = f;
+        break;
+      }
+    }
+
+    if (isRival) {
+      hasLicense = false;
+    }
+
     if (!hasLicense) {
       const licensing = state.merchantLicensings?.[controllingFactionId];
-      const tariffRate = state.tariffPolicy?.[controllingFactionId] ?? licensing?.tariffRate ?? 0;
+      let tariffRate = state.tariffPolicy?.[controllingFactionId] ?? licensing?.tariffRate ?? 0;
+
+      if (isRival) {
+        tariffRate = tariffRate > 0 ? tariffRate + 25 : 25;
+      }
+
       if (tariffRate > 0) {
         const factionRep = state.factionRep?.[controllingFactionId] ?? 0;
         const waiverThreshold = licensing?.tariffWaiverThreshold ?? 20;
         const discountThreshold = licensing?.tariffDiscountThreshold ?? 10;
 
         let effectiveTariffRate = tariffRate;
-        if (factionRep >= waiverThreshold) {
-          effectiveTariffRate = 0;
-        } else if (factionRep >= discountThreshold) {
-          effectiveTariffRate = tariffRate / 2;
+        if (!isRival) {
+          if (factionRep >= waiverThreshold) {
+            effectiveTariffRate = 0;
+          } else if (factionRep >= discountThreshold) {
+            effectiveTariffRate = tariffRate / 2;
+          }
         }
 
         // High-Reputation Tariff Exemption Acts (AF-80)
@@ -517,6 +585,67 @@ export function calculateTradePrice(
     }
   }
 
+  // AF-230: Faction Prestige / Alliance-based Merchant Trade Discounts (Task-F23)
+  const merchantFaction = npc?.faction;
+  const isSyndicate = merchantFaction && state.syndicates && state.syndicates[merchantFaction] !== undefined;
+  const isRoomControllingFaction = merchantFaction === controllingFactionId;
+
+  if (merchantFaction && !isSyndicate && !isRoomControllingFaction) {
+    const factionRepVal = state.factionRep?.[merchantFaction];
+    const guildPrestigeVal = state.guildPrestige?.[`${traderId}-${merchantFaction}`];
+    let factionPrestige = 0;
+    if (factionRepVal !== undefined && guildPrestigeVal !== undefined) {
+      factionPrestige = Math.max(factionRepVal, guildPrestigeVal);
+    } else if (factionRepVal !== undefined) {
+      factionPrestige = factionRepVal;
+    } else if (guildPrestigeVal !== undefined) {
+      factionPrestige = guildPrestigeVal;
+    }
+
+    if (factionPrestige > 0) {
+      if (isBuy) {
+        // Up to 30% discount based on prestige/reputation (max out at prestige 60+)
+        const prestigeDiscount = Math.max(0.7, 1.0 - factionPrestige * 0.005);
+        multiplier *= prestigeDiscount;
+      } else {
+        // Up to 30% premium based on prestige/reputation
+        const prestigePremium = Math.min(1.3, 1.0 + factionPrestige * 0.005);
+        multiplier *= prestigePremium;
+      }
+    } else if (factionPrestige < 0) {
+      if (isBuy) {
+        // Up to 50% markup for negative reputation
+        const prestigeMarkup = Math.min(1.5, 1.0 - factionPrestige * 0.01);
+        multiplier *= prestigeMarkup;
+      } else {
+        // Up to 50% markdown for negative reputation
+        const prestigeMarkdown = Math.max(0.5, 1.0 + factionPrestige * 0.01);
+        multiplier *= prestigeMarkdown;
+      }
+    }
+
+    // Alliance-based merchant discount
+    let isAlliedToMerchantFaction = false;
+    const playerAligned = getPlayerAlignedFactions(state, traderId);
+    for (const pf of playerAligned) {
+      if (state.alliances?.[pf]?.[merchantFaction] === "allied" ||
+          state.alliances?.[merchantFaction]?.[pf] === "allied" ||
+          state.syndicateAlliances?.[pf]?.[merchantFaction] === "allied" ||
+          state.syndicateAlliances?.[merchantFaction]?.[pf] === "allied") {
+        isAlliedToMerchantFaction = true;
+        break;
+      }
+    }
+
+    if (isAlliedToMerchantFaction) {
+      if (isBuy) {
+        multiplier *= 0.85; // 15% alliance buy discount
+      } else {
+        multiplier *= 1.15; // 15% alliance sell premium
+      }
+    }
+  }
+
   // AF-226: Dynamic Strategic Pricing under default alert
   const hasActiveDefaultAlert = traderSyndicates.some(s => {
     return Object.values(state.sovereignDebtDefaultAlerts || {}).some(alert => {
@@ -609,6 +738,23 @@ export function checkReputationTrade(
             };
           }
         }
+      }
+    }
+  }
+
+  // Enforce Faction-based Rival Embargoes!
+  const npcFaction = npc?.faction;
+  const controllingFactionId = state.territoryControl?.[state.current];
+  const merchantFaction = npcFaction || controllingFactionId;
+
+  if (merchantFaction) {
+    const playerAligned = getPlayerAlignedFactions(state, "player");
+    for (const playerFaction of playerAligned) {
+      if (isRivalFaction(state, merchantFaction, playerFaction)) {
+        return {
+          allowed: false,
+          reason: `The merchant's faction ${merchantFaction} has active commercial embargoes against your allied faction ${playerFaction} due to their hostile relationship.`,
+        };
       }
     }
   }
@@ -2114,7 +2260,54 @@ export function tickEconomy(state: GameState, pack: any): GameState {
 
         // 2. Procedurally restock one item from possible_items
         if (npc.possible_items && npc.possible_items.length > 0) {
-          const { value, nextSeed } = PureRand.choose(newState.seed, npc.possible_items as string[]);
+          const npcRoom = pack.rooms?.find((r: any) => r.npcs?.includes(npc.id));
+          const npcRoomId = npcRoom?.id;
+          const controllingFactionId = npcRoomId ? newState.territoryControl?.[npcRoomId] : undefined;
+          const merchantFaction = npc.faction;
+          const playerAligned = getPlayerAlignedFactions(newState, "player");
+          let factionPrestige = 0;
+          if (merchantFaction) {
+            const factionRepVal = newState.factionRep?.[merchantFaction];
+            const guildPrestigeVal = newState.guildPrestige?.[`player-${merchantFaction}`];
+            if (factionRepVal !== undefined && guildPrestigeVal !== undefined) {
+              factionPrestige = Math.max(factionRepVal, guildPrestigeVal);
+            } else if (factionRepVal !== undefined) {
+              factionPrestige = factionRepVal;
+            } else if (guildPrestigeVal !== undefined) {
+              factionPrestige = guildPrestigeVal;
+            }
+          }
+
+          let isAlliedToMerchantFaction = false;
+          if (merchantFaction) {
+            for (const pf of playerAligned) {
+              if (newState.alliances?.[pf]?.[merchantFaction] === "allied" ||
+                  newState.alliances?.[merchantFaction]?.[pf] === "allied" ||
+                  newState.syndicateAlliances?.[pf]?.[merchantFaction] === "allied" ||
+                  newState.syndicateAlliances?.[merchantFaction]?.[pf] === "allied") {
+                isAlliedToMerchantFaction = true;
+                break;
+              }
+            }
+          }
+
+          const availableItems = (npc.possible_items as string[]).filter(itemKey => {
+            const obj = pack.objects?.find((o: any) => o.id === itemKey);
+            if (!obj) return true;
+            if (obj.required_prestige !== undefined && factionPrestige < obj.required_prestige) {
+              return false;
+            }
+            if (obj.required_reputation !== undefined && factionPrestige < obj.required_reputation) {
+              return false;
+            }
+            if (obj.required_alliance === true && !isAlliedToMerchantFaction) {
+              return false;
+            }
+            return true;
+          });
+
+          const itemsToChoose = availableItems.length > 0 ? availableItems : (npc.possible_items as string[]);
+          const { value, nextSeed } = PureRand.choose(newState.seed, itemsToChoose);
           newState.seed = nextSeed;
           if (value) {
             const itemKey = value as string;
@@ -2150,6 +2343,13 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           roomTax = roomTax * rateMultiplier;
         }
 
+        // Add Outpost Tax Expansion (AF-56 / Task-F5)
+        const outpost = newState.turfGuardOutposts?.[roomId];
+        if (outpost && !outpost.disabled && outpost.syndicateId === factionId) {
+          const outpostTax = 20 * outpost.securityLevel;
+          roomTax += outpostTax;
+        }
+
         if (roomTax > 0) {
           // Distribute to syndicate members
           const members = syndicate.members ?? [];
@@ -2171,6 +2371,13 @@ export function tickEconomy(state: GameState, pack: any): GameState {
           const rateMultiplier = newState.taxPolicy?.[factionId];
           if (rateMultiplier !== undefined) {
             roomTax = roomTax * rateMultiplier;
+          }
+
+          // Add Outpost Tax Expansion (AF-56 / Task-F5)
+          const outpost = newState.turfGuardOutposts?.[roomId];
+          if (outpost && !outpost.disabled && outpost.syndicateId === factionId) {
+            const outpostTax = 15 * outpost.securityLevel;
+            roomTax += outpostTax;
           }
 
           const espionage = newState.espionageNetworks?.[roomId];
@@ -9598,6 +9805,11 @@ export function calculateConvoyInsurancePremium(state: GameState, convoyId: stri
           factionRepPenalty += Math.abs(rep);
         } else {
           factionRepPenalty -= rep * 0.5; // Friendly faction reduces risk
+        }
+
+        // Faction-based Trade Route Commercial Warfare: premium surcharge in rival territories
+        if (route && route.factionId && isRivalFaction(state, route.factionId, factionId)) {
+          factionRepPenalty += 40; // Heavy risk surcharge
         }
       }
     }

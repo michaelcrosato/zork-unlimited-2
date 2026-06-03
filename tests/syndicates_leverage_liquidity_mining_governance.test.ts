@@ -71,7 +71,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsori
 
     let res1 = multiAgentStep(state, { agentId: "player", action: proposeAction as any }, mockPack);
     expect(res1.ok).toBe(true);
-    
+
     // Proposer auto votes true
     const prop = res1.state.factionSponsorProposals?.prop_1;
     expect(prop).toBeDefined();
@@ -93,7 +93,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsori
 
     let res2 = multiAgentStep(res1.state, { agentId: "alice", action: voteAction as any }, mockPack);
     expect(res2.ok).toBe(true);
-    
+
     // Proposal votes should reflect alice
     expect(res2.state.factionSponsorProposals?.prop_1?.votes?.alice?.vote).toBe(true);
 
@@ -302,7 +302,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsori
 
     // 1. Tick economy to accrue dynamic interest rate boost & reputation
     let tickedState = tickEconomy(state, mockPack);
-    
+
     // Base rate is 0.1, rep ranges is 50 -> repBoost = 50 * 0.005 = 0.25
     // rewardRate is 0.08 -> effective rate = 0.1 * (1.0 + 0.25 + 0.08 * 0.2) = 0.1 * 1.266 = 0.1266
     // Allocated rehypothecated amount in vault_a = 1000, locked amount = 500
@@ -310,10 +310,10 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsori
     // Unlocked interest: Math.floor(500 * 0.1266) = 63
     // Total interest = 82 + 63 = 145. Yield returned is 80% = 116 gold.
     expect(tickedState.marginAccounts?.alpha_squad?.collateral).toBeGreaterThan(1000);
-    
+
     // 2. Claim rewards at epoch 3 (step 15)
     tickedState.step = 15;
-    
+
     const claimAction = {
       type: "CLAIM_LIQUIDITY_MINING_REWARDS",
       syndicateId: "alpha_squad",
@@ -393,7 +393,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsori
           syndicateId: "alpha_squad",
           vaultId: "vault_a",
           factionId: "rangers",
-          rewardRate: 0.10, // Newer resolved policy
+          rewardRate: 0.1, // Newer resolved policy
           minLockTerms: 4,
           timestamp: 1005,
         },
@@ -411,7 +411,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance & Faction Sponsori
     // Assert policies converged to the newer timestamp one (r reward rate 0.10 and min lock 4)
     const policy = merged.factionSponsorPolicies?.alpha_squad?.vault_a;
     expect(policy).toBeDefined();
-    expect(policy?.rewardRate).toBe(0.10);
+    expect(policy?.rewardRate).toBe(0.1);
     expect(policy?.minLockTerms).toBe(4);
   });
 });

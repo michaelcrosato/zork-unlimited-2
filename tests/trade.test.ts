@@ -71,6 +71,7 @@ describe("Procedural Merchant and Trading System (NPC_TRADE)", () => {
                   id: "ask_stock",
                   prompt: "Stock the shop",
                   goto: "root_node",
+                  conditions: [{ not_flag: "shop_stocked" }],
                   effects: [
                     {
                       npc_trade: {
@@ -80,6 +81,7 @@ describe("Procedural Merchant and Trading System (NPC_TRADE)", () => {
                         success_msg: "Bob stocks an iron sword.",
                       },
                     },
+                    { set_flag: "shop_stocked" },
                   ],
                 },
                 {
@@ -91,12 +93,8 @@ describe("Procedural Merchant and Trading System (NPC_TRADE)", () => {
                   id: "complete_quest",
                   prompt: "Finish the adventure",
                   goto: "root_node",
-                  conditions: [
-                    { has_item: "iron_sword" },
-                  ],
-                  effects: [
-                    { set_flag: "game_completed" },
-                  ],
+                  conditions: [{ has_item: "iron_sword" }],
+                  effects: [{ set_flag: "game_completed" }],
                 },
               ],
             },
@@ -107,10 +105,7 @@ describe("Procedural Merchant and Trading System (NPC_TRADE)", () => {
     win_conditions: [
       {
         id: "has_sword",
-        conditions: [
-          { has_item: "iron_sword" },
-          { has_flag: "game_completed" },
-        ],
+        conditions: [{ has_item: "iron_sword" }, { has_flag: "game_completed" }],
         ending: "ending_victory",
       },
     ],
@@ -427,7 +422,7 @@ describe("Cycle 26 Economy Enhancements (AF-26)", () => {
 
     // Give player a winter_coat
     state.inventory.push("winter_coat");
-    
+
     // Merchant Tim starts with 50 gold in the pack
     // Let's try to sell a custom expensive item (worth 60 gold)
     // We modify cost of winter_coat temporarily to 60
@@ -450,7 +445,7 @@ describe("Cycle 26 Economy Enhancements (AF-26)", () => {
       start: "shop",
       varsInit: econPack.meta.vars_init,
     });
-    
+
     state.merchantInventories = {
       merchant_tim: ["winter_coat"],
     };
@@ -458,7 +453,7 @@ describe("Cycle 26 Economy Enhancements (AF-26)", () => {
     // 1. Talk and insult Merchant Tim to drop reputation by -10 (reputation becomes -10)
     let talkRes = step(state, { type: "TALK", npc: "merchant_tim" }, econPack);
     expect(talkRes.ok).toBe(true);
-    
+
     let insultRes = step(talkRes.state, { type: "ASK", npc: "merchant_tim", topic: "gossip_bad" }, econPack);
     expect(insultRes.ok).toBe(true);
     expect(insultRes.state.npcRep?.["merchant_tim"]).toBe(-10);
@@ -466,9 +461,9 @@ describe("Cycle 26 Economy Enhancements (AF-26)", () => {
     // End dialogue to resume normal room commands
     let outOfDialogueState = {
       ...insultRes.state,
-      flags: { ...insultRes.state.flags, in_dialogue_with_merchant_tim: false }
+      flags: { ...insultRes.state.flags, in_dialogue_with_merchant_tim: false },
     };
-    
+
     // Attempting to buy when reputation (-10) is below Merchant Tim's min_rep (-5) should fail!
     const buyFailed = step(outOfDialogueState, { type: "BUY", item: "winter_coat", npc: "merchant_tim" }, econPack);
     expect(buyFailed.ok).toBe(false);
@@ -487,7 +482,11 @@ describe("Cycle 26 Economy Enhancements (AF-26)", () => {
 
     // Try to trigger secret trade dialogue effect with 0 reputation (fails min_rep: 5)
     let talkRes2 = step(friendlyState, { type: "TALK", npc: "merchant_tim" }, econPack);
-    let secretTradeRes1 = step(talkRes2.state, { type: "ASK", npc: "merchant_tim", topic: "trade_rep_gated" }, econPack);
+    let secretTradeRes1 = step(
+      talkRes2.state,
+      { type: "ASK", npc: "merchant_tim", topic: "trade_rep_gated" },
+      econPack
+    );
     expect(secretTradeRes1.ok).toBe(true);
     expect(secretTradeRes1.state.inventory).not.toContain("rusty_sword"); // Trade was rejected internally in effect
 
@@ -497,7 +496,11 @@ describe("Cycle 26 Economy Enhancements (AF-26)", () => {
       merchant_tim: 5,
     };
     let talkRes3 = step(highRepState, { type: "TALK", npc: "merchant_tim" }, econPack);
-    let secretTradeRes2 = step(talkRes3.state, { type: "ASK", npc: "merchant_tim", topic: "trade_rep_gated" }, econPack);
+    let secretTradeRes2 = step(
+      talkRes3.state,
+      { type: "ASK", npc: "merchant_tim", topic: "trade_rep_gated" },
+      econPack
+    );
     expect(secretTradeRes2.ok).toBe(true);
     expect(secretTradeRes2.state.inventory).toContain("rusty_sword"); // Succeeded!
   });

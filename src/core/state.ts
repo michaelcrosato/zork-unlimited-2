@@ -5,6 +5,7 @@ export const ObjectRuntimeSchema = z.object({
   locked: z.boolean().optional(),
   contents: z.array(z.string()).optional(),
   takenBy: z.enum(["player", "world", "destroyed"]).optional(),
+  lit: z.boolean().optional(),
 });
 
 export type ObjectRuntime = z.infer<typeof ObjectRuntimeSchema>;
@@ -714,6 +715,19 @@ export const MastermindContractSchema = z.object({
   timestamp: z.number().int(),
 });
 export type MastermindContract = z.infer<typeof MastermindContractSchema>;
+
+export const GuildContractSchema = z.object({
+  id: z.string(),
+  guildId: z.string(),
+  contractType: z.enum(["smuggling", "enforcement"]),
+  target: z.string(),
+  targetRoom: z.string().optional(),
+  rewardGold: z.number().int().nonnegative(),
+  rewardPrestige: z.number().int().nonnegative(),
+  status: z.enum(["active", "completed", "failed"]),
+  timestamp: z.number().int(),
+});
+export type GuildContract = z.infer<typeof GuildContractSchema>;
 
 export const ShadowMarketSchema = z.object({
   id: z.string(),
@@ -4159,6 +4173,8 @@ export const GameStateSchema = z.object({
   decoyConvoys: z.record(z.string(), DecoyConvoySchema).optional(),
   enforcerDefundingVotes: z.record(z.string(), z.record(z.string(), EnforcerDefundingVoteSchema)).optional(),
   mastermindContracts: z.record(z.string(), MastermindContractSchema).optional(),
+  guildContracts: z.record(z.string(), GuildContractSchema).optional(),
+  guildPrestige: z.record(z.string(), z.number()).optional(),
   shadowMarkets: z.record(z.string(), ShadowMarketSchema).optional(),
   arbitrageContracts: z.record(z.string(), ArbitrageContractSchema).optional(),
   underwriterSabotages: z.record(z.string(), UnderwriterSabotageSchema).optional(),
@@ -4886,6 +4902,8 @@ export const createInitialState = (options: {
     decoyConvoys: {},
     enforcerDefundingVotes: {},
     mastermindContracts: {},
+    guildContracts: {},
+    guildPrestige: {},
     shadowMarkets: {},
     arbitrageContracts: {},
     underwriterSabotages: {},
@@ -6093,6 +6111,8 @@ export function cloneStateWithoutHistory(state: GameState): GameState {
     decoyConvoys: rest.decoyConvoys ? JSON.parse(JSON.stringify(rest.decoyConvoys)) : undefined,
     enforcerDefundingVotes: rest.enforcerDefundingVotes ? JSON.parse(JSON.stringify(rest.enforcerDefundingVotes)) : undefined,
     mastermindContracts: rest.mastermindContracts ? JSON.parse(JSON.stringify(rest.mastermindContracts)) : undefined,
+    guildContracts: rest.guildContracts ? JSON.parse(JSON.stringify(rest.guildContracts)) : undefined,
+    guildPrestige: rest.guildPrestige ? { ...rest.guildPrestige } : undefined,
     shadowMarkets: rest.shadowMarkets ? JSON.parse(JSON.stringify(rest.shadowMarkets)) : undefined,
     arbitrageContracts: rest.arbitrageContracts ? JSON.parse(JSON.stringify(rest.arbitrageContracts)) : undefined,
     underwriterSabotages: rest.underwriterSabotages ? JSON.parse(JSON.stringify(rest.underwriterSabotages)) : undefined,
@@ -11130,6 +11150,18 @@ export function getSyndicateFactionLoyaltyRank(state: GameState, syndicateId: st
   }
 
   return "None";
+}
+
+export function getGuildPrestigeTier(prestige: number): "Novice" | "Associate" | "Operative" | "Master" {
+  if (prestige >= 600) return "Master";
+  if (prestige >= 300) return "Operative";
+  if (prestige >= 100) return "Associate";
+  return "Novice";
+}
+
+export function getAgentGuildPrestige(state: GameState, agentId: string, guildId: string): number {
+  const prestigeKey = `${agentId}-${guildId}`;
+  return state.guildPrestige?.[prestigeKey] ?? 0;
 }
 
 export function getRequiredRankForVaultLevel(level: number): "None" | "Bronze" | "Silver" | "Gold" | "Platinum" {

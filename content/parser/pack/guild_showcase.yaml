@@ -1,0 +1,383 @@
+meta:
+  id: guild_showcase_pack
+  title: "Guild Contracts Showcase"
+  start_room: crossroads
+  vars_init:
+    gold: 100
+    hp: 20
+    max_hp: 20
+    score: 0
+  flags_init: []
+
+rooms:
+  - id: crossroads
+    name: "Forest Crossroads"
+    description: "You stand at a forest crossroads. To the west is the Smugglers Den. To the east is the Enforcers Outpost. To the north lies the Bandit Hideout."
+    objects: []
+    npcs: []
+    exits:
+      - { direction: west, to: smugglers_den }
+      - { direction: east, to: enforcers_post }
+      - { direction: north, to: bandit_hideout }
+
+  - id: smugglers_den
+    name: "Smugglers Den"
+    description: "A hidden tavern filled with shady characters. A trapdoor leads down to the Shadow Sanctum."
+    objects: []
+    npcs: [ smuggler_capo ]
+    exits:
+      - { direction: east, to: crossroads }
+      - direction: down
+        to: shadow_sanctum
+        conditions: [ { guild_prestige_gte: { guild: "smugglers", value: 100 } } ]
+        locked_msg: "The trapdoor to the Shadow Sanctum is locked. You need Associate standing (100+ prestige) with the Smugglers Guild to enter."
+
+  - id: enforcers_post
+    name: "Enforcers Outpost"
+    description: "A heavily armed outpost. A spiral staircase leads up to the High Tower."
+    objects: []
+    npcs: [ sheriff ]
+    exits:
+      - { direction: west, to: crossroads }
+      - direction: up
+        to: high_tower
+        conditions: [ { guild_prestige_gte: { guild: "enforcers", value: 100 } } ]
+        locked_msg: "The spiral staircase to the High Tower is locked. You need Associate standing (100+ prestige) with the Enforcers Guild to enter."
+
+  - id: bandit_hideout
+    name: "Bandit Hideout"
+    description: "A run-down camp in the thick trees. A bandit thug and the bandit boss lurk here."
+    objects: [ contraband_cargo, contraband_gem ]
+    npcs: [ bandit_thug, bandit_boss ]
+    exits:
+      - { direction: south, to: crossroads }
+
+  - id: shadow_sanctum
+    name: "Shadow Sanctum"
+    description: "The secret inner chamber of the Smugglers Guild."
+    objects: []
+    npcs: [ smuggler_boss ]
+    exits:
+      - { direction: up, to: smugglers_den }
+      - direction: down
+        to: vault_of_shadows
+        conditions: [ { guild_prestige_gte: { guild: "smugglers", value: 250 } } ]
+        locked_msg: "A heavy steel gate blocks the way. You need Operative standing (250+ prestige) to enter the Vault of Shadows."
+
+  - id: high_tower
+    name: "High Tower"
+    description: "The commanding officer's quarters overlooking the forest."
+    objects: []
+    npcs: [ enforcer_commander ]
+    exits:
+      - { direction: down, to: enforcers_post }
+      - direction: up
+        to: commander_vault
+        conditions: [ { guild_prestige_gte: { guild: "enforcers", value: 250 } } ]
+        locked_msg: "A runic ward blocks the ladder. You need Operative standing (250+ prestige) to enter the Commander's Vault."
+
+  - id: vault_of_shadows
+    name: "Vault of Shadows"
+    description: "The deepest vault of the Smugglers Guild, glowing with forbidden treasure."
+    objects: [ smuggler_treasure ]
+    npcs: []
+    exits:
+      - { direction: up, to: shadow_sanctum }
+
+  - id: commander_vault
+    name: "Commander's Vault"
+    description: "The private vault where the Enforcers store confiscated magical artifacts."
+    objects: [ enforcer_trophy ]
+    npcs: []
+    exits:
+      - { direction: down, to: high_tower }
+
+objects:
+  - id: smuggler_treasure
+    name: "Smuggler Treasure"
+    aliases: [ treasure, smuggler treasure ]
+    description: "A chest filled with legendary artifacts and smuggler coins."
+    takeable: true
+
+  - id: enforcer_trophy
+    name: "Enforcer Trophy"
+    aliases: [ trophy, enforcer trophy ]
+    description: "A grand silver chalice awarded to the most loyal defender of the peace."
+    takeable: true
+
+  - id: contraband_cargo
+    name: "contraband cargo"
+    aliases: [ cargo, contraband ]
+    description: "A heavy wooden crate stamped with Smugglers Guild markings."
+    takeable: true
+    contraband: true
+
+  - id: contraband_gem
+    name: "contraband gem"
+    aliases: [ gem, contraband gem ]
+    description: "A dark glowing gem that is highly illegal."
+    takeable: true
+    contraband: true
+
+  - id: sheriff_badge
+    name: "Sheriff Badge"
+    aliases: [ badge ]
+    description: "A golden star badge representing the Enforcers Guild."
+    takeable: true
+
+  - id: smuggler_token
+    name: "Smuggler Token"
+    aliases: [ token ]
+    description: "An obsidian coin engraved with the Smugglers Guild emblem."
+    takeable: true
+
+npcs:
+  - id: bandit_thug
+    name: "bandit thug"
+    description: "A low-level outlaw clutching a wooden club."
+    hp: 12
+    max_hp: 12
+    attack: 2
+    defense: 8
+    gold: 20
+    xp: 40
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "You dare step into our camp? Fight me or flee!"
+          topics:
+            - { id: fight_thug, prompt: "Fight the thug", goto: combat_start }
+            - { id: leave, prompt: "Flee", end: true }
+        - id: combat_start
+          npc_text: "Prepare to be pummeled!"
+          effects:
+            - start_combat: { npc_id: bandit_thug }
+          topics: []
+
+  - id: bandit_boss
+    name: "bandit boss"
+    description: "The massive leader of the outlaw gang."
+    hp: 18
+    max_hp: 18
+    attack: 4
+    defense: 10
+    gold: 50
+    xp: 100
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "You think you can challenge the boss? Die, insect!"
+          topics:
+            - { id: fight_boss, prompt: "Fight the boss", goto: combat_start }
+            - { id: leave, prompt: "Flee", end: true }
+        - id: combat_start
+          npc_text: "Face my steel!"
+          effects:
+            - start_combat: { npc_id: bandit_boss }
+          topics: []
+
+  - id: smuggler_capo
+    name: "smuggler capo"
+    description: "A sleek figure leaning against the bar, tossing a coin."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Looking for some quick coin, traveler? Talk to me about contracts."
+          topics:
+            - { id: ask_contracts, prompt: "Ask about contracts", goto: contract_list, conditions: [ { none_of: [ { guild_contract_active: "c_smuggle_cargo" }, { guild_contract_completed: "c_smuggle_cargo" } ] } ] }
+            - { id: check_prestige, prompt: "Check your smugglers prestige", goto: prestige_info, effects: [ { set_flag: "checked_smugglers_prestige" } ], conditions: [ { none_of: [ { has_flag: "checked_smugglers_prestige" } ] } ] }
+            - { id: request_token, prompt: "Request Smuggler Token (Requires 100 Smugglers Prestige)", goto: give_token, conditions: [ { guild_prestige_gte: { guild: "smugglers", value: 100 } }, { none_of: [ { has_item: "smuggler_token" } ] } ] }
+            - { id: turn_in_smuggle, prompt: "Report completion of the smuggling contract", goto: turn_in_success, conditions: [ { guild_contract_active: "c_smuggle_cargo" }, { has_item: "contraband_cargo" }, { visited: "smugglers_den" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: contract_list
+          npc_text: "Retrieve the contraband cargo from the Bandit Hideout and smuggle it here."
+          topics:
+            - { id: take_smuggle, prompt: "Accept the smuggling contract", goto: accept_smuggle, conditions: [ { none_of: [ { guild_contract_active: "c_smuggle_cargo" }, { guild_contract_completed: "c_smuggle_cargo" } ] } ] }
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_smuggle
+          npc_text: "Good. Bring the cargo to this tavern."
+          effects:
+            - accept_guild_contract:
+                id: c_smuggle_cargo
+                guild: smugglers
+                type: smuggling
+                target: contraband_cargo
+                target_room: smugglers_den
+                reward_gold: 100
+                reward_prestige: 100
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: turn_in_success
+          npc_text: "Perfect delivery. Here is your gold and our trust."
+          effects:
+            - complete_guild_contract:
+                id: c_smuggle_cargo
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: give_token
+          npc_text: "You are now an Associate smuggler. Take this token; it will open doors."
+          effects:
+            - add_item: smuggler_token
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: prestige_info
+          npc_text: "Gain prestige by smuggling goods for us."
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+
+  - id: sheriff
+    name: "sheriff"
+    description: "A stout warden standing firm with a massive crossbow."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Peace must be maintained. Ask me about contracts to clean up these woods."
+          topics:
+            - { id: ask_contracts, prompt: "Ask about contracts", goto: contract_list, conditions: [ { none_of: [ { guild_contract_active: "c_enforce_bandit" }, { guild_contract_completed: "c_enforce_bandit" } ] } ] }
+            - { id: check_prestige, prompt: "Check your enforcers prestige", goto: prestige_info, effects: [ { set_flag: "checked_enforcers_prestige" } ], conditions: [ { none_of: [ { has_flag: "checked_enforcers_prestige" } ] } ] }
+            - { id: request_badge, prompt: "Request Sheriff Badge (Requires 100 Enforcers Prestige)", goto: give_badge, conditions: [ { guild_prestige_gte: { guild: "enforcers", value: 100 } }, { none_of: [ { has_item: "sheriff_badge" } ] } ] }
+            - { id: turn_in_enforce, prompt: "Report completion of the enforcement contract", goto: turn_in_success, conditions: [ { guild_contract_active: "c_enforce_bandit" }, { has_flag: "npc_defeated_bandit_thug" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: contract_list
+          npc_text: "Defeat the bandit thug causing trouble at the Bandit Hideout to the north."
+          topics:
+            - { id: take_enforce, prompt: "Accept the enforcement contract", goto: accept_enforce, conditions: [ { none_of: [ { guild_contract_active: "c_enforce_bandit" }, { guild_contract_completed: "c_enforce_bandit" } ] } ] }
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_enforce
+          npc_text: "Slay the thug and report back."
+          effects:
+            - accept_guild_contract:
+                id: c_enforce_bandit
+                guild: enforcers
+                type: enforcement
+                target: bandit_thug
+                reward_gold: 120
+                reward_prestige: 100
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: turn_in_success
+          npc_text: "Justice is done. Take your reward."
+          effects:
+            - complete_guild_contract:
+                id: c_enforce_bandit
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: give_badge
+          npc_text: "You are a recognized officer of the peace now. Wear this badge."
+          effects:
+            - add_item: sheriff_badge
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: prestige_info
+          npc_text: "Enforce the law to gain our prestige."
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+
+  - id: smuggler_boss
+    name: "smuggler boss"
+    description: "The boss of the Shadow Sanctum, surrounded by gold coins."
+    dialogue:
+      root: greet
+      greeting_overrides:
+        - node: node_high_prestige
+          conditions:
+            - { guild_prestige_gte: { guild: "smugglers", value: 200 } }
+      nodes:
+        - id: greet
+          npc_text: "Welcome to the inner sanctum. I have high-stake contracts for true smugglers."
+          topics:
+            - { id: take_gem_contract, prompt: "Accept the contraband gem contract", goto: accept_gem, conditions: [ { none_of: [ { guild_contract_active: "c_smuggle_gem" }, { guild_contract_completed: "c_smuggle_gem" } ] } ] }
+            - { id: turn_in_gem, prompt: "Report completion of the gem contract", goto: gem_success, conditions: [ { guild_contract_active: "c_smuggle_gem" }, { has_item: "contraband_gem" }, { visited: "shadow_sanctum" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: node_high_prestige
+          npc_text: "Ah, respect! An elite shadow operative walks among us. We have high-stake contracts for you."
+          topics:
+            - { id: take_gem_contract, prompt: "Accept the contraband gem contract", goto: accept_gem, conditions: [ { none_of: [ { guild_contract_active: "c_smuggle_gem" }, { guild_contract_completed: "c_smuggle_gem" } ] } ] }
+            - { id: turn_in_gem, prompt: "Report completion of the gem contract", goto: gem_success, conditions: [ { guild_contract_active: "c_smuggle_gem" }, { has_item: "contraband_gem" }, { visited: "shadow_sanctum" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: accept_gem
+          npc_text: "Retrieve the contraband gem from the Bandit Hideout and smuggle it here."
+          effects:
+            - accept_guild_contract:
+                id: c_smuggle_gem
+                guild: smugglers
+                type: smuggling
+                target: contraband_gem
+                target_room: shadow_sanctum
+                reward_gold: 300
+                reward_prestige: 150
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: gem_success
+          npc_text: "Masterful work! The gem is ours. You are a legendary smuggler!"
+          effects:
+            - complete_guild_contract:
+                id: c_smuggle_gem
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+
+  - id: enforcer_commander
+    name: "enforcer commander"
+    description: "The commander of the high tower, looking at a war map."
+    dialogue:
+      root: greet
+      greeting_overrides:
+        - node: node_high_prestige
+          conditions:
+            - { guild_prestige_gte: { guild: "enforcers", value: 200 } }
+      nodes:
+        - id: greet
+          npc_text: "Welcome to the high tower. Slay the leaders of chaos."
+          topics:
+            - { id: take_boss_contract, prompt: "Accept the bandit boss contract", goto: accept_boss, conditions: [ { none_of: [ { guild_contract_active: "c_enforce_boss" }, { guild_contract_completed: "c_enforce_boss" } ] } ] }
+            - { id: turn_in_boss, prompt: "Report defeat of the bandit boss", goto: boss_success, conditions: [ { guild_contract_active: "c_enforce_boss" }, { has_flag: "npc_defeated_bandit_boss" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: node_high_prestige
+          npc_text: "Ah, respect! An elite officer of the peace walks among us. Slay the leaders of chaos, commander."
+          topics:
+            - { id: take_boss_contract, prompt: "Accept the bandit boss contract", goto: accept_boss, conditions: [ { none_of: [ { guild_contract_active: "c_enforce_boss" }, { guild_contract_completed: "c_enforce_boss" } ] } ] }
+            - { id: turn_in_boss, prompt: "Report defeat of the bandit boss", goto: boss_success, conditions: [ { guild_contract_active: "c_enforce_boss" }, { has_flag: "npc_defeated_bandit_boss" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: accept_boss
+          npc_text: "Defeat the bandit boss in the Bandit Hideout."
+          effects:
+            - accept_guild_contract:
+                id: c_enforce_boss
+                guild: enforcers
+                type: enforcement
+                target: bandit_boss
+                reward_gold: 300
+                reward_prestige: 150
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: boss_success
+          npc_text: "Splendid! The boss has been purged. The forests are safe!"
+          effects:
+            - complete_guild_contract:
+                id: c_enforce_boss
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+
+
+win_conditions:
+  - id: smuggler_victory
+    conditions: [ { has_item: "smuggler_treasure" } ]
+    ending: ending_smuggler
+  - id: enforcer_victory
+    conditions: [ { has_item: "enforcer_trophy" } ]
+    ending: ending_enforcer
+
+endings:
+  - id: ending_smuggler
+    title: "Smuggler King"
+    text: "You successfully smuggled the contraband gem, gained Operative standing, and claimed the Smuggler Treasure from the Vault of Shadows! You are crowned as the Smuggler King!"
+  - id: ending_enforcer
+    title: "Commander of the Peace"
+    text: "You defeated the bandit boss, gained Operative standing, and claimed the Enforcer Trophy from the Commander's Vault! You are promoted to Commander of the Peace!"
+  - id: ending_died_in_combat
+    title: "Fallen Hero"
+    text: "You perished in combat with the outlaws."

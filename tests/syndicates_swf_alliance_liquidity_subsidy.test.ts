@@ -22,7 +22,7 @@ describe("Syndicate SWF Deflection Surcharge Alliance Liquidity Subsidy (AF-223)
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -88,7 +88,7 @@ describe("Syndicate SWF Deflection Surcharge Alliance Liquidity Subsidy (AF-223)
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -124,7 +124,7 @@ describe("Syndicate SWF Deflection Surcharge Alliance Liquidity Subsidy (AF-223)
     };
 
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 1.0,
@@ -196,14 +196,16 @@ describe("Syndicate SWF Deflection Surcharge Alliance Liquidity Subsidy (AF-223)
     // Subsidized surcharge rate = 0.35 * (1.0 - 0.4) = 0.21 (21%)
     // drawdown = 500 gold.
     // deflectionFee = Math.round(500 * 0.21) = 105 gold. (Unsubsidized would be Math.round(500 * 0.35) = 175 gold)
-    
+
     const originalWarChest = state.syndicates?.alpha?.warChest ?? 0;
     const resEconomy = tickEconomy(state, mockPack);
     const feeCharged = originalWarChest - (resEconomy.syndicates?.alpha?.warChest ?? 0);
     expect(feeCharged).toBe(105);
 
     // Let's check that the journal details the subsidy!
-    const drawdownFeeJournal = resEconomy.journal?.find(j => j.includes("Charged alliance-subsidized deflection fee of 105 gold"));
+    const drawdownFeeJournal = resEconomy.journal?.find((j) =>
+      j.includes("Charged alliance-subsidized deflection fee of 105 gold")
+    );
     expect(drawdownFeeJournal).toBeDefined();
     expect(drawdownFeeJournal).toContain("Allied Wealth: 3000");
     expect(drawdownFeeJournal).toContain("Subsidy: 40.0% discount");

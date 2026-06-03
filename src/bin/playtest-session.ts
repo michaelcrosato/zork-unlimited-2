@@ -74,9 +74,7 @@ function parseArgs(): {
   }
 
   if (!PERSONA_IDS.includes(personaId)) {
-    console.error(
-      `❌ Error: Unknown persona '${personaId}'. Valid: ${PERSONA_IDS.join(", ")}`
-    );
+    console.error(`❌ Error: Unknown persona '${personaId}'. Valid: ${PERSONA_IDS.join(", ")}`);
     process.exit(1);
   }
 
@@ -120,9 +118,7 @@ async function main(): Promise<void> {
       : process.env.OPENAI_MODEL || "gpt-4o-mini";
 
   if (isMock) {
-    console.error(
-      "⚠️  No API key found — using MockLlmClient (deterministic but limited)"
-    );
+    console.error("⚠️  No API key found — using MockLlmClient (deterministic but limited)");
   } else {
     console.error(`🤖 Using model: ${modelName}`);
   }
@@ -167,18 +163,8 @@ async function main(): Promise<void> {
   try {
     const tracesDir = resolve(PROJECT_ROOT, "traces");
     mkdirSync(tracesDir, { recursive: true });
-    const traceFile = resolve(
-      tracesDir,
-      `playtest_${result.session.sessionId}.json`
-    );
-    writeFileSync(
-      traceFile,
-      JSON.stringify(
-        { sessionId: result.session.sessionId, turns: result.turnLogs },
-        null,
-        2
-      )
-    );
+    const traceFile = resolve(tracesDir, `playtest_${result.session.sessionId}.json`);
+    writeFileSync(traceFile, JSON.stringify({ sessionId: result.session.sessionId, turns: result.turnLogs }, null, 2));
     console.error(`   📼 Trace saved: ${traceFile}`);
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : String(err);

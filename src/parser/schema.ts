@@ -34,9 +34,13 @@ export const ParserObjectSchema = z.object({
   key_id: z.string().optional(),
   contents: z.array(z.string()).optional().default([]),
   interactions: z.array(ObjectInteractionSchema).optional().default([]),
+  light_source: z.boolean().optional(),
   cost: z.number().optional(),
   climate_pricing: z.record(z.string(), z.number()).optional(),
   contraband: z.boolean().optional(),
+  required_prestige: z.number().optional(),
+  required_reputation: z.number().optional(),
+  required_alliance: z.boolean().optional(),
 });
 
 export type ParserObject = z.infer<typeof ParserObjectSchema>;
@@ -77,6 +81,15 @@ export const ParserNPCSchema = z.object({
   dialogue: z.object({
     root: z.string(),
     nodes: z.array(DialogueNodeSchema),
+    greeting_overrides: z
+      .array(
+        z.object({
+          node: z.string(),
+          conditions: z.array(ConditionSchema),
+        })
+      )
+      .optional()
+      .default([]),
   }),
   // RPG stats (Stage 4)
   hp: z.number().optional(),
@@ -94,6 +107,8 @@ export const ParserNPCSchema = z.object({
   faction: z.string().optional(),
   dynamic_pricing: z.boolean().optional(),
   max_heat: z.number().optional(),
+  resistances: z.array(z.string()).optional().default([]),
+  weaknesses: z.array(z.string()).optional().default([]),
 });
 
 export type ParserNPC = z.infer<typeof ParserNPCSchema>;
@@ -107,6 +122,8 @@ export const ParserRoomSchema = z.object({
   exits: z.array(ParserExitSchema).default([]),
   weather_pool: z.array(z.string()).optional(),
   faction: z.string().optional(),
+  dark: z.boolean().optional(),
+  scenery: z.record(z.string(), z.string()).optional().default({}),
 });
 
 export type ParserRoom = z.infer<typeof ParserRoomSchema>;
@@ -129,12 +146,21 @@ export type ParserEnding = z.infer<typeof ParserEndingSchema>;
 
 export const ProceduralRoomTemplateSchema = z.object({
   id: z.string(),
-  name_pool: z.array(z.string()),
-  description_pool: z.array(z.string()),
+  name_pool: z.array(z.string()).optional().default([]),
+  description_pool: z.array(z.string()).optional().default([]),
+  name_prefixes: z.array(z.string()).optional().default([]),
+  name_adjectives: z.array(z.string()).optional().default([]),
+  name_nouns: z.array(z.string()).optional().default([]),
+  name_suffixes: z.array(z.string()).optional().default([]),
   possible_objects: z.array(z.string()).optional().default([]),
   possible_npcs: z.array(z.string()).optional().default([]),
   exits: z.array(ParserExitSchema).optional().default([]),
   weather_pool: z.array(z.string()).optional(),
+  environment_descriptions: z.record(z.string(), z.array(z.string())).optional().default({}),
+  item_drops: z
+    .array(z.object({ item_id: z.string(), chance: z.number() }))
+    .optional()
+    .default([]),
 });
 
 export type ProceduralRoomTemplate = z.infer<typeof ProceduralRoomTemplateSchema>;
@@ -147,6 +173,20 @@ export const FactionSchema = z.object({
 });
 
 export type Faction = z.infer<typeof FactionSchema>;
+
+export const RecipeSchema = z.object({
+  id: z.string(),
+  ingredients: z.array(z.string()),
+  tools: z.array(z.string()).optional().default([]),
+  result: z.string(),
+  text: z.string().optional(),
+  conditions: z.array(ConditionSchema).optional().default([]),
+  effects: z.array(EffectSchema).optional().default([]),
+  success_msg: z.string().optional(),
+  failure_msg: z.string().optional(),
+});
+
+export type Recipe = z.infer<typeof RecipeSchema>;
 
 export const ParserPackSchema = z.object({
   meta: z.object({
@@ -163,13 +203,16 @@ export const ParserPackSchema = z.object({
   win_conditions: z.array(ParserWinConditionSchema).default([]),
   endings: z.array(ParserEndingSchema).default([]),
   procedural_templates: z.array(ProceduralRoomTemplateSchema).optional(),
-  network_templates: z.object({
-    arrival: z.string().optional(),
-    departure: z.string().optional(),
-    sync: z.string().optional(),
-    territory_conquest: z.string().optional(),
-    alliance_battle: z.string().optional(),
-  }).optional(),
+  recipes: z.array(RecipeSchema).optional(),
+  network_templates: z
+    .object({
+      arrival: z.string().optional(),
+      departure: z.string().optional(),
+      sync: z.string().optional(),
+      territory_conquest: z.string().optional(),
+      alliance_battle: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type ParserPack = z.infer<typeof ParserPackSchema>;

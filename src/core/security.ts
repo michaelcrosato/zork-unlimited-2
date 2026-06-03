@@ -40,7 +40,7 @@ export function verifyTransactionSignature(tx: Transaction, publicKey: string): 
   // Extract the agent ID from the public key prefix (e.g. "pubkey:alice" -> "alice")
   const agentId = publicKey.replace(/^pubkey:/, "");
   const expectedPrivateKey = `privkey:${agentId}`;
-  
+
   const expectedSignature = signTransaction(tx, expectedPrivateKey);
   return tx.signature === expectedSignature;
 }

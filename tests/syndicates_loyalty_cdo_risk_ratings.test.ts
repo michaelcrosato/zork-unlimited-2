@@ -54,9 +54,30 @@ describe("Syndicate Bank Multi-Faction Loyalty-Based CDO Risk Ratings & Automate
         assets: [],
         totalValue: 300,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 150, ownership: { alpha_squad: 150 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 90, ownership: { alpha_squad: 90 }, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 60, ownership: { alpha_squad: 60 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 150,
+            ownership: { alpha_squad: 150 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 90,
+            ownership: { alpha_squad: 90 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 60,
+            ownership: { alpha_squad: 60 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -212,9 +233,7 @@ describe("Syndicate Bank Multi-Faction Loyalty-Based CDO Risk Ratings & Automate
         id: "group_1",
         syndicateId: "alpha",
         members: ["player"],
-        collaterals: [
-          { agentId: "player", collateralType: "safehouse", collateralId: "market" }
-        ],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "market" }],
         amount: 200,
         interestAccrued: 0,
         borrowStep: 1,
@@ -299,13 +318,34 @@ describe("Syndicate Bank Multi-Faction Loyalty-Based CDO Risk Ratings & Automate
             assetId: "player",
             value: 210,
             originalLoan: mockLoan,
-          }
+          },
         ],
         totalValue: 210,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 210, ownership: { alpha: 210 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 0, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 0, ownership: {}, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 210,
+            ownership: { alpha: 210 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -391,7 +431,7 @@ describe("Syndicate Bank Multi-Faction Loyalty-Based CDO Risk Ratings & Automate
     const contract = nextState.reinsuranceContracts?.["alpha:beta"];
     expect(contract?.borrowedAfromB).toBe(243);
 
-    expect(nextState.journal?.some(j => j.includes("Automated Reinsurance Claims Arbitration"))).toBe(true);
+    expect(nextState.journal?.some((j) => j.includes("Automated Reinsurance Claims Arbitration"))).toBe(true);
   });
 
   it("should periodically run automated reinsurance audit collections and apply loyalty rank standing discounts", () => {

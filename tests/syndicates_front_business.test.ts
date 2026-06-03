@@ -511,7 +511,7 @@ describe("Crime Syndicate Laundering & Front Businesses (AF-50)", () => {
     const front = tickedState.frontBusinesses?.["merchant_timmy"];
     expect(front?.dirtyGold).toBe(0); // All dirty gold confiscated
     // Clean gold was halved: 160 - Math.floor(160/2) = 80
-    // Wait, let's trace: 
+    // Wait, let's trace:
     // In tickEconomy: first, laundering is run.
     // At level 1, rate is 50. So 50 dirty is laundered.
     // clean becomes 160 + 50 = 210, dirty becomes 100 - 50 = 50.
@@ -526,7 +526,7 @@ describe("Crime Syndicate Laundering & Front Businesses (AF-50)", () => {
     expect(tickedState.enforcementHeat?.["market"].heat).toBe(0);
 
     // Journal contains the sweep entry
-    const hasSweepJournal = tickedState.journal.some(j => j.includes("Enforcer sweep triggered"));
+    const hasSweepJournal = tickedState.journal.some((j) => j.includes("Enforcer sweep triggered"));
     expect(hasSweepJournal).toBe(true);
   });
 
@@ -587,7 +587,7 @@ describe("Crime Syndicate Laundering & Front Businesses (AF-50)", () => {
     expect(tickedState.syndicates?.["shadow_cartel"].dominance).toBe(85);
 
     // Journal contains the boost entry
-    const hasBoostJournal = tickedState.journal.some(j => j.includes("Regional market boost triggered"));
+    const hasBoostJournal = tickedState.journal.some((j) => j.includes("Regional market boost triggered"));
     expect(hasBoostJournal).toBe(true);
   });
 });

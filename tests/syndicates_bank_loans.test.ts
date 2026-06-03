@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState, getSyndicateLoanLimit, isCollateralLocked, cloneStateWithoutHistory, reconcileIndividualLoanCollateralSwaps } from "../src/core/state.js";
+import {
+  createInitialState,
+  getSyndicateLoanLimit,
+  isCollateralLocked,
+  cloneStateWithoutHistory,
+  reconcileIndividualLoanCollateralSwaps,
+} from "../src/core/state.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { tickEconomy } from "../src/core/economy.js";
@@ -270,7 +276,7 @@ describe("Smuggler Syndicate Cartel Bank Loans, Collateral-Gated Borrowing, & En
 
     expect(paybackRes1.ok).toBe(true);
     expect(paybackRes1.state.vars["gold"]).toBe(250);
-    
+
     let updatedLoan = paybackRes1.state.syndicateBanks?.["blood_fangs"]?.loans?.["player"];
     expect(updatedLoan?.interestAccrued).toBe(0);
     expect(updatedLoan?.amount).toBe(162);
@@ -986,7 +992,9 @@ describe("Smuggler Syndicate Cartel Bank Loans, Collateral-Gated Borrowing, & En
     expect(vote2.state.syndicateBanks?.["blood_fangs"]?.loans?.["player"]?.collateralId).toBe("hideout");
     // Votes should be cleared
     expect(vote2.state.individualLoanCollateralSwapVotes?.["blood_fangs"]?.["player"]?.["player"]).toBeUndefined();
-    expect(vote2.state.journal).toContain("[Syndicate Bank] Individual loan collateral swap for agent player in syndicate blood_fangs bank approved! Swapped clearing (safehouse) with hideout (safehouse).");
+    expect(vote2.state.journal).toContain(
+      "[Syndicate Bank] Individual loan collateral swap for agent player in syndicate blood_fangs bank approved! Swapped clearing (safehouse) with hideout (safehouse)."
+    );
 
     // 5. Test Gossip merge/convergence of the vote maps
     let nodeX = cloneStateWithoutHistory(vote1.state); // player voted

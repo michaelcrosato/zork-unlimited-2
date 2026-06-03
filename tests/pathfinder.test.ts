@@ -269,5 +269,68 @@ describe("Graph Pathfinding & Soft-lock Validator Tests", () => {
       expect(unreachableWin).toBeDefined();
       expect(unreachableWin?.message).toContain("ending_secret");
     });
+
+    it("should solve a multi-agent cooperative trading scenario deterministically", () => {
+      const coopPack: ParserPack = {
+        meta: {
+          id: "coop_trading_puzzle",
+          title: "Cooperative Trading Puzzle",
+          start_room: "room_a",
+          vars_init: {},
+          flags_init: [],
+        },
+        rooms: [
+          {
+            id: "room_a",
+            name: "Room A",
+            description: "A small trading chamber.",
+            objects: ["key_a"],
+            npcs: [],
+            exits: [{ direction: "east", to: "room_b", conditions: [{ has_flag: "coop_trade_done" }] }],
+          },
+          {
+            id: "room_b",
+            name: "Room B",
+            description: "Victory chamber.",
+            objects: [],
+            npcs: [],
+            exits: [],
+          },
+        ],
+        objects: [
+          {
+            id: "key_a",
+            name: "key a",
+            description: "A shiny key.",
+            takeable: true,
+          },
+        ],
+        npcs: [],
+        win_conditions: [
+          {
+            id: "both_win",
+            ending: "ending_victory",
+            conditions: [{ has_flag: "coop_trade_done" }],
+          },
+        ],
+        endings: [
+          {
+            id: "ending_victory",
+            title: "Victory",
+            text: "Cooperative trade completed successfully!",
+          },
+        ],
+      };
+
+      // When checking softlocks with two agents, it should solve successfully without errors/warnings.
+      const findings = checkParserSoftlocks(coopPack, ["agent_a", "agent_b"]);
+      const unsolvable = findings.find((f) => f.code === "UNSOLVABLE_GAME");
+      expect(unsolvable).toBeUndefined();
+
+      // If we run it without any agents, it is unsolvable (as a single player cannot be in two places/inventories at once).
+      const singleFindings = checkParserSoftlocks(coopPack);
+      const singleUnsolvable = singleFindings.find((f) => f.code === "UNSOLVABLE_GAME");
+      expect(singleUnsolvable).toBeDefined();
+    });
   });
 });

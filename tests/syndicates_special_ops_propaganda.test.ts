@@ -312,7 +312,7 @@ describe("Smuggler Syndicate Cartel Special Operations, Sabotage Covert Cells, a
 
       // Verify that counter-attack was bypassed (syndicate control remains intact!)
       expect(tickedState.territoryControl?.["market"]).toBe("shadow_cartel");
-      expect(tickedState.journal.some(j => j.includes("successfully sabotaged the rangers siege plans"))).toBe(true);
+      expect(tickedState.journal.some((j) => j.includes("successfully sabotaged the rangers siege plans"))).toBe(true);
     });
 
     it("should disable local hostile outposts during periodic sabotage checks", () => {
@@ -369,7 +369,9 @@ describe("Smuggler Syndicate Cartel Special Operations, Sabotage Covert Cells, a
 
       expect(found).toBe(true);
       expect(tickedState!.turfGuardOutposts?.["market"].disabled).toBe(true);
-      expect(tickedState!.journal.some(j => j.includes("sabotaged and disabled the local hostile outpost"))).toBe(true);
+      expect(tickedState!.journal.some((j) => j.includes("sabotaged and disabled the local hostile outpost"))).toBe(
+        true
+      );
     });
   });
 
@@ -469,7 +471,7 @@ describe("Smuggler Syndicate Cartel Special Operations, Sabotage Covert Cells, a
 
       // Normally: base tax 10 * war scaling 4 = 40 gold.
       // With level 2 cell (50% discount): 40 * 0.5 = 20 gold.
-      
+
       const res = step(state, { type: "MOVE", direction: "NORTH" }, mockPack, "player");
 
       expect(res.ok).toBe(true);

@@ -12,7 +12,7 @@ import { canonicalStringify } from "../core/hash.js";
  * unsolvable games and soft-locks where no endings are reachable.
  */
 export function checkCYOASoftlocks(pack: CYOAPack): ValidationFinding[] {
-  const hasEndings = (pack.endings && pack.endings.length > 0) || pack.scenes.some(s => s.is_ending);
+  const hasEndings = (pack.endings && pack.endings.length > 0) || pack.scenes.some((s) => s.is_ending);
   if (!hasEndings) {
     return [];
   }
@@ -28,7 +28,6 @@ export function checkCYOASoftlocks(pack: CYOAPack): ValidationFinding[] {
   });
 
   // State-space search (BFS)
-  const queue: GameState[] = [initialState];
   const visited = new Map<string, GameState>();
   const parentMap = new Map<string, string[]>();
   const transitionGraph = new Map<string, Set<string>>();
@@ -56,6 +55,7 @@ export function checkCYOASoftlocks(pack: CYOAPack): ValidationFinding[] {
   };
 
   const initialKey = getStateKey(initialState);
+  const queue: { state: GameState; key: string }[] = [{ state: initialState, key: initialKey }];
   visited.set(initialKey, initialState);
   transitionGraph.set(initialKey, new Set<string>());
 
@@ -64,8 +64,7 @@ export function checkCYOASoftlocks(pack: CYOAPack): ValidationFinding[] {
   let limitReached = false;
 
   while (queue.length > 0) {
-    const currState = queue.shift()!;
-    const currKey = getStateKey(currState);
+    const { state: currState, key: currKey } = queue.shift()!;
     statesExplored++;
 
     if (statesExplored > maxStates) {
@@ -91,7 +90,7 @@ export function checkCYOASoftlocks(pack: CYOAPack): ValidationFinding[] {
       const result = step(currState, action, pack);
       if (result.ok) {
         const nextKey = getStateKey(result.state);
-        
+
         if (!transitionGraph.has(currKey)) {
           transitionGraph.set(currKey, new Set());
         }
@@ -99,7 +98,7 @@ export function checkCYOASoftlocks(pack: CYOAPack): ValidationFinding[] {
 
         if (!visited.has(nextKey)) {
           visited.set(nextKey, result.state);
-          queue.push(result.state);
+          queue.push({ state: result.state, key: nextKey });
         }
 
         if (!parentMap.has(nextKey)) {
@@ -239,6 +238,235 @@ export function validateCYOAPack(rawPack: unknown): ValidationReport {
     }
   }
 
+  // Scan recipes for flag/item producers and check for duplicate recipe IDs
+  if ((pack as any).recipes) {
+    const recipeIds = new Set<string>();
+    for (const recipe of (pack as any).recipes) {
+      if (recipeIds.has(recipe.id)) {
+        findings.push({
+          severity: "error",
+          code: "DUPLICATE_RECIPE_ID",
+          message: `Duplicate recipe ID: '${recipe.id}'.`,
+          where: [`recipes:${recipe.id}`],
+        });
+      }
+      recipeIds.add(recipe.id);
+      addedItems.add(recipe.result);
+      scanEffects(recipe.effects || []);
+    }
+  }
+  // 2b. Scene Choice IDs, Text, Target & Cyclic Transition Checks
+  pack.scenes.forEach((scene) => {
+    const choiceIds = new Set<string>();
+    const choiceTexts = new Set<string>();
+    const choiceTargets = new Set<string>();
+
+    scene.choices.forEach((choice) => {
+      // Check for duplicate choice IDs inside the same scene
+      if (choiceIds.has(choice.id)) {
+        findings.push({
+          severity: "error",
+          code: "DUPLICATE_CHOICE_ID",
+          message: `Scene '${scene.id}' has duplicate choice ID definitions for '${choice.id}'.`,
+          where: [`scene:${scene.id}`, "choices"],
+        });
+      }
+      choiceIds.add(choice.id);
+
+      // Check for duplicate choice prompt text
+      const normText = choice.text.trim().toLowerCase();
+      if (choiceTexts.has(normText)) {
+        findings.push({
+          severity: "warning",
+          code: "DUPLICATE_CHOICE_TEXT",
+          message: `Scene '${scene.id}' has duplicate choice prompt text: '${choice.text}'.`,
+          where: [`scene:${scene.id}`, `choice:${choice.id}`],
+        });
+      }
+      choiceTexts.add(normText);
+
+      // Check for duplicate choice targets
+      if (choiceTargets.has(choice.next)) {
+        findings.push({
+          severity: "warning",
+          code: "DUPLICATE_CHOICE_TARGET",
+          message: `Scene '${scene.id}' has duplicate choice targets leading to '${choice.next}'.`,
+          where: [`scene:${scene.id}`, `choice:${choice.id}`],
+        });
+      }
+      choiceTargets.add(choice.next);
+
+      // Check for cyclic transition in choice (leads back to itself)
+      if (choice.next === scene.id) {
+        findings.push({
+          severity: "warning",
+          code: "CYCLIC_SCENE_REFERENCE",
+          message: `Scene '${scene.id}' choice '${choice.id}' is self-referencing (leads back to itself).`,
+          where: [`scene:${scene.id}`, `choice:${choice.id}`],
+        });
+      }
+    });
+
+    // Check for cyclic transition in on_enter goto
+    scene.on_enter.forEach((eff) => {
+      if ("goto" in eff && eff.goto === scene.id) {
+        findings.push({
+          severity: "error",
+          code: "CYCLIC_SCENE_REFERENCE",
+          message: `Scene '${scene.id}' has a self-referencing on_enter goto transition (leads back to itself).`,
+          where: [`scene:${scene.id}`, "on_enter"],
+        });
+      }
+    });
+  });
+
+  // 2c. Deep Cyclic Transition detection for automatic on_enter gotos
+  const gotoAdj = new Map<string, string[]>();
+  for (const scene of pack.scenes) {
+    const gotos: string[] = [];
+    for (const eff of scene.on_enter) {
+      if ("goto" in eff) {
+        gotos.push(eff.goto);
+      }
+    }
+    if (gotos.length > 0) {
+      gotoAdj.set(scene.id, gotos);
+    }
+  }
+
+  const visitedForCycle = new Set<string>();
+  const recStack = new Set<string>();
+
+  function dfsFindGotoCycle(nodeId: string, path: string[]): boolean {
+    visitedForCycle.add(nodeId);
+    recStack.add(nodeId);
+    path.push(nodeId);
+
+    const neighbors = gotoAdj.get(nodeId) || [];
+    for (const neighbor of neighbors) {
+      if (!visitedForCycle.has(neighbor)) {
+        if (dfsFindGotoCycle(neighbor, path)) {
+          return true;
+        }
+      } else if (recStack.has(neighbor)) {
+        const cycleStartIndex = path.indexOf(neighbor);
+        const cyclePath = path.slice(cycleStartIndex).concat(neighbor);
+        if (cyclePath.length > 2) {
+          findings.push({
+            severity: "error",
+            code: "CYCLIC_SCENE_REFERENCE",
+            message: `Infinite transition loop detected in on_enter gotos: ${cyclePath.join(" -> ")}`,
+            where: [`scene:${nodeId}`, "on_enter"],
+          });
+          return true;
+        }
+      }
+    }
+
+    recStack.delete(nodeId);
+    path.pop();
+    return false;
+  }
+
+  for (const scene of pack.scenes) {
+    if (!visitedForCycle.has(scene.id)) {
+      const path: string[] = [];
+      dfsFindGotoCycle(scene.id, path);
+    }
+  }
+
+  // 2d. Deep Cyclic Scene Reference detection via one-way transitions
+  const sceneAdj = new Map<string, string[]>();
+  for (const scene of pack.scenes) {
+    const oneWayDestinations: string[] = [];
+    const targets = new Set<string>();
+    for (const choice of scene.choices) {
+      targets.add(choice.next);
+    }
+    for (const eff of scene.on_enter) {
+      if ("goto" in eff) {
+        targets.add(eff.goto);
+      }
+    }
+
+    for (const dest of targets) {
+      if (!sceneIds.has(dest)) continue;
+
+      const targetScene = pack.scenes.find((s) => s.id === dest);
+      let hasReturn = false;
+      if (targetScene) {
+        const targetOutgoing = new Set<string>();
+        for (const c of targetScene.choices) targetOutgoing.add(c.next);
+        for (const eff of targetScene.on_enter) {
+          if ("goto" in eff) targetOutgoing.add(eff.goto);
+        }
+        if (targetOutgoing.has(scene.id)) {
+          hasReturn = true;
+        }
+      }
+
+      if (!hasReturn) {
+        oneWayDestinations.push(dest);
+      }
+    }
+
+    if (oneWayDestinations.length > 0) {
+      sceneAdj.set(scene.id, oneWayDestinations);
+    }
+  }
+
+  const rotateCycle = (path: string[]): string => {
+    if (path.length === 0) return "";
+    let minIdx = 0;
+    for (let i = 1; i < path.length; i++) {
+      if (path[i] < path[minIdx]) {
+        minIdx = i;
+      }
+    }
+    const rotated = [...path.slice(minIdx), ...path.slice(0, minIdx)];
+    return rotated.join(" -> ");
+  };
+
+  const cyoaVisitedForCycle = new Set<string>();
+  const cyoaRecStack = new Set<string>();
+  const cyoaReportedCycles = new Set<string>();
+
+  function dfsFindSceneCycle(nodeId: string, path: string[]) {
+    cyoaVisitedForCycle.add(nodeId);
+    cyoaRecStack.add(nodeId);
+    path.push(nodeId);
+
+    const neighbors = sceneAdj.get(nodeId) || [];
+    for (const neighbor of neighbors) {
+      if (!cyoaVisitedForCycle.has(neighbor)) {
+        dfsFindSceneCycle(neighbor, path);
+      } else if (cyoaRecStack.has(neighbor)) {
+        const cycleStartIndex = path.indexOf(neighbor);
+        const cyclePath = path.slice(cycleStartIndex);
+
+        const cycleKey = rotateCycle(cyclePath);
+        if (!cyoaReportedCycles.has(cycleKey)) {
+          cyoaReportedCycles.add(cycleKey);
+          findings.push({
+            severity: "warning",
+            code: "CYCLIC_SCENE_REFERENCE",
+            message: `Cyclic scene reference loop detected via one-way transitions: ${cyclePath.concat(neighbor).join(" -> ")}`,
+            where: [`scene:${nodeId}`],
+          });
+        }
+      }
+    }
+
+    cyoaRecStack.delete(nodeId);
+    path.pop();
+  }
+
+  for (const scene of pack.scenes) {
+    if (!cyoaVisitedForCycle.has(scene.id)) {
+      dfsFindSceneCycle(scene.id, []);
+    }
+  }
+
   // 3. BFS Traversal to verify reachability and reference integrity
   const queue: string[] = [pack.meta.start];
   const visitedScenes = new Set<string>([pack.meta.start]);
@@ -375,7 +603,7 @@ export function validateCYOAPack(rawPack: unknown): ValidationReport {
       endingTexts.set(normalized, existing);
     }
 
-    for (const [text, ids] of endingTexts.entries()) {
+    for (const ids of endingTexts.values()) {
       if (ids.length > 1) {
         findings.push({
           severity: "warning",

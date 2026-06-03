@@ -5,6 +5,7 @@ import { parse as parseYaml } from "yaml";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
 import { validateParserPack } from "../validate/parser_validator.js";
 import { formatValidationReport } from "../validate/report.js";
+import { isCyoaPack } from "../core/pack.js";
 
 function main() {
   const args = process.argv.slice(2);
@@ -42,7 +43,7 @@ function main() {
   }
 
   let report;
-  if ("scenes" in packData) {
+  if (isCyoaPack(packData)) {
     console.log("Detecting CYOA pack format.");
     report = validateCYOAPack(packData);
   } else if ("rooms" in packData) {

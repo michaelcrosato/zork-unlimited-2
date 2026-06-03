@@ -5,12 +5,14 @@ import { step } from "../core/engine.js";
 import { Action } from "../api/types.js";
 import { generateLegalActions } from "../parser/legal_actions.js";
 import { canonicalStringify } from "../core/hash.js";
+import { evaluateConditions } from "../core/conditions.js";
+import { multiAgentStep } from "../core/sync.js";
 
 /**
  * Explores the entire state space of a Parser pack using BFS to identify
  * unsolvable games, soft-locks (e.g. dropping quest items), and unreachable win conditions/objects.
  */
-export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
+export function checkParserSoftlocks(pack: ParserPack, agentsInit?: string[]): ValidationFinding[] {
   if (!pack.win_conditions || pack.win_conditions.length === 0) {
     return [];
   }
@@ -24,7 +26,17 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
     varsInit: pack.meta.vars_init,
     flagsInit: pack.meta.flags_init,
     factionRepInit: getFactionRepInit(pack),
+    agentsInit,
   });
+
+  // Evaluate win conditions on the initial state in case the game is won instantly
+  for (const winCond of pack.win_conditions) {
+    if (evaluateConditions(initialState, winCond.conditions)) {
+      initialState.ended = true;
+      initialState.endingId = winCond.ending;
+      break;
+    }
+  }
 
   const packStr = JSON.stringify(pack);
   const hasWeather = packStr.includes('"weather_is"') || packStr.includes('"temperature_is"');
@@ -43,6 +55,13 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
     if (state.merchantInventories) {
       clean.merchantInventories = state.merchantInventories;
     }
+    if (state.agents) {
+      clean.agents = Object.entries(state.agents).map(([agentId, agentState]) => ({
+        agentId,
+        current: agentState.current,
+        inventory: [...agentState.inventory].sort(),
+      }));
+    }
     if (hasWeather && state.environment) {
       clean.environment = {
         weather: state.environment.weather,
@@ -53,22 +72,21 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
   };
 
   // State-space search (BFS)
-  const queue: GameState[] = [initialState];
+  const initialKey = getStateKey(initialState);
+  const queue: { state: GameState; key: string }[] = [{ state: initialState, key: initialKey }];
   const visited = new Map<string, GameState>();
   const parentMap = new Map<string, string[]>();
   const transitionGraph = new Map<string, Set<string>>();
   const transitionActions = new Map<string, Action>();
 
-  const initialKey = getStateKey(initialState);
   visited.set(initialKey, initialState);
 
-  const maxStates = 2000;
+  const maxStates = 15000;
   let statesExplored = 0;
   let limitReached = false;
 
   while (queue.length > 0) {
-    const currState = queue.shift()!;
-    const currKey = getStateKey(currState);
+    const { state: currState, key: currKey } = queue.shift()!;
     statesExplored++;
 
     if (statesExplored > maxStates) {
@@ -80,13 +98,63 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
       continue;
     }
 
-    const legalActions = generateLegalActions(currState, pack);
+    const legalActionsWithAgents: { agentId?: string; action: Action }[] = [];
 
-    for (const legalAct of legalActions) {
-      if (legalAct.action.type === "DROP") {
+    if (currState.agents) {
+      // Multi-agent state: generate legal actions for each agent
+      for (const agentId of Object.keys(currState.agents)) {
+        const agentState = currState.agents[agentId];
+        const localState: GameState = {
+          ...currState,
+          current: agentState.current,
+          inventory: [...agentState.inventory],
+        };
+        const localActions = generateLegalActions(localState, pack);
+        for (const la of localActions) {
+          legalActionsWithAgents.push({ agentId, action: la.action });
+        }
+        // Also generate GIVE_AGENT actions for agents in the same room
+        const otherAgentsInRoom = Object.keys(currState.agents).filter(
+          (oid) => oid !== agentId && currState.agents?.[oid]?.current === agentState.current
+        );
+        for (const targetAgentId of otherAgentsInRoom) {
+          for (const itemId of agentState.inventory) {
+            legalActionsWithAgents.push({
+              agentId,
+              action: {
+                type: "GIVE_AGENT" as any,
+                targetAgentId,
+                item: itemId,
+                timestamp: currState.step * 1000 + 1,
+              } as any,
+            });
+          }
+        }
+      }
+    } else {
+      // Single-player state
+      const legalActions = generateLegalActions(currState, pack);
+      for (const la of legalActions) {
+        legalActionsWithAgents.push({ action: la.action });
+      }
+    }
+
+    for (const legalAct of legalActionsWithAgents) {
+      if (
+        legalAct.action.type === "DROP" ||
+        legalAct.action.type === "LOOK" ||
+        legalAct.action.type === "INSPECT" ||
+        legalAct.action.type === "INVENTORY"
+      ) {
         continue;
       }
-      const result = step(currState, legalAct.action, pack);
+
+      let result;
+      if (legalAct.agentId) {
+        result = multiAgentStep(currState, { agentId: legalAct.agentId, action: legalAct.action }, pack);
+      } else {
+        result = step(currState, legalAct.action, pack);
+      }
       if (result.ok) {
         const nextKey = getStateKey(result.state);
 
@@ -97,7 +165,7 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
 
         if (!visited.has(nextKey)) {
           visited.set(nextKey, result.state);
-          queue.push(result.state);
+          queue.push({ state: result.state, key: nextKey });
         }
 
         if (!parentMap.has(nextKey)) {
@@ -206,7 +274,7 @@ export function checkParserSoftlocks(pack: ParserPack): ValidationFinding[] {
 
   // Check unreachable win conditions
   const reachedEndings = new Set<string>();
-  for (const [key, state] of visited.entries()) {
+  for (const state of visited.values()) {
     if (state.ended && state.endingId) {
       reachedEndings.add(state.endingId);
     }
@@ -320,6 +388,103 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
       });
     }
   }
+  // 3b. Exit Direction & Cyclic Check
+  pack.rooms.forEach((room) => {
+    const exitDirections = new Set<string>();
+    room.exits.forEach((exit) => {
+      // Check for duplicate directions
+      if (exitDirections.has(exit.direction)) {
+        findings.push({
+          severity: "error",
+          code: "DUPLICATE_DIRECTION",
+          message: `Room '${room.id}' has duplicate exit direction definitions for '${exit.direction}'.`,
+          where: [`room:${room.id}`, "exits"],
+        });
+      }
+      exitDirections.add(exit.direction);
+
+      // Check for self-referencing cyclic exit
+      if (exit.to === room.id) {
+        findings.push({
+          severity: "warning",
+          code: "CYCLIC_ROOM_REFERENCE",
+          message: `Room '${room.id}' has a self-referencing exit: direction '${exit.direction}' leads back to itself.`,
+          where: [`room:${room.id}`, "exits"],
+        });
+      }
+    });
+  });
+
+  // 3c. Deep Cyclic Room Reference detection via one-way exits
+  const roomAdj = new Map<string, string[]>();
+  for (const room of pack.rooms) {
+    const oneWayDestinations: string[] = [];
+    for (const exit of room.exits) {
+      if (!roomIds.has(exit.to)) continue;
+
+      const targetRoom = pack.rooms.find((r) => r.id === exit.to);
+      const hasReturnExit = targetRoom?.exits.some((e) => e.to === room.id) ?? false;
+
+      if (!hasReturnExit) {
+        oneWayDestinations.push(exit.to);
+      }
+    }
+    if (oneWayDestinations.length > 0) {
+      roomAdj.set(room.id, oneWayDestinations);
+    }
+  }
+
+  const rotateRoomCycle = (path: string[]): string => {
+    if (path.length === 0) return "";
+    let minIdx = 0;
+    for (let i = 1; i < path.length; i++) {
+      if (path[i] < path[minIdx]) {
+        minIdx = i;
+      }
+    }
+    const rotated = [...path.slice(minIdx), ...path.slice(0, minIdx)];
+    return rotated.join(" -> ");
+  };
+
+  const parserVisitedForCycle = new Set<string>();
+  const parserRecStack = new Set<string>();
+  const parserReportedCycles = new Set<string>();
+
+  function dfsFindRoomCycle(nodeId: string, path: string[]) {
+    parserVisitedForCycle.add(nodeId);
+    parserRecStack.add(nodeId);
+    path.push(nodeId);
+
+    const neighbors = roomAdj.get(nodeId) || [];
+    for (const neighbor of neighbors) {
+      if (!parserVisitedForCycle.has(neighbor)) {
+        dfsFindRoomCycle(neighbor, path);
+      } else if (parserRecStack.has(neighbor)) {
+        const cycleStartIndex = path.indexOf(neighbor);
+        const cyclePath = path.slice(cycleStartIndex);
+
+        const cycleKey = rotateRoomCycle(cyclePath);
+        if (!parserReportedCycles.has(cycleKey)) {
+          parserReportedCycles.add(cycleKey);
+          findings.push({
+            severity: "warning",
+            code: "CYCLIC_ROOM_REFERENCE",
+            message: `Cyclic room reference loop detected via one-way exits: ${cyclePath.concat(neighbor).join(" -> ")}`,
+            where: [`room:${nodeId}`, "exits"],
+          });
+        }
+      }
+    }
+
+    parserRecStack.delete(nodeId);
+    path.pop();
+  }
+
+  for (const room of pack.rooms) {
+    if (!parserVisitedForCycle.has(room.id)) {
+      dfsFindRoomCycle(room.id, []);
+    }
+  }
 
   // 4. Object Verification
   pack.objects.forEach((obj) => {
@@ -369,6 +534,19 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
         code: "INVALID_DIALOGUE_ROOT",
         message: `NPC '${npc.id}' dialogue root node '${dialogue.root}' does not exist.`,
         where: [`npc:${npc.id}`, "dialogue"],
+      });
+    }
+
+    if ((dialogue as any).greeting_overrides) {
+      (dialogue as any).greeting_overrides.forEach((override: any, idx: number) => {
+        if (!nodeIds.has(override.node)) {
+          findings.push({
+            severity: "error",
+            code: "REFERENCE_ERROR",
+            message: `NPC '${npc.id}' dialogue greeting override[${idx}] destination node '${override.node}' does not exist.`,
+            where: [`npc:${npc.id}`, "dialogue", `greeting_override:${idx}`],
+          });
+        }
       });
     }
 
@@ -500,6 +678,65 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
           });
         }
       });
+
+      temp.item_drops?.forEach((drop: any) => {
+        if (!objectIds.has(drop.item_id)) {
+          findings.push({
+            severity: "error",
+            code: "REFERENCE_ERROR",
+            message: `Procedural template '${temp.id}' references non-existent item_drop '${drop.item_id}'.`,
+            where: [`procedural_templates:${temp.id}`],
+          });
+        }
+      });
+    });
+  }
+
+  // 11. Crafting Recipes Verification
+  if (pack.recipes) {
+    const recipeIds = new Set<string>();
+    pack.recipes.forEach((recipe) => {
+      if (recipeIds.has(recipe.id)) {
+        findings.push({
+          severity: "error",
+          code: "DUPLICATE_RECIPE_ID",
+          message: `Duplicate recipe ID: '${recipe.id}'.`,
+          where: [`recipes:${recipe.id}`],
+        });
+      }
+      recipeIds.add(recipe.id);
+
+      recipe.ingredients.forEach((ingId) => {
+        if (!objectIds.has(ingId)) {
+          findings.push({
+            severity: "error",
+            code: "REFERENCE_ERROR",
+            message: `Recipe '${recipe.id}' references non-existent ingredient object '${ingId}'.`,
+            where: [`recipes:${recipe.id}`],
+          });
+        }
+      });
+
+      const tools = recipe.tools || [];
+      tools.forEach((toolId) => {
+        if (!objectIds.has(toolId)) {
+          findings.push({
+            severity: "error",
+            code: "REFERENCE_ERROR",
+            message: `Recipe '${recipe.id}' references non-existent tool object '${toolId}'.`,
+            where: [`recipes:${recipe.id}`],
+          });
+        }
+      });
+
+      if (!objectIds.has(recipe.result)) {
+        findings.push({
+          severity: "error",
+          code: "REFERENCE_ERROR",
+          message: `Recipe '${recipe.id}' references non-existent result object '${recipe.result}'.`,
+          where: [`recipes:${recipe.id}`],
+        });
+      }
     });
   }
 

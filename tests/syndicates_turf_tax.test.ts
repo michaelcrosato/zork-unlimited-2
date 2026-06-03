@@ -204,7 +204,7 @@ describe("Crime Syndicate Turf Tax & Automatic Collections (AF-53)", () => {
     expect(econState.frontBusinesses?.["merchant_timmy"]?.cleanGold).toBe(26); // 50 - 24
     expect(econState.vars["gold_agent_a"]).toBe(24);
     expect(econState.vars["totalTurfTaxesCollected"]).toBe(24);
-    expect(econState.journal.some(line => line.includes("collected 24 gold in turf taxes"))).toBe(true);
+    expect(econState.journal.some((line) => line.includes("collected 24 gold in turf taxes"))).toBe(true);
   });
 
   it("should reconcile syndicate tax votes across the P2P mesh during gossip node convergence", () => {

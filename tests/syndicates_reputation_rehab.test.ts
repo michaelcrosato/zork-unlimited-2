@@ -51,7 +51,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Slashing Recovery 
       alpha_squad: true,
     };
     state.slashingRates = {
-      alpha_squad: 0.30,
+      alpha_squad: 0.3,
     };
     state.factionReservePools = {
       rangers: 500,
@@ -216,7 +216,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Slashing Recovery 
       beta_squad: true,
     };
     state.slashingRates = {
-      beta_squad: 0.30,
+      beta_squad: 0.3,
     };
 
     const proposeAction = {

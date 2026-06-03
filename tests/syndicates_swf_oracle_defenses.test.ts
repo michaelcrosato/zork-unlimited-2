@@ -21,7 +21,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -101,7 +101,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     expect(state.sweepPoolWeatherForecastOracleStake).toBe(800);
     expect(state.sweepPoolWeatherForecastOracleProvider).toBe("alpha");
     expect(state.sweepPoolWeatherForecastOracleReputation).toBe(100);
-    
+
     // Proposing syndicate's war chest should be slashed/deducted by the 800 gold stake (and 100 proposal fee, 28 Alice vote fee)
     expect(state.syndicates?.alpha.warChest).toBe(9072);
 
@@ -144,7 +144,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
 
     // Verify that the anomaly is recorded
     expect(state.weatherForecastAnomalies).toContain(5);
-    expect(state.journal?.some(j => j.includes("[Oracle Anomaly Detected]"))).toBe(true);
+    expect(state.journal?.some((j) => j.includes("[Oracle Anomaly Detected]"))).toBe(true);
 
     // 5. File a dispute by Beta syndicate (bob)
     // Bob has 10000 war chest. Filing dispute costs 200 gold dispute stake.
@@ -210,7 +210,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // - Since reputation 50 is below threshold 60, oracle is DE-AUTHORIZED
     expect(state.sweepPoolWeatherForecastOracleAuthorized).toBe(false);
     expect(state.sweepPoolWeatherForecastOracleStake).toBe(0);
-    expect(state.journal?.some(j => j.includes("[Oracle Dispute Resolved - Slashed]"))).toBe(true);
+    expect(state.journal?.some((j) => j.includes("[Oracle Dispute Resolved - Slashed]"))).toBe(true);
   });
 
   it("should penalize disputing syndicate if dispute is dismissed", () => {
@@ -301,7 +301,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // 50% of disputeStake (150 gold) rewarded to oracle provider alpha, 50% (150 gold) to sweep pool
     expect(state.syndicates?.alpha.warChest).toBe(10150);
     expect(state.swfStakingSweepPool).toBe(150);
-    expect(state.journal?.some(j => j.includes("[Oracle Dispute Dismissed - Slashed]"))).toBe(true);
+    expect(state.journal?.some((j) => j.includes("[Oracle Dispute Dismissed - Slashed]"))).toBe(true);
   });
 
   it("should support multiple oracles, aggregate forecasting, and selective joint slashing during disputes (AF-216)", () => {
@@ -421,9 +421,9 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // Introduce weather forecast overrides for step 5
     state.weatherForecastOracleIndividualOverrides = {
       "5": {
-        "oracle_prop_1": 80,
-        "oracle_prop_2": 10,
-      }
+        oracle_prop_1: 80,
+        oracle_prop_2: 10,
+      },
     };
 
     // Run economy tick at step 0 to schedule prediction
@@ -440,7 +440,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // Verify the predictions saved in history
     expect(state.weatherForecastOracleHistory?.["5"]?.["oracle_prop_1"]).toBe(80);
     expect(state.weatherForecastOracleHistory?.["5"]?.["oracle_prop_2"]).toBe(10);
-    
+
     // Weighted average: (80*100 + 10*100) / 200 = 45
     expect(state.weatherForecastHistory?.["5"]).toBe(45);
 
@@ -538,7 +538,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // Propose and authorize Oracle 1 and Oracle 2
     state.sweepPoolWeatherForecastOracleAuthorized = true;
     state.weatherForecastOracles = {
-      "oracle_prop_1": {
+      oracle_prop_1: {
         id: "oracle_prop_1",
         provider: "alpha",
         stake: 800,
@@ -547,7 +547,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         reputationThreshold: 60,
         timestamp: 1000,
       },
-      "oracle_prop_2": {
+      oracle_prop_2: {
         id: "oracle_prop_2",
         provider: "beta",
         stake: 1000,
@@ -555,7 +555,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         accuracyFloor: 85,
         reputationThreshold: 50,
         timestamp: 1000,
-      }
+      },
     };
 
     // Register anomaly
@@ -640,7 +640,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // 1. Authorize 2 Oracles to create a multi-oracle setup
     state.sweepPoolWeatherForecastOracleAuthorized = true;
     state.weatherForecastOracles = {
-      "oracle_prop_1": {
+      oracle_prop_1: {
         id: "oracle_prop_1",
         provider: "alpha",
         stake: 800,
@@ -649,7 +649,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         reputationThreshold: 60,
         timestamp: 1000,
       },
-      "oracle_prop_2": {
+      oracle_prop_2: {
         id: "oracle_prop_2",
         provider: "beta",
         stake: 1000,
@@ -657,15 +657,15 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         accuracyFloor: 85,
         reputationThreshold: 50,
         timestamp: 1000,
-      }
+      },
     };
 
     // Populate oracle predictions history at anomalyStep 5 to make it a multi-oracle failure
     state.weatherForecastOracleHistory = {
       "5": {
-        "oracle_prop_1": 80,
-        "oracle_prop_2": 80,
-      }
+        oracle_prop_1: 80,
+        oracle_prop_2: 80,
+      },
     };
     state.weatherForecastHistory = {
       "5": 80,
@@ -754,7 +754,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // Dispute should remain unresolved/deferred!
     expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_multi_1"]?.resolved).toBe(false);
     expect(state.sweepPoolWeatherForecastOracleDisputes?.["dispute_multi_1"]?.status).toBe("proposed");
-    expect(state.journal?.some(j => j.includes("[Oracle Dispute Deferred] Dispute dispute_multi_1"))).toBe(true);
+    expect(state.journal?.some((j) => j.includes("[Oracle Dispute Deferred] Dispute dispute_multi_1"))).toBe(true);
 
     // Fast forward step to 15
     state.step = 15;
@@ -811,7 +811,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
 
     state.sweepPoolWeatherForecastOracleAuthorized = true;
     state.weatherForecastOracles = {
-      "oracle_prop_1": {
+      oracle_prop_1: {
         id: "oracle_prop_1",
         provider: "alpha",
         stake: 800,
@@ -820,7 +820,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         reputationThreshold: 60,
         timestamp: 1000,
       },
-      "oracle_prop_2": {
+      oracle_prop_2: {
         id: "oracle_prop_2",
         provider: "beta",
         stake: 1000,
@@ -828,14 +828,14 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         accuracyFloor: 85,
         reputationThreshold: 50,
         timestamp: 1000,
-      }
+      },
     };
 
     state.weatherForecastOracleHistory = {
       "5": {
-        "oracle_prop_1": 80,
-        "oracle_prop_2": 80,
-      }
+        oracle_prop_1: 80,
+        oracle_prop_2: 80,
+      },
     };
     state.weatherForecastHistory = {
       "5": 80,
@@ -962,7 +962,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
 
     state.sweepPoolWeatherForecastOracleAuthorized = true;
     state.weatherForecastOracles = {
-      "oracle_prop_1": {
+      oracle_prop_1: {
         id: "oracle_prop_1",
         provider: "alpha",
         stake: 800,
@@ -971,7 +971,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         reputationThreshold: 60,
         timestamp: 1000,
       },
-      "oracle_prop_2": {
+      oracle_prop_2: {
         id: "oracle_prop_2",
         provider: "beta",
         stake: 1000,
@@ -979,14 +979,14 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         accuracyFloor: 85,
         reputationThreshold: 50,
         timestamp: 1000,
-      }
+      },
     };
 
     state.weatherForecastOracleHistory = {
       "5": {
-        "oracle_prop_1": 80,
-        "oracle_prop_2": 80,
-      }
+        oracle_prop_1: 80,
+        oracle_prop_2: 80,
+      },
     };
     state.weatherForecastHistory = {
       "5": 80,
@@ -1102,7 +1102,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // Single oracle setup
     state.sweepPoolWeatherForecastOracleAuthorized = true;
     state.weatherForecastOracles = {
-      "oracle_prop_1": {
+      oracle_prop_1: {
         id: "oracle_prop_1",
         provider: "alpha",
         stake: 800,
@@ -1110,7 +1110,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         accuracyFloor: 90,
         reputationThreshold: 60,
         timestamp: 1000,
-      }
+      },
     };
     state.weatherForecastHistory = {
       "5": 80,
@@ -1215,7 +1215,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // Propose and authorize Oracle 1
     state.sweepPoolWeatherForecastOracleAuthorized = true;
     state.weatherForecastOracles = {
-      "oracle_prop_1": {
+      oracle_prop_1: {
         id: "oracle_prop_1",
         provider: "alpha",
         stake: 800,
@@ -1223,7 +1223,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         accuracyFloor: 90,
         reputationThreshold: 40,
         timestamp: 1000,
-      }
+      },
     };
 
     // Now proposal should succeed! Proposing syndicate has allies = 0, proposer warChest = 10000.
@@ -1246,7 +1246,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
 
     expect(stepResult.ok).toBe(true);
     state = stepResult.state;
-    
+
     // Proposer war chest decreased by proposal fee (100)
     expect(state.syndicates?.alpha.warChest).toBe(9900);
     expect(state.swfSecurityInsurancePoolProposals?.["pool_prop_1"]?.status).toBe("proposed");
@@ -1281,8 +1281,8 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     // Setup weather forecast anomaly
     state.weatherForecastOracleHistory = {
       "5": {
-        "oracle_prop_1": 80,
-      }
+        oracle_prop_1: 80,
+      },
     };
     state.weatherForecastHistory = {
       "5": 80,
@@ -1346,7 +1346,7 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
         definedBy: "bob",
         timestamp: 1000,
         warChest: 10000,
-      }
+      },
     };
 
     let stepResult5 = multiAgentStep(
@@ -1444,4 +1444,3 @@ describe("Syndicate SWF Weather Forecast Oracle Manipulation Defenses (AF-215)",
     expect(state.swfStakingSweepPool).toBe(1600);
   });
 });
-

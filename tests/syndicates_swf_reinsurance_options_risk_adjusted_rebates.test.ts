@@ -15,7 +15,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Risk-Adjusted MM Rebates & S
     },
     factions: [
       { id: "rangers", name: "Rangers Faction", description: "Rangers description" },
-      { id: "mages", name: "Mages Faction", description: "Mages description" }
+      { id: "mages", name: "Mages Faction", description: "Mages description" },
     ],
     rooms: [
       {
@@ -25,7 +25,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Risk-Adjusted MM Rebates & S
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -205,7 +205,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Risk-Adjusted MM Rebates & S
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -299,14 +299,14 @@ describe("Syndicate SWF Reinsurance Options Dynamic Risk-Adjusted MM Rebates & S
     // cartelMult = 1.5 (Alpha Syndicate belongs to Cartel 1)
     // baseRebateRate = 0.04
     // dynamicRebateRate = 0.04 * 1.0 * 1.8 * 1.5 * 1.333333 * 1.5 * 1.0 = 0.216 (21.6% rebate rate!)
-    
+
     // Execution price (finalPrice) before transaction fee is 404 gold (scaled by volume/impact, standing is 0).
     // RebateAmount = round(404 * 0.216) = 87 gold.
     // Assert that syndicate alpha received a high rebate amount (around 87 gold)
-    const rebateLog = state.journal.find(j => j.includes("[SWF Reinsurance Option Market Maker Rebate]"));
+    const rebateLog = state.journal.find((j) => j.includes("[SWF Reinsurance Option Market Maker Rebate]"));
     expect(rebateLog).toBeDefined();
     expect(rebateLog).toContain("Syndicate alpha received 87 gold rebate as maker");
-    
+
     // Check that Alpha's buy order is filled!
     expect(state.swfReinsuranceOptionLimitOrders?.["buy_1"]?.status).toBe("Filled");
   });
@@ -388,7 +388,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Risk-Adjusted MM Rebates & S
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -481,7 +481,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Risk-Adjusted MM Rebates & S
     // rebateRate = 0.04 * 1.0 * 1.96 * 1.65 * 1.333333 = 0.17248 (17.25% rebate rate!)
     // Execution price before transaction fee is 404.
     // RebateAmount = round(404 * 0.17248) = 70 gold.
-    const rebateLog = state.journal.find(j => j.includes("[SWF Reinsurance Option Market Maker Rebate]"));
+    const rebateLog = state.journal.find((j) => j.includes("[SWF Reinsurance Option Market Maker Rebate]"));
     expect(rebateLog).toBeDefined();
     expect(rebateLog).toContain("Syndicate alpha received 70 gold rebate as maker");
   });

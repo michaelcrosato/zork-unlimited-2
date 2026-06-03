@@ -196,7 +196,7 @@ describe("Syndicate Black Markets & Dynamic Tariffs (AF-49)", () => {
       },
     };
 
-    const itemObj = mockPack.objects.find(o => o.id === "contraband_spice");
+    const itemObj = mockPack.objects.find((o) => o.id === "contraband_spice");
     const mockNpc = { id: "player" };
 
     // With safehouse bypass, price should be exactly 100 * 1.20 * 1.20 = 144 (tariffs and faction control penalties bypassed)

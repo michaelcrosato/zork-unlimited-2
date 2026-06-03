@@ -22,7 +22,7 @@ describe("Syndicate SWF Sovereign Debt Default Alerts & Faction Reputation Penal
         objects: [],
         npcs: ["merchant_1"],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [
@@ -39,10 +39,10 @@ describe("Syndicate SWF Sovereign Debt Default Alerts & Faction Reputation Penal
               id: "root_node",
               npc_text: "Welcome",
               topics: [],
-            }
+            },
           ],
         },
-      }
+      },
     ],
   });
 
@@ -150,7 +150,6 @@ describe("Syndicate SWF Sovereign Debt Default Alerts & Faction Reputation Penal
     expect(state.factionRep?.["beta"]).toBe(100);
     state = tickEconomy(state, mockPack);
     expect(state.factionRep?.["beta"]).toBe(85); // 100 - 15 = 85
-
 
     // 4. Strategic pricing multiplier should act as pricing penalty for target syndicate members (bob/carol)
     const normalPrice = calculateTradePrice(
@@ -349,6 +348,5 @@ describe("Syndicate SWF Sovereign Debt Default Alerts & Faction Reputation Penal
     // Node B should now have the proposed alert
     expect(convergedB.sovereignDebtDefaultAlerts?.["prop_alert_2"]).toBeDefined();
     expect(convergedB.sovereignDebtDefaultAlerts?.["prop_alert_2"]?.status).toBe("proposed");
-
   });
 });

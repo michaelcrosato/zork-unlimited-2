@@ -97,76 +97,98 @@ describe("Smuggler Syndicate Cartel Counterfeit Currency, Dynamic Black-Market E
     };
 
     // 1. Rejects if syndicateId is missing or invalid
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "MINT_COUNTERFEIT_GOLD",
-        syndicateId: "",
+    let res = multiAgentStep(
+      state,
+      {
         agentId: "player",
-        amount: 200,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+        action: {
+          type: "MINT_COUNTERFEIT_GOLD",
+          syndicateId: "",
+          agentId: "player",
+          amount: 200,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("Syndicate ID is required");
 
     // 2. Rejects if agent is not a member of the syndicate
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "MINT_COUNTERFEIT_GOLD",
-        syndicateId: "synd_shadows",
-        agentId: "player2",
-        amount: 200,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "MINT_COUNTERFEIT_GOLD",
+          syndicateId: "synd_shadows",
+          agentId: "player2",
+          amount: 200,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("Agent player cannot mint on behalf of player2");
 
     // 3. Rejects if amount is not positive integer
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "MINT_COUNTERFEIT_GOLD",
-        syndicateId: "synd_shadows",
+    res = multiAgentStep(
+      state,
+      {
         agentId: "player",
-        amount: -50,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+        action: {
+          type: "MINT_COUNTERFEIT_GOLD",
+          syndicateId: "synd_shadows",
+          agentId: "player",
+          amount: -50,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("must be a positive integer");
 
     // 4. Rejects if insufficient real gold to cover cost (amount * 0.3 = 200 * 0.3 = 60 real gold needed, has 500 which is enough. Let's ask for amount=2000 so cost=600)
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "MINT_COUNTERFEIT_GOLD",
-        syndicateId: "synd_shadows",
+    res = multiAgentStep(
+      state,
+      {
         agentId: "player",
-        amount: 2000, // cost = 600 real gold
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+        action: {
+          type: "MINT_COUNTERFEIT_GOLD",
+          syndicateId: "synd_shadows",
+          agentId: "player",
+          amount: 2000, // cost = 600 real gold
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("Insufficient real gold");
 
     // 5. Succeeds if all validations pass
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "MINT_COUNTERFEIT_GOLD",
-        syndicateId: "synd_shadows",
+    res = multiAgentStep(
+      state,
+      {
         agentId: "player",
-        amount: 1000, // cost = 300 real gold
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+        action: {
+          type: "MINT_COUNTERFEIT_GOLD",
+          syndicateId: "synd_shadows",
+          agentId: "player",
+          amount: 1000, // cost = 300 real gold
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.vars["gold"]).toBe(200); // 500 - 300
     expect(res.state.vars["counterfeit_gold"]).toBe(1000);
-    expect(res.state.journal).toContain("[Syndicate] Agent player minted 1000 counterfeit gold at a cost of 300 real gold.");
+    expect(res.state.journal).toContain(
+      "[Syndicate] Agent player minted 1000 counterfeit gold at a cost of 300 real gold."
+    );
   });
 
   it("should validate and execute TRADE_EXCHANGE_RATE action", () => {
@@ -189,28 +211,36 @@ describe("Smuggler Syndicate Cartel Counterfeit Currency, Dynamic Black-Market E
     };
 
     // 1. Rejects if rate is negative or zero
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "TRADE_EXCHANGE_RATE",
-        syndicateId: "synd_shadows",
-        baseRate: -0.5,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "TRADE_EXCHANGE_RATE",
+          syndicateId: "synd_shadows",
+          baseRate: -0.5,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("must be positive");
 
     // 2. Succeeds if valid and registers baseRate correctly
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "TRADE_EXCHANGE_RATE",
-        syndicateId: "synd_shadows",
-        baseRate: 0.8,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "TRADE_EXCHANGE_RATE",
+          syndicateId: "synd_shadows",
+          baseRate: 0.8,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.tradeExchangeRates?.["synd_shadows"]?.baseRate).toBe(0.8);
   });
@@ -268,15 +298,19 @@ describe("Smuggler Syndicate Cartel Counterfeit Currency, Dynamic Black-Market E
     // 1. BUY action with counterfeit gold
     // Item cost is 100 gold
     // Counterfeit cost = Math.ceil(100 / 1.008) = 100 counterfeit gold
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "BUY",
-        npc: "merchant_timmy",
-        item: "wooden_shield",
-        useCounterfeit: true,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BUY",
+          npc: "merchant_timmy",
+          item: "wooden_shield",
+          useCounterfeit: true,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.vars["counterfeit_gold"]).toBe(400); // 500 - 100
     expect(res.state.vars["gold"]).toBe(500); // unchanged
@@ -285,15 +319,19 @@ describe("Smuggler Syndicate Cartel Counterfeit Currency, Dynamic Black-Market E
     // 2. SELL action with counterfeit gold
     // Give item back to player first
     res.state.inventory = ["wooden_shield"];
-    res = multiAgentStep(res.state, {
-      agentId: "player",
-      action: {
-        type: "SELL",
-        npc: "merchant_timmy",
-        item: "wooden_shield",
-        useCounterfeit: true,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      res.state,
+      {
+        agentId: "player",
+        action: {
+          type: "SELL",
+          npc: "merchant_timmy",
+          item: "wooden_shield",
+          useCounterfeit: true,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     const lastTrade = res.state.tradeHistory?.[res.state.tradeHistory.length - 1];
     const tradePayout = lastTrade?.gold ?? 98;
@@ -322,29 +360,37 @@ describe("Smuggler Syndicate Cartel Counterfeit Currency, Dynamic Black-Market E
 
     // 1. Rejects if gold is insufficient (requires 150)
     state.vars["gold"] = 100;
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "ESTABLISH_AUDIT_MITIGATION",
-        roomId: "market",
-        syndicateId: "synd_shadows",
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "ESTABLISH_AUDIT_MITIGATION",
+          roomId: "market",
+          syndicateId: "synd_shadows",
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("Insufficient gold");
 
     // 2. Succeeds and increments level
     state.vars["gold"] = 500;
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "ESTABLISH_AUDIT_MITIGATION",
-        roomId: "market",
-        syndicateId: "synd_shadows",
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "ESTABLISH_AUDIT_MITIGATION",
+          roomId: "market",
+          syndicateId: "synd_shadows",
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.vars["gold"]).toBe(350); // 500 - 150
     expect(res.state.auditMitigations?.["market"]?.mitigationLevel).toBe(1);
@@ -399,7 +445,7 @@ describe("Smuggler Syndicate Cartel Counterfeit Currency, Dynamic Black-Market E
     // 1. Without audit mitigation:
     // Confiscated dirty = 100. Confiscated clean = 100 * 0.75 = 75.
     // Remaining clean = 25. Remaining dirty = 0.
-    
+
     // 2. With Level 2 Audit Mitigation established in room "market":
     // Level 2 mitigation = 2 * 25% = 50% discount.
     // Confiscated dirty = Math.floor(100 * (1 - 0.5)) = 50. Remaining dirty = 100 - 50 = 50?

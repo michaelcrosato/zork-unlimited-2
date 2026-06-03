@@ -21,7 +21,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -62,7 +62,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -80,7 +80,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     };
 
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 0.1,
@@ -110,7 +110,11 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(stepResult1.ok).toBe(true);
     state = stepResult1.state;
 
-    const prop = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals?.["reinvest_prop_1"];
+    const prop =
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals?.[
+        "reinvest_prop_1"
+      ];
     expect(prop).toBeDefined();
     expect(prop?.autoReinvestThreshold).toBe(1000);
     expect(prop?.status).toBe("proposed");
@@ -133,7 +137,11 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(stepResult2.ok).toBe(true);
     state = stepResult2.state;
 
-    const propAfterVote = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals?.["reinvest_prop_1"];
+    const propAfterVote =
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals?.[
+        "reinvest_prop_1"
+      ];
     expect(propAfterVote?.status).toBe("authorized");
 
     // The threshold should be reflected in the margin policy
@@ -176,7 +184,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -194,7 +202,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     };
 
     state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals = {
-      "any_prop": {
+      any_prop: {
         proposalId: "any_prop",
         targetProposalId: "any_prop",
         syndicateId: "alpha",
@@ -295,7 +303,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -314,7 +322,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
     // Configure margin policy with autoReinvestThreshold = 500, accumulatedFeeReinvestmentPool = 600
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 0.1,
@@ -383,7 +391,11 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(stepResult1.ok).toBe(true);
     state = stepResult1.state;
 
-    const prop = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.["cap_prop_1"];
+    const prop =
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.[
+        "cap_prop_1"
+      ];
     expect(prop).toBeDefined();
     expect(prop?.maxAutoReinvestYieldCap).toBe(1000);
     expect(prop?.status).toBe("proposed");
@@ -406,7 +418,11 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(stepResult2.ok).toBe(true);
     state = stepResult2.state;
 
-    const propAfter = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.["cap_prop_1"];
+    const propAfter =
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.[
+        "cap_prop_1"
+      ];
     expect(propAfter?.status).toBe("authorized");
     expect(state.maxAutoReinvestYieldCap).toBe(1000);
   });
@@ -446,7 +462,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -468,7 +484,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
     // Configure margin policy with accumulatedFeeReinvestmentPool = 600, autoReinvestThreshold = 500
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 0.1,
@@ -539,7 +555,11 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(stepResult1.ok).toBe(true);
     state = stepResult1.state;
 
-    const prop = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals?.["slashing_prop_1"];
+    const prop =
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals?.[
+        "slashing_prop_1"
+      ];
     expect(prop).toBeDefined();
     expect(prop?.slashingRate).toBe(0.15);
     expect(prop?.status).toBe("proposed");
@@ -562,7 +582,11 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
     expect(stepResult2.ok).toBe(true);
     state = stepResult2.state;
 
-    const propAfter = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals?.["slashing_prop_1"];
+    const propAfter =
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals?.[
+        "slashing_prop_1"
+      ];
     expect(propAfter?.status).toBe("authorized");
     expect(state.breachSlashingRates?.["alpha"]).toBe(0.15);
   });
@@ -602,7 +626,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -624,7 +648,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
     // Configure base slashing rate to 10% (0.10) for alpha
     if (!state.breachSlashingRates) state.breachSlashingRates = {};
-    state.breachSlashingRates["alpha"] = 0.10;
+    state.breachSlashingRates["alpha"] = 0.1;
 
     // Configure breach count to 2
     if (!state.reinvestmentBreachCount) state.reinvestmentBreachCount = {};
@@ -632,7 +656,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
     // Configure margin policy with accumulatedFeeReinvestmentPool = 600, autoReinvestThreshold = 500
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 0.1,
@@ -704,7 +728,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -877,7 +901,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -990,7 +1014,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -1317,7 +1341,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
     // Setup an authorized sweep policy between alpha and beta
     state.cooperativeStakingYieldSweepProposals = {
-      "sweep_prop_1": {
+      sweep_prop_1: {
         proposalId: "sweep_prop_1",
         syndicateId: "alpha",
         targetSyndicateId: "beta",
@@ -1489,7 +1513,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
       // Authorized redistribution policy with auto-compound
       state.sweepPoolRedistributionProposals = {
-        "redist_prop_1": {
+        redist_prop_1: {
           proposalId: "redist_prop_1",
           syndicateId: "alpha",
           targetSyndicateId: "beta",
@@ -1503,7 +1527,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
       // Corresponding authorized sweep policy
       state.cooperativeStakingYieldSweepProposals = {
-        "sweep_prop_1": {
+        sweep_prop_1: {
           proposalId: "sweep_prop_1",
           syndicateId: "alpha",
           targetSyndicateId: "beta",
@@ -1606,7 +1630,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
       // Authorized redistribution policy without auto-compound
       state.sweepPoolRedistributionProposals = {
-        "redist_prop_1": {
+        redist_prop_1: {
           proposalId: "redist_prop_1",
           syndicateId: "alpha",
           targetSyndicateId: "beta",
@@ -1620,7 +1644,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
       // Corresponding authorized sweep policy
       state.cooperativeStakingYieldSweepProposals = {
-        "sweep_prop_1": {
+        sweep_prop_1: {
           proposalId: "sweep_prop_1",
           syndicateId: "alpha",
           targetSyndicateId: "beta",
@@ -1788,7 +1812,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
     // Authorized redistribution policy without auto-compound
     state.sweepPoolRedistributionProposals = {
-      "redist_prop_1": {
+      redist_prop_1: {
         proposalId: "redist_prop_1",
         syndicateId: "alpha",
         targetSyndicateId: "beta",
@@ -1802,7 +1826,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
     // Corresponding authorized sweep policy
     state.cooperativeStakingYieldSweepProposals = {
-      "sweep_prop_1": {
+      sweep_prop_1: {
         proposalId: "sweep_prop_1",
         syndicateId: "alpha",
         targetSyndicateId: "beta",
@@ -2349,18 +2373,18 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       weatherPool?: string[]
     ): { weather: string; temperature: string; wind: string } {
       const defaultWeathers = ["clear", "rain", "fog", "storm"];
-      const weathers = (weatherPool && weatherPool.length > 0) ? weatherPool : defaultWeathers;
+      const weathers = weatherPool && weatherPool.length > 0 ? weatherPool : defaultWeathers;
       const temperatures = ["cold", "mild", "hot"];
       const winds = ["calm", "breezy", "gale", "tempest"];
 
       const interval = Math.floor(step / 5);
-      const h1 = Math.abs(Math.imul(seed ^ interval, 0x6D2B79F5)) | 0;
+      const h1 = Math.abs(Math.imul(seed ^ interval, 0x6d2b79f5)) | 0;
       const weatherIndex = h1 % weathers.length;
 
-      const h2 = Math.abs(Math.imul(h1 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+      const h2 = Math.abs(Math.imul(h1 ^ 0x6d2b79f5, 0x6d2b79f5)) | 0;
       const tempIndex = h2 % temperatures.length;
 
-      const h3 = Math.abs(Math.imul(h2 ^ 0x6D2B79F5, 0x6D2B79F5)) | 0;
+      const h3 = Math.abs(Math.imul(h2 ^ 0x6d2b79f5, 0x6d2b79f5)) | 0;
       const windIndex = h3 % winds.length;
 
       return {
@@ -2526,7 +2550,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       state.swfStakingSweepPool = 500;
 
       state.sweepPoolVolatilityHedgingProposals = {
-        "hedge_prop_1": {
+        hedge_prop_1: {
           proposalId: "hedge_prop_1",
           syndicateId: "alpha",
           volatilityThreshold: 60,
@@ -2539,7 +2563,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       };
 
       state.cooperativeStakingYieldSweepProposals = {
-        "sweep_prop_1": {
+        sweep_prop_1: {
           proposalId: "sweep_prop_1",
           syndicateId: "alpha",
           targetSyndicateId: "beta",
@@ -2576,8 +2600,8 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       };
 
       const availableGold = state.swfStakingSweepPool - state.sweepPoolVolatilityHedgingReserveFloor; // 400
-      const baseHedgeCost = Math.floor(availableGold * 0.80); // 320
-      const expectedHedgeCost = Math.floor(baseHedgeCost * 0.70); // 224
+      const baseHedgeCost = Math.floor(availableGold * 0.8); // 320
+      const expectedHedgeCost = Math.floor(baseHedgeCost * 0.7); // 224
 
       const tickedState = tickEconomy(state, mockPack);
 
@@ -2589,7 +2613,9 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       expect(insurancePools[0].balance).toBe(expectedHedgeCost);
 
       // Verify the journal contains discount logs
-      const discountLog = tickedState.journal.find((log: string) => log.includes("Applied faction alliance loyalty discount of 30%"));
+      const discountLog = tickedState.journal.find((log: string) =>
+        log.includes("Applied faction alliance loyalty discount of 30%")
+      );
       expect(discountLog).toBeDefined();
     });
 
@@ -2611,7 +2637,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
       // Volatility insurance pool with some balance from previous ticks
       state.swfReinsuranceOptionVolatilityInsurancePools = {
-        "default_weather_vol_pool": {
+        default_weather_vol_pool: {
           id: "default_weather_vol_pool",
           swfYieldCdoId: "default_cdo",
           trancheId: "senior" as any,
@@ -2634,7 +2660,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
       // speculativePayout = Math.floor(400 * 0.25 * 0.66666) = Math.floor(100 * 0.66666) = 66 gold
       const predictedVol = 20;
       const threshold = 60;
-      const stabilityFactor = 1.0 - (predictedVol / threshold);
+      const stabilityFactor = 1.0 - predictedVol / threshold;
       const expectedPayout = Math.floor(400 * 0.25 * stabilityFactor); // 66
 
       const tickedState = tickEconomy(state, mockPack);
@@ -2662,7 +2688,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
         // Initialize syndicates
         state.syndicates = {
-          "syndicate_a": {
+          syndicate_a: {
             id: "syndicate_a",
             name: "Syndicate A",
             members: ["player"],
@@ -2702,7 +2728,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
         });
 
         state.syndicates = {
-          "syndicate_a": {
+          syndicate_a: {
             id: "syndicate_a",
             name: "Syndicate A",
             members: ["player", "agent_1"],
@@ -2738,7 +2764,11 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           timestamp: result.state.step,
         };
 
-        let voteResult = multiAgentStep(result.state, { agentId: "agent_1", action: disputeVoteAction as any }, mockPack);
+        let voteResult = multiAgentStep(
+          result.state,
+          { agentId: "agent_1", action: disputeVoteAction as any },
+          mockPack
+        );
         expect(voteResult.ok).toBe(true);
 
         const prop = voteResult.state.sweepPoolVolatilityHedgingProposals?.["prop_1"];
@@ -2755,7 +2785,9 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
         expect(syndicate?.warChest).toBe(570); // 1000 - 190 (proposal fee) - 50 (vote fee) - 190 (slashing penalty)
         expect(voteResult.state.swfStakingSweepPool).toBe(690); // 500 - 100 (yield penalty) + 290 (returned slashed gold)
 
-        const journalLog = voteResult.state.journal.find((log: string) => log.includes("failed stability vote consensus"));
+        const journalLog = voteResult.state.journal.find((log: string) =>
+          log.includes("failed stability vote consensus")
+        );
         expect(journalLog).toBeDefined();
         expect(journalLog).toContain("slashed by 190 gold");
         expect(journalLog).toContain("yield penalized by 100 gold");
@@ -2772,7 +2804,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
 
         // Set up syndicates with two allies of syndicate_a
         state.syndicates = {
-          "syndicate_a": {
+          syndicate_a: {
             id: "syndicate_a",
             name: "Syndicate A",
             members: ["player", "agent_1"],
@@ -2780,7 +2812,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
             timestamp: 1000,
             warChest: 1000,
           },
-          "syndicate_b": {
+          syndicate_b: {
             id: "syndicate_b",
             name: "Syndicate B",
             members: ["ally_agent_1"],
@@ -2788,7 +2820,7 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
             timestamp: 1000,
             warChest: 500,
           },
-          "syndicate_c": {
+          syndicate_c: {
             id: "syndicate_c",
             name: "Syndicate C",
             members: ["ally_agent_2"],
@@ -2798,9 +2830,9 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           },
         };
         state.syndicateAlliances = {
-          "syndicate_a": {
-            "syndicate_b": "allied",
-            "syndicate_c": "allied",
+          syndicate_a: {
+            syndicate_b: "allied",
+            syndicate_c: "allied",
           },
         };
         state.swfStakingSweepPool = 500;
@@ -2830,7 +2862,11 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
           timestamp: result.state.step,
         };
 
-        let voteResult = multiAgentStep(result.state, { agentId: "agent_1", action: disputeVoteAction as any }, mockPack);
+        let voteResult = multiAgentStep(
+          result.state,
+          { agentId: "agent_1", action: disputeVoteAction as any },
+          mockPack
+        );
         expect(voteResult.ok).toBe(true);
 
         const prop = voteResult.state.sweepPoolVolatilityHedgingProposals?.["prop_1"];
@@ -2854,14 +2890,16 @@ describe("SWF Reinsurance Option Grace Liquidity Adjust Fee Calibration Yield-Pr
         expect(syndicateB?.warChest).toBe(606);
         expect(syndicateC?.warChest).toBe(606);
 
-        const journalLog = voteResult.state.journal.find((log: string) => log.includes("failed stability vote consensus"));
+        const journalLog = voteResult.state.journal.find((log: string) =>
+          log.includes("failed stability vote consensus")
+        );
         expect(journalLog).toBeDefined();
         expect(journalLog).toContain("slashed by 143 gold");
         expect(journalLog).toContain("yield penalized by 70 gold");
-        expect(journalLog).toContain("Redistributed 213 gold penalty equally among 2 allied syndicates (106 gold each)");
+        expect(journalLog).toContain(
+          "Redistributed 213 gold penalty equally among 2 allied syndicates (106 gold each)"
+        );
       });
     });
   });
 });
-
-

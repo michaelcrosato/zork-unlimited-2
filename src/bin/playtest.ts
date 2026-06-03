@@ -6,10 +6,10 @@ import { runAiPlaytest } from "../agents/playtester.js";
 import { diagnosePlaytest } from "../agents/debugger.js";
 import { fixIdentifiedBug } from "../agents/fixer.js";
 import { FallbackLlmClient } from "../agents/llm/api_client.js";
-import { LlmClient } from "../agents/llm/client.js";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
 import { validateParserPack } from "../validate/parser_validator.js";
 import { formatValidationReport } from "../validate/report.js";
+import { isCyoaPack } from "../core/pack.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
 
@@ -21,11 +21,11 @@ function main() {
   }
 
   const packPath = resolve(args[0]);
-  
+
   // Parse optional seed and persona arguments
   let seed = 42;
   let persona = "mainline";
-  
+
   for (let i = 1; i < args.length; i++) {
     if (args[i] === "--persona" && i + 1 < args.length) {
       persona = args[i + 1];
@@ -60,11 +60,9 @@ function main() {
 
   // 1. Validate content pack
   let validationReport;
-  let isCyoa = false;
 
-  if ("scenes" in packData) {
+  if (isCyoaPack(packData)) {
     validationReport = validateCYOAPack(packData);
-    isCyoa = true;
   } else if ("rooms" in packData) {
     validationReport = validateParserPack(packData);
   } else {
@@ -92,92 +90,98 @@ function main() {
     traceId: `tr_playtest_${pack.meta.id}_${persona}_${seed}`,
     persona,
     maxSteps: 35,
-  }).then((res) => {
-    if (res.success) {
-      console.log("\n=================================");
-      console.log("🎉 AI PLAYTEST COMPLETED SUCCESSFULLY!");
-      console.log(`Steps taken: ${res.logs.length}`);
-      console.log(`Final location: ${res.finalState.current}`);
-      console.log(`Final state hash: ${res.trace.expected_final_hash}`);
-      console.log("=================================");
+  })
+    .then((res) => {
+      if (res.success) {
+        console.log("\n=================================");
+        console.log("🎉 AI PLAYTEST COMPLETED SUCCESSFULLY!");
+        console.log(`Steps taken: ${res.logs.length}`);
+        console.log(`Final location: ${res.finalState.current}`);
+        console.log(`Final state hash: ${res.trace.expected_final_hash}`);
+        console.log("=================================");
 
-      // Print step progression
-      console.log("\n--- PLAYTEST PROGRESSION ---");
-      res.logs.forEach((log) => {
-        console.log(`[Step ${log.step}] Room: ${log.location}`);
-        console.log(`  - Choice: ${log.chosen_action_id}`);
-        console.log(`  - Reason: ${log.reason}`);
-        console.log(`  - Expected: ${log.expected}`);
-      });
-
-      // Save playtest trace
-      const tracePath = resolve(`traces/ai_playtest_${pack.meta.id}_${persona}.json`);
-      writeFileSync(tracePath, JSON.stringify(res.trace, null, 2), "utf-8");
-      console.log(`\n✔ Saved replayable trace to: ${tracePath}`);
-      process.exit(0);
-    } else {
-      console.error("\n=================================");
-      console.error("❌ AI PLAYTEST FAILED!");
-      console.error(`Error: ${res.error}`);
-      console.error("=================================");
-
-      console.log("\n🩹 INITIATING SELF-HEALING WORKFLOW...");
-      diagnosePlaytest({
-        client,
-        logs: res.logs,
-        seed,
-      }).then((diagnosis) => {
-        console.log(`\n🔍 AI Debugger Diagnosis (Severity: ${diagnosis.severity}):`);
-        console.log(diagnosis.diagnosis);
-        console.log(`Recommendation: ${diagnosis.recommendation}`);
-
-        return fixIdentifiedBug({
-          client,
-          diagnosis,
-          seed,
+        // Print step progression
+        console.log("\n--- PLAYTEST PROGRESSION ---");
+        res.logs.forEach((log) => {
+          console.log(`[Step ${log.step}] Room: ${log.location}`);
+          console.log(`  - Choice: ${log.chosen_action_id}`);
+          console.log(`  - Reason: ${log.reason}`);
+          console.log(`  - Expected: ${log.expected}`);
         });
-      }).then((fixResult) => {
-        console.log(`\n🩹 AI Fixer Proposed Patch (Layer: ${fixResult.fix_layer}):`);
-        console.log(fixResult.applied_patch);
-        console.log(`Regression Test Name: ${fixResult.regression_test_name}`);
 
-        if (fixResult.fixed) {
-          console.log("\n🚀 Validating proposed fix by re-running playtest...");
-          return runAiPlaytest({
-            pack,
-            client,
-            seed,
-            traceId: `tr_playtest_healed_${pack.meta.id}_${persona}_${seed}`,
-            persona,
-            maxSteps: 35,
+        // Save playtest trace
+        const tracePath = resolve(`traces/ai_playtest_${pack.meta.id}_${persona}.json`);
+        writeFileSync(tracePath, JSON.stringify(res.trace, null, 2), "utf-8");
+        console.log(`\n✔ Saved replayable trace to: ${tracePath}`);
+        process.exit(0);
+      } else {
+        console.error("\n=================================");
+        console.error("❌ AI PLAYTEST FAILED!");
+        console.error(`Error: ${res.error}`);
+        console.error("=================================");
+
+        console.log("\n🩹 INITIATING SELF-HEALING WORKFLOW...");
+        diagnosePlaytest({
+          client,
+          logs: res.logs,
+          seed,
+        })
+          .then((diagnosis) => {
+            console.log(`\n🔍 AI Debugger Diagnosis (Severity: ${diagnosis.severity}):`);
+            console.log(diagnosis.diagnosis);
+            console.log(`Recommendation: ${diagnosis.recommendation}`);
+
+            return fixIdentifiedBug({
+              client,
+              diagnosis,
+              seed,
+            });
+          })
+          .then((fixResult) => {
+            console.log(`\n🩹 AI Fixer Proposed Patch (Layer: ${fixResult.fix_layer}):`);
+            console.log(fixResult.applied_patch);
+            console.log(`Regression Test Name: ${fixResult.regression_test_name}`);
+
+            if (fixResult.fixed) {
+              console.log("\n🚀 Validating proposed fix by re-running playtest...");
+              return runAiPlaytest({
+                pack,
+                client,
+                seed,
+                traceId: `tr_playtest_healed_${pack.meta.id}_${persona}_${seed}`,
+                persona,
+                maxSteps: 35,
+              });
+            } else {
+              throw new Error("AI Fixer could not propose a fix.");
+            }
+          })
+          .then((healedRes) => {
+            if (healedRes.success) {
+              console.log("\n=================================");
+              console.log("🟢 SELF-HEALING SUCCESSFUL!");
+              console.log(`The patch has resolved the playtest failure.`);
+              console.log(`Final location: ${healedRes.finalState.current}`);
+              console.log("=================================");
+              process.exit(0);
+            } else {
+              console.error("\n=================================");
+              console.error("🔴 SELF-HEALING FAILED!");
+              console.error("The proposed patch did not resolve the playtest failure.");
+              console.error("=================================");
+              process.exit(1);
+            }
+          })
+          .catch((err) => {
+            console.error(`\nSelf-healing failed: ${err.message}`);
+            process.exit(1);
           });
-        } else {
-          throw new Error("AI Fixer could not propose a fix.");
-        }
-      }).then((healedRes) => {
-        if (healedRes.success) {
-          console.log("\n=================================");
-          console.log("🟢 SELF-HEALING SUCCESSFUL!");
-          console.log(`The patch has resolved the playtest failure.`);
-          console.log(`Final location: ${healedRes.finalState.current}`);
-          console.log("=================================");
-          process.exit(0);
-        } else {
-          console.error("\n=================================");
-          console.error("🔴 SELF-HEALING FAILED!");
-          console.error("The proposed patch did not resolve the playtest failure.");
-          console.error("=================================");
-          process.exit(1);
-        }
-      }).catch((err) => {
-        console.error(`\nSelf-healing failed: ${err.message}`);
-        process.exit(1);
-      });
-    }
-  }).catch((err) => {
-    console.error(`Fatal playtest error: ${err.message}`);
-    process.exit(1);
-  });
+      }
+    })
+    .catch((err) => {
+      console.error(`Fatal playtest error: ${err.message}`);
+      process.exit(1);
+    });
 }
 
 main();

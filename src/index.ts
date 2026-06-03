@@ -1,5 +1,40 @@
 // Core State & Logic
-export { GameStateSchema, ObjectRuntimeSchema, createInitialState, getFactionRepInit, getTerritoryControlInit, reconcileTerritories, reconcileAlliances, reconcileTariffPolicies, reconcileTariffExemptions, reconcileCooperativeSWFStakingCampaigns, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOTranches, SovereignDebtCDSCDOTrancheListingSchema, SovereignDebtCDSCDOTrancheBidSchema, SovereignDebtCDSCDOTrancheMarketSpreadSchema, reconcileSovereignDebtCDSCDOCrossTrancheHedging, SovereignDebtCDSCDOCrossTrancheHedgingSchema, reconcileCDSCDOLiquidityInjections, SovereignDebtCDSCDOLiquidityInjectionProposalSchema, reconcileCDSCDOCoinvestments, SovereignDebtCDSCDOCoinvestmentProposalSchema, reconcileCDSCDOCoinvestmentYieldShares, SovereignDebtCDSCDOCoinvestmentYieldShareProposalSchema, reconcileCDSCDOCoinvestmentYieldReinvestments, SovereignDebtCDSCDOCoinvestmentYieldReinvestmentProposalSchema, reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals, SovereignDebtCDSCDOCoinvestmentReinvestmentPolicyProposalSchema, reconcileCDSCDOYieldHedgingOptionPolicyProposals, SovereignDebtCDSCDOYieldHedgingPolicyProposalSchema, SovereignDebtCDSCDOYieldHedgingOptionContractSchema } from "./core/state.js";
+export {
+  GameStateSchema,
+  ObjectRuntimeSchema,
+  createInitialState,
+  getFactionRepInit,
+  getTerritoryControlInit,
+  reconcileTerritories,
+  reconcileAlliances,
+  reconcileTariffPolicies,
+  reconcileTariffExemptions,
+  reconcileCooperativeSWFStakingCampaigns,
+  reconcileSovereignDebtDefaultAlerts,
+  reconcileSovereignDebtResolveAlerts,
+  reconcileSovereignDebtDefaultGracePeriods,
+  reconcileSovereignDebtDefaultPenaltyWaivers,
+  reconcileSovereignDebtCDSContracts,
+  reconcileSovereignDebtCDSCDOTranches,
+  SovereignDebtCDSCDOTrancheListingSchema,
+  SovereignDebtCDSCDOTrancheBidSchema,
+  SovereignDebtCDSCDOTrancheMarketSpreadSchema,
+  reconcileSovereignDebtCDSCDOCrossTrancheHedging,
+  SovereignDebtCDSCDOCrossTrancheHedgingSchema,
+  reconcileCDSCDOLiquidityInjections,
+  SovereignDebtCDSCDOLiquidityInjectionProposalSchema,
+  reconcileCDSCDOCoinvestments,
+  SovereignDebtCDSCDOCoinvestmentProposalSchema,
+  reconcileCDSCDOCoinvestmentYieldShares,
+  SovereignDebtCDSCDOCoinvestmentYieldShareProposalSchema,
+  reconcileCDSCDOCoinvestmentYieldReinvestments,
+  SovereignDebtCDSCDOCoinvestmentYieldReinvestmentProposalSchema,
+  reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals,
+  SovereignDebtCDSCDOCoinvestmentReinvestmentPolicyProposalSchema,
+  reconcileCDSCDOYieldHedgingOptionPolicyProposals,
+  SovereignDebtCDSCDOYieldHedgingPolicyProposalSchema,
+  SovereignDebtCDSCDOYieldHedgingOptionContractSchema,
+} from "./core/state.js";
 export type { GameState, ObjectRuntime } from "./core/state.js";
 
 export { step } from "./core/engine.js";
@@ -21,7 +56,7 @@ export {
   deltaDecode,
   compressStateDiff,
   decompressStateDiff,
-  GossipPacketFragmenter
+  GossipPacketFragmenter,
 } from "./core/gossip.js";
 export type { VectorClock, GossipMessage, GossipFragment } from "./core/gossip.js";
 export { DecentralizedDungeonExpedition } from "./core/expedition.js";
@@ -41,7 +76,21 @@ export type { Condition } from "./core/conditions.js";
 export { EffectSchema, applyEffect, applyEffects } from "./core/effects.js";
 export type { Effect } from "./core/effects.js";
 
-export { StateChangeEvent, NarrationEvent, UnlockExitEvent, OpenObjectEvent, MoveEvent, TakeEvent, DropEvent, DialogueEvent, EndingEvent, RejectedEvent, BlackMarketSoldEvent, GameEvent, StepLogEntry } from "./core/events.js";
+export {
+  StateChangeEvent,
+  NarrationEvent,
+  UnlockExitEvent,
+  OpenObjectEvent,
+  MoveEvent,
+  TakeEvent,
+  DropEvent,
+  DialogueEvent,
+  EndingEvent,
+  RejectedEvent,
+  BlackMarketSoldEvent,
+  GameEvent,
+  StepLogEntry,
+} from "./core/events.js";
 
 // Save & Load Serialization
 export { saveGame, loadGame } from "./persist/save_load.js";
@@ -60,7 +109,14 @@ export type { CYOAChoice, CYOAScene, CYOAEnding, CYOAPack } from "./cyoa/schema.
 
 // AI API Observability & Commands
 export { buildObservation } from "./api/observation.js";
-export type { Action, StepResult, AvailableAction, CYOAObservation, ParserObservation, Observation } from "./api/types.js";
+export type {
+  Action,
+  StepResult,
+  AvailableAction,
+  CYOAObservation,
+  ParserObservation,
+  Observation,
+} from "./api/types.js";
 
 // Content Validators
 export { validateCYOAPack } from "./validate/cyoa_validator.js";
@@ -84,15 +140,46 @@ export type { ContentFixResult } from "./agents/fixer.js";
 export { runBlindEvaluation } from "./agents/blind_evaluator.js";
 export type { AnonymizedCandidate, RubricScore, BlindEvalResult } from "./agents/blind_evaluator.js";
 
+// Pack Utilities
+export { isCyoaPack, isParserPack } from "./core/pack.js";
+
 // Parser (Stage 2) Modules
-export { ParserExitSchema, ObjectInteractionSchema, ParserObjectSchema, DialogueTopicSchema, DialogueNodeSchema, ParserNPCSchema, ParserRoomSchema, ParserWinConditionSchema, ParserEndingSchema, ParserPackSchema } from "./parser/schema.js";
-export type { ParserExit, ObjectInteraction, ParserObject, DialogueTopic, DialogueNode, ParserNPC, ParserRoom, ParserWinCondition, ParserEnding, ParserPack } from "./parser/schema.js";
+export {
+  ParserExitSchema,
+  ObjectInteractionSchema,
+  ParserObjectSchema,
+  DialogueTopicSchema,
+  DialogueNodeSchema,
+  ParserNPCSchema,
+  ParserRoomSchema,
+  ParserWinConditionSchema,
+  ParserEndingSchema,
+  ParserPackSchema,
+} from "./parser/schema.js";
+export type {
+  ParserExit,
+  ObjectInteraction,
+  ParserObject,
+  DialogueTopic,
+  DialogueNode,
+  ParserNPC,
+  ParserRoom,
+  ParserWinCondition,
+  ParserEnding,
+  ParserPack,
+} from "./parser/schema.js";
 export { generateLegalActions } from "./parser/legal_actions.js";
 export { normalizeCommandString, mapCommand } from "./parser/command_map.js";
 export { validateParserPack } from "./validate/parser_validator.js";
 
 // Playtest — Blind Playtesting Infrastructure
-export type { PlaytestPersona, PlaytestMetrics, PlaytestInterview, PlaytestSessionResult, PlaytestTurnLog } from "./playtest/types.js";
+export type {
+  PlaytestPersona,
+  PlaytestMetrics,
+  PlaytestInterview,
+  PlaytestSessionResult,
+  PlaytestTurnLog,
+} from "./playtest/types.js";
 export { INTERVIEW_QUESTIONS } from "./playtest/types.js";
 export { PERSONAS, PERSONA_IDS, getPersona } from "./playtest/personas.js";
 export { McpGameClient } from "./playtest/mcp_client.js";
@@ -100,4 +187,5 @@ export type { AdventurePack, ActionResult } from "./playtest/mcp_client.js";
 export { runBlindPlaytest } from "./playtest/blind_playtester.js";
 export type { BlindPlaytestOptions, BlindPlaytestResult } from "./playtest/blind_playtester.js";
 export { readRawFeedback, synthesizeFeedback, writeFeedbackDigest } from "./playtest/synthesize.js";
-
+export type { PlaytestMemory } from "./playtest/memory.js";
+export { PlaytestMemoryManager } from "./playtest/memory.js";

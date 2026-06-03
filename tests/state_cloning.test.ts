@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState, cloneMerchantInventories, cloneObjectState, cloneAgents, cloneStateWithoutHistory } from "../src/core/state.js";
+import {
+  createInitialState,
+  cloneMerchantInventories,
+  cloneObjectState,
+  cloneAgents,
+  cloneStateWithoutHistory,
+} from "../src/core/state.js";
 
 describe("State and Object Cloning Optimizations", () => {
   it("should correctly clone merchant inventories without shared references", () => {

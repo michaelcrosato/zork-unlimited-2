@@ -32,6 +32,14 @@ export const ConditionSchema: z.ZodType<any> = z.lazy(() =>
     z.object({ temperature_is: z.string() }),
     z.object({ wind_is: z.string() }),
     z.object({
+      guild_prestige_gte: z.object({
+        guild: z.string(),
+        value: z.number(),
+      }),
+    }),
+    z.object({ guild_contract_active: z.string() }),
+    z.object({ guild_contract_completed: z.string() }),
+    z.object({
       faction_rep_gte: z.object({
         faction: z.string(),
         value: z.number(),
@@ -51,6 +59,18 @@ export const ConditionSchema: z.ZodType<any> = z.lazy(() =>
       }),
     }),
     z.object({
+      faction_war_active: z.object({
+        faction_a: z.string(),
+        faction_b: z.string(),
+      }),
+    }),
+    z.object({
+      territory_controlled_by: z.object({
+        room_id: z.string(),
+        faction_id: z.string(),
+      }),
+    }),
+    z.object({
       enforcer_heat_gte: z.object({
         room: z.string().optional(),
         value: z.number(),
@@ -62,6 +82,7 @@ export const ConditionSchema: z.ZodType<any> = z.lazy(() =>
         value: z.number(),
       }),
     }),
+    z.object({ outpost_cleared: z.string() }),
     z.object({ all_of: z.array(ConditionSchema) }),
     z.object({ any_of: z.array(ConditionSchema) }),
     z.object({ none_of: z.array(ConditionSchema) }),
@@ -81,6 +102,9 @@ export type Condition =
   | { weather_is: string }
   | { temperature_is: string }
   | { wind_is: string }
+  | { guild_prestige_gte: { guild: string; value: number } }
+  | { guild_contract_active: string }
+  | { guild_contract_completed: string }
   | { faction_rep_gte: { faction: string; value: number } }
   | { faction_rep_lte: { faction: string; value: number } }
   | {
@@ -88,6 +112,18 @@ export type Condition =
         faction_a: string;
         faction_b: string;
         relationship: "allied" | "hostile" | "neutral";
+      };
+    }
+  | {
+      faction_war_active: {
+        faction_a: string;
+        faction_b: string;
+      };
+    }
+  | {
+      territory_controlled_by: {
+        room_id: string;
+        faction_id: string;
       };
     }
   | {
@@ -102,6 +138,7 @@ export type Condition =
         value: number;
       };
     }
+  | { outpost_cleared: string }
   | { all_of: Condition[] }
   | { any_of: Condition[] }
   | { none_of: Condition[] };
@@ -158,6 +195,21 @@ export function evaluateCondition(state: GameState, cond: Condition): boolean {
     const current = state.environment?.wind ?? "calm";
     return current === expected;
   }
+  if ("guild_prestige_gte" in cond) {
+    const { guild, value } = cond.guild_prestige_gte;
+    const currentPrestige = state.guildPrestige?.[`player-${guild}`] ?? 0;
+    return currentPrestige >= value;
+  }
+  if ("guild_contract_active" in cond) {
+    const contractId = cond.guild_contract_active;
+    const contract = state.guildContracts?.[contractId];
+    return contract?.status === "active";
+  }
+  if ("guild_contract_completed" in cond) {
+    const contractId = cond.guild_contract_completed;
+    const contract = state.guildContracts?.[contractId];
+    return contract?.status === "completed";
+  }
   if ("faction_rep_gte" in cond) {
     const { faction, value } = cond.faction_rep_gte;
     const currentRep = state.factionRep?.[faction] ?? 0;
@@ -173,6 +225,16 @@ export function evaluateCondition(state: GameState, cond: Condition): boolean {
     const rel = state.alliances?.[faction_a]?.[faction_b] ?? "neutral";
     return rel === relationship;
   }
+  if ("faction_war_active" in cond) {
+    const { faction_a, faction_b } = cond.faction_war_active;
+    const warAB = state.factionWars?.[faction_a]?.[faction_b] === true;
+    const warBA = state.factionWars?.[faction_b]?.[faction_a] === true;
+    return warAB || warBA;
+  }
+  if ("territory_controlled_by" in cond) {
+    const { room_id, faction_id } = cond.territory_controlled_by;
+    return state.territoryControl?.[room_id] === faction_id;
+  }
   if ("enforcer_heat_gte" in cond) {
     const { room, value } = cond.enforcer_heat_gte;
     const targetRoom = room ?? state.current;
@@ -184,6 +246,11 @@ export function evaluateCondition(state: GameState, cond: Condition): boolean {
     const targetRoom = room ?? state.current;
     const currentHeat = state.enforcementHeat?.[targetRoom]?.heat ?? 0;
     return currentHeat <= value;
+  }
+  if ("outpost_cleared" in cond) {
+    const roomId = cond.outpost_cleared;
+    const outpost = state.turfGuardOutposts?.[roomId];
+    return outpost ? !!outpost.disabled : false;
   }
   if ("all_of" in cond) {
     return cond.all_of.every((c) => evaluateCondition(state, c));

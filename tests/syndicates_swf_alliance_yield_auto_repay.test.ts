@@ -21,7 +21,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -87,7 +87,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 0,
             ownership: {},
             timestamp: 1000,
@@ -123,7 +123,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     };
 
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 1.0,
@@ -159,7 +159,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         arbitrageRoutes: [],
         timestamp: 1001,
         active: true,
-      }
+      },
     };
 
     // Verify initial values
@@ -212,10 +212,10 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
 
     // 3. Trigger Drawdown Fee to create outstanding deflection fee
     // Setup enforcer drawdown: set collateral very low to force emergency drawdown
-    state.marginAccounts!.alpha.collateral = 50; 
+    state.marginAccounts!.alpha.collateral = 50;
     state.swfDeflectionSurchargeBaseRate = 0.5; // High base rate
     // Collective war chest sum = alpha war chest (4775) + beta war chest (4000) = 8775.
-    
+
     // Make alpha's warChest extremely low so fee cannot be fully paid
     state.syndicates!.alpha.warChest = 10;
 
@@ -232,7 +232,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     // 240 feeRemaining slashes 24 CDO shares from senior tranche.
     expect(tickedState.syndicates?.alpha?.warChest).toBe(87);
     expect(tickedState.swfYieldCDOs?.cdo_1?.tranches?.senior?.ownership?.alpha).toBe(457); // 500 - 43
-    
+
     // Verify that outstandingDeflectionFees tracks the feeRemaining!
     expect(tickedState.outstandingDeflectionFees?.alpha).toBe(428);
     // Verify that slashedCDOTrancheShares tracks the slashed shares!
@@ -251,9 +251,9 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
 
     // 5. Trigger High-Risk Partition
     state.swfMultiFundReinsurancePools!.pool_1.linkStateDropRate = 0.6; // 0.6 >= 0.4 partition threshold!
-    state.marginAccounts!.alpha.collateral = 50; 
+    state.marginAccounts!.alpha.collateral = 50;
     state.syndicates!.alpha.warChest = 10;
-    
+
     // Let's tick again under partition
     let partitionTickedState = tickEconomy(state, mockPack);
 
@@ -273,8 +273,8 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     expect(partitionTickedState.slashedCDOTrancheShares?.alpha?.cdo_1?.senior).toBe(0);
 
     // Verify journal logs exist for repayments and restorations
-    expect(partitionTickedState.journal.some(log => log.includes("[SWF Alliance Yield Repayment]"))).toBe(true);
-    expect(partitionTickedState.journal.some(log => log.includes("[SWF Alliance Yield CDO Restore]"))).toBe(true);
+    expect(partitionTickedState.journal.some((log) => log.includes("[SWF Alliance Yield Repayment]"))).toBe(true);
+    expect(partitionTickedState.journal.some((log) => log.includes("[SWF Alliance Yield CDO Restore]"))).toBe(true);
   });
 
   it("should support gracePeriodMultiplier and creditRatingRecoveryMultiplier optional fields, dynamically boost credit ratings and deflect audits under partition", () => {
@@ -368,7 +368,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         arbitrageRoutes: [],
         timestamp: 1001,
         active: true,
-      }
+      },
     };
 
     let tickedState = tickEconomy(state, mockPack);
@@ -380,7 +380,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     // New score = 80 + 26 = 106
     expect(tickedState.creditRatings?.alpha).toBe(106);
 
-    expect(tickedState.journal.some(log => log.includes("[SWF Alliance Yield Credit Recovery]"))).toBe(true);
+    expect(tickedState.journal.some((log) => log.includes("[SWF Alliance Yield Credit Recovery]"))).toBe(true);
 
     tickedState.frontBusinesses = {
       front_1: {
@@ -395,7 +395,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         launderingRate: 50,
         activeAudit: true,
         timestamp: 1002,
-      }
+      },
     };
 
     tickedState.enforcementHeat = {
@@ -403,7 +403,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         roomId: "clearing",
         heat: 40,
         timestamp: 1002,
-      }
+      },
     };
 
     // Ensure linkStateDropRate partition remains active in tickedState
@@ -420,7 +420,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     const front = auditState.frontBusinesses?.front_1;
     expect(front?.activeAudit).toBe(false);
     expect(auditState.enforcementHeat?.clearing?.heat).toBe(28);
-    expect(auditState.journal.some(log => log.includes("[SWF Alliance Audit Deflection]"))).toBe(true);
+    expect(auditState.journal.some((log) => log.includes("[SWF Alliance Audit Deflection]"))).toBe(true);
   });
 
   it("should assert grace period scaling, credit recovery boost, and audit deflection under varying repayment rates, multipliers, and credit ratings (AF-225)", () => {
@@ -476,7 +476,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         arbitrageRoutes: [],
         timestamp: 1001,
         active: true,
-      }
+      },
     };
 
     // Test Case A: Repayment Rate = 0.10, Recovery Multiplier = 2.0
@@ -484,7 +484,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     // ratingBoost = Math.round(10 * 2.0 * (1.0 + 0.10 * 5)) = Math.round(20 * 1.5) = 30
     // Let's assert this credit rating boost on a rating of 80 => 110
     state.creditRatings = { alpha: 80 };
-    state.swfAllianceYieldAutoRepayRate = 0.10;
+    state.swfAllianceYieldAutoRepayRate = 0.1;
     state.swfAllianceYieldAutoRepayPartitionThreshold = 0.4;
     state.swfAllianceYieldAutoRepayGracePeriodMultiplier = 1.0;
     state.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier = 2.0;
@@ -492,7 +492,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
       repay_prop_3: {
         proposalId: "repay_prop_3",
         syndicateId: "alpha",
-        yieldRate: 0.10,
+        yieldRate: 0.1,
         partitionThreshold: 0.4,
         gracePeriodMultiplier: 1.0,
         creditRatingRecoveryMultiplier: 2.0,
@@ -500,7 +500,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         resolved: true,
         proposerId: "player",
         timestamp: 1000,
-      }
+      },
     };
 
     let tickedState = tickEconomy(state, mockPack);
@@ -511,12 +511,12 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     // ratingBoost = Math.round(10 * 1.0 * (1.0 + 0.50 * 5)) = Math.round(10 * 3.5) = 35
     // Let's assert this credit rating boost on a rating of 80 => 115
     state.creditRatings = { alpha: 80 };
-    state.swfAllianceYieldAutoRepayRate = 0.50;
+    state.swfAllianceYieldAutoRepayRate = 0.5;
     state.swfAllianceYieldAutoRepayCreditRatingRecoveryMultiplier = 1.0;
     state.swfAllianceYieldAutoRepayProposals.repay_prop_3 = {
       proposalId: "repay_prop_3",
       syndicateId: "alpha",
-      yieldRate: 0.50,
+      yieldRate: 0.5,
       partitionThreshold: 0.4,
       gracePeriodMultiplier: 1.0,
       creditRatingRecoveryMultiplier: 1.0,
@@ -539,13 +539,13 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     // Effective Grace Requirement with gracePeriodMultiplier = 1.5:
     // Math.round(50 * 1.5 * 1.2) = 90.
     // Let's verify these calculations using tickEconomy audit deflection check!
-    
+
     // First, let's test high credit rating (180) which reduces requirement to 30.
     // Credit rating is 180 >= 30, so deflection should succeed.
     tickedState.creditRatings = { alpha: 180 };
     tickedState.swfAllianceYieldAutoRepayRate = 0.1;
     tickedState.swfAllianceYieldAutoRepayGracePeriodMultiplier = 1.0;
-    
+
     tickedState.frontBusinesses = {
       front_1: {
         id: "front_1",
@@ -559,7 +559,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         launderingRate: 50,
         activeAudit: true,
         timestamp: 1002,
-      }
+      },
     };
 
     tickedState.enforcementHeat = {
@@ -567,7 +567,7 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
         roomId: "clearing",
         heat: 40,
         timestamp: 1002,
-      }
+      },
     };
 
     tickedState.step = 5;
@@ -580,13 +580,13 @@ describe("Syndicate SWF Alliance Yield Auto-Repay & Deflection Surcharge (AF-224
     tickedState.creditRatings = { alpha: 80 };
     tickedState.swfAllianceYieldAutoRepayGracePeriodMultiplier = 1.5;
     tickedState.frontBusinesses!.front_1.activeAudit = true;
-    
+
     // Let's stub/mock random number generation for audit resolution to fail defense
     // (since defense score = 0, audit strength will definitely be higher).
     let auditStateFailed = tickEconomy(tickedState, mockPack);
     expect(auditStateFailed.frontBusinesses?.front_1?.activeAudit).toBe(false); // Finished audit tick
     // Let's assert it failed rather than deflected by checking journal or confiscated gold
-    expect(auditStateFailed.journal.some(log => log.includes("[SWF Alliance Audit Deflection]"))).toBe(false);
-    expect(auditStateFailed.journal.some(log => log.includes("failed money laundering audit"))).toBe(true);
+    expect(auditStateFailed.journal.some((log) => log.includes("[SWF Alliance Audit Deflection]"))).toBe(false);
+    expect(auditStateFailed.journal.some((log) => log.includes("failed money laundering audit"))).toBe(true);
   });
 });

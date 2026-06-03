@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Auto-Adjustment Con
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -63,7 +63,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Auto-Adjustment Con
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -154,7 +154,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Auto-Adjustment Con
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -176,7 +176,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Auto-Adjustment Con
         bondId: "index_1",
         volatility: 20.0,
         timestamp: 1000,
-      }
+      },
     };
 
     // Authorized volatility floor of 0.5 (Base min spread: 20 * 0.5 = 10 gold)
@@ -274,10 +274,11 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Auto-Adjustment Con
     expect(depth?.bidAskSpread).toBe(22); // boosted using consensus parameters!
 
     // Verify journal contains consensus parameter logs
-    const hasLog = afterMetricsState.journal?.some(j =>
-      j.includes("[SWF Reinsurance Option Volatility Floor Auto-Boosted]") &&
-      j.includes("Ratio: 0.5000 < Threshold: 0.9") &&
-      j.includes("scaling factor 3")
+    const hasLog = afterMetricsState.journal?.some(
+      (j) =>
+        j.includes("[SWF Reinsurance Option Volatility Floor Auto-Boosted]") &&
+        j.includes("Ratio: 0.5000 < Threshold: 0.9") &&
+        j.includes("scaling factor 3")
     );
     expect(hasLog).toBe(true);
   });

@@ -31,7 +31,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
         description: "A simple wooden shield.",
         cost: 100,
         takeable: true,
-      }
+      },
     ],
     npcs: [
       {
@@ -45,10 +45,10 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
               id: "root",
               npc_text: "Hello",
               topics: [],
-            }
-          ]
-        }
-      }
+            },
+          ],
+        },
+      },
     ],
   });
 
@@ -76,7 +76,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
       type: "AUTHORIZE_RESERVE_SWEEP",
       syndicateId: "alpha_squad",
       sweepMargin: 600,
-      tariffLiquidationRate: 0.20,
+      tariffLiquidationRate: 0.2,
       timestamp: 1002,
     };
 
@@ -93,7 +93,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
       type: "AUTHORIZE_RESERVE_SWEEP",
       syndicateId: "alpha_squad",
       sweepMargin: 600,
-      tariffLiquidationRate: 0.20,
+      tariffLiquidationRate: 0.2,
       timestamp: 1003,
     };
 
@@ -105,7 +105,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
     const policy = state.reserveSweepPolicies?.["alpha_squad"];
     expect(policy).toBeDefined();
     expect(policy?.sweepMargin).toBe(600);
-    expect(policy?.tariffLiquidationRate).toBe(0.20);
+    expect(policy?.tariffLiquidationRate).toBe(0.2);
     expect(policy?.active).toBe(false);
 
     // 3. Adjust sweep margin - bob votes for a higher margin (700)
@@ -113,7 +113,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
       type: "ADJUST_RESERVE_SWEEP_MARGIN",
       syndicateId: "alpha_squad",
       sweepMargin: 700,
-      tariffLiquidationRate: 0.30,
+      tariffLiquidationRate: 0.3,
       timestamp: 1004,
     };
 
@@ -129,7 +129,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
       type: "ADJUST_RESERVE_SWEEP_MARGIN",
       syndicateId: "alpha_squad",
       sweepMargin: 700,
-      tariffLiquidationRate: 0.30,
+      tariffLiquidationRate: 0.3,
       timestamp: 1005,
     };
 
@@ -139,7 +139,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
 
     // Consensus updated!
     expect(state.reserveSweepPolicies?.["alpha_squad"]?.sweepMargin).toBe(700);
-    expect(state.reserveSweepPolicies?.["alpha_squad"]?.tariffLiquidationRate).toBe(0.30);
+    expect(state.reserveSweepPolicies?.["alpha_squad"]?.tariffLiquidationRate).toBe(0.3);
   });
 
   it("should auto-sweep secondary reserves and vault investments to pay coupons on periodic ticks", () => {
@@ -166,11 +166,11 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
       alpha_squad: {
         syndicateId: "alpha_squad",
         sweepMargin: 700,
-        tariffLiquidationRate: 0.20,
+        tariffLiquidationRate: 0.2,
         active: false,
         accumulatedLiquidatedGold: 0,
         timestamp: 1000,
-      }
+      },
     };
 
     // Set up active bond
@@ -196,9 +196,9 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
       alpha_squad: {
         syndicateId: "alpha_squad",
         reserveGold: 600, // Can sweep 600
-        reserveRatio: 0.20,
+        reserveRatio: 0.2,
         timestamp: 1000,
-      }
+      },
     };
 
     state.secondaryReserveInvestments = {
@@ -208,8 +208,8 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
           vaultId: "vault_1",
           investedGold: 500, // Can liquidate remaining 400 needed
           timestamp: 1000,
-        }
-      }
+        },
+      },
     };
 
     // Periodic econ tick triggers auto-sweep
@@ -252,11 +252,11 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
       alpha_squad: {
         syndicateId: "alpha_squad",
         sweepMargin: 500,
-        tariffLiquidationRate: 0.20,
+        tariffLiquidationRate: 0.2,
         active: false,
         accumulatedLiquidatedGold: 0,
         timestamp: 1000,
-      }
+      },
     };
 
     state.factionReserveBonds = {
@@ -286,7 +286,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
     // Liquidation portion = floor(120 * 0.2 / 1.2) = 20 gold.
     state.vars["gold"] = 200;
     state.merchantInventories = {
-      merchant_tom: ["wooden_shield"]
+      merchant_tom: ["wooden_shield"],
     };
 
     const buyAction = {
@@ -310,7 +310,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
     // Liquidation portion = floor(80 * 0.2 / 0.8) = 20 gold.
     state.vars["gold"] = 80;
     state.merchantGold = {
-      merchant_tom: 1000
+      merchant_tom: 1000,
     };
 
     const sellAction = {
@@ -353,11 +353,11 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
       alpha_squad: {
         syndicateId: "alpha_squad",
         sweepMargin: 500,
-        tariffLiquidationRate: 0.20,
+        tariffLiquidationRate: 0.2,
         active: true, // sweep active
         accumulatedLiquidatedGold: 0,
         timestamp: 1000,
-      }
+      },
     };
 
     const contestAction = {
@@ -395,7 +395,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
         active: true,
         accumulatedLiquidatedGold: 50,
         timestamp: 100,
-      }
+      },
     };
 
     stateB.reserveSweepPolicies = {
@@ -406,7 +406,7 @@ describe("Syndicate Secondary Reserve Automated Sweeps & Dynamic Tariff Liquidat
         active: false,
         accumulatedLiquidatedGold: 100,
         timestamp: 150, // newer timestamp
-      }
+      },
     };
 
     const merged = mergeMonotonicStateFields(stateA, stateB);

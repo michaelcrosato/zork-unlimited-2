@@ -191,7 +191,7 @@ describe("Arbitrage and Dynamic Inventory-Based Economy (AF-37)", () => {
     // Let's force A to be chosen by calling merge directly.
     nodeB.localState = mergeMonotonicStateFields(nodeB.localState, nodeA.localState);
     nodeA.localState = mergeMonotonicStateFields(nodeA.localState, nodeB.localState);
-    
+
     // Both nodes should converge to the same state
     expect(nodeA.localState.merchantInventories).toEqual(nodeB.localState.merchantInventories);
     expect(nodeA.localState.merchantGold).toEqual(nodeB.localState.merchantGold);

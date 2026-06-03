@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Shock Arbitrage Spread an
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -69,7 +69,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Shock Arbitrage Spread an
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -155,7 +155,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Shock Arbitrage Spread an
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -288,7 +288,15 @@ describe("Syndicate SWF Reinsurance Options Volatility Shock Arbitrage Spread an
     expect(finalPool?.totalReserve).toBe(2800); // 2000 + 400 (rebalance) + 400 (premium routing) = 2800
 
     // Ensure the journal registered the actions
-    expect(nextState.journal).toContainEqual(expect.stringContaining("[SWF Reinsurance Option Spread Rebalancing] Dynamically narrowed option spread by 7 gold"));
-    expect(nextState.journal).toContainEqual(expect.stringContaining("[SWF Volatility Shock Arbitrage Spread Rebalancing] Routed 400 gold of option premium payouts"));
+    expect(nextState.journal).toContainEqual(
+      expect.stringContaining(
+        "[SWF Reinsurance Option Spread Rebalancing] Dynamically narrowed option spread by 7 gold"
+      )
+    );
+    expect(nextState.journal).toContainEqual(
+      expect.stringContaining(
+        "[SWF Volatility Shock Arbitrage Spread Rebalancing] Routed 400 gold of option premium payouts"
+      )
+    );
   });
 });

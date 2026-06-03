@@ -256,7 +256,7 @@ describe("Crime Syndicate Turf Contraband Checkpoints & Automatic Bribe Extortio
     expect(paidBribeRes.state.vars["gold"]).toBe(45); // 100 - 40 bribe - 15 extortion toll
     // distributed to members (agent_a)
     expect(paidBribeRes.state.vars["gold_agent_a"]).toBe(55);
-    expect(paidBribeRes.events.some(e => e.type === "narration" && e.text.includes("bribe toll"))).toBe(true);
+    expect(paidBribeRes.events.some((e) => e.type === "narration" && e.text.includes("bribe toll"))).toBe(true);
 
     // 2. Move North carrying contraband, does NOT have enough gold to pay 40 gold bribe toll
     state.vars["gold"] = 20;
@@ -266,7 +266,11 @@ describe("Crime Syndicate Turf Contraband Checkpoints & Automatic Bribe Extortio
     expect(fightRes.state.flags["in_combat_with_turf_enforcer_syndicate_black"]).toBe(true);
     expect(fightRes.state.enforcers?.["turf_enforcer_syndicate_black"]).toBeDefined();
     expect(fightRes.state.vars["npc_hp_turf_enforcer_syndicate_black"]).toBe(30);
-    expect(fightRes.events.some(e => e.type === "narration" && e.text.includes("Enforcer detects your contraband and attacks"))).toBe(true);
+    expect(
+      fightRes.events.some(
+        (e) => e.type === "narration" && e.text.includes("Enforcer detects your contraband and attacks")
+      )
+    ).toBe(true);
   });
 
   it("should reconcile checkpoints and bribe votes across the Gossip P2P mesh", () => {

@@ -80,6 +80,11 @@ objects:
           - clear_flag: vault_door_locked
           - set_object_locked: { id: vault_door, locked: false }
           - narrate: "You insert the glowing vault key into the vault door. With a low rumble, the massive stone door slides into the floor, opening the path east!"
+      - verb: USE
+        target: vault_door
+        conditions: [ { has_flag: vault_door_locked } ]
+        effects:
+          - narrate: "You need a key to unlock the vault door."
 
   - id: treasure
     name: "ancient treasure"

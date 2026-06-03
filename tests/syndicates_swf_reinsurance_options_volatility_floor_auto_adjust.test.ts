@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -62,7 +62,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -85,7 +85,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
         bondId: "index_1",
         volatility: 20.0,
         timestamp: 1000,
-      }
+      },
     };
 
     // Authorized volatility floor of 0.5 (Base min spread: 20 * 0.5 = 10 gold)
@@ -123,7 +123,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
         trancheId: "senior",
         syndicateContributions: { alpha: 4000 },
         totalBalance: 4000, // reserves = 4000
-        liabilities: 5000,  // liabilities = 5000, ratio = 0.8 (exactly at threshold)
+        liabilities: 5000, // liabilities = 5000, ratio = 0.8 (exactly at threshold)
         timestamp: 1000,
       },
     };
@@ -175,16 +175,16 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
     expect(depthB?.bidAskSpread).toBe(18);
 
     // Verify journal contains auto-boost log messages
-    const hasAutoBoostLog = afterStateB.journal?.some(j =>
-      j.includes("[SWF Reinsurance Option Volatility Floor Auto-Boosted]") &&
-      j.includes("Ratio: 0.4000 < Threshold: 0.8") &&
-      j.includes("boosted volatility floor from 0.50 to 0.90")
+    const hasAutoBoostLog = afterStateB.journal?.some(
+      (j) =>
+        j.includes("[SWF Reinsurance Option Volatility Floor Auto-Boosted]") &&
+        j.includes("Ratio: 0.4000 < Threshold: 0.8") &&
+        j.includes("boosted volatility floor from 0.50 to 0.90")
     );
     expect(hasAutoBoostLog).toBe(true);
 
-    const hasEnforceLog = afterStateB.journal?.some(j =>
-      j.includes("[SWF Reinsurance Option Volatility Floor Enforced]") &&
-      j.includes("floor parameter 0.90")
+    const hasEnforceLog = afterStateB.journal?.some(
+      (j) => j.includes("[SWF Reinsurance Option Volatility Floor Enforced]") && j.includes("floor parameter 0.90")
     );
     expect(hasEnforceLog).toBe(true);
   });
@@ -224,7 +224,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -246,7 +246,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
         bondId: "index_1",
         volatility: 20.0,
         timestamp: 1000,
-      }
+      },
     };
 
     state.swfReinsuranceOptionVolatilityFloorProposals = {
@@ -276,12 +276,12 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
 
     // Set up volatility insurance pool with depleted reserves
     state.swfReinsuranceOptionVolatilityInsurancePools = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         id: "cdo_1_senior",
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
-        balance: 2000,      // reserves = 2000
-        liabilities: 5000,  // liabilities = 5000, ratio = 0.4
+        balance: 2000, // reserves = 2000
+        liabilities: 5000, // liabilities = 5000, ratio = 0.4
         timestamp: 1000,
       },
     };
@@ -319,9 +319,10 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility 
     let depth = afterState.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
     expect(depth?.bidAskSpread).toBe(18);
 
-    const hasAutoBoostLog = afterState.journal?.some(j =>
-      j.includes("[SWF Reinsurance Option Volatility Floor Auto-Boosted]") &&
-      j.includes("Reserves: 2000, Liabilities: 5000, Ratio: 0.4000 < Threshold: 0.8")
+    const hasAutoBoostLog = afterState.journal?.some(
+      (j) =>
+        j.includes("[SWF Reinsurance Option Volatility Floor Auto-Boosted]") &&
+        j.includes("Reserves: 2000, Liabilities: 5000, Ratio: 0.4000 < Threshold: 0.8")
     );
     expect(hasAutoBoostLog).toBe(true);
   });

@@ -281,9 +281,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
         id: "group1",
         syndicateId: "blood_fangs",
         members: ["player"],
-        collaterals: [
-          { agentId: "player", collateralType: "safehouse", collateralId: "sh_player" }
-        ],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "sh_player" }],
         amount: 300,
         interestAccrued: 0,
         borrowStep: 1,
@@ -559,7 +557,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
 
     // Active policy for alice
     state.agentPremiumPolicies = {
-      "alice_group_1": {
+      alice_group_1: {
         agentId: "alice",
         syndicateId: "blood_fangs",
         groupId: "group_1",
@@ -585,7 +583,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
 
     // Active joint loan in default
     state.jointLoans = {
-      "group_1": {
+      group_1: {
         id: "group_1",
         syndicateId: "blood_fangs",
         members: ["alice"],
@@ -657,7 +655,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     };
 
     state.agentPremiumPolicies = {
-      "alice_group_1": {
+      alice_group_1: {
         agentId: "alice",
         syndicateId: "blood_fangs",
         groupId: "group_1",
@@ -692,7 +690,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     };
 
     state.jointLoans = {
-      "group_1": {
+      group_1: {
         id: "group_1",
         syndicateId: "blood_fangs",
         members: ["alice"],
@@ -712,7 +710,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     expect(ticked.reinsuranceContracts?.["blood_fangs:shadow_brokers"]?.borrowedAfromB).toBe(0);
     expect(ticked.jointLoanInsurancePools?.shadow_brokers?.poolGold).toBe(100);
 
-    const logEntry = ticked.journal.find(j => j.includes("[Contagion Shield] Reinsurance call"));
+    const logEntry = ticked.journal.find((j) => j.includes("[Contagion Shield] Reinsurance call"));
     expect(logEntry).toBeDefined();
   });
 
@@ -848,7 +846,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     };
     let resSubB = multiAgentStep(resSubA.state, { agentId: "bob", action: actSubB as any }, mockPack);
     expect(resSubB.ok).toBe(true);
-    
+
     // Subsidies: A voted 2, B voted 3. Reconciled rate is minimum = 2.
     const pairKey = "blood_fangs:shadow_brokers";
     const subsidy = resSubB.state.interestSubsidies?.[pairKey];
@@ -858,7 +856,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
 
     // 3. Validate PLEDGE_REINSURANCE_COLLATERAL checks
     resSubB.state.safehouses = {
-      "clearing": {
+      clearing: {
         id: "clearing",
         roomId: "clearing",
         ownerId: "bob",
@@ -879,7 +877,11 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
       targetState: true,
       timestamp: 1020,
     };
-    let resPledgeNoContract = multiAgentStep(resSubB.state, { agentId: "player", action: actPledgeNoContract as any }, mockPack);
+    let resPledgeNoContract = multiAgentStep(
+      resSubB.state,
+      { agentId: "player", action: actPledgeNoContract as any },
+      mockPack
+    );
     expect(resPledgeNoContract.ok).toBe(false);
     expect(resPledgeNoContract.rejectionReason).toContain("Active reinsurance contract does not exist");
 
@@ -907,14 +909,20 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
       targetState: true,
       timestamp: 1020,
     };
-    let resPledgeWrongOwner = multiAgentStep(resSubB.state, { agentId: "player", action: actPledgeWrongOwner as any }, mockPack);
+    let resPledgeWrongOwner = multiAgentStep(
+      resSubB.state,
+      { agentId: "player", action: actPledgeWrongOwner as any },
+      mockPack
+    );
     expect(resPledgeWrongOwner.ok).toBe(false);
     expect(resPledgeWrongOwner.rejectionReason).toContain("does not belong to pledging syndicate");
 
     // Valid vote A
     let resPledgeA = multiAgentStep(resSubB.state, { agentId: "player", action: actPledgeNoContract as any }, mockPack);
     expect(resPledgeA.ok).toBe(true);
-    expect(resPledgeA.state.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]).toBeUndefined();
+    expect(
+      resPledgeA.state.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]
+    ).toBeUndefined();
 
     // Valid vote B
     let resPledgeB = multiAgentStep(resPledgeA.state, { agentId: "bob", action: actPledgeNoContract as any }, mockPack);
@@ -939,7 +947,11 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
       targetState: true,
       timestamp: 1030,
     };
-    let resPledgeLocked = multiAgentStep(resPledgeB.state, { agentId: "player", action: actPledgeLocked as any }, mockPack);
+    let resPledgeLocked = multiAgentStep(
+      resPledgeB.state,
+      { agentId: "player", action: actPledgeLocked as any },
+      mockPack
+    );
     expect(resPledgeLocked.ok).toBe(false);
     expect(resPledgeLocked.rejectionReason).toContain("is already locked");
   });
@@ -1004,7 +1016,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     };
 
     state.jointLoans = {
-      "group_1": {
+      group_1: {
         id: "group_1",
         syndicateId: "blood_fangs",
         members: ["alice"],
@@ -1021,11 +1033,11 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     // Interest accrued on 1000 gold loan at 3% should be 30 gold.
     let ticked = tickEconomy(state, mockPack);
     expect(ticked.jointLoans?.["group_1"]?.interestAccrued).toBe(30);
-    expect(ticked.journal.some(j => j.includes("[Interest Subsidy] Applied cooperative subsidy"))).toBe(true);
+    expect(ticked.journal.some((j) => j.includes("[Interest Subsidy] Applied cooperative subsidy"))).toBe(true);
 
     // 2. Set loan to defaulted
     state.jointLoans["group_1"].dueStep = 5; // defaulted at step 10
-    
+
     // Insurance pool has 0 gold
     state.jointLoanInsurancePools = {
       blood_fangs: {
@@ -1058,7 +1070,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
 
     // Pledge secondary reinsurance collateral from shadow_brokers
     state.safehouses = {
-      "clearing": {
+      clearing: {
         id: "clearing",
         roomId: "clearing",
         ownerId: "bob",
@@ -1083,7 +1095,7 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     };
 
     state.agentPremiumPolicies = {
-      "alice_group_1": {
+      alice_group_1: {
         agentId: "alice",
         syndicateId: "blood_fangs",
         groupId: "group_1",
@@ -1095,10 +1107,10 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
 
     // Run tickEconomy
     ticked = tickEconomy(state, mockPack);
-    
+
     // Clearing safehouse should be deleted/liquidated
     expect(ticked.safehouses?.["clearing"]).toBeUndefined();
-    
+
     // Pledge should be deactivated
     expect(ticked.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.active).toBe(false);
 
@@ -1106,7 +1118,13 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     expect(ticked.enforcementHeat?.["clearing"]?.heat).toBe(15);
 
     // Journal should record reinsurance collateral claim
-    expect(ticked.journal.some(j => j.includes("[Reinsurance Collateral Claim] Claimed and liquidated partner syndicate shadow_brokers's secondary reinsurance collateral"))).toBe(true);
+    expect(
+      ticked.journal.some((j) =>
+        j.includes(
+          "[Reinsurance Collateral Claim] Claimed and liquidated partner syndicate shadow_brokers's secondary reinsurance collateral"
+        )
+      )
+    ).toBe(true);
   });
 
   it("should merge interest rate subsidies and secondary reinsurance collateral fields in Gossip LWW sync (AF-103)", () => {
@@ -1187,7 +1205,9 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     expect(merged.interestSubsidyVotes?.["blood_fangs:shadow_brokers"]?.player?.timestamp).toBe(1050);
 
     expect(merged.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.active).toBe(true);
-    expect(merged.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.timestamp).toBe(1030);
+    expect(merged.reinsuranceCollateralPledges?.["blood_fangs:shadow_brokers:safehouse:clearing"]?.timestamp).toBe(
+      1030
+    );
   });
 
   it("should handle PROPOSE_RISK_RATING validations, double-majority consensus, and scale premium multipliers (AF-104)", () => {
@@ -1291,7 +1311,14 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
       shadow_brokers: { syndicateId: "shadow_brokers", poolGold: 200, premiumRate: 10, timestamp: 1000 },
     };
     res5.state.agentPremiumPolicies = {
-      player_group1: { agentId: "player", syndicateId: "blood_fangs", groupId: "group1", premiumPaid: 30, active: true, timestamp: 1000 },
+      player_group1: {
+        agentId: "player",
+        syndicateId: "blood_fangs",
+        groupId: "group1",
+        premiumPaid: 30,
+        active: true,
+        timestamp: 1000,
+      },
     };
     res5.state.jointLoans = {
       group1: {
@@ -1307,7 +1334,16 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
       },
     };
     res5.state.safehouses = {
-      sh_player: { id: "sh_player", roomId: "clearing", ownerId: "player", syndicateId: "blood_fangs", level: 2, stashCapacity: 10, stashItems: [], timestamp: 1000 },
+      sh_player: {
+        id: "sh_player",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+      },
     };
     res5.state.step = 15; // Past due step 10 -> Triggers Default!
 
@@ -1409,7 +1445,14 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     // Total multiplier = 1.5 + 0.5 = 2.0.
     auditRes2.state.jointLoanInsurancePools!.blood_fangs.poolGold = 0;
     auditRes2.state.agentPremiumPolicies = {
-      player_group1: { agentId: "player", syndicateId: "blood_fangs", groupId: "group1", premiumPaid: 30, active: true, timestamp: 1000 },
+      player_group1: {
+        agentId: "player",
+        syndicateId: "blood_fangs",
+        groupId: "group1",
+        premiumPaid: 30,
+        active: true,
+        timestamp: 1000,
+      },
     };
     auditRes2.state.jointLoans = {
       group1: {
@@ -1425,7 +1468,16 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
       },
     };
     auditRes2.state.safehouses = {
-      sh_player: { id: "sh_player", roomId: "clearing", ownerId: "player", syndicateId: "blood_fangs", level: 2, stashCapacity: 10, stashItems: [], timestamp: 1000 },
+      sh_player: {
+        id: "sh_player",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+      },
     };
     auditRes2.state.step = 15; // past due
 
@@ -1496,7 +1548,14 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     // Set blood_fangs poolGold back to 0 for fallback borrow trigger
     auditRes4.state.jointLoanInsurancePools!.blood_fangs.poolGold = 0;
     auditRes4.state.agentPremiumPolicies = {
-      player_group1: { agentId: "player", syndicateId: "blood_fangs", groupId: "group1", premiumPaid: 30, active: true, timestamp: 1000 },
+      player_group1: {
+        agentId: "player",
+        syndicateId: "blood_fangs",
+        groupId: "group1",
+        premiumPaid: 30,
+        active: true,
+        timestamp: 1000,
+      },
     };
     auditRes4.state.jointLoans = {
       group1: {
@@ -1512,7 +1571,16 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
       },
     };
     auditRes4.state.safehouses = {
-      sh_player: { id: "sh_player", roomId: "clearing", ownerId: "player", syndicateId: "blood_fangs", level: 2, stashCapacity: 10, stashItems: [], timestamp: 1000 },
+      sh_player: {
+        id: "sh_player",
+        roomId: "clearing",
+        ownerId: "player",
+        syndicateId: "blood_fangs",
+        level: 2,
+        stashCapacity: 10,
+        stashItems: [],
+        timestamp: 1000,
+      },
     };
     auditRes4.state.step = 25; // past due
 
@@ -1588,4 +1656,3 @@ describe("Syndicate Bank Joint-Liability Loan Insurance Pool Reinsurance Mesh (A
     expect(merged.syndicateDefaults?.blood_fangs).toBe(2);
   });
 });
-

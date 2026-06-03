@@ -263,7 +263,7 @@ describe("SWF Yield Derivative Tokens & Multi-Fund Risk Pooling (AF-130)", () =>
         targetType: "ArbitrageRoute",
         targetId: "route1",
         investedAmount: 1000, // 1000 invested
-        yieldRate: 10,        // 10% yield per tick = 100 gold
+        yieldRate: 10, // 10% yield per tick = 100 gold
         status: "Active",
         timestamp: 1000,
       },
@@ -429,7 +429,7 @@ describe("SWF Yield Derivative Tokens & Multi-Fund Risk Pooling (AF-130)", () =>
     // Proportional deduction from pool contributions:
     // swf1 contribution: 100/250 = 40% of 10 = 4
     // swf2 contribution: 150/250 = 60% of 10 = 6
-    expect(pool?.fundContributions?.swf1).toBe(96);  // 100 - 4
+    expect(pool?.fundContributions?.swf1).toBe(96); // 100 - 4
     expect(pool?.fundContributions?.swf2).toBe(144); // 150 - 6
   });
 

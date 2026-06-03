@@ -1,7 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  INTERVIEW_QUESTIONS,
-} from "../src/playtest/types.js";
+import { INTERVIEW_QUESTIONS } from "../src/playtest/types.js";
 import type {
   PlaytestPersona,
   PlaytestMetrics,

@@ -253,7 +253,7 @@ describe("Smuggler Syndicate Cartel Underground Railroads, Cross-Border Contraba
     expect(result.state.vars.gold).toBe(1000);
     // Contraband spices should still be in player's agent inventory
     expect(result.state.agents?.["player"]?.inventory).toContain("contraband_spices");
-    
+
     // Check if the narration event was correctly emitted in the result
     const narrationEvent = result.events.find(
       (e: any) => e.type === "narration" && e.text.includes("traversed the contraband tunnel safely")

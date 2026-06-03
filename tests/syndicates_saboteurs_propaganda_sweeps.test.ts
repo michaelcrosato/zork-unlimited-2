@@ -59,7 +59,7 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
         description: "A sparkling contraband gem.",
         takeable: true,
         contraband: true,
-      }
+      },
     ],
     npcs: [
       {
@@ -76,8 +76,8 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
               choices: [],
             },
           ],
-        }
-      }
+        },
+      },
     ],
   });
 
@@ -177,7 +177,7 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
       expect(res.state.saboteurs?.["enforcer_jenkins"]).toBeDefined();
       expect(res.state.saboteurs?.["enforcer_jenkins"].status).toBe("active");
       expect(res.state.saboteurs?.["enforcer_jenkins"].syndicateId).toBe("shadow_cartel");
-      expect(res.state.journal.some(j => j.includes("recruited by agent player as a saboteur"))).toBe(true);
+      expect(res.state.journal.some((j) => j.includes("recruited by agent player as a saboteur"))).toBe(true);
     });
   });
 
@@ -227,7 +227,7 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
       expect(res.ok).toBe(true);
       expect(res.state.vars["gold"]).toBe(300); // 500 - 200 sweep cost
       expect(res.state.undercoverAgents?.["spy_mulder"].status).toBe("rooted_out");
-      expect(res.state.journal.some(j => j.includes("neutralized undercover agent Agent Mulder"))).toBe(true);
+      expect(res.state.journal.some((j) => j.includes("neutralized undercover agent Agent Mulder"))).toBe(true);
     });
 
     it("should log clean sweep if no active undercover agents exist for syndicate", () => {
@@ -262,7 +262,7 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
       );
 
       expect(res.ok).toBe(true);
-      expect(res.state.journal.some(j => j.includes("found no active undercover agents"))).toBe(true);
+      expect(res.state.journal.some((j) => j.includes("found no active undercover agents"))).toBe(true);
     });
   });
 
@@ -303,7 +303,7 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
 
       const updated = tickEconomy(state, mockPack);
       expect(updated.turfGuardOutposts?.["market"].disabled).toBe(true);
-      expect(updated.journal.some(j => j.includes("located and disabled rival outpost in room market"))).toBe(true);
+      expect(updated.journal.some((j) => j.includes("located and disabled rival outpost in room market"))).toBe(true);
     });
 
     it("should successfully deflect an enforcer sweep at a front business", () => {
@@ -361,12 +361,14 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
       };
 
       const updated = tickEconomy(state, mockPack);
-      
+
       // Sweep should be deflected, meaning front business gold is NOT confiscated!
       const front = updated.frontBusinesses?.["front_one"];
       expect(front?.cleanGold).toBe(240); // 200 + 40 laundered, not confiscated
       expect(front?.dirtyGold).toBe(10); // 50 - 40 laundered, not confiscated
-      expect(updated.journal.some(j => j.includes("successfully deflected the enforcer sweep at front business"))).toBe(true);
+      expect(
+        updated.journal.some((j) => j.includes("successfully deflected the enforcer sweep at front business"))
+      ).toBe(true);
     });
   });
 
@@ -420,8 +422,8 @@ describe("Smuggler Syndicate Cartel Saboteurs, Counter-Intelligence Sweeps, and 
         },
       };
 
-      const npc = mockPack.npcs?.find(n => n.id === "merchant_timmy");
-      const packObj = mockPack.objects?.find(o => o.id === "royal_gem");
+      const npc = mockPack.npcs?.find((n) => n.id === "merchant_timmy");
+      const packObj = mockPack.objects?.find((o) => o.id === "royal_gem");
 
       // Calculate price when buying royal gem (base cost 100)
       const scaledPrice = calculateTradePrice(

@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Vault Compounding & Interest (AF-171
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Reinsurance Options Vault Compounding & Interest (AF-171
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -122,9 +122,9 @@ describe("Syndicate SWF Reinsurance Options Vault Compounding & Interest (AF-171
       swfYieldCdoId: "cdo_1",
       trancheId: "senior",
       liquidationThreshold: 0.85,
-      penaltyRate: 0.20,
+      penaltyRate: 0.2,
       autoDeleveragingThreshold: 0.35,
-      marginDeflectionFactor: 0.40,
+      marginDeflectionFactor: 0.4,
       compoundingFactor: 0.25, // 25% auto-compounded
       compoundingYieldRate: 0.08, // 8% yield per tick
       timestamp: 1001,
@@ -182,18 +182,30 @@ describe("Syndicate SWF Reinsurance Options Vault Compounding & Interest (AF-171
     expect(tickedState.syndicates?.["alpha"]?.warChest).toBe(8846);
     expect(tickedState.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault).toBe(270);
     expect(tickedState.swfReinsuranceOptionsContracts?.["opt_1"]?.premiumCompounded).toBe(true);
-    expect(tickedState.journal?.some(j => j.includes("[SWF Reinsurance Premium Auto-Compounding]") && j.includes("Routed 250 gold"))).toBe(true);
-    expect(tickedState.journal?.some(j => j.includes("[SWF Reinsurance Vault Interest]") && j.includes("earned 20 gold interest"))).toBe(true);
+    expect(
+      tickedState.journal?.some(
+        (j) => j.includes("[SWF Reinsurance Premium Auto-Compounding]") && j.includes("Routed 250 gold")
+      )
+    ).toBe(true);
+    expect(
+      tickedState.journal?.some(
+        (j) => j.includes("[SWF Reinsurance Vault Interest]") && j.includes("earned 20 gold interest")
+      )
+    ).toBe(true);
 
     // Second tick: should accrue interest on the vault balance:
     // 8% of 270 = 21 gold interest. swfReinsuranceOptionVault becomes 291
     let tickedState2 = tickEconomy(tickedState, mockPack);
     expect(tickedState2.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault).toBe(291);
-    expect(tickedState2.journal?.some(j => j.includes("[SWF Reinsurance Vault Interest]") && j.includes("earned 21 gold interest"))).toBe(true);
+    expect(
+      tickedState2.journal?.some(
+        (j) => j.includes("[SWF Reinsurance Vault Interest]") && j.includes("earned 21 gold interest")
+      )
+    ).toBe(true);
 
     // 3. Scenario: Severe Network Partition (linkStateDropRate = 0.50 >= 0.35 threshold)
     // Running tickEconomy should NOT accrue interest under severe partition
-    tickedState2.swfMultiFundReinsurancePools!["pool_1"].linkStateDropRate = 0.50; // Severe network partition
+    tickedState2.swfMultiFundReinsurancePools!["pool_1"].linkStateDropRate = 0.5; // Severe network partition
 
     let tickedState3 = tickEconomy(tickedState2, mockPack);
     // Vault balance should remain 291 (no interest earned)
@@ -214,6 +226,10 @@ describe("Syndicate SWF Reinsurance Options Vault Compounding & Interest (AF-171
     expect(marginTickedState.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault).toBe(0);
     // collateral should increase from 100 to 640
     expect(marginTickedState.marginAccounts?.["alpha"]?.collateral).toBe(640);
-    expect(marginTickedState.journal?.some(j => j.includes("[SWF Reinsurance Option Vault Margin Deficit Payback]") && j.includes("Withdrew 540 gold"))).toBe(true);
+    expect(
+      marginTickedState.journal?.some(
+        (j) => j.includes("[SWF Reinsurance Option Vault Margin Deficit Payback]") && j.includes("Withdrew 540 gold")
+      )
+    ).toBe(true);
   });
 });

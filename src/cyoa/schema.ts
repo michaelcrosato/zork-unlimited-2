@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { ConditionSchema } from "../core/conditions.js";
 import { EffectSchema } from "../core/effects.js";
+import { RecipeSchema } from "../parser/schema.js";
 
 export const CYOAChoiceSchema = z.object({
   id: z.string(),
@@ -42,6 +43,7 @@ export const CYOAPackSchema = z.object({
   }),
   scenes: z.array(CYOASceneSchema),
   endings: z.array(CYOAEndingSchema).optional().default([]),
+  recipes: z.array(RecipeSchema).optional(),
 });
 
 export type CYOAPack = z.infer<typeof CYOAPackSchema>;

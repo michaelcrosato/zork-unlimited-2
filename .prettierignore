@@ -1,0 +1,9 @@
+node_modules/
+dist/
+index.html
+src/core/sync.ts
+src/core/state.ts
+src/core/economy.ts
+tests/.test-output/
+traces/
+pnpm-lock.yaml

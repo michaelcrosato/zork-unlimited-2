@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Margin Grace Period & Volatility Ext
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -77,7 +77,7 @@ describe("Syndicate SWF Reinsurance Options Margin Grace Period & Volatility Ext
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -128,7 +128,7 @@ describe("Syndicate SWF Reinsurance Options Margin Grace Period & Volatility Ext
       syndicateId: "alpha",
       swfYieldCdoId: "cdo_1",
       trancheId: "senior",
-      liquidationThreshold: 0.90,
+      liquidationThreshold: 0.9,
       penaltyRate: 0.25,
       marginCallGracePeriod: 2, // 2 step baseline grace period
       gracePeriodVolatilityThreshold: 30.0,
@@ -159,8 +159,8 @@ describe("Syndicate SWF Reinsurance Options Margin Grace Period & Volatility Ext
     let marginAccount = ticked.marginAccounts?.["alpha"];
     expect(marginAccount?.marginCallStartStep).toBe(111);
     expect(ticked.swfReinsuranceOptionsContracts?.["opt_1"]?.active).toBe(true); // Deferral works!
-    expect(ticked.journal?.some(j => j.includes("Entered margin call grace period"))).toBe(true);
-    expect(ticked.journal?.some(j => j.includes("liquidation is deferred due to active grace period"))).toBe(true);
+    expect(ticked.journal?.some((j) => j.includes("Entered margin call grace period"))).toBe(true);
+    expect(ticked.journal?.some((j) => j.includes("liquidation is deferred due to active grace period"))).toBe(true);
 
     // 3. Tick step 112 (elapsed = 1 step < 2 grace steps): liquidation still deferred
     ticked.step = 112;
@@ -191,17 +191,17 @@ describe("Syndicate SWF Reinsurance Options Margin Grace Period & Volatility Ext
     ticked.marginAccounts!["alpha"].collateral = 5000;
     ticked.step = 114;
     ticked = tickEconomy(ticked, mockPack);
-    
+
     expect(ticked.marginAccounts?.["alpha"]?.marginCallStartStep).toBeUndefined();
     expect(ticked.swfReinsuranceOptionsContracts?.["opt_1"]?.active).toBe(true);
-    expect(ticked.journal?.some(j => j.includes("recovered from margin call"))).toBe(true);
+    expect(ticked.journal?.some((j) => j.includes("recovered from margin call"))).toBe(true);
 
     // 6. Test Expiration / Liquidation
     // Skip step 115 (epoch boundary) to avoid settlement deactivation, and start at 116.
     // Decrease collateral back to 300.
     ticked.marginAccounts!["alpha"].collateral = 300;
     ticked.step = 116;
-    
+
     // Trigger margin call again (enters grace period at step 116)
     ticked = tickEconomy(ticked, mockPack);
     expect(ticked.marginAccounts?.["alpha"]?.marginCallStartStep).toBe(116);
@@ -225,6 +225,6 @@ describe("Syndicate SWF Reinsurance Options Margin Grace Period & Volatility Ext
     ticked.step = 118;
     ticked = tickEconomy(ticked, mockPack);
     expect(ticked.swfReinsuranceOptionsContracts?.["opt_1"]?.active).toBe(false); // Liquidated!
-    expect(ticked.journal?.some(j => j.includes("margin call grace period expired"))).toBe(true);
+    expect(ticked.journal?.some((j) => j.includes("margin call grace period expired"))).toBe(true);
   });
 });

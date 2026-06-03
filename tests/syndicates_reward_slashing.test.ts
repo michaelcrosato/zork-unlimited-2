@@ -52,7 +52,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing (A
       proposalId: "slash_1",
       syndicateId: "alpha_squad",
       targetSyndicateId: "beta_squad",
-      slashingRate: 0.30, // 30% slash
+      slashingRate: 0.3, // 30% slash
       maliciousActor: "malicious_node",
       timestamp: 1002,
     };
@@ -82,7 +82,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing (A
     // The target and actor should be flagged as malicious, and slashing rate registered
     expect(res2.state.maliciousActors?.malicious_node).toBe(true);
     expect(res2.state.maliciousActors?.beta_squad).toBe(true);
-    expect(res2.state.slashingRates?.beta_squad).toBe(0.30);
+    expect(res2.state.slashingRates?.beta_squad).toBe(0.3);
   });
 
   it("should reduce liquidity mining reward claims if the target syndicate is flagged as malicious", () => {
@@ -149,7 +149,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing (A
       beta_squad: true,
     };
     state.slashingRates = {
-      beta_squad: 0.30,
+      beta_squad: 0.3,
     };
 
     // Base reward would be amount * 5% per epoch * 4 epochs = 1000 * 0.05 * 4 = 200 gold.
@@ -207,14 +207,14 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing (A
       rival_node: true,
     };
     stateA.slashingRates = {
-      rival_syndicate: 0.10,
+      rival_syndicate: 0.1,
     };
 
     stateB.maliciousActors = {
       other_node: true,
     };
     stateB.slashingRates = {
-      rival_syndicate: 0.40, // higher rate / newer update
+      rival_syndicate: 0.4, // higher rate / newer update
     };
 
     let merged = mergeMonotonicStateFields(stateA, stateB);
@@ -228,6 +228,6 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Reward Slashing (A
     expect(merged.maliciousActors?.other_node).toBe(true);
 
     // Slashing rates should merge with Max
-    expect(merged.slashingRates?.rival_syndicate).toBe(0.40);
+    expect(merged.slashingRates?.rival_syndicate).toBe(0.4);
   });
 });

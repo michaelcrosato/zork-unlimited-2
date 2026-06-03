@@ -173,7 +173,7 @@ describe("Syndicate SWF Yield CDOs & Tranche Secondary Markets (AF-131)", () => 
       assets: [
         { swfYieldTokenId: "token_1", sharesPacked: 40, value: 400 }, // requests 40
       ],
-      trancheYieldRates: { senior: 0.05, mezzanine: 0.10, equity: 0.20 },
+      trancheYieldRates: { senior: 0.05, mezzanine: 0.1, equity: 0.2 },
       trancheTotalShares: { senior: 100, mezzanine: 100, equity: 100 },
       timestamp: 1000,
     };
@@ -231,7 +231,7 @@ describe("Syndicate SWF Yield CDOs & Tranche Secondary Markets (AF-131)", () => 
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 100,
             ownership: {
               blood_fangs: 100,
@@ -240,7 +240,7 @@ describe("Syndicate SWF Yield CDOs & Tranche Secondary Markets (AF-131)", () => 
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 100,
             ownership: {
               blood_fangs: 100,
@@ -330,9 +330,7 @@ describe("Syndicate SWF Yield CDOs & Tranche Secondary Markets (AF-131)", () => 
       yield_cdo_1: {
         id: "yield_cdo_1",
         creatorSyndicateId: "blood_fangs",
-        assets: [
-          { swfYieldTokenId: "token_1", sharesPacked: 50, value: 500 },
-        ],
+        assets: [{ swfYieldTokenId: "token_1", sharesPacked: 50, value: 500 }],
         totalValue: 500,
         timestamp: 1000,
         tranches: {
@@ -345,14 +343,14 @@ describe("Syndicate SWF Yield CDOs & Tranche Secondary Markets (AF-131)", () => 
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 100,
             ownership: { blood_fangs: 100 },
             timestamp: 1000,
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: { blood_fangs: 200 },
             timestamp: 1000,
@@ -407,9 +405,27 @@ describe("Syndicate SWF Yield CDOs & Tranche Secondary Markets (AF-131)", () => 
         totalValue: 500,
         timestamp: 2000,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.05, totalShares: 100, ownership: { blood_fangs: 30 }, timestamp: 2000 },
-          mezzanine: { trancheId: "mezzanine", yieldRate: 0.10, totalShares: 100, ownership: { blood_fangs: 30 }, timestamp: 2000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 100, ownership: { blood_fangs: 30 }, timestamp: 2000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 100,
+            ownership: { blood_fangs: 30 },
+            timestamp: 2000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.1,
+            totalShares: 100,
+            ownership: { blood_fangs: 30 },
+            timestamp: 2000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.2,
+            totalShares: 100,
+            ownership: { blood_fangs: 30 },
+            timestamp: 2000,
+          },
         },
       },
     };
@@ -422,9 +438,27 @@ describe("Syndicate SWF Yield CDOs & Tranche Secondary Markets (AF-131)", () => 
         totalValue: 500,
         timestamp: 3000, // Newer timestamp
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.05, totalShares: 100, ownership: { blood_fangs: 80 }, timestamp: 3000 },
-          mezzanine: { trancheId: "mezzanine", yieldRate: 0.10, totalShares: 100, ownership: { blood_fangs: 80 }, timestamp: 3000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 100, ownership: { blood_fangs: 80 }, timestamp: 3000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 100,
+            ownership: { blood_fangs: 80 },
+            timestamp: 3000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.1,
+            totalShares: 100,
+            ownership: { blood_fangs: 80 },
+            timestamp: 3000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.2,
+            totalShares: 100,
+            ownership: { blood_fangs: 80 },
+            timestamp: 3000,
+          },
         },
       },
     };

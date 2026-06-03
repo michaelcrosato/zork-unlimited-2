@@ -65,9 +65,27 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
         assets: [],
         totalValue: 500,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.05, totalShares: 250, ownership: { buyer_corp: 250 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 150, ownership: { buyer_corp: 150 }, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.25, totalShares: 100, ownership: { buyer_corp: 100 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 250,
+            ownership: { buyer_corp: 250 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 150,
+            ownership: { buyer_corp: 150 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.25,
+            totalShares: 100,
+            ownership: { buyer_corp: 100 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -159,7 +177,7 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
         swfYieldCdoId: "swf_cdo_1",
         trancheId: "mezzanine",
         notionalValue: 200,
-        premiumRate: 0.10, // 200 * 0.10 = 20 gold premium
+        premiumRate: 0.1, // 200 * 0.10 = 20 gold premium
         timestamp: 1000,
         active: true,
       },
@@ -211,7 +229,7 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
         swfYieldCdoId: "swf_cdo_1",
         trancheId: "mezzanine",
         notionalValue: 200,
-        premiumRate: 0.10, // 20 gold premium
+        premiumRate: 0.1, // 20 gold premium
         timestamp: 1000,
         active: true,
       },
@@ -259,14 +277,30 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
       swf_cdo_1: {
         id: "swf_cdo_1",
         creatorSyndicateId: "buyer_corp",
-        assets: [
-          { swfYieldTokenId: "token_defaulted", sharesPacked: 50, value: 500 },
-        ],
+        assets: [{ swfYieldTokenId: "token_defaulted", sharesPacked: 50, value: 500 }],
         totalValue: 500,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.05, totalShares: 250, ownership: { buyer_corp: 250 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 150, ownership: { buyer_corp: 150 }, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.25, totalShares: 100, ownership: { buyer_corp: 100 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 250,
+            ownership: { buyer_corp: 250 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 150,
+            ownership: { buyer_corp: 150 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.25,
+            totalShares: 100,
+            ownership: { buyer_corp: 100 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -492,7 +526,7 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
       iron_vault: {
         vaultId: "iron_vault",
         name: "Iron Vault",
-        interestRate: 0.10,
+        interestRate: 0.1,
         sweepRisk: 0.0,
         timestamp: 1000,
       },
@@ -586,7 +620,7 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
       iron_vault: {
         vaultId: "iron_vault",
         name: "Iron Vault",
-        interestRate: 0.10,
+        interestRate: 0.1,
         sweepRisk: 0.0,
         timestamp: 1000,
       },
@@ -729,7 +763,7 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
       iron_vault: {
         vaultId: "iron_vault",
         name: "Iron Vault",
-        interestRate: 0.10, // 10% interest rate
+        interestRate: 0.1, // 10% interest rate
         sweepRisk: 0.0, // No sweep risk for this test
         timestamp: 1000,
       },
@@ -964,7 +998,7 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
       iron_vault: {
         vaultId: "iron_vault",
         name: "Iron Vault",
-        interestRate: 0.10,
+        interestRate: 0.1,
         sweepRisk: 0.0,
         timestamp: 1000,
       },
@@ -1018,7 +1052,7 @@ describe("Syndicate Sovereign Wealth Fund Yield CDO CDS & Synthetic Tranche Mark
       iron_vault: {
         vaultId: "iron_vault",
         name: "Iron Vault",
-        interestRate: 0.10,
+        interestRate: 0.1,
         sweepRisk: 0.0,
         timestamp: 1000,
       },

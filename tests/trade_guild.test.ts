@@ -84,16 +84,20 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     expect(state.merchantGuilds).toEqual({});
 
     // 1. Define a merchant guild
-    const resDefine = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_GUILD",
-        guildId: "iron_ring",
-        name: "Iron Ring Guild",
-        members: ["merchant_npc"],
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resDefine = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_GUILD",
+          guildId: "iron_ring",
+          name: "Iron Ring Guild",
+          members: ["merchant_npc"],
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(resDefine.ok).toBe(true);
     state = resDefine.state;
@@ -106,30 +110,38 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     });
 
     // 2. Join a merchant guild
-    const resJoin = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "JOIN_MERCHANT_GUILD",
-        guildId: "iron_ring",
-        timestamp: 110,
-      } as any,
-    }, mockPack);
+    const resJoin = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "JOIN_MERCHANT_GUILD",
+          guildId: "iron_ring",
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(resJoin.ok).toBe(true);
     state = resJoin.state;
     expect(state.guildMemberships?.["alice"]).toContain("iron_ring");
 
     // 3. Vote on policy (should succeed since alice is a member)
-    const resVote = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_GUILD_POLICY",
-        guildId: "iron_ring",
-        tariffRate: 10,
-        exportPricingPolicy: "premium",
-        timestamp: 120,
-      } as any,
-    }, mockPack);
+    const resVote = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_GUILD_POLICY",
+          guildId: "iron_ring",
+          tariffRate: 10,
+          exportPricingPolicy: "premium",
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(resVote.ok).toBe(true);
     state = resVote.state;
@@ -151,40 +163,52 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     });
 
     // Try joining a non-existent guild
-    const resJoinFail = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "JOIN_MERCHANT_GUILD",
-        guildId: "non_existent",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resJoinFail = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "JOIN_MERCHANT_GUILD",
+          guildId: "non_existent",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resJoinFail.ok).toBe(false);
     expect(resJoinFail.rejectionReason).toContain("does not exist");
 
     // Define guild
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_GUILD",
-        guildId: "iron_ring",
-        name: "Iron Ring Guild",
-        members: ["merchant_npc"],
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_GUILD",
+          guildId: "iron_ring",
+          name: "Iron Ring Guild",
+          members: ["merchant_npc"],
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Try voting without being a member
-    const resVoteFail = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "VOTE_GUILD_POLICY",
-        guildId: "iron_ring",
-        tariffRate: 10,
-        exportPricingPolicy: "premium",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resVoteFail = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_GUILD_POLICY",
+          guildId: "iron_ring",
+          tariffRate: 10,
+          exportPricingPolicy: "premium",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resVoteFail.ok).toBe(false);
     expect(resVoteFail.rejectionReason).toContain("not a member");
   });
@@ -196,55 +220,79 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     });
 
     // Setup guild and memberships
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_GUILD",
-        guildId: "iron_ring",
-        name: "Iron Ring Guild",
-        members: ["merchant_npc"],
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_GUILD",
+          guildId: "iron_ring",
+          name: "Iron Ring Guild",
+          members: ["merchant_npc"],
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 105 } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 105 } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "bob",
-      action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 106 } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 106 } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "charlie",
-      action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 107 } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 107 } as any,
+      },
+      mockPack
+    ).state;
 
     // Alice votes: 10%, premium
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_GUILD_POLICY",
-        guildId: "iron_ring",
-        tariffRate: 10,
-        exportPricingPolicy: "premium",
-        timestamp: 110,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_GUILD_POLICY",
+          guildId: "iron_ring",
+          tariffRate: 10,
+          exportPricingPolicy: "premium",
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Bob votes: 20%, standard
-    state = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "VOTE_GUILD_POLICY",
-        guildId: "iron_ring",
-        tariffRate: 20,
-        exportPricingPolicy: "standard",
-        timestamp: 115,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_GUILD_POLICY",
+          guildId: "iron_ring",
+          tariffRate: 20,
+          exportPricingPolicy: "standard",
+          timestamp: 115,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // With 2 votes (10% vs 20%), tie-breaks on highest tariff rate -> 20%
     // Policy tie-breaks on premium > standard -> premium
@@ -254,16 +302,20 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     });
 
     // Charlie votes: 10%, standard
-    state = multiAgentStep(state, {
-      agentId: "charlie",
-      action: {
-        type: "VOTE_GUILD_POLICY",
-        guildId: "iron_ring",
-        tariffRate: 10,
-        exportPricingPolicy: "standard",
-        timestamp: 120,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_GUILD_POLICY",
+          guildId: "iron_ring",
+          tariffRate: 10,
+          exportPricingPolicy: "standard",
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // With 3 votes:
     // Tariff rates: 10 (2 votes), 20 (1 vote) -> 10% wins by majority
@@ -284,33 +336,45 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     });
 
     // Setup guild and policy
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_GUILD",
-        guildId: "iron_ring",
-        name: "Iron Ring",
-        members: ["merchant_npc"],
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_GUILD",
+          guildId: "iron_ring",
+          name: "Iron Ring",
+          members: ["merchant_npc"],
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 105 } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 105 } as any,
+      },
+      mockPack
+    ).state;
 
     // Alice is a member, Bob is not
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_GUILD_POLICY",
-        guildId: "iron_ring",
-        tariffRate: 10, // 10% guild tariff
-        exportPricingPolicy: "standard",
-        timestamp: 110,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_GUILD_POLICY",
+          guildId: "iron_ring",
+          tariffRate: 10, // 10% guild tariff
+          exportPricingPolicy: "standard",
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // 1. Calculate price for Alice (guild member: gets 15% discount on buying)
     // baseCost = 100 * 0.85 = 85
@@ -323,16 +387,20 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     expect(bobPrice).toBe(110);
 
     // 3. Update export policy to premium (affects non-members by extra 25% buy markup)
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_GUILD_POLICY",
-        guildId: "iron_ring",
-        tariffRate: 10,
-        exportPricingPolicy: "premium",
-        timestamp: 120,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_GUILD_POLICY",
+          guildId: "iron_ring",
+          tariffRate: 10,
+          exportPricingPolicy: "premium",
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Bob pays both 10% guild tariff and 25% premium markup: 100 * 1.10 * 1.25 = 137.5 -> 138
     const bobPricePremium = calculateTradePrice(state, npc, packObj, 100, true, "bob");
@@ -351,35 +419,47 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     });
 
     // 1. Setup standard faction licensing / tariff policy at 30% standard tariff
-    state = multiAgentStep(state, {
-      agentId: "fletcher",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 50,
-        tariffRate: 30,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "fletcher",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 50,
+          tariffRate: 30,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     expect(state.tariffPolicy?.["rangers"]).toBe(30);
 
     // Setup guild and membership
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_GUILD",
-        guildId: "iron_ring",
-        name: "Iron Ring",
-        members: ["merchant_npc"],
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_GUILD",
+          guildId: "iron_ring",
+          name: "Iron Ring",
+          members: ["merchant_npc"],
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 105 } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: { type: "JOIN_MERCHANT_GUILD", guildId: "iron_ring", timestamp: 105 } as any,
+      },
+      mockPack
+    ).state;
 
     // Bob is a standard player, unlicensed. He pays the 30% faction tariff
     // price = 100 * 1.3 = 130
@@ -387,16 +467,20 @@ describe("Decentralized Merchant Trade Guilds and Territory Tariff Arbitrations"
     expect(bobNormalPrice).toBe(130);
 
     // 2. Alice (guild member) negotiates a collective bargaining agreement for 5% tariff instead of 30% standard
-    const resBargain = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "NEGOTIATE_COLLECTIVE_BARGAINING",
-        guildId: "iron_ring",
-        factionId: "rangers",
-        agreedTariff: 5,
-        timestamp: 120,
-      } as any,
-    }, mockPack);
+    const resBargain = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "NEGOTIATE_COLLECTIVE_BARGAINING",
+          guildId: "iron_ring",
+          factionId: "rangers",
+          agreedTariff: 5,
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(resBargain.ok).toBe(true);
     state = resBargain.state;

@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -62,7 +62,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -111,13 +111,16 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
     state = res.state;
 
     // Check cancellation proposal registered with "proposed" status
-    let cancelProposal = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
+    let cancelProposal =
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"];
     expect(cancelProposal).toBeDefined();
     expect(cancelProposal?.status).toBe("proposed");
     expect(cancelProposal?.targetProposalId).toBe("override_1");
 
     // Proposer vote is auto-registered
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes?.["cancel_1"]?.["player"]).toBeDefined();
+    expect(
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes?.["cancel_1"]?.["player"]
+    ).toBeDefined();
 
     // 2. Bob votes to authorize (majority reached: 2 of 3)
     const voteActionBob = {
@@ -173,7 +176,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -299,8 +302,14 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
 
     const merged = mergeMonotonicStateFields(stateA, stateB);
 
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"]).toBeDefined();
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes?.["cancel_1"]?.["player"]).toBeDefined();
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes?.["cancel_1"]?.["alice"]).toBeDefined();
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"]
+    ).toBeDefined();
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes?.["cancel_1"]?.["player"]
+    ).toBeDefined();
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes?.["cancel_1"]?.["alice"]
+    ).toBeDefined();
   });
 });

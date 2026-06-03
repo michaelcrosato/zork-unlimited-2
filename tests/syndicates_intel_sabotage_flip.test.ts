@@ -265,7 +265,9 @@ describe("Syndicate Black Market Informant Sabotage & Undercover Enforcer Defect
       expect(res.ok).toBe(true);
       expect(res.state.espionageNetworks?.["front_room"]?.status).toBe("sabotaged");
       expect(res.state.syndicates?.["syndicate_a"]?.intelStock?.["report_x"]).toBeUndefined();
-      expect(res.state.journal[res.state.journal.length - 1]).toContain("sabotaged rival syndicate syndicate_b espionage_network");
+      expect(res.state.journal[res.state.journal.length - 1]).toContain(
+        "sabotaged rival syndicate syndicate_b espionage_network"
+      );
 
       // Verify that economy passive tax tick ignores this sabotaged network
       // First, set up territory control: "front_room" controlled by "rangers", rep = 20 (leads to 2 tax gold)

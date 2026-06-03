@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebate
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -69,7 +69,7 @@ describe("Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebate
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -111,7 +111,7 @@ describe("Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebate
     expect(state.adjustSWFReinsuranceOptionMarketMakerRebateVotes?.["alpha"]).toBeUndefined();
 
     // Verify journal log
-    const log = state.journal.find(j => j.includes("[SWF Reinsurance Option Market Maker Rebate Policy Adjusted]"));
+    const log = state.journal.find((j) => j.includes("[SWF Reinsurance Option Market Maker Rebate Policy Adjusted]"));
     expect(log).toBeDefined();
     expect(log).toContain("Base Rebate Rate: 0.0500");
     expect(log).toContain("Max Rebate Rate: 0.1500");
@@ -167,7 +167,7 @@ describe("Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebate
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -183,7 +183,7 @@ describe("Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebate
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         baseRebateRate: 0.04,
-        maxRebateRate: 0.10,
+        maxRebateRate: 0.1,
         timestamp: 1000,
       },
     };
@@ -242,7 +242,7 @@ describe("Syndicate SWF Reinsurance Options Limit Order Book Market Maker Rebate
     expect(state.syndicates?.["beta"]?.warChest).toBe(10000 + 303);
 
     // Verify journal log contains the rebate entry
-    const log = state.journal.find(j => j.includes("[SWF Reinsurance Option Market Maker Rebate]"));
+    const log = state.journal.find((j) => j.includes("[SWF Reinsurance Option Market Maker Rebate]"));
     expect(log).toBeDefined();
     expect(log).toContain("Syndicate alpha received 21 gold rebate as maker");
   });

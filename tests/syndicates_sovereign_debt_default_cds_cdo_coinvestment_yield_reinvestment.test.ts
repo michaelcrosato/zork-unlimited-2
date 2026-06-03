@@ -140,17 +140,21 @@ describe("CDS CDO Co-Investment Yield Reinvestment & Compound Boost (AF-239)", (
     };
 
     // 1. Propose yield reinvestment share of 50%
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT",
-        proposalId: "coinvest_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        yieldReinvestmentShare: 50,
-        timestamp: 1100,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT",
+          proposalId: "coinvest_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          yieldReinvestmentShare: 50,
+          timestamp: 1100,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -160,17 +164,21 @@ describe("CDS CDO Co-Investment Yield Reinvestment & Compound Boost (AF-239)", (
     expect(state.cdsCdoCoinvestmentYieldReinvestmentProposals?.[proposalIdKey].status).toBe("proposed");
 
     // 2. Second member of Alpha ("alice") votes to approve the reinvestment proposal
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT",
-        proposalId: "coinvest_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        yieldReinvestmentShare: 50,
-        timestamp: 1150,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT",
+          proposalId: "coinvest_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          yieldReinvestmentShare: 50,
+          timestamp: 1150,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 

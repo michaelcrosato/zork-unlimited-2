@@ -132,11 +132,11 @@ describe("Smuggler Syndicate Cartel Dreadnought Convoys, Cross-Faction Treaty In
     // 2. Tick smuggling convoys to simulate movement and ambush defense
     // Set rangers reputation to negative to increase ambush risk
     newState.factionRep = { rangers: -15 };
-    
+
     // Perform tick
     const events: any[] = [];
     const tickedState = tickSmugglingConvoys(newState, events, mockPack);
-    
+
     const tickedConvoy = tickedState.smugglingConvoys?.["dreadnought_1"];
     expect(tickedConvoy).toBeDefined();
     // It should have either successfully advanced or completed, or defended via counter-strike!
@@ -208,7 +208,11 @@ describe("Smuggler Syndicate Cartel Dreadnought Convoys, Cross-Faction Treaty In
       direction: "NORTH",
     };
 
-    const allowedResult = multiAgentStep(establishResult.state, { agentId: "player", action: moveActionAllowed }, mockPack);
+    const allowedResult = multiAgentStep(
+      establishResult.state,
+      { agentId: "player", action: moveActionAllowed },
+      mockPack
+    );
     expect(allowedResult.ok).toBe(true);
     expect(allowedResult.state.current).toBe("border");
   });

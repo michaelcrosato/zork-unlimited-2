@@ -230,6 +230,99 @@ export function multiAgentStep(
     };
   }
 
+  // Handle decentralized GIVE_AGENT action (AF-25 / Task-F12)
+  if ((action as any).type === "GIVE_AGENT") {
+    const { targetAgentId, item, timestamp } = action as any;
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const giverState = state.agents?.[agentId];
+    const receiverState = state.agents?.[targetAgentId];
+
+    if (!targetAgentId) {
+      rejectionReason = "Target agent ID is required.";
+    } else if (!giverState) {
+      rejectionReason = `Giver agent ${agentId} is not registered.`;
+    } else if (!receiverState) {
+      rejectionReason = `Receiver agent ${targetAgentId} is not registered.`;
+    } else if (giverState.current !== receiverState.current) {
+      rejectionReason = `Agents must be in the same room to trade (giver is in ${giverState.current}, receiver is in ${receiverState.current}).`;
+    } else if (!giverState.inventory.includes(item)) {
+      rejectionReason = `Giver does not have item '${item}' in inventory.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    if (ok && giverState && receiverState) {
+      const updatedAgents = {
+        ...state.agents,
+        [agentId]: {
+          ...giverState,
+          inventory: giverState.inventory.filter((i) => i !== item),
+        },
+        [targetAgentId]: {
+          ...receiverState,
+          inventory: [...receiverState.inventory, item],
+        },
+      };
+      newState.agents = updatedAgents;
+      newState.flags = {
+        ...newState.flags,
+        coop_trade_done: true,
+      };
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Trade] Agent ${agentId} gave '${item}' to Agent ${targetAgentId} in ${giverState.current}.`);
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    return {
+      state: newState,
+      events: ok
+        ? [
+            {
+              type: "state_change",
+              effect: "trade_item",
+              value: `${agentId}->${targetAgentId}:${item}`,
+            } as any,
+          ]
+        : [{ type: "rejected", reason: rejectionReason }],
+      ok,
+      rejectionReason,
+    };
+  }
+
   // Handle decentralized CLAIM_LOOT action
   if ((action as any).type === "CLAIM_LOOT") {
     const { chestId, itemId, timestamp } = action as any;
@@ -10046,6 +10139,242 @@ export function multiAgentStep(
     if (ok) {
       newState = tickProductionLabs(newState, customEvents, pack);
 
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized ACCEPT_GUILD_CONTRACT action (AF-14)
+  if ((action as any).type === "ACCEPT_GUILD_CONTRACT") {
+    const { contractId, guildId, contractType, target, targetRoom, rewardGold, rewardPrestige, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    if (!contractId) {
+      rejectionReason = `Contract ID is required.`;
+    } else if (!guildId) {
+      rejectionReason = `Guild ID is required.`;
+    } else if (contractType !== "smuggling" && contractType !== "enforcement") {
+      rejectionReason = `Contract type must be smuggling or enforcement.`;
+    } else if (!target) {
+      rejectionReason = `Contract target is required.`;
+    } else if (state.guildContracts?.[contractId]) {
+      rejectionReason = `Contract ${contractId} already exists.`;
+    } else {
+      ok = true;
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok) {
+      const guildContracts = { ...(state.guildContracts || {}) };
+      guildContracts[contractId] = {
+        id: contractId,
+        guildId,
+        contractType,
+        target,
+        targetRoom,
+        rewardGold,
+        rewardPrestige,
+        status: "active" as const,
+        timestamp,
+      };
+      newState.guildContracts = guildContracts;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Guild] Agent ${agentId} accepted a ${contractType} contract with guild ${guildId} (Target: ${target}).`);
+
+      customEvents.push({
+        type: "guild_contract_accepted",
+        agentId,
+        guildId,
+        contractId,
+        contractType,
+        target,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
+      const history = state.stateHistory ? [...state.stateHistory] : [];
+      const clonedPriorState = cloneStateWithoutHistory(state);
+      history.push(clonedPriorState);
+      if (history.length > 50) {
+        history.shift();
+      }
+      newState.stateHistory = history;
+    }
+
+    const stateHashAfter = computeStateHash(newState);
+    const transaction: Transaction = {
+      agentId,
+      sequenceNumber: state.step,
+      action,
+      stateHashBefore,
+      stateHashAfter,
+      timestamp,
+      ok,
+      rejectionReason,
+    };
+
+    if (multiAction.signature) {
+      transaction.signature = multiAction.signature;
+    } else if (multiAction.signingKey) {
+      transaction.signature = signTransaction(transaction, multiAction.signingKey);
+    }
+
+    newState.transactionJournal = [...(state.transactionJournal || []), transaction];
+
+    if (newState.vectorClock) {
+      newState.vectorClock = {
+        ...newState.vectorClock,
+        [agentId]: Math.max(newState.vectorClock[agentId] ?? 0, state.step),
+      };
+    }
+
+    return {
+      state: newState,
+      events: ok
+        ? customEvents
+        : [{ type: "rejected", reason: rejectionReason! }],
+      ok,
+      rejectionReason,
+    };
+  }
+
+  // Handle decentralized COMPLETE_GUILD_CONTRACT action (AF-14)
+  if ((action as any).type === "COMPLETE_GUILD_CONTRACT") {
+    const { contractId, timestamp } = action as any;
+
+    let ok = false;
+    let rejectionReason: string | undefined;
+
+    const contract = state.guildContracts?.[contractId];
+
+    if (!contractId) {
+      rejectionReason = `Contract ID is required.`;
+    } else if (!contract) {
+      rejectionReason = `Contract ${contractId} does not exist.`;
+    } else if (contract.status !== "active") {
+      rejectionReason = `Contract ${contractId} is not active.`;
+    } else {
+      const activeContract = contract!;
+      // Validate contract requirements based on type
+      if (activeContract.contractType === "smuggling") {
+        const carriesItem = state.inventory.includes(activeContract.target);
+        const inTargetRoom = activeContract.targetRoom ? state.current === activeContract.targetRoom : true;
+        if (!carriesItem) {
+          rejectionReason = `Smuggling requirements not met: agent does not have item ${activeContract.target}.`;
+        } else if (!inTargetRoom) {
+          rejectionReason = `Smuggling requirements not met: agent is in room ${state.current}, needs to be in ${activeContract.targetRoom}.`;
+        } else {
+          ok = true;
+        }
+      } else if (activeContract.contractType === "enforcement") {
+        const flagKey = `defeated_${activeContract.target}`;
+        const isDefeated =
+          state.flags[flagKey] ||
+          state.flags[`combat_victory_${activeContract.target}`] ||
+          state.flags[`npc_defeated_${activeContract.target}`] ||
+          state.flags[`npc_dead_${activeContract.target}`];
+        if (!isDefeated) {
+          rejectionReason = `Enforcement requirements not met: target NPC ${activeContract.target} has not been defeated.`;
+        } else {
+          ok = true;
+        }
+      }
+    }
+
+    let newState = { ...state };
+    let customEvents: any[] = [];
+    if (ok && contract) {
+      const activeContract = contract;
+      const guildContracts = { ...(state.guildContracts || {}) };
+      guildContracts[contractId] = {
+        ...activeContract,
+        status: "completed" as const,
+      };
+      newState.guildContracts = guildContracts;
+
+      // Deduct target item if smuggling
+      if (activeContract.contractType === "smuggling") {
+        newState.inventory = newState.inventory.filter(i => i !== activeContract.target);
+      }
+
+      // Add gold reward
+      const goldKey = agentId === "player" ? "gold" : `gold_${agentId}`;
+      const currentGold = state.vars[goldKey] ?? 0;
+      newState.vars = {
+        ...newState.vars,
+        [goldKey]: currentGold + activeContract.rewardGold,
+      };
+
+      // Add prestige
+      const guildPrestige = { ...(state.guildPrestige || {}) };
+      const prestigeKey = `${agentId}-${activeContract.guildId}`;
+      const currentPrestige = guildPrestige[prestigeKey] ?? 0;
+      guildPrestige[prestigeKey] = currentPrestige + activeContract.rewardPrestige;
+      newState.guildPrestige = guildPrestige;
+
+      if (!newState.journal) newState.journal = [];
+      newState.journal.push(`[Guild] Agent ${agentId} completed contract ${contractId}. Awarded ${activeContract.rewardGold} gold and ${activeContract.rewardPrestige} prestige.`);
+
+      customEvents.push({
+        type: "guild_contract_completed",
+        agentId,
+        guildId: activeContract.guildId,
+        contractId,
+        rewardGold: activeContract.rewardGold,
+        rewardPrestige: activeContract.rewardPrestige,
+        timestamp,
+      });
+    }
+
+    newState.step += 1;
+    if (ok) {
       const history = state.stateHistory ? [...state.stateHistory] : [];
       const clonedPriorState = cloneStateWithoutHistory(state);
       history.push(clonedPriorState);

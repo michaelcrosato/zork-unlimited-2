@@ -1,5 +1,4 @@
 import { GossipNode, GossipMessage, GossipFragment, GossipPacketFragmenter } from "./gossip.js";
-import { Action, StepResult } from "../api/types.js";
 import { GameEvent } from "./events.js";
 import { GossipAntiEntropyRecovery } from "./anti_entropy.js";
 
@@ -22,13 +21,29 @@ export interface RoutedPacket {
   sourceId: string;
   destinationId: string;
   ttl: number;
-  type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment" | "anti_entropy_digest" | "anti_entropy_request";
+  type:
+    | "presence"
+    | "gossip"
+    | "heartbeat"
+    | "heartbeat_ack"
+    | "gossip_fragment"
+    | "anti_entropy_digest"
+    | "anti_entropy_request";
   payload: any;
   route: string[];
   priority?: number;
 }
 
-export function getPriorityForType(type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment" | "anti_entropy_digest" | "anti_entropy_request"): number {
+export function getPriorityForType(
+  type:
+    | "presence"
+    | "gossip"
+    | "heartbeat"
+    | "heartbeat_ack"
+    | "gossip_fragment"
+    | "anti_entropy_digest"
+    | "anti_entropy_request"
+): number {
   switch (type) {
     case "gossip":
     case "gossip_fragment":
@@ -103,7 +118,7 @@ export class NetworkDiscovery {
     }
 
     // Also prune this node from other nodes' adjacency lists
-    for (const [nodeId, record] of this.topology.entries()) {
+    for (const record of this.topology.values()) {
       if (record.neighbors.includes(offlineNodeId)) {
         record.neighbors = record.neighbors.filter((n) => n !== offlineNodeId);
         changed = true;
@@ -157,7 +172,7 @@ export class NetworkDiscovery {
 }
 
 /**
- * A highly capable network-aware GossipNode executing peer routing, 
+ * A highly capable network-aware GossipNode executing peer routing,
  * presence announcement, and multi-hop delta synchronizations.
  */
 export class MeshNode extends GossipNode {
@@ -182,7 +197,7 @@ export class MeshNode extends GossipNode {
   public lastHeartbeatLatency: Map<string, number> = new Map();
   public pendingHeartbeats: Map<string, { sentAt: number; nextHop: string; destinationId: string }> = new Map();
   public heartbeatTimeoutsCount = 0;
-  
+
   // Route repair tracking properties
   public routeRepairsTriggered = 0;
   public routeRepairsSucceeded = 0;
@@ -205,10 +220,8 @@ export class MeshNode extends GossipNode {
     const state = this.localState;
     if (!state.swfReinsuranceOptionCrossMeshArbitrageRoutes) return;
 
-    let changed = false;
     const toPrune: string[] = [];
 
-    const self = this;
     function getWeightedPathLength(discovery: NetworkDiscovery, start: string, end: string): number {
       if (start === end) return 0;
       const dist: Record<string, number> = {};
@@ -219,7 +232,7 @@ export class MeshNode extends GossipNode {
       while (queue.length > 0) {
         queue.sort((a, b) => a[1] - b[1]);
         const [current, currentDist] = queue.shift()!;
-        
+
         if (visited.has(current)) continue;
         visited.add(current);
 
@@ -285,17 +298,24 @@ export class MeshNode extends GossipNode {
       const nextHop = sourceNode.discovery.getNextHop(targetNodeId);
 
       // Automated periodic split-weight balancing tick scaling weights by relative inverse latency of available hops
-      if (route.enableDynamicWeightRecalculation && route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0) {
+      if (
+        route.enableDynamicWeightRecalculation &&
+        route.pathSplitWeights &&
+        Object.keys(route.pathSplitWeights).length > 0
+      ) {
         const hopsLatencies: Record<string, number> = {};
         let totalInverseLatency = 0;
 
         for (const hopNodeId of Object.keys(route.pathSplitWeights)) {
           const isDirect = hopNodeId === targetNodeId;
-          const hops = hopNodeId === sourceNodeId
-            ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
-            : getLinkWeight(sourceNodeId, hopNodeId) + getWeightedPathLength(sourceNode.discovery, hopNodeId, targetNodeId);
+          const hops =
+            hopNodeId === sourceNodeId
+              ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
+              : getLinkWeight(sourceNodeId, hopNodeId) +
+                getWeightedPathLength(sourceNode.discovery, hopNodeId, targetNodeId);
 
-          const rawLatency = (isDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hops * 50);
+          const rawLatency =
+            (isDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hops * 50);
 
           let currentPenalty = 1.0;
           if (rawLatency > 100) {
@@ -326,15 +346,15 @@ export class MeshNode extends GossipNode {
             route.pathSplitWeights = newWeights;
             route.lastRecalculationStep = state.step;
             route.timestamp = state.step;
-            changed = true;
           }
         }
       }
 
       // Determine paths to use and their weights
-      const paths = route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0
-        ? { ...route.pathSplitWeights }
-        : { [nextHop || targetNodeId]: 1.0 };
+      const paths =
+        route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0
+          ? { ...route.pathSplitWeights }
+          : { [nextHop || targetNodeId]: 1.0 };
 
       // Normalize weights so they sum to 1.0
       const totalWeight = Object.values(paths).reduce((sum, w) => sum + w, 0);
@@ -358,7 +378,6 @@ export class MeshNode extends GossipNode {
       if (route.spreadDifference !== spreadDiff) {
         route.spreadDifference = spreadDiff;
         route.timestamp = state.step;
-        changed = true;
       }
 
       const threshold = policy.arbitrageSpreadThreshold;
@@ -374,11 +393,14 @@ export class MeshNode extends GossipNode {
 
       for (const [hopNodeId, splitWeight] of Object.entries(normalizedPaths)) {
         const isDirect = hopNodeId === targetNodeId;
-        const hops = hopNodeId === sourceNodeId
-          ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
-          : getLinkWeight(sourceNodeId, hopNodeId) + getWeightedPathLength(sourceNode.discovery, hopNodeId, targetNodeId);
+        const hops =
+          hopNodeId === sourceNodeId
+            ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
+            : getLinkWeight(sourceNodeId, hopNodeId) +
+              getWeightedPathLength(sourceNode.discovery, hopNodeId, targetNodeId);
 
-        const rawLatency = (isDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hops * 50);
+        const rawLatency =
+          (isDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hops * 50);
 
         let currentPenalty = 1.0;
         if (rawLatency > 100) {
@@ -403,12 +425,13 @@ export class MeshNode extends GossipNode {
             const repaired = sourceNode.repairRoute(targetNodeId, repairHop);
             if (repaired) {
               const newHops = getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId);
-              
+
               const newNextHop = sourceNode.discovery.getNextHop(targetNodeId);
               const newIsDirect = newNextHop === targetNodeId;
-              const newRawLatency = (newIsDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(newHops * 50);
+              const newRawLatency =
+                (newIsDirect ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(newHops * 50);
               const newPenalty = newRawLatency > 100 ? 2.0 : 1.0;
-              
+
               currentPenalty = newPenalty;
               latency = newRawLatency * newPenalty;
 
@@ -493,7 +516,7 @@ export class MeshNode extends GossipNode {
                 if (currentPruned >= marginPolicy.prunedRoutesRiskThreshold) {
                   const allocation = marginPolicy.protectivePoolAllocation ?? 0;
                   if (allocation > 0) {
-                    let topUpAmount = Math.round(allocation);
+                    const topUpAmount = Math.round(allocation);
                     if (syndicate && (syndicate.warChest ?? 0) >= topUpAmount) {
                       sourceNode.localState.syndicates = { ...sourceNode.localState.syndicates };
                       sourceNode.localState.syndicates[creatorSyndicateId] = {
@@ -504,7 +527,10 @@ export class MeshNode extends GossipNode {
                       sourceNode.localState.journal.push(
                         `[SWF Reinsurance Options Margin Top-up] Automatically topped up option margin collateral by ${topUpAmount} gold for Syndicate ${creatorSyndicateId} from war chest (new collateral: ${updatedMarginAccount.collateral} gold) due to pruned routes count (${currentPruned}) meeting risk threshold (${marginPolicy.prunedRoutesRiskThreshold}).`
                       );
-                    } else if (updatedMarginAccount.swfReinsuranceOptionVault && updatedMarginAccount.swfReinsuranceOptionVault >= topUpAmount) {
+                    } else if (
+                      updatedMarginAccount.swfReinsuranceOptionVault &&
+                      updatedMarginAccount.swfReinsuranceOptionVault >= topUpAmount
+                    ) {
                       updatedMarginAccount.swfReinsuranceOptionVault -= topUpAmount;
                       updatedMarginAccount.collateral = (updatedMarginAccount.collateral ?? 0) + topUpAmount;
                       sourceNode.localState.journal.push(
@@ -529,14 +555,12 @@ export class MeshNode extends GossipNode {
       if (route.routePenaltyMultiplier !== finalPenalty) {
         route.routePenaltyMultiplier = finalPenalty;
         route.timestamp = state.step;
-        changed = true;
       }
 
       if (route.linkStateLatencyMs !== finalLatency || route.dynamicTollRate !== finalToll) {
         route.linkStateLatencyMs = finalLatency;
         route.dynamicTollRate = finalToll;
         route.timestamp = state.step;
-        changed = true;
       }
 
       if (anyPathExecuted) {
@@ -545,32 +569,36 @@ export class MeshNode extends GossipNode {
         if (creatorSyndicateId) {
           const sourceSyndicate = sourceNode.localState.syndicates?.[creatorSyndicateId];
           const targetSyndicate = targetNode.localState.syndicates?.[creatorSyndicateId];
-          
+
           if (sourceSyndicate && targetSyndicate) {
             sourceNode.localState.syndicates = { ...sourceNode.localState.syndicates };
             sourceNode.localState.syndicates[creatorSyndicateId] = {
               ...sourceSyndicate,
               warChest: (sourceSyndicate.warChest ?? 0) + totalArbitrageProfit,
             };
-            
+
             targetNode.localState.syndicates = { ...targetNode.localState.syndicates };
             targetNode.localState.syndicates[creatorSyndicateId] = {
               ...targetSyndicate,
               warChest: (targetSyndicate.warChest ?? 0) + totalArbitrageProfit,
             };
-            
+
             // Converge option spreads
             const targetSpread = Math.floor((spreadSource + spreadTarget) / 2);
-            
+
             if (sourceNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]) {
-              sourceNode.localState.swfReinsuranceOptionOrderBookDepths = { ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths };
+              sourceNode.localState.swfReinsuranceOptionOrderBookDepths = {
+                ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths,
+              };
               sourceNode.localState.swfReinsuranceOptionOrderBookDepths[key] = {
                 ...sourceNode.localState.swfReinsuranceOptionOrderBookDepths[key],
                 bidAskSpread: targetSpread,
               };
             }
             if (targetNode.localState.swfReinsuranceOptionOrderBookDepths?.[key]) {
-              targetNode.localState.swfReinsuranceOptionOrderBookDepths = { ...targetNode.localState.swfReinsuranceOptionOrderBookDepths };
+              targetNode.localState.swfReinsuranceOptionOrderBookDepths = {
+                ...targetNode.localState.swfReinsuranceOptionOrderBookDepths,
+              };
               targetNode.localState.swfReinsuranceOptionOrderBookDepths[key] = {
                 ...targetNode.localState.swfReinsuranceOptionOrderBookDepths[key],
                 bidAskSpread: targetSpread,
@@ -578,23 +606,28 @@ export class MeshNode extends GossipNode {
             }
 
             if (route.pathSplitWeights && Object.keys(route.pathSplitWeights).length > 0) {
-              const pathLogDetails = Object.entries(normalizedPaths).map(([hId, w]) => {
-                const hopsCount = hId === sourceNodeId
-                  ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
-                  : getLinkWeight(sourceNodeId, hId) + getWeightedPathLength(sourceNode.discovery, hId, targetNodeId);
-                const isDir = hId === targetNodeId;
-                const pathRawLat = (isDir ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hopsCount * 50);
-                const pathPenalty = pathRawLat > 100 ? 2.0 : 1.0;
-                const pathLat = pathRawLat * pathPenalty;
-                const pathToll = surchargePolicy ? Math.floor(pathLat * 0.1) : 0;
-                return `${hId} (weight: ${w.toFixed(2)}, latency: ${pathLat}ms, toll: ${pathToll}g)`;
-              }).join(", ");
+              const pathLogDetails = Object.entries(normalizedPaths)
+                .map(([hId, w]) => {
+                  const hopsCount =
+                    hId === sourceNodeId
+                      ? getWeightedPathLength(sourceNode.discovery, sourceNodeId, targetNodeId)
+                      : getLinkWeight(sourceNodeId, hId) +
+                        getWeightedPathLength(sourceNode.discovery, hId, targetNodeId);
+                  const isDir = hId === targetNodeId;
+                  const pathRawLat =
+                    (isDir ? sourceNode.lastHeartbeatLatency.get(targetNodeId) : null) ?? Math.floor(hopsCount * 50);
+                  const pathPenalty = pathRawLat > 100 ? 2.0 : 1.0;
+                  const pathLat = pathRawLat * pathPenalty;
+                  const pathToll = surchargePolicy ? Math.floor(pathLat * 0.1) : 0;
+                  return `${hId} (weight: ${w.toFixed(2)}, latency: ${pathLat}ms, toll: ${pathToll}g)`;
+                })
+                .join(", ");
 
               if (!sourceNode.localState.journal) sourceNode.localState.journal = [];
               sourceNode.localState.journal.push(
                 `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed multi-path split options purchase/sale along route ${routeId} with total profit ${totalArbitrageProfit} gold (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold). Paths: ${pathLogDetails}. Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
               );
-              
+
               if (!targetNode.localState.journal) targetNode.localState.journal = [];
               targetNode.localState.journal.push(
                 `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed multi-path split options purchase/sale along route ${routeId} with total profit ${totalArbitrageProfit} gold (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold). Paths: ${pathLogDetails}. Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
@@ -604,7 +637,7 @@ export class MeshNode extends GossipNode {
               sourceNode.localState.journal.push(
                 `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold, Latency: ${finalLatency}ms, Toll: ${finalToll} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
               );
-              
+
               if (!targetNode.localState.journal) targetNode.localState.journal = [];
               targetNode.localState.journal.push(
                 `[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route ${routeId} (Spread Difference: ${spreadDiff} gold > Threshold: ${threshold} gold, Latency: ${finalLatency}ms, Toll: ${finalToll} gold). Reconciled and converged spreads on nodes ${sourceNodeId} and ${targetNodeId} to ${targetSpread} gold.`
@@ -792,7 +825,10 @@ export class MeshNode extends GossipNode {
           const wasKnown = this.discovery.topology.has(peerId);
           const isDeparture = announcement.neighbors.length === 0;
 
-          const fresh = this.discovery.updateTopology(announcement, this.network ? this.network.currentTimeMs : Date.now());
+          const fresh = this.discovery.updateTopology(
+            announcement,
+            this.network ? this.network.currentTimeMs : Date.now()
+          );
           if (fresh) {
             if (!wasKnown && !isDeparture) {
               this.triggerPeerEvent("arrival", peerId);
@@ -841,7 +877,7 @@ export class MeshNode extends GossipNode {
         }
       } else if (packet.type === "heartbeat") {
         this.heartbeatsReceived.set(packet.sourceId, (this.heartbeatsReceived.get(packet.sourceId) ?? 0) + 1);
-        
+
         // Respond with a heartbeat acknowledgement
         if (this.network) {
           this.network.sendRoutedPacket({
@@ -856,7 +892,7 @@ export class MeshNode extends GossipNode {
         }
       } else if (packet.type === "heartbeat_ack") {
         this.heartbeatAcksReceived.set(packet.sourceId, (this.heartbeatAcksReceived.get(packet.sourceId) ?? 0) + 1);
-        
+
         const origId = packet.payload.originalPacketId;
         if (origId) {
           this.pendingHeartbeats.delete(origId);
@@ -1008,7 +1044,7 @@ export class MeshNode extends GossipNode {
       if (currentTime - info.sentAt > timeoutMs) {
         this.pendingHeartbeats.delete(packetId);
         this.heartbeatTimeoutsCount++;
-        
+
         // Trigger route repair for the timed out route
         this.repairRoute(info.destinationId, info.nextHop);
       }
@@ -1026,7 +1062,7 @@ export class MeshNode extends GossipNode {
     for (const [nodeId, record] of this.discovery.topology.entries()) {
       // Never prune ourselves
       if (nodeId === this.nodeId) continue;
-      
+
       if (record.lastSeen < cutoffTime) {
         staleNodeIds.push(nodeId);
       }
@@ -1062,7 +1098,7 @@ export class MeshNode extends GossipNode {
     if (this.isRedundantGossip(targetNodeId, gossipMsg)) {
       return false;
     }
-    
+
     this.sendGossipOrFragments(targetNodeId, gossipMsg);
     return true;
   }
@@ -1180,9 +1216,7 @@ export class MeshNetwork {
   public removeNode(nodeId: string): void {
     this.nodes.delete(nodeId);
     // Remove only packets that are destined for the removed node or whose nextHop is that node
-    this.packetQueue = this.packetQueue.filter(
-      (pd) => pd.packet.destinationId !== nodeId && pd.nextHopId !== nodeId
-    );
+    this.packetQueue = this.packetQueue.filter((pd) => pd.packet.destinationId !== nodeId && pd.nextHopId !== nodeId);
   }
 
   /**
@@ -1210,7 +1244,11 @@ export class MeshNetwork {
   /**
    * Floods a presence announcement to neighbors.
    */
-  public floodPresence(senderNodeId: string, announcement: PresenceAnnouncement, incomingFrom: string | null = null): void {
+  public floodPresence(
+    senderNodeId: string,
+    announcement: PresenceAnnouncement,
+    incomingFrom: string | null = null
+  ): void {
     const senderNode = this.nodes.get(senderNodeId);
     if (!senderNode) return;
 
@@ -1242,7 +1280,14 @@ export class MeshNetwork {
   public sendRoutedPacket(params: {
     sourceId: string;
     destinationId: string;
-    type: "presence" | "gossip" | "heartbeat" | "heartbeat_ack" | "gossip_fragment" | "anti_entropy_digest" | "anti_entropy_request";
+    type:
+      | "presence"
+      | "gossip"
+      | "heartbeat"
+      | "heartbeat_ack"
+      | "gossip_fragment"
+      | "anti_entropy_digest"
+      | "anti_entropy_request";
     payload: any;
     priority?: number;
   }): void {

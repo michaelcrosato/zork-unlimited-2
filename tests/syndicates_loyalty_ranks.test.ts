@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState, getSyndicateFactionLoyaltyRank, getRequiredRankForVaultLevel, isRankAtLeast, reconcileClaimLoyaltyRanks } from "../src/core/state.js";
+import {
+  createInitialState,
+  getSyndicateFactionLoyaltyRank,
+  getRequiredRankForVaultLevel,
+  isRankAtLeast,
+  reconcileClaimLoyaltyRanks,
+} from "../src/core/state.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { mergeMonotonicStateFields } from "../src/core/gossip.js";

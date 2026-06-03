@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options & Volatility-Hedged Premium Rate Hed
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -77,7 +77,7 @@ describe("Syndicate SWF Reinsurance Options & Volatility-Hedged Premium Rate Hed
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -265,6 +265,6 @@ describe("Syndicate SWF Reinsurance Options & Volatility-Hedged Premium Rate Hed
     // Trigger auto-settlement tick
     const autoSettledState = tickEconomy(state, mockPack);
     expect(autoSettledState.swfReinsuranceOptionsContracts?.["opt_1"]?.active).toBe(false);
-    expect(autoSettledState.journal?.some(j => j.includes("[SWF Reinsurance Option Settled]"))).toBe(true);
+    expect(autoSettledState.journal?.some((j) => j.includes("[SWF Reinsurance Option Settled]"))).toBe(true);
   });
 });

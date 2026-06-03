@@ -102,18 +102,22 @@ describe("Decentralized Merchant Cartels and Price Collusion Tests", () => {
     expect(state.cartels).toEqual({});
 
     // 1. Define a merchant cartel
-    const resDefine = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_CARTEL",
-        cartelId: "syndicate",
-        name: "Golden Syndicate",
-        members: ["merchant_npc1"],
-        factionId: "rangers",
-        priceMultiplier: 1.5,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resDefine = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_CARTEL",
+          cartelId: "syndicate",
+          name: "Golden Syndicate",
+          members: ["merchant_npc1"],
+          factionId: "rangers",
+          priceMultiplier: 1.5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(resDefine.ok).toBe(true);
     state = resDefine.state;
@@ -128,30 +132,38 @@ describe("Decentralized Merchant Cartels and Price Collusion Tests", () => {
     });
 
     // 2. Join a merchant cartel
-    const resJoin = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "JOIN_MERCHANT_CARTEL",
-        cartelId: "syndicate",
-        timestamp: 110,
-      } as any,
-    }, mockPack);
+    const resJoin = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "JOIN_MERCHANT_CARTEL",
+          cartelId: "syndicate",
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(resJoin.ok).toBe(true);
     state = resJoin.state;
     expect(state.cartelMemberships?.["bob"]).toContain("syndicate");
 
     // 3. Vote on policy (should succeed since bob is a member)
-    const resVote = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "VOTE_CARTEL_POLICY",
-        cartelId: "syndicate",
-        priceMultiplier: 2.0,
-        embargoedFactions: ["goblins"],
-        timestamp: 120,
-      } as any,
-    }, mockPack);
+    const resVote = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_CARTEL_POLICY",
+          cartelId: "syndicate",
+          priceMultiplier: 2.0,
+          embargoedFactions: ["goblins"],
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(resVote.ok).toBe(true);
     state = resVote.state;
@@ -173,42 +185,54 @@ describe("Decentralized Merchant Cartels and Price Collusion Tests", () => {
     });
 
     // Try joining a non-existent cartel
-    const resJoinFail = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "JOIN_MERCHANT_CARTEL",
-        cartelId: "non_existent",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resJoinFail = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "JOIN_MERCHANT_CARTEL",
+          cartelId: "non_existent",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resJoinFail.ok).toBe(false);
     expect(resJoinFail.rejectionReason).toContain("does not exist");
 
     // Define cartel
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_CARTEL",
-        cartelId: "syndicate",
-        name: "Golden Syndicate",
-        members: ["merchant_npc1"],
-        factionId: "rangers",
-        priceMultiplier: 1.5,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_CARTEL",
+          cartelId: "syndicate",
+          name: "Golden Syndicate",
+          members: ["merchant_npc1"],
+          factionId: "rangers",
+          priceMultiplier: 1.5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Try voting without being a member
-    const resVoteFail = multiAgentStep(state, {
-      agentId: "charlie",
-      action: {
-        type: "VOTE_CARTEL_POLICY",
-        cartelId: "syndicate",
-        priceMultiplier: 2.0,
-        embargoedFactions: ["goblins"],
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resVoteFail = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_CARTEL_POLICY",
+          cartelId: "syndicate",
+          priceMultiplier: 2.0,
+          embargoedFactions: ["goblins"],
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resVoteFail.ok).toBe(false);
     expect(resVoteFail.rejectionReason).toContain("not a member");
   });
@@ -220,57 +244,81 @@ describe("Decentralized Merchant Cartels and Price Collusion Tests", () => {
     });
 
     // Setup cartel and memberships
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_CARTEL",
-        cartelId: "syndicate",
-        name: "Golden Syndicate",
-        members: ["merchant_npc1"],
-        factionId: "rangers",
-        priceMultiplier: 1.5,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_CARTEL",
+          cartelId: "syndicate",
+          name: "Golden Syndicate",
+          members: ["merchant_npc1"],
+          factionId: "rangers",
+          priceMultiplier: 1.5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: { type: "JOIN_MERCHANT_CARTEL", cartelId: "syndicate", timestamp: 105 } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: { type: "JOIN_MERCHANT_CARTEL", cartelId: "syndicate", timestamp: 105 } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "bob",
-      action: { type: "JOIN_MERCHANT_CARTEL", cartelId: "syndicate", timestamp: 106 } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: { type: "JOIN_MERCHANT_CARTEL", cartelId: "syndicate", timestamp: 106 } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "charlie",
-      action: { type: "JOIN_MERCHANT_CARTEL", cartelId: "syndicate", timestamp: 107 } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: { type: "JOIN_MERCHANT_CARTEL", cartelId: "syndicate", timestamp: 107 } as any,
+      },
+      mockPack
+    ).state;
 
     // Alice votes: 1.5 multiplier, embargo goblins
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CARTEL_POLICY",
-        cartelId: "syndicate",
-        priceMultiplier: 1.5,
-        embargoedFactions: ["goblins"],
-        timestamp: 110,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CARTEL_POLICY",
+          cartelId: "syndicate",
+          priceMultiplier: 1.5,
+          embargoedFactions: ["goblins"],
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Bob votes: 2.5 multiplier, embargo rangers
-    state = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "VOTE_CARTEL_POLICY",
-        cartelId: "syndicate",
-        priceMultiplier: 2.5,
-        embargoedFactions: ["rangers"],
-        timestamp: 115,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_CARTEL_POLICY",
+          cartelId: "syndicate",
+          priceMultiplier: 2.5,
+          embargoedFactions: ["rangers"],
+          timestamp: 115,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // With 2 votes (1.5 vs 2.5), tie-breaks on highest priceMultiplier -> 2.5
     // Embargoes: goblins and rangers both have 1 vote (50% of 2 voters), so both are active!
@@ -280,16 +328,20 @@ describe("Decentralized Merchant Cartels and Price Collusion Tests", () => {
     });
 
     // Charlie votes: 1.5 multiplier, embargo goblins
-    state = multiAgentStep(state, {
-      agentId: "charlie",
-      action: {
-        type: "VOTE_CARTEL_POLICY",
-        cartelId: "syndicate",
-        priceMultiplier: 1.5,
-        embargoedFactions: ["goblins"],
-        timestamp: 120,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_CARTEL_POLICY",
+          cartelId: "syndicate",
+          priceMultiplier: 1.5,
+          embargoedFactions: ["goblins"],
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // With 3 votes:
     // Multiplier: 1.5 wins by majority (2 votes)
@@ -316,18 +368,22 @@ describe("Decentralized Merchant Cartels and Price Collusion Tests", () => {
     expect(price).toBe(100);
 
     // 2. Setup cartel where ONLY merchant_npc1 is a member (50% density in the room)
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_CARTEL",
-        cartelId: "syndicate",
-        name: "Golden Syndicate",
-        members: ["merchant_npc1"],
-        factionId: "rangers",
-        priceMultiplier: 1.5,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_CARTEL",
+          cartelId: "syndicate",
+          name: "Golden Syndicate",
+          members: ["merchant_npc1"],
+          factionId: "rangers",
+          priceMultiplier: 1.5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // With 1 of 2 merchants belonging to the cartel (50%), density threshold (>= 50%) is met!
     // Coordinated price hike is active: 100 * 1.5 = 150
@@ -339,25 +395,33 @@ describe("Decentralized Merchant Cartels and Price Collusion Tests", () => {
     expect(price2).toBe(100);
 
     // 3. Vote on policy to increase multiplier to 2.0
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "JOIN_MERCHANT_CARTEL",
-        cartelId: "syndicate",
-        timestamp: 105,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "JOIN_MERCHANT_CARTEL",
+          cartelId: "syndicate",
+          timestamp: 105,
+        } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CARTEL_POLICY",
-        cartelId: "syndicate",
-        priceMultiplier: 2.0,
-        embargoedFactions: [],
-        timestamp: 110,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CARTEL_POLICY",
+          cartelId: "syndicate",
+          priceMultiplier: 2.0,
+          embargoedFactions: [],
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Price should hike to 200!
     price = calculateTradePrice(state, npc1, packObj, 100, true, "player", mockPack);
@@ -378,38 +442,50 @@ describe("Decentralized Merchant Cartels and Price Collusion Tests", () => {
     expect(repCheck.allowed).toBe(true);
 
     // 2. Setup cartel and vote to embargo goblins
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_CARTEL",
-        cartelId: "syndicate",
-        name: "Golden Syndicate",
-        members: ["merchant_npc1"],
-        factionId: "rangers",
-        priceMultiplier: 1.5,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_CARTEL",
+          cartelId: "syndicate",
+          name: "Golden Syndicate",
+          members: ["merchant_npc1"],
+          factionId: "rangers",
+          priceMultiplier: 1.5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "JOIN_MERCHANT_CARTEL",
-        cartelId: "syndicate",
-        timestamp: 105,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "JOIN_MERCHANT_CARTEL",
+          cartelId: "syndicate",
+          timestamp: 105,
+        } as any,
+      },
+      mockPack
+    ).state;
 
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CARTEL_POLICY",
-        cartelId: "syndicate",
-        priceMultiplier: 1.5,
-        embargoedFactions: ["goblins"],
-        timestamp: 110,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CARTEL_POLICY",
+          cartelId: "syndicate",
+          priceMultiplier: 1.5,
+          embargoedFactions: ["goblins"],
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Since player has positive reputation with goblins, trading is blocked by the cartel!
     repCheck = checkReputationTrade(state, npc1);

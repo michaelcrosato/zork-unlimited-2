@@ -212,7 +212,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Epoch Audits & Fac
     // Policy should be revoked (deleted)
     expect(ticked.factionSponsorPolicies?.alpha_squad?.vault_a).toBeUndefined();
     expect(ticked.sponsorAuditProposals?.audit_1?.executed).toBe(true);
-    expect(ticked.journal.some(j => j.includes("depleted"))).toBe(true);
+    expect(ticked.journal.some((j) => j.includes("depleted"))).toBe(true);
   });
 
   it("should execute resolved sponsor audit at epoch end - Scenario B: low reputation triggers 50% rate penalty", () => {
@@ -273,7 +273,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Epoch Audits & Fac
     // Reward rate should be halved
     expect(ticked.factionSponsorPolicies?.alpha_squad?.vault_a?.rewardRate).toBe(0.04);
     expect(ticked.sponsorAuditProposals?.audit_1?.executed).toBe(true);
-    expect(ticked.journal.some(j => j.includes("reduced by 50%"))).toBe(true);
+    expect(ticked.journal.some((j) => j.includes("reduced by 50%"))).toBe(true);
   });
 
   it("should execute resolved sponsor audit at epoch end - Scenario C: healthy sponsor passes audit checks", () => {
@@ -334,7 +334,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Epoch Audits & Fac
     // Reward rate should remain unchanged
     expect(ticked.factionSponsorPolicies?.alpha_squad?.vault_a?.rewardRate).toBe(0.08);
     expect(ticked.sponsorAuditProposals?.audit_1?.executed).toBe(true);
-    expect(ticked.journal.some(j => j.includes("passed audit checks"))).toBe(true);
+    expect(ticked.journal.some((j) => j.includes("passed audit checks"))).toBe(true);
   });
 
   it("should merge sponsor audit and sponsor revocation proposals correctly during Gossip node reconciliation", () => {

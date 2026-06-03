@@ -80,10 +80,15 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
 
     // Player limit = 500. Alice limit = 300.
     // Collective limit = floor((500 + 300) * 1.2) = floor(800 * 1.2) = 960 gold.
-    const jointLimit = getJointLoanLimit(state, "blood_fangs", ["player", "alice"], [
-      { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-      { agentId: "alice", collateralType: "outpost", collateralId: "clearing" }
-    ]);
+    const jointLimit = getJointLoanLimit(
+      state,
+      "blood_fangs",
+      ["player", "alice"],
+      [
+        { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
+        { agentId: "alice", collateralType: "outpost", collateralId: "clearing" },
+      ]
+    );
     expect(jointLimit).toBe(960);
 
     // Initial check: not locked
@@ -96,13 +101,11 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         id: "group1",
         syndicateId: "blood_fangs",
         members: ["player", "alice"],
-        collaterals: [
-          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" }
-        ],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "clearing" }],
         amount: 400,
         timestamp: 1000,
-        approvals: { player: true }
-      }
+        approvals: { player: true },
+      },
     };
     expect(isCollateralLocked(state, "safehouse", "clearing")).toBe(true);
 
@@ -113,15 +116,13 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         id: "group1",
         syndicateId: "blood_fangs",
         members: ["player", "alice"],
-        collaterals: [
-          { agentId: "alice", collateralType: "outpost", collateralId: "clearing" }
-        ],
+        collaterals: [{ agentId: "alice", collateralType: "outpost", collateralId: "clearing" }],
         amount: 400,
         interestAccrued: 0,
         borrowStep: 1,
         dueStep: 15,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
     expect(isCollateralLocked(state, "outpost", "clearing")).toBe(true);
   });
@@ -185,10 +186,10 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       members: ["player", "alice"],
       collaterals: [
         { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-        { agentId: "alice", collateralType: "outpost", collateralId: "clearing" }
+        { agentId: "alice", collateralType: "outpost", collateralId: "clearing" },
       ],
       amount: 600,
-      timestamp: 1000
+      timestamp: 1000,
     };
 
     let result1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
@@ -208,10 +209,10 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       members: ["player", "alice"],
       collaterals: [
         { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-        { agentId: "alice", collateralType: "outpost", collateralId: "clearing" }
+        { agentId: "alice", collateralType: "outpost", collateralId: "clearing" },
       ],
       amount: 600,
-      timestamp: 1010
+      timestamp: 1010,
     };
 
     let result2 = multiAgentStep(result1.state, { agentId: "alice", action: action2 as any }, mockPack);
@@ -252,19 +253,19 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         members: ["player", "alice"],
         collaterals: [
           { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-          { agentId: "alice", collateralType: "outpost", collateralId: "clearing" }
+          { agentId: "alice", collateralType: "outpost", collateralId: "clearing" },
         ],
         amount: 600,
         interestAccrued: 50,
         borrowStep: 1,
         dueStep: 20,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     state.creditRatings = {
       player: 100,
-      alice: 100
+      alice: 100,
     };
 
     // 1. Alice partially pays back 200 gold
@@ -272,13 +273,13 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PAYBACK_JOINT_LOAN",
       groupId: "jgroup1",
       amount: 200,
-      timestamp: 1010
+      timestamp: 1010,
     };
 
     let res1 = multiAgentStep(state, { agentId: "alice", action: actionPay as any }, mockPack);
     expect(res1.ok).toBe(true);
     expect(res1.state.vars.gold_alice).toBe(200); // 400 - 200 = 200
-    
+
     // Remaining interest: 0. Remaining principal: 600 - (200 - 50) = 450.
     const l1 = res1.state.jointLoans?.jgroup1;
     expect(l1).toBeDefined();
@@ -296,7 +297,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PAYBACK_JOINT_LOAN",
       groupId: "jgroup1",
       amount: 450,
-      timestamp: 1020
+      timestamp: 1020,
     };
 
     let res2 = multiAgentStep(res1.state, { agentId: "alice", action: actionPayAll as any }, mockPack);
@@ -364,8 +365,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       clearing: {
         roomId: "clearing",
         heat: 0,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     state.jointLoans = {
@@ -375,19 +376,19 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         members: ["player", "alice"],
         collaterals: [
           { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-          { agentId: "alice", collateralType: "outpost", collateralId: "clearing" }
+          { agentId: "alice", collateralType: "outpost", collateralId: "clearing" },
         ],
         amount: 500,
         interestAccrued: 0,
         borrowStep: 1,
         dueStep: 10,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     state.creditRatings = {
       player: 100,
-      alice: 100
+      alice: 100,
     };
 
     // Step 5: Ticking economy should accrue interest: 10% of 500 = 50 gold.
@@ -448,8 +449,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         collaterals: [],
         amount: 200,
         timestamp: 1000,
-        approvals: { player: true }
-      }
+        approvals: { player: true },
+      },
     };
 
     stateB.jointLoanProposals = {
@@ -460,8 +461,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         collaterals: [],
         amount: 200,
         timestamp: 1050, // newer timestamp
-        approvals: { player: true, alice: true }
-      }
+        approvals: { player: true, alice: true },
+      },
     };
 
     stateA.jointLoans = {
@@ -474,8 +475,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         interestAccrued: 0,
         borrowStep: 1,
         dueStep: 10,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     stateB.jointLoans = {
@@ -488,8 +489,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         interestAccrued: 0,
         borrowStep: 1,
         dueStep: 10,
-        timestamp: 1050 // newer timestamp
-      }
+        timestamp: 1050, // newer timestamp
+      },
     };
 
     let merged = mergeMonotonicStateFields(stateA, stateB);
@@ -540,8 +541,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         interestAccrued: 0,
         borrowStep: 1,
         dueStep: 10,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     // 1. Group member 'player' proposes refinancing
@@ -552,7 +553,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       groupId: "jgroup1",
       newDueStep: 30,
       newInterestRate: 2,
-      timestamp: 1010
+      timestamp: 1010,
     };
 
     let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
@@ -569,7 +570,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       groupId: "jgroup1",
       newDueStep: 30,
       newInterestRate: 2,
-      timestamp: 1015
+      timestamp: 1015,
     };
 
     let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
@@ -585,7 +586,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       groupId: "jgroup1",
       newDueStep: 30,
       newInterestRate: 2,
-      timestamp: 1020
+      timestamp: 1020,
     };
 
     let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
@@ -611,8 +612,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
           newDueStep: 30,
           newInterestRate: 2,
           timestamp: 1050,
-        }
-      }
+        },
+      },
     };
 
     let stateB = createInitialState({
@@ -628,8 +629,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
           newDueStep: 20,
           newInterestRate: 5,
           timestamp: 1020, // older vote
-        }
-      }
+        },
+      },
     };
 
     let merged = mergeMonotonicStateFields(stateA, stateB);
@@ -695,15 +696,13 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         id: "jgroup1",
         syndicateId: "blood_fangs",
         members: ["player", "alice"],
-        collaterals: [
-          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" }
-        ],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "clearing" }],
         amount: 400,
         interestAccrued: 0,
         borrowStep: 1,
         dueStep: 10,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     // 1. Propose substitution: remove sh1 (clearing), add sh2 (clearing2)
@@ -712,7 +711,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       groupId: "jgroup1",
       removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
       addCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" },
-      timestamp: 1010
+      timestamp: 1010,
     };
 
     let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
@@ -725,7 +724,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       groupId: "jgroup1",
       removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
       addCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" },
-      timestamp: 1015
+      timestamp: 1015,
     };
 
     let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
@@ -737,7 +736,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       groupId: "jgroup1",
       removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
       addCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" },
-      timestamp: 1020
+      timestamp: 1020,
     };
 
     let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
@@ -809,15 +808,15 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         members: ["player", "alice"],
         collaterals: [
           { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-          { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" }
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" },
         ],
         // outstanding amount is 200. sh2 alone provides 700 limit, which is > 200, so we can release sh1!
         amount: 200,
         interestAccrued: 0,
         borrowStep: 1,
         dueStep: 10,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     // Propose releasing sh1 (clearing) without adding any collateral
@@ -825,7 +824,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PROPOSE_COLLATERAL_SUBSTITUTION",
       groupId: "jgroup1",
       removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-      timestamp: 1010
+      timestamp: 1010,
     };
 
     let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
@@ -835,7 +834,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PROPOSE_COLLATERAL_SUBSTITUTION",
       groupId: "jgroup1",
       removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-      timestamp: 1015
+      timestamp: 1015,
     };
     let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
 
@@ -843,7 +842,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PROPOSE_COLLATERAL_SUBSTITUTION",
       groupId: "jgroup1",
       removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-      timestamp: 1020
+      timestamp: 1020,
     };
     let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
 
@@ -904,14 +903,14 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         members: ["player", "alice"],
         collaterals: [
           { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-          { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" }
+          { agentId: "player", collateralType: "safehouse", collateralId: "clearing2" },
         ],
         amount: 1000, // exceeds either limit individually
         interestAccrued: 0,
         borrowStep: 1,
         dueStep: 20,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     // Alice pays back 300 gold -> remaining balance is 700 gold.
@@ -921,7 +920,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PAYBACK_JOINT_LOAN",
       groupId: "jgroup1",
       amount: 300,
-      timestamp: 1010
+      timestamp: 1010,
     };
 
     let res = multiAgentStep(state, { agentId: "alice", action: actionPay as any }, mockPack);
@@ -948,8 +947,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         player: {
           removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "sh1" },
           timestamp: 1050,
-        }
-      }
+        },
+      },
     };
 
     let stateB = createInitialState({
@@ -964,8 +963,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         player: {
           removeCollateral: { agentId: "player", collateralType: "safehouse", collateralId: "sh2" }, // different vote
           timestamp: 1020, // older
-        }
-      }
+        },
+      },
     };
 
     let merged = mergeMonotonicStateFields(stateA, stateB);
@@ -1031,24 +1030,24 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         members: ["player", "alice"],
         collaterals: [
           { agentId: "player", collateralType: "safehouse", collateralId: "clearing" }, // 500 value
-          { agentId: "alice", collateralType: "outpost", collateralId: "clearing" } // 300 value
+          { agentId: "alice", collateralType: "outpost", collateralId: "clearing" }, // 300 value
         ],
         amount: 500,
         interestAccrued: 100,
         borrowStep: 1,
         dueStep: 10,
-        timestamp: 1000
-      }
+        timestamp: 1000,
+      },
     };
 
     state.creditRatings = {
       player: 100,
-      alice: 100
+      alice: 100,
     };
 
     state.defaultAlerts = {
       player_blood_fangs: { agentId: "player", syndicateId: "blood_fangs", defaultStep: 10, timestamp: 1010 },
-      alice_blood_fangs: { agentId: "alice", syndicateId: "blood_fangs", defaultStep: 10, timestamp: 1010 }
+      alice_blood_fangs: { agentId: "alice", syndicateId: "blood_fangs", defaultStep: 10, timestamp: 1010 },
     };
 
     // 1. Group member 'player' proposes debt settlement of 240 gold (total for group)
@@ -1059,7 +1058,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PROPOSE_JOINT_DEBT_SETTLEMENT",
       groupId: "jgroup1",
       settlementAmount: 240,
-      timestamp: 1020
+      timestamp: 1020,
     };
 
     let res1 = multiAgentStep(state, { agentId: "player", action: action1 as any }, mockPack);
@@ -1073,7 +1072,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PROPOSE_JOINT_DEBT_SETTLEMENT",
       groupId: "jgroup1",
       settlementAmount: 240,
-      timestamp: 1025
+      timestamp: 1025,
     };
 
     let res2 = multiAgentStep(res1.state, { agentId: "bob", action: action2 as any }, mockPack);
@@ -1089,7 +1088,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       type: "PROPOSE_JOINT_DEBT_SETTLEMENT",
       groupId: "jgroup1",
       settlementAmount: 240,
-      timestamp: 1030
+      timestamp: 1030,
     };
 
     let res3 = multiAgentStep(res2.state, { agentId: "alice", action: action3 as any }, mockPack);
@@ -1127,8 +1126,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         player: {
           settlementAmount: 240,
           timestamp: 1050,
-        }
-      }
+        },
+      },
     };
 
     let stateB = createInitialState({
@@ -1143,8 +1142,8 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         player: {
           settlementAmount: 180,
           timestamp: 1020, // older
-        }
-      }
+        },
+      },
     };
 
     let merged = mergeMonotonicStateFields(stateA, stateB);
@@ -1366,9 +1365,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         id: "jgroup1",
         syndicateId: "blood_fangs",
         members: ["player", "alice"],
-        collaterals: [
-          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-        ],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "clearing" }],
         amount: 300,
         interestAccrued: 50,
         borrowStep: 1,
@@ -1526,9 +1523,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
         id: "jgroup1",
         syndicateId: "blood_fangs",
         members: ["player", "alice"],
-        collaterals: [
-          { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-        ],
+        collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "clearing" }],
         amount: 300,
         interestAccrued: 50,
         borrowStep: 1,
@@ -1612,7 +1607,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     // Verify default enforcer sweep behavior with waived penalty
     // Advance step past grace period (dueStep 10 + gracePeriodSteps 5 = 15) to step 16 to trigger default
     tickedState.step = 16;
-    
+
     // Set initial credit ratings to 100
     tickedState.creditRatings = {
       player: 100,
@@ -1751,7 +1746,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     // Consensus reached!
     const underwrite = res1_5.state.jointLoanUnderwrites?.jgroup1;
     expect(underwrite).toBeDefined();
-    
+
     // Average credit rating: (120 + 100)/2 = 110.
     // Credit discount = Math.floor(10 / 10) = 1%. Base bank rate is 5%.
     // Underwritten rate = 5 - 1 = 4%.
@@ -1767,9 +1762,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
       groupId: "jgroup1",
       syndicateId: "blood_fangs",
       members: ["player", "alice"],
-      collaterals: [
-        { agentId: "player", collateralType: "safehouse", collateralId: "clearing" },
-      ],
+      collaterals: [{ agentId: "player", collateralType: "safehouse", collateralId: "clearing" }],
       amount: 300, // Should use the underwritten multiplier 1.22
       timestamp: 1030,
     };
@@ -1795,7 +1788,7 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     // Standard dueStep is 18. Advance step past dueStep to 20
     ticked.step = 20;
     ticked = tickEconomy(ticked, mockPack);
-    
+
     // Loan should be liquidated
     expect(ticked.jointLoans?.jgroup1).toBeUndefined();
     // Default count for the group should be 1!
@@ -1864,4 +1857,3 @@ describe("Smuggler Syndicate Cartel Joint-Liability Loan Groups & Collective Col
     expect(merged.groupDefaults?.group1).toBe(2);
   });
 });
-

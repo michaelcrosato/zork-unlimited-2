@@ -22,7 +22,7 @@ describe("Syndicate SWF Deflection Surcharge Policy Consensus Voting (AF-221)", 
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Deflection Surcharge Policy Consensus Voting (AF-221)", 
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -106,7 +106,7 @@ describe("Syndicate SWF Deflection Surcharge Policy Consensus Voting (AF-221)", 
     };
 
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 1.0,

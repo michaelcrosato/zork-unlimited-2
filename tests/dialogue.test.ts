@@ -236,4 +236,88 @@ describe("Advanced NPC Dialogue Trees & Routing", () => {
     // Should have routed to node_smart_path
     expect(state2.questStage[nodeVarName]).toBe("node_smart_path");
   });
+
+  it("should evaluate greeting overrides to dynamically select starting dialogue node", () => {
+    const rawGreetingPack = {
+      meta: {
+        id: "greeting_override_test",
+        title: "Greeting Override Test Pack",
+        start_room: "start_room",
+        vars_init: {
+          prestige: 0,
+        },
+        flags_init: [],
+      },
+      rooms: [
+        {
+          id: "start_room",
+          name: "Starting Room",
+          description: "A room for testing greeting overrides.",
+          npcs: ["boss"],
+          exits: [],
+        },
+      ],
+      objects: [],
+      npcs: [
+        {
+          id: "boss",
+          name: "Boss NPC",
+          description: "The boss.",
+          dialogue: {
+            root: "node_default",
+            nodes: [
+              {
+                id: "node_default",
+                npc_text: "Welcome, new recruit.",
+                topics: [{ id: "topic_exit", prompt: "Say goodbye", end: true }],
+              },
+              {
+                id: "node_high_prestige",
+                npc_text: "Welcome, master operative! I am honored by your presence.",
+                topics: [{ id: "topic_exit", prompt: "Say goodbye", end: true }],
+              },
+            ],
+            greeting_overrides: [
+              {
+                node: "node_high_prestige",
+                conditions: [
+                  {
+                    var_gte: {
+                      name: "prestige",
+                      value: 100,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      ],
+      win_conditions: [],
+    };
+
+    const pack = ParserPackSchema.parse(rawGreetingPack);
+
+    // Case 1: prestige = 0 (default: node_default)
+    let state = createInitialState({
+      seed: 123,
+      start: pack.meta.start_room,
+      varsInit: pack.meta.vars_init,
+      flagsInit: pack.meta.flags_init,
+    });
+    let res = step(state, { type: "TALK", npc: "boss" }, pack);
+    expect(res.ok).toBe(true);
+    expect(res.state.questStage["dialogue_node_boss"]).toBe("node_default");
+
+    // Case 2: prestige = 100 (routes to node_high_prestige)
+    let state2 = createInitialState({
+      seed: 123,
+      start: pack.meta.start_room,
+      varsInit: { prestige: 100 },
+      flagsInit: pack.meta.flags_init,
+    });
+    let res2 = step(state2, { type: "TALK", npc: "boss" }, pack);
+    expect(res2.ok).toBe(true);
+    expect(res2.state.questStage["dialogue_node_boss"]).toBe("node_high_prestige");
+  });
 });

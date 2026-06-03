@@ -69,7 +69,7 @@ describe("Crime Syndicate Checkpoint Bribe Waivers & Reputation Gating (AF-55)",
             },
           ],
         },
-      }
+      },
     ],
   });
 
@@ -219,7 +219,11 @@ describe("Crime Syndicate Checkpoint Bribe Waivers & Reputation Gating (AF-55)",
     expect(waivedRes.ok).toBe(true);
     expect(waivedRes.state.current).toBe("alley");
     expect(waivedRes.state.vars["gold"]).toBe(85); // 100 - 15 extortion toll
-    expect(waivedRes.events.some(e => e.type === "narration" && e.text.includes("waives the contraband checkpoint bribe toll"))).toBe(true);
+    expect(
+      waivedRes.events.some(
+        (e) => e.type === "narration" && e.text.includes("waives the contraband checkpoint bribe toll")
+      )
+    ).toBe(true);
 
     // Case 2: Disliked enemy (< 0 rep) pays double bribe fee
     let stateDisliked = getBaseState();
@@ -229,7 +233,7 @@ describe("Crime Syndicate Checkpoint Bribe Waivers & Reputation Gating (AF-55)",
     expect(dislikedRes.ok).toBe(true);
     expect(dislikedRes.state.current).toBe("alley");
     expect(dislikedRes.state.vars["gold"]).toBe(45); // 100 - 40 (double bribe toll) - 15 extortion toll
-    expect(dislikedRes.events.some(e => e.type === "narration" && e.text.includes("Paid 40 gold"))).toBe(true);
+    expect(dislikedRes.events.some((e) => e.type === "narration" && e.text.includes("Paid 40 gold"))).toBe(true);
 
     // Case 3: Hated enemy (<= -50 rep) triggers pre-emptive ambush immediately
     let stateHated = getBaseState();
@@ -240,7 +244,7 @@ describe("Crime Syndicate Checkpoint Bribe Waivers & Reputation Gating (AF-55)",
     expect(hatedRes.state.current).toBe("alley");
     expect(hatedRes.state.vars["gold"]).toBe(85); // 100 - 15 extortion toll. No bribe option given.
     expect(hatedRes.state.flags["in_combat_with_turf_enforcer_syndicate_black"]).toBe(true);
-    expect(hatedRes.events.some(e => e.type === "narration" && e.text.includes("Pre-emptive Ambush"))).toBe(true);
+    expect(hatedRes.events.some((e) => e.type === "narration" && e.text.includes("Pre-emptive Ambush"))).toBe(true);
 
     // Dynamic enforcer HP/defense scaling check
     const enforcer = hatedRes.state.enforcers?.["turf_enforcer_syndicate_black"];

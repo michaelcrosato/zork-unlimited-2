@@ -47,21 +47,21 @@ async function playRpg() {
     "open iron-bound chest",
     "go east",
     "talk to King Aldous",
-    "ask about i have recovered your royal crown!"
+    "ask about i have recovered your royal crown!",
   ];
 
   const printRoom = () => {
     const obs = buildObservation(state, pack);
     if (obs.mode !== "parser") return;
 
-    console.log(`📍 [ROOM: ${pack.rooms.find(r => r.id === obs.room)?.name || obs.room}]`);
+    console.log(`📍 [ROOM: ${pack.rooms.find((r) => r.id === obs.room)?.name || obs.room}]`);
     console.log(obs.description);
 
     if (obs.visible_objects.length > 0) {
-      console.log(`👉 You see: ${obs.visible_objects.map(o => o.name).join(", ")}`);
+      console.log(`👉 You see: ${obs.visible_objects.map((o) => o.name).join(", ")}`);
     }
     if (obs.exits.length > 0) {
-      console.log(`🚪 Exits: ${obs.exits.map(e => e.direction).join(", ")}`);
+      console.log(`🚪 Exits: ${obs.exits.map((e) => e.direction).join(", ")}`);
     }
     if (state.inventory.length > 0) {
       console.log(`🎒 Inventory: ${state.inventory.join(", ")}`);
@@ -93,18 +93,18 @@ async function playRpg() {
       break;
     }
 
-    res.events.forEach(e => {
+    res.events.forEach((e) => {
       if (e.type === "narration") {
         console.log(`📖 ${e.text}`);
       }
     });
 
     state = res.state;
-    
+
     if (state.ended) {
       console.log("\n=========================================");
       console.log(`🎉 VICTORY! Game ended with: ${state.endingId}`);
-      
+
       const endingMeta = pack.endings.find((e) => e.id === state.endingId);
       if (endingMeta) {
         console.log(endingMeta.text);

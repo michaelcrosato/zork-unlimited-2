@@ -300,11 +300,31 @@ describe("Decentralized Crime Syndicates and Contraband Labs (AF-43)", () => {
 
     // Advance 25 steps to trigger production ticks and a mathematically guaranteed raid
     const path = [
-      "NORTH", "SOUTH", "NORTH", "SOUTH", "NORTH",
-      "SOUTH", "NORTH", "SOUTH", "NORTH", "SOUTH",
-      "NORTH", "SOUTH", "NORTH", "SOUTH", "NORTH",
-      "SOUTH", "NORTH", "SOUTH", "NORTH", "SOUTH",
-      "NORTH", "SOUTH", "NORTH", "SOUTH", "NORTH"
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
+      "SOUTH",
+      "NORTH",
     ];
     const events: any[] = [];
     for (const dir of path) {

@@ -21,7 +21,7 @@ describe("Syndicate SWF Stress-Test-Aware Automated Hedging & Dynamic Liquidity 
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -69,7 +69,7 @@ describe("Syndicate SWF Stress-Test-Aware Automated Hedging & Dynamic Liquidity 
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -151,7 +151,7 @@ describe("Syndicate SWF Stress-Test-Aware Automated Hedging & Dynamic Liquidity 
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -222,7 +222,7 @@ describe("Syndicate SWF Stress-Test-Aware Automated Hedging & Dynamic Liquidity 
       alpha: {
         syndicateId: "alpha",
         reserveGold: 1200,
-        reserveRatio: 0.20,
+        reserveRatio: 0.2,
         timestamp: 1000,
       },
     };
@@ -239,7 +239,7 @@ describe("Syndicate SWF Stress-Test-Aware Automated Hedging & Dynamic Liquidity 
 
     // Reallocation prevents option contract from being liquidated!
     expect(tickedState.swfReinsuranceOptionsContracts?.["opt_1"]?.active).toBe(false); // Settle successfully
-    expect(tickedState.journal?.some(j => j.includes("[Automated Hedging Reallocation]"))).toBe(true);
-    expect(tickedState.journal?.some(j => j.includes("[Option Liquidation]"))).toBe(false);
+    expect(tickedState.journal?.some((j) => j.includes("[Automated Hedging Reallocation]"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("[Option Liquidation]"))).toBe(false);
   });
 });

@@ -160,7 +160,9 @@ describe("Syndicate Espionage Networks & Wiretapping (AF-64)", () => {
     expect(successCheck.state.espionageNetworks?.front_room).toBeDefined();
     expect(successCheck.state.espionageNetworks?.front_room.syndicateId).toBe("syndicate_shadow");
     expect(successCheck.state.espionageNetworks?.front_room.cost).toBe(100);
-    expect(successCheck.state.journal[successCheck.state.journal.length - 1]).toContain("Established espionage network");
+    expect(successCheck.state.journal[successCheck.state.journal.length - 1]).toContain(
+      "Established espionage network"
+    );
   });
 
   it("should handle PLACE_WIRETAP validations and deduct gold", () => {
@@ -263,7 +265,7 @@ describe("Syndicate Espionage Networks & Wiretapping (AF-64)", () => {
     // Intercepted gold distributed to agent_a (sole member of syndicate_shadow) = 1 gold.
     expect(ticked.vars.gold).toBe(1); // Faction tax collected
     expect(ticked.vars.gold_agent_a).toBe(1); // Intercepted tax distributed to member
-    expect(ticked.journal.some(log => log.includes("intercepted 1 gold of faction taxes"))).toBe(true);
+    expect(ticked.journal.some((log) => log.includes("intercepted 1 gold of faction taxes"))).toBe(true);
   });
 
   it("should allow wiretaps to intercept rival turf taxes and leak gossip transaction maps periodically in tickEconomy", () => {
@@ -345,11 +347,13 @@ describe("Syndicate Espionage Networks & Wiretapping (AF-64)", () => {
     // Rival syndicate members agent_b gets 8 gold.
     expect(ticked.vars.gold_agent_a).toBe(2);
     expect(ticked.vars.gold_agent_b).toBe(8);
-    expect(ticked.journal.some(log => log.includes("intercepted 2 gold of turf taxes"))).toBe(true);
+    expect(ticked.journal.some((log) => log.includes("intercepted 2 gold of turf taxes"))).toBe(true);
 
     // Assert that the wiretap leaked gossip transaction maps
     expect(ticked.cooperativeSyncLog).toBeDefined();
-    expect(ticked.cooperativeSyncLog?.some(log => log.includes("[Wiretap Leak] Room front_room intercepted transaction"))).toBe(true);
+    expect(
+      ticked.cooperativeSyncLog?.some((log) => log.includes("[Wiretap Leak] Room front_room intercepted transaction"))
+    ).toBe(true);
   });
 
   it("should merge espionage networks and wiretaps states correctly during gossip merge (LWW CRDT)", () => {

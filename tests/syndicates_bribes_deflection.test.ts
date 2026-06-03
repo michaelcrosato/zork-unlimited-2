@@ -326,7 +326,7 @@ describe("Syndicate Bribery and Enforcer Raid Deflection (AF-46)", () => {
 
     expect(raidDeflected).toBe(true);
     // Verify that the journal contains deflection narration
-    expect(state.journal.some(log => log.includes("Lab raid deflected"))).toBe(true);
+    expect(state.journal.some((log) => log.includes("Lab raid deflected"))).toBe(true);
   });
 
   it("should synchronize enforcer bribes and deflection policies over P2P gossip mesh using LWW rules", () => {

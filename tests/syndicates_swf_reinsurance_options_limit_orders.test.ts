@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -79,7 +79,7 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -361,7 +361,7 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -480,7 +480,7 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
     // This must trigger a margin call and liquidate Beta's leveraged CDS position!
     let tick3 = tickEconomy(state, mockPack);
     expect(tick3.swfYieldCDOCDSs?.["cds_1"]?.active).toBe(false); // successfully liquidated!
-    const marginCallJournal = tick3.journal.find(j => j.includes("fell below required dynamic buffer of 22 gold"));
+    const marginCallJournal = tick3.journal.find((j) => j.includes("fell below required dynamic buffer of 22 gold"));
     expect(marginCallJournal).toBeDefined();
   });
 
@@ -536,7 +536,7 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -591,7 +591,12 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
     expect(depthScarcity?.bidAskSpread).toBe(0);
 
     // Verify journal notification logged
-    const scarcityLog = tickScarcity.journal.find(j => j.includes("[SWF Reinsurance Option Pricing Adjustment]") && j.includes("1.5750x") && j.includes("sell volume scarcity"));
+    const scarcityLog = tickScarcity.journal.find(
+      (j) =>
+        j.includes("[SWF Reinsurance Option Pricing Adjustment]") &&
+        j.includes("1.5750x") &&
+        j.includes("sell volume scarcity")
+    );
     expect(scarcityLog).toBeDefined();
 
     // 4. Submit Sell Limit Order (Beta wants to SELL Call Option, Strike: 0.03, Size: 500, Price: 250 gold) -> SELL Supply
@@ -627,7 +632,12 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
     expect(depthCoexist?.spreadAdjustment).toBe(0.8563);
     expect(depthCoexist?.bidAskSpread).toBe(100);
 
-    const coexistLog = tickCoexist.journal.find(j => j.includes("[SWF Reinsurance Option Pricing Adjustment]") && j.includes("0.8563x") && j.includes("sell volume abundance"));
+    const coexistLog = tickCoexist.journal.find(
+      (j) =>
+        j.includes("[SWF Reinsurance Option Pricing Adjustment]") &&
+        j.includes("0.8563x") &&
+        j.includes("sell volume abundance")
+    );
     expect(coexistLog).toBeDefined();
 
     // 5. Verify that cancel/fill updates recalculate depths correctly
@@ -706,7 +716,7 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -887,4 +897,3 @@ describe("Syndicate SWF Reinsurance Options Secondary Market Limit Order Matchin
     expect(state.syndicates?.["alpha"]?.warChest).toBe(9700 + alphaPending);
   });
 });
-

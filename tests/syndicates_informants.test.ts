@@ -281,7 +281,7 @@ describe("Crime Syndicate Informants & Undercover Agent Interrogation (AF-63)", 
   it("should periodically tick active informants and schedule raid warnings", () => {
     let seed = 42;
     for (let s = 1; s <= 200; s++) {
-      const nextSeed = (s + 0x6D2B79F5) | 0;
+      const nextSeed = (s + 0x6d2b79f5) | 0;
       let t = Math.imul(nextSeed ^ (nextSeed >>> 15), nextSeed | 1);
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       const value = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -344,13 +344,13 @@ describe("Crime Syndicate Informants & Undercover Agent Interrogation (AF-63)", 
     );
 
     expect(stepRes.ok).toBe(true);
-    
+
     // An upcoming raid warning should be scheduled
     const warnings = Object.values(stepRes.state.raidWarnings ?? {});
     expect(warnings.length).toBeGreaterThanOrEqual(1);
     expect(warnings[0].roomId).toBe("safehouse_room");
     expect(warnings[0].active).toBe(true);
-    expect(stepRes.state.journal.some(j => j.includes("leaked enforcer raid plans"))).toBe(true);
+    expect(stepRes.state.journal.some((j) => j.includes("leaked enforcer raid plans"))).toBe(true);
   });
 
   it("should successfully trigger safehouse evacuation when pre-emptive warnings are active", () => {
@@ -430,7 +430,7 @@ describe("Crime Syndicate Informants & Undercover Agent Interrogation (AF-63)", 
   it("should successfully trigger production lab evacuation when pre-emptive warnings are active", () => {
     let seed = 12;
     for (let s = 1; s <= 200; s++) {
-      const nextSeed = (s + 0x6D2B79F5) | 0;
+      const nextSeed = (s + 0x6d2b79f5) | 0;
       let t = Math.imul(nextSeed ^ (nextSeed >>> 15), nextSeed | 1);
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       const value = ((t ^ (t >>> 14)) >>> 0) / 4294967296;

@@ -1,4 +1,4 @@
-import { VectorClock, isClockBehind, GossipMessage } from "./gossip.js";
+import { VectorClock, isClockBehind } from "./gossip.js";
 import { Transaction } from "./state.js";
 import { computeStateHash, computeSha256 } from "./hash.js";
 import { MeshNode, MeshNetwork } from "./network.js";
@@ -16,7 +16,7 @@ export class GossipAntiEntropyRecovery {
    * Computes a deterministic Merkle tree root hash from a list of transactions.
    */
   public static computeMerkleRoot(transactions: Transaction[]): string {
-    const txIds = transactions.map(tx => {
+    const txIds = transactions.map((tx) => {
       const actionStr = typeof tx.action === "string" ? tx.action : JSON.stringify(tx.action);
       return `${tx.agentId}-${tx.sequenceNumber}-${tx.timestamp}-${tx.stateHashBefore}-${actionStr}`;
     });
@@ -25,7 +25,7 @@ export class GossipAntiEntropyRecovery {
       return computeSha256("empty");
     }
 
-    let level = txIds.map(id => computeSha256(id));
+    let level = txIds.map((id) => computeSha256(id));
     while (level.length > 1) {
       const nextLevel: string[] = [];
       for (let i = 0; i < level.length; i += 2) {
@@ -45,7 +45,7 @@ export class GossipAntiEntropyRecovery {
    */
   public static computeCondensedClockHash(clock: VectorClock): string {
     const sortedKeys = Object.keys(clock).sort();
-    const serialized = sortedKeys.map(k => `${k}:${clock[k]}`).join(",");
+    const serialized = sortedKeys.map((k) => `${k}:${clock[k]}`).join(",");
     return computeSha256(serialized);
   }
 
@@ -63,7 +63,7 @@ export class GossipAntiEntropyRecovery {
       vectorClock,
       clockHash,
       merkleRoot,
-      stateHash
+      stateHash,
     };
   }
 
@@ -86,7 +86,7 @@ export class GossipAntiEntropyRecovery {
           sourceId,
           destinationId: targetId,
           type: "anti_entropy_digest",
-          payload: digest
+          payload: digest,
         });
       }
     }
@@ -138,7 +138,7 @@ export class GossipAntiEntropyRecovery {
           sourceId: recipient.nodeId,
           destinationId: peerId,
           type: "anti_entropy_request",
-          payload: {}
+          payload: {},
         });
       }
     } else if (weAreBehind) {
@@ -148,7 +148,7 @@ export class GossipAntiEntropyRecovery {
           sourceId: recipient.nodeId,
           destinationId: peerId,
           type: "anti_entropy_request",
-          payload: {}
+          payload: {},
         });
       }
     } else if (peerIsBehind) {
@@ -166,7 +166,7 @@ export class GossipAntiEntropyRecovery {
           sourceId: recipient.nodeId,
           destinationId: peerId,
           type: "anti_entropy_request",
-          payload: {}
+          payload: {},
         });
       }
     }

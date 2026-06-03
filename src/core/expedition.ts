@@ -1,7 +1,6 @@
-import { GossipNode, getTransactionId } from "./gossip.js";
-import { GameState, Transaction, reconcileLootClaims, reconcileTerritories } from "./state.js";
+import { GossipNode } from "./gossip.js";
 import { Action, StepResult } from "../api/types.js";
-import { computeStateHash, canonicalStringify } from "./hash.js";
+import { computeStateHash } from "./hash.js";
 
 /**
  * Orchestrator representing a decentralized group of peers exploring a shared procedural dungeon.
@@ -73,12 +72,7 @@ export class DecentralizedDungeonExpedition {
    * Issues a lock-free chest loot claim transaction on a specific peer node.
    * Leverages Last-Write-Wins (LWW) CRDT logic to ensure absolute, deterministic convergence.
    */
-  public claimLootOn(
-    peerId: string,
-    chestId: string,
-    itemId: string,
-    timestamp = Date.now()
-  ): StepResult {
+  public claimLootOn(peerId: string, chestId: string, itemId: string, timestamp = Date.now()): StepResult {
     const node = this.peers.get(peerId);
     if (!node) {
       throw new Error(`Peer '${peerId}' not found in the expedition.`);
@@ -100,12 +94,7 @@ export class DecentralizedDungeonExpedition {
    * Issues a lock-free territory claim transaction on a specific peer node.
    * Leverages Last-Write-Wins (LWW) CRDT logic to ensure absolute, deterministic convergence.
    */
-  public claimTerritoryOn(
-    peerId: string,
-    roomId: string,
-    factionId: string,
-    timestamp = Date.now()
-  ): StepResult {
+  public claimTerritoryOn(peerId: string, roomId: string, factionId: string, timestamp = Date.now()): StepResult {
     const node = this.peers.get(peerId);
     if (!node) {
       throw new Error(`Peer '${peerId}' not found in the expedition.`);
@@ -133,7 +122,7 @@ export class DecentralizedDungeonExpedition {
 
     while (anyChanges && round < maxRounds) {
       anyChanges = false;
-      
+
       // Perform a gossip sweep for every peer node
       for (const node of this.peers.values()) {
         const syncCount = node.gossip();
@@ -160,9 +149,7 @@ export class DecentralizedDungeonExpedition {
     }
 
     if (hashes.size > expectedStateHashesCount) {
-      throw new Error(
-        `Network has not fully converged! Found ${hashes.size} distinct state hashes across peers.`
-      );
+      throw new Error(`Network has not fully converged! Found ${hashes.size} distinct state hashes across peers.`);
     }
   }
 }

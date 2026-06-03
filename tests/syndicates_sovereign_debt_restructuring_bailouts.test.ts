@@ -121,7 +121,7 @@ describe("Syndicate Sovereign Debt Restructuring & Faction Bailouts (AF-124)", (
     expect(bond?.interestRate).toBe(5);
     expect(bond?.remainingEpochs).toBe(4); // 3 + 2 = 5, then ticked to 4
     expect(bond?.termEpochs).toBe(5); // 3 + 2 = 5
-    
+
     // Math:
     // faceValue = 3000. newInterestRate = 5% => totalRepayment = 3000 + 150 = 3150.
     // amountPaid = 3300 - 3300 = 0.

@@ -26,11 +26,7 @@ export function saveGame(state: GameState, packId: string, contentHash: string):
  * Deserializes a save game JSON string, validates the state schema, and asserts
  * that the contentHash matches the expected active pack hash.
  */
-export function loadGame(
-  saveStr: string,
-  expectedPackId: string,
-  expectedContentHash: string
-): GameState {
+export function loadGame(saveStr: string, expectedPackId: string, expectedContentHash: string): GameState {
   let rawData: unknown;
   try {
     rawData = JSON.parse(saveStr);
@@ -50,9 +46,7 @@ export function loadGame(
 
   // 1. Assert pack ID matches
   if (data.packId !== expectedPackId) {
-    throw new Error(
-      `Save game belongs to pack '${data.packId}', but expected current pack to be '${expectedPackId}'`
-    );
+    throw new Error(`Save game belongs to pack '${data.packId}', but expected current pack to be '${expectedPackId}'`);
   }
 
   // 2. Assert content hash matches

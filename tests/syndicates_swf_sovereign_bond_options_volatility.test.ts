@@ -21,7 +21,7 @@ describe("Syndicate SWF Sovereign Bond Options & Yield Volatility Indexes (AF-14
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],

@@ -21,7 +21,7 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -62,7 +62,7 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -80,8 +80,12 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
     };
 
     // Assert baseline fees
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee).toBe(500);
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(100);
+    expect(
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee
+    ).toBe(500);
+    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(
+      100
+    );
 
     // 1. Propose fee calibration proposal
     const proposeCalibration = {
@@ -99,18 +103,28 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
     expect(res.ok).toBe(true);
     state = res.state;
 
-    const prop = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals?.["cal_1"];
+    const prop =
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals?.[
+        "cal_1"
+      ];
     expect(prop).toBeDefined();
     expect(prop?.status).toBe("proposed");
     expect(prop?.newProposalFee).toBe(800);
     expect(prop?.newVoteFee).toBe(250);
 
     // Proposer vote is registered automatically as true
-    const voterRecord = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes?.["cal_1"]?.["player"];
+    const voterRecord =
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes?.[
+        "cal_1"
+      ]?.["player"];
     expect(voterRecord?.vote).toBe(true);
 
     // Active fees are still baseline because consensus is not yet reached
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee).toBe(500);
+    expect(
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee
+    ).toBe(500);
 
     // 2. Alice votes to authorize the fee calibration (2/3 majority reached)
     const voteAlice = {
@@ -124,11 +138,20 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
     expect(res.ok).toBe(true);
     state = res.state;
 
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals?.["cal_1"]?.status).toBe("authorized");
+    expect(
+      state
+        .swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals?.[
+        "cal_1"
+      ]?.status
+    ).toBe("authorized");
 
     // Active fees are now successfully updated to the calibrated values!
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee).toBe(800);
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(250);
+    expect(
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee
+    ).toBe(800);
+    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(
+      250
+    );
   });
 
   it("should enforce and dynamically scale proposal/vote costs and deduct from the syndicate war chest", () => {
@@ -166,7 +189,7 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -282,7 +305,7 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -319,28 +342,30 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
 
     // Vote on Node B
     // Copy the proposal structure manually to B before voting
-    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals = {
-      cal_1: {
-        proposalId: "cal_1",
-        syndicateId: "alpha",
-        swfYieldCdoId: "cdo_1",
-        trancheId: "senior",
-        newProposalFee: 650,
-        newVoteFee: 150,
-        status: "proposed",
-        proposerId: "player",
-        timestamp: 1001,
-      }
-    };
-    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes = {
-      cal_1: {
-        player: {
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals =
+      {
+        cal_1: {
           proposalId: "cal_1",
-          vote: true,
+          syndicateId: "alpha",
+          swfYieldCdoId: "cdo_1",
+          trancheId: "senior",
+          newProposalFee: 650,
+          newVoteFee: 150,
+          status: "proposed",
+          proposerId: "player",
           timestamp: 1001,
-        }
-      }
-    };
+        },
+      };
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes =
+      {
+        cal_1: {
+          player: {
+            proposalId: "cal_1",
+            vote: true,
+            timestamp: 1001,
+          },
+        },
+      };
 
     const voteAlice = {
       type: "VOTE_VOLATILITY_FLOOR_PANIC_OVERRIDE_EXTENSION_CANCELLATION_GRACE_LIQUIDITY_ADJUST_FEE_CALIBRATION",
@@ -357,7 +382,11 @@ describe("Syndicate SWF Options Panic Override Threshold Adjust Fee Calibration 
     const mergedState = mergeMonotonicStateFields(stateA, stateB);
 
     // Active fees must converge to the authorized proposal values!
-    expect(mergedState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee).toBe(650);
-    expect(mergedState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee).toBe(150);
+    expect(
+      mergedState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee
+    ).toBe(650);
+    expect(
+      mergedState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee
+    ).toBe(150);
   });
 });

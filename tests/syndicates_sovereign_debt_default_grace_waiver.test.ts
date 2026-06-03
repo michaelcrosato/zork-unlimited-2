@@ -22,7 +22,7 @@ describe("Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty W
         objects: [],
         npcs: ["merchant_1"],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [
@@ -39,10 +39,10 @@ describe("Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty W
               id: "root_node",
               npc_text: "Welcome",
               topics: [],
-            }
+            },
           ],
         },
-      }
+      },
     ],
   });
 
@@ -384,7 +384,7 @@ describe("Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty W
 
     // Setup active default alert on node A
     nodeA.sovereignDebtDefaultAlerts = {
-      "prop_alert_3": {
+      prop_alert_3: {
         proposalId: "prop_alert_3",
         syndicateId: "alpha",
         targetSyndicateId: "beta",
@@ -393,7 +393,7 @@ describe("Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty W
         resolved: false,
         proposerId: "player",
         timestamp: 1002,
-      }
+      },
     };
 
     // Propose grace period on node A
@@ -444,7 +444,7 @@ describe("Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty W
       beta: 500,
     };
     nodeB.sovereignDebtDefaultAlerts = {
-      "prop_alert_3": {
+      prop_alert_3: {
         proposalId: "prop_alert_3",
         syndicateId: "alpha",
         targetSyndicateId: "beta",
@@ -453,7 +453,7 @@ describe("Syndicate SWF Sovereign Debt Default Grace Periods & Default Penalty W
         resolved: false,
         proposerId: "player",
         timestamp: 1002,
-      }
+      },
     };
 
     // Gossip merge from Node A to Node B

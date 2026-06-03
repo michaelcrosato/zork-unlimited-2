@@ -1,7 +1,8 @@
 import { GameState, findRoom, getRoomExits } from "../core/state.js";
-import { ParserPack, ParserRoom, ParserObject, ParserNPC } from "./schema.js";
+import { ParserPack, ParserRoom, ParserObject } from "./schema.js";
 import { AvailableAction } from "../api/types.js";
 import { evaluateConditions } from "../core/conditions.js";
+import { isRoomIlluminated } from "../core/engine.js";
 
 /**
  * Dynamically computes all legal actions for the player in the current GameState
@@ -9,10 +10,7 @@ import { evaluateConditions } from "../core/conditions.js";
  *
  * Implements the core "legal-action space restriction" thesis (§9.2).
  */
-export function generateLegalActions(
-  state: GameState,
-  pack: ParserPack,
-): AvailableAction[] {
+export function generateLegalActions(state: GameState, pack: ParserPack): AvailableAction[] {
   const actions: AvailableAction[] = [];
 
   // Check if player is currently in combat
@@ -51,11 +49,44 @@ export function generateLegalActions(
       }
       if (playerMana >= 2) {
         actions.push({
+          id: "cast_freeze",
+          command: "cast freeze",
+          action: { type: "CAST", spell: "freeze", target: npc.id },
+        });
+      }
+      if (playerMana >= 3) {
+        actions.push({
+          id: "cast_lightning",
+          command: "cast lightning",
+          action: { type: "CAST", spell: "lightning", target: npc.id },
+        });
+      }
+      if (playerMana >= 2) {
+        actions.push({
+          id: "cast_poison",
+          command: "cast poison",
+          action: { type: "CAST", spell: "poison", target: npc.id },
+        });
+      }
+      if (playerMana >= 2) {
+        actions.push({
           id: "cast_heal",
           command: "cast heal",
           action: { type: "CAST", spell: "heal", target: "player" },
         });
       }
+
+      // Allow using items in inventory during combat
+      state.inventory.forEach((itemId) => {
+        const item = pack.objects.find((o) => o.id === itemId);
+        if (item) {
+          actions.push({
+            id: `use_${item.id}_combat`,
+            command: `use ${item.name}`,
+            action: { type: "USE", item: item.id, target: item.id },
+          });
+        }
+      });
 
       actions.push({
         id: "flee_combat",
@@ -134,10 +165,7 @@ export function generateLegalActions(
       const obj = pack.objects.find((o) => o.id === objId);
       if (obj) {
         const runtime = state.objectState[objId];
-        if (
-          runtime &&
-          (runtime.takenBy === "player" || runtime.takenBy === "destroyed")
-        ) {
+        if (runtime && (runtime.takenBy === "player" || runtime.takenBy === "destroyed")) {
           return;
         }
         objs.push(obj);
@@ -149,11 +177,7 @@ export function generateLegalActions(
             const nestedObj = pack.objects.find((o) => o.id === nestedId);
             if (nestedObj) {
               const nestedRuntime = state.objectState[nestedId];
-              if (
-                nestedRuntime &&
-                (nestedRuntime.takenBy === "player" ||
-                  nestedRuntime.takenBy === "destroyed")
-              ) {
+              if (nestedRuntime && (nestedRuntime.takenBy === "player" || nestedRuntime.takenBy === "destroyed")) {
                 return;
               }
               objs.push(nestedObj);
@@ -165,10 +189,28 @@ export function generateLegalActions(
     return objs;
   };
 
-  const visibleObjects = getVisibleObjectsInRoom(room);
+  const illuminated = isRoomIlluminated(state, room, pack);
+  const visibleObjects = illuminated ? getVisibleObjectsInRoom(room) : [];
   const inventoryObjects = state.inventory
     .map((id) => pack.objects.find((o) => o.id === id))
     .filter((o): o is ParserObject => !!o);
+
+  // 3.5. Room Scenery Interactions
+  if (illuminated && room.scenery) {
+    Object.keys(room.scenery).forEach((sceneryKey) => {
+      actions.push({
+        id: `look_scenery_${room.id}_${sceneryKey.replace(/\s+/g, "_")}`,
+        command: `look at ${sceneryKey.toLowerCase()}`,
+        action: { type: "LOOK", target: `scenery:${room.id}:${sceneryKey}` },
+      });
+
+      actions.push({
+        id: `inspect_scenery_${room.id}_${sceneryKey.replace(/\s+/g, "_")}`,
+        command: `inspect ${sceneryKey.toLowerCase()}`,
+        action: { type: "INSPECT", target: `scenery:${room.id}:${sceneryKey}` },
+      });
+    });
+  }
 
   // 4. Object Interactions (Visible Objects)
   visibleObjects.forEach((obj) => {
@@ -198,9 +240,7 @@ export function generateLegalActions(
     }
 
     // OPEN / CLOSE
-    const hasCustomOpen = (obj.interactions || []).some(
-      (inter) => inter.verb === "OPEN",
-    );
+    const hasCustomOpen = (obj.interactions || []).some((inter) => inter.verb === "OPEN");
     if (obj.openable || hasCustomOpen) {
       const isOpen = runtime ? !!runtime.open : false;
       if (!isOpen) {
@@ -249,9 +289,7 @@ export function generateLegalActions(
       }
     });
 
-    const hasCustomRead = (obj.interactions || []).some(
-      (inter) => inter.verb === "READ",
-    );
+    const hasCustomRead = (obj.interactions || []).some((inter) => inter.verb === "READ");
     if (hasCustomRead) {
       actions.push({
         id: `read_${obj.id}`,
@@ -284,6 +322,20 @@ export function generateLegalActions(
       action: { type: "DROP", item: obj.id },
     });
 
+    // Self-use / Light source activation
+    actions.push({
+      id: `use_${obj.id}_self`,
+      command: `use ${obj.name}`,
+      action: { type: "USE", item: obj.id, target: obj.id },
+    });
+    if (obj.light_source) {
+      actions.push({
+        id: `light_${obj.id}`,
+        command: `light ${obj.name}`,
+        action: { type: "USE", item: obj.id, target: obj.id },
+      });
+    }
+
     // USE item from inventory on any visible room objects
     visibleObjects.forEach((target) => {
       actions.push({
@@ -293,9 +345,7 @@ export function generateLegalActions(
       });
     });
 
-    const hasCustomRead = (obj.interactions || []).some(
-      (inter) => inter.verb === "READ",
-    );
+    const hasCustomRead = (obj.interactions || []).some((inter) => inter.verb === "READ");
     if (hasCustomRead) {
       actions.push({
         id: `read_${obj.id}`,
@@ -306,51 +356,155 @@ export function generateLegalActions(
   });
 
   // 6. NPCs in Room
-  room.npcs.forEach((npcId: string) => {
-    if (state.flags[`npc_dead_${npcId}`]) return;
-    const npc = pack.npcs.find((n) => n.id === npcId);
-    if (npc) {
-      actions.push({
-        id: `talk_${npc.id}`,
-        command: `talk to ${npc.name}`,
-        action: { type: "TALK", npc: npc.id },
-      });
-
-      // GIVE <item> to NPC
-      state.inventory.forEach((itemId) => {
-        const item = pack.objects.find((o) => o.id === itemId);
+  if (illuminated) {
+    room.npcs.forEach((npcId: string) => {
+      if (state.flags[`npc_dead_${npcId}`]) return;
+      const npc = pack.npcs.find((n) => n.id === npcId);
+      if (npc) {
         actions.push({
-          id: `give_${itemId}_to_${npc.id}`,
-          command: `give ${item?.name ?? itemId} to ${npc.name}`,
-          action: { type: "GIVE", item: itemId, npc: npc.id },
+          id: `talk_${npc.id}`,
+          command: `talk to ${npc.name}`,
+          action: { type: "TALK", npc: npc.id },
         });
-      });
 
-      // BUY/SELL from Merchant
-      if (state.merchantInventories && state.merchantInventories[npc.id]) {
-        const merchantStock = state.merchantInventories[npc.id];
-        merchantStock.forEach((itemId) => {
-          const itemObj = pack.objects.find((o) => o.id === itemId);
+        // GIVE <item> to NPC
+        state.inventory.forEach((itemId) => {
+          const item = pack.objects.find((o) => o.id === itemId);
           actions.push({
-            id: `buy_${itemId}_from_${npc.id}`,
-            command: `buy ${itemObj?.name.toLowerCase() ?? itemId} from ${npc.name.toLowerCase()}`,
-            action: { type: "BUY", item: itemId, npc: npc.id },
+            id: `give_${itemId}_to_${npc.id}`,
+            command: `give ${item?.name ?? itemId} to ${npc.name}`,
+            action: { type: "GIVE", item: itemId, npc: npc.id },
           });
         });
 
-        state.inventory.forEach((itemId) => {
-          const itemObj = pack.objects.find((o) => o.id === itemId);
-          if (itemObj && !itemObj.quest_critical) {
+        // BUY/SELL from Merchant
+        if (state.merchantInventories && state.merchantInventories[npc.id]) {
+          const merchantStock = state.merchantInventories[npc.id];
+          merchantStock.forEach((itemId) => {
+            const itemObj = pack.objects.find((o) => o.id === itemId);
             actions.push({
-              id: `sell_${itemId}_to_${npc.id}`,
-              command: `sell ${itemObj.name.toLowerCase()} to ${npc.name.toLowerCase()}`,
-              action: { type: "SELL", item: itemId, npc: npc.id },
+              id: `buy_${itemId}_from_${npc.id}`,
+              command: `buy ${itemObj?.name.toLowerCase() ?? itemId} from ${npc.name.toLowerCase()}`,
+              action: { type: "BUY", item: itemId, npc: npc.id },
             });
-          }
+          });
+
+          state.inventory.forEach((itemId) => {
+            const itemObj = pack.objects.find((o) => o.id === itemId);
+            if (itemObj && !itemObj.quest_critical) {
+              actions.push({
+                id: `sell_${itemId}_to_${npc.id}`,
+                command: `sell ${itemObj.name.toLowerCase()} to ${npc.name.toLowerCase()}`,
+                action: { type: "SELL", item: itemId, npc: npc.id },
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  const matchedPairs = new Set<string>();
+
+  if ((pack as any).recipes) {
+    for (const recipe of (pack as any).recipes) {
+      // Check if all ingredients and tools are in the player's inventory
+      const hasAllIngredients = recipe.ingredients.every((ingId: string) => state.inventory.includes(ingId));
+      const hasAllTools = (recipe.tools || []).every((toolId: string) => state.inventory.includes(toolId));
+
+      if (hasAllIngredients && hasAllTools) {
+        const allItems = [...recipe.ingredients, ...(recipe.tools || [])];
+        if (allItems.length === 2) {
+          const sorted = [...allItems].sort();
+          matchedPairs.add(`${sorted[0]}_${sorted[1]}`);
+        }
+
+        const ingredientsAndToolsNames = allItems.map((ingId: string) => {
+          const item = pack.objects.find((o) => o.id === ingId);
+          return item?.name ?? ingId;
         });
+
+        // Let's generate a command. If recipe.text is provided, use it.
+        // Otherwise, construct: "combine A and B" or "combine A, B, and C"
+        let commandText = recipe.text;
+        if (!commandText) {
+          if (ingredientsAndToolsNames.length === 2) {
+            commandText = `combine ${ingredientsAndToolsNames[0]} and ${ingredientsAndToolsNames[1]}`;
+          } else {
+            commandText = `combine ${ingredientsAndToolsNames.slice(0, -1).join(", ")}, and ${ingredientsAndToolsNames[ingredientsAndToolsNames.length - 1]}`;
+          }
+        }
+
+        actions.push({
+          id: `craft_${recipe.id}`,
+          command: commandText.toLowerCase(),
+          action: { type: "CRAFT", recipeId: recipe.id },
+        });
+
+        if (allItems.length === 2) {
+          const ingA = pack.objects.find((o) => o.id === allItems[0]);
+          const ingB = pack.objects.find((o) => o.id === allItems[1]);
+          const nameA = ingA?.name ?? allItems[0];
+          const nameB = ingB?.name ?? allItems[1];
+
+          actions.push({
+            id: `craft_use_${recipe.id}_a_b`,
+            command: `use ${nameA} on ${nameB}`.toLowerCase(),
+            action: { type: "CRAFT", recipeId: recipe.id },
+          });
+
+          actions.push({
+            id: `craft_use_${recipe.id}_b_a`,
+            command: `use ${nameB} on ${nameA}`.toLowerCase(),
+            action: { type: "CRAFT", recipeId: recipe.id },
+          });
+        }
       }
     }
-  });
+  }
+
+  // 8. Generate Fallback Invalid Combinations for any pairs in inventory
+  const inv = state.inventory;
+  for (let i = 0; i < inv.length; i++) {
+    for (let j = i + 1; j < inv.length; j++) {
+      const itemAId = inv[i];
+      const itemBId = inv[j];
+      const sorted = [itemAId, itemBId].sort();
+      const pairKey = `${sorted[0]}_${sorted[1]}`;
+      if (matchedPairs.has(pairKey)) {
+        continue;
+      }
+
+      const itemA = pack.objects.find((o) => o.id === itemAId);
+      const itemB = pack.objects.find((o) => o.id === itemBId);
+      const nameA = itemA?.name ?? itemAId;
+      const nameB = itemB?.name ?? itemBId;
+
+      actions.push({
+        id: `craft_use_invalid_${itemAId}_${itemBId}`,
+        command: `use ${nameA} on ${nameB}`.toLowerCase(),
+        action: { type: "CRAFT", recipeId: `invalid_${itemAId}_${itemBId}` },
+      });
+
+      actions.push({
+        id: `craft_use_invalid_${itemBId}_${itemAId}`,
+        command: `use ${nameB} on ${nameA}`.toLowerCase(),
+        action: { type: "CRAFT", recipeId: `invalid_${itemBId}_${itemAId}` },
+      });
+
+      actions.push({
+        id: `craft_combine_invalid_${itemAId}_${itemBId}`,
+        command: `combine ${nameA} and ${nameB}`.toLowerCase(),
+        action: { type: "CRAFT", recipeId: `invalid_${itemAId}_${itemBId}` },
+      });
+
+      actions.push({
+        id: `craft_combine_invalid_${itemBId}_${itemAId}`,
+        command: `combine ${nameB} and ${nameA}`.toLowerCase(),
+        action: { type: "CRAFT", recipeId: `invalid_${itemBId}_${itemAId}` },
+      });
+    }
+  }
 
   return actions;
 }

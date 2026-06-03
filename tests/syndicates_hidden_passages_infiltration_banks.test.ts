@@ -83,51 +83,63 @@ describe("Syndicate Hidden Passages, Faction Infiltration, and Black-Market Bank
     };
 
     // 1. Rejects if passageId is missing
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "CONSTRUCT_HIDDEN_PASSAGE",
-        passageId: "",
-        syndicateId: "synd_shadows",
-        fromRoomId: "market",
-        toRoomId: "alley",
-        cost: 200,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "CONSTRUCT_HIDDEN_PASSAGE",
+          passageId: "",
+          syndicateId: "synd_shadows",
+          fromRoomId: "market",
+          toRoomId: "alley",
+          cost: 200,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("Passage ID is required");
 
     // 2. Rejects if syndicate does not exist
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "CONSTRUCT_HIDDEN_PASSAGE",
-        passageId: "p1",
-        syndicateId: "nonexistent",
-        fromRoomId: "market",
-        toRoomId: "alley",
-        cost: 200,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "CONSTRUCT_HIDDEN_PASSAGE",
+          passageId: "p1",
+          syndicateId: "nonexistent",
+          fromRoomId: "market",
+          toRoomId: "alley",
+          cost: 200,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("does not exist");
 
     // 3. Rejects if agent is not a member of the syndicate
     state.syndicates["synd_shadows"].members = ["other_agent"];
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "CONSTRUCT_HIDDEN_PASSAGE",
-        passageId: "p1",
-        syndicateId: "synd_shadows",
-        fromRoomId: "market",
-        toRoomId: "alley",
-        cost: 200,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "CONSTRUCT_HIDDEN_PASSAGE",
+          passageId: "p1",
+          syndicateId: "synd_shadows",
+          fromRoomId: "market",
+          toRoomId: "alley",
+          cost: 200,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("not a member of syndicate");
 
@@ -135,50 +147,62 @@ describe("Syndicate Hidden Passages, Faction Infiltration, and Black-Market Bank
     state.syndicates["synd_shadows"].members = ["player"];
 
     // 4. Rejects if room does not exist
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "CONSTRUCT_HIDDEN_PASSAGE",
-        passageId: "p1",
-        syndicateId: "synd_shadows",
-        fromRoomId: "invalid_room",
-        toRoomId: "alley",
-        cost: 200,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "CONSTRUCT_HIDDEN_PASSAGE",
+          passageId: "p1",
+          syndicateId: "synd_shadows",
+          fromRoomId: "invalid_room",
+          toRoomId: "alley",
+          cost: 200,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("does not exist");
 
     // 5. Rejects if insufficient gold
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "CONSTRUCT_HIDDEN_PASSAGE",
-        passageId: "p1",
-        syndicateId: "synd_shadows",
-        fromRoomId: "market",
-        toRoomId: "alley",
-        cost: 600,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "CONSTRUCT_HIDDEN_PASSAGE",
+          passageId: "p1",
+          syndicateId: "synd_shadows",
+          fromRoomId: "market",
+          toRoomId: "alley",
+          cost: 600,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
     expect(res.rejectionReason).toContain("Insufficient gold");
 
     // 6. Succeeds with correct details and deducts gold
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "CONSTRUCT_HIDDEN_PASSAGE",
-        passageId: "passage_shortcut",
-        syndicateId: "synd_shadows",
-        fromRoomId: "market",
-        toRoomId: "alley",
-        cost: 200,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "CONSTRUCT_HIDDEN_PASSAGE",
+          passageId: "passage_shortcut",
+          syndicateId: "synd_shadows",
+          fromRoomId: "market",
+          toRoomId: "alley",
+          cost: 200,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     expect(res.state.vars["gold"]).toBe(300);
     expect(res.state.hiddenPassages?.["passage_shortcut"]).toBeDefined();
@@ -221,10 +245,14 @@ describe("Syndicate Hidden Passages, Faction Infiltration, and Black-Market Bank
       } as any,
     };
 
-    let resNormalMove = multiAgentStep(stateForNormal, {
-      agentId: "player",
-      action: { type: "MOVE", direction: "NORTH" },
-    }, mockPack);
+    let resNormalMove = multiAgentStep(
+      stateForNormal,
+      {
+        agentId: "player",
+        action: { type: "MOVE", direction: "NORTH" },
+      },
+      mockPack
+    );
 
     // Should fail because they can't afford taxes/tolls or get caught/turned back
     expect(resNormalMove.ok).toBe(false);
@@ -251,10 +279,14 @@ describe("Syndicate Hidden Passages, Faction Infiltration, and Black-Market Bank
     };
 
     // Move via hidden passage with low gold and carrying contraband -> SUCCESS!
-    let resPassageMove = multiAgentStep(state, {
-      agentId: "player",
-      action: { type: "MOVE", direction: "NORTH" },
-    }, mockPack);
+    let resPassageMove = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: { type: "MOVE", direction: "NORTH" },
+      },
+      mockPack
+    );
 
     expect(resPassageMove.ok).toBe(true);
     expect(resPassageMove.state.current).toBe("alley");
@@ -286,16 +318,20 @@ describe("Syndicate Hidden Passages, Faction Infiltration, and Black-Market Bank
     };
 
     // Infiltrate faction network
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "INFILTRATE_FACTION_NETWORK",
-        syndicateId: "synd_shadows",
-        factionId: "rangers",
-        cost: 150,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "INFILTRATE_FACTION_NETWORK",
+          syndicateId: "synd_shadows",
+          factionId: "rangers",
+          cost: 150,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(res.ok).toBe(true);
     expect(res.state.vars["gold"]).toBe(150);
@@ -304,16 +340,20 @@ describe("Syndicate Hidden Passages, Faction Infiltration, and Black-Market Bank
     expect(res.state.syndicates?.["synd_shadows"].dominance).toBe(65); // Increased from 50 to 65!
 
     // Cannot infiltrate again
-    res = multiAgentStep(res.state, {
-      agentId: "player",
-      action: {
-        type: "INFILTRATE_FACTION_NETWORK",
-        syndicateId: "synd_shadows",
-        factionId: "rangers",
-        cost: 150,
-        timestamp: 20,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      res.state,
+      {
+        agentId: "player",
+        action: {
+          type: "INFILTRATE_FACTION_NETWORK",
+          syndicateId: "synd_shadows",
+          factionId: "rangers",
+          cost: 150,
+          timestamp: 20,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(false);
   });
 
@@ -337,16 +377,20 @@ describe("Syndicate Hidden Passages, Faction Infiltration, and Black-Market Bank
     };
 
     // Deposit 300 gold
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "DEPOSIT_SYNDICATE_BANK",
-        syndicateId: "synd_shadows",
+    let res = multiAgentStep(
+      state,
+      {
         agentId: "player",
-        amount: 300,
-        timestamp: 10,
-      } as any,
-    }, mockPack);
+        action: {
+          type: "DEPOSIT_SYNDICATE_BANK",
+          syndicateId: "synd_shadows",
+          agentId: "player",
+          amount: 300,
+          timestamp: 10,
+        } as any,
+      },
+      mockPack
+    );
 
     expect(res.ok).toBe(true);
     expect(res.state.vars["gold"]).toBe(200); // 500 - 300 = 200

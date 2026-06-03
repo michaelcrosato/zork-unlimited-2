@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Matching Engine Market Impact & Scal
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -79,7 +79,7 @@ describe("Syndicate SWF Reinsurance Options Matching Engine Market Impact & Scal
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -152,7 +152,7 @@ describe("Syndicate SWF Reinsurance Options Matching Engine Market Impact & Scal
     // Maker price is buy order limit price = 600
     // Base executed price = 600 * 0.9167 = 550.02
     // Adjusted Price = round(550.02 * 1.1) = 605
-    
+
     // Verify created options contract size is scaled down
     const contract = state.swfReinsuranceOptionsContracts?.["opt_limit_1"];
     expect(contract).toBeDefined();
@@ -163,7 +163,7 @@ describe("Syndicate SWF Reinsurance Options Matching Engine Market Impact & Scal
     expect(state.syndicates?.["beta"]?.warChest).toBe(10000 + 605); // 10605
 
     // Verify journal log contains market impact entry
-    const marketImpactLog = state.journal?.find(log => log.includes("[SWF Reinsurance Option Market Impact]"));
+    const marketImpactLog = state.journal?.find((log) => log.includes("[SWF Reinsurance Option Market Impact]"));
     expect(marketImpactLog).toBeDefined();
     expect(marketImpactLog).toContain("Volume scaled by 91.7%");
     expect(marketImpactLog).toContain("Price adjusted by +10.0%");

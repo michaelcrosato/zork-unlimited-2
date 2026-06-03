@@ -140,7 +140,7 @@ describe("Double-Blind Playtest Evaluator Protocol", () => {
     expect(["alpha", "beta", "tie"]).toContain(evalResult.blindedWinnerKey);
     expect(evalResult.alphaScore.effectiveness).toBeGreaterThanOrEqual(0);
     expect(evalResult.betaScore.efficiency).toBeGreaterThanOrEqual(0);
-    
+
     // Assert decryption correctly logs the candidate IDs
     expect(evalResult.decryptionLog).toContain("Blind Decryption:");
     expect(evalResult.decryptionLog).toContain("speedrunner_v1.0");

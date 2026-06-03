@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities } from "../src/core/state.js";
+import {
+  createInitialState,
+  reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities,
+} from "../src/core/state.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { mergeMonotonicStateFields } from "../src/core/gossip.js";
@@ -22,7 +25,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -63,7 +66,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -143,7 +146,8 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
     expect(res.ok).toBe(true);
     state = res.state;
 
-    let liqProp = state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals?.["liq_1"];
+    let liqProp =
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals?.["liq_1"];
     expect(liqProp).toBeDefined();
     expect(liqProp?.status).toBe("proposed");
     expect(liqProp?.minLiquidityThreshold).toBe(5000);
@@ -159,7 +163,10 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
     res = multiAgentStep(state, { agentId: "bob", action: voteLiqBob as any }, mockPack);
     expect(res.ok).toBe(true);
     state = res.state;
-    expect(state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals?.["liq_1"]?.status).toBe("authorized");
+    expect(
+      state.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals?.["liq_1"]
+        ?.status
+    ).toBe("authorized");
   });
 
   it("should instantly cancel the grace period if the active pool's reserves drop below the consensus threshold", () => {
@@ -240,8 +247,13 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
     // 1. First tick: reserves = 6000 >= 5000 threshold. Grace ticks down from 5 to 4.
     state.step = 10;
     let tickedState = tickEconomy(state, mockPack);
-    expect(tickedState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"]?.remainingGraceSteps).toBe(4);
-    expect(tickedState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.["override_1"]?.cooldownEndStep).toBe(14); // 10 + 4
+    expect(
+      tickedState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"]
+        ?.remainingGraceSteps
+    ).toBe(4);
+    expect(tickedState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.["override_1"]?.cooldownEndStep).toBe(
+      14
+    ); // 10 + 4
 
     // 2. Drop the balance below threshold: balance = 4000 < 5000 threshold.
     if (tickedState.swfReinsuranceOptionVolatilityInsurancePools) {
@@ -251,8 +263,13 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
 
     // 3. Tick economy again. The grace period should instantly terminate!
     let terminatedState = tickEconomy(tickedState, mockPack);
-    expect(terminatedState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"]?.remainingGraceSteps).toBe(0);
-    expect(terminatedState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.["override_1"]?.cooldownEndStep).toBeUndefined();
+    expect(
+      terminatedState.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals?.["cancel_1"]
+        ?.remainingGraceSteps
+    ).toBe(0);
+    expect(
+      terminatedState.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals?.["override_1"]?.cooldownEndStep
+    ).toBeUndefined();
 
     // Verify journal logging
     expect(terminatedState.journal).toContain(
@@ -295,7 +312,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -355,11 +372,25 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
 
     // Perform gossip state merge
     let merged = mergeMonotonicStateFields(stateA, stateB);
-    merged = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities(merged, mockPack);
+    merged = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities(
+      merged,
+      mockPack
+    );
 
     // After merge, both proposals and votes are synchronized, and the proposal should be authorized
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals?.["liq_1"]?.status).toBe("authorized");
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes?.["liq_1"]?.["player"]).toBeDefined();
-    expect(merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes?.["liq_1"]?.["bob"]).toBeDefined();
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals?.["liq_1"]
+        ?.status
+    ).toBe("authorized");
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes?.["liq_1"]?.[
+        "player"
+      ]
+    ).toBeDefined();
+    expect(
+      merged.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes?.["liq_1"]?.[
+        "bob"
+      ]
+    ).toBeDefined();
   });
 });

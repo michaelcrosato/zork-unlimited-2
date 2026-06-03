@@ -193,7 +193,7 @@ describe("Crime Syndicate Legendary Hitmen & Decoy Smuggling Convoys (AF-76)", (
     expect(nextState.enforcers?.["bounty_hunter_player"].status).toBe("defeated");
     // Bounty should be marked inactive
     expect(nextState.bounties?.["player"].active).toBe(false);
-    expect(nextState.journal.some(j => j.includes("neutralized active bounty hunter Hunter player"))).toBe(true);
+    expect(nextState.journal.some((j) => j.includes("neutralized active bounty hunter Hunter player"))).toBe(true);
   });
 
   it("should allow legendary hitmen to place a counter-bounty on other active enforcer agents", () => {
@@ -232,7 +232,7 @@ describe("Crime Syndicate Legendary Hitmen & Decoy Smuggling Convoys (AF-76)", (
     expect(nextState.bounties?.["patrol_agent"]).toBeDefined();
     expect(nextState.bounties?.["patrol_agent"].active).toBe(true);
     expect(nextState.bounties?.["patrol_agent"].amount).toBe(200);
-    expect(nextState.journal.some(j => j.includes("placed a 200 gold counter-bounty"))).toBe(true);
+    expect(nextState.journal.some((j) => j.includes("placed a 200 gold counter-bounty"))).toBe(true);
   });
 
   it("should progress decoy convoys step-by-step and reduce heat in owned turf", () => {
@@ -362,7 +362,7 @@ describe("Crime Syndicate Legendary Hitmen & Decoy Smuggling Convoys (AF-76)", (
     const nextFront = nextState.frontBusinesses?.["front_1"];
     expect(nextFront?.cleanGold).toBe(250);
     expect(nextFront?.dirtyGold).toBe(150);
-    expect(nextState.journal.some(j => j.includes("successfully diverted by decoy convoy decoy_1"))).toBe(true);
+    expect(nextState.journal.some((j) => j.includes("successfully diverted by decoy convoy decoy_1"))).toBe(true);
   });
 
   it("should divert enforcer raids on labs using active decoy convoys", () => {
@@ -487,7 +487,9 @@ describe("Crime Syndicate Legendary Hitmen & Decoy Smuggling Convoys (AF-76)", (
 
     // Bribe should be paid, war chest reduced by 100
     expect(nextState.syndicates?.["shadow_cartel"].warChest).toBe(400);
-    expect(nextState.journal.some(j => j.includes("successfully diverted by paying a turf bribe of 100 gold"))).toBe(true);
+    expect(nextState.journal.some((j) => j.includes("successfully diverted by paying a turf bribe of 100 gold"))).toBe(
+      true
+    );
   });
 
   it("should reconcile legendaryHitmen and decoyConvoys across gossip nodes", () => {

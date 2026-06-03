@@ -77,11 +77,7 @@ describe("Procedural Weather & Environmental Engine", () => {
     // Let's do 4 steps (moving back and forth)
     for (let i = 0; i < 4; i++) {
       const nextRoom = state.current === "room_forest" ? "room_clearing" : "room_forest";
-      const result = step(
-        state,
-        { type: "MOVE", direction: nextRoom === "room_clearing" ? "north" : "south" },
-        pack
-      );
+      const result = step(state, { type: "MOVE", direction: nextRoom === "room_clearing" ? "north" : "south" }, pack);
       expect(result.ok).toBe(true);
       state = result.state;
       expect(state.environment?.weather).toBe("clear");
@@ -90,11 +86,7 @@ describe("Procedural Weather & Environmental Engine", () => {
     expect(state.step).toBe(4);
 
     // 5th Step: Weather should tick and change!
-    const result = step(
-      state,
-      { type: "MOVE", direction: state.current === "room_forest" ? "north" : "south" },
-      pack
-    );
+    const result = step(state, { type: "MOVE", direction: state.current === "room_forest" ? "north" : "south" }, pack);
     expect(result.ok).toBe(true);
     state = result.state;
 

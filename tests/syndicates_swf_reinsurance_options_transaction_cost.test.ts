@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -69,7 +69,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -111,7 +111,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
     expect(state.adjustSWFReinsuranceOptionTransactionCostVotes?.["alpha"]).toBeUndefined();
 
     // Verify journal log
-    const log = state.journal.find(j => j.includes("[SWF Reinsurance Option Transaction Cost Policy Adjusted]"));
+    const log = state.journal.find((j) => j.includes("[SWF Reinsurance Option Transaction Cost Policy Adjusted]"));
     expect(log).toBeDefined();
     expect(log).toContain("Base Cost: 30");
     expect(log).toContain("Subsidy per Rep: 0.6000");
@@ -167,7 +167,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -235,7 +235,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
     expect(state.syndicates?.["beta"]?.warChest).toBe(10000 + 283);
 
     // Verify journal log contains fees
-    const log = state.journal.find(j => j.includes("[SWF Reinsurance Option Trade Fees]"));
+    const log = state.journal.find((j) => j.includes("[SWF Reinsurance Option Trade Fees]"));
     expect(log).toBeDefined();
     expect(log).toContain("Buyer Fee: 20 gold");
     expect(log).toContain("Seller Fee: 20 gold");
@@ -291,7 +291,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -371,14 +371,14 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
     expect(state.syndicates?.["beta"]?.warChest).toBe(10000 + 281);
 
     // Verify journal logging
-    const feeLog = state.journal.find(j => j.includes("[SWF Reinsurance Option Trade Fees]"));
+    const feeLog = state.journal.find((j) => j.includes("[SWF Reinsurance Option Trade Fees]"));
     expect(feeLog).toBeDefined();
     expect(feeLog).toContain("Buyer Fee: 7 gold");
     expect(feeLog).toContain("Seller Fee: 7 gold");
     expect(feeLog).toContain("Base: 20 gold");
     expect(feeLog).toContain("Subsidy: 13 gold");
 
-    const discountLog = state.journal.find(j => j.includes("[SWF Reinsurance Option Standing Discount]"));
+    const discountLog = state.journal.find((j) => j.includes("[SWF Reinsurance Option Standing Discount]"));
     expect(discountLog).toBeDefined();
     expect(discountLog).toContain("Standing of 25 applied a 5.0% discount");
     expect(discountLog).toContain("Before: 303 gold, After: 288 gold");
@@ -434,7 +434,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -510,7 +510,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
     expect(state.syndicates?.["alpha"]?.warChest).toBe(10000 - 273);
     expect(state.syndicates?.["beta"]?.warChest).toBe(10000 + 273);
 
-    const feeLog = state.journal.find(j => j.includes("[SWF Reinsurance Option Trade Fees]"));
+    const feeLog = state.journal.find((j) => j.includes("[SWF Reinsurance Option Trade Fees]"));
     expect(feeLog).toContain("Buyer Fee: 0 gold");
     expect(feeLog).toContain("Seller Fee: 0 gold");
   });
@@ -565,7 +565,7 @@ describe("Syndicate SWF Reinsurance Options Order Book Transaction Cost Subsidie
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,

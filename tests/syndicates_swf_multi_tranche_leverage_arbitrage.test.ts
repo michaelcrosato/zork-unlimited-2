@@ -65,9 +65,27 @@ describe("Syndicate SWF Multi-Tranche Yield CDO CDS Dynamic Leverage Optimizatio
         assets: [],
         totalValue: 1000,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.05, totalShares: 500, ownership: { buyer_corp: 500 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 300, ownership: { buyer_corp: 300 }, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.25, totalShares: 200, ownership: { buyer_corp: 200 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.05,
+            totalShares: 500,
+            ownership: { buyer_corp: 500 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            yieldRate: 0.12,
+            totalShares: 300,
+            ownership: { buyer_corp: 300 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            yieldRate: 0.25,
+            totalShares: 200,
+            ownership: { buyer_corp: 200 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -77,7 +95,7 @@ describe("Syndicate SWF Multi-Tranche Yield CDO CDS Dynamic Leverage Optimizatio
     state.factionRep = {
       rangers: 10, // 10 standing gives 1.0 + 10 * 0.05 = 1.5 reputationMultiplier!
     };
-    
+
     state.factionSponsorPolicies = {
       writer_corp: {
         vault_1: {
@@ -123,7 +141,7 @@ describe("Syndicate SWF Multi-Tranche Yield CDO CDS Dynamic Leverage Optimizatio
       swfYieldCdoId: "swf_cdo_1",
       trancheId: "mezzanine",
       notionalValue: 500,
-      premiumRate: 0.10,
+      premiumRate: 0.1,
       timestamp: 1001,
       marginEnabled: true,
     };
@@ -144,7 +162,7 @@ describe("Syndicate SWF Multi-Tranche Yield CDO CDS Dynamic Leverage Optimizatio
     expect(cds).toBeDefined();
     expect(cds?.active).toBe(true);
     expect(cds?.writerSyndicateId).toBe("writer_corp");
-    
+
     // Check that arbitrage liquidity was allocated during matching
     expect(cds?.arbitrageLiquidityAllocated).toBeGreaterThan(0);
     // Mezzanine notional is 500. Writer had swfLiquidityBuffer 1000, so it matches min(500, 1000) = 500.

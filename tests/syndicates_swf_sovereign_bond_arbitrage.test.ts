@@ -21,7 +21,7 @@ describe("Syndicate SWF Sovereign Bond Arbitrage Routing & Liquidity Injection (
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],

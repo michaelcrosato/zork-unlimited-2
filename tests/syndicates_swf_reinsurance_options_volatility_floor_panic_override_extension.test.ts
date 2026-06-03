@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -62,7 +62,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -175,7 +175,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override Exte
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,

@@ -30,7 +30,7 @@ describe("FallbackLlmClient & ApiLlmClient environment resolution and fallback",
     const client = new FallbackLlmClient();
     expect(client.getIsFallback()).toBe(false);
     expect(client.getActiveClient()).toBeInstanceOf(ApiLlmClient);
-    
+
     const apiCli = client.getActiveClient() as ApiLlmClient;
     expect((apiCli as any).apiType).toBe("gemini");
     expect((apiCli as any).apiKey).toBe("dummy-gemini-key");
@@ -44,7 +44,7 @@ describe("FallbackLlmClient & ApiLlmClient environment resolution and fallback",
     const client = new FallbackLlmClient();
     expect(client.getIsFallback()).toBe(false);
     expect(client.getActiveClient()).toBeInstanceOf(ApiLlmClient);
-    
+
     const apiCli = client.getActiveClient() as ApiLlmClient;
     expect((apiCli as any).apiType).toBe("openai");
     expect((apiCli as any).apiKey).toBe("dummy-openai-key");
@@ -71,17 +71,17 @@ describe("FallbackLlmClient & ApiLlmClient environment resolution and fallback",
           content: {
             parts: [
               {
-                text: JSON.stringify({ response: "gemini-success" })
-              }
-            ]
-          }
-        }
-      ]
+                text: JSON.stringify({ response: "gemini-success" }),
+              },
+            ],
+          },
+        },
+      ],
     };
 
     const fetchSpy = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => mockResponseData
+      json: async () => mockResponseData,
     });
     vi.stubGlobal("fetch", fetchSpy);
 
@@ -91,19 +91,23 @@ describe("FallbackLlmClient & ApiLlmClient environment resolution and fallback",
       system: "system-instructions",
       input: { text: "hello" },
       schema: { type: "object" },
-      seed: 42
+      seed: 42,
     });
 
     expect(result.response).toBe("gemini-success");
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    
+
     const [calledUrl, calledOptions] = fetchSpy.mock.calls[0] as [string, RequestInit];
-    expect(calledUrl).toBe("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=dummy-gemini-key");
+    expect(calledUrl).toBe(
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=dummy-gemini-key"
+    );
     expect(calledOptions.method).toBe("POST");
     expect(calledOptions.headers).toEqual({ "Content-Type": "application/json" });
-    
+
     const parsedBody = JSON.parse(calledOptions.body as string);
-    expect(parsedBody.systemInstruction.parts[0].text).toBe("system-instructions\n\nYou are executing the role: writer. You MUST respond with a valid JSON object matching the requested schema.");
+    expect(parsedBody.systemInstruction.parts[0].text).toBe(
+      "system-instructions\n\nYou are executing the role: writer. You MUST respond with a valid JSON object matching the requested schema."
+    );
     expect(parsedBody.contents[0].parts[0].text).toBe(JSON.stringify({ text: "hello" }));
     expect(parsedBody.generationConfig.responseMimeType).toBe("application/json");
     expect(parsedBody.generationConfig.seed).toBe(42);
@@ -120,15 +124,15 @@ describe("FallbackLlmClient & ApiLlmClient environment resolution and fallback",
       choices: [
         {
           message: {
-            content: JSON.stringify({ response: "openai-success" })
-          }
-        }
-      ]
+            content: JSON.stringify({ response: "openai-success" }),
+          },
+        },
+      ],
     };
 
     const fetchSpy = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => mockResponseData
+      json: async () => mockResponseData,
     });
     vi.stubGlobal("fetch", fetchSpy);
 
@@ -138,23 +142,27 @@ describe("FallbackLlmClient & ApiLlmClient environment resolution and fallback",
       system: "system-instructions",
       input: { text: "hello" },
       schema: { type: "object" },
-      seed: 42
+      seed: 42,
     });
 
     expect(result.response).toBe("openai-success");
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    
+
     const [calledUrl, calledOptions] = fetchSpy.mock.calls[0] as [string, RequestInit];
     expect(calledUrl).toBe("https://api.openai.com/v1/chat/completions");
     expect(calledOptions.method).toBe("POST");
     expect(calledOptions.headers).toEqual({
       "Content-Type": "application/json",
-      "Authorization": "Bearer dummy-openai-key"
+      Authorization: "Bearer dummy-openai-key",
     });
-    
+
     const parsedBody = JSON.parse(calledOptions.body as string);
     expect(parsedBody.model).toBe("gpt-4o-mini");
-    expect(parsedBody.messages[0]).toEqual({ role: "system", content: "system-instructions\n\nYou are executing the role: writer. You MUST respond with a valid JSON object matching the requested schema." });
+    expect(parsedBody.messages[0]).toEqual({
+      role: "system",
+      content:
+        "system-instructions\n\nYou are executing the role: writer. You MUST respond with a valid JSON object matching the requested schema.",
+    });
     expect(parsedBody.messages[1]).toEqual({ role: "user", content: JSON.stringify({ text: "hello" }) });
     expect(parsedBody.response_format.type).toBe("json_schema");
     expect(parsedBody.response_format.json_schema.schema).toEqual({ type: "object" });

@@ -9,7 +9,6 @@ import { runAiPlaytest } from "../agents/playtester.js";
 import { diagnosePlaytest } from "../agents/debugger.js";
 import { fixIdentifiedBug } from "../agents/fixer.js";
 import { FallbackLlmClient } from "../agents/llm/api_client.js";
-import { LlmClient } from "../agents/llm/client.js";
 
 interface PackResult {
   name: string;
@@ -56,6 +55,7 @@ async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
   const packs = [
     { path: "content/parser/pack/heros_quest.yaml", type: "Parser" as const },
     { path: "content/parser/pack/chapel.yaml", type: "Parser" as const },
+    { path: "content/parser/pack/guild_showcase.yaml", type: "Parser" as const },
     { path: "content/cyoa/pack/watchtower.yaml", type: "CYOA" as const },
   ];
 
@@ -163,7 +163,9 @@ async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
     packResults.push(packResult);
     console.log(
       `  - ${packResult.name} (${packResult.type}): Validation=${valid ? "🟢" : "🔴"} | Playtest=${
-        packResult.playtestSuccess ? `🟢 (${packResult.playtestSteps} steps, Ending: ${packResult.playtestEnding})` : "🔴"
+        packResult.playtestSuccess
+          ? `🟢 (${packResult.playtestSteps} steps, Ending: ${packResult.playtestEnding})`
+          : "🔴"
       }`
     );
   }
@@ -192,13 +194,23 @@ ${packResults
       } | \`${p.playtestEnding ?? "N/A"}\` | ${p.playtestSuccess ? "🟢 SUCCESS" : p.playtestSuccess === false ? "🔴 FAILED" : "➖"}`
   )
   .join("\n")}
-${packResults.some(p => p.selfHealed !== undefined) ? `
+${
+  packResults.some((p) => p.selfHealed !== undefined)
+    ? `
 ## 🩹 Self-Healing Outcomes
 
 | Content Pack | Diagnosis | Proposed Fix | Healing Outcome |
 | :--- | :--- | :--- | :--- |
-${packResults.filter(p => p.selfHealed !== undefined).map(p => `| **${p.name}** | ${p.diagnosisText || "N/A"} | ${p.fixText || "N/A"} | ${p.selfHealed ? "🟢 SUCCESS" : "🔴 FAILED"}`).join("\n")}
-` : ""}
+${packResults
+  .filter((p) => p.selfHealed !== undefined)
+  .map(
+    (p) =>
+      `| **${p.name}** | ${p.diagnosisText || "N/A"} | ${p.fixText || "N/A"} | ${p.selfHealed ? "🟢 SUCCESS" : "🔴 FAILED"}`
+  )
+  .join("\n")}
+`
+    : ""
+}
 ## 📊 Detailed Metrics & System Logs
 
 ### TypeScript Build Log
@@ -226,9 +238,8 @@ async function main() {
   const args = process.argv.slice(2);
   const isLoop = args.includes("--loop");
   const intervalArgIndex = args.indexOf("--interval");
-  const intervalSec = intervalArgIndex !== -1 && intervalArgIndex + 1 < args.length
-    ? parseInt(args[intervalArgIndex + 1], 10)
-    : 10;
+  const intervalSec =
+    intervalArgIndex !== -1 && intervalArgIndex + 1 < args.length ? parseInt(args[intervalArgIndex + 1], 10) : 10;
 
   let cycle = 1;
 

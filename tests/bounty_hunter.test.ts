@@ -112,7 +112,9 @@ describe("Smuggling Bounty Hunters and Dynamic Enforcement Agents (AF-41)", () =
     expect(resMoveAllied.ok).toBe(true);
     expect(resMoveAllied.state.current).toBe("crossroads");
     expect(resMoveAllied.state.inventory).toContain("lockpick"); // not confiscated
-    expect(resMoveAllied.events.some(e => e.type === "narration" && (e as any).text.includes("allied standing"))).toBe(true);
+    expect(
+      resMoveAllied.events.some((e) => e.type === "narration" && (e as any).text.includes("allied standing"))
+    ).toBe(true);
 
     // 2. Neutral reputation: confiscates contraband and fines gold
     let stateNeutral = createInitialState({
@@ -143,7 +145,11 @@ describe("Smuggling Bounty Hunters and Dynamic Enforcement Agents (AF-41)", () =
     expect(resMoveNeutral.state.current).toBe("crossroads");
     expect(resMoveNeutral.state.inventory).not.toContain("lockpick"); // Confiscated!
     expect(resMoveNeutral.state.vars["gold"]).toBe(180); // Fined 20 gold
-    expect(resMoveNeutral.events.some(e => e.type === "narration" && (e as any).text.includes("confiscates your contraband"))).toBe(true);
+    expect(
+      resMoveNeutral.events.some(
+        (e) => e.type === "narration" && (e as any).text.includes("confiscates your contraband")
+      )
+    ).toBe(true);
 
     // 3. Hostile reputation: immediately initiates combat
     let stateHostile = createInitialState({
@@ -180,7 +186,11 @@ describe("Smuggling Bounty Hunters and Dynamic Enforcement Agents (AF-41)", () =
     expect(resMoveHostile.state.current).toBe("crossroads");
     expect(resMoveHostile.state.flags["in_combat_with_enforcer_bob"]).toBe(true); // Combat started!
     expect(resMoveHostile.state.vars["npc_hp_enforcer_bob"]).toBe(15);
-    expect(resMoveHostile.events.some(e => e.type === "narration" && (e as any).text.includes("attacks due to your hostile standing"))).toBe(true);
+    expect(
+      resMoveHostile.events.some(
+        (e) => e.type === "narration" && (e as any).text.includes("attacks due to your hostile standing")
+      )
+    ).toBe(true);
   });
 
   it("should support Smuggling Bounty Hunter pursuit, ambush, combat resolution, and bounty payouts", () => {
@@ -191,15 +201,19 @@ describe("Smuggling Bounty Hunters and Dynamic Enforcement Agents (AF-41)", () =
     });
 
     // 1. Declare bounty on player and setup Bounty Hunter Jack at Outpost
-    const declareRes = multiAgentStep(state, {
-      agentId: "agency",
-      action: {
-        type: "DECLARE_BOUNTY",
-        targetId: "player",
-        amount: 150,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const declareRes = multiAgentStep(
+      state,
+      {
+        agentId: "agency",
+        action: {
+          type: "DECLARE_BOUNTY",
+          targetId: "player",
+          amount: 150,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(declareRes.ok).toBe(true);
     state = declareRes.state;
     expect(state.bounties?.["player"]).toEqual({
@@ -209,25 +223,29 @@ describe("Smuggling Bounty Hunters and Dynamic Enforcement Agents (AF-41)", () =
       timestamp: 100,
     });
 
-    const spawnRes = multiAgentStep(state, {
-      agentId: "agency",
-      action: {
-        type: "UPDATE_ENFORCER",
-        enforcerId: "hunter_jack",
-        name: "Hunter Jack",
-        currentRoom: "outpost",
-        targetId: "player",
-        status: "pursuing",
-        isBountyHunter: true,
-        timestamp: 100,
-        hp: 30,
-        max_hp: 30,
-        attack: 4,
-        defense: 12,
-        gold: 50,
-        xp: 40,
-      } as any,
-    }, mockPack);
+    const spawnRes = multiAgentStep(
+      state,
+      {
+        agentId: "agency",
+        action: {
+          type: "UPDATE_ENFORCER",
+          enforcerId: "hunter_jack",
+          name: "Hunter Jack",
+          currentRoom: "outpost",
+          targetId: "player",
+          status: "pursuing",
+          isBountyHunter: true,
+          timestamp: 100,
+          hp: 30,
+          max_hp: 30,
+          attack: 4,
+          defense: 12,
+          gold: 50,
+          xp: 40,
+        } as any,
+      },
+      mockPack
+    );
     expect(spawnRes.ok).toBe(true);
     state = spawnRes.state;
     expect(state.enforcers?.["hunter_jack"]).toBeDefined();
@@ -246,7 +264,11 @@ describe("Smuggling Bounty Hunters and Dynamic Enforcement Agents (AF-41)", () =
     expect(state.enforcers?.["hunter_jack"].currentRoom).toBe("crossroads"); // Moved to player's room!
     expect(state.flags["in_combat_with_hunter_jack"]).toBe(true); // Ambushed and combat started!
     expect(state.vars["npc_hp_hunter_jack"]).toBe(30);
-    expect(moveRes.events.some(e => e.type === "narration" && (e as any).text.includes("Bounty Hunter Hunter Jack corners you"))).toBe(true);
+    expect(
+      moveRes.events.some(
+        (e) => e.type === "narration" && (e as any).text.includes("Bounty Hunter Hunter Jack corners you")
+      )
+    ).toBe(true);
 
     // 3. Fight the bounty hunter!
     // Set strength high so player deals high damage, and enforcer HP low to resolve combat quickly

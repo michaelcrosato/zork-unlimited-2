@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  adventureforge:
+    build: .
+    container_name: adventureforge-sandbox
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - AI_AGENT_CMD=${AI_AGENT_CMD}
+    volumes:
+      - .:/app
+      # Do not overwrite the container node_modules with local environment node_modules
+      - /app/node_modules
+    security_opt:
+      - no-new-privileges:true

@@ -459,7 +459,7 @@ describe("Smuggler Syndicate Cartel Territory Defense Networks, Faction Counter-
       expect(ticked.territoryControl?.["market"]).toBe("shadow_cartel");
       expect(ticked.defenseFortresses?.["market"]).toBeDefined();
       expect(ticked.turfGuardOutposts?.["market"]).toBeDefined();
-      expect(ticked.journal.some(line => line.includes("successfully repelled"))).toBe(true);
+      expect(ticked.journal.some((line) => line.includes("successfully repelled"))).toBe(true);
     });
 
     it("should lose territory and destroy defense networks upon a failed defense roll", () => {
@@ -528,13 +528,13 @@ describe("Smuggler Syndicate Cartel Territory Defense Networks, Faction Counter-
 
       // Territory control reclaimed by faction (removed from syndicate control)
       expect(ticked.territoryControl?.["market"]).toBeUndefined();
-      
+
       // All local defenses in that room destroyed!
       expect(ticked.defenseFortresses?.["market"]).toBeUndefined();
       expect(ticked.turfGuardOutposts?.["market"]).toBeUndefined();
       expect(ticked.turfGuards?.["market"]).toBeUndefined();
-      
-      expect(ticked.journal.some(line => line.includes("successfully reclaimed"))).toBe(true);
+
+      expect(ticked.journal.some((line) => line.includes("successfully reclaimed"))).toBe(true);
     });
   });
 });

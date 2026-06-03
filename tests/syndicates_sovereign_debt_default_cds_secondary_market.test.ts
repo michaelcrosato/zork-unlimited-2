@@ -22,7 +22,7 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
         objects: [],
         npcs: ["merchant_1"],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [
@@ -39,10 +39,10 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
               id: "root_node",
               npc_text: "Welcome",
               topics: [],
-            }
+            },
           ],
         },
-      }
+      },
     ],
   });
 
@@ -92,14 +92,14 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
         status: "active",
         timestamp: 1000,
         votes: {},
-      }
+      },
     };
     state.sovereignDebtCDSPortfolios = {
       alpha: {
         syndicateId: "alpha",
         purchasedCDSIds: ["cds_1"],
         writtenCDSIds: [],
-      }
+      },
     };
 
     // 2. Alpha member proposes listing
@@ -256,14 +256,14 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
         status: "active",
         timestamp: 1000,
         votes: {},
-      }
+      },
     };
     state.sovereignDebtCDSPortfolios = {
       alpha: {
         syndicateId: "alpha",
         purchasedCDSIds: ["cds_2"],
         writtenCDSIds: [],
-      }
+      },
     };
 
     // 1. Propose transfer of cds_2 from alpha to gamma for 200 gold
@@ -373,7 +373,7 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
 
     // Make beta extremely risky (high outstanding deflection fees) so fairValue scales high
     state.outstandingDeflectionFees = {
-      beta: 900
+      beta: 900,
     };
 
     state.sovereignDebtCDSContracts = {
@@ -386,7 +386,7 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
         status: "active",
         timestamp: 1000,
         votes: {},
-      }
+      },
     };
 
     // List cds_3 for cheap (askPrice = 50 gold)
@@ -398,7 +398,7 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
         status: "active",
         timestamp: 1000,
         votes: {},
-      }
+      },
     };
 
     // Economy tick should trigger the arbitrage bot of Delta to bid 50, and automatically match it!
@@ -432,7 +432,7 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
         askPrice: 100,
         status: "active",
         timestamp: 1005,
-      }
+      },
     };
 
     stateB.cdsListings = {
@@ -442,7 +442,7 @@ describe("Syndicate SWF Sovereign Debt Default CDS Secondary Market & Arbitrage 
         askPrice: 150,
         status: "active",
         timestamp: 1010, // higher timestamp wins
-      }
+      },
     };
 
     const merged = mergeMonotonicStateFields(stateA, stateB);

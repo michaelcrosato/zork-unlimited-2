@@ -37,11 +37,11 @@ describe("Sierra-Quest Style Mechanics (Stage 3)", () => {
     // 1. Move to garden and collect rope
     runAction("go north"); // to chapel_entrance
     runAction("go north"); // to ruined_chapel
-    runAction("go west");  // to chapel_garden
+    runAction("go west"); // to chapel_garden
     runAction("take coil of rope");
 
     // 2. Attach rope to old well (score increases by 15)
-    runAction("go east");  // to ruined_chapel
+    runAction("go east"); // to ruined_chapel
     expect(state.vars["score"]).toBe(0); // Score starts at 0
 
     runAction("use coil of rope on old well");
@@ -49,7 +49,7 @@ describe("Sierra-Quest Style Mechanics (Stage 3)", () => {
     expect(state.vars["score"]).toBe(15); // +15 points!
 
     // 3. Descend well and get brass key
-    runAction("go down");  // to well_bottom
+    runAction("go down"); // to well_bottom
     runAction("take brass key");
 
     // --- SAVE STATE POINT ---
@@ -60,7 +60,7 @@ describe("Sierra-Quest Style Mechanics (Stage 3)", () => {
     // 4. Return and go to sacristy
     runAction("go up");
     runAction("go north"); // to altar_room
-    runAction("go west");  // to sacristy
+    runAction("go west"); // to sacristy
 
     // 5. Unlock oak chest and get iron key
     runAction("unlock banded oak chest with brass key");
@@ -68,12 +68,12 @@ describe("Sierra-Quest Style Mechanics (Stage 3)", () => {
     runAction("take iron key");
 
     // 6. Return, unlock crypt door (score increases by 25)
-    runAction("go east");  // to altar_room
+    runAction("go east"); // to altar_room
     runAction("use iron key on iron crypt door");
     expect(state.vars["score"]).toBe(40); // 15 + 25 = 40 points!
 
     // 7. Descend to Sealed Crypt
-    runAction("go down");  // to sealed_crypt
+    runAction("go down"); // to sealed_crypt
     expect(state.flags["sarcophagus_trapped"]).toBe(true); // Sarcophagus is currently trapped
 
     // --- LETHAL DEATH STATE WALKTHROUGH ---
@@ -97,7 +97,7 @@ describe("Sierra-Quest Style Mechanics (Stage 3)", () => {
     runAction("take iron key");
     runAction("go east");
     runAction("use iron key on iron crypt door");
-    runAction("go down");  // to sealed_crypt
+    runAction("go down"); // to sealed_crypt
 
     // Disarm the sarcophagus trap (score increases by 10)
     runAction("use brass key on granite sarcophagus");

@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Volatility Insuran
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Volatility Insuran
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -93,7 +93,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Volatility Insuran
       syndicateId: "alpha",
       swfYieldCdoId: "cdo_1",
       trancheId: "senior",
-      deflectionRate: 0.10, // 10% base premium deflection
+      deflectionRate: 0.1, // 10% base premium deflection
       stabilizationThreshold: 50,
       drawdownMultiplier: 0.2,
       stressVolatilityThreshold: 20.0, // active if volatility > 20
@@ -115,7 +115,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Volatility Insuran
     const policyKey = "cdo_1_senior";
     const policy = state.swfReinsuranceOptionVolatilityInsurancePolicies?.[policyKey];
     expect(policy).toBeDefined();
-    expect(policy?.deflectionRate).toBe(0.10);
+    expect(policy?.deflectionRate).toBe(0.1);
     expect(policy?.stressVolatilityThreshold).toBe(20.0);
     expect(policy?.stressDeflectionMultiplier).toBe(2.0);
     expect(policy?.reallocationThreshold).toBe(30);
@@ -169,7 +169,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Volatility Insuran
         simulatedLiquidityShock: 0,
         reserveMultiplier: 1.5,
         timestamp: 1004,
-      }
+      },
     };
 
     // Re-initialize the limit orders and warChests so they are clean and not mutated by the previous match
@@ -236,7 +236,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Volatility Insuran
         historicalVolatility: 15.0,
         timestamp: matchedStateStress.step,
         active: true,
-      }
+      },
     };
 
     let finalState = tickEconomy(matchedStateStress, mockPack);
@@ -247,8 +247,14 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Volatility Insuran
     // Volatility Insurance Pool balance should become 30 gold.
     expect(finalState.swfReinsuranceOptionVolatilityInsurancePools?.[policyKey]?.balance).toBe(30);
     expect(finalState.swfMultiFundReinsurancePools?.["pool_1"]?.totalReserve).toBe(2350);
-    
+
     // Assert premium reallocation is in the journal
-    expect(finalState.journal?.some(j => j.includes("[SWF Volatility Insurance Premium Reallocation]") && j.includes("Routed excess premium of 20 gold"))).toBe(true);
+    expect(
+      finalState.journal?.some(
+        (j) =>
+          j.includes("[SWF Volatility Insurance Premium Reallocation]") &&
+          j.includes("Routed excess premium of 20 gold")
+      )
+    ).toBe(true);
   });
 });

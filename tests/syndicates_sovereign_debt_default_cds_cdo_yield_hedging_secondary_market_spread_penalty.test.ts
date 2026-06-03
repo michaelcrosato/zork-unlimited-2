@@ -130,18 +130,22 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     let state = setupState();
 
     // 1. Propose spread penalty policy
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "spread_penalty_policy_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.5,
-        spreadPenaltyThresholdPercent: 0.20,
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "spread_penalty_policy_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.5,
+          spreadPenaltyThresholdPercent: 0.2,
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -149,32 +153,38 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     expect(prop).toBeDefined();
     expect(prop!.status).toBe("proposed");
     expect(prop!.spreadPenaltyMultiplier).toBe(2.5);
-    expect(prop!.spreadPenaltyThresholdPercent).toBe(0.20);
+    expect(prop!.spreadPenaltyThresholdPercent).toBe(0.2);
 
     // Proposer charged proposal fee (base 200 * scalars)
     expect(state.syndicates?.alpha.warChest).toBeLessThan(20000);
 
     // 2. Alice votes YES to approve
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "spread_penalty_policy_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "spread_penalty_policy_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    expect(state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals?.spread_penalty_policy_1.status).toBe("authorized");
+    expect(state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals?.spread_penalty_policy_1.status).toBe(
+      "authorized"
+    );
     expect(state.cdsCdoYieldHedgingOptionSpreadPenaltyPolicyProposals?.spread_penalty_policy_1.resolved).toBe(true);
 
     // Alpha pool has updated dynamic spread penalty policy properties
     const pool = state.sovereignDebtCDSCDOPools?.cdo_pool_1;
     expect(pool?.yieldHedgingOptionSpreadPenaltyMultiplier).toBe(2.5);
-    expect(pool?.yieldHedgingOptionSpreadPenaltyThresholdPercent).toBe(0.20);
+    expect(pool?.yieldHedgingOptionSpreadPenaltyThresholdPercent).toBe(0.2);
   });
 
   it("should apply dynamic spread penalty multiplier under default stress and block trading if widened spread exceeds maxSpread limit", () => {
@@ -183,7 +193,7 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     // 1. Directly configure pool properties
     const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
     pool.yieldHedgingOptionSpreadPenaltyMultiplier = 3.0;
-    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.20;
+    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.2;
     pool.yieldHedgingOptionMinSpread = 10;
     pool.yieldHedgingOptionMaxSpread = 100; // max spread limit is 100
 
@@ -266,7 +276,7 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     // 1. Directly configure pool properties
     const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
     pool.yieldHedgingOptionSpreadPenaltyMultiplier = 3.0;
-    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.20;
+    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.2;
     pool.yieldHedgingOptionMinSpread = 10;
     pool.yieldHedgingOptionMaxSpread = 100;
 
@@ -344,7 +354,7 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     // 1. Directly configure pool properties
     const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
     pool.yieldHedgingOptionSpreadPenaltyMultiplier = 3.0;
-    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.20;
+    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.2;
     pool.yieldHedgingOptionMinSpread = 10;
     pool.yieldHedgingOptionMaxSpread = 100;
 
@@ -445,7 +455,7 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     // 1. Configure pool properties
     const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
     pool.yieldHedgingOptionSpreadPenaltyMultiplier = 2.0;
-    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.20;
+    pool.yieldHedgingOptionSpreadPenaltyThresholdPercent = 0.2;
     pool.yieldHedgingOptionMinSpread = 10;
     pool.yieldHedgingOptionMaxSpread = 1000;
 
@@ -543,36 +553,44 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     let state = setupState();
 
     // 1. Propose spread penalty policy with factionStandingDiscounts
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "spread_penalty_policy_discount",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.5,
-        spreadPenaltyThresholdPercent: 0.20,
-        factionStandingDiscounts: {
-          faction_a: 0.25,
-          faction_b: 0.40,
-        },
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "spread_penalty_policy_discount",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.5,
+          spreadPenaltyThresholdPercent: 0.2,
+          factionStandingDiscounts: {
+            faction_a: 0.25,
+            faction_b: 0.4,
+          },
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote to authorize proposal
-    let voteRes = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        syndicateId: "alpha",
-        proposalId: "spread_penalty_policy_discount",
-        vote: true,
-        timestamp: 1120,
-      } as any,
-    }, mockPack);
+    let voteRes = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          syndicateId: "alpha",
+          proposalId: "spread_penalty_policy_discount",
+          vote: true,
+          timestamp: 1120,
+        } as any,
+      },
+      mockPack
+    );
     expect(voteRes.ok).toBe(true);
     state = voteRes.state;
 
@@ -580,7 +598,7 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     const pool = state.sovereignDebtCDSCDOPools!.cdo_pool_1;
     expect(pool.yieldHedgingOptionSpreadPenaltyFactionStandingDiscounts).toEqual({
       faction_a: 0.25,
-      faction_b: 0.40,
+      faction_b: 0.4,
     });
 
     // 2. Set default alert active
@@ -689,36 +707,44 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     let state = setupState();
 
     // 1. Propose spread penalty policy with a cap multiplier
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        proposalId: "spread_penalty_policy_cap",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        spreadPenaltyMultiplier: 2.0,
-        spreadPenaltyCapMultiplier: 3.0,
-        spreadPenaltyThresholdPercent: 0.20,
-        factionStandingDiscounts: {
-          faction_a: 0.20,
-        },
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          proposalId: "spread_penalty_policy_cap",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          spreadPenaltyMultiplier: 2.0,
+          spreadPenaltyCapMultiplier: 3.0,
+          spreadPenaltyThresholdPercent: 0.2,
+          factionStandingDiscounts: {
+            faction_a: 0.2,
+          },
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // Vote to authorize proposal
-    let voteRes = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
-        syndicateId: "alpha",
-        proposalId: "spread_penalty_policy_cap",
-        vote: true,
-        timestamp: 1120,
-      } as any,
-    }, mockPack);
+    let voteRes = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_SPREAD_PENALTY_POLICY",
+          syndicateId: "alpha",
+          proposalId: "spread_penalty_policy_cap",
+          vote: true,
+          timestamp: 1120,
+        } as any,
+      },
+      mockPack
+    );
     expect(voteRes.ok).toBe(true);
     state = voteRes.state;
 
@@ -783,7 +809,7 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
 
     // 4. Configure local territory enforcer heat volatility scales in the syndicate
     state.syndicates!.alpha.territoryEnforcerHeatVolatilityScales = {
-      vault: 0.20, // scale factor for room 'vault'
+      vault: 0.2, // scale factor for room 'vault'
     };
 
     // Set enforcer heat for room 'vault' (the current room, since state.current is 'vault')
@@ -833,4 +859,3 @@ describe("Syndicate SWF CDO Yield-Hedging Option Secondary Market Spread Penalty
     expect(spreadB).toBeCloseTo(130);
   });
 });
-

@@ -143,17 +143,21 @@ describe("CDS CDO Co-Investment Yield Compensation & Pro-Rata Distribution (AF-2
     expect(state.syndicates!.beta.warChest).toBe(20000);
 
     // 1. Propose yield compensation share of 40% (needs voting by creator syndicate "alpha" members)
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_COINVESTMENT_YIELD_SHARE",
-        proposalId: "coinvest_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        yieldCompensationShare: 40,
-        timestamp: 1100,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_COINVESTMENT_YIELD_SHARE",
+          proposalId: "coinvest_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          yieldCompensationShare: 40,
+          timestamp: 1100,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -163,17 +167,21 @@ describe("CDS CDO Co-Investment Yield Compensation & Pro-Rata Distribution (AF-2
     expect(state.cdsCdoCoinvestmentYieldShareProposals?.[proposalIdKey].status).toBe("proposed");
 
     // 2. Second member of Alpha ("alice") votes to approve the yield share proposal
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "PROPOSE_CDO_COINVESTMENT_YIELD_SHARE",
-        proposalId: "coinvest_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        yieldCompensationShare: 40,
-        timestamp: 1150,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "PROPOSE_CDO_COINVESTMENT_YIELD_SHARE",
+          proposalId: "coinvest_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          yieldCompensationShare: 40,
+          timestamp: 1150,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 

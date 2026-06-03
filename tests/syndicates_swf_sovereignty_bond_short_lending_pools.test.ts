@@ -21,7 +21,7 @@ describe("Syndicate SWF Sovereignty Bond Short Lending Pools & Arbitrage Routing
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -301,7 +301,7 @@ describe("Syndicate SWF Sovereignty Bond Short Lending Pools & Arbitrage Routing
     // Reset state to pre-tick but with low warChest for gamma to trigger liquidation
     stateForLiquidation.syndicates!["gamma"].warChest = 50; // insufficient warChest to cover 238 fee/dividend
     const liquidatedState = tickProductionLabs(stateForLiquidation, []);
-    
+
     // Gamma is liquidated. Collateral of 500 gold + remaining warChest of 50 = 550 gold compensation.
     // Plus direct and pool dividends for this epoch:
     // Alpha gets 200 (direct) + 43 (pool) + 305 (liquidation) = 548 gold.

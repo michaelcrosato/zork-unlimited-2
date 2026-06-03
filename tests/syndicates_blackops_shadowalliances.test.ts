@@ -34,7 +34,7 @@ describe("Crime Syndicate Black Ops Safehouses, Shadow Alliances & Infiltration 
           {
             direction: "north",
             to: "forest",
-          }
+          },
         ],
       },
       {
@@ -48,9 +48,9 @@ describe("Crime Syndicate Black Ops Safehouses, Shadow Alliances & Infiltration 
           {
             direction: "south",
             to: "market",
-          }
+          },
         ],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -237,7 +237,7 @@ describe("Crime Syndicate Black Ops Safehouses, Shadow Alliances & Infiltration 
         intelAccumulated: 5,
         status: "active" as const,
         timestamp: 1000,
-      }
+      },
     };
 
     // Execute infiltration sweep

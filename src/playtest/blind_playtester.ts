@@ -7,10 +7,14 @@
  * This is the core of Layer 2 (volume blind playtesting).
  */
 import { randomUUID } from "node:crypto";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { join, basename } from "node:path";
+import { parse as parseYaml } from "yaml";
 import { McpGameClient } from "./mcp_client.js";
 import { LlmClient } from "../agents/llm/client.js";
 import { getPersona } from "./personas.js";
 import { INTERVIEW_QUESTIONS } from "./types.js";
+import { PlaytestMemoryManager } from "./memory.js";
 import type {
   PlaytestPersona,
   PlaytestMetrics,
@@ -86,17 +90,8 @@ If a question doesn't apply to your experience, say so briefly.`;
  * 5. Run post-game interview
  * 6. Disconnect and return results
  */
-export async function runBlindPlaytest(
-  options: BlindPlaytestOptions
-): Promise<BlindPlaytestResult> {
-  const {
-    packId,
-    personaId,
-    llmClient,
-    maxSteps = 100,
-    seed,
-    modelName = "unknown",
-  } = options;
+export async function runBlindPlaytest(options: BlindPlaytestOptions): Promise<BlindPlaytestResult> {
+  const { packId, personaId, llmClient, maxSteps = 100, seed, modelName = "unknown" } = options;
 
   const sessionId = randomUUID();
   const persona = getPersona(personaId);
@@ -112,23 +107,98 @@ export async function runBlindPlaytest(
   let backtrackCount = 0;
   let helpRequested = 0;
   let puzzlesSolved = 0;
-  let puzzlesEncountered = 0;
+  const puzzlesEncountered = 0;
   let npcDialoguesCompleted = 0;
   const roomsVisited = new Set<string>();
   const itemsUsed = new Set<string>();
-  let lastRoomId = "";
   let consecutiveStuckTurns = 0;
   let outcome: PlaytestMetrics["outcome"] = "max_steps";
   let endingReached: string | null = null;
   let currentStep = 0;
 
+  let totalRoomsAvailable = 0;
   try {
     // 1. Connect to MCP server
     await client.connect();
 
+    // Query pack metadata to get total rooms
+    try {
+      const adventures = await client.listAdventures();
+      const match = adventures.find((a) => a.id === packId);
+      if (match && match.path && existsSync(match.path)) {
+        const content = readFileSync(match.path, "utf8");
+        const parsed = match.path.endsWith(".json") ? JSON.parse(content) : parseYaml(content);
+        if (parsed) {
+          if (match.type === "cyoa") {
+            totalRoomsAvailable = Object.keys(parsed.nodes || {}).length;
+          } else {
+            totalRoomsAvailable = (parsed.rooms || []).length;
+          }
+        }
+      }
+    } catch {
+      // Keep it as 0 if lookup fails
+    }
+
+    // Robust local fallback for counting total rooms if MCP lookup fails/returns 0
+    if (totalRoomsAvailable === 0) {
+      try {
+        let resolvedPackPath = "";
+        if (existsSync(packId)) {
+          resolvedPackPath = packId;
+        } else {
+          const rootDir = process.cwd();
+          const possibleDirs = [join(rootDir, "content/cyoa/pack"), join(rootDir, "content/parser/pack")];
+          for (const dir of possibleDirs) {
+            if (existsSync(dir)) {
+              const files = readdirSync(dir);
+              for (const file of files) {
+                if (file.endsWith(".yaml") || file.endsWith(".yml") || file.endsWith(".json")) {
+                  const fullPath = join(dir, file);
+                  try {
+                    const content = readFileSync(fullPath, "utf8");
+                    const parsed = file.endsWith(".json") ? JSON.parse(content) : parseYaml(content);
+                    if (
+                      parsed &&
+                      parsed.meta &&
+                      (parsed.meta.id === packId || basename(fullPath) === packId || file === packId)
+                    ) {
+                      resolvedPackPath = fullPath;
+                      break;
+                    }
+                  } catch {
+                    // Ignore parsing errors
+                  }
+                }
+              }
+            }
+            if (resolvedPackPath) break;
+          }
+        }
+
+        if (resolvedPackPath && existsSync(resolvedPackPath)) {
+          const content = readFileSync(resolvedPackPath, "utf8");
+          const parsed = resolvedPackPath.endsWith(".json") ? JSON.parse(content) : parseYaml(content);
+          if (parsed) {
+            const isCyoa = resolvedPackPath.includes("content/cyoa/pack") || parsed.nodes !== undefined;
+            if (isCyoa) {
+              totalRoomsAvailable = Object.keys(parsed.nodes || {}).length;
+            } else {
+              totalRoomsAvailable = (parsed.rooms || []).length;
+            }
+          }
+        }
+      } catch {
+        // Keep it as 0 if local lookup fails
+      }
+    }
+
     // 2. Start the game
     const startObservation = await client.startGame(packId, seed);
     let currentObservation = startObservation;
+
+    const memoryManager = new PlaytestMemoryManager();
+    memoryManager.update(currentObservation);
 
     // Extract initial room from observation
     let currentRoomId = extractRoomId(currentObservation);
@@ -178,24 +248,22 @@ export async function runBlindPlaytest(
             persona: persona.id,
             rooms_visited: Array.from(roomsVisited),
             inventory_context: "Check the observation for your current inventory.",
+            mental_map: memoryManager.formatMemoryPrompt(),
           },
           schema: {
             type: "object",
             properties: {
               action: {
                 type: "string",
-                description:
-                  "The exact command to type in the game (e.g., 'go north', 'take key', 'talk to hermit')",
+                description: "The exact command to type in the game (e.g., 'go north', 'take key', 'talk to hermit')",
               },
               reason: {
                 type: "string",
-                description:
-                  "Brief explanation of why you chose this action (1 sentence)",
+                description: "Brief explanation of why you chose this action (1 sentence)",
               },
               want_to_quit: {
                 type: "boolean",
-                description:
-                  "Set to true if you want to stop playing based on your persona's quit threshold",
+                description: "Set to true if you want to stop playing based on your persona's quit threshold",
               },
             },
             required: ["action", "reason", "want_to_quit"],
@@ -224,7 +292,7 @@ export async function runBlindPlaytest(
             turnsStuck,
             backtrackCount,
             helpRequested,
-            totalRoomsAvailable: 0,
+            totalRoomsAvailable,
           }),
           turnLogs,
           error: `LLM failed at step ${currentStep}: ${errMsg}`,
@@ -235,12 +303,8 @@ export async function runBlindPlaytest(
       if (actionChoice.want_to_quit) {
         shouldQuit = true;
         // Determine quit reason based on persona
-        if (
-          persona.id === "new_player" ||
-          persona.id === "narrative_seeker"
-        ) {
-          outcome =
-            consecutiveStuckTurns > 5 ? "quit_confused" : "quit_bored";
+        if (persona.id === "new_player" || persona.id === "narrative_seeker") {
+          outcome = consecutiveStuckTurns > 5 ? "quit_confused" : "quit_bored";
         } else {
           outcome = "quit_confused";
         }
@@ -250,17 +314,12 @@ export async function runBlindPlaytest(
       const action = actionChoice.action;
 
       // Track help requests
-      if (
-        action.toLowerCase().includes("help") ||
-        action.toLowerCase().includes("hint")
-      ) {
+      if (action.toLowerCase().includes("help") || action.toLowerCase().includes("hint")) {
         helpRequested++;
       }
 
       // Track item usage
-      const itemMatch = action.match(
-        /(?:use|take|drop|give|unlock|open)\s+(.+?)(?:\s+(?:on|with|to)\s+|$)/i
-      );
+      const itemMatch = action.match(/(?:use|take|drop|give|unlock|open)\s+(.+?)(?:\s+(?:on|with|to)\s+|$)/i);
       if (itemMatch) {
         itemsUsed.add(itemMatch[1].toLowerCase());
       }
@@ -281,9 +340,11 @@ export async function runBlindPlaytest(
       if (result.isError) {
         actionsRejected++;
         consecutiveStuckTurns++;
-        // Don't update observation on error — stay in same state
+        // Prepend the error message to the current observation so the player sees the feedback
+        currentObservation = `${result.text}\n\n${currentObservation}`;
       } else {
         currentObservation = result.text;
+        memoryManager.update(currentObservation, action, actionChoice.reason);
         consecutiveStuckTurns = 0;
 
         // Track room changes
@@ -293,15 +354,11 @@ export async function runBlindPlaytest(
             backtrackCount++;
           }
           roomsVisited.add(newRoomId);
-          lastRoomId = currentRoomId;
           currentRoomId = newRoomId;
         }
 
         // Track NPC dialogue
-        if (
-          action.toLowerCase().startsWith("talk") ||
-          action.toLowerCase().startsWith("ask")
-        ) {
+        if (action.toLowerCase().startsWith("talk") || action.toLowerCase().startsWith("ask")) {
           npcDialoguesCompleted++;
         }
 
@@ -359,7 +416,7 @@ export async function runBlindPlaytest(
       turnsStuck,
       backtrackCount,
       helpRequested,
-      totalRoomsAvailable: 0, // We don't know this from MCP (blind!)
+      totalRoomsAvailable,
     });
     session.interview = interview;
 
@@ -386,7 +443,7 @@ export async function runBlindPlaytest(
         turnsStuck,
         backtrackCount,
         helpRequested,
-        totalRoomsAvailable: 0,
+        totalRoomsAvailable,
       }),
       turnLogs,
       error: `Session crashed: ${errMsg}`,
@@ -415,9 +472,7 @@ async function runPostGameInterview(options: {
 
   const interviewSystemPrompt = buildInterviewSystemPrompt(persona);
 
-  const questionBlock = INTERVIEW_QUESTIONS.map(
-    (q) => `${q.key}: ${q.question}`
-  ).join("\n");
+  const questionBlock = INTERVIEW_QUESTIONS.map((q) => `${q.key}: ${q.question}`).join("\n");
 
   try {
     const interviewResult = await llmClient.completeJson<PlaytestInterview>({
@@ -462,7 +517,8 @@ async function runPostGameInterview(options: {
     });
 
     return interviewResult;
-  } catch {
+  } catch (err) {
+    console.error("DEBUG: runPostGameInterview failed with error:", err);
     // If interview fails, return placeholder answers
     return {
       q01_fun: "[Interview failed — LLM error]",
@@ -482,11 +538,7 @@ async function runPostGameInterview(options: {
 /**
  * Build a concise play summary for the interview context.
  */
-function buildPlaySummary(
-  turnLogs: PlaytestTurnLog[],
-  outcome: string,
-  totalSteps: number
-): string {
+function buildPlaySummary(turnLogs: PlaytestTurnLog[], outcome: string, totalSteps: number): string {
   if (turnLogs.length === 0) {
     return "You did not play any turns.";
   }
@@ -495,10 +547,7 @@ function buildPlaySummary(
   const rejectedActions = turnLogs.filter((t) => t.wasRejected);
   const lastFewTurns = turnLogs
     .slice(-5)
-    .map(
-      (t) =>
-        `Step ${t.step}: [${t.roomId}] ${t.action}${t.wasRejected ? " (REJECTED)" : ""}`
-    )
+    .map((t) => `Step ${t.step}: [${t.roomId}] ${t.action}${t.wasRejected ? " (REJECTED)" : ""}`)
     .join("\n");
 
   return `Playthrough summary:
@@ -561,11 +610,7 @@ function buildSessionResult(params: {
 
   // Estimate progress: rooms visited as % of total (or 0 if unknown)
   const progressPct =
-    params.totalRoomsAvailable > 0
-      ? Math.round(
-          (params.roomsVisited.size / params.totalRoomsAvailable) * 100
-        )
-      : 0;
+    params.totalRoomsAvailable > 0 ? Math.round((params.roomsVisited.size / params.totalRoomsAvailable) * 100) : 0;
 
   return {
     sessionId: params.sessionId,

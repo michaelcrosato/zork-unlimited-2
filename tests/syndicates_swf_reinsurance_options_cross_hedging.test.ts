@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -69,7 +69,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -99,7 +99,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -185,7 +185,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -217,7 +217,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -281,7 +281,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
 
     const holding = updatedState.swfYieldCDOs?.["cdo_2"]?.tranches?.["senior"]?.ownership?.["alpha"] ?? 0;
     expect(holding).toBeGreaterThan(5); // Automatic purchase occurred
-    expect(updatedState.journal?.some(j => j.includes("[Cross Hedging Rebalancing]"))).toBe(true);
+    expect(updatedState.journal?.some((j) => j.includes("[Cross Hedging Rebalancing]"))).toBe(true);
   });
 
   it("should provide automated liquidity matching for unmatched options limit orders using cross-hedging policies", () => {
@@ -334,7 +334,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -364,7 +364,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -414,11 +414,11 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging & Automated Li
     // Reinsurance option contracts should have a new written contract
     const contracts = Object.values(updatedState.swfReinsuranceOptionsContracts || {});
     expect(contracts.length).toBeGreaterThan(0);
-    const writtenContract = contracts.find(c => c.writerSyndicateId === "alpha" && c.syndicateId === "beta");
+    const writtenContract = contracts.find((c) => c.writerSyndicateId === "alpha" && c.syndicateId === "beta");
     expect(writtenContract).toBeDefined();
     expect(writtenContract?.size).toBe(100);
 
     // Journal should document the automated matching
-    expect(updatedState.journal?.some(j => j.includes("[Automated Liquidity Match]"))).toBe(true);
+    expect(updatedState.journal?.some((j) => j.includes("[Automated Liquidity Match]"))).toBe(true);
   });
 });

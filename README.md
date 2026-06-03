@@ -105,9 +105,20 @@ bin/replay traces/escape_trace.json content/cyoa/pack/watchtower.yaml
 | `pnpm build` | Compile TypeScript → `dist/` |
 | `pnpm test` | Run full test suite (vitest) |
 | `pnpm test:watch` | Run tests in watch mode |
+| `pnpm typecheck` | Verify type safety without emitting compiler output |
+| `pnpm clean` | Delete build outputs (`dist/`) |
+| `pnpm lint` | Run ESLint static analysis checks |
+| `pnpm lint:fix` | Run ESLint and automatically fix auto-fixable warnings |
+| `pnpm format` | Auto-format codebase styles with Prettier |
+| `pnpm format:check` | Check code formatting compliance against Prettier rules |
 | `pnpm replay` | Replay a recorded game trace |
 | `pnpm mcp` | Start the MCP JSON-RPC server |
 | `pnpm autopilot` | Run AI autopilot validation |
+| `pnpm dev-loop` | Run autonomous AI development cycle |
+| `pnpm playtest` | Run playtest session with LLM agent |
+| `pnpm playtest:loop` | Run automated playtest loop |
+| `pnpm synthesize` | Synthesize raw playtest feedback into markdown digest |
+| `pnpm test:integration` | Run integration tests against MCP server |
 
 ---
 

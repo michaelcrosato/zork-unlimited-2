@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -55,7 +55,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
         tranches: {
           senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 }
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -121,7 +121,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
         tranches: {
           senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 }
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -131,9 +131,15 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
         assets: [],
         totalValue: 5000,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: { alpha: 10 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: { alpha: 10 },
+            timestamp: 1000,
+          },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 }
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -173,7 +179,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
         ],
         riskDiversificationCoefficient: 0.6,
         timestamp: 1000,
-      }
+      },
     };
 
     // Stress Delta-Cross hedging policy
@@ -186,7 +192,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
         stressHedgeWeightMultiplier: 2.0, // Double the hedge weight under stress
         safeguardCapitalReserveLimit: 1500,
         timestamp: 1000,
-      }
+      },
     };
 
     // 1. SCENARIO A: Volatility (25.0%) is below threshold (30.0%)
@@ -225,7 +231,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
     expect(holdingB).toBeCloseTo(301, 10);
 
     // Verify journal logging
-    expect(tickedState.journal?.some(j => j.includes("[Capital Safeguard Lock]"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("[Capital Safeguard Lock]"))).toBe(true);
 
     // 3. SCENARIO C: Volatility subsides back below threshold (35.0% -> 25.0%)
     // Let's pass tickedState back into economy tick with lower volatility
@@ -240,7 +246,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
     const safeguardC = revertedState.swfSafeguardCapitalReserves?.["alpha_cdo_1_senior"];
     expect(safeguardC?.lockedGold).toBe(0);
     expect(revertedState.syndicates?.["alpha"]?.warChest).toBeGreaterThan(finalWarChest + 1000); // 1500 returned (minus any small trade adjustments)
-    expect(revertedState.journal?.some(j => j.includes("[Capital Safeguard Unlock]"))).toBe(true);
+    expect(revertedState.journal?.some((j) => j.includes("[Capital Safeguard Unlock]"))).toBe(true);
   });
 
   it("should preemptively bail out syndicate from margin call liquidations using safeguard reserve locked gold", () => {
@@ -271,7 +277,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
         tranches: {
           senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 }
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -320,7 +326,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress-Test-Aware Delta-Cr
     // 3990 shifted from safeguard locked gold (10000 -> 6010 remaining)
     expect(tickedState.swfSafeguardCapitalReserves?.["alpha_cdo_1_senior"]?.lockedGold).toBe(6010);
     expect(tickedState.marginAccounts?.["alpha"]?.collateral).toBe(4000); // 10 + 3990
-    expect(tickedState.journal?.some(j => j.includes("[Capital Safeguard Margin Deficit Payback]"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("[Capital Safeguard Margin Deficit Payback]"))).toBe(true);
 
     // Syndicate CDS remains active because bailout prevented liquidation
     expect(tickedState.creditDefaultSwaps?.["cds_1"]?.active).toBe(true);

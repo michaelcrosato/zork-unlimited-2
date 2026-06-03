@@ -22,7 +22,7 @@ describe("Syndicate SWF Deflection Surcharge Policy Cap & Refund Consensus (AF-2
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Deflection Surcharge Policy Cap & Refund Consensus (AF-2
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -106,7 +106,7 @@ describe("Syndicate SWF Deflection Surcharge Policy Cap & Refund Consensus (AF-2
     };
 
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 1.0,
@@ -180,7 +180,7 @@ describe("Syndicate SWF Deflection Surcharge Policy Cap & Refund Consensus (AF-2
     // Let's adjust poolCurrent or baseRate to test the cap of 25%.
     // If baseRate is 0.1, raw surchargeRate = 0.1 * 2 * 1.75 = 0.35 (35%)
     // Capped surchargeRate = Math.min(0.35, 0.25) = 0.25 (25%)
-    
+
     // Set base deflection surcharge rate to 0.1 to trigger the 25% cap
     state.swfDeflectionSurchargeBaseRate = 0.1;
 

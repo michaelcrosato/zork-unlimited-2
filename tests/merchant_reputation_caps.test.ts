@@ -113,18 +113,22 @@ describe("Decentralized Faction Reputation-Based Tariff Waivers & Merchant Trade
 
     // Define merchant licensing rules with a cost of 50, tariff rate of 20%,
     // tariffWaiverThreshold at 20, and tariffDiscountThreshold at 10.
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 50,
-        tariffRate: 20,
-        tariffWaiverThreshold: 20,
-        tariffDiscountThreshold: 10,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 50,
+          tariffRate: 20,
+          tariffWaiverThreshold: 20,
+          tariffDiscountThreshold: 10,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // 1. Reputation = 0 (Unlicensed, below discount threshold)
     // Tariff applied at 100%: 100 * 1.20 = 120 gold
@@ -174,7 +178,7 @@ describe("Decentralized Faction Reputation-Based Tariff Waivers & Merchant Trade
     // Buy wooden shield (cost 40 gold). It fits the volume limit (< 50) and first transaction.
     const buyShieldResult = step(state, { type: "BUY", item: "wooden_shield", npc: "merchant_npc" }, mockPack);
     expect(buyShieldResult.ok).toBe(true);
-    
+
     // Now let's try to do a second trade (e.g. SELL the wooden shield back, payout is 40 gold).
     // It should fail because maxTransactions is 1 and we already have 1 trade in history!
     let nextState = buyShieldResult.state;
@@ -204,7 +208,7 @@ describe("Decentralized Faction Reputation-Based Tariff Waivers & Merchant Trade
     // Deterministically stock the merchant using engine dialogue actions on Node A
     const resTalk = nodeA.executeLocalAction({ type: "TALK", npc: "merchant_npc" });
     expect(resTalk.ok).toBe(true);
-    
+
     const resStock = nodeA.executeLocalAction({ type: "ASK", npc: "merchant_npc", topic: "ask_stock" });
     expect(resStock.ok).toBe(true);
     expect(nodeA.localState.merchantInventories?.["merchant_npc"]).toContain("wooden_shield");

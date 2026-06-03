@@ -21,14 +21,14 @@ describe("Gossip Packet Fragmentation & Reassembly Layer (AF-22)", () => {
       stateHashesAfter: ["hash3", "hash4"],
       timestamps: [1000, 1050],
       oks: [true, true],
-      rejectionReasons: ["", ""]
+      rejectionReasons: ["", ""],
     };
 
     const originalMessage: GossipMessage = {
       senderId: "alice",
       vectorClock: { alice: 2, bob: 1 },
       transactions: [],
-      compressedDiff: mockDiff
+      compressedDiff: mockDiff,
     };
 
     // Serialized diff is about ~300 chars, so maxFragmentSize of 50 will produce ~6 fragments
@@ -36,11 +36,11 @@ describe("Gossip Packet Fragmentation & Reassembly Layer (AF-22)", () => {
     const fragments = GossipPacketFragmenter.fragment(originalMessage, maxFragmentSize);
 
     expect(fragments.length).toBeGreaterThan(1);
-    
+
     // Assert all fragments have identical transmissionId, totalFragments and correct index
     const transId = fragments[0].transmissionId;
     expect(transId).toBeDefined();
-    
+
     for (let i = 0; i < fragments.length; i++) {
       expect(fragments[i].transmissionId).toBe(transId);
       expect(fragments[i].fragmentIndex).toBe(i);
@@ -63,7 +63,7 @@ describe("Gossip Packet Fragmentation & Reassembly Layer (AF-22)", () => {
       senderId: "bob",
       vectorClock: { bob: 10 },
       transactions: [],
-      compressedDiff: mockDiff
+      compressedDiff: mockDiff,
     };
 
     const fragments = GossipPacketFragmenter.fragment(originalMessage, 30);
@@ -84,7 +84,7 @@ describe("Gossip Packet Fragmentation & Reassembly Layer (AF-22)", () => {
       senderId: "sender",
       vectorClock: { sender: 5 },
       transactions: [],
-      compressedDiff: mockDiff
+      compressedDiff: mockDiff,
     };
 
     const fragments = GossipPacketFragmenter.fragment(originalMessage, 40);
@@ -151,10 +151,10 @@ describe("Gossip Packet Fragmentation & Reassembly Layer (AF-22)", () => {
     expect(syncInitiated).toBe(true);
 
     // Assert that the packet queue contains gossip fragments instead of a single gossip packet
-    const fragmentPackets = net.packetQueue.filter(pd => pd.packet.type === "gossip_fragment");
+    const fragmentPackets = net.packetQueue.filter((pd) => pd.packet.type === "gossip_fragment");
     expect(fragmentPackets.length).toBeGreaterThan(1);
 
-    const normalGossipPackets = net.packetQueue.filter(pd => pd.packet.type === "gossip");
+    const normalGossipPackets = net.packetQueue.filter((pd) => pd.packet.type === "gossip");
     expect(normalGossipPackets.length).toBe(0);
 
     // 4. Tick network until packets are delivered and reassembled

@@ -54,9 +54,30 @@ describe("Syndicate Bank Faction-Sponsored Loyalty-Based CDO Insurance Pools & M
         assets: [],
         totalValue: 300,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 150, ownership: { alpha_squad: 150 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 90, ownership: { alpha_squad: 90 }, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 60, ownership: { alpha_squad: 60 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 150,
+            ownership: { alpha_squad: 150 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 90,
+            ownership: { alpha_squad: 90 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 60,
+            ownership: { alpha_squad: 60 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -96,7 +117,7 @@ describe("Syndicate Bank Faction-Sponsored Loyalty-Based CDO Insurance Pools & M
 
     const resultingState = res2.state;
     expect(resultingState.cooperativeYieldCampaignProposals?.camp_1?.resolved).toBe(true);
-    
+
     const booster = resultingState.cdoMiningBoosters?.["alpha_squad-cdo_1"];
     expect(booster).toBeDefined();
     expect(booster?.campaignName).toBe("Cooperative Gold Rush");
@@ -132,13 +153,34 @@ describe("Syndicate Bank Faction-Sponsored Loyalty-Based CDO Insurance Pools & M
             syndicateId: "alpha_squad",
             assetId: "vault_a",
             value: 1000,
-          }
+          },
         ],
         totalValue: 1000,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.1, sweepRiskExposure: 0.0, totalValue: 1000, ownership: { alpha_squad: 1000 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.1, sweepRiskExposure: 0.0, totalValue: 0, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.1, sweepRiskExposure: 0.0, totalValue: 0, ownership: {}, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.1,
+            sweepRiskExposure: 0.0,
+            totalValue: 1000,
+            ownership: { alpha_squad: 1000 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.1,
+            sweepRiskExposure: 0.0,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.1,
+            sweepRiskExposure: 0.0,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -215,9 +257,30 @@ describe("Syndicate Bank Faction-Sponsored Loyalty-Based CDO Insurance Pools & M
         assets: [],
         totalValue: 300,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 150, ownership: { alpha_squad: 150 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 90, ownership: { alpha_squad: 90 }, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 60, ownership: { alpha_squad: 60 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 150,
+            ownership: { alpha_squad: 150 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 90,
+            ownership: { alpha_squad: 90 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 60,
+            ownership: { alpha_squad: 60 },
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -253,7 +316,7 @@ describe("Syndicate Bank Faction-Sponsored Loyalty-Based CDO Insurance Pools & M
 
     const resultingState = res2.state;
     expect(resultingState.factionCdoInsurancePoolProposals?.pool_1?.resolved).toBe(true);
-    
+
     // Initial reserve gold must be deducted from the syndicate's war chest
     expect(resultingState.syndicates?.alpha_squad?.warChest).toBe(600); // 1000 - 400
 
@@ -320,13 +383,34 @@ describe("Syndicate Bank Faction-Sponsored Loyalty-Based CDO Insurance Pools & M
             assetId: "player",
             value: 210,
             originalLoan: mockLoan,
-          }
+          },
         ],
         totalValue: 210,
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 210, ownership: { alpha_squad: 210 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 0, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 0, ownership: {}, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 210,
+            ownership: { alpha_squad: 210 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 0,
+            ownership: {},
+            timestamp: 1000,
+          },
         },
         timestamp: 1000,
       },
@@ -364,12 +448,12 @@ describe("Syndicate Bank Faction-Sponsored Loyalty-Based CDO Insurance Pools & M
     let nextState = tickEconomy(state, mockPack);
 
     expect(nextState.safehouses?.market).toBeDefined(); // shielded and spared!
-    
+
     const pool = nextState.factionCdoInsurancePools?.["alpha_squad-cdo_1"];
     expect(pool?.insuranceReserve).toBe(224); // 400 - 176
 
     // Check that CDO yield payout or journal logged CDO Insurance Shield
-    expect(nextState.journal?.some(j => j.includes("CDO Insurance Shield"))).toBe(true);
+    expect(nextState.journal?.some((j) => j.includes("CDO Insurance Shield"))).toBe(true);
   });
 
   it("should seamlessly synchronize faction CDO insurance and mining booster states via Gossip convergence", () => {

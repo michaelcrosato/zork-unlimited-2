@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Margin Maintenance & Position Liquid
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -77,7 +77,7 @@ describe("Syndicate SWF Reinsurance Options Margin Maintenance & Position Liquid
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -134,7 +134,7 @@ describe("Syndicate SWF Reinsurance Options Margin Maintenance & Position Liquid
       syndicateId: "alpha",
       swfYieldCdoId: "cdo_1",
       trancheId: "senior",
-      liquidationThreshold: 0.90, // liquidate if netEquity < required * 0.90
+      liquidationThreshold: 0.9, // liquidate if netEquity < required * 0.90
       penaltyRate: 0.25, // 25% penalty charged on liquidation
       timestamp: 1001,
     };
@@ -152,7 +152,7 @@ describe("Syndicate SWF Reinsurance Options Margin Maintenance & Position Liquid
 
     const policy = state.swfReinsuranceOptionMarginPolicies?.["cdo_1_senior"];
     expect(policy).toBeDefined();
-    expect(policy?.liquidationThreshold).toBe(0.90);
+    expect(policy?.liquidationThreshold).toBe(0.9);
     expect(policy?.penaltyRate).toBe(0.25);
 
     // 2. Trigger economy tick: verify that Alpha's option maintenance requirement is dynamic and is computed
@@ -181,6 +181,10 @@ describe("Syndicate SWF Reinsurance Options Margin Maintenance & Position Liquid
 
     // Alpha collateral is charged: collateral = collateral (300) - expectedPenalty = negative,
     // swept from warChest to cover the deficit!
-    expect(tickedState.journal?.some(j => j.includes("[Option Liquidation] Written option contract opt_1 of Syndicate alpha has been liquidated"))).toBe(true);
+    expect(
+      tickedState.journal?.some((j) =>
+        j.includes("[Option Liquidation] Written option contract opt_1 of Syndicate alpha has been liquidated")
+      )
+    ).toBe(true);
   });
 });

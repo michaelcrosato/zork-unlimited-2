@@ -22,7 +22,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         objects: [],
         npcs: ["merchant_1"],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [
@@ -39,10 +39,10 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
               id: "root_node",
               npc_text: "Welcome",
               topics: [],
-            }
+            },
           ],
         },
-      }
+      },
     ],
   });
 
@@ -220,14 +220,14 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         timestamp: 1000,
         storageUpgradeLevel: 0,
         storageRentRate: 0,
-      }
+      },
     };
     state.enforcementHeat = {
       clearing: {
         roomId: "clearing",
         heat: 50, // multiplier = 1.0 + 50/50 = 2.0
         timestamp: 1000,
-      }
+      },
     };
     // Expected premium without grace: base(50) * fee(1.0) * heat(2.0) * grace(1.0) = 100 gold
     // Let's add an active default grace period for beta!
@@ -242,7 +242,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         status: "authorized",
         proposerId: "player",
         timestamp: 1000,
-      }
+      },
     };
     // Expected premium with grace: base(50) * fee(1.0) * heat(2.0) * grace(0.5) = 50 gold
 
@@ -262,7 +262,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         resolved: false,
         proposerId: "player",
         timestamp: 1000,
-      }
+      },
     };
 
     // Next tick economy should automatically trigger CDS settlement!
@@ -311,7 +311,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         notionalValue: 1500,
         status: "active",
         timestamp: 1000,
-      }
+      },
     };
 
     state.sovereignDebtDefaultAlerts = {
@@ -324,7 +324,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         resolved: false,
         proposerId: "player",
         timestamp: 1000,
-      }
+      },
     };
 
     state.swfStakingSweepPool = 3000;
@@ -387,7 +387,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         notionalValue: 1000,
         status: "active",
         timestamp: 1000,
-      }
+      },
     };
 
     state = tickEconomy(state, mockPack);
@@ -421,7 +421,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         notionalValue: 1000,
         status: "proposed",
         timestamp: 1000,
-      }
+      },
     };
 
     stateB.sovereignDebtCDSContracts = {
@@ -433,7 +433,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         notionalValue: 1000,
         status: "active",
         timestamp: 1005, // newer update
-      }
+      },
     };
 
     stateA.sovereignDebtCDSPortfolios = {
@@ -441,7 +441,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         syndicateId: "alpha",
         purchasedCDSIds: ["cds_gossip"],
         writtenCDSIds: [],
-      }
+      },
     };
 
     stateB.sovereignDebtCDSPortfolios = {
@@ -449,7 +449,7 @@ describe("Syndicate SWF Sovereign Debt Default Credit Default Swaps (CDS) & Hedg
         syndicateId: "alpha",
         purchasedCDSIds: ["cds_gossip", "cds_other"],
         writtenCDSIds: ["cds_written"],
-      }
+      },
     };
 
     const merged = mergeMonotonicStateFields(stateA, stateB);

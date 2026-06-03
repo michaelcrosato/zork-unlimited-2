@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -32,15 +32,19 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
     expect(calculateRiskDiversificationCoefficient([])).toBe(1.0);
 
     // Test zero weight
-    expect(calculateRiskDiversificationCoefficient([
-      { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.8, hedgeWeight: 0 }
-    ])).toBe(1.0);
+    expect(
+      calculateRiskDiversificationCoefficient([
+        { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.8, hedgeWeight: 0 },
+      ])
+    ).toBe(1.0);
 
     // Test single asset with 0.8 correlation
     // D = 1 - (0.5 * 0.8)/0.5 = 1 - 0.8 = 0.2
-    expect(calculateRiskDiversificationCoefficient([
-      { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.8, hedgeWeight: 0.5 }
-    ])).toBeCloseTo(0.2, 4);
+    expect(
+      calculateRiskDiversificationCoefficient([
+        { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.8, hedgeWeight: 0.5 },
+      ])
+    ).toBeCloseTo(0.2, 4);
 
     // Test multiple assets with high diversification (low correlation)
     // Asset 1: correlation 0.9, weight 0.5
@@ -48,10 +52,12 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
     // Total weight = 1.0
     // Weighted correlation sum = 0.5 * 0.9 + 0.5 * 0.1 = 0.45 + 0.05 = 0.5
     // D = 1 - 0.5 / 1.0 = 0.5
-    expect(calculateRiskDiversificationCoefficient([
-      { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.9, hedgeWeight: 0.5 },
-      { correlatedAssetId: "cdo_3", correlatedTrancheId: "mezzanine", correlationCoefficient: 0.1, hedgeWeight: 0.5 }
-    ])).toBeCloseTo(0.5, 4);
+    expect(
+      calculateRiskDiversificationCoefficient([
+        { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.9, hedgeWeight: 0.5 },
+        { correlatedAssetId: "cdo_3", correlatedTrancheId: "mezzanine", correlationCoefficient: 0.1, hedgeWeight: 0.5 },
+      ])
+    ).toBeCloseTo(0.5, 4);
   });
 
   it("should vote and reach consensus on Multi-Asset Cross Hedging Portfolio", () => {
@@ -74,9 +80,42 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
     };
 
     state.swfYieldCDOs = {
-      cdo_1: { id: "cdo_1", creatorSyndicateId: "alpha", assets: [], totalValue: 5000, tranches: { senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 }, mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 }, equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 } }, timestamp: 1000 },
-      cdo_2: { id: "cdo_2", creatorSyndicateId: "alpha", assets: [], totalValue: 5000, tranches: { senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 }, mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 }, equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 } }, timestamp: 1000 },
-      cdo_3: { id: "cdo_3", creatorSyndicateId: "alpha", assets: [], totalValue: 5000, tranches: { senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 }, mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 }, equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 } }, timestamp: 1000 },
+      cdo_1: {
+        id: "cdo_1",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
+          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
+        },
+        timestamp: 1000,
+      },
+      cdo_2: {
+        id: "cdo_2",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
+          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
+        },
+        timestamp: 1000,
+      },
+      cdo_3: {
+        id: "cdo_3",
+        creatorSyndicateId: "alpha",
+        assets: [],
+        totalValue: 5000,
+        tranches: {
+          senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
+          mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
+        },
+        timestamp: 1000,
+      },
     };
 
     const voteAction = {
@@ -86,7 +125,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
       trancheId: "senior",
       assets: [
         { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.9, hedgeWeight: 0.5 },
-        { correlatedAssetId: "cdo_3", correlatedTrancheId: "mezzanine", correlationCoefficient: 0.1, hedgeWeight: 0.5 }
+        { correlatedAssetId: "cdo_3", correlatedTrancheId: "mezzanine", correlationCoefficient: 0.1, hedgeWeight: 0.5 },
       ],
       timestamp: 1000,
     };
@@ -118,8 +157,22 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
     });
 
     state.syndicates = {
-      alpha: { id: "alpha", name: "Alpha Syndicate", members: ["player"], definedBy: "player", timestamp: 1000, warChest: 50000 },
-      beta: { id: "beta", name: "Beta Syndicate", members: ["alice"], definedBy: "alice", timestamp: 1000, warChest: 50000 },
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 50000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        warChest: 50000,
+      },
     };
 
     state.swfYieldCDOs = {
@@ -131,7 +184,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         tranches: {
           senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -145,7 +198,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         baseTransactionCost: 200,
         subsidyPerReputationPoint: 0,
         timestamp: 1000,
-      }
+      },
     };
 
     // Multi-asset cross hedging portfolio for Alpha with high diversification (D = 0.8)
@@ -157,11 +210,11 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         assets: [
-          { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.2, hedgeWeight: 1.0 }
+          { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.2, hedgeWeight: 1.0 },
         ],
         riskDiversificationCoefficient: 0.8, // Explicitly set D
         timestamp: 1000,
-      }
+      },
     };
 
     // Create buy and sell limit orders
@@ -191,11 +244,11 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         orderType: "sell",
         status: "Open",
         timestamp: 1000,
-      }
+      },
     };
 
     const newState = matchSWFReinsuranceOptionLimitOrders(state);
-    
+
     // Check Alpha's warChest.
     // Starting: 50000. Option Price: 1000. Alpha Fee: 120 (due to 40% discount on 200).
     // Expected Alpha warChest: 50000 - 1000 - 120 = 48880.
@@ -241,7 +294,7 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         tranches: {
           senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -251,9 +304,15 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         assets: [],
         totalValue: 5000,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: { alpha: 10 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: { alpha: 10 },
+            timestamp: 1000,
+          },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -263,9 +322,15 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         assets: [],
         totalValue: 5000,
         tranches: {
-          senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: { alpha: 50 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            yieldRate: 0.08,
+            totalShares: 1000,
+            ownership: { alpha: 50 },
+            timestamp: 1000,
+          },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -297,11 +362,11 @@ describe("Syndicate SWF Reinsurance Options Dynamic Cross-Hedging Multi-Asset Po
         trancheId: "senior",
         assets: [
           { correlatedAssetId: "cdo_2", correlatedTrancheId: "senior", correlationCoefficient: 0.8, hedgeWeight: 0.5 },
-          { correlatedAssetId: "cdo_3", correlatedTrancheId: "senior", correlationCoefficient: -0.5, hedgeWeight: 0.4 }
+          { correlatedAssetId: "cdo_3", correlatedTrancheId: "senior", correlationCoefficient: -0.5, hedgeWeight: 0.4 },
         ],
         riskDiversificationCoefficient: 0.6,
         timestamp: 1000,
-      }
+      },
     };
 
     const newState = tickEconomy(state, mockPack);

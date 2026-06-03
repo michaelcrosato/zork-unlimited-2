@@ -108,17 +108,21 @@ describe("Smuggler Guilds, CBA Traversal Overrides, and Cooperative Cartel Bount
     expect(resMoveFail.rejectionReason).toContain("locked");
 
     // 1. Define a smuggler guild
-    const resDefine = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "DEFINE_SMUGGLER_GUILD",
-        guildId: "shadow_smugglers",
-        name: "Shadow Smugglers Guild",
-        syndicateId: "shadow_cartel",
-        members: ["player"],
-        timestamp: 120,
+    const resDefine = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "DEFINE_SMUGGLER_GUILD",
+          guildId: "shadow_smugglers",
+          name: "Shadow Smugglers Guild",
+          syndicateId: "shadow_cartel",
+          members: ["player"],
+          timestamp: 120,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
 
     expect(resDefine.ok).toBe(true);
     state = resDefine.state;
@@ -126,16 +130,20 @@ describe("Smuggler Guilds, CBA Traversal Overrides, and Cooperative Cartel Bount
     expect(state.smugglerGuilds?.["shadow_smugglers"]?.name).toBe("Shadow Smugglers Guild");
 
     // 2. Vote on CBA to set rangers_trail agreed toll to 0
-    const resVote = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "VOTE_SMUGGLER_GUILD_CBA",
-        guildId: "shadow_smugglers",
-        routeId: "rangers_trail",
-        agreedToll: 0,
-        timestamp: 130,
+    const resVote = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "VOTE_SMUGGLER_GUILD_CBA",
+          guildId: "shadow_smugglers",
+          routeId: "rangers_trail",
+          agreedToll: 0,
+          timestamp: 130,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
 
     expect(resVote.ok).toBe(true);
     state = resVote.state;
@@ -155,17 +163,21 @@ describe("Smuggler Guilds, CBA Traversal Overrides, and Cooperative Cartel Bount
     });
 
     // Try defining without a valid crime syndicate
-    const resDefineFail = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "DEFINE_SMUGGLER_GUILD",
-        guildId: "shadow_smugglers",
-        name: "Shadow Smugglers",
-        syndicateId: "non_existent",
-        members: ["player"],
-        timestamp: 100,
+    const resDefineFail = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "DEFINE_SMUGGLER_GUILD",
+          guildId: "shadow_smugglers",
+          name: "Shadow Smugglers",
+          syndicateId: "non_existent",
+          members: ["player"],
+          timestamp: 100,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(resDefineFail.ok).toBe(false);
     expect(resDefineFail.rejectionReason).toContain("does not exist");
 
@@ -181,17 +193,21 @@ describe("Smuggler Guilds, CBA Traversal Overrides, and Cooperative Cartel Bount
     };
 
     // Try defining when not a member of syndicate
-    const resDefineFail2 = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "DEFINE_SMUGGLER_GUILD",
-        guildId: "shadow_smugglers",
-        name: "Shadow Smugglers",
-        syndicateId: "shadow_cartel",
-        members: ["player"],
-        timestamp: 110,
+    const resDefineFail2 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "DEFINE_SMUGGLER_GUILD",
+          guildId: "shadow_smugglers",
+          name: "Shadow Smugglers",
+          syndicateId: "shadow_cartel",
+          members: ["player"],
+          timestamp: 110,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(resDefineFail2.ok).toBe(false);
     expect(resDefineFail2.rejectionReason).toContain("not a member");
   });
@@ -230,45 +246,57 @@ describe("Smuggler Guilds, CBA Traversal Overrides, and Cooperative Cartel Bount
     };
 
     // Alice votes agreed toll = 10
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_SMUGGLER_GUILD_CBA",
-        guildId: "shadow_smugglers",
-        routeId: "rangers_trail",
-        agreedToll: 10,
-        timestamp: 120,
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_SMUGGLER_GUILD_CBA",
+          guildId: "shadow_smugglers",
+          routeId: "rangers_trail",
+          agreedToll: 10,
+          timestamp: 120,
+        },
       },
-    }, mockPack).state;
+      mockPack
+    ).state;
 
     expect(state.smugglerGuildCbas?.["shadow_smugglers:rangers_trail"]?.agreedToll).toBe(10);
 
     // Bob votes agreed toll = 20
-    state = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "VOTE_SMUGGLER_GUILD_CBA",
-        guildId: "shadow_smugglers",
-        routeId: "rangers_trail",
-        agreedToll: 20,
-        timestamp: 130,
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_SMUGGLER_GUILD_CBA",
+          guildId: "shadow_smugglers",
+          routeId: "rangers_trail",
+          agreedToll: 20,
+          timestamp: 130,
+        },
       },
-    }, mockPack).state;
+      mockPack
+    ).state;
 
     // Tie-break sorts descending, so 20 wins!
     expect(state.smugglerGuildCbas?.["shadow_smugglers:rangers_trail"]?.agreedToll).toBe(20);
 
     // Charlie votes agreed toll = 10
-    state = multiAgentStep(state, {
-      agentId: "charlie",
-      action: {
-        type: "VOTE_SMUGGLER_GUILD_CBA",
-        guildId: "shadow_smugglers",
-        routeId: "rangers_trail",
-        agreedToll: 10,
-        timestamp: 140,
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_SMUGGLER_GUILD_CBA",
+          guildId: "shadow_smugglers",
+          routeId: "rangers_trail",
+          agreedToll: 10,
+          timestamp: 140,
+        },
       },
-    }, mockPack).state;
+      mockPack
+    ).state;
 
     // Majority of 2 votes for 10 wins!
     expect(state.smugglerGuildCbas?.["shadow_smugglers:rangers_trail"]?.agreedToll).toBe(10);
@@ -345,7 +373,7 @@ describe("Smuggler Guilds, CBA Traversal Overrides, and Cooperative Cartel Bount
     // Overridden CBA toll is 2 * 5 = 10 gold!
     // Remaining gold should be 100 - 10 = 90 gold.
     expect(newState.vars["gold"]).toBe(90);
-    expect(newState.journal?.some(j => j.includes("paid 10 gold"))).toBe(true);
+    expect(newState.journal?.some((j) => j.includes("paid 10 gold"))).toBe(true);
   });
 
   it("should pool bounty resources cooperatively and let syndicate agents hunt down enforcers", () => {
@@ -379,16 +407,20 @@ describe("Smuggler Guilds, CBA Traversal Overrides, and Cooperative Cartel Bount
     state.vars = { gold: 500 };
 
     // 1. Pool 150 gold on patrol_1
-    const resPool = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "POOL_BOUNTY_RESOURCES",
-        syndicateId: "shadow_cartel",
-        targetId: "patrol_1",
-        goldAmount: 150,
-        timestamp: 120,
+    const resPool = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "POOL_BOUNTY_RESOURCES",
+          syndicateId: "shadow_cartel",
+          targetId: "patrol_1",
+          goldAmount: 150,
+          timestamp: 120,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
 
     expect(resPool.ok).toBe(true);
     state = resPool.state;
@@ -398,16 +430,20 @@ describe("Smuggler Guilds, CBA Traversal Overrides, and Cooperative Cartel Bount
     expect(state.bounties?.["patrol_1"]?.active).toBe(true);
 
     // 2. Pool another 50 gold to verify accumulation
-    const resPool2 = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "POOL_BOUNTY_RESOURCES",
-        syndicateId: "shadow_cartel",
-        targetId: "patrol_1",
-        goldAmount: 50,
-        timestamp: 130,
+    const resPool2 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "POOL_BOUNTY_RESOURCES",
+          syndicateId: "shadow_cartel",
+          targetId: "patrol_1",
+          goldAmount: 50,
+          timestamp: 130,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
 
     expect(resPool2.ok).toBe(true);
     state = resPool2.state;

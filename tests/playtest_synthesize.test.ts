@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  readRawFeedback,
-  synthesizeFeedback,
-  writeFeedbackDigest,
-} from "../src/playtest/synthesize.js";
+import { readRawFeedback, synthesizeFeedback, writeFeedbackDigest } from "../src/playtest/synthesize.js";
 import type { PlaytestSessionResult } from "../src/playtest/types.js";
 import { writeFileSync, readFileSync, unlinkSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -73,13 +69,7 @@ describe("readRawFeedback", () => {
     mkdirSync(TEST_DIR, { recursive: true });
 
     const validSession = mockSession();
-    const content = [
-      JSON.stringify(validSession),
-      "",
-      "not valid json",
-      "",
-      JSON.stringify(mockSession()),
-    ].join("\n");
+    const content = [JSON.stringify(validSession), "", "not valid json", "", JSON.stringify(mockSession())].join("\n");
     writeFileSync(filePath, content);
 
     const result = readRawFeedback(filePath);
@@ -130,10 +120,7 @@ describe("synthesizeFeedback", () => {
   });
 
   it("should detect verb/parser issues with high rejection rates", () => {
-    const sessions = [
-      mockSession({ actionsRejected: 10 }),
-      mockSession({ actionsRejected: 8 }),
-    ];
+    const sessions = [mockSession({ actionsRejected: 10 }), mockSession({ actionsRejected: 8 })];
 
     const digest = synthesizeFeedback(sessions);
     expect(digest).toContain("rejected");

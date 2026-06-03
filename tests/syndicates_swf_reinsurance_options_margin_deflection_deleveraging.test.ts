@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Margin Deflection & Auto-Deleveragin
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Reinsurance Options Margin Deflection & Auto-Deleveragin
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -129,9 +129,9 @@ describe("Syndicate SWF Reinsurance Options Margin Deflection & Auto-Deleveragin
       swfYieldCdoId: "cdo_1",
       trancheId: "senior",
       liquidationThreshold: 0.85,
-      penaltyRate: 0.20,
+      penaltyRate: 0.2,
       autoDeleveragingThreshold: 0.35,
-      marginDeflectionFactor: 0.40,
+      marginDeflectionFactor: 0.4,
       timestamp: 1001,
     };
 
@@ -149,9 +149,9 @@ describe("Syndicate SWF Reinsurance Options Margin Deflection & Auto-Deleveragin
     const policy = state.swfReinsuranceOptionMarginPolicies?.["cdo_1_senior"];
     expect(policy).toBeDefined();
     expect(policy?.liquidationThreshold).toBe(0.85);
-    expect(policy?.penaltyRate).toBe(0.20);
+    expect(policy?.penaltyRate).toBe(0.2);
     expect(policy?.autoDeleveragingThreshold).toBe(0.35);
-    expect(policy?.marginDeflectionFactor).toBe(0.40);
+    expect(policy?.marginDeflectionFactor).toBe(0.4);
 
     // 2. Scenario A: No Partition (linkStateDropRate = 0.0)
     // Ticking the economy should evaluate standard options maintenance requirement
@@ -175,29 +175,30 @@ describe("Syndicate SWF Reinsurance Options Margin Deflection & Auto-Deleveragin
 
     let tickedState = tickEconomy(state, mockPack);
     // Alpha syndicate has 1500 collateral. Standard requirement shouldn't trigger deleveraging.
-    expect(tickedState.journal?.some(j => j.includes("[SWF Reinsurance Option Auto-Deleveraging]"))).toBe(false);
+    expect(tickedState.journal?.some((j) => j.includes("[SWF Reinsurance Option Auto-Deleveraging]"))).toBe(false);
     expect(tickedState.swfReinsuranceOptionsContracts?.["opt_1"]?.active).toBe(true); // Should still be active
 
     // 3. Scenario B: Severe Network Partition (linkStateDropRate = 0.50 >= 0.35)
     // Ticking the economy should trigger auto-deleveraging: position sizing markdown and margin requirement reduction
-    state.swfMultiFundReinsurancePools["pool_1"].linkStateDropRate = 0.50; // Severe network partition
+    state.swfMultiFundReinsurancePools["pool_1"].linkStateDropRate = 0.5; // Severe network partition
 
     tickedState = tickEconomy(state, mockPack);
 
     // Assert that the auto-deleveraging was triggered and logged in the journal
-    const hasDeleveragedJournal = tickedState.journal?.some(j =>
-      j.includes("[SWF Reinsurance Option Auto-Deleveraging]") &&
-      j.includes("Size marked down from 1000 to 600") &&
-      j.includes("margin requirement reduced by 40%")
+    const hasDeleveragedJournal = tickedState.journal?.some(
+      (j) =>
+        j.includes("[SWF Reinsurance Option Auto-Deleveraging]") &&
+        j.includes("Size marked down from 1000 to 600") &&
+        j.includes("margin requirement reduced by 40%")
     );
     expect(hasDeleveragedJournal).toBe(true);
 
     // 4. Scenario C: Deflect liquidation penalty under partition
     // Let's set Alpha's collateral to a very low value (e.g. 10 gold) so that even with marked-down size, it falls below threshold and gets liquidated
     state.marginAccounts!["alpha"].collateral = 10;
-    
+
     tickedState = tickEconomy(state, mockPack);
-    
+
     // Position should be liquidated
     const optContract = tickedState.swfReinsuranceOptionsContracts?.["opt_1"];
     expect(optContract?.active).toBe(false);
@@ -205,7 +206,7 @@ describe("Syndicate SWF Reinsurance Options Margin Deflection & Auto-Deleveragin
     // Verify penalty was charged using the marked-down size (600) instead of (1000)
     // Expected penalty: size (600) * spotRate * penaltyRate (0.20) * 100
     const spotRate = getCDOTrancheReinsurancePremiumRate(state, "cdo_1", "senior");
-    const expectedPenalty = Math.floor(600 * spotRate * 0.20 * 100);
+    const expectedPenalty = Math.floor(600 * spotRate * 0.2 * 100);
     expect(expectedPenalty).toBeGreaterThan(0);
 
     // Beta syndicate warChest should be increased by the reduced penalty

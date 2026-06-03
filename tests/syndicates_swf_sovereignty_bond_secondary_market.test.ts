@@ -26,7 +26,7 @@ describe("Syndicate SWF Sovereignty Bond Secondary Trading Markets & Bid-Ask Auc
             direction: "east",
             to: "forest",
             conditions: [],
-          }
+          },
         ],
       },
       {
@@ -37,7 +37,7 @@ describe("Syndicate SWF Sovereignty Bond Secondary Trading Markets & Bid-Ask Auc
         npcs: [],
         exits: [],
         faction: "rangers",
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -326,7 +326,7 @@ describe("Syndicate SWF Sovereignty Bond Secondary Trading Markets & Bid-Ask Auc
         bidderSyndicateId: "market_maker",
         bidAmount: 450,
         timestamp: 1002,
-      }
+      },
     };
 
     // Execute bond sale to market_maker

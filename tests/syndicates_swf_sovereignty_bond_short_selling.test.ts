@@ -21,7 +21,7 @@ describe("Syndicate SWF Sovereignty Bond Borrowing & Short Selling Markets (AF-1
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -193,9 +193,9 @@ describe("Syndicate SWF Sovereignty Bond Borrowing & Short Selling Markets (AF-1
             bidderSyndicateId: "alpha",
             bidAmount: 1500,
             timestamp: 1004,
-          }
-        }
-      }
+          },
+        },
+      },
     };
 
     let sweptState = tickProductionLabs(tickedState, []);
@@ -227,9 +227,9 @@ describe("Syndicate SWF Sovereignty Bond Borrowing & Short Selling Markets (AF-1
             bidderSyndicateId: "alpha",
             bidAmount: 3000,
             timestamp: 1005,
-          }
-        }
-      }
+          },
+        },
+      },
     };
 
     let liquidatedState = tickProductionLabs(sweptState, []);
@@ -290,34 +290,55 @@ describe("Syndicate SWF Sovereignty Bond Borrowing & Short Selling Markets (AF-1
     };
 
     // Propose & Approve borrow
-    let res = multiAgentStep(coverState, { agentId: "player", action: {
-      type: "PROPOSE_BOND_BORROW",
-      borrowId: "borrow_clean",
-      borrowerSyndicateId: "alpha",
-      lenderSyndicateId: "beta",
-      bondId: "bond_1",
-      amount: 1000,
-      collateralGold: 500,
-      borrowFeeRate: 5,
-      timestamp: 1001,
-    } as any }, mockPack);
+    let res = multiAgentStep(
+      coverState,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_BOND_BORROW",
+          borrowId: "borrow_clean",
+          borrowerSyndicateId: "alpha",
+          lenderSyndicateId: "beta",
+          bondId: "bond_1",
+          amount: 1000,
+          collateralGold: 500,
+          borrowFeeRate: 5,
+          timestamp: 1001,
+        } as any,
+      },
+      mockPack
+    );
     coverState = res.state;
 
-    res = multiAgentStep(coverState, { agentId: "bob", action: {
-      type: "APPROVE_BOND_LEND",
-      borrowId: "borrow_clean",
-      timestamp: 1002,
-    } as any }, mockPack);
+    res = multiAgentStep(
+      coverState,
+      {
+        agentId: "bob",
+        action: {
+          type: "APPROVE_BOND_LEND",
+          borrowId: "borrow_clean",
+          timestamp: 1002,
+        } as any,
+      },
+      mockPack
+    );
     coverState = res.state;
 
     // Short sell to Gamma
-    res = multiAgentStep(coverState, { agentId: "player", action: {
-      type: "SHORT_SELL_BOND",
-      borrowId: "borrow_clean",
-      buyerSyndicateId: "gamma",
-      salePrice: 800,
-      timestamp: 1003,
-    } as any }, mockPack);
+    res = multiAgentStep(
+      coverState,
+      {
+        agentId: "player",
+        action: {
+          type: "SHORT_SELL_BOND",
+          borrowId: "borrow_clean",
+          buyerSyndicateId: "gamma",
+          salePrice: 800,
+          timestamp: 1003,
+        } as any,
+      },
+      mockPack
+    );
     coverState = res.state;
 
     // Cover: Alpha buys back 1000 shares of bond_1 from Gamma (who now owns it) for 900 gold

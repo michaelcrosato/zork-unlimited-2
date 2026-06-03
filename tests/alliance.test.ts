@@ -77,76 +77,96 @@ describe("Dynamic Decentralized Faction Alliances & Vote Arbitration", () => {
     expect(state.allianceVotes).toEqual({});
 
     // 1. Propose alliance with invalid faction
-    const resFail1 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "PROPOSE_ALLIANCE",
-        factionA: "unknown_faction",
-        factionB: "rangers",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail1 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "PROPOSE_ALLIANCE",
+          factionA: "unknown_faction",
+          factionB: "rangers",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail1.ok).toBe(false);
     expect(resFail1.rejectionReason).toContain("is not a valid faction");
 
     // 2. Propose alliance with same faction
-    const resFail2 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "PROPOSE_ALLIANCE",
-        factionA: "rangers",
-        factionB: "rangers",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "PROPOSE_ALLIANCE",
+          factionA: "rangers",
+          factionB: "rangers",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail2.ok).toBe(false);
     expect(resFail2.rejectionReason).toContain("Cannot form alliance with the same faction");
 
     // 3. Valid PROPOSE_ALLIANCE action
-    const resA = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "PROPOSE_ALLIANCE",
-        factionA: "rangers",
-        factionB: "merchant_union",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resA = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "PROPOSE_ALLIANCE",
+          factionA: "rangers",
+          factionB: "merchant_union",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resA.ok).toBe(true);
     expect(resA.state.allianceVotes?.["merchant_union:rangers"]?.alice).toEqual({
       targetState: "allied",
       timestamp: 100,
     });
-    expect(resA.state.alliances?.["rangers"]?.[ "merchant_union"]).toBe("allied");
-    expect(resA.state.alliances?.["merchant_union"]?.[ "rangers"]).toBe("allied");
+    expect(resA.state.alliances?.["rangers"]?.["merchant_union"]).toBe("allied");
+    expect(resA.state.alliances?.["merchant_union"]?.["rangers"]).toBe("allied");
 
     // 4. Older vote should be ignored
-    const resA2 = multiAgentStep(resA.state, {
-      agentId: "alice",
-      action: {
-        type: "PROPOSE_ALLIANCE",
-        factionA: "rangers",
-        factionB: "merchant_union",
-        targetState: "hostile",
-        timestamp: 50, // older
-      } as any,
-    }, mockPack);
+    const resA2 = multiAgentStep(
+      resA.state,
+      {
+        agentId: "alice",
+        action: {
+          type: "PROPOSE_ALLIANCE",
+          factionA: "rangers",
+          factionB: "merchant_union",
+          targetState: "hostile",
+          timestamp: 50, // older
+        } as any,
+      },
+      mockPack
+    );
     expect(resA2.ok).toBe(true);
     expect(resA2.state.allianceVotes?.["merchant_union:rangers"]?.alice?.targetState).toBe("allied");
 
     // 5. Newer vote should overwrite
-    const resA3 = multiAgentStep(resA.state, {
-      agentId: "alice",
-      action: {
-        type: "DISSOLVE_ALLIANCE",
-        factionA: "rangers",
-        factionB: "merchant_union",
-        timestamp: 200, // newer
-      } as any,
-    }, mockPack);
+    const resA3 = multiAgentStep(
+      resA.state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DISSOLVE_ALLIANCE",
+          factionA: "rangers",
+          factionB: "merchant_union",
+          timestamp: 200, // newer
+        } as any,
+      },
+      mockPack
+    );
     expect(resA3.ok).toBe(true);
     expect(resA3.state.allianceVotes?.["merchant_union:rangers"]?.alice?.targetState).toBe("neutral");
-    expect(resA3.state.alliances?.["rangers"]?.[ "merchant_union"]).toBe("neutral");
+    expect(resA3.state.alliances?.["rangers"]?.["merchant_union"]).toBe("neutral");
   });
 
   it("should arbitrate consensus with deterministic tie-breaking rules", () => {
@@ -232,7 +252,7 @@ describe("Dynamic Decentralized Faction Alliances & Vote Arbitration", () => {
     // Faction rangers controls ranger_outpost.
     // Base player rep with rangers is 0 (neutral) => travel tax = 2.
     // The player is allied with merchant_union (rep >= 10).
-    
+
     // Case 1: Neutral / No Alliance
     let state = createInitialState({
       seed: 42,

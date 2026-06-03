@@ -58,14 +58,11 @@ describe("DSL Condition Evaluator", () => {
           any_of: [
             { has_item: "sword" },
             {
-              none_of: [
-                { visited: "well" },
-                { var_gte: { name: "gold", value: 20 } }
-              ]
-            }
-          ]
-        }
-      ]
+              none_of: [{ visited: "well" }, { var_gte: { name: "gold", value: 20 } }],
+            },
+          ],
+        },
+      ],
     };
     expect(evaluateCondition(state, cond)).toBe(true);
 
@@ -76,13 +73,11 @@ describe("DSL Condition Evaluator", () => {
           any_of: [
             { has_item: "sword" },
             {
-              none_of: [
-                { visited: "chapel" }
-              ]
-            }
-          ]
-        }
-      ]
+              none_of: [{ visited: "chapel" }],
+            },
+          ],
+        },
+      ],
     };
     expect(evaluateCondition(state, cond2)).toBe(false);
   });
@@ -228,8 +223,8 @@ describe("DSL Effect Reducer", () => {
       roll_skill_check: {
         skill: "strength",
         difficulty: 15,
-        success_flag: "broke_door"
-      }
+        success_flag: "broke_door",
+      },
     });
 
     expect(r1.state.seed).not.toBe(state.seed); // Seed must change
@@ -241,8 +236,8 @@ describe("DSL Effect Reducer", () => {
       roll_skill_check: {
         skill: "strength",
         difficulty: 1,
-        success_flag: "trivial_check"
-      }
+        success_flag: "trivial_check",
+      },
     });
     expect(r2.state.flags["trivial_check"]).toBe(true); // difficulty 1 should always pass since roll is 1-20 and skill is 3
   });
@@ -302,7 +297,7 @@ describe("DSL Effect Reducer", () => {
       { set_flag: "flag_1" },
       { inc_var: { name: "score", by: 10 } },
       { inc_var: { name: "score", by: 5 } },
-      { add_item: "shield" }
+      { add_item: "shield" },
     ];
 
     const { state: finalState, events } = applyEffects(state, effects);

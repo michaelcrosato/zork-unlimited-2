@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override / Co
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -63,7 +63,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override / Co
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -157,7 +157,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override / Co
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -179,7 +179,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override / Co
         bondId: "index_1",
         volatility: 20.0,
         timestamp: 1000,
-      }
+      },
     };
 
     // Authorized volatility floor of 0.5 (Base min spread: 20 * 0.5 = 10 gold)
@@ -284,7 +284,9 @@ describe("Syndicate SWF Reinsurance Options Volatility Floor Panic Override / Co
     depthState = recalculateReinsuranceOptionOrderBookMetrics(state);
     depth = depthState.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
     expect(depth?.bidAskSpread).toBe(10);
-    expect(depthState.journal?.some(j => j.includes("[SWF Reinsurance Option Volatility Floor Panic Override Active]"))).toBe(true);
+    expect(
+      depthState.journal?.some((j) => j.includes("[SWF Reinsurance Option Volatility Floor Panic Override Active]"))
+    ).toBe(true);
 
     // 3. Move step past cooldown end step (step: 16 > 15)
     state.step = 16;

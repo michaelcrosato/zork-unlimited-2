@@ -128,20 +128,24 @@ describe("Syndicate SWF Yield-Hedging Option Fee Adjustments & Volatility Thresh
     let state = setupState();
 
     // 1. Propose fee adjustment policy
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_FEE_ADJUSTMENT_POLICY",
-        proposalId: "fee_adjust_policy_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        baseFeePercent: 0.05,
-        volatilityScale: 0.005,
-        partitionScale: 0.2,
-        volatilityThreshold: 10.0,
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_FEE_ADJUSTMENT_POLICY",
+          proposalId: "fee_adjust_policy_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          baseFeePercent: 0.05,
+          volatilityScale: 0.005,
+          partitionScale: 0.2,
+          volatilityThreshold: 10.0,
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -157,16 +161,20 @@ describe("Syndicate SWF Yield-Hedging Option Fee Adjustments & Volatility Thresh
     expect(state.syndicates?.alpha.warChest).toBe(19900);
 
     // 2. Alice votes YES to approve
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_FEE_ADJUSTMENT_POLICY",
-        proposalId: "fee_adjust_policy_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_FEE_ADJUSTMENT_POLICY",
+          proposalId: "fee_adjust_policy_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -226,45 +234,57 @@ describe("Syndicate SWF Yield-Hedging Option Fee Adjustments & Volatility Thresh
     // Player share: 50 * (300/450) = 33.33 => 33
     // Alice share: 50 * (150/450) = 16.66 => 17
     // -------------------------------------------------------------
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1200,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1200,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1210,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1210,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1220,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1220,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -311,45 +331,57 @@ describe("Syndicate SWF Yield-Hedging Option Fee Adjustments & Volatility Thresh
     // Player share: 150 * (300/450) = 100
     // Alice share: 150 * (150/450) = 50
     // -------------------------------------------------------------
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1300,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1300,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1310,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1310,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1320,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1320,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -391,45 +423,57 @@ describe("Syndicate SWF Yield-Hedging Option Fee Adjustments & Volatility Thresh
     // Player share: 110 * (300/450) = 73.33 => 73
     // Alice share: 110 * (150/450) = 36.66 => 37
     // -------------------------------------------------------------
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1400,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1400,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1410,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1410,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 1000,
-        timestamp: 1420,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 1000,
+          timestamp: 1420,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 

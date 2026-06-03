@@ -22,7 +22,7 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -95,7 +95,11 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
     expect(res.ok).toBe(true);
     state = res.state;
 
-    const prop = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals?.["reinvest_prop_1"];
+    const prop =
+      state
+        .cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals?.[
+        "reinvest_prop_1"
+      ];
     expect(prop).toBeDefined();
     expect(prop?.status).toBe("proposed");
     expect(prop?.autoReinvestThreshold).toBe(300);
@@ -116,7 +120,12 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
     expect(res.ok).toBe(true);
     state = res.state;
 
-    expect(state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals?.["reinvest_prop_1"]?.status).toBe("authorized");
+    expect(
+      state
+        .cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals?.[
+        "reinvest_prop_1"
+      ]?.status
+    ).toBe("authorized");
 
     // Active pool threshold is now updated successfully to 300!
     expect(state.sovereignDebtCDSCDOPools?.["cdo_1"]?.autoReinvestThreshold).toBe(300);
@@ -173,7 +182,7 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
         status: "proposed",
         proposerId: "player",
         timestamp: 1000,
-      } as any
+      } as any,
     };
 
     // Fees: ProposalFee = 500, VoteFee = 100
@@ -288,7 +297,11 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
     expect(res.ok).toBe(true);
     state = res.state;
 
-    const prop = state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.["cap_prop_1"];
+    const prop =
+      state
+        .cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.[
+        "cap_prop_1"
+      ];
     expect(prop).toBeDefined();
     expect(prop?.status).toBe("proposed");
     expect(prop?.maxAutoReinvestYieldCap).toBe(400);
@@ -309,7 +322,12 @@ describe("Syndicate CDO Options Panic Override Threshold Adjust Fee Calibration 
     expect(res.ok).toBe(true);
     state = res.state;
 
-    expect(state.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.["cap_prop_1"]?.status).toBe("authorized");
+    expect(
+      state
+        .cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals?.[
+        "cap_prop_1"
+      ]?.status
+    ).toBe("authorized");
 
     // Active pool cap is now 400!
     expect(state.sovereignDebtCDSCDOPools?.["cdo_1"]?.maxAutoReinvestYieldCap).toBe(400);

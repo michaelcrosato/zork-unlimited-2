@@ -47,7 +47,7 @@ describe("Hero's Quest RPG Mechanics (Stage 4)", () => {
     // with seed 12345, check if success is rolled
     runAction("use stone wall");
     expect(state.flags["wall_climb_success"]).toBeDefined();
-    
+
     // Check if we scale battlements
     if (state.flags["wall_climb_success"]) {
       runAction("go up");
@@ -86,7 +86,7 @@ describe("Hero's Quest RPG Mechanics (Stage 4)", () => {
     expect(state.current).toBe("library");
     runAction("take spell scroll");
     expect(state.inventory).toContain("spell_scroll");
-    
+
     // Read spell scroll (increases intelligence & mana)
     runAction("read spell scroll");
     expect(state.vars["intelligence"]).toBeGreaterThan(12);
@@ -138,7 +138,7 @@ describe("Hero's Quest RPG Mechanics (Stage 4)", () => {
     // 9. Go to Throne Room, speak to King Aldous and return the crown to win!
     runAction("go east"); // to throne_room
     expect(state.current).toBe("throne_room");
-    
+
     // Give crown triggers victory
     runAction("talk to King Aldous");
     runAction("ask about i have recovered your royal crown!");

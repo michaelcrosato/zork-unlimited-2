@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility-
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -63,7 +63,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility-
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -150,15 +150,16 @@ describe("Syndicate SWF Reinsurance Options Volatility Pools Dynamic Volatility-
     // Recalculate metrics -> Base spread should be lowestSell (20) - highestBuy (10) = 10 gold.
     // With 1.5x authorized spreadAdjustmentFactor, dynamic spread should be adjusted to Math.round(10 * 1.5) = 15 gold.
     let afterMetricsState = recalculateReinsuranceOptionOrderBookMetrics(state);
-    
+
     const depth = afterMetricsState.swfReinsuranceOptionOrderBookDepths?.["cdo_1_senior"];
     expect(depth).toBeDefined();
     expect(depth?.bidAskSpread).toBe(15);
 
     // Verify journal contains applied adjustment logs
-    const hasAdjustmentLog = afterMetricsState.journal?.some(j =>
-      j.includes("[SWF Reinsurance Option Spread Adjustment Applied]") &&
-      j.includes("Consensual spread adjustment factor 1.5 applied")
+    const hasAdjustmentLog = afterMetricsState.journal?.some(
+      (j) =>
+        j.includes("[SWF Reinsurance Option Spread Adjustment Applied]") &&
+        j.includes("Consensual spread adjustment factor 1.5 applied")
     );
     expect(hasAdjustmentLog).toBe(true);
   });

@@ -38,7 +38,7 @@ describe("Crime Syndicate Mastermind Contracts & Enforcer Defunding (AF-77)", ()
         name: "Contraband Spice",
         description: "Highly illegal spice.",
         contraband: true,
-      }
+      },
     ],
     npcs: [
       {
@@ -62,7 +62,7 @@ describe("Crime Syndicate Mastermind Contracts & Enforcer Defunding (AF-77)", ()
             },
           ],
         },
-      }
+      },
     ],
   });
 
@@ -150,19 +150,19 @@ describe("Crime Syndicate Mastermind Contracts & Enforcer Defunding (AF-77)", ()
     const actionA = {
       type: "PROPOSE_ENFORCER_DEFUNDING" as const,
       syndicateId: "synd_1",
-      targetReduction: 0.30,
+      targetReduction: 0.3,
       timestamp: 1000,
     };
     const actionB = {
       type: "PROPOSE_ENFORCER_DEFUNDING" as const,
       syndicateId: "synd_1",
-      targetReduction: 0.30,
+      targetReduction: 0.3,
       timestamp: 1000,
     };
     const actionC = {
       type: "PROPOSE_ENFORCER_DEFUNDING" as const,
       syndicateId: "synd_1",
-      targetReduction: 0.10,
+      targetReduction: 0.1,
       timestamp: 1000,
     };
 
@@ -172,7 +172,7 @@ describe("Crime Syndicate Mastermind Contracts & Enforcer Defunding (AF-77)", ()
 
     expect(result.ok).toBe(true);
     // Consensus rate should be 0.30 (majority 2 votes vs 1 vote)
-    expect(result.state.syndicates?.["synd_1"].enforcerDefundingRate).toBe(0.30);
+    expect(result.state.syndicates?.["synd_1"].enforcerDefundingRate).toBe(0.3);
 
     // 2. Validate enforcer hunt trigger threshold scaling
     // Default threshold is 50. With 30% defunding, it becomes Math.max(1, Math.round(50 * (1 - 0.30))) = 35.
@@ -189,8 +189,8 @@ describe("Crime Syndicate Mastermind Contracts & Enforcer Defunding (AF-77)", ()
           objects: ["contraband_spice"],
           npcs: [],
           exits: [],
-        }
-      ]
+        },
+      ],
     };
 
     let gameState = createInitialState({
@@ -225,7 +225,7 @@ describe("Crime Syndicate Mastermind Contracts & Enforcer Defunding (AF-77)", ()
         members: ["player"],
         definedBy: "player",
         timestamp: 1000,
-        enforcerDefundingRate: 0.40, // 40% defunding!
+        enforcerDefundingRate: 0.4, // 40% defunding!
       },
     };
 
@@ -241,7 +241,7 @@ describe("Crime Syndicate Mastermind Contracts & Enforcer Defunding (AF-77)", ()
         max_hp: 50,
         attack: 10,
         defense: 5,
-      }
+      },
     };
 
     // Trigger combat with enforcer
@@ -252,7 +252,7 @@ describe("Crime Syndicate Mastermind Contracts & Enforcer Defunding (AF-77)", ()
     // HP should scale: 50 * (1 - 0.40) = 30 max hp. Since current hp (50) exceeds 30, it gets capped to 30.
     // Attack should scale: 10 * (1 - 0.40) = 6.
     const stepResult = step(state, { type: "FIGHT", npc: "enforcer_1" }, mockPack);
-    
+
     // We expect the combat system to cap and scale HP and attack.
     // Let's assert the dynamic state variables during combat
     expect(stepResult.state.vars["npc_hp_enforcer_1"]).toBeLessThanOrEqual(30);

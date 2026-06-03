@@ -108,47 +108,59 @@ describe("Decentralized Trade Route and Faction Toll Mesh Tests", () => {
     expect(state.tradeRoutes).toEqual({});
 
     // 1. Invalid faction
-    const resFail1 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_TRADE_ROUTE",
-        routeId: "silk_road",
-        factionId: "unknown_faction",
-        rooms: ["clearing", "crossroads"],
-        taxShare: 5,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail1 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_TRADE_ROUTE",
+          routeId: "silk_road",
+          factionId: "unknown_faction",
+          rooms: ["clearing", "crossroads"],
+          taxShare: 5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail1.ok).toBe(false);
     expect(resFail1.rejectionReason).toContain("is not a valid faction");
 
     // 2. Disconnected rooms
-    const resFail2 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_TRADE_ROUTE",
-        routeId: "silk_road",
-        factionId: "merchants",
-        rooms: ["clearing", "market"], // no exit clearing -> market directly
-        taxShare: 5,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_TRADE_ROUTE",
+          routeId: "silk_road",
+          factionId: "merchants",
+          rooms: ["clearing", "market"], // no exit clearing -> market directly
+          taxShare: 5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail2.ok).toBe(false);
     expect(resFail2.rejectionReason).toContain("disconnected");
 
     // 3. Successful definition
-    const resOk1 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_TRADE_ROUTE",
-        routeId: "silk_road",
-        factionId: "merchants",
-        rooms: ["clearing", "crossroads", "market"],
-        taxShare: 5,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resOk1 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_TRADE_ROUTE",
+          routeId: "silk_road",
+          factionId: "merchants",
+          rooms: ["clearing", "crossroads", "market"],
+          taxShare: 5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resOk1.ok).toBe(true);
     expect(resOk1.state.tradeRoutes?.["silk_road"]).toEqual({
       id: "silk_road",
@@ -166,34 +178,42 @@ describe("Decentralized Trade Route and Faction Toll Mesh Tests", () => {
     expect(resOk1.state.tradeRoutePolicies?.["silk_road"]).toBe(5);
 
     // 4. LWW overwrite with higher timestamp
-    const resOk2 = multiAgentStep(resOk1.state, {
-      agentId: "bob",
-      action: {
-        type: "DEFINE_TRADE_ROUTE",
-        routeId: "silk_road",
-        factionId: "bandits",
-        rooms: ["clearing", "crossroads"],
-        taxShare: 8,
-        timestamp: 200, // Newer timestamp
-      } as any,
-    }, mockPack);
+    const resOk2 = multiAgentStep(
+      resOk1.state,
+      {
+        agentId: "bob",
+        action: {
+          type: "DEFINE_TRADE_ROUTE",
+          routeId: "silk_road",
+          factionId: "bandits",
+          rooms: ["clearing", "crossroads"],
+          taxShare: 8,
+          timestamp: 200, // Newer timestamp
+        } as any,
+      },
+      mockPack
+    );
     expect(resOk2.ok).toBe(true);
     expect(resOk2.state.tradeRoutes?.["silk_road"]?.factionId).toBe("bandits");
     expect(resOk2.state.tradeRoutes?.["silk_road"]?.definedBy).toBe("bob");
     expect(resOk2.state.tradeRoutes?.["silk_road"]?.taxShare).toBe(8);
 
     // 5. Outdated definition transaction should be ignored (retaining LWW state)
-    const resOk3 = multiAgentStep(resOk2.state, {
-      agentId: "charlie",
-      action: {
-        type: "DEFINE_TRADE_ROUTE",
-        routeId: "silk_road",
-        factionId: "merchants",
-        rooms: ["clearing", "crossroads", "market"],
-        taxShare: 10,
-        timestamp: 150, // Outdated timestamp (150 < 200)
-      } as any,
-    }, mockPack);
+    const resOk3 = multiAgentStep(
+      resOk2.state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "DEFINE_TRADE_ROUTE",
+          routeId: "silk_road",
+          factionId: "merchants",
+          rooms: ["clearing", "crossroads", "market"],
+          taxShare: 10,
+          timestamp: 150, // Outdated timestamp (150 < 200)
+        } as any,
+      },
+      mockPack
+    );
     expect(resOk3.ok).toBe(true);
     expect(resOk3.state.tradeRoutes?.["silk_road"]?.factionId).toBe("bandits"); // bandit wins
   });
@@ -207,43 +227,55 @@ describe("Decentralized Trade Route and Faction Toll Mesh Tests", () => {
     });
 
     // Setup base route
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_TRADE_ROUTE",
-        routeId: "gold_trail",
-        factionId: "merchants",
-        rooms: ["clearing", "crossroads", "market"],
-        taxShare: 4,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_TRADE_ROUTE",
+          routeId: "gold_trail",
+          factionId: "merchants",
+          rooms: ["clearing", "crossroads", "market"],
+          taxShare: 4,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     expect(state.tradeRoutePolicies?.["gold_trail"]).toBe(4);
 
     // Vote 1: Bob votes 8 gold
-    state = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "VOTE_TRADE_ROUTE_TAX",
-        routeId: "gold_trail",
-        taxShare: 8,
-        timestamp: 110,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_TRADE_ROUTE_TAX",
+          routeId: "gold_trail",
+          taxShare: 8,
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    ).state;
     // Tie between 4 and 8. Sort descending means 8 (higher rate) wins consensus!
     expect(state.tradeRoutePolicies?.["gold_trail"]).toBe(8);
 
     // Vote 2: Charlie votes 4 gold
-    state = multiAgentStep(state, {
-      agentId: "charlie",
-      action: {
-        type: "VOTE_TRADE_ROUTE_TAX",
-        routeId: "gold_trail",
-        taxShare: 4,
-        timestamp: 120,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_TRADE_ROUTE_TAX",
+          routeId: "gold_trail",
+          taxShare: 4,
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    ).state;
     // Two votes for 4, one vote for 8. Majority is 4, so 4 wins consensus!
     expect(state.tradeRoutePolicies?.["gold_trail"]).toBe(4);
   });
@@ -257,24 +289,28 @@ describe("Decentralized Trade Route and Faction Toll Mesh Tests", () => {
     });
 
     // Define bandit route crossing crossroads
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_TRADE_ROUTE",
-        routeId: "bandit_pass",
-        factionId: "bandits",
-        rooms: ["clearing", "crossroads"],
-        taxShare: 6,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_TRADE_ROUTE",
+          routeId: "bandit_pass",
+          factionId: "bandits",
+          rooms: ["clearing", "crossroads"],
+          taxShare: 6,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // 1. Move to crossroads (hostile trade route). Rep is -5 (hostile), toll is 6 gold.
     // Player has 10 gold. Toll should be paid!
     const resMove1 = step(state, { type: "MOVE", direction: "north" }, mockPack);
     expect(resMove1.ok).toBe(true);
     expect(resMove1.state.vars["gold"]).toBe(4); // 10 - 6 paid
-    expect(resMove1.events.some(e => e.type === "narration" && e.text.includes("Paid 6 gold toll"))).toBe(true);
+    expect(resMove1.events.some((e) => e.type === "narration" && e.text.includes("Paid 6 gold toll"))).toBe(true);
 
     // 2. Insufficient gold lock
     // Player now has 4 gold. Moving to crossroads again should fail!

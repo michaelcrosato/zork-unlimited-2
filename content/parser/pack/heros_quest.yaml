@@ -22,7 +22,7 @@ rooms:
     name: "Castle Gates"
     description: "You stand before the towering iron gates of the Castle of Shadows. The gates are shut tight. To the west lies a steep Castle Wall that looks climbable."
     objects: [ gate_lever ]
-    npcs: []
+    npcs: [ royal_scout ]
     exits:
       - direction: west
         to: castle_wall
@@ -86,7 +86,7 @@ rooms:
   - id: library
     name: "The Grand Library"
     description: "Shelves packed with ancient books rise to the ceiling. A mysterious leather-bound spell scroll rests on a wooden pedestal."
-    objects: [ spell_scroll ]
+    objects: [ spell_scroll, royal_seal ]
     npcs: []
     exits:
       - direction: east
@@ -170,6 +170,12 @@ objects:
           - remove_item: spell_scroll
           - narrate: "You read the magical scroll! Glowing runes expand your mind, increasing your intelligence and restoring mana! The scroll crumbles into sparkling dust."
 
+  - id: royal_seal
+    name: "Royal Seal"
+    aliases: [ seal, royal seal, gold seal ]
+    description: "An ancient golden seal engraved with the emblem of the kingdom."
+    takeable: true
+
   - id: treasury_chest
     name: "iron-bound chest"
     aliases: [ chest, box ]
@@ -194,6 +200,12 @@ objects:
     name: "Royal Crown"
     aliases: [ crown, royal ]
     description: "The glistening golden crown of the kingdom, recovered from the treasury."
+    takeable: true
+
+  - id: scout_badge
+    name: "Scout Badge"
+    aliases: [ badge, scout badge ]
+    description: "A bronze badge representing membership in the Royal Scouts guild."
     takeable: true
 
 npcs:
@@ -274,6 +286,99 @@ npcs:
             - id: victory
               prompt: "Hail the King!"
               end: true
+
+  - id: royal_scout
+    name: "Royal Scout"
+    description: "A keen-eyed scout wearing leather armor, watching the castle from the shadows."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Greetings, traveler. I am a scout for the King. We need agents to perform contracts. Do you wish to help?"
+          topics:
+            - { id: ask_contracts, prompt: "Ask about scout contracts", goto: contract_list }
+            - { id: check_prestige, prompt: "Ask about your scouts prestige", goto: prestige_info }
+            - { id: request_badge, prompt: "Request a Scout Badge (Requires 50 Royal Scouts Prestige)", goto: give_badge, conditions: [ { guild_prestige_gte: { guild: "royal_scouts", value: 50 } }, { none_of: [ { has_item: "scout_badge" } ] } ] }
+            - { id: turn_in_smuggle, prompt: "Report delivery of the broadsword to the Castle Wall", goto: smuggle_success, conditions: [ { guild_contract_active: "c_smuggle_broadsword" }, { has_item: "broadsword" }, { visited: "castle_wall" } ] }
+            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_defeated_goblin_guard" } ] }
+            - { id: turn_in_seal, prompt: "Report delivery of the Royal Seal to the Castle Wall", goto: seal_success, conditions: [ { guild_contract_active: "c_smuggle_royal_seal" }, { has_item: "royal_seal" }, { visited: "castle_wall" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: contract_list
+          npc_text: "I have two tasks. First, a smuggling task: retrieve the steel broadsword from the Armory and bring it to the Castle Wall. Second, an enforcement task: defeat the Goblin Guard in the Courtyard. If you have high standing, I might have a more sensitive task."
+          topics:
+            - { id: take_smuggle, prompt: "Accept the broadsword smuggling contract", goto: accept_smuggle, conditions: [ { none_of: [ { guild_contract_active: "c_smuggle_broadsword" }, { guild_contract_completed: "c_smuggle_broadsword" } ] } ] }
+            - { id: take_enforce, prompt: "Accept the goblin enforcement contract", goto: accept_enforce, conditions: [ { none_of: [ { guild_contract_active: "c_enforce_goblin" }, { guild_contract_completed: "c_enforce_goblin" } ] } ] }
+            - { id: take_seal, prompt: "Accept the premium Royal Seal smuggling contract (Requires 80 Royal Scouts Prestige)", goto: accept_seal, conditions: [ { guild_prestige_gte: { guild: "royal_scouts", value: 80 } }, { none_of: [ { guild_contract_active: "c_smuggle_royal_seal" }, { guild_contract_completed: "c_smuggle_royal_seal" } ] } ] }
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_smuggle
+          npc_text: "Excellent. Smuggle the steel broadsword to the Castle Wall, then report back."
+          effects:
+            - accept_guild_contract:
+                id: c_smuggle_broadsword
+                guild: royal_scouts
+                type: smuggling
+                target: broadsword
+                target_room: castle_wall
+                reward_gold: 100
+                reward_prestige: 50
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_enforce
+          npc_text: "Defeat the Goblin Guard blocking the courtyard, then report back."
+          effects:
+            - accept_guild_contract:
+                id: c_enforce_goblin
+                guild: royal_scouts
+                type: enforcement
+                target: goblin_guard
+                reward_gold: 80
+                reward_prestige: 40
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_seal
+          npc_text: "A highly sensitive assignment. Smuggle the Royal Seal from the Library to the Castle Wall. Be careful."
+          effects:
+            - accept_guild_contract:
+                id: c_smuggle_royal_seal
+                guild: royal_scouts
+                type: smuggling
+                target: royal_seal
+                target_room: castle_wall
+                reward_gold: 200
+                reward_prestige: 80
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: smuggle_success
+          npc_text: "Splendid! The broadsword has been secured on the Castle Wall. Here is your reward."
+          effects:
+            - complete_guild_contract:
+                id: c_smuggle_broadsword
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: enforce_success
+          npc_text: "Outstanding work! The Goblin Guard has been handled. The Royal Scouts salute you."
+          effects:
+            - complete_guild_contract:
+                id: c_enforce_goblin
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: seal_success
+          npc_text: "Magnificent! The Royal Seal has been secured on the Castle Wall. You are now a legendary agent of the Royal Scouts."
+          effects:
+            - complete_guild_contract:
+                id: c_smuggle_royal_seal
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: prestige_info
+          npc_text: "Your prestige reflects your status with the Scouts. Earn more by completing contracts."
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: give_badge
+          npc_text: "You have earned the trust of the Royal Scouts. Wear this bronze badge with pride."
+          effects:
+            - add_item: scout_badge
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
 
 win_conditions:
   - id: save_kingdom

@@ -68,7 +68,7 @@ describe("Cycle 47 Integration Tests: Dialogue Gating & Strategic Trade Incentiv
 
   it("should evaluate alliance_is conditions correctly", () => {
     let state = createInitialState({ seed: 42, start: "market" });
-    
+
     // Default relationship is neutral
     const condAllied = {
       alliance_is: {

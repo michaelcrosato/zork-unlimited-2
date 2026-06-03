@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Peer Lending & Pooling (AF-183)", ()
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -56,7 +56,7 @@ describe("Syndicate SWF Reinsurance Options Peer Lending & Pooling (AF-183)", ()
         tranches: {
           senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -93,8 +93,22 @@ describe("Syndicate SWF Reinsurance Options Peer Lending & Pooling (AF-183)", ()
     });
 
     state.syndicates = {
-      alpha: { id: "alpha", name: "Alpha Syndicate", members: ["player"], definedBy: "player", timestamp: 1000, warChest: 5000 },
-      beta: { id: "beta", name: "Beta Syndicate", members: ["alice", "bob"], definedBy: "alice", timestamp: 1000, warChest: 20000 },
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 5000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["alice", "bob"],
+        definedBy: "alice",
+        timestamp: 1000,
+        warChest: 20000,
+      },
     };
 
     state.swfYieldCDOs = {
@@ -106,7 +120,7 @@ describe("Syndicate SWF Reinsurance Options Peer Lending & Pooling (AF-183)", ()
         tranches: {
           senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -180,8 +194,22 @@ describe("Syndicate SWF Reinsurance Options Peer Lending & Pooling (AF-183)", ()
     });
 
     state.syndicates = {
-      alpha: { id: "alpha", name: "Alpha Syndicate", members: ["player"], definedBy: "player", timestamp: 1000, warChest: 10000 },
-      beta: { id: "beta", name: "Beta Syndicate", members: ["alice"], definedBy: "alice", timestamp: 1000, warChest: 15000 },
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
+      beta: {
+        id: "beta",
+        name: "Beta Syndicate",
+        members: ["alice"],
+        definedBy: "alice",
+        timestamp: 1000,
+        warChest: 15000,
+      },
     };
 
     state.swfReinsuranceOptionPeerLendingRequests = {
@@ -232,7 +260,14 @@ describe("Syndicate SWF Reinsurance Options Peer Lending & Pooling (AF-183)", ()
     });
 
     state.syndicates = {
-      alpha: { id: "alpha", name: "Alpha Syndicate", members: ["player"], definedBy: "player", timestamp: 1000, warChest: 10000 },
+      alpha: {
+        id: "alpha",
+        name: "Alpha Syndicate",
+        members: ["player"],
+        definedBy: "player",
+        timestamp: 1000,
+        warChest: 10000,
+      },
     };
 
     state.creditRatings = {
@@ -287,7 +322,7 @@ describe("Syndicate SWF Reinsurance Options Peer Lending & Pooling (AF-183)", ()
         tranches: {
           senior: { trancheId: "senior", yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
           mezzanine: { trancheId: "mezzanine", yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity", yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          equity: { trancheId: "equity", yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },

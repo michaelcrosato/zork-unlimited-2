@@ -57,7 +57,8 @@ describe("AF-33: Dynamic Decentralized Alliance-Based Cooperative Defense and Co
     win_conditions: [],
     endings: [],
     network_templates: {
-      alliance_battle: "[ALLIANCE BATTLE] {roomId} has been captured by the allied forces of {newFaction}! (Defended by: {oldFaction})",
+      alliance_battle:
+        "[ALLIANCE BATTLE] {roomId} has been captured by the allied forces of {newFaction}! (Defended by: {oldFaction})",
     },
   };
 
@@ -68,16 +69,20 @@ describe("AF-33: Dynamic Decentralized Alliance-Based Cooperative Defense and Co
     });
 
     // 1. Factions are not allied yet. Bob tries to assist Rangers on behalf of Merchant Union
-    const resFail1 = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "ASSIST_CONQUEST",
-        roomId: "clearing",
-        factionId: "rangers",
-        assistingFactionId: "merchant_union",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail1 = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "ASSIST_CONQUEST",
+          roomId: "clearing",
+          factionId: "rangers",
+          assistingFactionId: "merchant_union",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail1.ok).toBe(false);
     expect(resFail1.rejectionReason).toContain("is not allied with");
 
@@ -90,16 +95,20 @@ describe("AF-33: Dynamic Decentralized Alliance-Based Cooperative Defense and Co
     state = reconcileAlliances(state, mockPack);
 
     // 3. Now assist should be valid!
-    const resOk = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "ASSIST_CONQUEST",
-        roomId: "clearing",
-        factionId: "rangers",
-        assistingFactionId: "merchant_union",
-        timestamp: 120,
-      } as any,
-    }, mockPack);
+    const resOk = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "ASSIST_CONQUEST",
+          roomId: "clearing",
+          factionId: "rangers",
+          assistingFactionId: "merchant_union",
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    );
     expect(resOk.ok).toBe(true);
     expect(resOk.state.territoryAssists?.["clearing"]?.["rangers"]).toContain("bob");
   });
@@ -119,31 +128,39 @@ describe("AF-33: Dynamic Decentralized Alliance-Based Cooperative Defense and Co
     state = reconcileAlliances(state, mockPack);
 
     // 1. Rangers (alice) claim outpost at t=100
-    const claimRes = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "CLAIM_TERRITORY",
-        roomId: "outpost",
-        factionId: "rangers",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const claimRes = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "CLAIM_TERRITORY",
+          roomId: "outpost",
+          factionId: "rangers",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(claimRes.ok).toBe(true);
     state = claimRes.state;
     expect(state.territoryClaims?.["outpost"]?.factionId).toBe("rangers");
     expect(state.territoryClaims?.["outpost"]?.allianceDefense).toBe(1);
 
     // 2. Bob assists Rangers (alliance defense) at t=120
-    const assistRes = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "ASSIST_CONQUEST",
-        roomId: "outpost",
-        factionId: "rangers",
-        assistingFactionId: "merchant_union",
-        timestamp: 120,
-      } as any,
-    }, mockPack);
+    const assistRes = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "ASSIST_CONQUEST",
+          roomId: "outpost",
+          factionId: "rangers",
+          assistingFactionId: "merchant_union",
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    );
     expect(assistRes.ok).toBe(true);
     state = assistRes.state;
     // Defense strength should now be 2 (1 base + 1 assistant)
@@ -154,30 +171,38 @@ describe("AF-33: Dynamic Decentralized Alliance-Based Cooperative Defense and Co
     // With 2 defense points, defense penalty = (2 - 1) * 1000 = 1000ms.
     // Attacker effectiveTimestamp = 1050 - 1000 = 50ms.
     // 50ms <= defender's 100ms claim => conquest should fail!
-    const conquerFail = multiAgentStep(state, {
-      agentId: "charlie",
-      action: {
-        type: "CLAIM_TERRITORY",
-        roomId: "outpost",
-        factionId: "shadow_guild",
-        timestamp: 1050,
-      } as any,
-    }, mockPack);
+    const conquerFail = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "CLAIM_TERRITORY",
+          roomId: "outpost",
+          factionId: "shadow_guild",
+          timestamp: 1050,
+        } as any,
+      },
+      mockPack
+    );
     expect(conquerFail.ok).toBe(false);
     expect(conquerFail.rejectionReason).toContain("stronger defense/timestamp");
 
     // 4. Shadow Guild (charlie) tries to conquer outpost at t=1150
     // Attacker effectiveTimestamp = 1150 - 1000 = 150ms.
     // 150ms > defender's 100ms claim => conquest should succeed!
-    const conquerOk = multiAgentStep(state, {
-      agentId: "charlie",
-      action: {
-        type: "CLAIM_TERRITORY",
-        roomId: "outpost",
-        factionId: "shadow_guild",
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    const conquerOk = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "CLAIM_TERRITORY",
+          roomId: "outpost",
+          factionId: "shadow_guild",
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(conquerOk.ok).toBe(true);
     expect(conquerOk.state.territoryClaims?.["outpost"]?.factionId).toBe("shadow_guild");
   });
@@ -254,6 +279,8 @@ describe("AF-33: Dynamic Decentralized Alliance-Based Cooperative Defense and Co
     // The shift in control from rangers (which was defended by bob) to shadow_guild
     // is detected as an ALLIANCE BATTLE!
     const journalStr = JSON.stringify(nodeA.localState.journal);
-    expect(journalStr).toContain("[ALLIANCE BATTLE] outpost has been captured by the allied forces of shadow_guild! (Defended by: rangers)");
+    expect(journalStr).toContain(
+      "[ALLIANCE BATTLE] outpost has been captured by the allied forces of shadow_guild! (Defended by: rangers)"
+    );
   });
 });

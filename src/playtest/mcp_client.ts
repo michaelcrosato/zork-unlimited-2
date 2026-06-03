@@ -18,9 +18,9 @@
  * ```
  */
 
-import { ChildProcess, spawn } from 'child_process';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { ChildProcess, spawn } from "child_process";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
 /** Shape of an adventure pack entry returned by `list_adventures`. */
 export interface AdventurePack {
@@ -66,7 +66,7 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 function getProjectRoot(): string {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
-  return resolve(__dirname, '..', '..');
+  return resolve(__dirname, "..", "..");
 }
 
 /**
@@ -82,11 +82,8 @@ function getProjectRoot(): string {
 export class McpGameClient {
   private server: ChildProcess | null = null;
   private messageId = 1;
-  private pendingRequests = new Map<
-    number,
-    { resolve: (res: McpResponse) => void; reject: (err: Error) => void }
-  >();
-  private buffer = '';
+  private pendingRequests = new Map<number, { resolve: (res: McpResponse) => void; reject: (err: Error) => void }>();
+  private buffer = "";
   private sessionId: string;
   private ready = false;
   private stderrLog: string[] = [];
@@ -99,7 +96,7 @@ export class McpGameClient {
    *   Defaults to `'blind-playtest'`.
    * @param timeoutMs - Request timeout in milliseconds. Defaults to 30 000.
    */
-  constructor(sessionId: string = 'blind-playtest', timeoutMs: number = DEFAULT_TIMEOUT_MS) {
+  constructor(sessionId: string = "blind-playtest", timeoutMs: number = DEFAULT_TIMEOUT_MS) {
     this.sessionId = sessionId;
     this.timeoutMs = timeoutMs;
   }
@@ -118,23 +115,23 @@ export class McpGameClient {
    */
   async connect(): Promise<void> {
     if (this.ready) {
-      throw new Error('McpGameClient is already connected. Call disconnect() first.');
+      throw new Error("McpGameClient is already connected. Call disconnect() first.");
     }
 
     const projectRoot = getProjectRoot();
-    const serverScript = resolve(projectRoot, 'src/bin/mcp-server.ts');
+    const serverScript = resolve(projectRoot, "src/bin/mcp-server.ts");
 
-    this.server = spawn('npx', ['tsx', serverScript], {
-      env: { ...process.env, PAGER: 'cat' },
+    this.server = spawn("npx", ["tsx", serverScript], {
+      env: { ...process.env, PAGER: "cat" },
       cwd: projectRoot,
-      stdio: ['pipe', 'pipe', 'pipe'],
+      stdio: ["pipe", "pipe", "pipe"],
     });
 
     // Wire up stdout JSON-RPC message parser.
     this.setupStdoutParser();
 
     // Collect stderr for debugging.
-    this.server.stderr?.on('data', (data: Buffer) => {
+    this.server.stderr?.on("data", (data: Buffer) => {
       const msg = data.toString().trim();
       if (msg) {
         this.stderrLog.push(msg);
@@ -142,27 +139,25 @@ export class McpGameClient {
     });
 
     // Handle unexpected process exit before we're done.
-    this.server.on('error', (err) => {
+    this.server.on("error", (err) => {
       this.rejectAllPending(new Error(`MCP server process error: ${err.message}`));
     });
 
-    this.server.on('close', (code) => {
+    this.server.on("close", (code) => {
       if (this.ready) {
         // Unexpected exit while we thought we were connected.
-        this.rejectAllPending(
-          new Error(`MCP server exited unexpectedly with code ${code ?? 'unknown'}`),
-        );
+        this.rejectAllPending(new Error(`MCP server exited unexpectedly with code ${code ?? "unknown"}`));
         this.ready = false;
       }
     });
 
     // MCP protocol handshake.
-    await this.sendRequest('initialize', {
-      protocolVersion: '2024-11-05',
+    await this.sendRequest("initialize", {
+      protocolVersion: "2024-11-05",
       capabilities: {},
-      clientInfo: { name: 'afk-mcp-playtest-client', version: '1.0.0' },
+      clientInfo: { name: "afk-mcp-playtest-client", version: "1.0.0" },
     });
-    this.sendNotification('notifications/initialized');
+    this.sendNotification("notifications/initialized");
 
     this.ready = true;
   }
@@ -175,7 +170,7 @@ export class McpGameClient {
   async listAdventures(): Promise<AdventurePack[]> {
     this.ensureReady();
 
-    const response = await this.callTool('list_adventures', {});
+    const response = await this.callTool("list_adventures", {});
     const text = this.extractText(response);
 
     try {
@@ -204,7 +199,7 @@ export class McpGameClient {
       args.seed = seed;
     }
 
-    const response = await this.callTool('start_new_game', args);
+    const response = await this.callTool("start_new_game", args);
     return this.extractText(response);
   }
 
@@ -216,7 +211,7 @@ export class McpGameClient {
   async getObservation(): Promise<string> {
     this.ensureReady();
 
-    const response = await this.callTool('get_current_observation', {
+    const response = await this.callTool("get_current_observation", {
       sessionId: this.sessionId,
     });
     return this.extractText(response);
@@ -232,7 +227,7 @@ export class McpGameClient {
   async executeAction(action: string): Promise<ActionResult> {
     this.ensureReady();
 
-    const response = await this.callTool('execute_action', {
+    const response = await this.callTool("execute_action", {
       action,
       sessionId: this.sessionId,
     });
@@ -251,7 +246,7 @@ export class McpGameClient {
   async saveGame(): Promise<string> {
     this.ensureReady();
 
-    const response = await this.callTool('save_game_state', {
+    const response = await this.callTool("save_game_state", {
       sessionId: this.sessionId,
     });
     return this.extractText(response);
@@ -266,7 +261,7 @@ export class McpGameClient {
   async loadGame(saveData: string): Promise<string> {
     this.ensureReady();
 
-    const response = await this.callTool('load_game_state', {
+    const response = await this.callTool("load_game_state", {
       saveData,
       sessionId: this.sessionId,
     });
@@ -283,7 +278,7 @@ export class McpGameClient {
    * @returns `true` if the game is over.
    */
   isGameOver(observationText: string): boolean {
-    return observationText.includes('💀☠️ GAME OVER');
+    return observationText.includes("💀☠️ GAME OVER");
   }
 
   /**
@@ -311,14 +306,14 @@ export class McpGameClient {
     this.ready = false;
 
     // Reject any still-pending requests.
-    this.rejectAllPending(new Error('McpGameClient disconnected'));
+    this.rejectAllPending(new Error("McpGameClient disconnected"));
 
     if (this.server) {
       const serverRef = this.server;
       this.server = null;
 
       // Give the process a moment to exit gracefully, then force-kill.
-      const killed = serverRef.kill('SIGTERM');
+      const killed = serverRef.kill("SIGTERM");
       if (!killed) {
         // Process may have already exited — that's fine.
         return;
@@ -328,21 +323,21 @@ export class McpGameClient {
       await new Promise<void>((resolvePromise) => {
         const timeout = setTimeout(() => {
           try {
-            serverRef.kill('SIGKILL');
+            serverRef.kill("SIGKILL");
           } catch {
             // Already dead.
           }
           resolvePromise();
         }, 2_000);
 
-        serverRef.on('close', () => {
+        serverRef.on("close", () => {
           clearTimeout(timeout);
           resolvePromise();
         });
       });
     }
 
-    this.buffer = '';
+    this.buffer = "";
     this.messageId = 1;
   }
 
@@ -356,14 +351,14 @@ export class McpGameClient {
    */
   private setupStdoutParser(): void {
     if (!this.server?.stdout) {
-      throw new Error('Server stdout is not available');
+      throw new Error("Server stdout is not available");
     }
 
-    this.server.stdout.on('data', (data: Buffer) => {
+    this.server.stdout.on("data", (data: Buffer) => {
       this.buffer += data.toString();
 
       while (true) {
-        const newlineIndex = this.buffer.indexOf('\n');
+        const newlineIndex = this.buffer.indexOf("\n");
         if (newlineIndex === -1) break;
 
         const line = this.buffer.substring(0, newlineIndex).trim();
@@ -397,30 +392,24 @@ export class McpGameClient {
    */
   private sendRequest(method: string, params: Record<string, unknown>): Promise<McpResponse> {
     if (!this.server?.stdin) {
-      throw new Error('Server stdin is not available — is the client connected?');
+      throw new Error("Server stdin is not available — is the client connected?");
     }
 
     const id = this.messageId++;
-    const request = { jsonrpc: '2.0' as const, id, method, params };
+    const request = { jsonrpc: "2.0" as const, id, method, params };
 
     return new Promise<McpResponse>((resolvePromise, rejectPromise) => {
       // Timeout guard.
       const timer = setTimeout(() => {
         this.pendingRequests.delete(id);
-        rejectPromise(
-          new Error(`MCP request timed out after ${this.timeoutMs}ms: ${method} (id=${id})`),
-        );
+        rejectPromise(new Error(`MCP request timed out after ${this.timeoutMs}ms: ${method} (id=${id})`));
       }, this.timeoutMs);
 
       this.pendingRequests.set(id, {
         resolve: (res: McpResponse) => {
           clearTimeout(timer);
           if (res.error) {
-            rejectPromise(
-              new Error(
-                `MCP JSON-RPC error [${res.error.code}]: ${res.error.message}`,
-              ),
-            );
+            rejectPromise(new Error(`MCP JSON-RPC error [${res.error.code}]: ${res.error.message}`));
           } else {
             resolvePromise(res);
           }
@@ -431,7 +420,7 @@ export class McpGameClient {
         },
       });
 
-      this.server!.stdin!.write(JSON.stringify(request) + '\n');
+      this.server!.stdin!.write(JSON.stringify(request) + "\n");
     });
   }
 
@@ -444,14 +433,14 @@ export class McpGameClient {
    */
   private sendNotification(method: string, params?: Record<string, unknown>): void {
     if (!this.server?.stdin) {
-      throw new Error('Server stdin is not available — is the client connected?');
+      throw new Error("Server stdin is not available — is the client connected?");
     }
 
-    const notification: Record<string, unknown> = { jsonrpc: '2.0', method };
+    const notification: Record<string, unknown> = { jsonrpc: "2.0", method };
     if (params !== undefined) {
       notification.params = params;
     }
-    this.server.stdin.write(JSON.stringify(notification) + '\n');
+    this.server.stdin.write(JSON.stringify(notification) + "\n");
   }
 
   /**
@@ -461,11 +450,8 @@ export class McpGameClient {
    * @param args - The tool's argument object.
    * @returns The MCP response.
    */
-  private async callTool(
-    toolName: string,
-    args: Record<string, unknown>,
-  ): Promise<McpResponse> {
-    return this.sendRequest('tools/call', { name: toolName, arguments: args });
+  private async callTool(toolName: string, args: Record<string, unknown>): Promise<McpResponse> {
+    return this.sendRequest("tools/call", { name: toolName, arguments: args });
   }
 
   /**
@@ -475,7 +461,7 @@ export class McpGameClient {
    * @returns The text string, or an empty string if none is present.
    */
   private extractText(response: McpResponse): string {
-    return response.result?.content?.[0]?.text ?? '';
+    return response.result?.content?.[0]?.text ?? "";
   }
 
   /**
@@ -483,7 +469,7 @@ export class McpGameClient {
    */
   private ensureReady(): void {
     if (!this.ready) {
-      throw new Error('McpGameClient is not connected. Call connect() first.');
+      throw new Error("McpGameClient is not connected. Call connect() first.");
     }
   }
 

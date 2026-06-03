@@ -454,7 +454,7 @@ describe("Multi-Agent Telemetry & Real-Time Sync Tests", () => {
     state = res.state;
 
     expect(state.transactionJournal).toHaveLength(2);
-    
+
     // Check successful transaction
     const t0 = state.transactionJournal![0];
     expect(t0.agentId).toBe("explorer_alpha");
@@ -471,5 +471,77 @@ describe("Multi-Agent Telemetry & Real-Time Sync Tests", () => {
     expect(t1.action.type).toBe("TAKE");
     expect(t1.ok).toBe(false);
     expect(t1.rejectionReason).toBeDefined();
+  });
+
+  it("should support agent-to-agent item exchange (GIVE_AGENT) under correct room constraints", () => {
+    let state = createInitialState({
+      seed: 42,
+      start: "clearing",
+      agentsInit: ["agent_a", "agent_b"],
+      flagsInit: pack.meta.flags_init,
+      varsInit: pack.meta.vars_init,
+    });
+
+    // Manually register some items in agent_a's inventory
+    state.agents!["agent_a"].inventory = ["vault_key"];
+
+    // 1. Success case: Giver and Receiver are both in "clearing"
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "agent_a",
+        action: { type: "GIVE_AGENT", targetAgentId: "agent_b", item: "vault_key", timestamp: 1000 } as any,
+      },
+      pack
+    );
+
+    expect(res.ok).toBe(true);
+    expect(res.state.agents!["agent_a"].inventory).not.toContain("vault_key");
+    expect(res.state.agents!["agent_b"].inventory).toContain("vault_key");
+    expect(res.state.transactionJournal).toBeDefined();
+    expect(res.state.transactionJournal!.slice(-1)[0].ok).toBe(true);
+
+    // Update state to result of first step
+    state = res.state;
+
+    // 2. Failure case: Giver doesn't have the item anymore
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "agent_a",
+        action: { type: "GIVE_AGENT", targetAgentId: "agent_b", item: "vault_key", timestamp: 1001 } as any,
+      },
+      pack
+    );
+    expect(res.ok).toBe(false);
+    expect(res.rejectionReason).toContain("Giver does not have item");
+
+    // 3. Failure case: Giver and Receiver are in different rooms
+    // Move agent_a to control_room
+    const moveRes = multiAgentStep(
+      state,
+      {
+        agentId: "agent_a",
+        action: { type: "MOVE", direction: "west" },
+      },
+      pack
+    );
+    expect(moveRes.ok).toBe(true);
+    state = moveRes.state;
+
+    // Put item back in agent_a's inventory
+    state.agents!["agent_a"].inventory = ["vault_key"];
+
+    // Attempt trade while in different rooms (agent_a in control_room, agent_b in clearing)
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "agent_a",
+        action: { type: "GIVE_AGENT", targetAgentId: "agent_b", item: "vault_key", timestamp: 1002 } as any,
+      },
+      pack
+    );
+    expect(res.ok).toBe(false);
+    expect(res.rejectionReason).toContain("must be in the same room to trade");
   });
 });

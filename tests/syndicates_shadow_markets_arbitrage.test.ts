@@ -37,7 +37,7 @@ describe("Crime Syndicate Shadow Markets, Arbitrage & Underwriter Sabotage (AF-7
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [
       {
@@ -45,7 +45,7 @@ describe("Crime Syndicate Shadow Markets, Arbitrage & Underwriter Sabotage (AF-7
         name: "Contraband Spice",
         description: "Highly illegal spice.",
         contraband: true,
-      }
+      },
     ],
     npcs: [],
   });
@@ -168,7 +168,7 @@ describe("Crime Syndicate Shadow Markets, Arbitrage & Underwriter Sabotage (AF-7
         definedBy: "npc_rival",
         timestamp: 1000,
         dominance: 30,
-      }
+      },
     };
 
     // Set up active defense policies in room 'market' belonging to synd_rival
@@ -179,7 +179,7 @@ describe("Crime Syndicate Shadow Markets, Arbitrage & Underwriter Sabotage (AF-7
         amount: 200,
         timestamp: 1000,
         active: true,
-      }
+      },
     };
 
     state.deflectionPolicies = {
@@ -189,7 +189,7 @@ describe("Crime Syndicate Shadow Markets, Arbitrage & Underwriter Sabotage (AF-7
         cost: 300,
         timestamp: 1000,
         active: true,
-      }
+      },
     };
 
     state.smugglingInsurance = {
@@ -199,7 +199,7 @@ describe("Crime Syndicate Shadow Markets, Arbitrage & Underwriter Sabotage (AF-7
         syndicateId: "synd_rival",
         active: true,
         timestamp: 1000,
-      } as any
+      } as any,
     };
 
     // 1. Sabotage Underwriter action

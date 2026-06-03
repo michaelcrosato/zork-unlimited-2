@@ -46,30 +46,25 @@ export class ApiLlmClient implements LlmClient {
     }
   }
 
-  private async callGemini<T>(
-    system: string,
-    input: string,
-    schema: unknown,
-    seed?: number
-  ): Promise<T> {
+  private async callGemini<T>(system: string, input: string, schema: unknown, seed?: number): Promise<T> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
-    
+
     const body = {
       systemInstruction: {
-        parts: [{ text: system }]
+        parts: [{ text: system }],
       },
       contents: [
         {
           role: "user",
-          parts: [{ text: input }]
-        }
+          parts: [{ text: input }],
+        },
       ],
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: schema,
         temperature: 0.1,
-        ...(seed !== undefined ? { seed } : {})
-      }
+        ...(seed !== undefined ? { seed } : {}),
+      },
     };
 
     const res = await fetch(url, {
@@ -92,37 +87,32 @@ export class ApiLlmClient implements LlmClient {
     return JSON.parse(text) as T;
   }
 
-  private async callOpenAi<T>(
-    system: string,
-    input: string,
-    schema: unknown,
-    seed?: number
-  ): Promise<T> {
+  private async callOpenAi<T>(system: string, input: string, schema: unknown, seed?: number): Promise<T> {
     const url = "https://api.openai.com/v1/chat/completions";
 
     const body = {
       model: this.model,
       messages: [
         { role: "system", content: system },
-        { role: "user", content: input }
+        { role: "user", content: input },
       ],
       response_format: {
         type: "json_schema",
         json_schema: {
           name: "structured_output",
           schema: schema,
-          strict: true
-        }
+          strict: true,
+        },
       },
       temperature: 0.1,
-      ...(seed !== undefined ? { seed } : {})
+      ...(seed !== undefined ? { seed } : {}),
     };
 
     const res = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${this.apiKey}`
+        Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(body),
     });
@@ -181,7 +171,18 @@ export class FallbackLlmClient implements LlmClient {
     schema: unknown;
     seed?: number;
   }): Promise<T> {
-    return this.activeClient.completeJson<T>(request);
+    try {
+      return await this.activeClient.completeJson<T>(request);
+    } catch (err) {
+      if (this.activeClient instanceof ApiLlmClient) {
+        console.warn(
+          `⚠️ FallbackLlmClient: ApiLlmClient failed (Error: ${err instanceof Error ? err.message : String(err)}). Falling back to MockLlmClient.`
+        );
+        this.activeClient = new MockLlmClient();
+        this.isFallback = true;
+        return this.activeClient.completeJson<T>(request);
+      }
+      throw err;
+    }
   }
 }
-

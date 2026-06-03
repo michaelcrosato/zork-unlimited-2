@@ -12,7 +12,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
   it("should calculate correct next-hop routes in a linear chain topology", () => {
     // Topology: A - B - C - D
     const net = new MeshNetwork();
-    
+
     const nodeA = new MeshNode("A", pack, 42);
     const nodeB = new MeshNode("B", pack, 42);
     const nodeC = new MeshNode("C", pack, 42);
@@ -68,7 +68,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
   it("should calculate correct next-hop routes in a redundant loop/ring topology", () => {
     // Topology: A - B - C - D - A
     const net = new MeshNetwork();
-    
+
     const nodeA = new MeshNode("A", pack, 42);
     const nodeB = new MeshNode("B", pack, 42);
     const nodeC = new MeshNode("C", pack, 42);
@@ -171,7 +171,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
   it("should handle graceful peer leaving and dynamically prune routing tables", () => {
     // Topology: A - B - C
     const net = new MeshNetwork();
-    
+
     const nodeA = new MeshNode("A", pack, 42);
     const nodeB = new MeshNode("B", pack, 42);
     const nodeC = new MeshNode("C", pack, 42);
@@ -214,12 +214,12 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
       network_templates: {
         arrival: "A mysterious rift opens as {peerId} joins the fray.",
         departure: "{peerId} vanishes into thin air.",
-        sync: "Cosmic energy surges as we sync state with {peerId}."
-      }
+        sync: "Cosmic energy surges as we sync state with {peerId}.",
+      },
     };
 
     const net = new MeshNetwork();
-    
+
     // Create MeshNodes using our customPack
     const nodeA = new MeshNode("A", customPack, 42);
     const nodeB = new MeshNode("B", customPack, 42);
@@ -239,7 +239,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     const eventsA = nodeA.flushPendingEvents();
     expect(eventsA).toContainEqual({
       type: "narration",
-      text: "A mysterious rift opens as B joins the fray."
+      text: "A mysterious rift opens as B joins the fray.",
     });
 
     // Verify it is stored in the persistent logs
@@ -250,7 +250,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     const eventsB = nodeB.flushPendingEvents();
     expect(eventsB).toContainEqual({
       type: "narration",
-      text: "A mysterious rift opens as A joins the fray."
+      text: "A mysterious rift opens as A joins the fray.",
     });
 
     // Now, let's execute an action on B and sync to trigger a "sync" event on A.
@@ -269,7 +269,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     const newEventsA = nodeA.flushPendingEvents();
     expect(newEventsA).toContainEqual({
       type: "narration",
-      text: "Cosmic energy surges as we sync state with B."
+      text: "Cosmic energy surges as we sync state with B.",
     });
     expect(nodeA.localState.cooperativeSyncLog).toContain("Cosmic energy surges as we sync state with B.");
 
@@ -283,7 +283,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     const departureEventsA = nodeA.flushPendingEvents();
     expect(departureEventsA).toContainEqual({
       type: "narration",
-      text: "B vanishes into thin air."
+      text: "B vanishes into thin air.",
     });
     expect(nodeA.localState.cooperativeSyncLog).toContain("B vanishes into thin air.");
   });
@@ -334,7 +334,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
   it("should dynamically repair routes when a physical link fails silently and deliver gossip via a fallback path", () => {
     // Topology: Redundant diamond loop: A - B - C, A - D - C
     const net = new MeshNetwork();
-    
+
     const nodeA = new MeshNode("A", pack, 42);
     const nodeB = new MeshNode("B", pack, 42);
     const nodeC = new MeshNode("C", pack, 42);
@@ -404,7 +404,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
   it("should timeout pending heartbeats and trigger automatic route repair to route via redundant fallback paths", () => {
     // Topology: A - B - C, A - D - C
     const net = new MeshNetwork();
-    
+
     const nodeA = new MeshNode("A", pack, 42);
     const nodeB = new MeshNode("B", pack, 42);
     const nodeC = new MeshNode("C", pack, 42);
@@ -490,7 +490,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
 
     // A new heartbeat sent after repair should succeed and route via fallbackHop
     nodeA.sendHeartbeat("C");
-    
+
     // Tick to deliver
     for (let i = 0; i < 25; i++) {
       net.tick(50);
@@ -557,15 +557,17 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     netPriority.maxPacketsPerTick = 2;
     netPriority.minLatencyMs = 20;
     netPriority.maxLatencyMs = 20; // Constant latency for perfect determinism in benchmarks
-    
+
     const nodeA1 = new MeshNode("A", pack, 42);
     const nodeB1 = new MeshNode("B", pack, 42);
     netPriority.registerNode(nodeA1);
     netPriority.registerNode(nodeB1);
     netPriority.connectNodes("A", "B");
-    
+
     // Propagate presence
-    for (let i = 0; i < 5; i++) { netPriority.tick(20); }
+    for (let i = 0; i < 5; i++) {
+      netPriority.tick(20);
+    }
 
     // Execute local action on A1 to change state
     nodeA1.executeLocalAction({ type: "MOVE", direction: "west" });
@@ -608,7 +610,9 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     netNoPriority.connectNodes("A", "B");
 
     // Propagate presence
-    for (let i = 0; i < 5; i++) { netNoPriority.tick(20); }
+    for (let i = 0; i < 5; i++) {
+      netNoPriority.tick(20);
+    }
 
     // Execute same action
     nodeA2.executeLocalAction({ type: "MOVE", direction: "west" });
@@ -702,26 +706,32 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
 
   it("should update lastSeen even for older or duplicate presence announcements if the resolved time is newer", () => {
     const discovery = new NetworkDiscovery("A");
-    
+
     // Add initial presence
-    discovery.updateTopology({
-      nodeId: "B",
-      sequenceNumber: 5,
-      neighbors: ["A"],
-      timestamp: 100
-    }, 100);
+    discovery.updateTopology(
+      {
+        nodeId: "B",
+        sequenceNumber: 5,
+        neighbors: ["A"],
+        timestamp: 100,
+      },
+      100
+    );
 
     const record1 = discovery.topology.get("B")!;
     expect(record1.seq).toBe(5);
     expect(record1.lastSeen).toBe(100);
 
     // Update with older sequence number (e.g. 4) but a newer lastSeen (e.g. 200)
-    discovery.updateTopology({
-      nodeId: "B",
-      sequenceNumber: 4,
-      neighbors: ["A"],
-      timestamp: 50
-    }, 200);
+    discovery.updateTopology(
+      {
+        nodeId: "B",
+        sequenceNumber: 4,
+        neighbors: ["A"],
+        timestamp: 50,
+      },
+      200
+    );
 
     // Sequence number should remain 5, but lastSeen should be updated to 200!
     const record2 = discovery.topology.get("B")!;
@@ -792,7 +802,7 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     // If we send it again directly to C, C should drop it
     const initialReceived = nodeC.packetsReceivedCount;
     const initialDropped = nodeC.duplicatePacketsDroppedCount;
-    
+
     nodeC.receivePacket(packet);
     expect(nodeC.packetsReceivedCount).toBe(initialReceived);
     expect(nodeC.duplicatePacketsDroppedCount).toBe(initialDropped + 1);
@@ -838,4 +848,3 @@ describe("Decentralized Network Discovery & Multi-Hop Peer Routing Tests", () =>
     expect(node.duplicatePacketsDroppedCount).toBe(1); // duplicate count stays at 1
   });
 });
-

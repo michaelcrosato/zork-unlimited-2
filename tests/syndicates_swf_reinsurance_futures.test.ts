@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Futures & Volatility-Hedged Premium Policy (
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Reinsurance Futures & Volatility-Hedged Premium Policy (
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -215,6 +215,6 @@ describe("Syndicate SWF Reinsurance Futures & Volatility-Hedged Premium Policy (
     const settledFut = settledState.swfReinsuranceFuturesContracts?.["fut_1"];
     expect(settledFut?.active).toBe(false);
     expect(settledState.syndicates?.["cartel"]?.warChest).toBe(4460);
-    expect(settledState.journal?.some(log => log.includes("[SWF Reinsurance Futures Settled]"))).toBe(true);
+    expect(settledState.journal?.some((log) => log.includes("[SWF Reinsurance Futures Settled]"))).toBe(true);
   });
 });

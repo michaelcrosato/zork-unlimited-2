@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Dynamic Capital Sa
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Dynamic Capital Sa
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -123,9 +123,9 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Dynamic Capital Sa
       swfYieldCdoId: "cdo_1",
       trancheId: "senior",
       liquidationThreshold: 0.85,
-      penaltyRate: 0.20,
+      penaltyRate: 0.2,
       autoDeleveragingThreshold: 0.35,
-      marginDeflectionFactor: 0.40,
+      marginDeflectionFactor: 0.4,
       compoundingFactor: 0.25,
       compoundingYieldRate: 0.08,
       stressReserveScalingLimit: 25.0, // Trigger limit
@@ -153,14 +153,14 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Dynamic Capital Sa
     // 2. Scenario A: Volatility shock is high (30.0 >= 25.0 limit)
     // Setup stress test policy triggering the shock
     state.swfReinsuranceOptionStressTestPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         simulatedVolatilityShock: 30.0,
         simulatedLiquidityShock: 0,
         reserveMultiplier: 1.0,
         timestamp: 1002,
-      }
+      },
     };
 
     // Ticking the economy should trigger automated safety capital transfer!
@@ -170,9 +170,13 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Dynamic Capital Sa
     let tickedState = tickEconomy(state, mockPack);
     expect(tickedState.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault).toBe(340);
     expect(tickedState.swfReinsuranceOptionVolatilityInsurancePools?.["cdo_1_senior"]?.balance).toBe(200);
-    
+
     // Assert transfer log is in the journal
-    expect(tickedState.journal?.some(j => j.includes("[SWF Safety Capital Transfer]") && j.includes("Transferred 200 gold"))).toBe(true);
+    expect(
+      tickedState.journal?.some(
+        (j) => j.includes("[SWF Safety Capital Transfer]") && j.includes("Transferred 200 gold")
+      )
+    ).toBe(true);
 
     // 3. Scenario B: Volatility shock is normal/low (15.0 < 25.0 limit)
     // Set simulated volatility to 15.0
@@ -184,7 +188,7 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Dynamic Capital Sa
     // Vault balance earns 8% interest on 340 gold (340 -> 367). Pool balance remains 200. No new transfer.
     expect(tickedStateLow.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault).toBe(367);
     expect(tickedStateLow.swfReinsuranceOptionVolatilityInsurancePools?.["cdo_1_senior"]?.balance).toBe(200);
-    expect(tickedStateLow.journal?.some(j => j.includes("[SWF Safety Capital Transfer]"))).toBe(false);
+    expect(tickedStateLow.journal?.some((j) => j.includes("[SWF Safety Capital Transfer]"))).toBe(false);
 
     // 4. Scenario C: Insufficient vault funds
     // Reset volatility shock to high (30.0)
@@ -200,6 +204,10 @@ describe("Syndicate SWF Reinsurance Options Stress-Test-Aware Dynamic Capital Sa
     // Vault becomes 0, pool balance becomes 50 + 54 = 104 gold
     expect(tickedStateCap.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault).toBe(0);
     expect(tickedStateCap.swfReinsuranceOptionVolatilityInsurancePools?.["cdo_1_senior"]?.balance).toBe(104);
-    expect(tickedStateCap.journal?.some(j => j.includes("[SWF Safety Capital Transfer]") && j.includes("Transferred 54 gold"))).toBe(true);
+    expect(
+      tickedStateCap.journal?.some(
+        (j) => j.includes("[SWF Safety Capital Transfer]") && j.includes("Transferred 54 gold")
+      )
+    ).toBe(true);
   });
 });

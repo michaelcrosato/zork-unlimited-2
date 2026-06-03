@@ -61,12 +61,20 @@ describe("Syndicate Decentralized Liquidity Pool Auditing & Anti-Deficit Stabili
     expect(res1.rejectionReason).toContain("does not exist");
 
     // 2. Non-member agent vote validation
-    let res2 = multiAgentStep(state, { agentId: "bob", action: { ...act1, syndicateId: "iron_claws" } as any }, mockPack);
+    let res2 = multiAgentStep(
+      state,
+      { agentId: "bob", action: { ...act1, syndicateId: "iron_claws" } as any },
+      mockPack
+    );
     expect(res2.ok).toBe(false);
     expect(res2.rejectionReason).toContain("is not a member");
 
     // 3. Invalid consensual deficit margin (negative)
-    let res3 = multiAgentStep(state, { agentId: "player", action: { ...act1, syndicateId: "iron_claws", consensualDeficitMargin: -100 } as any }, mockPack);
+    let res3 = multiAgentStep(
+      state,
+      { agentId: "player", action: { ...act1, syndicateId: "iron_claws", consensualDeficitMargin: -100 } as any },
+      mockPack
+    );
     expect(res3.ok).toBe(false);
     expect(res3.rejectionReason).toContain("must be a non-negative integer");
 
@@ -170,7 +178,7 @@ describe("Syndicate Decentralized Liquidity Pool Auditing & Anti-Deficit Stabili
     // Audit status becomes "Stabilized"
     expect(audit?.status).toBe("Stabilized");
     expect(audit?.deficitAmount).toBe(300);
-    expect(res1.state.journal.some(j => j.includes("Automated stabilization triggered"))).toBe(true);
+    expect(res1.state.journal.some((j) => j.includes("Automated stabilization triggered"))).toBe(true);
   });
 
   it("should trigger automated stabilization inside tickEconomy on reserve audits", () => {

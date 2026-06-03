@@ -42,7 +42,7 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Pro-Rata Rehab Sub
             },
           ],
         },
-      }
+      },
     ],
   });
 
@@ -83,7 +83,15 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Pro-Rata Rehab Sub
 
     // Verify initial reputation and tariff multiplier
     expect(state.factionRep?.rangers).toBeFalsy();
-    const initialPrice = calculateTradePrice(state, mockPack.npcs[0], { id: "item_gem", base_value: 100 }, 100, true, "player", mockPack);
+    const initialPrice = calculateTradePrice(
+      state,
+      mockPack.npcs[0],
+      { id: "item_gem", base_value: 100 },
+      100,
+      true,
+      "player",
+      mockPack
+    );
     expect(initialPrice).toBeGreaterThan(100); // tariff applied since player has no standing or license
 
     // 1. Lock 3000 gold in a loyalty bond for Rangers
@@ -107,7 +115,15 @@ describe("Syndicate Bank Leverage Liquidity Mining Governance Pro-Rata Rehab Sub
     expect(standing).toBe(30);
 
     // Verify automatic tariff waiver is active
-    const waivedPrice = calculateTradePrice(res.state, mockPack.npcs[0], { id: "item_gem", base_value: 100 }, 100, true, "player", mockPack);
+    const waivedPrice = calculateTradePrice(
+      res.state,
+      mockPack.npcs[0],
+      { id: "item_gem", base_value: 100 },
+      100,
+      true,
+      "player",
+      mockPack
+    );
     expect(waivedPrice).toBe(100); // base price with 0% tariff (waived!)
   });
 

@@ -21,7 +21,7 @@ describe("Syndicate SWF Yield CDO CDS Tranche Reinsurance Secondary Trading Mark
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -223,7 +223,7 @@ describe("Syndicate SWF Yield CDO CDS Tranche Reinsurance Secondary Trading Mark
         swfYieldCdoId: "swf_cdo_1",
         trancheId: "mezzanine",
         coverageAmount: 500,
-        premiumRate: 0.10,
+        premiumRate: 0.1,
         timestamp: 1000,
         active: true,
       },

@@ -97,58 +97,74 @@ describe("Decentralized Faction Merchant Licensing and Tariff System Tests", () 
     expect(state.merchantLicensings).toBeUndefined();
 
     // 1. Try defining with invalid faction
-    const resFail1 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "unknown_faction",
-        licenseCost: 50,
-        tariffRate: 15,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail1 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "unknown_faction",
+          licenseCost: 50,
+          tariffRate: 15,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail1.ok).toBe(false);
     expect(resFail1.rejectionReason).toContain("is not a valid faction");
 
     // 2. Try defining with negative cost
-    const resFail2 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: -10,
-        tariffRate: 15,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: -10,
+          tariffRate: 15,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail2.ok).toBe(false);
     expect(resFail2.rejectionReason).toContain("must be a non-negative integer");
 
     // 3. Try defining with negative tariff
-    const resFail3 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 50,
-        tariffRate: -5,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail3 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 50,
+          tariffRate: -5,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail3.ok).toBe(false);
     expect(resFail3.rejectionReason).toContain("must be a non-negative integer");
 
     // 4. Valid definition
-    const resOk1 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 40,
-        tariffRate: 10,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resOk1 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 40,
+          tariffRate: 10,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resOk1.ok).toBe(true);
     expect(resOk1.state.merchantLicensings?.["rangers"]).toEqual({
       factionId: "rangers",
@@ -165,16 +181,20 @@ describe("Decentralized Faction Merchant Licensing and Tariff System Tests", () 
     expect(resOk1.state.tariffPolicy?.["rangers"]).toBe(10);
 
     // 5. LWW overwrite with higher timestamp
-    const resOk2 = multiAgentStep(resOk1.state, {
-      agentId: "bob",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 60,
-        tariffRate: 20,
-        timestamp: 200,
-      } as any,
-    }, mockPack);
+    const resOk2 = multiAgentStep(
+      resOk1.state,
+      {
+        agentId: "bob",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 60,
+          tariffRate: 20,
+          timestamp: 200,
+        } as any,
+      },
+      mockPack
+    );
     expect(resOk2.ok).toBe(true);
     expect(resOk2.state.merchantLicensings?.["rangers"]).toEqual({
       factionId: "rangers",
@@ -186,16 +206,20 @@ describe("Decentralized Faction Merchant Licensing and Tariff System Tests", () 
     expect(resOk2.state.tariffPolicy?.["rangers"]).toBe(20);
 
     // 6. Outdated timestamp should be ignored
-    const resOk3 = multiAgentStep(resOk2.state, {
-      agentId: "charlie",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 50,
-        tariffRate: 15,
-        timestamp: 150, // 150 < 200
-      } as any,
-    }, mockPack);
+    const resOk3 = multiAgentStep(
+      resOk2.state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 50,
+          tariffRate: 15,
+          timestamp: 150, // 150 < 200
+        } as any,
+      },
+      mockPack
+    );
     expect(resOk3.ok).toBe(true);
     expect(resOk3.state.merchantLicensings?.["rangers"]?.definedBy).toBe("bob");
   });
@@ -208,42 +232,54 @@ describe("Decentralized Faction Merchant Licensing and Tariff System Tests", () 
     });
 
     // Setup base licensing definition
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 50,
-        tariffRate: 10,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 50,
+          tariffRate: 10,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     expect(state.tariffPolicy?.["rangers"]).toBe(10);
 
     // Vote 1: Bob votes 25%
-    state = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "VOTE_MERCHANT_TARIFF",
-        factionId: "rangers",
-        tariffRate: 25,
-        timestamp: 110,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "VOTE_MERCHANT_TARIFF",
+          factionId: "rangers",
+          tariffRate: 25,
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    ).state;
     // Tie between 10 and 25. Sort descending means 25 wins!
     expect(state.tariffPolicy?.["rangers"]).toBe(25);
 
     // Vote 2: Charlie votes 10%
-    state = multiAgentStep(state, {
-      agentId: "charlie",
-      action: {
-        type: "VOTE_MERCHANT_TARIFF",
-        factionId: "rangers",
-        tariffRate: 10,
-        timestamp: 120,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "charlie",
+        action: {
+          type: "VOTE_MERCHANT_TARIFF",
+          factionId: "rangers",
+          tariffRate: 10,
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    ).state;
     // Two votes for 10%, one vote for 25%. Majority is 10%!
     expect(state.tariffPolicy?.["rangers"]).toBe(10);
   });
@@ -257,89 +293,117 @@ describe("Decentralized Faction Merchant Licensing and Tariff System Tests", () 
     });
 
     // 1. Try to buy before license is defined
-    const resFail1 = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "BUY_MERCHANT_LICENSE",
-        factionId: "rangers",
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail1 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BUY_MERCHANT_LICENSE",
+          factionId: "rangers",
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail1.ok).toBe(false);
     expect(resFail1.rejectionReason).toContain("does not exist in state");
 
     // Define the license rules
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 50,
-        tariffRate: 15,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 50,
+          tariffRate: 15,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // 2. Try to buy with insufficient gold
     state.vars["gold"] = 20; // license costs 50
-    const resFail2 = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "BUY_MERCHANT_LICENSE",
-        factionId: "rangers",
-        timestamp: 110,
-      } as any,
-    }, mockPack);
+    const resFail2 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BUY_MERCHANT_LICENSE",
+          factionId: "rangers",
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail2.ok).toBe(false);
     expect(resFail2.rejectionReason).toContain("Insufficient gold");
 
     // 3. Successful purchase for player
     state.vars["gold"] = 100;
-    const resOk1 = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "BUY_MERCHANT_LICENSE",
-        factionId: "rangers",
-        timestamp: 120,
-      } as any,
-    }, mockPack);
+    const resOk1 = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BUY_MERCHANT_LICENSE",
+          factionId: "rangers",
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    );
     expect(resOk1.ok).toBe(true);
     expect(resOk1.state.vars["gold"]).toBe(50); // 100 - 50 cost
     expect(resOk1.state.merchantLicenses?.["player"]).toContain("rangers");
 
     // 4. Try to purchase twice
-    const resFail3 = multiAgentStep(resOk1.state, {
-      agentId: "player",
-      action: {
-        type: "BUY_MERCHANT_LICENSE",
-        factionId: "rangers",
-        timestamp: 130,
-      } as any,
-    }, mockPack);
+    const resFail3 = multiAgentStep(
+      resOk1.state,
+      {
+        agentId: "player",
+        action: {
+          type: "BUY_MERCHANT_LICENSE",
+          factionId: "rangers",
+          timestamp: 130,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail3.ok).toBe(false);
     expect(resFail3.rejectionReason).toContain("already has a license");
 
     // 5. Successful purchase for peer agent (Bob)
-    const resBob = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "BUY_MERCHANT_LICENSE",
-        factionId: "rangers",
-        timestamp: 120,
-      } as any,
-    }, mockPack);
+    const resBob = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "BUY_MERCHANT_LICENSE",
+          factionId: "rangers",
+          timestamp: 120,
+        } as any,
+      },
+      mockPack
+    );
     // Bob starts with 30 gold (gold_bob). License costs 50, so Bob fails first:
     expect(resBob.ok).toBe(false);
 
     state.vars["gold_bob"] = 80;
-    const resBobOk = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "BUY_MERCHANT_LICENSE",
-        factionId: "rangers",
-        timestamp: 125,
-      } as any,
-    }, mockPack);
+    const resBobOk = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "BUY_MERCHANT_LICENSE",
+          factionId: "rangers",
+          timestamp: 125,
+        } as any,
+      },
+      mockPack
+    );
     expect(resBobOk.ok).toBe(true);
     expect(resBobOk.state.vars["gold_bob"]).toBe(30); // 80 - 50 cost
     expect(resBobOk.state.merchantLicenses?.["bob"]).toContain("rangers");
@@ -362,16 +426,20 @@ describe("Decentralized Faction Merchant Licensing and Tariff System Tests", () 
     expect(baseBuy).toBe(100);
 
     // 2. Define licensing rules (50 cost, 20% tariff rate)
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "DEFINE_MERCHANT_LICENSING",
-        factionId: "rangers",
-        licenseCost: 50,
-        tariffRate: 20,
-        timestamp: 100,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "DEFINE_MERCHANT_LICENSING",
+          factionId: "rangers",
+          licenseCost: 50,
+          tariffRate: 20,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Unlicensed BUY: cost is increased by 20%
     const unlicensedBuy = calculateTradePrice(state, npc, packObj, 100, true, "player");
@@ -382,14 +450,18 @@ describe("Decentralized Faction Merchant Licensing and Tariff System Tests", () 
     expect(unlicensedSell).toBe(80); // 100 * 0.8 = 80
 
     // 3. Grant player a license
-    state = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "BUY_MERCHANT_LICENSE",
-        factionId: "rangers",
-        timestamp: 110,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BUY_MERCHANT_LICENSE",
+          factionId: "rangers",
+          timestamp: 110,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Licensed BUY: no tariff applied!
     const licensedBuy = calculateTradePrice(state, npc, packObj, 100, true, "player");

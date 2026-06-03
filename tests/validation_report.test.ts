@@ -18,9 +18,7 @@ describe("formatValidationReport", () => {
     const report: ValidationReport = {
       pack_id: "test-pack",
       ok: true,
-      findings: [
-        { severity: "warning", code: "W001", message: "Unused scene", where: ["scene_3"] },
-      ],
+      findings: [{ severity: "warning", code: "W001", message: "Unused scene", where: ["scene_3"] }],
     };
     const output = formatValidationReport(report);
     expect(output).toContain("SUCCESS");
@@ -57,9 +55,7 @@ describe("formatValidationReport", () => {
     const report: ValidationReport = {
       pack_id: "info-pack",
       ok: true,
-      findings: [
-        { severity: "info", code: "I001", message: "All scenes reachable", where: ["graph"] },
-      ],
+      findings: [{ severity: "info", code: "I001", message: "All scenes reachable", where: ["graph"] }],
     };
     const output = formatValidationReport(report);
     expect(output).toContain("INFO");

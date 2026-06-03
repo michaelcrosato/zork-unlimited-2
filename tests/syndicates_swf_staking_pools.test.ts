@@ -125,8 +125,8 @@ describe("Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions (AF
         timestamp: 1000,
         swfStakingEnabled: true,
         swfStakingTargets: {
-          rangers: 50,       // 50% of 600 buffer = 300 gold
-          shadow_guild: 20,  // 20% of 600 buffer = 120 gold
+          rangers: 50, // 50% of 600 buffer = 300 gold
+          shadow_guild: 20, // 20% of 600 buffer = 120 gold
         },
         swfLiquidityBuffer: 600,
       },
@@ -137,7 +137,7 @@ describe("Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions (AF
 
     const ma = res.marginAccounts?.alpha_squad;
     expect(ma).toBeDefined();
-    
+
     // Staked amounts should be tracked
     expect(ma?.swfStakedFactions?.rangers).toBe(300);
     expect(ma?.swfStakedFactions?.shadow_guild).toBe(120);
@@ -381,7 +381,7 @@ describe("Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions (AF
 
     res = multiAgentStep(res.state, { agentId: "alice", action: voteAction as any }, mockPack);
     expect(res.ok).toBe(true);
-    
+
     // Campaign is established and creator syndicate is automatically participant!
     const camp = res.state.cooperativeSWFStakingCampaigns?.camp_1;
     expect(camp).toBeDefined();
@@ -563,4 +563,3 @@ describe("Syndicate SWF Staking Pools & Faction-Wide Grace Period Extensions (AF
     expect(camp?.participants).toContain("beta_squad");
   });
 });
-

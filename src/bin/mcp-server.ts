@@ -15,16 +15,17 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 import { step } from "../core/engine.js";
-import { createInitialState, GameState } from "../core/state.js";
+import { createInitialState, GameState, getGuildPrestigeTier } from "../core/state.js";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
 import { validateParserPack } from "../validate/parser_validator.js";
+import { isCyoaPack } from "../core/pack.js";
 import { buildObservation } from "../api/observation.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
 import { mapCommand } from "../parser/command_map.js";
 import { saveGame, loadGame } from "../persist/save_load.js";
 import { computeSha256, canonicalStringify } from "../core/hash.js";
-import { AvailableAction, CYOAObservation, ParserObservation } from "../api/types.js";
+import { CYOAObservation, ParserObservation } from "../api/types.js";
 
 // Session storage
 interface GameSession {
@@ -80,12 +81,12 @@ function findPacks(): Array<{ id: string; title: string; type: "cyoa" | "parser"
                 path: fullPath,
               });
             }
-          } catch (err) {
+          } catch {
             // Skip invalid files
           }
         }
       }
-    } catch (err) {
+    } catch {
       // Directory read error
     }
   }
@@ -116,7 +117,7 @@ function loadAndValidatePack(packPath: string): { pack: CYOAPack | ParserPack; i
   let isCyoa = false;
   let validation;
 
-  if ("scenes" in packData) {
+  if (isCyoaPack(packData)) {
     isCyoa = true;
     validation = validateCYOAPack(packData);
   } else if ("rooms" in packData) {
@@ -213,6 +214,32 @@ function formatObservation(session: GameSession): string {
     buffer += `\nInventory: (empty)\n`;
   }
 
+  if (session.state.guildContracts && Object.keys(session.state.guildContracts).length > 0) {
+    const active = Object.values(session.state.guildContracts).filter((c: any) => c.status === "active");
+    if (active.length > 0) {
+      buffer += `\nActive Guild Contracts:\n`;
+      active.forEach((c: any) => {
+        const targetRoomStr = c.targetRoom ? ` in ${c.targetRoom}` : "";
+        buffer += `  - ${c.id}: ${c.contractType} target '${c.target}'${targetRoomStr} (${c.guildId}) [Reward: ${c.rewardGold} gold, ${c.rewardPrestige} prestige]\n`;
+      });
+    }
+  }
+
+  if (session.state.guildPrestige && Object.keys(session.state.guildPrestige).length > 0) {
+    let printedPrestige = false;
+    for (const [key, value] of Object.entries(session.state.guildPrestige)) {
+      if (key.startsWith("player-") && typeof value === "number" && value > 0) {
+        if (!printedPrestige) {
+          buffer += `\nGuild Prestige:\n`;
+          printedPrestige = true;
+        }
+        const guildId = key.substring(7);
+        const tier = getGuildPrestigeTier(value);
+        buffer += `  - ${guildId}: ${value} prestige (${tier})\n`;
+      }
+    }
+  }
+
   if (session.state.journal.length > 0) {
     buffer += `\nNarrative Log:\n`;
     session.state.journal.slice(-5).forEach((line) => {
@@ -243,7 +270,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             adventureId: {
               type: "string",
-              description: "The metadata ID of the adventure (e.g. 'forest_pack_v1', 'chapel_pack_v1') or a relative filepath in the workspace.",
+              description:
+                "The metadata ID of the adventure (e.g. 'forest_pack_v1', 'chapel_pack_v1') or a relative filepath in the workspace.",
             },
             sessionId: {
               type: "string",
@@ -259,7 +287,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "get_current_observation",
-        description: "Retrieve the current scene/room description, inventory, visible items, obvious exits, and available actions/choices.",
+        description:
+          "Retrieve the current scene/room description, inventory, visible items, obvious exits, and available actions/choices.",
         inputSchema: {
           type: "object",
           properties: {
@@ -272,13 +301,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "execute_action",
-        description: "Execute a player command or choice in the active adventure. Returns the narrations and updated observation.",
+        description:
+          "Execute a player command or choice in the active adventure. Returns the narrations and updated observation.",
         inputSchema: {
           type: "object",
           properties: {
             action: {
               type: "string",
-              description: "The action to execute. In CYOA mode: the choice number (e.g. '1'), the choice text, or the choice ID. In Parser mode: a classic text adventure command (e.g. 'go north', 'take key', 'open chest').",
+              description:
+                "The action to execute. In CYOA mode: the choice number (e.g. '1'), the choice text, or the choice ID. In Parser mode: a classic text adventure command (e.g. 'go north', 'take key', 'open chest').",
             },
             sessionId: {
               type: "string",
@@ -365,9 +396,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       const { pack, isCyoa, contentHash } = loadAndValidatePack(packPath);
 
-      const startNode = isCyoa
-        ? (pack as CYOAPack).meta.start
-        : (pack as ParserPack).meta.start_room;
+      const startNode = isCyoa ? (pack as CYOAPack).meta.start : (pack as ParserPack).meta.start_room;
 
       const state = createInitialState({
         seed,
@@ -401,7 +430,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     // All tools below require an active session
     const session = sessions.get(sessionId);
     if (!session) {
-      throw new Error(`No active game session found for ID "${sessionId}". Please start a new game first using 'start_new_game'.`);
+      throw new Error(
+        `No active game session found for ID "${sessionId}". Please start a new game first using 'start_new_game'.`
+      );
     }
 
     if (name === "get_current_observation") {
@@ -467,12 +498,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         session.state = result.state;
 
         // Collect narration event texts
-        const narrationList = result.events
-          .filter((e) => e.type === "narration")
-          .map((e) => (e as any).text);
+        const narrationList = result.events.filter((e) => e.type === "narration").map((e) => (e as any).text);
 
         const newObsText = formatObservation(session);
-        const prefix = narrationList.length > 0 ? `📖 Narration:\n${narrationList.map((t) => `  - ${t}`).join("\n")}\n\n` : "";
+        const prefix =
+          narrationList.length > 0 ? `📖 Narration:\n${narrationList.map((t) => `  - ${t}`).join("\n")}\n\n` : "";
 
         return {
           content: [
@@ -497,12 +527,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         session.state = result.state;
 
-        const narrationList = result.events
-          .filter((e) => e.type === "narration")
-          .map((e) => (e as any).text);
+        const narrationList = result.events.filter((e) => e.type === "narration").map((e) => (e as any).text);
 
         const newObsText = formatObservation(session);
-        const prefix = narrationList.length > 0 ? `📖 Narration:\n${narrationList.map((t) => `  - ${t}`).join("\n")}\n\n` : "";
+        const prefix =
+          narrationList.length > 0 ? `📖 Narration:\n${narrationList.map((t) => `  - ${t}`).join("\n")}\n\n` : "";
 
         return {
           content: [
@@ -530,7 +559,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     if (name === "load_game_state") {
       const saveData = String((args as any)?.saveData ?? "");
       const loadedState = loadGame(saveData, session.pack.meta.id, session.contentHash);
-      
+
       session.state = loadedState;
       const obsText = formatObservation(session);
 

@@ -244,12 +244,12 @@ describe("Syndicate SWF Multi-Fund Reinsurance Pools Dynamic Yield Arbitrage & V
         },
         totalReserve: 2000,
         volatilityHedgeRatio: 0.5,
-        targetYieldRate: 0.10, // 10% base yield
+        targetYieldRate: 0.1, // 10% base yield
         historicalVolatility: 20.0,
         timestamp: 1000,
         active: true,
         fractionalYieldBridgingEnabled: true,
-        fractionalBridgeRatio: 0.40, // 40% bridged
+        fractionalBridgeRatio: 0.4, // 40% bridged
         poolCollateral: {
           collective: 200, // Pre-seeded collateral reserve
         },
@@ -330,19 +330,19 @@ describe("Syndicate SWF Multi-Fund Reinsurance Pools Dynamic Yield Arbitrage & V
         },
         totalReserve: 2000,
         volatilityHedgeRatio: 0.5,
-        targetYieldRate: 0.10, // 10% base yield
+        targetYieldRate: 0.1, // 10% base yield
         historicalVolatility: 20.0,
         timestamp: 1000,
         active: true,
         fractionalYieldBridgingEnabled: true,
-        fractionalBridgeRatio: 0.40,
-        baseBridgeRatio: 0.40,
+        fractionalBridgeRatio: 0.4,
+        baseBridgeRatio: 0.4,
         poolCollateral: {
           collective: 200,
         },
         crossMeshReserveTarget: 150,
         fractionalDividendPayouts: {},
-        linkStateDropRate: 0.20, // 20% link state drop rate -> +0.10 adjustment
+        linkStateDropRate: 0.2, // 20% link state drop rate -> +0.10 adjustment
         volatilityShock: 10.0, // 10% volatility shock -> +0.10 adjustment
       },
     };
@@ -375,13 +375,13 @@ describe("Syndicate SWF Multi-Fund Reinsurance Pools Dynamic Yield Arbitrage & V
     expect(pool?.poolCollateral?.collective).toBe(150); // Capped at target by sweep
     expect(pool?.fractionalDividendPayouts?.alpha_corp).toBe(66);
     expect(pool?.fractionalDividendPayouts?.beta_corp).toBe(66);
-    expect(pool?.fractionalBridgeRatio).toBe(0.60); // Assert dynamically scaled ratio!
+    expect(pool?.fractionalBridgeRatio).toBe(0.6); // Assert dynamically scaled ratio!
 
     expect(state.syndicates?.alpha_corp?.warChest).toBe(85);
     expect(state.syndicates?.beta_corp?.warChest).toBe(4985);
 
     // Verify journal log contains dynamic adjustment entry
-    const dynamicPricingLog = state.journal.find(log => log.includes("Adjusted fractionalBridgeRatio dynamically"));
+    const dynamicPricingLog = state.journal.find((log) => log.includes("Adjusted fractionalBridgeRatio dynamically"));
     expect(dynamicPricingLog).toBeDefined();
     expect(dynamicPricingLog).toContain("from 0.4000 to 0.6000");
   });

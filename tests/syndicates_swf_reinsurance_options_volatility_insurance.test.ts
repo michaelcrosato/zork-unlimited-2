@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Insurance Pools & Spread 
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Insurance Pools & Spread 
           },
           mezzanine: {
             trancheId: "mezzanine",
-            yieldRate: 0.10,
+            yieldRate: 0.1,
             totalShares: 500,
             ownership: {},
             timestamp: 1000,
@@ -93,7 +93,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Insurance Pools & Spread 
       syndicateId: "alpha",
       swfYieldCdoId: "cdo_1",
       trancheId: "senior",
-      deflectionRate: 0.10, // 10% premium deflection to pool
+      deflectionRate: 0.1, // 10% premium deflection to pool
       stabilizationThreshold: 50, // stabilize if spread > 50 gold
       drawdownMultiplier: 0.2, // 0.2 gold from pool per 1 gold spread reduction
       timestamp: 1001,
@@ -112,7 +112,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Insurance Pools & Spread 
     const policyKey = "cdo_1_senior";
     const policy = state.swfReinsuranceOptionVolatilityInsurancePolicies?.[policyKey];
     expect(policy).toBeDefined();
-    expect(policy?.deflectionRate).toBe(0.10);
+    expect(policy?.deflectionRate).toBe(0.1);
     expect(policy?.stabilizationThreshold).toBe(50);
     expect(policy?.drawdownMultiplier).toBe(0.2);
 
@@ -154,7 +154,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Insurance Pools & Spread 
 
     // Execute matching
     let matchedState = matchSWFReinsuranceOptionLimitOrders(state);
-    
+
     // Check that matched buy order is filled
     expect(matchedState.swfReinsuranceOptionLimitOrders?.["order_buy"]?.status).toBe("Filled");
     expect(matchedState.swfReinsuranceOptionLimitOrders?.["order_sell"]?.status).toBe("Filled");
@@ -170,7 +170,11 @@ describe("Syndicate SWF Reinsurance Options Volatility Insurance Pools & Spread 
     expect(matchedState.syndicates?.["beta"]?.warChest).toBe(5000 - 200);
 
     // Verify deflection logged in journal
-    expect(matchedState.journal?.some(j => j.includes("[SWF Reinsurance Option Volatility Insurance Deflection]") && j.includes("Deflected 20 gold"))).toBe(true);
+    expect(
+      matchedState.journal?.some(
+        (j) => j.includes("[SWF Reinsurance Option Volatility Insurance Deflection]") && j.includes("Deflected 20 gold")
+      )
+    ).toBe(true);
 
     // 3. Volatility spread stabilization check
     // Place orders with a wide bid-ask spread
@@ -219,6 +223,12 @@ describe("Syndicate SWF Reinsurance Options Volatility Insurance Pools & Spread 
     // Assert bid-ask spread reduced to 50
     expect(stabilizedState.swfReinsuranceOptionOrderBookDepths?.[policyKey]?.bidAskSpread).toBe(50);
     // Assert journal contains stabilization log
-    expect(stabilizedState.journal?.some(j => j.includes("[SWF Reinsurance Option Spread Stabilization]") && j.includes("Narrowed bid-ask spread by 50 gold"))).toBe(true);
+    expect(
+      stabilizedState.journal?.some(
+        (j) =>
+          j.includes("[SWF Reinsurance Option Spread Stabilization]") &&
+          j.includes("Narrowed bid-ask spread by 50 gold")
+      )
+    ).toBe(true);
   });
 });

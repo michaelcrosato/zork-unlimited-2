@@ -21,7 +21,7 @@ describe("Syndicate SWF Sovereign Bond Futures & Margin Liquidation Insurance (A
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -201,7 +201,7 @@ describe("Syndicate SWF Sovereign Bond Futures & Margin Liquidation Insurance (A
     // Collateral goes from 11000 to 1000.
     // Maintenance requirement: (1000 size * 7.0 entryPrice * 0.10) / 5 = 140 gold.
     // NetEquity = 1000 collateral. NetEquity (1000) > Maintenance (140) => no liquidation.
-    
+
     // Let's make loss push NetEquity below Maintenance Requirement.
     // Let's set collateral directly to 100.
     // Maintenance requirement = 140. NetEquity = 100. Deficit = 40.
@@ -211,7 +211,7 @@ describe("Syndicate SWF Sovereign Bond Futures & Margin Liquidation Insurance (A
     state.sovereignBondFuturesPositions!["fut_1"].entryPrice = 7.0;
 
     let preSweepState = tickEconomy(state, mockPack);
-    
+
     // Verify payback happened:
     // Deficit: 140 required - 100 equity = 40.
     // Payback = 40. New collateral = 140. Remaining policy reserve = 2960.

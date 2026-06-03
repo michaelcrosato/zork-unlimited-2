@@ -9,7 +9,7 @@ import {
   deltaDecode,
   compressStateDiff,
   decompressStateDiff,
-  GossipNode
+  GossipNode,
 } from "../src/core/gossip.js";
 import { MeshNode, MeshNetwork } from "../src/core/network.js";
 import { computeStateHash } from "../src/core/hash.js";
@@ -22,23 +22,19 @@ describe("Differential Compression, RLE, and Redundancy Caching Tests", () => {
   it("should compress and decompress repeating values via RLE losslessly", () => {
     const stringArray = ["alice", "alice", "alice", "bob", "bob", "charlie"];
     const compressedStrings = compressRLE(stringArray);
-    
+
     // Assert RLE structure
     expect(compressedStrings).toContainEqual({ rle: true, val: "alice", count: 3 });
     expect(compressedStrings).toContainEqual({ rle: true, val: "bob", count: 2 });
     expect(compressedStrings).toContain("charlie");
-    
+
     const decompressedStrings = decompressRLE(compressedStrings);
     expect(decompressedStrings).toEqual(stringArray);
 
-    const objArray = [
-      { action: "MOVE", dir: "west" },
-      { action: "MOVE", dir: "west" },
-      { action: "LOOK" }
-    ];
+    const objArray = [{ action: "MOVE", dir: "west" }, { action: "MOVE", dir: "west" }, { action: "LOOK" }];
     const compressedObjs = compressRLE(objArray);
     expect(compressedObjs).toContainEqual({ rle: true, val: { action: "MOVE", dir: "west" }, count: 2 });
-    
+
     const decompressedObjs = decompressRLE(compressedObjs);
     expect(decompressedObjs).toEqual(objArray);
 
@@ -64,7 +60,7 @@ describe("Differential Compression, RLE, and Redundancy Caching Tests", () => {
         stateHashBefore: "abc123before",
         stateHashAfter: "def456after",
         timestamp: 1700000000,
-        ok: true
+        ok: true,
       },
       {
         agentId: "alice",
@@ -73,7 +69,7 @@ describe("Differential Compression, RLE, and Redundancy Caching Tests", () => {
         stateHashBefore: "def456after",
         stateHashAfter: "ghi789after",
         timestamp: 1700000050,
-        ok: true
+        ok: true,
       },
       {
         agentId: "bob",
@@ -82,7 +78,7 @@ describe("Differential Compression, RLE, and Redundancy Caching Tests", () => {
         stateHashBefore: "ghi789after",
         stateHashAfter: "jkl012after",
         timestamp: 1700000100,
-        ok: true
+        ok: true,
       },
       {
         agentId: "bob",
@@ -92,24 +88,24 @@ describe("Differential Compression, RLE, and Redundancy Caching Tests", () => {
         stateHashAfter: "mno345after",
         timestamp: 1700000150,
         ok: false,
-        rejectionReason: "Blocked exit"
-      }
+        rejectionReason: "Blocked exit",
+      },
     ];
 
     const compressed = compressStateDiff(transactions, 10);
     expect(compressed.count).toBe(4);
-    
+
     const decompressed = decompressStateDiff(compressed);
     expect(decompressed).toEqual(transactions);
 
     // Verify size reduction (comparing JSON string sizes)
     const rawJsonStr = JSON.stringify(transactions);
     const compressedJsonStr = JSON.stringify(compressed);
-    
+
     // Print stats
     console.log(`Original transaction payload size: ${rawJsonStr.length} bytes`);
     console.log(`Compressed transaction payload size: ${compressedJsonStr.length} bytes`);
-    
+
     expect(compressedJsonStr.length).toBeLessThan(rawJsonStr.length);
   });
 

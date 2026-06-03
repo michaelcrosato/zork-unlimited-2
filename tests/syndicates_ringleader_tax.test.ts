@@ -86,61 +86,77 @@ describe("Syndicate Black Market Contraband Smuggling Ringleaders & Global Carte
       };
 
       // 1. Invalid Syndicate ID
-      const res1 = multiAgentStep(state, {
-        agentId: "agent_a",
-        action: {
-          type: "APPOINT_RINGLEADER",
-          syndicateId: "non_existent",
-          ringleaderId: "agent_b",
-          timestamp: 150,
+      const res1 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_a",
+          action: {
+            type: "APPOINT_RINGLEADER",
+            syndicateId: "non_existent",
+            ringleaderId: "agent_b",
+            timestamp: 150,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res1.ok).toBe(false);
       expect(res1.rejectionReason).toContain("does not exist");
 
       // 2. Caller not a member
-      const res2 = multiAgentStep(state, {
-        agentId: "agent_c",
-        action: {
-          type: "APPOINT_RINGLEADER",
-          syndicateId: "syndicate_1",
-          ringleaderId: "agent_b",
-          timestamp: 150,
+      const res2 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_c",
+          action: {
+            type: "APPOINT_RINGLEADER",
+            syndicateId: "syndicate_1",
+            ringleaderId: "agent_b",
+            timestamp: 150,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res2.ok).toBe(false);
       expect(res2.rejectionReason).toContain("not a member of syndicate");
 
       // 3. Proposed ringleader not a member
-      const res3 = multiAgentStep(state, {
-        agentId: "agent_a",
-        action: {
-          type: "APPOINT_RINGLEADER",
-          syndicateId: "syndicate_1",
-          ringleaderId: "agent_c",
-          timestamp: 150,
+      const res3 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_a",
+          action: {
+            type: "APPOINT_RINGLEADER",
+            syndicateId: "syndicate_1",
+            ringleaderId: "agent_c",
+            timestamp: 150,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res3.ok).toBe(false);
       expect(res3.rejectionReason).toContain("Proposed ringleader agent_c is not a member");
 
       // 4. Successful appointment
-      const res4 = multiAgentStep(state, {
-        agentId: "agent_a",
-        action: {
-          type: "APPOINT_RINGLEADER",
-          syndicateId: "syndicate_1",
-          ringleaderId: "agent_b",
-          timestamp: 150,
+      const res4 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_a",
+          action: {
+            type: "APPOINT_RINGLEADER",
+            syndicateId: "syndicate_1",
+            ringleaderId: "agent_b",
+            timestamp: 150,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res4.ok).toBe(true);
       expect(res4.state.syndicates?.["syndicate_1"]?.ringleader).toBe("agent_b");
-      
-      const narrationEvent = res4.events.find(e => (e.type as string) === "narration");
+
+      const narrationEvent = res4.events.find((e) => (e.type as string) === "narration");
       expect((narrationEvent as any)?.text).toContain("agent_b has been appointed as the smuggling ringleader");
 
-      const customEvent = res4.events.find(e => (e.type as string) === "ringleader_appointed");
+      const customEvent = res4.events.find((e) => (e.type as string) === "ringleader_appointed");
       expect(customEvent).toBeDefined();
       expect((customEvent as any).ringleaderId).toBe("agent_b");
     });
@@ -182,64 +198,82 @@ describe("Syndicate Black Market Contraband Smuggling Ringleaders & Global Carte
       state.agents!["agent_a"].inventory = ["contraband_cargo", "contraband_cargo", "contraband_cargo"];
 
       // 1. Organize first active convoy - should succeed without a ringleader
-      let res1 = multiAgentStep(state, {
-        agentId: "agent_a",
-        action: {
-          type: "ORGANIZE_CONVOY",
-          convoyId: "convoy_1",
-          syndicateId: "syndicate_1",
-          routeId: "route_1",
-          cargo: 1,
-          goldCost: 100,
-          timestamp: 150,
+      let res1 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_a",
+          action: {
+            type: "ORGANIZE_CONVOY",
+            convoyId: "convoy_1",
+            syndicateId: "syndicate_1",
+            routeId: "route_1",
+            cargo: 1,
+            goldCost: 100,
+            timestamp: 150,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res1.ok).toBe(true);
       state = res1.state;
       expect(state.smugglingConvoys?.["convoy_1"]?.status).toBe("en_route");
 
       // 2. Organize second active convoy - should fail because no ringleader is appointed
-      let res2 = multiAgentStep(state, {
-        agentId: "agent_a",
-        action: {
-          type: "ORGANIZE_CONVOY",
-          convoyId: "convoy_2",
-          syndicateId: "syndicate_1",
-          routeId: "route_1",
-          cargo: 1,
-          goldCost: 100,
-          timestamp: 160,
+      let res2 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_a",
+          action: {
+            type: "ORGANIZE_CONVOY",
+            convoyId: "convoy_2",
+            syndicateId: "syndicate_1",
+            routeId: "route_1",
+            cargo: 1,
+            goldCost: 100,
+            timestamp: 160,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res2.ok).toBe(false);
-      expect(res2.rejectionReason).toContain("only run multiple active convoys if a smuggling ringleader has been appointed");
+      expect(res2.rejectionReason).toContain(
+        "only run multiple active convoys if a smuggling ringleader has been appointed"
+      );
 
       // 3. Appoint agent_b as ringleader
-      let resAppoint = multiAgentStep(state, {
-        agentId: "agent_a",
-        action: {
-          type: "APPOINT_RINGLEADER",
-          syndicateId: "syndicate_1",
-          ringleaderId: "agent_b",
-          timestamp: 170,
+      let resAppoint = multiAgentStep(
+        state,
+        {
+          agentId: "agent_a",
+          action: {
+            type: "APPOINT_RINGLEADER",
+            syndicateId: "syndicate_1",
+            ringleaderId: "agent_b",
+            timestamp: 170,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(resAppoint.ok).toBe(true);
       state = resAppoint.state;
 
       // 4. Organize second active convoy again - should now succeed with the ringleader active
-      let res3 = multiAgentStep(state, {
-        agentId: "agent_a",
-        action: {
-          type: "ORGANIZE_CONVOY",
-          convoyId: "convoy_2",
-          syndicateId: "syndicate_1",
-          routeId: "route_1",
-          cargo: 1,
-          goldCost: 100,
-          timestamp: 180,
+      let res3 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_a",
+          action: {
+            type: "ORGANIZE_CONVOY",
+            convoyId: "convoy_2",
+            syndicateId: "syndicate_1",
+            routeId: "route_1",
+            cargo: 1,
+            goldCost: 100,
+            timestamp: 180,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res3.ok).toBe(true);
       expect(res3.state.smugglingConvoys?.["convoy_2"]?.status).toBe("en_route");
     });
@@ -266,43 +300,55 @@ describe("Syndicate Black Market Contraband Smuggling Ringleaders & Global Carte
       };
 
       // 1. Non-member voting rejection
-      const res1 = multiAgentStep(state, {
-        agentId: "agent_c",
-        action: {
-          type: "VOTE_CARTEL_GLOBAL_TAX",
-          cartelId: "cartel_1",
-          taxRate: 15,
-          timestamp: 150,
+      const res1 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_c",
+          action: {
+            type: "VOTE_CARTEL_GLOBAL_TAX",
+            cartelId: "cartel_1",
+            taxRate: 15,
+            timestamp: 150,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res1.ok).toBe(false);
       expect(res1.rejectionReason).toContain("is not a member of cartel");
 
       // 2. Member votes 15
-      let res2 = multiAgentStep(state, {
-        agentId: "agent_a",
-        action: {
-          type: "VOTE_CARTEL_GLOBAL_TAX",
-          cartelId: "cartel_1",
-          taxRate: 15,
-          timestamp: 150,
+      let res2 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_a",
+          action: {
+            type: "VOTE_CARTEL_GLOBAL_TAX",
+            cartelId: "cartel_1",
+            taxRate: 15,
+            timestamp: 150,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res2.ok).toBe(true);
       state = res2.state;
       expect(state.cartelGlobalTaxVotes?.["cartel_1"]?.["agent_a"]?.rate).toBe(15);
       expect(state.cartelGlobalTaxPolicy?.["cartel_1"]).toBe(15); // Reconciled rate is 15 (only vote)
 
       // 3. Member B votes 25 (tie, descending rule selects 25)
-      let res3 = multiAgentStep(state, {
-        agentId: "agent_b",
-        action: {
-          type: "VOTE_CARTEL_GLOBAL_TAX",
-          cartelId: "cartel_1",
-          taxRate: 25,
-          timestamp: 160,
+      let res3 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_b",
+          action: {
+            type: "VOTE_CARTEL_GLOBAL_TAX",
+            cartelId: "cartel_1",
+            taxRate: 25,
+            timestamp: 160,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res3.ok).toBe(true);
       state = res3.state;
       expect(state.cartelGlobalTaxVotes?.["cartel_1"]?.["agent_b"]?.rate).toBe(25);
@@ -312,15 +358,19 @@ describe("Syndicate Black Market Contraband Smuggling Ringleaders & Global Carte
       if (state.cartels && state.cartels["cartel_1"]) {
         state.cartels["cartel_1"].members.push("agent_c");
       }
-      let res4 = multiAgentStep(state, {
-        agentId: "agent_c",
-        action: {
-          type: "VOTE_CARTEL_GLOBAL_TAX",
-          cartelId: "cartel_1",
-          taxRate: 15,
-          timestamp: 170,
+      let res4 = multiAgentStep(
+        state,
+        {
+          agentId: "agent_c",
+          action: {
+            type: "VOTE_CARTEL_GLOBAL_TAX",
+            cartelId: "cartel_1",
+            taxRate: 15,
+            timestamp: 170,
+          },
         },
-      }, mockPack);
+        mockPack
+      );
       expect(res4.ok).toBe(true);
       state = res4.state;
       expect(state.cartelGlobalTaxPolicy?.["cartel_1"]).toBe(15); // 15 becomes majority consensual rate (2 votes vs 1)
@@ -475,7 +525,7 @@ describe("Syndicate Black Market Contraband Smuggling Ringleaders & Global Carte
       expect(tickedState.vars?.["gold_agent_a"]).toBe(430);
 
       // Verify journal logs paid tolls
-      const journalEntry = tickedState.journal?.find(j => j.includes("paid 70 gold in faction/cartel tolls"));
+      const journalEntry = tickedState.journal?.find((j) => j.includes("paid 70 gold in faction/cartel tolls"));
       expect(journalEntry).toBeDefined();
     });
   });

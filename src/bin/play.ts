@@ -8,12 +8,12 @@ import { createInitialState } from "../core/state.js";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
 import { validateParserPack } from "../validate/parser_validator.js";
 import { formatValidationReport } from "../validate/report.js";
+import { isCyoaPack } from "../core/pack.js";
 import { buildObservation } from "../api/observation.js";
-import { Action, CYOAObservation, ParserObservation, AvailableAction } from "../api/types.js";
+import { Action, CYOAObservation, ParserObservation } from "../api/types.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
 import { saveGame, loadGame } from "../persist/save_load.js";
-import { computeStateHash } from "../core/hash.js";
 import { mapCommand } from "../parser/command_map.js";
 
 // ANSI Terminal Styling
@@ -58,7 +58,7 @@ function main() {
   let isCyoa = false;
   let validationReport;
 
-  if ("scenes" in packData) {
+  if (isCyoaPack(packData)) {
     console.log("Detecting CYOA pack format.");
     validationReport = validateCYOAPack(packData);
     isCyoa = true;
@@ -79,9 +79,7 @@ function main() {
   const pack = packData as CYOAPack | ParserPack;
   console.log(`${GREEN}✔ Pack successfully validated!${RESET}\n`);
 
-  const startRoom = isCyoa
-    ? (pack as CYOAPack).meta.start
-    : (pack as ParserPack).meta.start_room;
+  const startRoom = isCyoa ? (pack as CYOAPack).meta.start : (pack as ParserPack).meta.start_room;
 
   // 3. Initialize GameState
   const seed = 42;
@@ -251,7 +249,9 @@ function main() {
       const choiceIdx = parseInt(cleanInput, 10) - 1;
 
       if (isNaN(choiceIdx) || choiceIdx < 0 || choiceIdx >= cyoaObs.available_actions.length) {
-        console.log(`${RED}Invalid input! Please enter a choice index (1-${cyoaObs.available_actions.length}).${RESET}`);
+        console.log(
+          `${RED}Invalid input! Please enter a choice index (1-${cyoaObs.available_actions.length}).${RESET}`
+        );
         printScene();
         return;
       }

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { createInitialState, getFactionRepInit, getTerritoryControlInit, reconcileTaxPolicies } from "../src/core/state.js";
+import {
+  createInitialState,
+  getFactionRepInit,
+  getTerritoryControlInit,
+  reconcileTaxPolicies,
+} from "../src/core/state.js";
 import { evaluateCondition } from "../src/core/conditions.js";
 import { applyEffect } from "../src/core/effects.js";
 import { step } from "../src/core/engine.js";
@@ -228,7 +233,7 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
     // 5. Try to inspect the rangers badge now. Rangers reputation is 15.
     const inspectSuccess = step(state, { type: "USE", item: "badge", target: "rangers_badge" }, mockPack);
     expect(inspectSuccess.ok).toBe(true);
-    expect(inspectSuccess.events.some(e => e.type === "narration" && e.text.includes("true ally"))).toBe(true);
+    expect(inspectSuccess.events.some((e) => e.type === "narration" && e.text.includes("true ally"))).toBe(true);
   });
 
   it("should synchronize faction reputation across multiple nodes in P2P gossip mesh", () => {
@@ -337,7 +342,7 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
     res = step(state, { type: "MOVE", direction: "north" }, customPack);
     expect(res.ok).toBe(true);
     expect(res.state.vars["gold"]).toBe(3); // 5 - 2 = 3 gold left
-    expect(res.events.some(e => e.type === "narration" && e.text.includes("Paid 2 gold"))).toBe(true);
+    expect(res.events.some((e) => e.type === "narration" && e.text.includes("Paid 2 gold"))).toBe(true);
 
     // Case C: Friendly reputation (rep >= 10), tax = 0. No gold needed.
     state = createInitialState({
@@ -375,7 +380,7 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
     res = step(state, { type: "MOVE", direction: "north" }, customPack);
     expect(res.ok).toBe(true);
     expect(res.state.vars["gold"]).toBe(2); // 12 - 10 = 2 gold left
-    expect(res.events.some(e => e.type === "narration" && e.text.includes("Paid 10 gold"))).toBe(true);
+    expect(res.events.some((e) => e.type === "narration" && e.text.includes("Paid 10 gold"))).toBe(true);
   });
 
   it("should resolve territory claims and arbitrate conflicts using LWW in P2P gossip mesh", () => {
@@ -483,7 +488,8 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
         arrival: "Welcome {peerId}",
         departure: "Goodbye {peerId}",
         sync: "Sync with {peerId}",
-        territory_conquest: "[ANNOUNCEMENT] {roomId} has been captured by the glorious {newFaction}! (Previously held by: {oldFaction})",
+        territory_conquest:
+          "[ANNOUNCEMENT] {roomId} has been captured by the glorious {newFaction}! (Previously held by: {oldFaction})",
       },
     };
 
@@ -503,15 +509,21 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
 
     // Bob has not processed this claim yet
     expect(nodeB.localState.territoryControl?.clearing).toBeUndefined();
-    expect(nodeB.localState.journal).not.toContain("[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)");
+    expect(nodeB.localState.journal).not.toContain(
+      "[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)"
+    );
 
     // 2. Alice gossips to Bob. Bob should receive the claim and trigger the custom narration
     nodeA.gossip();
 
     expect(nodeB.localState.territoryControl?.clearing).toBe("rangers");
     const journalStr = JSON.stringify(nodeB.localState.journal);
-    expect(journalStr).toContain("[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)");
-    expect(nodeB.localState.cooperativeSyncLog).toContain("[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)");
+    expect(journalStr).toContain(
+      "[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)"
+    );
+    expect(nodeB.localState.cooperativeSyncLog).toContain(
+      "[ANNOUNCEMENT] clearing has been captured by the glorious rangers! (Previously held by: none)"
+    );
 
     // 3. Bob now claims clearing room for shadow_guild at t = 200 (overriding rangers)
     nodeB.executeLocalAction({
@@ -528,8 +540,12 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
 
     expect(nodeA.localState.territoryControl?.clearing).toBe("shadow_guild");
     const aliceJournalStr = JSON.stringify(nodeA.localState.journal);
-    expect(aliceJournalStr).toContain("[ANNOUNCEMENT] clearing has been captured by the glorious shadow_guild! (Previously held by: rangers)");
-    expect(nodeA.localState.cooperativeSyncLog).toContain("[ANNOUNCEMENT] clearing has been captured by the glorious shadow_guild! (Previously held by: rangers)");
+    expect(aliceJournalStr).toContain(
+      "[ANNOUNCEMENT] clearing has been captured by the glorious shadow_guild! (Previously held by: rangers)"
+    );
+    expect(nodeA.localState.cooperativeSyncLog).toContain(
+      "[ANNOUNCEMENT] clearing has been captured by the glorious shadow_guild! (Previously held by: rangers)"
+    );
   });
 
   it("should track the player's total accumulated taxes (totalTaxesCollected) in state variables", () => {
@@ -590,28 +606,36 @@ describe("Cooperative Faction Alliances & Reputation Dynamics", () => {
     });
 
     // 1. Try to vote on a non-existent faction
-    const resFail1 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_TAX_RATE",
-        factionId: "unknown_faction",
-        rate: 3,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail1 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_TAX_RATE",
+          factionId: "unknown_faction",
+          rate: 3,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail1.ok).toBe(false);
     expect(resFail1.rejectionReason).toContain("is not a valid faction");
 
     // 2. Try to vote with invalid rate
-    const resFail2 = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_TAX_RATE",
-        factionId: "rangers",
-        rate: -1,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const resFail2 = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_TAX_RATE",
+          factionId: "rangers",
+          rate: -1,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(resFail2.ok).toBe(false);
     expect(resFail2.rejectionReason).toContain("must be a non-negative integer");
 

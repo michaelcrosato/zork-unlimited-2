@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Safeguards & Pruning (AF-
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Safeguards & Pruning (AF-
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -149,8 +149,14 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Safeguards & Pruning (AF-
       totalValue: 5000,
       tranches: {
         senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
-        mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-        equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+        mezzanine: {
+          trancheId: "mezzanine" as const,
+          yieldRate: 0.12,
+          totalShares: 500,
+          ownership: {},
+          timestamp: 1000,
+        },
+        equity: { trancheId: "equity" as const, yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
       },
       timestamp: 1000,
     };
@@ -282,8 +288,14 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Safeguards & Pruning (AF-
     expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(750);
 
     // Verify journal logs on A
-    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("[SWF Reinsurance Options Cross-Mesh Route Pruned]"));
-    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("[SWF Reinsurance Options Margin Top-up] Automatically topped up option margin collateral by 250 gold for Syndicate alpha from war chest"));
+    expect(nodeA.localState.journal).toContainEqual(
+      expect.stringContaining("[SWF Reinsurance Options Cross-Mesh Route Pruned]")
+    );
+    expect(nodeA.localState.journal).toContainEqual(
+      expect.stringContaining(
+        "[SWF Reinsurance Options Margin Top-up] Automatically topped up option margin collateral by 250 gold for Syndicate alpha from war chest"
+      )
+    );
 
     // Now, run economy ticks (tickEconomy) to verify position deleveraging
     // Because prunedRoutesCount = 2 >= threshold = 2, it should auto-delever
@@ -292,7 +304,13 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Safeguards & Pruning (AF-
     const stateWithEconomy = tickEconomy(nodeA.localState, mockPack);
 
     // Assert auto-deleveraging was logged to the journal
-    expect(stateWithEconomy.journal).toContainEqual(expect.stringContaining("[SWF Reinsurance Option Auto-Deleveraging] Syndicate alpha option on CDO cdo_1 tranche senior auto-deleveraged"));
-    expect(stateWithEconomy.journal).toContainEqual(expect.stringContaining("multiple route prunings (Pruned count: 2 >= Threshold: 2)"));
+    expect(stateWithEconomy.journal).toContainEqual(
+      expect.stringContaining(
+        "[SWF Reinsurance Option Auto-Deleveraging] Syndicate alpha option on CDO cdo_1 tranche senior auto-deleveraged"
+      )
+    );
+    expect(stateWithEconomy.journal).toContainEqual(
+      expect.stringContaining("multiple route prunings (Pruned count: 2 >= Threshold: 2)")
+    );
   });
 });

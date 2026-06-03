@@ -124,7 +124,9 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect(resMove.ok).toBe(true);
     expect(resMove.state.current).toBe("border_post");
     expect(resMove.state.inventory).toContain("lockpick");
-    expect(resMove.events.some(e => e.type === "narration" && (e as any).text?.includes("successfully smuggled"))).toBe(true);
+    expect(
+      resMove.events.some((e) => e.type === "narration" && (e as any).text?.includes("successfully smuggled"))
+    ).toBe(true);
   });
 
   it("should catch the player and apply confiscation/fines/reputation penalties on failed smuggling check", () => {
@@ -141,15 +143,15 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect(state.inventory).toContain("lockpick");
 
     // Set smuggling skill to negative or 0 to guarantee high detection chance (40%)
-    state.vars["smuggling"] = -10; 
+    state.vars["smuggling"] = -10;
 
     const resMove = step(state, { type: "MOVE", direction: "NORTH" }, mockPack);
     expect(resMove.ok).toBe(false);
     expect(resMove.rejectionReason).toContain("Caught smuggling contraband");
-    
+
     // Penalties applied: lockpick confiscated
     expect(resMove.state.inventory).not.toContain("lockpick");
-    
+
     // Fined gold (contraband lockpick value: 20 -> fine 30)
     expect(resMove.state.vars["gold"]).toBe(170);
 
@@ -177,15 +179,19 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect(resMoveTax.state.vars["gold"]).toBe(190); // standard tax deducted
 
     // Now, blacklist whiskey!
-    const resBlacklist = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "SET_CONTRABAND_BLACKLIST",
-        itemId: "whiskey",
-        blacklisted: true,
-        timestamp: 1000,
-      } as any,
-    }, mockPack);
+    const resBlacklist = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "SET_CONTRABAND_BLACKLIST",
+          itemId: "whiskey",
+          blacklisted: true,
+          timestamp: 1000,
+        } as any,
+      },
+      mockPack
+    );
     expect(resBlacklist.ok).toBe(true);
     state = resBlacklist.state;
     expect(state.contrabandBlacklist?.["whiskey"]).toEqual({
@@ -213,15 +219,19 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     state.inventory = ["spice"]; // Spice base cost: 60
 
     // Set regional black market payout multiplier for border_post to 200% (2x)
-    const resPayout = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "SET_BLACK_MARKET_PAYOUT",
-        roomId: "border_post",
-        payout: 200, // 2x multiplier
-        timestamp: 1000,
-      } as any,
-    }, mockPack);
+    const resPayout = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "SET_BLACK_MARKET_PAYOUT",
+          roomId: "border_post",
+          payout: 200, // 2x multiplier
+          timestamp: 1000,
+        } as any,
+      },
+      mockPack
+    );
     expect(resPayout.ok).toBe(true);
     state = resPayout.state;
     expect(state.blackMarketPayouts?.["border_post"]).toEqual({
@@ -236,15 +246,19 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect(normalPrice).toBe(60);
 
     // Blacklist spice!
-    state = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "SET_CONTRABAND_BLACKLIST",
-        itemId: "spice",
-        blacklisted: true,
-        timestamp: 1010,
-      } as any,
-    }, mockPack).state;
+    state = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "SET_CONTRABAND_BLACKLIST",
+          itemId: "spice",
+          blacklisted: true,
+          timestamp: 1010,
+        } as any,
+      },
+      mockPack
+    ).state;
 
     // Sell price of contraband spice in border_post gets the 2x black market premium!
     let blackMarketPrice = calculateTradePrice(state, npcPack, packObj, 60, false);
@@ -318,13 +332,13 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
         priceMultiplier: 1.0,
         definedBy: "alice",
         timestamp: 100,
-      }
+      },
     };
     state.cartelPolicies = {
       cartel1: {
         priceMultiplier: 1.0,
         embargoedFactions: ["rangers"],
-      }
+      },
     };
 
     // Verify reputation check blocks normal trade due to active cartel embargo
@@ -336,17 +350,21 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     // Carry contraband whiskey to bypass it
     state.inventory = ["whiskey"];
     state.contrabandBlacklist = {
-      whiskey: { blacklisted: true, timestamp: 200 }
+      whiskey: { blacklisted: true, timestamp: 200 },
     };
     state.vars["smuggling"] = 10; // guarantee success
 
     // Attempt trade effect bypass
-    const resTrade = step(state, {
-      type: "BUY",
-      npc: "merchant_npc",
-      item: "whiskey", // not in stock, but let's test applyEffect npc_trade bypass
-    }, mockPack);
-    
+    const resTrade = step(
+      state,
+      {
+        type: "BUY",
+        npc: "merchant_npc",
+        item: "whiskey", // not in stock, but let's test applyEffect npc_trade bypass
+      },
+      mockPack
+    );
+
     // The repCheck is bypassed, and it instead complains about stock!
     expect((resTrade.events[0] as any).reason).not.toContain("embargo");
     expect((resTrade.events[0] as any).reason).toContain("stock");
@@ -366,21 +384,25 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect(state.inventory).toContain("lockpick");
 
     // Buy smuggling insurance (cost 100 gold)
-    const buyRes = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "BUY_SMUGGLING_INSURANCE",
-        cost: 100,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const buyRes = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "BUY_SMUGGLING_INSURANCE",
+          cost: 100,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(buyRes.ok).toBe(true);
     state = buyRes.state;
     expect(state.vars["gold"]).toBe(100); // 200 - 100
     expect(state.smugglingInsurance?.["player"]?.active).toBe(true);
 
     // Fail smuggling check due to high detection chance
-    state.vars["smuggling"] = -10; 
+    state.vars["smuggling"] = -10;
 
     // Move to border_post. With insurance, this should succeed!
     const resMove = step(state, { type: "MOVE", direction: "NORTH" }, mockPack);
@@ -389,7 +411,11 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect(resMove.state.inventory).toContain("lockpick"); // Not confiscated!
     expect(resMove.state.vars["gold"]).toBe(100); // No fine!
     expect(resMove.state.smugglingInsurance?.["player"]?.active).toBe(false); // Consumed!
-    expect(resMove.events.some(e => e.type === "narration" && (e as any).text.includes("Cartel Smuggling Insurance covers"))).toBe(true);
+    expect(
+      resMove.events.some(
+        (e) => e.type === "narration" && (e as any).text.includes("Cartel Smuggling Insurance covers")
+      )
+    ).toBe(true);
   });
 
   it("should successfully bypass border confiscation and fines when caught smuggling if the player has paid a bribe to the border faction", () => {
@@ -405,15 +431,19 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     state = step(state, { type: "TAKE", item: "lockpick" }, mockPack).state;
 
     // Pay a bribe of 50 gold to faction rangers
-    const bribeRes = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PAY_BRIBE",
-        enforcerId: "rangers",
-        amount: 50,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const bribeRes = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PAY_BRIBE",
+          enforcerId: "rangers",
+          amount: 50,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(bribeRes.ok).toBe(true);
     state = bribeRes.state;
     expect(state.vars["gold"]).toBe(150); // 200 - 50
@@ -428,7 +458,7 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect(resMove.state.current).toBe("border_post");
     expect(resMove.state.inventory).toContain("lockpick"); // Not confiscated!
     expect(resMove.state.vars["gold"]).toBe(150); // No fine!
-    expect(resMove.events.some(e => e.type === "narration" && (e as any).text.includes("paid a bribe"))).toBe(true);
+    expect(resMove.events.some((e) => e.type === "narration" && (e as any).text.includes("paid a bribe"))).toBe(true);
   });
 
   it("should allow a player to avoid combat or confiscation by paying bribes to static enforcers or bounty hunters", () => {
@@ -462,15 +492,19 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     state = step(state, { type: "TAKE", item: "lockpick" }, mockPack).state;
 
     // Bribe Bob with 60 gold
-    const bribeRes = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PAY_BRIBE",
-        enforcerId: "enforcer_bob",
-        amount: 60,
-        timestamp: 100,
-      } as any,
-    }, mockPack);
+    const bribeRes = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PAY_BRIBE",
+          enforcerId: "enforcer_bob",
+          amount: 60,
+          timestamp: 100,
+        } as any,
+      },
+      mockPack
+    );
     expect(bribeRes.ok).toBe(true);
     state = bribeRes.state;
     expect(state.vars["gold"]).toBe(140);
@@ -481,7 +515,9 @@ describe("Decentralized Cartel Smuggling and Contraband Economy Tests (AF-40)", 
     expect(resMove.state.current).toBe("border_post");
     expect(resMove.state.inventory).toContain("lockpick"); // safe!
     expect(resMove.state.flags["in_combat_with_enforcer_bob"]).toBeFalsy(); // no combat!
-    expect(resMove.events.some(e => e.type === "narration" && (e as any).text.includes("recognizes your bribe"))).toBe(true);
+    expect(
+      resMove.events.some((e) => e.type === "narration" && (e as any).text.includes("recognizes your bribe"))
+    ).toBe(true);
   });
 
   it("should synchronize active smuggling insurance policies and bribes across the gossip mesh", () => {

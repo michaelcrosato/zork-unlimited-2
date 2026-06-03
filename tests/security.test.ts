@@ -4,11 +4,11 @@ import { fileURLToPath } from "url";
 import { parse as parseYaml } from "yaml";
 import { GossipNode, reconstructState } from "../src/core/gossip.js";
 import { computeStateHash } from "../src/core/hash.js";
-import { 
-  SecureCooperativeMesh, 
-  signTransaction, 
+import {
+  SecureCooperativeMesh,
+  signTransaction,
   verifyTransactionSignature,
-  getTransactionSigningData
+  getTransactionSigningData,
 } from "../src/core/security.js";
 import { Transaction } from "../src/core/state.js";
 
@@ -36,14 +36,14 @@ describe("Secure Cooperative Mesh (AF-24) Security Tests", () => {
 
   it("should sign transactions upon execution and verify them using public keys", () => {
     const aliceNode = new GossipNode("alice", pack, 42);
-    
+
     // Execute local action
     const res = aliceNode.executeLocalAction({ type: "MOVE", direction: "west" });
     expect(res.ok).toBe(true);
 
     const journal = aliceNode.localState.transactionJournal || [];
     expect(journal.length).toBe(1);
-    
+
     const tx = journal[0];
     expect(tx.signature).toBeDefined();
 
@@ -56,7 +56,7 @@ describe("Secure Cooperative Mesh (AF-24) Security Tests", () => {
   it("should detect transaction tampering (invalid signature on modification)", () => {
     const aliceNode = new GossipNode("alice", pack, 42);
     aliceNode.executeLocalAction({ type: "MOVE", direction: "west" });
-    
+
     const tx = { ...aliceNode.localState.transactionJournal![0] };
     const pubKey = SecureCooperativeMesh.getPublicKey("alice");
 
@@ -90,7 +90,7 @@ describe("Secure Cooperative Mesh (AF-24) Security Tests", () => {
     // Alice signs her own transaction
     const aliceKeyPair = SecureCooperativeMesh.generateKeyPair("alice");
     tx.signature = signTransaction(tx, aliceKeyPair.privateKey);
-    
+
     // Verify with Alice's public key -> Valid!
     expect(verifyTransactionSignature(tx, aliceKeyPair.publicKey)).toBe(true);
 
@@ -106,7 +106,7 @@ describe("Secure Cooperative Mesh (AF-24) Security Tests", () => {
   it("should reject unsigned or tampered gossip messages when enforceSignatures is active", () => {
     const aliceNode = new GossipNode("alice", pack, 42);
     const bobNode = new GossipNode("bob", pack, 42);
-    
+
     // Enable signature enforcement on Bob
     bobNode.enforceSignatures = true;
 
@@ -115,7 +115,7 @@ describe("Secure Cooperative Mesh (AF-24) Security Tests", () => {
 
     // Generate valid gossip message
     const msg = aliceNode.generateGossipMessageFor("bob");
-    
+
     // Bob should accept validly signed gossip
     const accepted = bobNode.receiveGossip(msg);
     expect(accepted).toBe(true);
@@ -139,7 +139,7 @@ describe("Secure Cooperative Mesh (AF-24) Security Tests", () => {
     const rejectedUnsigned = bobSecuredNode.receiveGossip({
       senderId: "alice",
       vectorClock: { alice: 1 },
-      transactions: [unsignedTx]
+      transactions: [unsignedTx],
     });
     expect(rejectedUnsigned).toBe(false);
 
@@ -148,7 +148,7 @@ describe("Secure Cooperative Mesh (AF-24) Security Tests", () => {
     const rejectedTampered = bobSecuredNode.receiveGossip({
       senderId: "alice",
       vectorClock: { alice: 1 },
-      transactions: [tamperedTx]
+      transactions: [tamperedTx],
     });
     expect(rejectedTampered).toBe(false);
   });
@@ -167,7 +167,7 @@ describe("Secure Cooperative Mesh (AF-24) Security Tests", () => {
 
     // Let's create a tampered transaction list for Bob to process
     const tamperedTx = { ...aliceTx, action: { type: "USE", item: "lever", target: "lever" } };
-    
+
     // Reconstructing state using tampered transaction should skip the tampered transaction
     const convergedState = reconstructState(
       aliceNode.seed,

@@ -129,17 +129,21 @@ describe("Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Yie
     let state = setupState();
 
     // 1. Propose fee policy of 10% (0.1) for CDO cdo_pool_1
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_YIELD_HEDGING_FEE_POLICY",
-        proposalId: "fee_policy_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        secondaryFeePercent: 0.1,
-        timestamp: 1100,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_YIELD_HEDGING_FEE_POLICY",
+          proposalId: "fee_policy_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          secondaryFeePercent: 0.1,
+          timestamp: 1100,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -151,16 +155,20 @@ describe("Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Yie
     expect(state.syndicates?.alpha.warChest).toBe(19900);
 
     // 2. Alice votes YES to approve
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_YIELD_HEDGING_FEE_POLICY",
-        proposalId: "fee_policy_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_YIELD_HEDGING_FEE_POLICY",
+          proposalId: "fee_policy_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -176,15 +184,19 @@ describe("Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Yie
     let state = setupState();
 
     // 1. Player stakes 400 gold
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "STAKE_CDO_YIELD_HEDGING_OPTION",
-        cdoId: "cdo_pool_1",
-        amount: 400,
-        timestamp: 1200,
-      } as any,
-    }, mockPack);
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "STAKE_CDO_YIELD_HEDGING_OPTION",
+          cdoId: "cdo_pool_1",
+          amount: 400,
+          timestamp: 1200,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -197,15 +209,19 @@ describe("Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Yie
     expect(pool?.yieldHedgingOptionStakingBalances?.player).toBe(400);
 
     // 2. Alice stakes 200 gold
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "STAKE_CDO_YIELD_HEDGING_OPTION",
-        cdoId: "cdo_pool_1",
-        amount: 200,
-        timestamp: 1210,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "STAKE_CDO_YIELD_HEDGING_OPTION",
+          cdoId: "cdo_pool_1",
+          amount: 200,
+          timestamp: 1210,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -215,15 +231,19 @@ describe("Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Yie
     expect(pool?.yieldHedgingOptionStakingBalances?.alice).toBe(200);
 
     // 3. Player unstakes 100 gold
-    res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "UNSTAKE_CDO_YIELD_HEDGING_OPTION",
-        cdoId: "cdo_pool_1",
-        amount: 100,
-        timestamp: 1220,
-      } as any,
-    }, mockPack);
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "UNSTAKE_CDO_YIELD_HEDGING_OPTION",
+          cdoId: "cdo_pool_1",
+          amount: 100,
+          timestamp: 1220,
+        } as any,
+      },
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -273,45 +293,57 @@ describe("Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Yie
     // New player gold: 700 + 60 = 760 gold.
     // New alice gold: 850 + 30 = 880 gold.
 
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 900,
-        timestamp: 1300,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 900,
+          timestamp: 1300,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 900,
-        timestamp: 1310,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 900,
+          timestamp: 1310,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
-    res = multiAgentStep(state, {
-      agentId: "bob",
-      action: {
-        type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
-        optionId: "opt_1",
-        sellerSyndicateId: "alpha",
-        buyerSyndicateId: "beta",
-        price: 900,
-        timestamp: 1320,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "bob",
+        action: {
+          type: "TRANSFER_CDO_YIELD_HEDGING_OPTION",
+          optionId: "opt_1",
+          sellerSyndicateId: "alpha",
+          buyerSyndicateId: "beta",
+          price: 900,
+          timestamp: 1320,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -327,7 +359,7 @@ describe("Syndicate SWF Sovereign Debt Default CDS CDO Tranche Co-Investment Yie
     expect(state.vars.gold_alice).toBe(880);
 
     // Verify journals
-    const dividendJournals = state.journal?.filter(j => j.includes("Yield-Hedging Option Fee Dividend Paid")) ?? [];
+    const dividendJournals = state.journal?.filter((j) => j.includes("Yield-Hedging Option Fee Dividend Paid")) ?? [];
     expect(dividendJournals.length).toBe(2);
     expect(dividendJournals[0]).toContain("Staker player received a dividend of 60 gold");
     expect(dividendJournals[1]).toContain("Staker alice received a dividend of 30 gold");

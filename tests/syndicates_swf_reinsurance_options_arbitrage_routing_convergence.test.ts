@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -70,7 +70,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -151,8 +151,14 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
         totalValue: 5000,
         tranches: {
           senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          mezzanine: {
+            trancheId: "mezzanine" as const,
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: { trancheId: "equity" as const, yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -165,8 +171,14 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
         totalValue: 5000,
         tranches: {
           senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          mezzanine: {
+            trancheId: "mezzanine" as const,
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: { trancheId: "equity" as const, yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -181,7 +193,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
       timestamp: 1000,
     };
     const policyB = { ...policyA };
-    
+
     nodeA.localState.swfReinsuranceOptionCrossMeshArbitragePolicies = {
       cdo_1_senior: policyA,
     };
@@ -237,7 +249,11 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     expect(nodeB.localState.syndicates?.alpha?.warChest).toBe(1010);
 
     // Verify journal logs
-    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route route_A_B"));
+    expect(nodeA.localState.journal).toContainEqual(
+      expect.stringContaining(
+        "[SWF Reinsurance Option Cross-Mesh Arbitrage] Executed automatic options purchase/sale along route route_A_B"
+      )
+    );
   });
 
   it("should converge policies and route spread convergence across connected nodes in network partitions and reconnection", () => {
@@ -248,7 +264,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
 
     net.registerNode(nodeA);
     net.registerNode(nodeB);
-    
+
     // Nodes start disconnected (simulating a network partition)
     // Configure CDO & Syndicate on A
 
@@ -275,8 +291,14 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
         totalValue: 5000,
         tranches: {
           senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          mezzanine: {
+            trancheId: "mezzanine" as const,
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: { trancheId: "equity" as const, yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -328,7 +350,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
 
     // Reconnection and consensus vote from B
     net.connectNodes("A", "B");
-    
+
     nodeB.executeLocalAction({
       type: "ADJUST_SWF_REINSURANCE_OPTION_CROSS_MESH_ARBITRAGE",
       syndicateId: "alpha",
@@ -397,13 +419,19 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
         totalValue: 5000,
         tranches: {
           senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          mezzanine: {
+            trancheId: "mezzanine" as const,
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: { trancheId: "equity" as const, yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
     };
-    
+
     nodeB.localState.swfYieldCDOs = JSON.parse(JSON.stringify(nodeA.localState.swfYieldCDOs));
 
     // Sync syndicate and CDO from A to B so B has them in its local state and journal
@@ -510,7 +538,11 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
 
     // Rebalancing should be halted, warChest remains 1000
     expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(1000);
-    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("Arbitrage rebalancing halted along route route_A_B: Latency 260ms exceeds max allowed overhead of 120ms"));
+    expect(nodeA.localState.journal).toContainEqual(
+      expect.stringContaining(
+        "Arbitrage rebalancing halted along route route_A_B: Latency 260ms exceeds max allowed overhead of 120ms"
+      )
+    );
 
     // Test Case 3: Dynamic routing cost exceeds potential spread difference -> HALT rebalancing
     nodeA.lastHeartbeatLatency.set("B", 100); // 100ms (10 gold toll)
@@ -524,7 +556,11 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     nodeA.reconcileCrossMeshOptionArbitrage();
 
     expect(nodeA.localState.syndicates?.alpha?.warChest).toBe(1000);
-    expect(nodeA.localState.journal).toContainEqual(expect.stringContaining("Arbitrage rebalancing halted along route route_A_B: Network routing costs (10 gold) exceed potential spread difference"));
+    expect(nodeA.localState.journal).toContainEqual(
+      expect.stringContaining(
+        "Arbitrage rebalancing halted along route route_A_B: Network routing costs (10 gold) exceed potential spread difference"
+      )
+    );
   });
 
   it("should dynamically apply route penalty weights and trigger automatic route repair or bypass degraded routes via pathfinder", () => {
@@ -567,8 +603,14 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
         totalValue: 5000,
         tranches: {
           senior: { trancheId: "senior" as const, yieldRate: 0.08, totalShares: 1000, ownership: {}, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine" as const, yieldRate: 0.12, totalShares: 500, ownership: {}, timestamp: 1000 },
-          equity: { trancheId: "equity" as const, yieldRate: 0.20, totalShares: 200, ownership: {}, timestamp: 1000 },
+          mezzanine: {
+            trancheId: "mezzanine" as const,
+            yieldRate: 0.12,
+            totalShares: 500,
+            ownership: {},
+            timestamp: 1000,
+          },
+          equity: { trancheId: "equity" as const, yieldRate: 0.2, totalShares: 200, ownership: {}, timestamp: 1000 },
         },
         timestamp: 1000,
       },
@@ -772,7 +814,9 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
 
     // Verify multi-path split log is added to journal
     const journals = nodeA.localState.journal || [];
-    const hasSplitLog = journals.some(j => j.includes("Executed multi-path split options purchase/sale along route route_A_B"));
+    const hasSplitLog = journals.some((j) =>
+      j.includes("Executed multi-path split options purchase/sale along route route_A_B")
+    );
     expect(hasSplitLog).toBe(true);
 
     // Verify syndicate warchest grew
@@ -801,7 +845,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
     nodeC.announcePresence();
 
     // Initialize state
-    
+
     const syndicateObj = {
       alpha: {
         id: "alpha",
@@ -975,7 +1019,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -1040,7 +1084,7 @@ describe("Syndicate SWF Reinsurance Options Cross-Mesh Arbitrage Routing & Sprea
 
     // Verify journal logging of pruning
     const journal = nodeA.localState.journal || [];
-    const pruningLog = journal.find(msg => msg.includes("[SWF Reinsurance Options Cross-Mesh Route Pruned]"));
+    const pruningLog = journal.find((msg) => msg.includes("[SWF Reinsurance Options Cross-Mesh Route Pruned]"));
     expect(pruningLog).toBeDefined();
     expect(pruningLog).toContain("Pruned options arbitrage route route_A_B");
     expect(pruningLog).toContain("exceeding the threshold of 80ms");

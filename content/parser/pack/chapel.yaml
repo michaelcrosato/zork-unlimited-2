@@ -4,7 +4,7 @@ meta:
   start_room: forest_path
   vars_init:
     score: 0
-  flags_init: [ crypt_door_locked, sarcophagus_trapped ]
+  flags_init: [ crypt_door_locked, sarcophagus_trapped, shadow_vault_unlocked ]
 
 rooms:
   - id: forest_path
@@ -12,6 +12,9 @@ rooms:
     description: "A narrow dirt path winds through the dark woods. To the north, the mossy stone facade of a ruined chapel is visible."
     objects: []
     npcs: []
+    scenery:
+      woods: "The dark woods are dense and foreboding, with thick branches blotting out much of the sky."
+      path: "A dusty dirt trail worn smooth by decades of travelers."
     exits:
       - { direction: north, to: chapel_entrance }
 
@@ -19,7 +22,7 @@ rooms:
     name: "Chapel Entrance"
     description: "You stand before the splintered oak doors of the ruined chapel. Paths lead west to a graveyard and south to the forest path."
     objects: []
-    npcs: []
+    npcs: [ guild_agent ]
     exits:
       - { direction: south, to: forest_path }
       - { direction: north, to: ruined_chapel }
@@ -29,7 +32,7 @@ rooms:
     name: "Chapel Graveyard"
     description: "Weathered gray tombstones lean at odd angles in the tall grass. A mysterious figure stands near a weeping willow."
     objects: []
-    npcs: [ innkeeper ]
+    npcs: [ innkeeper, crypt_ghoul ]
     exits:
       - { direction: east, to: chapel_entrance }
 
@@ -51,7 +54,7 @@ rooms:
     name: "Overgrown Garden"
     description: "Thorns and wild roses choke the garden paths. Something glints in the damp moss beneath a gargoyle."
     objects: [ rope ]
-    npcs: []
+    npcs: [ rogue_inquisitor ]
     exits:
       - { direction: east, to: ruined_chapel }
 
@@ -66,11 +69,12 @@ rooms:
   - id: altar_room
     name: "Altar Room"
     description: "A cracked stone altar dominates the room. Behind it, a heavy iron crypt door leads down into the darkness."
-    objects: [ crypt_door ]
+    objects: [ crypt_door, shadow_door ]
     npcs: []
     exits:
       - { direction: south, to: ruined_chapel }
       - { direction: west, to: sacristy }
+      - { direction: east, to: shadow_vault, conditions: [ { has_flag: shadow_vault_unlocked } ], locked_msg: "A seamless stone door blocks the way to the east." }
       - direction: down
         to: sealed_crypt
         conditions: [ { not_flag: crypt_door_locked } ]
@@ -78,8 +82,8 @@ rooms:
 
   - id: sacristy
     name: "The Sacristy"
-    description: "A small vestry room covered in layers of dust. A heavy iron-banded oak chest sits in the corner."
-    objects: [ oak_chest ]
+    description: "A small vestry room covered in layers of dust. A heavy iron-banded oak chest sits in the corner. An ancient chalice rests on a table."
+    objects: [ oak_chest, ancient_chalice ]
     npcs: []
     exits:
       - { direction: east, to: altar_room }
@@ -103,6 +107,14 @@ rooms:
     npcs: []
     exits:
       - { direction: up, to: sealed_crypt }
+
+  - id: shadow_vault
+    name: "Shadow Vault"
+    description: "The secret treasury of the Shadow Guild. Glistening gold and ancient scrolls are stacked here."
+    objects: []
+    npcs: [ smuggler_boss ]
+    exits:
+      - { direction: west, to: altar_room }
 
 objects:
   - id: brass_key
@@ -132,6 +144,7 @@ objects:
           - set_flag: rope_attached_to_well
           - unlock_exit: { from: ruined_chapel, to: well_bottom }
           - inc_var: { name: "score", by: 15 }
+          - remove_item: rope
           - narrate: "You tie the rope securely to the iron ring and drop it down the well."
 
   - id: oak_chest
@@ -166,11 +179,12 @@ objects:
           - clear_flag: crypt_door_locked
           - unlock_exit: { from: altar_room, to: sealed_crypt }
           - inc_var: { name: "score", by: 25 }
+          - remove_item: iron_key
           - narrate: "You insert the heavy iron key into the door. With a loud click, the lock turns."
 
   - id: portcullis
     name: "iron portcullis"
-    aliases: [ gate, portcullis ]
+    aliases: [ gate, portcullis, lever ]
     description: "A massive portcullis. A rusty lever is set in the wall next to it."
     takeable: false
     interactions:
@@ -211,6 +225,42 @@ objects:
           - inc_var: { name: "score", by: 10 }
           - narrate: "You insert the brass key into the small keyhole and turn it. A satisfying metal clack indicates the trap is now disarmed."
 
+  - id: ancient_chalice
+    name: "ancient chalice"
+    aliases: [ chalice, cup, ancient chalice ]
+    description: "A tarnished silver chalice engraved with faint guild markings."
+    takeable: true
+
+  - id: shadow_key
+    name: "shadow key"
+    aliases: [ key, shadow key ]
+    description: "A dark iron key engraved with the guild's emblem."
+    takeable: true
+
+  - id: shadow_diamond
+    name: "shadow diamond"
+    aliases: [ diamond, shadow diamond ]
+    description: "A large, cut black diamond that absorbs light."
+    takeable: true
+    contraband: true
+
+  - id: shadow_door
+    name: "hidden shadow door"
+    aliases: [ door, hidden door, shadow door, stone door ]
+    description: "A seamless stone door with a keyhole shaped like the Shadow Guild emblem."
+    takeable: false
+    interactions:
+      - verb: USE
+        item: shadow_key
+        target: shadow_door
+        conditions: [ { not_flag: shadow_vault_unlocked } ]
+        effects:
+          - set_flag: shadow_vault_unlocked
+          - unlock_exit: { from: altar_room, to: shadow_vault }
+          - inc_var: { name: "score", by: 20 }
+          - remove_item: shadow_key
+          - narrate: "You insert the shadow key. The stone wall grinds open, revealing the Shadow Vault!"
+
 npcs:
   - id: innkeeper
     name: "innkeeper"
@@ -236,6 +286,178 @@ npcs:
           topics:
             - { id: ask_well, prompt: "Ask about the well", goto: well_clue }
             - { id: leave, prompt: "Say goodbye", end: true }
+
+  - id: guild_agent
+    name: "guild agent"
+    description: "A shadowy figure draped in a dark cloak, wearing the emblem of the Shadow Guild."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "State your business, traveler. If you seek to prove your loyalty to the Shadow Guild, I have contracts for you. Or, report your success to me."
+          topics:
+            - { id: ask_contracts, prompt: "Ask about guild contracts", goto: contract_list }
+            - { id: check_prestige, prompt: "Ask about your guild prestige", goto: prestige_info }
+            - { id: shadow_vault_key, prompt: "Request access to the Shadow Vault (Requires Associate prestige)", goto: give_vault_key, conditions: [ { guild_prestige_gte: { guild: "shadow_guild", value: 100 } }, { none_of: [ { has_item: "shadow_key" }, { has_flag: "shadow_vault_unlocked" } ] } ] }
+            - { id: turn_in_smuggle, prompt: "Report completion of the smuggling contract", goto: turn_in_success, conditions: [ { guild_contract_active: "c_smuggle_chalice" }, { has_item: "ancient_chalice" }, { visited: "forest_path" } ] }
+            - { id: turn_in_enforce, prompt: "Report completion of the enforcement contract", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_ghoul" }, { has_flag: "npc_defeated_crypt_ghoul" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: contract_list
+          npc_text: "Two tasks are available. A smuggling task: retrieve the ancient chalice from the Sacristy and smuggle it out to the Forest Path. And an enforcement task: defeat the crypt ghoul that haunts the Chapel Graveyard."
+          topics:
+            - { id: take_smuggle, prompt: "Accept the smuggling contract", goto: accept_smuggle, conditions: [ { none_of: [ { guild_contract_active: "c_smuggle_chalice" }, { guild_contract_completed: "c_smuggle_chalice" } ] } ] }
+            - { id: take_enforce, prompt: "Accept the enforcement contract", goto: accept_enforce, conditions: [ { none_of: [ { guild_contract_active: "c_enforce_ghoul" }, { guild_contract_completed: "c_enforce_ghoul" } ] } ] }
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_smuggle
+          npc_text: "Bring the ancient chalice to the Forest Path, then report back."
+          effects:
+            - accept_guild_contract:
+                id: c_smuggle_chalice
+                guild: shadow_guild
+                type: smuggling
+                target: ancient_chalice
+                target_room: forest_path
+                reward_gold: 150
+                reward_prestige: 60
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_enforce
+          npc_text: "Slay the crypt ghoul in the Chapel Graveyard, then report back."
+          effects:
+            - accept_guild_contract:
+                id: c_enforce_ghoul
+                guild: shadow_guild
+                type: enforcement
+                target: crypt_ghoul
+                reward_gold: 200
+                reward_prestige: 80
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: turn_in_success
+          npc_text: "Outstanding. The chalice has been smuggled out safely. Here is your reward."
+          effects:
+            - complete_guild_contract:
+                id: c_smuggle_chalice
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: enforce_success
+          npc_text: "Excellent. The graveyard is clean. The guild honors your strength."
+          effects:
+            - complete_guild_contract:
+                id: c_enforce_ghoul
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: prestige_info
+          npc_text: "Prestige makes the guild respect you. Novice (0-99), Associate (100-299), Operative (300-599), Master (600+)."
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: give_vault_key
+          npc_text: "You have proven your loyalty as an Associate of the Shadow Guild. Take this shadow key; it opens the hidden Shadow Vault to the east of the Altar Room."
+          effects:
+            - add_item: shadow_key
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+
+  - id: crypt_ghoul
+    name: "crypt ghoul"
+    description: "A horrifying creature with gray skin and sharp claws, thirsting for fresh flesh."
+    hp: 15
+    max_hp: 15
+    attack: 3
+    defense: 5
+    gold: 20
+    xp: 30
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Hssss! Flesh! Fresh flesh!"
+          topics:
+            - { id: attack_ghoul, prompt: "Attack the ghoul", goto: fight_node }
+            - { id: leave, prompt: "Flee", end: true }
+        - id: fight_node
+          npc_text: "The ghoul screeches and leaps at you!"
+          effects:
+            - start_combat: { npc_id: crypt_ghoul }
+          topics: []
+
+  - id: rogue_inquisitor
+    name: "rogue inquisitor"
+    description: "A fanatical rogue inquisitor dressed in crimson robes, seeking to purge the guild's influence."
+    hp: 20
+    max_hp: 20
+    attack: 4
+    defense: 6
+    gold: 50
+    xp: 40
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Repent, sinner! The Shadow Guild shall be cleansed by fire!"
+          topics:
+            - { id: attack_inquisitor, prompt: "Attack the inquisitor", goto: fight_node }
+            - { id: leave, prompt: "Flee", end: true }
+        - id: fight_node
+          npc_text: "The inquisitor draws a flaming mace and strikes!"
+          effects:
+            - start_combat: { npc_id: rogue_inquisitor }
+          topics: []
+
+  - id: smuggler_boss
+    name: "smuggler boss"
+    description: "The legendary leader of the Shadow Guild, smoking a pipe and counting coins."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Welcome to the inner vault, Associate. You have proven yourself to be a trusted agent of the Shadow Guild. Since you have high prestige, I can offer you premium contracts."
+          topics:
+            - { id: take_diamond_contract, prompt: "Accept the Shadow Diamond contract", goto: accept_diamond, conditions: [ { none_of: [ { guild_contract_active: "c_smuggle_diamond" }, { guild_contract_completed: "c_smuggle_diamond" } ] } ] }
+            - { id: turn_in_diamond, prompt: "Report completion of the Shadow Diamond contract", goto: diamond_success, conditions: [ { guild_contract_active: "c_smuggle_diamond" }, { has_item: "shadow_diamond" }, { visited: "forest_path" } ] }
+            - { id: take_inquisitor_contract, prompt: "Accept the Rogue Inquisitor enforcement contract", goto: accept_inquisitor, conditions: [ { none_of: [ { guild_contract_active: "c_enforce_inquisitor" }, { guild_contract_completed: "c_enforce_inquisitor" } ] } ] }
+            - { id: turn_in_inquisitor, prompt: "Report defeat of the Rogue Inquisitor", goto: inquisitor_success, conditions: [ { guild_contract_active: "c_enforce_inquisitor" }, { has_flag: "npc_defeated_rogue_inquisitor" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: accept_diamond
+          npc_text: "Excellent. Here is the Shadow Diamond. Smuggle it safely to the Forest Path, then report back to me."
+          effects:
+            - add_item: shadow_diamond
+            - accept_guild_contract:
+                id: c_smuggle_diamond
+                guild: shadow_guild
+                type: smuggling
+                target: shadow_diamond
+                target_room: forest_path
+                reward_gold: 500
+                reward_prestige: 150
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: diamond_success
+          npc_text: "Incredible work! The diamond has been delivered. Here is your share of the gold. You are now truly a master smuggler."
+          effects:
+            - complete_guild_contract:
+                id: c_smuggle_diamond
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_inquisitor
+          npc_text: "Track down the rogue inquisitor hiding in the Overgrown Garden, eliminate them, and report back."
+          effects:
+            - accept_guild_contract:
+                id: c_enforce_inquisitor
+                guild: shadow_guild
+                type: enforcement
+                target: rogue_inquisitor
+                reward_gold: 300
+                reward_prestige: 100
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: inquisitor_success
+          npc_text: "Splendid! The inquisitor has been purged. The Shadow Guild is safe once more. Here is your reward."
+          effects:
+            - complete_guild_contract:
+                id: c_enforce_inquisitor
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
 
 win_conditions:
   - id: reach_catacombs

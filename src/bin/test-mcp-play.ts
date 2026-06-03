@@ -8,7 +8,7 @@ async function playThroughMcp() {
 
   const serverScript = resolve("src/bin/mcp-server.ts");
   const server = spawn("npx", ["tsx", serverScript], {
-    env: { ...process.env, PAGER: "cat" }
+    env: { ...process.env, PAGER: "cat" },
   });
 
   // Collect stderr for debugging
@@ -26,15 +26,15 @@ async function playThroughMcp() {
   // Handle incoming stdout from the MCP server
   server.stdout.on("data", (data) => {
     buffer += data.toString();
-    
+
     // Process JSON-RPC lines
     while (true) {
       const newlineIndex = buffer.indexOf("\n");
       if (newlineIndex === -1) break;
-      
+
       const line = buffer.substring(0, newlineIndex).trim();
       buffer = buffer.substring(newlineIndex + 1);
-      
+
       if (!line) continue;
 
       try {
@@ -46,7 +46,7 @@ async function playThroughMcp() {
             resolvePromise(response);
           }
         }
-      } catch (err) {
+      } catch {
         // Skip unparsable output
       }
     }
@@ -61,7 +61,7 @@ async function playThroughMcp() {
       method,
       params,
     };
-    
+
     return new Promise((resolve) => {
       pendingRequests.set(id, resolve);
       server.stdin.write(JSON.stringify(request) + "\n");
@@ -88,7 +88,7 @@ async function playThroughMcp() {
       version: "1.0.0",
     },
   });
-  
+
   sendNotification("notifications/initialized");
   console.log("✅ MCP Handshake complete!");
   console.log(`Server Name: ${initResult.result?.serverInfo?.name}`);

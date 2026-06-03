@@ -117,12 +117,12 @@ These are real issues but were out of scope for the cleanup:
 1. **Monster files**: `sync.ts` (54K lines), `state.ts` (20K lines), `economy.ts` (11.5K lines) — functional but unmaintainable. Would need a major decomposition effort.
 2. **100+ character identifiers**: Names like `reconcileSWFReinsuranceOptionVolatilityFloor...GovernanceCaps` — product of recursive AI feature stacking over 2100 cycles.
 3. **Scattered `any` types**: In `economy.ts`, `effects.ts`, `expedition.ts` — pragmatic for CYOAPack|ParserPack unions.
-4. **Duplicated pack-type detection**: `"scenes" in pack` pattern copied across 8 CLI files.
+4. **Duplicated pack-type detection**: (RESOLVED) Refactored to use type guards `isCyoaPack` and `isParserPack`.
 5. **`autopilot_detailed.log` and `autopilot_output.log`**: Still tracked in git. These are log files that should probably be gitignored but weren't caught in the cleanup.
 6. **`index.html` (147KB)**: Large file at repo root — unclear if it's generated or hand-written. Needs investigation.
-7. **`mcp_playtest.ts` at root**: Integration test script that should probably live in `tests/` or `src/bin/`.
+7. **`mcp_playtest.ts` at root**: (RESOLVED) Moved to `src/bin/mcp-playtest.ts` and wired to npm script `test:integration`.
 8. **`loop.sh` at root**: Simple shell script that may overlap with `bin/ai-autonomous-dev`.
-9. **No ESLint/Prettier**: Project relies solely on `tsc --strict` for static analysis.
+9. **No ESLint/Prettier**: (RESOLVED) ESLint and Prettier installed and configured.
 
 ---
 

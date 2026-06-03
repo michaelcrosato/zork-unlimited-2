@@ -1,6 +1,80 @@
-import { GameState, Transaction, createInitialState, reconcileLootClaims, getFactionRepInit, reconcileTerritories, getTerritoryControlInit, reconcileTaxPolicies, reconcileAlliances, reconcileTradeRoutes, reconcileTariffPolicies, reconcileGuildPolicies, reconcileCartelPolicies, reconcileSyndicateTurf, reconcileSyndicateTaxes, reconcileSyndicateBribes, reconcileSyndicateWaivers, reconcileEspionageNetworks, reconcileWiretaps, reconcileCartelGlobalTaxes, reconcileSmugglerGuildCbas, reconcileSyndicateAlliances, reconcileFactionWars, reconcileCovertCells, reconcilePropagandaCampaigns, reconcileSafehouseRentRates, reconcileBankInterestRates, getSyndicateBankCapacity, reconcileJointLoanRefinancings, reconcileJointLoanCollateralSubstitutions, reconcileJointLoanDebtSettlements, reconcileJointLoanCollateralSwaps, reconcileJointLoanGracePeriods, reconcileJointLoanPenaltyWaivers, reconcileJointLoanUnderwrites, reconcileCooperativeRehabSubsidy, reconcileRehabCampaign, reconcileClaimLoyaltyRanks, getSyndicateFactionLoyaltyRank, reconcileAntiDeficitStabilizationPolicies, reconcileSWFStakingPolicies } from "./state.js";
-import { reconcileSWFReinsuranceOptionCrossMeshArbitrage, reconcileSWFReinsuranceOptionArbitrageFeeSurcharge, reconcileSWFReinsuranceOptionPeerLending, reconcileSWFReinsuranceOptionVolatilityPoolRebalancing, reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting, reconcileSWFReinsuranceOptionPenaltyWaivers, reconcileSWFReinsuranceOptionPenaltyRefunds, reconcileSWFReinsuranceOptionSpreadAdjustments, reconcileSWFReinsuranceOptionVolatilityFloors, reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrides, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments, reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCaps } from "./state.js";
-import { reconcileSweepPoolRankAdjustFeeCalibrations, reconcileSWFDeflectionSurchargePolicyProposals, reconcileSWFDeflectionCapAndRefundProposals, reconcileSWFAllianceLiquiditySubsidyProposals, reconcileSWFAllianceYieldAutoRepayProposals, reconcileSovereignDebtDefaultAlerts, reconcileSovereignDebtResolveAlerts, reconcileSovereignDebtDefaultGracePeriods, reconcileSovereignDebtDefaultPenaltyWaivers, reconcileSovereignDebtCDSContracts, reconcileSovereignDebtCDSCDOTranches, reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals, reconcileCDSCDOYieldHedgingOptionPolicyProposals, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjusts, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations, reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments } from "./state.js";
+import {
+  GameState,
+  Transaction,
+  createInitialState,
+  reconcileLootClaims,
+  getFactionRepInit,
+  reconcileTerritories,
+  getTerritoryControlInit,
+  reconcileTaxPolicies,
+  reconcileAlliances,
+  reconcileTradeRoutes,
+  reconcileTariffPolicies,
+  reconcileGuildPolicies,
+  reconcileCartelPolicies,
+  reconcileSyndicateTurf,
+  reconcileSyndicateTaxes,
+  reconcileSyndicateBribes,
+  reconcileSyndicateWaivers,
+  reconcileEspionageNetworks,
+  reconcileWiretaps,
+  reconcileCartelGlobalTaxes,
+  reconcileSmugglerGuildCbas,
+  reconcileSyndicateAlliances,
+  reconcileFactionWars,
+  reconcileCovertCells,
+  reconcilePropagandaCampaigns,
+  reconcileSafehouseRentRates,
+  reconcileBankInterestRates,
+  reconcileJointLoanRefinancings,
+  reconcileJointLoanCollateralSubstitutions,
+  reconcileJointLoanDebtSettlements,
+  reconcileJointLoanCollateralSwaps,
+  reconcileJointLoanGracePeriods,
+  reconcileJointLoanPenaltyWaivers,
+  reconcileJointLoanUnderwrites,
+  reconcileCooperativeRehabSubsidy,
+  reconcileRehabCampaign,
+  reconcileClaimLoyaltyRanks,
+  reconcileAntiDeficitStabilizationPolicies,
+  reconcileSWFStakingPolicies,
+} from "./state.js";
+import {
+  reconcileSWFReinsuranceOptionCrossMeshArbitrage,
+  reconcileSWFReinsuranceOptionArbitrageFeeSurcharge,
+  reconcileSWFReinsuranceOptionPeerLending,
+  reconcileSWFReinsuranceOptionVolatilityPoolRebalancing,
+  reconcileSWFReinsuranceOptionVolatilityPoolUnderwriting,
+  reconcileSWFReinsuranceOptionPenaltyWaivers,
+  reconcileSWFReinsuranceOptionPenaltyRefunds,
+  reconcileSWFReinsuranceOptionSpreadAdjustments,
+  reconcileSWFReinsuranceOptionVolatilityFloors,
+  reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts,
+  reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrides,
+  reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces,
+  reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities,
+  reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts,
+  reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations,
+  reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments,
+  reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCaps,
+} from "./state.js";
+import {
+  reconcileSweepPoolRankAdjustFeeCalibrations,
+  reconcileSWFDeflectionSurchargePolicyProposals,
+  reconcileSWFDeflectionCapAndRefundProposals,
+  reconcileSWFAllianceLiquiditySubsidyProposals,
+  reconcileSWFAllianceYieldAutoRepayProposals,
+  reconcileSovereignDebtDefaultAlerts,
+  reconcileSovereignDebtResolveAlerts,
+  reconcileSovereignDebtDefaultGracePeriods,
+  reconcileSovereignDebtDefaultPenaltyWaivers,
+  reconcileSovereignDebtCDSContracts,
+  reconcileSovereignDebtCDSCDOTranches,
+  reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals,
+  reconcileCDSCDOYieldHedgingOptionPolicyProposals,
+  reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjusts,
+  reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations,
+} from "./state.js";
 import { Action, StepResult } from "../api/types.js";
 import { multiAgentStep } from "./sync.js";
 import { SecureCooperativeMesh, verifyTransactionSignature } from "./security.js";
@@ -33,7 +107,7 @@ export function compressRLE(arr: any[]): any[] {
   for (let i = 1; i < arr.length; i++) {
     const item = arr[i];
     const itemStr = typeof item === "object" && item !== null ? JSON.stringify(item) : String(item);
-    
+
     if (itemStr === currentStr) {
       count++;
     } else {
@@ -63,7 +137,9 @@ export function decompressRLE(arr: any[]): any[] {
   for (const item of arr) {
     if (item && typeof item === "object" && item.rle === true) {
       for (let i = 0; i < item.count; i++) {
-        result.push(typeof item.val === "object" && item.val !== null ? JSON.parse(JSON.stringify(item.val)) : item.val);
+        result.push(
+          typeof item.val === "object" && item.val !== null ? JSON.parse(JSON.stringify(item.val)) : item.val
+        );
       }
     } else {
       result.push(item);
@@ -100,7 +176,7 @@ export function deltaDecode(arr: number[]): number[] {
  * Compresses an array of transactions starting from sequenceNumber >= baseSequence.
  */
 export function compressStateDiff(transactions: Transaction[], baseSequence: number): any {
-  const filtered = transactions.filter(tx => tx.sequenceNumber >= baseSequence);
+  const filtered = transactions.filter((tx) => tx.sequenceNumber >= baseSequence);
   if (filtered.length === 0) {
     return {
       baseSequence,
@@ -113,19 +189,19 @@ export function compressStateDiff(transactions: Transaction[], baseSequence: num
       timestamps: [],
       oks: [],
       rejectionReasons: [],
-      signatures: []
+      signatures: [],
     };
   }
 
-  const agentIds = filtered.map(tx => tx.agentId);
-  const seqs = filtered.map(tx => tx.sequenceNumber);
-  const actions = filtered.map(tx => tx.action);
-  const hashesBefore = filtered.map(tx => tx.stateHashBefore);
-  const hashesAfter = filtered.map(tx => tx.stateHashAfter);
-  const timestamps = filtered.map(tx => tx.timestamp);
-  const oks = filtered.map(tx => tx.ok);
-  const rejectionReasons = filtered.map(tx => tx.rejectionReason ?? "");
-  const signatures = filtered.map(tx => tx.signature ?? "");
+  const agentIds = filtered.map((tx) => tx.agentId);
+  const seqs = filtered.map((tx) => tx.sequenceNumber);
+  const actions = filtered.map((tx) => tx.action);
+  const hashesBefore = filtered.map((tx) => tx.stateHashBefore);
+  const hashesAfter = filtered.map((tx) => tx.stateHashAfter);
+  const timestamps = filtered.map((tx) => tx.timestamp);
+  const oks = filtered.map((tx) => tx.ok);
+  const rejectionReasons = filtered.map((tx) => tx.rejectionReason ?? "");
+  const signatures = filtered.map((tx) => tx.signature ?? "");
 
   const compressedAgentIds = compressRLE(agentIds);
   const compressedSeqs = compressRLE(deltaEncode(seqs));
@@ -146,7 +222,7 @@ export function compressStateDiff(transactions: Transaction[], baseSequence: num
     timestamps: compressedTimestamps,
     oks: compressedOks,
     rejectionReasons: compressedRejectionReasons,
-    signatures: compressedSignatures
+    signatures: compressedSignatures,
   };
 }
 
@@ -178,7 +254,7 @@ export function decompressStateDiff(compressed: any): Transaction[] {
       stateHashBefore: hashesBefore[i],
       stateHashAfter: hashesAfter[i],
       timestamp: timestamps[i],
-      ok: oks[i]
+      ok: oks[i],
     };
     if (rejectionReasons[i] !== undefined && rejectionReasons[i] !== "") {
       tx.rejectionReason = rejectionReasons[i];
@@ -319,10 +395,7 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
           if (claimB.claimedBy.localeCompare(claimA.claimedBy) < 0) {
             territoryClaims[roomId] = claimB;
           } else if (claimB.claimedBy === claimA.claimedBy && claimB.factionId === claimA.factionId) {
-            const assistants = Array.from(new Set([
-              ...(claimA.assistants || []),
-              ...(claimB.assistants || []),
-            ]));
+            const assistants = Array.from(new Set([...(claimA.assistants || []), ...(claimB.assistants || [])]));
             territoryClaims[roomId] = {
               ...claimA,
               assistants,
@@ -513,6 +586,26 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     for (const [agentId, bGuilds] of Object.entries(stateB.guildMemberships)) {
       const aGuilds = guildMemberships[agentId] || [];
       guildMemberships[agentId] = Array.from(new Set([...aGuilds, ...bGuilds]));
+    }
+  }
+
+  // Merge guildContracts using LWW
+  const guildContracts = { ...stateA.guildContracts };
+  if (stateB.guildContracts) {
+    for (const [contractId, contractB] of Object.entries(stateB.guildContracts)) {
+      const contractA = guildContracts[contractId];
+      if (!contractA || contractB.timestamp > contractA.timestamp) {
+        guildContracts[contractId] = contractB;
+      }
+    }
+  }
+
+  // Merge guildPrestige by taking max value (monotonic accumulation)
+  const guildPrestige = { ...stateA.guildPrestige };
+  if (stateB.guildPrestige) {
+    for (const [key, valB] of Object.entries(stateB.guildPrestige)) {
+      const valA = guildPrestige[key] ?? 0;
+      guildPrestige[key] = Math.max(valA, valB);
     }
   }
 
@@ -949,7 +1042,6 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
       }
     }
   }
-
 
   // Merge frontBusinesses using LWW (Last-Write-Wins)
   const frontBusinesses = { ...stateA.frontBusinesses };
@@ -1601,7 +1693,6 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     }
   }
 
-
   // Merge syndicateBribeVotes using LWW (Last-Write-Wins)
   const syndicateBribeVotes = { ...stateA.syndicateBribeVotes };
   if (stateB.syndicateBribeVotes) {
@@ -2141,7 +2232,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
           if (!swfTrancheLeverageTargetVotes[syndicateId][agentId]) {
             swfTrancheLeverageTargetVotes[syndicateId][agentId] = { ...bTrancheVotes };
           } else {
-            swfTrancheLeverageTargetVotes[syndicateId][agentId] = { ...swfTrancheLeverageTargetVotes[syndicateId][agentId] };
+            swfTrancheLeverageTargetVotes[syndicateId][agentId] = {
+              ...swfTrancheLeverageTargetVotes[syndicateId][agentId],
+            };
             for (const [trancheId, voteB] of Object.entries(bTrancheVotes)) {
               const tid = trancheId as "senior" | "mezzanine" | "equity";
               const voteA = swfTrancheLeverageTargetVotes[syndicateId][agentId][tid];
@@ -2264,12 +2357,16 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
       if (!cooperativeSWFStakingCampaignJoinVotes[syndicateId]) {
         cooperativeSWFStakingCampaignJoinVotes[syndicateId] = { ...bCampaigns };
       } else {
-        cooperativeSWFStakingCampaignJoinVotes[syndicateId] = { ...cooperativeSWFStakingCampaignJoinVotes[syndicateId] };
+        cooperativeSWFStakingCampaignJoinVotes[syndicateId] = {
+          ...cooperativeSWFStakingCampaignJoinVotes[syndicateId],
+        };
         for (const [campId, bVotes] of Object.entries(bCampaigns)) {
           if (!cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId]) {
             cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId] = { ...bVotes };
           } else {
-            cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId] = { ...cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId] };
+            cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId] = {
+              ...cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId],
+            };
             for (const [agentId, voteB] of Object.entries(bVotes)) {
               const voteA = cooperativeSWFStakingCampaignJoinVotes[syndicateId][campId][agentId];
               if (!voteA || voteB.timestamp > voteA.timestamp) {
@@ -3265,7 +3362,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityPoolRebalancingPolicies using LWW
-  const swfReinsuranceOptionVolatilityPoolRebalancingPolicies = { ...stateA.swfReinsuranceOptionVolatilityPoolRebalancingPolicies };
+  const swfReinsuranceOptionVolatilityPoolRebalancingPolicies = {
+    ...stateA.swfReinsuranceOptionVolatilityPoolRebalancingPolicies,
+  };
   if (stateB.swfReinsuranceOptionVolatilityPoolRebalancingPolicies) {
     for (const [key, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityPoolRebalancingPolicies)) {
       const entryA = swfReinsuranceOptionVolatilityPoolRebalancingPolicies[key];
@@ -3276,13 +3375,19 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes using LWW
-  const adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes = { ...stateA.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes };
+  const adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes = {
+    ...stateA.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes,
+  };
   if (stateB.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes) {
-    for (const [syndicateId, bVotes] of Object.entries(stateB.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes)) {
+    for (const [syndicateId, bVotes] of Object.entries(
+      stateB.adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes
+    )) {
       if (!adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId]) {
         adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId] = { ...bVotes };
       } else {
-        adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId] = { ...adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId] };
+        adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId] = {
+          ...adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId],
+        };
         for (const [agentId, voteB] of Object.entries(bVotes)) {
           const voteA = adjustSWFReinsuranceOptionVolatilityPoolRebalancingVotes[syndicateId][agentId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
@@ -3294,7 +3399,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityPoolUnderwritingPolicies using LWW
-  const swfReinsuranceOptionVolatilityPoolUnderwritingPolicies = { ...stateA.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies };
+  const swfReinsuranceOptionVolatilityPoolUnderwritingPolicies = {
+    ...stateA.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies,
+  };
   if (stateB.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies) {
     for (const [key, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityPoolUnderwritingPolicies)) {
       const entryA = swfReinsuranceOptionVolatilityPoolUnderwritingPolicies[key];
@@ -3305,13 +3412,19 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes using LWW
-  const adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes = { ...stateA.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes };
+  const adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes = {
+    ...stateA.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes,
+  };
   if (stateB.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes) {
-    for (const [syndicateId, bVotes] of Object.entries(stateB.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes)) {
+    for (const [syndicateId, bVotes] of Object.entries(
+      stateB.adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes
+    )) {
       if (!adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId]) {
         adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId] = { ...bVotes };
       } else {
-        adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId] = { ...adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId] };
+        adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId] = {
+          ...adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId],
+        };
         for (const [agentId, voteB] of Object.entries(bVotes)) {
           const voteA = adjustSWFReinsuranceOptionVolatilityPoolUnderwritingVotes[syndicateId][agentId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
@@ -3443,7 +3556,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorAutoAdjustProposals using LWW
-  const swfReinsuranceOptionVolatilityFloorAutoAdjustProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals };
+  const swfReinsuranceOptionVolatilityFloorAutoAdjustProposals = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals) {
     for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorAutoAdjustProposals)) {
       const entryA = swfReinsuranceOptionVolatilityFloorAutoAdjustProposals[proposalId];
@@ -3454,7 +3569,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorAutoAdjustVotes using LWW
-  const swfReinsuranceOptionVolatilityFloorAutoAdjustVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes };
+  const swfReinsuranceOptionVolatilityFloorAutoAdjustVotes = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes) {
     for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorAutoAdjustVotes)) {
       if (!swfReinsuranceOptionVolatilityFloorAutoAdjustVotes[proposalId]) {
@@ -3473,9 +3590,13 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideProposals using LWW
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideProposals = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals)) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideProposals
+    )) {
       const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[proposalId];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
         swfReinsuranceOptionVolatilityFloorPanicOverrideProposals[proposalId] = entryB;
@@ -3484,7 +3605,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideVotes using LWW
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideVotes = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes) {
     for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideVotes)) {
       if (!swfReinsuranceOptionVolatilityFloorPanicOverrideVotes[proposalId]) {
@@ -3503,9 +3626,13 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals using LWW
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals)) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals
+    )) {
       const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals[proposalId];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
         swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionProposals[proposalId] = entryB;
@@ -3514,9 +3641,13 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes using LWW
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes)) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes
+    )) {
       if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes[proposalId]) {
         swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionVotes[proposalId] = { ...bInner };
       } else {
@@ -3533,9 +3664,13 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals using LWW
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals)) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals
+    )) {
       const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[proposalId];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
         swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationProposals[proposalId] = entryB;
@@ -3544,9 +3679,13 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes using LWW
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes)) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes
+    )) {
       if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes[proposalId]) {
         swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationVotes[proposalId] = { ...bInner };
       } else {
@@ -3563,9 +3702,13 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals using LWW
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals)) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals
+    )) {
       const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals[proposalId];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
         swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceProposals[proposalId] = entryB;
@@ -3574,13 +3717,19 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes using LWW
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes)) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes
+    )) {
       if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes[proposalId]) {
         swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes[proposalId] = { ...bInner };
       } else {
-        const aInner = { ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes[proposalId] };
+        const aInner = {
+          ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceVotes[proposalId],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
@@ -3593,24 +3742,38 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals using LWW (AF-198)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals)) {
-      const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals[proposalId];
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals
+    )) {
+      const entryA =
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals[proposalId];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals[proposalId] = entryB;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityProposals[proposalId] =
+          entryB;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes using LWW (AF-198)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes)) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes
+    )) {
       if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes[proposalId]) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes[proposalId] = { ...bInner };
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes[proposalId] = {
+          ...bInner,
+        };
       } else {
-        const aInner = { ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes[proposalId] };
+        const aInner = {
+          ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityVotes[proposalId],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
@@ -3623,241 +3786,455 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals using LWW (AF-199)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals)) {
-      const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId];
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals
+    )) {
+      const entryA =
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId] = entryB;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId] =
+          entryB;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes using LWW (AF-199)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes,
+  };
   if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes)) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes
+    )) {
       if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId]) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] = { ...bInner };
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] = {
+          ...bInner,
+        };
       } else {
-        const aInner = { ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] };
+        const aInner = {
+          ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             aInner[voterId] = voteB;
           }
         }
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] = aInner;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] =
+          aInner;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals using LWW (AF-200)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals };
-  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals)) {
-      const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[proposalId];
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals =
+    {
+      ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals,
+    };
+  if (
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals
+  ) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals
+    )) {
+      const entryA =
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[
+          proposalId
+        ];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[proposalId] = entryB;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[
+          proposalId
+        ] = entryB;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes using LWW (AF-200)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes };
-  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes)) {
-      if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId]) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId] = { ...bInner };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes = {
+    ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes,
+  };
+  if (
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes
+  ) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes
+    )) {
+      if (
+        !swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[
+          proposalId
+        ]
+      ) {
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[
+          proposalId
+        ] = { ...bInner };
       } else {
-        const aInner = { ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId] };
+        const aInner = {
+          ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[
+            proposalId
+          ],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             aInner[voterId] = voteB;
           }
         }
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId] = aInner;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[
+          proposalId
+        ] = aInner;
       }
     }
   }
 
   // Merge cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals using LWW (AF-260)
-  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals = { ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals };
+  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals = {
+    ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals,
+  };
   if (stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals)) {
-      const entryA = cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId];
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals
+    )) {
+      const entryA =
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId] = entryB;
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposals[proposalId] =
+          entryB;
       }
     }
   }
 
   // Merge cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes using LWW (AF-260)
-  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes = { ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes };
+  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes = {
+    ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes,
+  };
   if (stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes)) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes
+    )) {
       if (!cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId]) {
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] = { ...bInner };
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] = {
+          ...bInner,
+        };
       } else {
-        const aInner = { ...cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] };
+        const aInner = {
+          ...cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             aInner[voterId] = voteB;
           }
         }
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] = aInner;
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVotes[proposalId] =
+          aInner;
       }
     }
   }
 
   // Merge cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals using LWW (AF-261)
-  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals = { ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals };
-  if (stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals)) {
-      const entryA = cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[proposalId];
+  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals =
+    {
+      ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals,
+    };
+  if (
+    stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals
+  ) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals
+    )) {
+      const entryA =
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[
+          proposalId
+        ];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[proposalId] = entryB;
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationProposals[
+          proposalId
+        ] = entryB;
       }
     }
   }
 
   // Merge cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes using LWW (AF-261)
-  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes = { ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes };
-  if (stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes)) {
-      if (!cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId]) {
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId] = { ...bInner };
+  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes = {
+    ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes,
+  };
+  if (
+    stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes
+  ) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes
+    )) {
+      if (
+        !cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[
+          proposalId
+        ]
+      ) {
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[
+          proposalId
+        ] = { ...bInner };
       } else {
-        const aInner = { ...cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId] };
+        const aInner = {
+          ...cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[
+            proposalId
+          ],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             aInner[voterId] = voteB;
           }
         }
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[proposalId] = aInner;
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes[
+          proposalId
+        ] = aInner;
       }
     }
   }
 
   // Merge cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals using LWW (AF-262)
-  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals = { ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals };
-  if (stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals)) {
-      const entryA = cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[proposalId];
+  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals =
+    {
+      ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals,
+    };
+  if (
+    stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals
+  ) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals
+    )) {
+      const entryA =
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[
+          proposalId
+        ];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[proposalId] = entryB;
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[
+          proposalId
+        ] = entryB;
       }
     }
   }
 
   // Merge cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes using LWW (AF-262)
-  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes = { ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes };
-  if (stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes)) {
-      if (!cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId]) {
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId] = { ...bInner };
+  const cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes =
+    {
+      ...stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes,
+    };
+  if (
+    stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes
+  ) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes
+    )) {
+      if (
+        !cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[
+          proposalId
+        ]
+      ) {
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[
+          proposalId
+        ] = { ...bInner };
       } else {
-        const aInner = { ...cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId] };
+        const aInner = {
+          ...cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[
+            proposalId
+          ],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             aInner[voterId] = voteB;
           }
         }
-        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId] = aInner;
+        cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[
+          proposalId
+        ] = aInner;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals using LWW (AF-201)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals };
-  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals)) {
-      const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[proposalId];
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals =
+    {
+      ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals,
+    };
+  if (
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals
+  ) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals
+    )) {
+      const entryA =
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[
+          proposalId
+        ];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[proposalId] = entryB;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals[
+          proposalId
+        ] = entryB;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes using LWW (AF-201)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes };
-  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes)) {
-      if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId]) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId] = { ...bInner };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes =
+    {
+      ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes,
+    };
+  if (
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes
+  ) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes
+    )) {
+      if (
+        !swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[
+          proposalId
+        ]
+      ) {
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[
+          proposalId
+        ] = { ...bInner };
       } else {
-        const aInner = { ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId] };
+        const aInner = {
+          ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[
+            proposalId
+          ],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             aInner[voterId] = voteB;
           }
         }
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[proposalId] = aInner;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes[
+          proposalId
+        ] = aInner;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals using LWW (AF-202)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals };
-  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals)) {
-      const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals[proposalId];
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals =
+    {
+      ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals,
+    };
+  if (
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals
+  ) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals
+    )) {
+      const entryA =
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals[
+          proposalId
+        ];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals[proposalId] = entryB;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals[
+          proposalId
+        ] = entryB;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes using LWW (AF-202)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes };
-  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes)) {
-      if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes[proposalId]) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes[proposalId] = { ...bInner };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes =
+    {
+      ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes,
+    };
+  if (
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes
+  ) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes
+    )) {
+      if (
+        !swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes[
+          proposalId
+        ]
+      ) {
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes[
+          proposalId
+        ] = { ...bInner };
       } else {
-        const aInner = { ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes[proposalId] };
+        const aInner = {
+          ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes[
+            proposalId
+          ],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             aInner[voterId] = voteB;
           }
         }
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes[proposalId] = aInner;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes[
+          proposalId
+        ] = aInner;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals using LWW (AF-203)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals };
-  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals) {
-    for (const [proposalId, entryB] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals)) {
-      const entryA = swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals[proposalId];
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals =
+    {
+      ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals,
+    };
+  if (
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals
+  ) {
+    for (const [proposalId, entryB] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals
+    )) {
+      const entryA =
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals[
+          proposalId
+        ];
       if (!entryA || entryB.timestamp > entryA.timestamp) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals[proposalId] = entryB;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingProposals[
+          proposalId
+        ] = entryB;
       }
     }
   }
 
   // Merge swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes using LWW (AF-203)
-  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes = { ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes };
-  if (stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes) {
-    for (const [proposalId, bInner] of Object.entries(stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes)) {
-      if (!swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes[proposalId]) {
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes[proposalId] = { ...bInner };
+  const swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes =
+    {
+      ...stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes,
+    };
+  if (
+    stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes
+  ) {
+    for (const [proposalId, bInner] of Object.entries(
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes
+    )) {
+      if (
+        !swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes[
+          proposalId
+        ]
+      ) {
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes[
+          proposalId
+        ] = { ...bInner };
       } else {
-        const aInner = { ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes[proposalId] };
+        const aInner = {
+          ...swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes[
+            proposalId
+          ],
+        };
         for (const [voterId, voteB] of Object.entries(bInner)) {
           const voteA = aInner[voterId];
           if (!voteA || voteB.timestamp > voteA.timestamp) {
             aInner[voterId] = voteB;
           }
         }
-        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes[proposalId] = aInner;
+        swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapBreachSlashingVotes[
+          proposalId
+        ] = aInner;
       }
     }
   }
@@ -3907,10 +4284,19 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
 
   // Merge swfSecurityInsurancePool and authorized flags using Max and OR (AF-219)
   const swfSecurityInsurancePool = Math.max(stateA.swfSecurityInsurancePool ?? 0, stateB.swfSecurityInsurancePool ?? 0);
-  const swfSecurityInsurancePoolAuthorized = stateA.swfSecurityInsurancePoolAuthorized || stateB.swfSecurityInsurancePoolAuthorized;
-  const swfSecurityInsurancePoolAllocationPercent = Math.max(stateA.swfSecurityInsurancePoolAllocationPercent ?? 0, stateB.swfSecurityInsurancePoolAllocationPercent ?? 0);
-  const swfSecurityInsurancePoolCap = Math.max(stateA.swfSecurityInsurancePoolCap ?? 0, stateB.swfSecurityInsurancePoolCap ?? 0);
-  const swfSecurityInsurancePoolEmergencyDrawdownAuthorized = stateA.swfSecurityInsurancePoolEmergencyDrawdownAuthorized || stateB.swfSecurityInsurancePoolEmergencyDrawdownAuthorized;
+  const swfSecurityInsurancePoolAuthorized =
+    stateA.swfSecurityInsurancePoolAuthorized || stateB.swfSecurityInsurancePoolAuthorized;
+  const swfSecurityInsurancePoolAllocationPercent = Math.max(
+    stateA.swfSecurityInsurancePoolAllocationPercent ?? 0,
+    stateB.swfSecurityInsurancePoolAllocationPercent ?? 0
+  );
+  const swfSecurityInsurancePoolCap = Math.max(
+    stateA.swfSecurityInsurancePoolCap ?? 0,
+    stateB.swfSecurityInsurancePoolCap ?? 0
+  );
+  const swfSecurityInsurancePoolEmergencyDrawdownAuthorized =
+    stateA.swfSecurityInsurancePoolEmergencyDrawdownAuthorized ||
+    stateB.swfSecurityInsurancePoolEmergencyDrawdownAuthorized;
 
   // Merge swfSecurityInsurancePoolProposals using LWW (AF-219)
   const swfSecurityInsurancePoolProposals = { ...stateA.swfSecurityInsurancePoolProposals };
@@ -3924,7 +4310,9 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
   }
 
   // Merge swfSecurityInsurancePoolEmergencyDrawdownProposals using LWW (AF-219)
-  const swfSecurityInsurancePoolEmergencyDrawdownProposals = { ...stateA.swfSecurityInsurancePoolEmergencyDrawdownProposals };
+  const swfSecurityInsurancePoolEmergencyDrawdownProposals = {
+    ...stateA.swfSecurityInsurancePoolEmergencyDrawdownProposals,
+  };
   if (stateB.swfSecurityInsurancePoolEmergencyDrawdownProposals) {
     for (const [proposalId, entryB] of Object.entries(stateB.swfSecurityInsurancePoolEmergencyDrawdownProposals)) {
       const entryA = swfSecurityInsurancePoolEmergencyDrawdownProposals[proposalId];
@@ -3966,8 +4354,6 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
       }
     }
   }
-
-
 
   // Merge sweepPoolRankAdjustFeeCalibrationProposals using LWW (AF-209)
   const sweepPoolRankAdjustFeeCalibrationProposals = { ...stateA.sweepPoolRankAdjustFeeCalibrationProposals };
@@ -4241,9 +4627,19 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes,
-    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee: Math.max(stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? 500, stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? 500),
-    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee: Math.max(stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100, stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100),
-    maxAutoReinvestYieldCap: stateA.maxAutoReinvestYieldCap !== undefined && stateB.maxAutoReinvestYieldCap !== undefined ? Math.max(stateA.maxAutoReinvestYieldCap, stateB.maxAutoReinvestYieldCap) : (stateA.maxAutoReinvestYieldCap ?? stateB.maxAutoReinvestYieldCap),
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee: Math.max(
+      stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ??
+        500,
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? 500
+    ),
+    swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee: Math.max(
+      stateA.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100,
+      stateB.swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100
+    ),
+    maxAutoReinvestYieldCap:
+      stateA.maxAutoReinvestYieldCap !== undefined && stateB.maxAutoReinvestYieldCap !== undefined
+        ? Math.max(stateA.maxAutoReinvestYieldCap, stateB.maxAutoReinvestYieldCap)
+        : (stateA.maxAutoReinvestYieldCap ?? stateB.maxAutoReinvestYieldCap),
     auditLogs,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapProposals,
     swfReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCapVotes,
@@ -4264,19 +4660,62 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     swfSecurityInsurancePoolProposals,
     swfSecurityInsurancePoolEmergencyDrawdownAuthorized,
     swfSecurityInsurancePoolEmergencyDrawdownProposals,
-    swfDeflectionSurchargeBaseRate: stateA.swfDeflectionSurchargeBaseRate !== undefined && stateB.swfDeflectionSurchargeBaseRate !== undefined ? (stateA.swfDeflectionSurchargeBaseRate > stateB.swfDeflectionSurchargeBaseRate ? stateA.swfDeflectionSurchargeBaseRate : stateB.swfDeflectionSurchargeBaseRate) : (stateA.swfDeflectionSurchargeBaseRate ?? stateB.swfDeflectionSurchargeBaseRate ?? 0.05),
-    swfDeflectionSurchargePoolDepthScalingFactor: stateA.swfDeflectionSurchargePoolDepthScalingFactor !== undefined && stateB.swfDeflectionSurchargePoolDepthScalingFactor !== undefined ? (stateA.swfDeflectionSurchargePoolDepthScalingFactor > stateB.swfDeflectionSurchargePoolDepthScalingFactor ? stateA.swfDeflectionSurchargePoolDepthScalingFactor : stateB.swfDeflectionSurchargePoolDepthScalingFactor) : (stateA.swfDeflectionSurchargePoolDepthScalingFactor ?? stateB.swfDeflectionSurchargePoolDepthScalingFactor ?? 1.0),
+    swfDeflectionSurchargeBaseRate:
+      stateA.swfDeflectionSurchargeBaseRate !== undefined && stateB.swfDeflectionSurchargeBaseRate !== undefined
+        ? stateA.swfDeflectionSurchargeBaseRate > stateB.swfDeflectionSurchargeBaseRate
+          ? stateA.swfDeflectionSurchargeBaseRate
+          : stateB.swfDeflectionSurchargeBaseRate
+        : (stateA.swfDeflectionSurchargeBaseRate ?? stateB.swfDeflectionSurchargeBaseRate ?? 0.05),
+    swfDeflectionSurchargePoolDepthScalingFactor:
+      stateA.swfDeflectionSurchargePoolDepthScalingFactor !== undefined &&
+      stateB.swfDeflectionSurchargePoolDepthScalingFactor !== undefined
+        ? stateA.swfDeflectionSurchargePoolDepthScalingFactor > stateB.swfDeflectionSurchargePoolDepthScalingFactor
+          ? stateA.swfDeflectionSurchargePoolDepthScalingFactor
+          : stateB.swfDeflectionSurchargePoolDepthScalingFactor
+        : (stateA.swfDeflectionSurchargePoolDepthScalingFactor ??
+          stateB.swfDeflectionSurchargePoolDepthScalingFactor ??
+          1.0),
     swfDeflectionSurchargePolicyProposals,
-    swfDeflectionSurchargeCap: stateA.swfDeflectionSurchargeCap !== undefined && stateB.swfDeflectionSurchargeCap !== undefined ? (stateA.swfDeflectionSurchargeCap < stateB.swfDeflectionSurchargeCap ? stateA.swfDeflectionSurchargeCap : stateB.swfDeflectionSurchargeCap) : (stateA.swfDeflectionSurchargeCap ?? stateB.swfDeflectionSurchargeCap ?? 1.0),
-    swfDeflectionSurchargeEmergencyRefundAllocationPercent: stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent !== undefined && stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent !== undefined ? (stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent > stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent ? stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent : stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent) : (stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent ?? stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent ?? 0),
+    swfDeflectionSurchargeCap:
+      stateA.swfDeflectionSurchargeCap !== undefined && stateB.swfDeflectionSurchargeCap !== undefined
+        ? stateA.swfDeflectionSurchargeCap < stateB.swfDeflectionSurchargeCap
+          ? stateA.swfDeflectionSurchargeCap
+          : stateB.swfDeflectionSurchargeCap
+        : (stateA.swfDeflectionSurchargeCap ?? stateB.swfDeflectionSurchargeCap ?? 1.0),
+    swfDeflectionSurchargeEmergencyRefundAllocationPercent:
+      stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent !== undefined &&
+      stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent !== undefined
+        ? stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent >
+          stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent
+          ? stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent
+          : stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent
+        : (stateA.swfDeflectionSurchargeEmergencyRefundAllocationPercent ??
+          stateB.swfDeflectionSurchargeEmergencyRefundAllocationPercent ??
+          0),
     swfDeflectionCapAndRefundProposals,
-    swfAllianceLiquiditySubsidyRate: stateA.swfAllianceLiquiditySubsidyRate !== undefined && stateB.swfAllianceLiquiditySubsidyRate !== undefined ? (stateA.swfAllianceLiquiditySubsidyRate > stateB.swfAllianceLiquiditySubsidyRate ? stateA.swfAllianceLiquiditySubsidyRate : stateB.swfAllianceLiquiditySubsidyRate) : (stateA.swfAllianceLiquiditySubsidyRate ?? stateB.swfAllianceLiquiditySubsidyRate ?? 0),
-    swfAllianceLiquiditySubsidyMinWealth: stateA.swfAllianceLiquiditySubsidyMinWealth !== undefined && stateB.swfAllianceLiquiditySubsidyMinWealth !== undefined ? (stateA.swfAllianceLiquiditySubsidyMinWealth > stateB.swfAllianceLiquiditySubsidyMinWealth ? stateA.swfAllianceLiquiditySubsidyMinWealth : stateB.swfAllianceLiquiditySubsidyMinWealth) : (stateA.swfAllianceLiquiditySubsidyMinWealth ?? stateB.swfAllianceLiquiditySubsidyMinWealth ?? 0),
+    swfAllianceLiquiditySubsidyRate:
+      stateA.swfAllianceLiquiditySubsidyRate !== undefined && stateB.swfAllianceLiquiditySubsidyRate !== undefined
+        ? stateA.swfAllianceLiquiditySubsidyRate > stateB.swfAllianceLiquiditySubsidyRate
+          ? stateA.swfAllianceLiquiditySubsidyRate
+          : stateB.swfAllianceLiquiditySubsidyRate
+        : (stateA.swfAllianceLiquiditySubsidyRate ?? stateB.swfAllianceLiquiditySubsidyRate ?? 0),
+    swfAllianceLiquiditySubsidyMinWealth:
+      stateA.swfAllianceLiquiditySubsidyMinWealth !== undefined &&
+      stateB.swfAllianceLiquiditySubsidyMinWealth !== undefined
+        ? stateA.swfAllianceLiquiditySubsidyMinWealth > stateB.swfAllianceLiquiditySubsidyMinWealth
+          ? stateA.swfAllianceLiquiditySubsidyMinWealth
+          : stateB.swfAllianceLiquiditySubsidyMinWealth
+        : (stateA.swfAllianceLiquiditySubsidyMinWealth ?? stateB.swfAllianceLiquiditySubsidyMinWealth ?? 0),
     swfAllianceLiquiditySubsidyProposals,
-    sweepPoolRankAdjustBaseProposalFee: Math.max(stateA.sweepPoolRankAdjustBaseProposalFee ?? 200, stateB.sweepPoolRankAdjustBaseProposalFee ?? 200),
-    sweepPoolRankAdjustBaseVoteFee: Math.max(stateA.sweepPoolRankAdjustBaseVoteFee ?? 50, stateB.sweepPoolRankAdjustBaseVoteFee ?? 50),
+    sweepPoolRankAdjustBaseProposalFee: Math.max(
+      stateA.sweepPoolRankAdjustBaseProposalFee ?? 200,
+      stateB.sweepPoolRankAdjustBaseProposalFee ?? 200
+    ),
+    sweepPoolRankAdjustBaseVoteFee: Math.max(
+      stateA.sweepPoolRankAdjustBaseVoteFee ?? 50,
+      stateB.sweepPoolRankAdjustBaseVoteFee ?? 50
+    ),
     sweepPoolRankAdjustFeeCalibrationProposals,
-
 
     swfReinsuranceOptionPremiumContributions,
     swfReinsuranceOptionCrossMeshArbitrageRoutes,
@@ -4305,6 +4744,8 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     merchantLastUpdated,
     merchantGuilds,
     guildMemberships,
+    guildContracts,
+    guildPrestige,
     guildVotes,
     collectiveBargainingAgreements,
     cartels,
@@ -4484,8 +4925,30 @@ export function mergeMonotonicStateFields(stateA: GameState, stateB: GameState):
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationVotes,
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentProposals,
     cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentVotes,
-    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee: stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee !== undefined && stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee !== undefined ? Math.max(stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee, stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee) : (stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ?? 500),
-    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee: stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee !== undefined && stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee !== undefined ? Math.max(stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee, stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee) : (stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ?? 100),
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee:
+      stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee !==
+        undefined &&
+      stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee !==
+        undefined
+        ? Math.max(
+            stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee,
+            stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee
+          )
+        : (stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ??
+          stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustProposalFee ??
+          500),
+    cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee:
+      stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee !==
+        undefined &&
+      stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee !==
+        undefined
+        ? Math.max(
+            stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee,
+            stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee
+          )
+        : (stateA.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ??
+          stateB.cdsCdoYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustVoteFee ??
+          100),
   };
 }
 
@@ -4562,7 +5025,8 @@ export class GossipNode {
   public peers: Map<string, GossipNode> = new Map();
   public peerClocks: Map<string, VectorClock> = new Map();
   public seed: number;
-  public lastSentGossipCache: Map<string, { vectorClock: VectorClock; transactionIds: string[]; timestamp: number }> = new Map();
+  public lastSentGossipCache: Map<string, { vectorClock: VectorClock; transactionIds: string[]; timestamp: number }> =
+    new Map();
   public privateKey: string;
   public publicKey: string;
   public enforceSignatures = false;
@@ -4598,7 +5062,7 @@ export class GossipNode {
     const cached = this.lastSentGossipCache.get(peerId);
     const currentTime = (this as any).network ? (this as any).network.currentTimeMs : Date.now();
 
-    if (cached && (currentTime - cached.timestamp < maxAgeMs)) {
+    if (cached && currentTime - cached.timestamp < maxAgeMs) {
       const clockKeysMatch = Object.keys(msg.vectorClock).length === Object.keys(cached.vectorClock).length;
       let clockValuesMatch = true;
       if (clockKeysMatch) {
@@ -4610,12 +5074,16 @@ export class GossipNode {
         }
       }
 
-      const txs = msg.transactions && msg.transactions.length > 0
-        ? msg.transactions
-        : (msg.compressedDiff ? decompressStateDiff(msg.compressedDiff) : []);
+      const txs =
+        msg.transactions && msg.transactions.length > 0
+          ? msg.transactions
+          : msg.compressedDiff
+            ? decompressStateDiff(msg.compressedDiff)
+            : [];
 
       const newTxIds = txs.map(getTransactionId);
-      const txIdsMatch = newTxIds.length === cached.transactionIds.length &&
+      const txIdsMatch =
+        newTxIds.length === cached.transactionIds.length &&
         newTxIds.every((id, idx) => id === cached.transactionIds[idx]);
 
       if (clockKeysMatch && clockValuesMatch && txIdsMatch) {
@@ -4623,9 +5091,12 @@ export class GossipNode {
       }
     }
 
-    const txs = msg.transactions && msg.transactions.length > 0
-      ? msg.transactions
-      : (msg.compressedDiff ? decompressStateDiff(msg.compressedDiff) : []);
+    const txs =
+      msg.transactions && msg.transactions.length > 0
+        ? msg.transactions
+        : msg.compressedDiff
+          ? decompressStateDiff(msg.compressedDiff)
+          : [];
 
     const txIds = txs.map(getTransactionId);
     this.lastSentGossipCache.set(peerId, {
@@ -4702,9 +5173,7 @@ export class GossipNode {
       }
     }
 
-    const minSeq = deltaTransactions.length > 0 
-      ? Math.min(...deltaTransactions.map(tx => tx.sequenceNumber)) 
-      : 0;
+    const minSeq = deltaTransactions.length > 0 ? Math.min(...deltaTransactions.map((tx) => tx.sequenceNumber)) : 0;
 
     const compressedDiff = compressStateDiff(deltaTransactions, minSeq);
 
@@ -4739,7 +5208,7 @@ export class GossipNode {
 
     // 1. Check if the message contains any updates or clock advancements we don't have
     const isBehind = isClockBehind(this.vectorClock, message.vectorClock);
-    const hasNewTransactions = message.transactions.some(tx => {
+    const hasNewTransactions = message.transactions.some((tx) => {
       const id = getTransactionId(tx);
       const ourIds = (this.localState.transactionJournal || []).map(getTransactionId);
       return !ourIds.includes(id);
@@ -4747,7 +5216,7 @@ export class GossipNode {
 
     const knownAgents = Object.keys(this.localState.agents || {});
     const messageAgents = Object.keys(message.vectorClock);
-    const hasNewAgents = messageAgents.some(agentId => !knownAgents.includes(agentId));
+    const hasNewAgents = messageAgents.some((agentId) => !knownAgents.includes(agentId));
 
     if (!isBehind && !hasNewTransactions && !hasNewAgents) {
       return false; // No new information, abort gossip to avoid infinite storm
@@ -4757,17 +5226,12 @@ export class GossipNode {
     this.vectorClock = mergeVectorClocks(this.vectorClock, message.vectorClock);
 
     // 3. Merge transaction histories and sort deterministically
-    const mergedTxs = mergeAndSortTransactions(
-      this.localState.transactionJournal || [],
-      message.transactions
-    );
+    const mergedTxs = mergeAndSortTransactions(this.localState.transactionJournal || [], message.transactions);
 
     // 4. Gather all unique agent/peer IDs known from transactions and vector clock
-    const allAgentIds = Array.from(new Set([
-      ...mergedTxs.map(tx => tx.agentId),
-      ...Object.keys(this.vectorClock),
-      this.nodeId
-    ]));
+    const allAgentIds = Array.from(
+      new Set([...mergedTxs.map((tx) => tx.agentId), ...Object.keys(this.vectorClock), this.nodeId])
+    );
 
     // 5. Reconstruct converged GameState from transactions and the full list of agents
     let convergedState = reconstructState(
@@ -4856,12 +5320,34 @@ export class GossipNode {
     convergedState = reconcileSWFReinsuranceOptionVolatilityFloors(convergedState, this.pack);
     convergedState = reconcileSWFReinsuranceOptionVolatilityFloorAutoAdjusts(convergedState, this.pack);
     convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrides(convergedState, this.pack);
-    convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces(convergedState, this.pack);
-    convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities(convergedState, this.pack);
-    convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts(convergedState, this.pack);
-    convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations(convergedState, this.pack);
-    convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments(convergedState, this.pack);
-    convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCaps(convergedState, this.pack);
+    convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraces(
+      convergedState,
+      this.pack
+    );
+    convergedState = reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidities(
+      convergedState,
+      this.pack
+    );
+    convergedState =
+      reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjusts(
+        convergedState,
+        this.pack
+      );
+    convergedState =
+      reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations(
+        convergedState,
+        this.pack
+      );
+    convergedState =
+      reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestments(
+        convergedState,
+        this.pack
+      );
+    convergedState =
+      reconcileSWFReinsuranceOptionVolatilityFloorPanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrationYieldProRataAutoReinvestmentGovernanceCaps(
+        convergedState,
+        this.pack
+      );
     convergedState = reconcileSweepPoolRankAdjustFeeCalibrations(convergedState, this.pack);
     convergedState = reconcileSWFDeflectionSurchargePolicyProposals(convergedState, this.pack);
     convergedState = reconcileSWFDeflectionCapAndRefundProposals(convergedState, this.pack);
@@ -4875,9 +5361,15 @@ export class GossipNode {
     convergedState = reconcileSovereignDebtCDSCDOTranches(convergedState, this.pack);
     convergedState = reconcileCDSCDOCoinvestmentReinvestmentPolicyProposals(convergedState, this.pack);
     convergedState = reconcileCDSCDOYieldHedgingOptionPolicyProposals(convergedState, this.pack);
-    convergedState = reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjusts(convergedState, this.pack);
-    convergedState = reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations(convergedState, this.pack);
-
+    convergedState = reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjusts(
+      convergedState,
+      this.pack
+    );
+    convergedState =
+      reconcileCDSCDOYieldHedgingOptionSurchargePanicOverrideExtensionCancellationGraceLiquidityAdjustFeeCalibrations(
+        convergedState,
+        this.pack
+      );
 
     // Detect territory control changes during gossip convergence
     const oldControl = this.localState.territoryControl || {};
@@ -4887,7 +5379,7 @@ export class GossipNode {
       if (newFactionId !== oldFactionId) {
         const oldClaim = this.localState.territoryClaims?.[roomId];
         const newClaim = convergedState.territoryClaims?.[roomId];
-        
+
         const oldAssistants = oldClaim?.assistants || [];
         const newAssistants = newClaim?.assistants || [];
         const isAllianceBattle = oldFactionId && (oldAssistants.length > 0 || newAssistants.length > 0);
@@ -4899,7 +5391,8 @@ export class GossipNode {
             template = this.pack.network_templates.alliance_battle || "";
           }
           if (!template) {
-            template = "[ALLIANCE BATTLE] {roomId} has been captured by the allied forces of {newFaction}! (Defended by: {oldFaction})";
+            template =
+              "[ALLIANCE BATTLE] {roomId} has been captured by the allied forces of {newFaction}! (Defended by: {oldFaction})";
           }
           const oldFactionStr = oldFactionId || "none";
           const newAssistantsStr = newAssistants.length > 0 ? newAssistants.join(", ") : "none";
@@ -5004,10 +5497,7 @@ export class GossipPacketFragmenter {
    * Serializes the compressedDiff, splits it into chunks of maxFragmentSize,
    * and wraps them in GossipFragment structures.
    */
-  public static fragment(
-    message: GossipMessage,
-    maxFragmentSize: number
-  ): GossipFragment[] {
+  public static fragment(message: GossipMessage, maxFragmentSize: number): GossipFragment[] {
     const serializedDiff = JSON.stringify(message.compressedDiff ?? {});
     const totalLength = serializedDiff.length;
     const totalFragments = Math.max(1, Math.ceil(totalLength / maxFragmentSize));
@@ -5052,4 +5542,3 @@ export class GossipPacketFragmenter {
     };
   }
 }
-

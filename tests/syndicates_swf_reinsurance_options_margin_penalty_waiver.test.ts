@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Margin Penalty Waiver Consensus Arbi
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -77,7 +77,7 @@ describe("Syndicate SWF Reinsurance Options Margin Penalty Waiver Consensus Arbi
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -118,7 +118,7 @@ describe("Syndicate SWF Reinsurance Options Margin Penalty Waiver Consensus Arbi
       cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
-        liquidationThreshold: 0.90,
+        liquidationThreshold: 0.9,
         penaltyRate: 0.25,
         timestamp: 1000,
       },
@@ -202,6 +202,6 @@ describe("Syndicate SWF Reinsurance Options Margin Penalty Waiver Consensus Arbi
     expect(holderSyndicate?.warChest).toBe(4000);
 
     // Narration contains WAIVED log
-    expect(ticked.journal?.some(j => j.includes("Penalty WAIVED due to authorized penalty waiver"))).toBe(true);
+    expect(ticked.journal?.some((j) => j.includes("Penalty WAIVED due to authorized penalty waiver"))).toBe(true);
   });
 });

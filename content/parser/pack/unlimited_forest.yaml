@@ -10,19 +10,36 @@ meta:
 rooms:
   - id: clearing
     name: "Sunlit Clearing"
-    description: "A beautiful sunlit clearing in the heart of the forest. The trees press in close, but a path leads west."
+    description: "A beautiful sunlit clearing in the heart of the forest. The trees press in close, but a path leads west. Steep rocks lead up to a cliffside."
     objects: [ shovel, mound ]
-    npcs: []
+    npcs: [ guild_master ]
     exits:
       - { direction: west, to: deep_forest }
+      - direction: up
+        to: cliffside
+        locked_msg: "The rocks are too slick to climb in the rain. You need sturdy boots for traction."
+        conditions:
+          - any_of:
+              - none_of:
+                  - { weather_is: "rain" }
+                  - { weather_is: "storm" }
+              - { has_item: "leather_boots" }
 
   - id: deep_forest
     name: "Deep Forest"
     description: "The canopy blocks out most of the sun. It feels gloomy and silent. A goblin merchant sits on a mossy log here."
     objects: []
-    npcs: [ goblin_merchant ]
+    npcs: [ goblin_merchant, goblin_thief ]
     exits:
       - { direction: east, to: clearing }
+
+  - id: cliffside
+    name: "Slick Cliffside"
+    description: "A high cliffside overlooking the forest below. The rocks here are slick and steep."
+    objects: []
+    npcs: []
+    exits:
+      - { direction: down, to: clearing }
 
 objects:
   - id: shovel
@@ -56,6 +73,12 @@ objects:
     description: "A shiny golden ring that glimmers under any light."
     takeable: true
 
+  - id: leather_boots
+    name: "leather boots"
+    aliases: [ boots, leather boots ]
+    description: "Sturdy leather boots that provide excellent traction on slick surfaces."
+    takeable: true
+
 npcs:
   - id: goblin_merchant
     name: "goblin merchant"
@@ -64,9 +87,10 @@ npcs:
       root: greet
       nodes:
         - id: greet
-          npc_text: "Greetings, tall one! I have rare goods. I can sell you a shiny golden ring for 30 gold. Or, if you have a golden ring, I can buy it back for 15 gold."
+          npc_text: "Greetings, tall one! I have rare goods. I can sell you a shiny golden ring for 30 gold, or sturdy leather boots for 20 gold. Or, if you have a golden ring, I can buy it back for 15 gold."
           topics:
             - { id: buy_ring, prompt: "Buy gold ring (30 gold)", goto: bought_ring }
+            - { id: buy_boots, prompt: "Buy leather boots (20 gold)", goto: bought_boots }
             - { id: sell_ring, prompt: "Sell gold ring (15 gold)", goto: sold_ring }
             - { id: leave, prompt: "Say goodbye", end: true }
         - id: bought_ring
@@ -77,6 +101,17 @@ npcs:
                 receive_item: gold_ring
                 fail_msg: "\"You do not have enough gold!\" he cackles."
                 success_msg: "You trade 30 gold for a beautiful gold ring."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: bought_boots
+          npc_text: "A fine choice! Sturdy leather boots for a sturdy traveler."
+          effects:
+            - trade_item:
+                give_gold: 20
+                receive_item: leather_boots
+                fail_msg: "\"You do not have enough gold!\" he cackles."
+                success_msg: "You trade 20 gold for sturdy leather boots."
           topics:
             - { id: greet_again, prompt: "Let's talk more", goto: greet }
             - { id: leave, prompt: "Say goodbye", end: true }
@@ -91,6 +126,93 @@ npcs:
           topics:
             - { id: greet_again, prompt: "Let's talk more", goto: greet }
             - { id: leave, prompt: "Say goodbye", end: true }
+
+  - id: guild_master
+    name: "guild master"
+    description: "A hooded figure wearing the emblem of the Smugglers Guild."
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "Welcome to the Smugglers outpost. If you want to increase your prestige and earn gold, I have contracts for you. Or, if you have finished a contract, report to me."
+          topics:
+            - { id: ask_contracts, prompt: "Ask about available contracts", goto: contract_list }
+            - { id: check_prestige, prompt: "Check your prestige", goto: prestige_info }
+            - { id: turn_in_smuggle, prompt: "Report completion of the smuggling contract", goto: turn_in_success, conditions: [ { guild_contract_active: "c_smuggle_ring" }, { has_item: "gold_ring" }, { visited: "cliffside" } ] }
+            - { id: turn_in_enforce, prompt: "Report completion of the enforcement contract", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_thief" }, { has_flag: "npc_defeated_goblin_thief" } ] }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: contract_list
+          npc_text: "I have two tasks. First, a smuggling run: take a gold ring to the Slick Cliffside. Second, an enforcement run: defeat the goblin thief who has been stealing our supplies."
+          topics:
+            - { id: take_smuggle, prompt: "Accept the smuggling contract", goto: accept_smuggle, conditions: [ { none_of: [ { guild_contract_active: "c_smuggle_ring" }, { guild_contract_completed: "c_smuggle_ring" } ] } ] }
+            - { id: take_enforce, prompt: "Accept the enforcement contract", goto: accept_enforce, conditions: [ { none_of: [ { guild_contract_active: "c_enforce_thief" }, { guild_contract_completed: "c_enforce_thief" } ] } ] }
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_smuggle
+          npc_text: "Excellent. Smuggle a gold ring to the Slick Cliffside. Return to me when you've reached the cliffside with the ring."
+          effects:
+            - accept_guild_contract:
+                id: c_smuggle_ring
+                guild: smugglers
+                type: smuggling
+                target: gold_ring
+                target_room: cliffside
+                reward_gold: 100
+                reward_prestige: 50
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: accept_enforce
+          npc_text: "Defeat the goblin thief in the deep forest, then report back."
+          effects:
+            - accept_guild_contract:
+                id: c_enforce_thief
+                guild: enforcers
+                type: enforcement
+                target: goblin_thief
+                reward_gold: 150
+                reward_prestige: 75
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: turn_in_success
+          npc_text: "Splendid! The shipment has been delivered. Here is your reward."
+          effects:
+            - complete_guild_contract:
+                id: c_smuggle_ring
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: enforce_success
+          npc_text: "Outstanding work! The enforcers thank you. Here is your reward."
+          effects:
+            - complete_guild_contract:
+                id: c_enforce_thief
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+        - id: prestige_info
+          npc_text: "You can see your prestige in your status report. Work hard to raise your rank!"
+          topics:
+            - { id: back, prompt: "Go back", goto: greet }
+
+  - id: goblin_thief
+    name: "goblin thief"
+    description: "A sneaky goblin thief holding a bag of stolen guild supplies."
+    hp: 10
+    max_hp: 10
+    attack: 2
+    defense: 8
+    gold: 5
+    xp: 15
+    dialogue:
+      root: greet
+      nodes:
+        - id: greet
+          npc_text: "What are you looking at? Get lost or fight me!"
+          topics:
+            - { id: attack_thief, prompt: "Attack him!", goto: fight_node }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: fight_node
+          npc_text: "You want to fight? Let's go!"
+          effects:
+            - start_combat: { npc_id: goblin_thief }
+          topics: []
 
 win_conditions:
   - id: reach_glade

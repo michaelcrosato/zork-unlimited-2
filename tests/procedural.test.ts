@@ -181,4 +181,144 @@ describe("Stage 2 Procedural Templates & Generators", () => {
     // state3 must be different from state1
     expect(state1.seed).not.toBe(state3.seed);
   });
+
+  it("should support segment-based names, environment-specific descriptions, and dynamic item drops", () => {
+    const pack: ParserPack = {
+      meta: {
+        id: "rich_procedural_pack",
+        title: "Rich Procedural",
+        start_room: "start",
+        vars_init: {},
+        flags_init: ["generate_room"],
+      },
+      rooms: [
+        {
+          id: "start",
+          name: "Starting Point",
+          description: "A simple start room.",
+          objects: ["device"],
+          npcs: [],
+          exits: [],
+        },
+      ],
+      objects: [
+        {
+          id: "device",
+          name: "strange device",
+          aliases: ["device"],
+          description: "A mysterious metallic device.",
+          takeable: false,
+          quest_critical: false,
+          container: false,
+          openable: false,
+          locked: false,
+          contents: [],
+          interactions: [
+            {
+              verb: "USE",
+              conditions: [{ has_flag: "generate_room" }],
+              effects: [
+                { clear_flag: "generate_room" },
+                {
+                  generate_procedural_room: {
+                    direction: "north",
+                    to_id: "proc_chamber",
+                    template_id: "dungeon_room",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "rusty_sword",
+          name: "rusty sword",
+          aliases: ["sword"],
+          description: "A rusty iron sword.",
+          takeable: true,
+          quest_critical: false,
+          container: false,
+          openable: false,
+          locked: false,
+          contents: [],
+          interactions: [],
+        },
+        {
+          id: "shield",
+          name: "old wooden shield",
+          aliases: ["shield"],
+          description: "An old shield.",
+          takeable: true,
+          quest_critical: false,
+          container: false,
+          openable: false,
+          locked: false,
+          contents: [],
+          interactions: [],
+        },
+      ],
+      npcs: [],
+      procedural_templates: [
+        {
+          id: "dungeon_room",
+          name_prefixes: ["Ancient", "Ruined"],
+          name_adjectives: ["Slightly Damp", "Dark"],
+          name_nouns: ["Sanctum", "Crypt"],
+          name_suffixes: ["of the Dead", "of Secrets"],
+          description_pool: ["You stand in a subterranean room."],
+          environment_descriptions: {
+            rain: ["Water drips heavily from the ceiling."],
+            cold: ["The air is freezing cold."],
+            gale: ["Winds howl through the narrow cracks."],
+          },
+          item_drops: [
+            { item_id: "rusty_sword", chance: 1.0 },
+            { item_id: "shield", chance: 0.0 },
+          ],
+          exits: [],
+        },
+      ],
+      win_conditions: [],
+      endings: [],
+    };
+
+    // Verify it validates cleanly
+    const report = validateParserPack(pack);
+    expect(report.ok).toBe(true);
+
+    // Initial state with weather: rain, temperature: cold, wind: gale
+    let state = createInitialState({
+      seed: 42,
+      start: "start",
+      flagsInit: ["generate_room"],
+    });
+    state.environment = {
+      weather: "rain",
+      temperature: "cold",
+      wind: "gale",
+      lastUpdatedStep: 0,
+    };
+
+    const action: Action = { type: "USE", target: "device", item: "device" };
+    const res = step(state, action, pack);
+    expect(res.ok).toBe(true);
+
+    const generated = res.state.proceduralRooms![0];
+    expect(generated.id).toBe("proc_chamber");
+
+    // Room name should have 4 segments (prefix, adjective, noun, suffix)
+    expect(generated.name).toBeDefined();
+    const parts = generated.name.split(" ");
+    expect(parts.length).toBeGreaterThanOrEqual(4);
+
+    // Environment-specific segments should be appended to description
+    expect(generated.description).toContain("You stand in a subterranean room.");
+    expect(generated.description).toContain("Water drips heavily from the ceiling.");
+    expect(generated.description).toContain("The air is freezing cold.");
+    expect(generated.description).toContain("Winds howl through the narrow cracks.");
+
+    // Dynamic item drops: rusty_sword (100%) should be present, shield (0%) should not.
+    expect(generated.objects).toContain("rusty_sword");
+    expect(generated.objects).not.toContain("shield");
+  });
 });

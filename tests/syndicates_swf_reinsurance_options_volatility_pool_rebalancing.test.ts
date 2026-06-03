@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Rebalancing & Yield 
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -134,7 +134,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Rebalancing & Yield 
 
     // Mock highly volatile VIX-style indexes
     state.yieldVolatilityIndexes = {
-      bond_1: { bondId: "bond_1", volatility: 45, timestamp: 1000 }
+      bond_1: { bondId: "bond_1", volatility: 45, timestamp: 1000 },
     };
 
     // Tick economy
@@ -145,7 +145,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Rebalancing & Yield 
     expect(pool?.totalBalance).toBe(3000);
     expect(pool?.syndicateContributions?.alpha).toBe(3000);
     expect(state.syndicates?.alpha?.warChest).toBe(3000); // 5000 - 2000
-    expect(state.journal?.some(line => line.includes("[SWF Volatility Pool Auto-Deposit]"))).toBe(true);
+    expect(state.journal?.some((line) => line.includes("[SWF Volatility Pool Auto-Deposit]"))).toBe(true);
   });
 
   it("should automatically transfer fallback liquidity and reward yield optimization on volatility shocks", () => {
@@ -200,7 +200,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Rebalancing & Yield 
 
     // Trigger volatile shock
     state.yieldVolatilityIndexes = {
-      bond_1: { bondId: "bond_1", volatility: 40, timestamp: 1000 }
+      bond_1: { bondId: "bond_1", volatility: 40, timestamp: 1000 },
     };
 
     // Tick economy
@@ -217,6 +217,6 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Rebalancing & Yield 
 
     // Optimized yield reward = Math.round(4000 * 0.05 * 2.0) = 400 gold
     expect(state.syndicates?.alpha?.warChest).toBe(5400); // 5000 + 400
-    expect(state.journal?.some(line => line.includes("[SWF Volatility Pool Auto-Rebalance]"))).toBe(true);
+    expect(state.journal?.some((line) => line.includes("[SWF Volatility Pool Auto-Rebalance]"))).toBe(true);
   });
 });

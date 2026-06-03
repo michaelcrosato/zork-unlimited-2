@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -161,7 +161,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
 
     // 1. Tick under calm conditions (avgVolatility = 10.0, below volatile trigger)
     state.yieldVolatilityIndexes = {
-      bond_1: { bondId: "bond_1", volatility: 10, timestamp: 1000 }
+      bond_1: { bondId: "bond_1", volatility: 10, timestamp: 1000 },
     };
 
     state = tickEconomy(state, mockPack);
@@ -178,7 +178,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
 
     // 2. Tick under high volatility trigger conditions (avgVolatility = 40.0)
     state.yieldVolatilityIndexes = {
-      bond_1: { bondId: "bond_1", volatility: 40, timestamp: 1000 }
+      bond_1: { bondId: "bond_1", volatility: 40, timestamp: 1000 },
     };
 
     state = tickEconomy(state, mockPack);
@@ -197,8 +197,8 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
     expect(state.syndicates?.alpha?.warChest).toBe(4959); // 5000 - 41
 
     // Verify journal logging
-    expect(state.journal?.some(line => line.includes("[SWF Volatility Pool Premium Calibration]"))).toBe(true);
-    expect(state.journal?.some(line => line.includes("[SWF Volatility Pool Premium Payment]"))).toBe(true);
+    expect(state.journal?.some((line) => line.includes("[SWF Volatility Pool Premium Calibration]"))).toBe(true);
+    expect(state.journal?.some((line) => line.includes("[SWF Volatility Pool Premium Payment]"))).toBe(true);
   });
 
   it("should synchronize and converge underwriting policies and votes across gossip mesh nodes", () => {
@@ -230,7 +230,9 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
         timestamp: 1000,
       },
     };
-    nodeB.localState.swfReinsuranceOptionCrossSyndicatePools = JSON.parse(JSON.stringify(nodeA.localState.swfReinsuranceOptionCrossSyndicatePools));
+    nodeB.localState.swfReinsuranceOptionCrossSyndicatePools = JSON.parse(
+      JSON.stringify(nodeA.localState.swfReinsuranceOptionCrossSyndicatePools)
+    );
 
     const adjustAction = {
       type: "ADJUST_SWF_REINSURANCE_OPTION_VOLATILITY_POOL_UNDERWRITING",
@@ -330,7 +332,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
     };
 
     state.yieldVolatilityIndexes = {
-      bond_1: { bondId: "bond_1", volatility: 40, timestamp: 1000 }
+      bond_1: { bondId: "bond_1", volatility: 40, timestamp: 1000 },
     };
 
     // First tick (step = 1000, which is an epoch boundary since 1000 % 5 === 0)
@@ -355,7 +357,7 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
     state.step = 1001;
     // Clear volatility so no new premiums are charged
     state.yieldVolatilityIndexes = {
-      bond_1: { bondId: "bond_1", volatility: 10, timestamp: 1001 }
+      bond_1: { bondId: "bond_1", volatility: 10, timestamp: 1001 },
     };
     state = tickEconomy(state, mockPack);
     expect(state.syndicates?.alpha?.warChest).toBe(4983);
@@ -368,6 +370,8 @@ describe("Syndicate SWF Reinsurance Options Volatility Pool Underwriting & Risk 
     expect(state.syndicates?.alpha?.warChest).toBe(4983);
     expect(state.marginAccounts?.["alpha"]?.swfUnderwritingLockedVaults).toHaveLength(0);
     expect(state.marginAccounts?.["alpha"]?.swfReinsuranceOptionVault).toBe(17);
-    expect(state.journal?.some(j => j.includes("[SWF Volatility Pool Premium Matured]") && j.includes("Unlocked 17 gold"))).toBe(true);
+    expect(
+      state.journal?.some((j) => j.includes("[SWF Volatility Pool Premium Matured]") && j.includes("Unlocked 17 gold"))
+    ).toBe(true);
   });
 });

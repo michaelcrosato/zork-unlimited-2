@@ -21,7 +21,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress Testing & Dynamic L
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -77,7 +77,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress Testing & Dynamic L
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -123,8 +123,8 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress Testing & Dynamic L
 
     // Verify option settled normally, and was not liquidated
     expect(tickedState.swfReinsuranceOptionsContracts?.["opt_1"]?.active).toBe(false);
-    expect(tickedState.journal?.some(j => j.includes("[SWF Reinsurance Option Settled]"))).toBe(true);
-    expect(tickedState.journal?.some(j => j.includes("[Option Liquidation]"))).toBe(false);
+    expect(tickedState.journal?.some((j) => j.includes("[SWF Reinsurance Option Settled]"))).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("[Option Liquidation]"))).toBe(false);
   });
 
   it("should trigger margin call and automatic liquidation when stress test policy is active and collateral is insufficient", () => {
@@ -177,7 +177,7 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress Testing & Dynamic L
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -232,8 +232,8 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress Testing & Dynamic L
       swfYieldCdoId: "cdo_1",
       trancheId: "senior",
       simulatedVolatilityShock: 20.0, // volatility under stress = 30 + 20 = 50
-      simulatedLiquidityShock: 150.0,  // flat surcharge = 150
-      reserveMultiplier: 1.6,         // multiplier = 1.6
+      simulatedLiquidityShock: 150.0, // flat surcharge = 150
+      reserveMultiplier: 1.6, // multiplier = 1.6
       timestamp: 1001,
     };
 
@@ -260,7 +260,11 @@ describe("Syndicate SWF Reinsurance Options Portfolio Stress Testing & Dynamic L
     // Alpha's collateral (800) is less than stress-adjusted requirement (1530),
     // so option should be automatically liquidated before it can settle!
     expect(tickedState.swfReinsuranceOptionsContracts?.["opt_1"]?.active).toBe(false);
-    expect(tickedState.journal?.some(j => j.includes("[Option Liquidation] Written option contract opt_1 of Syndicate alpha has been liquidated"))).toBe(true);
-    expect(tickedState.journal?.some(j => j.includes("[SWF Reinsurance Option Settled]"))).toBe(false);
+    expect(
+      tickedState.journal?.some((j) =>
+        j.includes("[Option Liquidation] Written option contract opt_1 of Syndicate alpha has been liquidated")
+      )
+    ).toBe(true);
+    expect(tickedState.journal?.some((j) => j.includes("[SWF Reinsurance Option Settled]"))).toBe(false);
   });
 });

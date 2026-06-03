@@ -126,22 +126,26 @@ describe("CDS CDO Co-Investment Reinvestment Tiered Reward Boosters & Slashing (
     let state = setupState();
 
     // 1. Propose co-investment reinvestment policy
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_COINVESTMENT_REINVESTMENT_POLICY",
-        proposalId: "policy_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        tier1Threshold: 50,
-        tier1Multiplier: 1.2,
-        tier2Threshold: 80,
-        tier2Multiplier: 1.5,
-        slashingThreshold: 10,
-        slashingPenalty: 0.2,
-        timestamp: 1100,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_COINVESTMENT_REINVESTMENT_POLICY",
+          proposalId: "policy_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          tier1Threshold: 50,
+          tier1Multiplier: 1.2,
+          tier2Threshold: 80,
+          tier2Multiplier: 1.5,
+          slashingThreshold: 10,
+          slashingPenalty: 0.2,
+          timestamp: 1100,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -149,16 +153,20 @@ describe("CDS CDO Co-Investment Reinvestment Tiered Reward Boosters & Slashing (
     expect(state.cdsCdoCoinvestmentReinvestmentPolicyProposals?.policy_1.status).toBe("proposed");
 
     // 2. Vote to authorize
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "VOTE_CDO_COINVESTMENT_REINVESTMENT_POLICY",
-        proposalId: "policy_1",
-        syndicateId: "alpha",
-        vote: true,
-        timestamp: 1150,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "VOTE_CDO_COINVESTMENT_REINVESTMENT_POLICY",
+          proposalId: "policy_1",
+          syndicateId: "alpha",
+          vote: true,
+          timestamp: 1150,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
@@ -262,32 +270,40 @@ describe("CDS CDO Co-Investment Reinvestment Tiered Reward Boosters & Slashing (
     };
 
     // 1. Propose yield reinvestment drop to 5% (< 10%)
-    let res = multiAgentStep(state, {
-      agentId: "player",
-      action: {
-        type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT",
-        proposalId: "coinvest_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        yieldReinvestmentShare: 5,
-        timestamp: 1100,
+    let res = multiAgentStep(
+      state,
+      {
+        agentId: "player",
+        action: {
+          type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT",
+          proposalId: "coinvest_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          yieldReinvestmentShare: 5,
+          timestamp: 1100,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 
     // 2. Vote to approve
-    res = multiAgentStep(state, {
-      agentId: "alice",
-      action: {
-        type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT",
-        proposalId: "coinvest_1",
-        cdoId: "cdo_pool_1",
-        syndicateId: "alpha",
-        yieldReinvestmentShare: 5,
-        timestamp: 1150,
+    res = multiAgentStep(
+      state,
+      {
+        agentId: "alice",
+        action: {
+          type: "PROPOSE_CDO_COINVESTMENT_YIELD_REINVESTMENT",
+          proposalId: "coinvest_1",
+          cdoId: "cdo_pool_1",
+          syndicateId: "alpha",
+          yieldReinvestmentShare: 5,
+          timestamp: 1150,
+        },
       },
-    }, mockPack);
+      mockPack
+    );
     expect(res.ok).toBe(true);
     state = res.state;
 

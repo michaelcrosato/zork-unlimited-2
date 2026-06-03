@@ -103,7 +103,7 @@ describe("Crime Syndicate Money Laundering Audits & Regulatory Enforcer Sweeps (
     expect(front?.activeAudit).toBe(true);
 
     // Journal should contain audit trigger warning
-    const hasAuditTriggeredJournal = tickedState.journal.some(j => j.includes("Money laundering audit triggered"));
+    const hasAuditTriggeredJournal = tickedState.journal.some((j) => j.includes("Money laundering audit triggered"));
     expect(hasAuditTriggeredJournal).toBe(true);
   });
 
@@ -228,7 +228,7 @@ describe("Crime Syndicate Money Laundering Audits & Regulatory Enforcer Sweeps (
     expect(tickedState.enforcementHeat?.["market"]?.heat).toBe(12);
 
     // Journal should contain success message
-    const hasSuccessJournal = tickedState.journal.some(j => j.includes("successfully passed money laundering audit"));
+    const hasSuccessJournal = tickedState.journal.some((j) => j.includes("successfully passed money laundering audit"));
     expect(hasSuccessJournal).toBe(true);
   });
 
@@ -301,7 +301,7 @@ describe("Crime Syndicate Money Laundering Audits & Regulatory Enforcer Sweeps (
     expect(tickedState.enforcementHeat?.["market"]?.heat).toBe(0);
 
     // Journal should contain failure and confiscation log
-    const hasFailureJournal = tickedState.journal.some(j => j.includes("failed money laundering audit"));
+    const hasFailureJournal = tickedState.journal.some((j) => j.includes("failed money laundering audit"));
     expect(hasFailureJournal).toBe(true);
   });
 

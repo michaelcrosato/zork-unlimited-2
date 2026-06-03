@@ -86,9 +86,7 @@ describe("Syndicate Bank Collateralized Debt Obligations (CDOs) & Secondary Liqu
       type: "PACKAGE_LOAN_CDO",
       cdoId: "cdo_test",
       creatorSyndicateId: "wrong_synd",
-      assets: [
-        { type: "loan", syndicateId: "wrong_synd", assetId: "alice" }
-      ],
+      assets: [{ type: "loan", syndicateId: "wrong_synd", assetId: "alice" }],
       timestamp: 1000,
     };
     let res1 = multiAgentStep(state, { agentId: "player", action: failAct1 as any }, mockPack);
@@ -174,9 +172,30 @@ describe("Syndicate Bank Collateralized Debt Obligations (CDOs) & Secondary Liqu
         timestamp: 1000,
         assets: [],
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 150, ownership: { blood_fangs: 150 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 90, ownership: { blood_fangs: 90 }, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 60, ownership: { blood_fangs: 60 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 150,
+            ownership: { blood_fangs: 150 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 90,
+            ownership: { blood_fangs: 90 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 60,
+            ownership: { blood_fangs: 60 },
+            timestamp: 1000,
+          },
         },
       },
     };
@@ -298,9 +317,30 @@ describe("Syndicate Bank Collateralized Debt Obligations (CDOs) & Secondary Liqu
           },
         ],
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 150, ownership: { blood_fangs: 150 }, timestamp: 1000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 90, ownership: { blood_fangs: 90 }, timestamp: 1000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 60, ownership: { blood_fangs: 60 }, timestamp: 1000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 150,
+            ownership: { blood_fangs: 150 },
+            timestamp: 1000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 90,
+            ownership: { blood_fangs: 90 },
+            timestamp: 1000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 60,
+            ownership: { blood_fangs: 60 },
+            timestamp: 1000,
+          },
         },
       },
     };
@@ -329,7 +369,7 @@ describe("Syndicate Bank Collateralized Debt Obligations (CDOs) & Secondary Liqu
 
     // Now set step to 15 (packaged loan is due at step 10, so it defaults!)
     nextState.step = 15;
-    
+
     // Setup safehouse collateral in state so we can verify liquidation
     nextState.safehouses = {
       market: {
@@ -404,9 +444,30 @@ describe("Syndicate Bank Collateralized Debt Obligations (CDOs) & Secondary Liqu
         timestamp: 2000,
         assets: [],
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 50, ownership: { blood_fangs: 50 }, timestamp: 2000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 30, ownership: { blood_fangs: 30 }, timestamp: 2000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 20, ownership: { blood_fangs: 20 }, timestamp: 2000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 50,
+            ownership: { blood_fangs: 50 },
+            timestamp: 2000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 30,
+            ownership: { blood_fangs: 30 },
+            timestamp: 2000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 20,
+            ownership: { blood_fangs: 20 },
+            timestamp: 2000,
+          },
         },
       },
     };
@@ -438,9 +499,30 @@ describe("Syndicate Bank Collateralized Debt Obligations (CDOs) & Secondary Liqu
         timestamp: 3000,
         assets: [],
         tranches: {
-          senior: { trancheId: "senior", interestRate: 0.05, sweepRiskExposure: 0.1, totalValue: 50, ownership: { blood_fangs: 30, night_stalkers: 20 }, timestamp: 3000 },
-          mezzanine: { trancheId: "mezzanine", interestRate: 0.12, sweepRiskExposure: 0.4, totalValue: 30, ownership: { blood_fangs: 30 }, timestamp: 2000 },
-          equity: { trancheId: "equity", interestRate: 0.25, sweepRiskExposure: 1.0, totalValue: 20, ownership: { blood_fangs: 20 }, timestamp: 2000 },
+          senior: {
+            trancheId: "senior",
+            interestRate: 0.05,
+            sweepRiskExposure: 0.1,
+            totalValue: 50,
+            ownership: { blood_fangs: 30, night_stalkers: 20 },
+            timestamp: 3000,
+          },
+          mezzanine: {
+            trancheId: "mezzanine",
+            interestRate: 0.12,
+            sweepRiskExposure: 0.4,
+            totalValue: 30,
+            ownership: { blood_fangs: 30 },
+            timestamp: 2000,
+          },
+          equity: {
+            trancheId: "equity",
+            interestRate: 0.25,
+            sweepRiskExposure: 1.0,
+            totalValue: 20,
+            ownership: { blood_fangs: 20 },
+            timestamp: 2000,
+          },
         },
       },
     };

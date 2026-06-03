@@ -208,7 +208,7 @@ describe("Smuggler Syndicate Cartel Conquest Campaigns, Faction War Declarations
 
     expect(res.ok).toBe(true);
     expect(res.state.syndicates?.["shadow_cartel"].warChest).toBe(200); // 500 - 300
-    
+
     // Check if the campaign was successful under the seed
     const hasConquered = res.state.territoryControl?.["market"] === "shadow_cartel";
     if (hasConquered) {
@@ -358,7 +358,7 @@ describe("Smuggler Syndicate Cartel Conquest Campaigns, Faction War Declarations
     // Tick enforcers with event log
     const ticked = tickEnforcers(state, [], mockPack);
     const captain = ticked.enforcers?.["ranger_captain"];
-    
+
     // During war, hideout is enemy turf to the ranger enforcer.
     // The enforcer's BFS route to hideout is modified to skip hideout.
     // Since there are no other rooms, the enforcer cannot path to the hideout and should remain in market!

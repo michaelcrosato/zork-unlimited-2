@@ -5,7 +5,6 @@ import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { PureRand } from "../src/core/rng.js";
 
-
 describe("Syndicate Safehouses & Stash Networks (AF-48)", () => {
   const mockPack: ParserPack = ParserPackSchema.parse({
     meta: {

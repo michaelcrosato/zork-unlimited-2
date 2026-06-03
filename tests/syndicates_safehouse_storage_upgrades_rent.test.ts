@@ -266,7 +266,7 @@ describe("Smuggler Syndicate Cartel Contraband Safehouse Storage Upgrades, Rent,
     expect(tickedState.vars["gold_alice"]).toBe(35);
     // Player (syndicate member) gold: 100 + 15 = 115.
     expect(tickedState.vars["gold"]).toBe(115);
-    expect(tickedState.journal.some(log => log.includes("Charged non-member agent alice"))).toBe(true);
+    expect(tickedState.journal.some((log) => log.includes("Charged non-member agent alice"))).toBe(true);
   });
 
   it("should establish storage rent rate directly", () => {
@@ -454,6 +454,6 @@ describe("Smuggler Syndicate Cartel Contraband Safehouse Storage Upgrades, Rent,
 
     // Player gold: 100 - 40 = 60.
     expect(tickedState.vars["gold"]).toBe(60);
-    expect(tickedState.journal.some(log => log.includes("[Safehouse Penalty]"))).toBe(true);
+    expect(tickedState.journal.some((log) => log.includes("[Safehouse Penalty]"))).toBe(true);
   });
 });

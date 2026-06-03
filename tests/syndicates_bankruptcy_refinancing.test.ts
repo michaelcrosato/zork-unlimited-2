@@ -292,7 +292,7 @@ describe("Smuggler Syndicate Cartel Bankruptcy Restructuring, Loan Refinancing, 
 
     // 3. Step ticks for gradual credit recovery (+5 per step up to 100)
     let scoreRating = stateInRecovery.creditRatings?.["player"] ?? 50;
-    
+
     // Ticking 5 step ticks should recover score by +25 points
     let tickedRecoveryState = stateInRecovery;
     for (let step = 17; step <= 21; step++) {

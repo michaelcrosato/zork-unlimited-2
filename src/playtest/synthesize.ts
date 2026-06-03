@@ -8,9 +8,9 @@
  * @module playtest/synthesize
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import path from 'node:path';
-import type { PlaytestSessionResult, PlaytestMetrics } from './types.js';
+import { readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
+import type { PlaytestSessionResult } from "./types.js";
 
 // ─── Internal aggregate type ────────────────────────────────────────────────
 
@@ -33,26 +33,147 @@ interface PackAggregateStats {
 
 /** Common English stop words to exclude from keyword frequency analysis. */
 const STOP_WORDS = new Set([
-  'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-  'of', 'with', 'by', 'from', 'is', 'it', 'its', 'was', 'were', 'be',
-  'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will',
-  'would', 'could', 'should', 'may', 'might', 'shall', 'can', 'this',
-  'that', 'these', 'those', 'i', 'me', 'my', 'we', 'our', 'you', 'your',
-  'he', 'she', 'they', 'them', 'their', 'his', 'her', 'not', 'no', 'nor',
-  'so', 'if', 'then', 'than', 'too', 'very', 'just', 'about', 'up', 'out',
-  'all', 'also', 'as', 'are', 'am', 'what', 'which', 'who', 'when', 'where',
-  'how', 'there', 'here', 'more', 'some', 'any', 'each', 'every', 'both',
-  'few', 'many', 'much', 'other', 'into', 'over', 'after', 'before',
-  'between', 'under', 'again', 'further', 'once', 'only', 'own', 'same',
-  'such', 'like', 'get', 'got', 'really', 'thing', 'things', 'game',
-  'dont', "don't", 'didnt', "didn't", 'went', 'going', 'make', 'made',
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "of",
+  "with",
+  "by",
+  "from",
+  "is",
+  "it",
+  "its",
+  "was",
+  "were",
+  "be",
+  "been",
+  "being",
+  "have",
+  "has",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "could",
+  "should",
+  "may",
+  "might",
+  "shall",
+  "can",
+  "this",
+  "that",
+  "these",
+  "those",
+  "i",
+  "me",
+  "my",
+  "we",
+  "our",
+  "you",
+  "your",
+  "he",
+  "she",
+  "they",
+  "them",
+  "their",
+  "his",
+  "her",
+  "not",
+  "no",
+  "nor",
+  "so",
+  "if",
+  "then",
+  "than",
+  "too",
+  "very",
+  "just",
+  "about",
+  "up",
+  "out",
+  "all",
+  "also",
+  "as",
+  "are",
+  "am",
+  "what",
+  "which",
+  "who",
+  "when",
+  "where",
+  "how",
+  "there",
+  "here",
+  "more",
+  "some",
+  "any",
+  "each",
+  "every",
+  "both",
+  "few",
+  "many",
+  "much",
+  "other",
+  "into",
+  "over",
+  "after",
+  "before",
+  "between",
+  "under",
+  "again",
+  "further",
+  "once",
+  "only",
+  "own",
+  "same",
+  "such",
+  "like",
+  "get",
+  "got",
+  "really",
+  "thing",
+  "things",
+  "game",
+  "dont",
+  "don't",
+  "didnt",
+  "didn't",
+  "went",
+  "going",
+  "make",
+  "made",
 ]);
 
 /** Negative-sentiment keywords used to identify recurring friction in interview answers. */
 const FRICTION_KEYWORDS = [
-  'confused', 'confusing', 'stuck', 'rejected', 'broken', 'frustrating',
-  'frustration', 'annoying', 'annoyed', 'unclear', 'bug', 'buggy',
-  'impossible', 'unfair', 'tedious', 'boring', 'lost', 'error',
+  "confused",
+  "confusing",
+  "stuck",
+  "rejected",
+  "broken",
+  "frustrating",
+  "frustration",
+  "annoying",
+  "annoyed",
+  "unclear",
+  "bug",
+  "buggy",
+  "impossible",
+  "unfair",
+  "tedious",
+  "boring",
+  "lost",
+  "error",
 ];
 
 // ─── JSONL Reading ──────────────────────────────────────────────────────────
@@ -69,13 +190,13 @@ const FRICTION_KEYWORDS = [
  */
 export function readRawFeedback(filePath: string): PlaytestSessionResult[] {
   const resolvedPath = path.resolve(filePath);
-  const content = readFileSync(resolvedPath, 'utf-8');
-  const lines = content.split('\n');
+  const content = readFileSync(resolvedPath, "utf-8");
+  const lines = content.split("\n");
   const results: PlaytestSessionResult[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (line === '') {
+    if (line === "") {
       continue;
     }
     try {
@@ -97,9 +218,7 @@ export function readRawFeedback(filePath: string): PlaytestSessionResult[] {
  * @param sessions - Array of session results to group.
  * @returns Map from packId to array of sessions for that pack.
  */
-function groupByPack(
-  sessions: PlaytestSessionResult[],
-): Map<string, PlaytestSessionResult[]> {
+function groupByPack(sessions: PlaytestSessionResult[]): Map<string, PlaytestSessionResult[]> {
   const groups = new Map<string, PlaytestSessionResult[]>();
   for (const session of sessions) {
     const existing = groups.get(session.packId);
@@ -141,9 +260,9 @@ function computePackStats(sessions: PlaytestSessionResult[]): PackAggregateStats
   const totalPlaytime = sessions.reduce((sum, s) => sum + s.playtimeSeconds, 0);
   const totalRejected = sessions.reduce((sum, s) => sum + s.actionsRejected, 0);
   const totalRooms = sessions.reduce((sum, s) => sum + s.uniqueRoomsVisited, 0);
-  const deathCount = sessions.filter((s) => s.outcome === 'died').length;
-  const stuckCount = sessions.filter((s) => s.outcome === 'stuck').length;
-  const completedCount = sessions.filter((s) => s.outcome === 'completed').length;
+  const deathCount = sessions.filter((s) => s.outcome === "died").length;
+  const stuckCount = sessions.filter((s) => s.outcome === "stuck").length;
+  const completedCount = sessions.filter((s) => s.outcome === "completed").length;
 
   return {
     sessionCount: n,
@@ -167,17 +286,14 @@ function computePackStats(sessions: PlaytestSessionResult[]): PackAggregateStats
  * @param topN - Number of top themes to return (default 5).
  * @returns Array of `[word, count]` pairs sorted by frequency descending.
  */
-function extractThemes(
-  answers: string[],
-  topN: number = 5,
-): Array<[string, number]> {
+function extractThemes(answers: string[], topN: number = 5): Array<[string, number]> {
   const freq = new Map<string, number>();
 
   for (const answer of answers) {
     // Normalise: lowercase, strip punctuation, split on whitespace
     const words = answer
       .toLowerCase()
-      .replace(/[^a-z0-9'\s-]/g, '')
+      .replace(/[^a-z0-9'\s-]/g, "")
       .split(/\s+/)
       .filter((w) => w.length > 2 && !STOP_WORDS.has(w));
 
@@ -213,31 +329,28 @@ function identifyBlockingIssues(sessions: PlaytestSessionResult[]): string[] {
 
   for (const [packId, packSessions] of byPack) {
     const n = packSessions.length;
-    const stuckOrDied = packSessions.filter(
-      (s) => s.outcome === 'stuck' || s.outcome === 'died',
-    ).length;
+    const stuckOrDied = packSessions.filter((s) => s.outcome === "stuck" || s.outcome === "died").length;
     const stuckOrDiedRate = stuckOrDied / n;
 
     if (stuckOrDiedRate > 0.5) {
       const pct = Math.round(stuckOrDiedRate * 100);
       issues.push(
         `**Pack \`${packId}\`**: ${pct}% of sessions ended in stuck/death ` +
-          `(${stuckOrDied}/${n} sessions). Likely a progression blocker or fatal path.`,
+          `(${stuckOrDied}/${n} sessions). Likely a progression blocker or fatal path.`
       );
     }
 
-    const avgRejected =
-      packSessions.reduce((sum, s) => sum + s.actionsRejected, 0) / n;
+    const avgRejected = packSessions.reduce((sum, s) => sum + s.actionsRejected, 0) / n;
     if (avgRejected > 5) {
       issues.push(
         `**Pack \`${packId}\`**: Average ${avgRejected.toFixed(1)} actions rejected per session. ` +
-          `Likely a verb/parser coverage issue.`,
+          `Likely a verb/parser coverage issue.`
       );
     }
   }
 
   // Check all interview answers for crash/broke mentions
-  const crashKeywords = ['crash', 'crashed', 'broke', 'broken'];
+  const crashKeywords = ["crash", "crashed", "broke", "broken"];
   for (const session of sessions) {
     const allAnswers = [
       session.interview.q01_fun,
@@ -250,14 +363,16 @@ function identifyBlockingIssues(sessions: PlaytestSessionResult[]): string[] {
       session.interview.q08_ending,
       session.interview.q09_difficulty,
       session.interview.q10_recommend,
-    ].join(' ').toLowerCase();
+    ]
+      .join(" ")
+      .toLowerCase();
 
     for (const keyword of crashKeywords) {
       if (allAnswers.includes(keyword)) {
         issues.push(
           `**Session \`${session.sessionId}\`** (pack \`${session.packId}\`, ` +
             `persona \`${session.persona}\`): Interview mentions "${keyword}" — ` +
-            `investigate for crash/breakage.`,
+            `investigate for crash/breakage.`
         );
         break; // One mention per session is enough
       }
@@ -284,11 +399,9 @@ function identifyRecurringFriction(sessions: PlaytestSessionResult[]): string[] 
   const keywordCounts = new Map<string, number>();
 
   for (const session of sessions) {
-    const negativeText = [
-      session.interview.q03_worst,
-      session.interview.q05_confused,
-      session.interview.q04_one_change,
-    ].join(' ').toLowerCase();
+    const negativeText = [session.interview.q03_worst, session.interview.q05_confused, session.interview.q04_one_change]
+      .join(" ")
+      .toLowerCase();
 
     // Count each keyword at most once per session
     for (const keyword of FRICTION_KEYWORDS) {
@@ -302,9 +415,7 @@ function identifyRecurringFriction(sessions: PlaytestSessionResult[]): string[] 
     const rate = count / n;
     if (rate > 0.3) {
       const pct = Math.round(rate * 100);
-      frictions.push(
-        `"${keyword}" mentioned in ${pct}% of sessions (${count}/${n})`,
-      );
+      frictions.push(`"${keyword}" mentioned in ${pct}% of sessions (${count}/${n})`);
     }
   }
 
@@ -348,25 +459,18 @@ function identifyPositives(sessions: PlaytestSessionResult[]): string[] {
  * @returns Array of formatted cluster descriptions.
  */
 function clusterAnswers(answers: string[], topN: number = 3): string[] {
-  if (answers.length === 0) return ['No responses collected.'];
+  if (answers.length === 0) return ["No responses collected."];
 
   const themes = extractThemes(answers, topN);
-  if (themes.length === 0) return ['Responses too varied to cluster.'];
+  if (themes.length === 0) return ["Responses too varied to cluster."];
 
   // For each top theme word, collect a representative answer snippet
   const clusters: string[] = [];
   for (const [word, count] of themes) {
-    const matching = answers.filter((a) =>
-      a.toLowerCase().includes(word),
-    );
-    const representative = matching[0] ?? '';
-    const snippet =
-      representative.length > 120
-        ? representative.slice(0, 117) + '...'
-        : representative;
-    clusters.push(
-      `**"${word}"** (${count} mentions): _"${snippet}"_`,
-    );
+    const matching = answers.filter((a) => a.toLowerCase().includes(word));
+    const representative = matching[0] ?? "";
+    const snippet = representative.length > 120 ? representative.slice(0, 117) + "..." : representative;
+    clusters.push(`**"${word}"** (${count} mentions): _"${snippet}"_`);
   }
 
   return clusters;
@@ -381,10 +485,10 @@ function clusterAnswers(answers: string[], topN: number = 3): string[] {
  * @returns Formatted summary string.
  */
 function summarizeFunFactor(answers: string[]): string {
-  if (answers.length === 0) return 'No responses collected.';
+  if (answers.length === 0) return "No responses collected.";
 
-  const yesIndicators = ['yes', 'yeah', 'yep', 'fun', 'enjoyed', 'loved', 'great', 'amazing', 'awesome'];
-  const noIndicators = ['no', 'nah', 'not fun', 'boring', 'tedious', 'frustrating', 'bad'];
+  const yesIndicators = ["yes", "yeah", "yep", "fun", "enjoyed", "loved", "great", "amazing", "awesome"];
+  const noIndicators = ["no", "nah", "not fun", "boring", "tedious", "frustrating", "bad"];
 
   let yesCount = 0;
   let noCount = 0;
@@ -418,11 +522,11 @@ function summarizeFunFactor(answers: string[]): string {
   // Add common reasons via theme extraction
   const themes = extractThemes(answers, 3);
   if (themes.length > 0) {
-    lines.push('');
-    lines.push('Common themes: ' + themes.map(([w, c]) => `"${w}" (×${c})`).join(', '));
+    lines.push("");
+    lines.push("Common themes: " + themes.map(([w, c]) => `"${w}" (×${c})`).join(", "));
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 // ─── Digest Synthesis ───────────────────────────────────────────────────────
@@ -454,7 +558,7 @@ export function synthesizeFeedback(sessions: PlaytestSessionResult[]): string {
     statsRows.push(
       `| ${packId} | ${stats.sessionCount} | ${stats.avgProgress}% ` +
         `| ${stats.avgPlaytime}s | ${stats.deathRate}% | ${stats.stuckRate}% ` +
-        `| ${stats.completedCount}/${stats.sessionCount} |`,
+        `| ${stats.completedCount}/${stats.sessionCount} |`
     );
   }
 
@@ -462,22 +566,22 @@ export function synthesizeFeedback(sessions: PlaytestSessionResult[]): string {
   const blockingIssues = identifyBlockingIssues(sessions);
   const blockingSection =
     blockingIssues.length > 0
-      ? blockingIssues.map((issue, i) => `${i + 1}. ${issue}`).join('\n')
-      : '_No blocking issues detected._';
+      ? blockingIssues.map((issue, i) => `${i + 1}. ${issue}`).join("\n")
+      : "_No blocking issues detected._";
 
   // ── Recurring Friction ────────────────────────────────────────────────
   const frictionIssues = identifyRecurringFriction(sessions);
   const frictionSection =
     frictionIssues.length > 0
-      ? frictionIssues.map((f) => `- ${f}`).join('\n')
-      : '_No recurring friction patterns detected._';
+      ? frictionIssues.map((f) => `- ${f}`).join("\n")
+      : "_No recurring friction patterns detected._";
 
   // ── Working Well ──────────────────────────────────────────────────────
   const positives = identifyPositives(sessions);
   const positiveSection =
     positives.length > 0
-      ? positives.map((p) => `- ${p}`).join('\n')
-      : '_Not enough data to identify positive patterns._';
+      ? positives.map((p) => `- ${p}`).join("\n")
+      : "_Not enough data to identify positive patterns._";
 
   // ── Interview Highlights ──────────────────────────────────────────────
   const oneChangeAnswers = sessions.map((s) => s.interview.q04_one_change);
@@ -492,36 +596,36 @@ export function synthesizeFeedback(sessions: PlaytestSessionResult[]): string {
   // ── Assemble Digest ───────────────────────────────────────────────────
   const lines = [
     `# Playtest Digest — ${dateStr}`,
-    '',
+    "",
     `> ${sessions.length} sessions | ${uniquePacks.size} packs | ${uniquePersonas.size} personas | generated ${timestamp}`,
-    '',
-    '## 📊 Quick Stats',
-    '| Pack | Sessions | Avg Progress | Avg Playtime | Death Rate | Stuck Rate | Completion |',
-    '|---|---|---|---|---|---|---|',
+    "",
+    "## 📊 Quick Stats",
+    "| Pack | Sessions | Avg Progress | Avg Playtime | Death Rate | Stuck Rate | Completion |",
+    "|---|---|---|---|---|---|---|",
     ...statsRows,
-    '',
-    '## 🔴 BLOCKING (fix immediately)',
+    "",
+    "## 🔴 BLOCKING (fix immediately)",
     blockingSection,
-    '',
-    '## 🟡 RECURRING FRICTION',
+    "",
+    "## 🟡 RECURRING FRICTION",
     frictionSection,
-    '',
-    '## 🟢 WORKING WELL',
+    "",
+    "## 🟢 WORKING WELL",
     positiveSection,
-    '',
-    '## 📋 Interview Highlights',
+    "",
+    "## 📋 Interview Highlights",
     '### Most Common "One Change" (Q4)',
     ...oneChangeClusters.map((c) => `- ${c}`),
-    '',
-    '### Fun Factor',
+    "",
+    "### Fun Factor",
     funSummary,
-    '',
-    '## 🎯 SUGGESTED PRIORITIES',
+    "",
+    "## 🎯 SUGGESTED PRIORITIES",
     ...priorities.map((p, i) => `${i + 1}. ${p}`),
-    '',
+    "",
   ];
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 /**
@@ -535,51 +639,41 @@ export function synthesizeFeedback(sessions: PlaytestSessionResult[]): string {
 function generatePriorities(
   sessions: PlaytestSessionResult[],
   blockingIssues: string[],
-  frictionIssues: string[],
+  frictionIssues: string[]
 ): string[] {
   const priorities: string[] = [];
 
   // Blocking issues are always highest priority
   if (blockingIssues.length > 0) {
-    priorities.push(
-      `**Fix ${blockingIssues.length} blocking issue(s)** — these prevent players from progressing.`,
-    );
+    priorities.push(`**Fix ${blockingIssues.length} blocking issue(s)** — these prevent players from progressing.`);
   }
 
   // Check for high rejection rates across all sessions
   const totalRejected = sessions.reduce((sum, s) => sum + s.actionsRejected, 0);
   const avgRejected = sessions.length > 0 ? totalRejected / sessions.length : 0;
   if (avgRejected > 3) {
-    priorities.push(
-      `**Improve verb/parser coverage** — average ${avgRejected.toFixed(1)} rejections per session.`,
-    );
+    priorities.push(`**Improve verb/parser coverage** — average ${avgRejected.toFixed(1)} rejections per session.`);
   }
 
   // Friction items
   if (frictionIssues.length > 0) {
-    priorities.push(
-      `**Address recurring friction** — ${frictionIssues.length} pattern(s) affecting >30% of sessions.`,
-    );
+    priorities.push(`**Address recurring friction** — ${frictionIssues.length} pattern(s) affecting >30% of sessions.`);
   }
 
   // Low completion rate
-  const completedCount = sessions.filter((s) => s.outcome === 'completed').length;
+  const completedCount = sessions.filter((s) => s.outcome === "completed").length;
   const completionRate = sessions.length > 0 ? completedCount / sessions.length : 0;
   if (completionRate < 0.5 && sessions.length > 0) {
     const pct = Math.round(completionRate * 100);
-    priorities.push(
-      `**Investigate low completion rate** — only ${pct}% of sessions reached completion.`,
-    );
+    priorities.push(`**Investigate low completion rate** — only ${pct}% of sessions reached completion.`);
   }
 
   // Low progress
-  const avgProgress = sessions.length > 0
-    ? sessions.reduce((sum, s) => sum + s.progressPct, 0) / sessions.length
-    : 0;
+  const avgProgress = sessions.length > 0 ? sessions.reduce((sum, s) => sum + s.progressPct, 0) / sessions.length : 0;
   if (avgProgress < 50 && sessions.length > 0) {
     priorities.push(
       `**Review early-game flow** — average progress is only ${avgProgress.toFixed(0)}%, ` +
-        `suggesting players get stuck early.`,
+        `suggesting players get stuck early.`
     );
   }
 
@@ -589,13 +683,11 @@ function generatePriorities(
   if (topChange.length > 0) {
     const [word, count] = topChange[0];
     const pct = Math.round((count / sessions.length) * 100);
-    priorities.push(
-      `**Player-requested change** — "${word}" mentioned by ${pct}% of playtesters as their #1 change.`,
-    );
+    priorities.push(`**Player-requested change** — "${word}" mentioned by ${pct}% of playtesters as their #1 change.`);
   }
 
   if (priorities.length === 0) {
-    priorities.push('No urgent issues detected. Continue monitoring with more sessions.');
+    priorities.push("No urgent issues detected. Continue monitoring with more sessions.");
   }
 
   return priorities;
@@ -610,12 +702,9 @@ function generatePriorities(
  * @param sessions - Array of session results to synthesize.
  * @param outputPath - File path to write the digest to.
  */
-export function writeFeedbackDigest(
-  sessions: PlaytestSessionResult[],
-  outputPath: string,
-): void {
+export function writeFeedbackDigest(sessions: PlaytestSessionResult[], outputPath: string): void {
   const digest = synthesizeFeedback(sessions);
   const resolvedPath = path.resolve(outputPath);
-  writeFileSync(resolvedPath, digest, 'utf-8');
+  writeFileSync(resolvedPath, digest, "utf-8");
   console.log(`[synthesize] Digest written to ${resolvedPath}`);
 }

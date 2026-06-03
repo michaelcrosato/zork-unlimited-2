@@ -22,7 +22,7 @@ describe("Syndicate SWF Reinsurance Options Emergency Drawdowns (AF-219)", () =>
         objects: [],
         npcs: [],
         exits: [],
-      }
+      },
     ],
     objects: [],
     npcs: [],
@@ -78,7 +78,7 @@ describe("Syndicate SWF Reinsurance Options Emergency Drawdowns (AF-219)", () =>
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -119,7 +119,7 @@ describe("Syndicate SWF Reinsurance Options Emergency Drawdowns (AF-219)", () =>
     // If it's calculated based on CDO tranche yield rate or premium, let's verify.
     // In any case, we can set up the margin account and trigger deficit by adjusting margin policy.
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 1.0,
@@ -195,7 +195,7 @@ describe("Syndicate SWF Reinsurance Options Emergency Drawdowns (AF-219)", () =>
     // 3. Test economy tick automatic emergency drawdown deflection.
     // Let's deliberately force a margin deficit.
     // effectiveSize = 1641 results in optRequired = Math.round(1641 * 0.0325 * 1.5 * 10) = 800 gold maintenance.
-    state.swfReinsuranceOptionsContracts!.opt_1.size = 1641; 
+    state.swfReinsuranceOptionsContracts!.opt_1.size = 1641;
     // Alpha collateral is 300 gold. Deficit is 500 gold.
     // Without drawdown, Alpha will be liquidated or get margin call.
     // With drawdown authorized and 1000 gold in pool, we expect it to draw down 500 gold and avoid margin call.
@@ -212,7 +212,7 @@ describe("Syndicate SWF Reinsurance Options Emergency Drawdowns (AF-219)", () =>
     // Check that it automatically drew down 500 gold from pool
     expect(resWith.swfSecurityInsurancePool).toBe(500); // 1000 - 500 = 500 gold remaining
     expect(resWith.marginAccounts?.alpha?.collateral).toBe(800); // 300 + 500 = 800 gold replenished
-    expect(resWith.journal.some(log => log.includes("[Security Insurance Pool Emergency Drawdown]"))).toBe(true);
+    expect(resWith.journal.some((log) => log.includes("[Security Insurance Pool Emergency Drawdown]"))).toBe(true);
 
     // 4. Test P2P Gossip Mesh Convergence
     let nodeA = JSON.parse(JSON.stringify(state));
@@ -271,7 +271,7 @@ describe("Syndicate SWF Reinsurance Options Emergency Drawdowns (AF-219)", () =>
           },
           equity: {
             trancheId: "equity",
-            yieldRate: 0.20,
+            yieldRate: 0.2,
             totalShares: 200,
             ownership: {},
             timestamp: 1000,
@@ -307,7 +307,7 @@ describe("Syndicate SWF Reinsurance Options Emergency Drawdowns (AF-219)", () =>
     };
 
     state.swfReinsuranceOptionMarginPolicies = {
-      "cdo_1_senior": {
+      cdo_1_senior: {
         swfYieldCdoId: "cdo_1",
         trancheId: "senior",
         liquidationThreshold: 1.0,

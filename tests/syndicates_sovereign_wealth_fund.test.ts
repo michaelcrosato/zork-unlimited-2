@@ -395,12 +395,14 @@ describe("Syndicate Sovereign Wealth Fund & Faction-Wide Joint-Ventures (AF-128)
     // Step/tick the engine to trigger periodic economic/JV yields
     let ticked = step(state, { type: "LOOK" }, mockPack);
 
-    // Check dividends: 20 gold yield. 
+    // Check dividends: 20 gold yield.
     // Claws contribution fraction: 100/400 = 25% -> 5 gold dividend
     // Fangs contribution fraction: 300/400 = 75% -> 15 gold dividend
     expect(ticked.state.syndicates?.claws?.warChest).toBe(55); // 50 + 5
     expect(ticked.state.syndicates?.fangs?.warChest).toBe(215); // 200 + 15
-    expect(ticked.events.some((e: any) => e.type === "narration" && e.text.includes("Joint-venture portfolio j1"))).toBe(true);
+    expect(
+      ticked.events.some((e: any) => e.type === "narration" && e.text.includes("Joint-venture portfolio j1"))
+    ).toBe(true);
   });
 
   it("should synchronize SWF and JV states across P2P Gossip nodes and converge perfectly", () => {
@@ -465,7 +467,7 @@ describe("Syndicate Sovereign Wealth Fund & Faction-Wide Joint-Ventures (AF-128)
 
     const stepResB = nodeB.executeLocalAction(actionB as any);
     expect(stepResB.ok).toBe(true);
-    
+
     // Since bob's vote is YES, and player was already YES (2/2 YES > 50% majority), it resolves on Node B!
     expect(nodeB.localState.sovereignWealthFundProposals?.p1?.resolved).toBe(true);
     expect(nodeB.localState.syndicates?.claws?.warChest).toBe(100);

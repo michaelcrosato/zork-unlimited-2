@@ -456,7 +456,7 @@ describe("Syndicate Cartel Alliances & Espionage sharing (AF-69)", () => {
       mockPack
     );
     expect(resSuccess.ok).toBe(true);
-    
+
     // Syndicate B's intelStock should now have report_1 (roomId 'market') copied!
     const stockB = resSuccess.state.syndicates?.["syndicate_b"]?.intelStock;
     expect(stockB).toBeDefined();

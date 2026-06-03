@@ -6,7 +6,6 @@ import { ParserPack, ParserPackSchema } from "../src/parser/schema.js";
 import { multiAgentStep } from "../src/core/sync.js";
 import { calculateConvoyInsurancePremium } from "../src/core/economy.js";
 
-
 describe("Crime Syndicate Contraband Insurance Claims & Dynamic Loss Compensation Policies (AF-59)", () => {
   const mockPack: ParserPack = ParserPackSchema.parse({
     meta: {
@@ -647,4 +646,3 @@ describe("Crime Syndicate Contraband Insurance Claims & Dynamic Loss Compensatio
     });
   });
 });
-

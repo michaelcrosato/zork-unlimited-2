@@ -52,7 +52,7 @@ describe("Syndicate Bank Secondary Reserve Yield-Bearing Vaults & Liquidity Inve
       blood_fangs: {
         syndicateId: "blood_fangs",
         reserveGold: 1000,
-        reserveRatio: 0.20,
+        reserveRatio: 0.2,
         timestamp: 1000,
       },
     };
@@ -136,7 +136,7 @@ describe("Syndicate Bank Secondary Reserve Yield-Bearing Vaults & Liquidity Inve
       blood_fangs: {
         syndicateId: "blood_fangs",
         reserveGold: 500,
-        reserveRatio: 0.20,
+        reserveRatio: 0.2,
         timestamp: 1000,
       },
     };

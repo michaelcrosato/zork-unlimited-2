@@ -13,7 +13,7 @@ async function runPlaytestSession(adventureId: string, turns: Turn[], verifySens
 
   const serverScript = resolve("src/bin/mcp-server.ts");
   const server = spawn("npx", ["tsx", serverScript], {
-    env: { ...process.env, PAGER: "cat" }
+    env: { ...process.env, PAGER: "cat" },
   });
 
   // Collect stderr for debugging
@@ -46,7 +46,7 @@ async function runPlaytestSession(adventureId: string, turns: Turn[], verifySens
             resolvePromise(response);
           }
         }
-      } catch (err) {
+      } catch {
         // Skip unparsable output
       }
     }
@@ -89,7 +89,7 @@ async function runPlaytestSession(adventureId: string, turns: Turn[], verifySens
   console.log(`Starting adventure '${adventureId}'...`);
   const startRes = await sendRequest("tools/call", {
     name: "start_new_game",
-    arguments: { adventureId, sessionId: "afk-session" }
+    arguments: { adventureId, sessionId: "afk-session" },
   });
   const startText = startRes.result?.content?.[0]?.text || "";
   console.log("\n🎮 Initial Observation:\n" + startText);
@@ -102,31 +102,31 @@ async function runPlaytestSession(adventureId: string, turns: Turn[], verifySens
     try {
       const actionRes = await sendRequest("tools/call", {
         name: "execute_action",
-        arguments: { action: turn.cmd, sessionId: "afk-session" }
+        arguments: { action: turn.cmd, sessionId: "afk-session" },
       });
       const outputText = actionRes.result?.content?.[0]?.text || "";
-      
+
       if (actionRes.result?.isError) {
         console.log(`❌ Turn rejected cleanly by engine: ${outputText}`);
       } else {
         console.log(`🟢 Outcome:\n${outputText}`);
-        
+
         if (verifySensory) {
           // Verify sensory flavor text inclusion for chapel pack
-          const hasSensoryText = 
-            outputText.includes("pine needles") || 
-            outputText.includes("owl echoes") || 
-            outputText.includes("loam") || 
+          const hasSensoryText =
+            outputText.includes("pine needles") ||
+            outputText.includes("owl echoes") ||
+            outputText.includes("loam") ||
             outputText.includes("watchfulness") ||
-            outputText.includes("incense") || 
-            outputText.includes("clouds of ancient") || 
-            outputText.includes("Dust motes") || 
+            outputText.includes("incense") ||
+            outputText.includes("clouds of ancient") ||
+            outputText.includes("Dust motes") ||
             outputText.includes("deep earth") ||
-            outputText.includes(" ancient chill") || 
-            outputText.includes("long-forgotten") || 
-            outputText.includes("metallic scent") || 
+            outputText.includes(" ancient chill") ||
+            outputText.includes("long-forgotten") ||
+            outputText.includes("metallic scent") ||
             outputText.includes("shadows dance");
-          
+
           if (hasSensoryText) {
             console.log("✨ Sensory narrative check: PASS (Flavor injected successfully!)");
           } else {
@@ -144,7 +144,7 @@ async function runPlaytestSession(adventureId: string, turns: Turn[], verifySens
   console.log("\nTerminating MCP server subprocess...");
   server.kill();
   console.log("🟢 Subprocess killed. Port released.");
-  
+
   if (errorsEncountered === 0) {
     console.log(`\n🎉 PLAYTEST FOR '${adventureId}' COMPLETED SUCCESSFULLY!`);
     return true;
@@ -174,7 +174,7 @@ async function runMcpPlaytests() {
     { cmd: "go down", type: "standard" },
     { cmd: "take brass key", type: "standard" },
     { cmd: "go up", type: "standard" },
-    { cmd: "go north", type: "standard" }
+    { cmd: "go north", type: "standard" },
   ];
 
   const chapelSuccess = await runPlaytestSession("chapel_pack_v1", chapelTurns, true);
@@ -192,7 +192,7 @@ async function runMcpPlaytests() {
     { cmd: "ask about say goodbye", type: "standard" }, // Leave dialogue
     { cmd: "go east", type: "standard" }, // Moves back to Sunlit Clearing
     { cmd: "use rusty shovel on earthen mound", type: "standard" }, // Digs and generates procedural room to the east!
-    { cmd: "go east", type: "standard" } // Navigates to the procedurally generated 'Hidden Glade' and wins
+    { cmd: "go east", type: "standard" }, // Navigates to the procedurally generated 'Hidden Glade' and wins
   ];
 
   const forestSuccess = await runPlaytestSession("unlimited_forest_pack", forestTurns, false);
