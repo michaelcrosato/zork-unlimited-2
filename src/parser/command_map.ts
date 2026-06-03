@@ -17985,6 +17985,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a pleasant face to face discussion with the": ["TALK"]
 });
 
+// Cycle #88 / Task-F111: Phase 74 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of infiltration towards the location of": ["MOVE"],
+  "navigate one's vector of infiltration towards the location of the": ["MOVE"],
+  "navigate ones vector of infiltration towards the location of": ["MOVE"],
+  "navigate ones vector of infiltration towards the location of the": ["MOVE"],
+  "steer one's vector of infiltration in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of infiltration in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of infiltration in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of infiltration in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of infiltration towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of infiltration towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of infiltration towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of infiltration towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual classification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual classification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual classification": ["LOOK_INSPECT"],
+  "subject to a thorough visual classification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual classification": ["LOOK_INSPECT"],
+  "subject to a detailed visual classification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive attainment of": ["TAKE"],
+  "assume direct exclusive attainment of the": ["TAKE"],
+  "assume absolute exclusive attainment of": ["TAKE"],
+  "assume absolute exclusive attainment of the": ["TAKE"],
+  "assume immediate exclusive attainment of": ["TAKE"],
+  "assume immediate exclusive attainment of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive attainment of": ["DROP"],
+  "divest oneself of all exclusive attainment of the": ["DROP"],
+  "relinquish all exclusive attainment of": ["DROP"],
+  "relinquish all exclusive attainment of the": ["DROP"],
+  "free oneself from all exclusive attainment of": ["DROP"],
+  "free oneself from all exclusive attainment of the": ["DROP"],
+
+  // Open/Close
+  "force completely and thermoelectrically wide open": ["OPEN"],
+  "force completely and thermoelectrically wide open the": ["OPEN"],
+  "pry completely and thermoelectrically wide open": ["OPEN"],
+  "pry completely and thermoelectrically wide open the": ["OPEN"],
+  "fasten completely and thermoelectrically closed": ["CLOSE"],
+  "fasten completely and thermoelectrically closed the": ["CLOSE"],
+  "seal completely and thermoelectrically shut": ["CLOSE"],
+  "seal completely and thermoelectrically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all optoelectronic security devices of": ["UNLOCK"],
+  "deactivate all optoelectronic security devices of the": ["UNLOCK"],
+  "bypass all optoelectronic security devices on": ["UNLOCK"],
+  "bypass all optoelectronic security devices on the": ["UNLOCK"],
+  "disengage the primary optoelectronic security device on": ["UNLOCK"],
+  "disengage the primary optoelectronic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full modular deployment of": ["USE"],
+  "harness the full modular deployment of the": ["USE"],
+  "bring into active modular deployment": ["USE"],
+  "bring into active modular deployment the": ["USE"],
+  "make complete modular deployment of": ["USE"],
+  "make complete modular deployment of the": ["USE"],
+
+  // Combat
+  "initiate a fearsome confrontation against": ["FIGHT"],
+  "initiate a fearsome confrontation against the": ["FIGHT"],
+  "commence a fearsome confrontation against": ["FIGHT"],
+  "commence a fearsome confrontation against the": ["FIGHT"],
+  "engage in a fearsome confrontation against": ["FIGHT"],
+  "engage in a fearsome confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a genial face to face discussion with": ["TALK"],
+  "initiate a genial face to face discussion with the": ["TALK"],
+  "engage in a genial face to face discussion with": ["TALK"],
+  "engage in a genial face to face discussion with the": ["TALK"],
+  "strike up a genial face to face discussion with": ["TALK"],
+  "strike up a genial face to face discussion with the": ["TALK"]
+});
+
 // Cycle #80 / Task-F103: Phase 66 compound verbs
 compoundVerbs.push(
   "navigate one's vector of scouting towards the location of the",
@@ -18511,6 +18594,72 @@ compoundVerbs.push(
   "engage in a pleasant face to face discussion with",
   "strike up a pleasant face to face discussion with the",
   "strike up a pleasant face to face discussion with"
+);
+
+// Cycle #88 / Task-F111: Phase 74 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of infiltration towards the location of the",
+  "navigate one's vector of infiltration towards the location of",
+  "navigate ones vector of infiltration towards the location of the",
+  "navigate ones vector of infiltration towards the location of",
+  "steer one's vector of infiltration in the direction of the coordinates of the",
+  "steer one's vector of infiltration in the direction of the coordinates of",
+  "steer ones vector of infiltration in the direction of the coordinates of the",
+  "steer ones vector of infiltration in the direction of the coordinates of",
+  "direct one's vector of infiltration towards the coordinates of the location of the",
+  "direct one's vector of infiltration towards the coordinates of the location of",
+  "direct ones vector of infiltration towards the coordinates of the location of the",
+  "direct ones vector of infiltration towards the coordinates of the location of",
+  "subject to a comprehensive visual classification the",
+  "subject to a comprehensive visual classification",
+  "subject to a thorough visual classification the",
+  "subject to a thorough visual classification",
+  "subject to a detailed visual classification the",
+  "subject to a detailed visual classification",
+  "assume direct exclusive attainment of the",
+  "assume direct exclusive attainment of",
+  "assume absolute exclusive attainment of the",
+  "assume absolute exclusive attainment of",
+  "assume immediate exclusive attainment of the",
+  "assume immediate exclusive attainment of",
+  "divest oneself of all exclusive attainment of the",
+  "divest oneself of all exclusive attainment of",
+  "relinquish all exclusive attainment of the",
+  "relinquish all exclusive attainment of",
+  "free oneself from all exclusive attainment of the",
+  "free oneself from all exclusive attainment of",
+  "force completely and thermoelectrically wide open the",
+  "force completely and thermoelectrically wide open",
+  "pry completely and thermoelectrically wide open the",
+  "pry completely and thermoelectrically wide open",
+  "fasten completely and thermoelectrically closed the",
+  "fasten completely and thermoelectrically closed",
+  "seal completely and thermoelectrically shut the",
+  "seal completely and thermoelectrically shut",
+  "deactivate all optoelectronic security devices of the",
+  "deactivate all optoelectronic security devices of",
+  "bypass all optoelectronic security devices on the",
+  "bypass all optoelectronic security devices on",
+  "disengage the primary optoelectronic security device on the",
+  "disengage the primary optoelectronic security device on",
+  "harness the full modular deployment of the",
+  "harness the full modular deployment of",
+  "bring into active modular deployment the",
+  "bring into active modular deployment",
+  "make complete modular deployment of the",
+  "make complete modular deployment of",
+  "initiate a fearsome confrontation against the",
+  "initiate a fearsome confrontation against",
+  "commence a fearsome confrontation against the",
+  "commence a fearsome confrontation against",
+  "engage in a fearsome confrontation against the",
+  "engage in a fearsome confrontation against",
+  "initiate a genial face to face discussion with the",
+  "initiate a genial face to face discussion with",
+  "engage in a genial face to face discussion with the",
+  "engage in a genial face to face discussion with",
+  "strike up a genial face to face discussion with the",
+  "strike up a genial face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
