@@ -10326,7 +10326,84 @@ Object.assign(VERB_CATEGORIES, {
   "initiate a chat with": ["TALK"],
   "initiate a chat with the": ["TALK"],
   "engage in a conversation with": ["TALK"],
-  "engage in a conversation with the": ["TALK"]
+  "engage in a conversation with the": ["TALK"],
+
+  // Cycle #35 / Task-F58: Phase 21 mappings (expansion requested by playtesters)
+  // Move
+  "make a dash for": ["MOVE"],
+  "make a dash for the": ["MOVE"],
+  "set out for": ["MOVE"],
+  "set out for the": ["MOVE"],
+  "undertake travel to": ["MOVE"],
+  "undertake travel to the": ["MOVE"],
+
+  // Look/Inspect
+  "run a scan over": ["LOOK_INSPECT"],
+  "run a scan over the": ["LOOK_INSPECT"],
+  "do a walkthrough on": ["LOOK_INSPECT"],
+  "do a walkthrough on the": ["LOOK_INSPECT"],
+  "cast one's eyes over": ["LOOK_INSPECT"],
+  "cast one's eyes over the": ["LOOK_INSPECT"],
+  "cast ones eyes over": ["LOOK_INSPECT"],
+  "cast ones eyes over the": ["LOOK_INSPECT"],
+
+  // Take
+  "gain ownership of": ["TAKE"],
+  "gain ownership of the": ["TAKE"],
+  "acquire ownership of": ["TAKE"],
+  "acquire ownership of the": ["TAKE"],
+  "bring into inventory": ["TAKE"],
+  "bring into inventory the": ["TAKE"],
+
+  // Drop
+  "free oneself of": ["DROP"],
+  "free oneself of the": ["DROP"],
+  "toss to the ground": ["DROP"],
+  "toss to the ground the": ["DROP"],
+  "rid ones self of": ["DROP"],
+  "rid ones self of the": ["DROP"],
+  "rid one's self of": ["DROP"],
+  "rid one's self of the": ["DROP"],
+
+  // Open/Close
+  "fling completely open": ["OPEN"],
+  "fling completely open the": ["OPEN"],
+  "shut completely": ["CLOSE"],
+  "shut completely the": ["CLOSE"],
+  "force closed": ["CLOSE"],
+  "force closed the": ["CLOSE"],
+
+  // Unlock
+  "deactivate the locks on": ["UNLOCK"],
+  "deactivate the locks on the": ["UNLOCK"],
+  "bypass the lock of": ["UNLOCK"],
+  "bypass the lock of the": ["UNLOCK"],
+  "release lock on": ["UNLOCK"],
+  "release lock on the": ["UNLOCK"],
+
+  // Use
+  "press into action": ["USE"],
+  "press into action the": ["USE"],
+  "harness the power of": ["USE"],
+  "harness the power of the": ["USE"],
+  "employ the services of": ["USE"],
+  "employ the services of the": ["USE"],
+
+  // Combat
+  "initiate hostilities with": ["FIGHT"],
+  "initiate hostilities with the": ["FIGHT"],
+  "launch hostilities against": ["FIGHT"],
+  "launch hostilities against the": ["FIGHT"],
+  "start a fight with": ["FIGHT"],
+  "start a fight with the": ["FIGHT"],
+
+  // Dialogue
+  "strike up dialogue with": ["TALK"],
+  "strike up dialogue with the": ["TALK"],
+  "initiate dialogue with": ["TALK"],
+  "initiate dialogue with the": ["TALK"],
+  "enter conversation with": ["TALK"],
+  "enter conversation with the": ["TALK"]
 });
 
 compoundVerbs.push(
@@ -10563,7 +10640,67 @@ compoundVerbs.push(
   "initiate a chat with the",
   "initiate a chat with",
   "engage in a conversation with the",
-  "engage in a conversation with"
+  "engage in a conversation with",
+
+  // Phase 21 compound verbs
+  "make a dash for the",
+  "make a dash for",
+  "set out for the",
+  "set out for",
+  "undertake travel to the",
+  "undertake travel to",
+  "run a scan over the",
+  "run a scan over",
+  "do a walkthrough on the",
+  "do a walkthrough on",
+  "cast one's eyes over the",
+  "cast one's eyes over",
+  "cast ones eyes over the",
+  "cast ones eyes over",
+  "gain ownership of the",
+  "gain ownership of",
+  "acquire ownership of the",
+  "acquire ownership of",
+  "bring into inventory the",
+  "bring into inventory",
+  "free oneself of the",
+  "free oneself of",
+  "toss to the ground the",
+  "toss to the ground",
+  "rid ones self of the",
+  "rid ones self of",
+  "rid one's self of the",
+  "rid one's self of",
+  "fling completely open the",
+  "fling completely open",
+  "shut completely the",
+  "shut completely",
+  "force closed the",
+  "force closed",
+  "deactivate the locks on the",
+  "deactivate the locks on",
+  "bypass the lock of the",
+  "bypass the lock of",
+  "release lock on the",
+  "release lock on",
+  "press into action the",
+  "press into action",
+  "harness the power of the",
+  "harness the power of",
+  "employ the services of the",
+  "employ the services of",
+  "initiate hostilities with the",
+  "initiate hostilities with",
+  "launch hostilities against the",
+  "launch hostilities against",
+  "start a fight with the",
+  "start a fight with",
+  "strike up dialogue with the",
+  "strike up dialogue with",
+  "initiate dialogue with the",
+  "initiate dialogue with",
+  "enter conversation with the",
+  "enter conversation with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
