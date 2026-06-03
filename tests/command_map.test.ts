@@ -301,6 +301,28 @@ describe("mapCommand", () => {
     expect(mapCommand("unlock the gate", actions).action).toEqual({ type: "UNLOCK", target: "gate" });
   });
 
+  it("handles Cycle #60 expanded synonyms correctly", () => {
+    const actions = [
+      { id: "go-inside", command: "go inside stone temple", action: { type: "MOVE" as const, direction: "inside" } },
+      { id: "take-gander", command: "look at wooden chest", action: { type: "LOOK" as const, target: "chest" } },
+      { id: "retrieve-item", command: "take magic scroll", action: { type: "TAKE" as const, item: "scroll" } },
+      { id: "discard-item", command: "drop heavy sword", action: { type: "DROP" as const, item: "sword" } },
+      { id: "unzip-bag", command: "open leather bag", action: { type: "OPEN" as const, target: "bag" } },
+      { id: "play-around", command: "use ancient console", action: { type: "USE" as const, target: "console" } },
+      { id: "greet-npc", command: "talk to dungeon keeper", action: { type: "TALK" as const, npc: "keeper" } },
+      { id: "slay-dragon", command: "fight massive red dragon", action: { type: "FIGHT" as const, npc: "dragon" } },
+    ];
+
+    expect(mapCommand("walk over to stone temple", actions).action).toEqual({ type: "MOVE", direction: "inside" });
+    expect(mapCommand("take a gander at wooden chest", actions).action).toEqual({ type: "LOOK", target: "chest" });
+    expect(mapCommand("retrieve the magic scroll", actions).action).toEqual({ type: "TAKE", item: "scroll" });
+    expect(mapCommand("discard the heavy sword", actions).action).toEqual({ type: "DROP", item: "sword" });
+    expect(mapCommand("unwrap the leather bag", actions).action).toEqual({ type: "OPEN", target: "bag" });
+    expect(mapCommand("play around with the ancient console", actions).action).toEqual({ type: "USE", target: "console" });
+    expect(mapCommand("greet the dungeon keeper", actions).action).toEqual({ type: "TALK", npc: "keeper" });
+    expect(mapCommand("slay the massive red dragon", actions).action).toEqual({ type: "FIGHT", npc: "dragon" });
+  });
+
   it("handles automatic spelling corrections", () => {
     const actions = [
       { id: "climb-wall", command: "climb wall", action: { type: "USE" as const, target: "wall" } },
