@@ -17033,6 +17033,155 @@ compoundVerbs.push(
   "strike up a meaningful face to face discussion with"
 );
 
+// Cycle #78 / Task-F101: Phase 64 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of trek towards the location of": ["MOVE"],
+  "navigate one's vector of trek towards the location of the": ["MOVE"],
+  "navigate ones vector of trek towards the location of": ["MOVE"],
+  "navigate ones vector of trek towards the location of the": ["MOVE"],
+  "steer one's vector of trek in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of trek in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of trek in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of trek in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of trek towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of trek towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of trek towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of trek towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual monitoring": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual monitoring the": ["LOOK_INSPECT"],
+  "subject to a thorough visual monitoring": ["LOOK_INSPECT"],
+  "subject to a thorough visual monitoring the": ["LOOK_INSPECT"],
+  "subject to a detailed visual monitoring": ["LOOK_INSPECT"],
+  "subject to a detailed visual monitoring the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive seizure of": ["TAKE"],
+  "assume direct exclusive seizure of the": ["TAKE"],
+  "assume absolute exclusive seizure of": ["TAKE"],
+  "assume absolute exclusive seizure of the": ["TAKE"],
+  "assume immediate exclusive seizure of": ["TAKE"],
+  "assume immediate exclusive seizure of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive seizure of": ["DROP"],
+  "divest oneself of all exclusive seizure of the": ["DROP"],
+  "relinquish all exclusive seizure of": ["DROP"],
+  "relinquish all exclusive seizure of the": ["DROP"],
+  "free oneself from all exclusive seizure of": ["DROP"],
+  "free oneself from all exclusive seizure of the": ["DROP"],
+
+  // Open/Close
+  "force completely and hydraulically wide open": ["OPEN"],
+  "force completely and hydraulically wide open the": ["OPEN"],
+  "pry completely and hydraulically wide open": ["OPEN"],
+  "pry completely and hydraulically wide open the": ["OPEN"],
+  "fasten completely and hydraulically closed": ["CLOSE"],
+  "fasten completely and hydraulically closed the": ["CLOSE"],
+  "seal completely and hydraulically shut": ["CLOSE"],
+  "seal completely and hydraulically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all thermal security devices of": ["UNLOCK"],
+  "deactivate all thermal security devices of the": ["UNLOCK"],
+  "bypass all thermal security devices on": ["UNLOCK"],
+  "bypass all thermal security devices on the": ["UNLOCK"],
+  "disengage the primary thermal security device on": ["UNLOCK"],
+  "disengage the primary thermal security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full optimal deployment of": ["USE"],
+  "harness the full optimal deployment of the": ["USE"],
+  "bring into active optimal deployment": ["USE"],
+  "bring into active optimal deployment the": ["USE"],
+  "make complete optimal deployment of": ["USE"],
+  "make complete optimal deployment of the": ["USE"],
+
+  // Combat
+  "initiate a grievous confrontation against": ["FIGHT"],
+  "initiate a grievous confrontation against the": ["FIGHT"],
+  "commence a grievous confrontation against": ["FIGHT"],
+  "commence a grievous confrontation against the": ["FIGHT"],
+  "engage in a grievous confrontation against": ["FIGHT"],
+  "engage in a grievous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a scholarly face to face discussion with": ["TALK"],
+  "initiate a scholarly face to face discussion with the": ["TALK"],
+  "engage in a scholarly face to face discussion with": ["TALK"],
+  "engage in a scholarly face to face discussion with the": ["TALK"],
+  "strike up a scholarly face to face discussion with": ["TALK"],
+  "strike up a scholarly face to face discussion with the": ["TALK"]
+});
+
+// Cycle #78 / Task-F101: Phase 64 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of trek towards the location of the",
+  "navigate one's vector of trek towards the location of",
+  "navigate ones vector of trek towards the location of the",
+  "navigate ones vector of trek towards the location of",
+  "steer one's vector of trek in the direction of the coordinates of the",
+  "steer one's vector of trek in the direction of the coordinates of",
+  "steer ones vector of trek in the direction of the coordinates of the",
+  "steer ones vector of trek in the direction of the coordinates of",
+  "direct one's vector of trek towards the coordinates of the location of the",
+  "direct one's vector of trek towards the coordinates of the location of",
+  "direct ones vector of trek towards the coordinates of the location of the",
+  "direct ones vector of trek towards the coordinates of the location of",
+  "subject to a comprehensive visual monitoring the",
+  "subject to a comprehensive visual monitoring",
+  "subject to a thorough visual monitoring the",
+  "subject to a thorough visual monitoring",
+  "subject to a detailed visual monitoring the",
+  "subject to a detailed visual monitoring",
+  "assume direct exclusive seizure of the",
+  "assume direct exclusive seizure of",
+  "assume absolute exclusive seizure of the",
+  "assume absolute exclusive seizure of",
+  "assume immediate exclusive seizure of the",
+  "assume immediate exclusive seizure of",
+  "divest oneself of all exclusive seizure of the",
+  "divest oneself of all exclusive seizure of",
+  "relinquish all exclusive seizure of the",
+  "relinquish all exclusive seizure of",
+  "free oneself from all exclusive seizure of the",
+  "free oneself from all exclusive seizure of",
+  "force completely and hydraulically wide open the",
+  "force completely and hydraulically wide open",
+  "pry completely and hydraulically wide open the",
+  "pry completely and hydraulically wide open",
+  "fasten completely and hydraulically closed the",
+  "fasten completely and hydraulically closed",
+  "seal completely and hydraulically shut the",
+  "seal completely and hydraulically shut",
+  "deactivate all thermal security devices of the",
+  "deactivate all thermal security devices of",
+  "bypass all thermal security devices on the",
+  "bypass all thermal security devices on",
+  "disengage the primary thermal security device on the",
+  "disengage the primary thermal security device on",
+  "harness the full optimal deployment of the",
+  "harness the full optimal deployment of",
+  "bring into active optimal deployment the",
+  "bring into active optimal deployment",
+  "make complete optimal deployment of the",
+  "make complete optimal deployment of",
+  "initiate a grievous confrontation against the",
+  "initiate a grievous confrontation against",
+  "commence a grievous confrontation against the",
+  "commence a grievous confrontation against",
+  "engage in a grievous confrontation against the",
+  "engage in a grievous confrontation against",
+  "initiate a scholarly face to face discussion with the",
+  "initiate a scholarly face to face discussion with",
+  "engage in a scholarly face to face discussion with the",
+  "engage in a scholarly face to face discussion with",
+  "strike up a scholarly face to face discussion with the",
+  "strike up a scholarly face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
 
 
