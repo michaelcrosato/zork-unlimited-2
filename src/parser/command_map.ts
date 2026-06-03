@@ -15595,6 +15595,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a respectful face to face discussion with the": ["TALK"]
 });
 
+// Cycle #74 / Task-F97: Phase 60 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Move
+  "navigate one's vector of expedition towards the location of": ["MOVE"],
+  "navigate one's vector of expedition towards the location of the": ["MOVE"],
+  "navigate ones vector of expedition towards the location of": ["MOVE"],
+  "navigate ones vector of expedition towards the location of the": ["MOVE"],
+  "steer one's vector of expedition in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of expedition in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of expedition in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of expedition in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of expedition towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of expedition towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of expedition towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of expedition towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual review": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual review the": ["LOOK_INSPECT"],
+  "subject to a thorough visual review": ["LOOK_INSPECT"],
+  "subject to a thorough visual review the": ["LOOK_INSPECT"],
+  "subject to a detailed visual review": ["LOOK_INSPECT"],
+  "subject to a detailed visual review the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive acquisition of": ["TAKE"],
+  "assume direct exclusive acquisition of the": ["TAKE"],
+  "assume absolute exclusive acquisition of": ["TAKE"],
+  "assume absolute exclusive acquisition of the": ["TAKE"],
+  "assume immediate exclusive acquisition of": ["TAKE"],
+  "assume immediate exclusive acquisition of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive acquisition of": ["DROP"],
+  "divest oneself of all exclusive acquisition of the": ["DROP"],
+  "relinquish all exclusive acquisition of": ["DROP"],
+  "relinquish all exclusive acquisition of the": ["DROP"],
+  "free oneself from all exclusive acquisition of": ["DROP"],
+  "free oneself from all exclusive acquisition of the": ["DROP"],
+
+  // Open/Close
+  "force completely and intrinsically wide open": ["OPEN"],
+  "force completely and intrinsically wide open the": ["OPEN"],
+  "pry completely and intrinsically wide open": ["OPEN"],
+  "pry completely and intrinsically wide open the": ["OPEN"],
+  "fasten completely and intrinsically closed": ["CLOSE"],
+  "fasten completely and intrinsically closed the": ["CLOSE"],
+  "seal completely and intrinsically shut": ["CLOSE"],
+  "seal completely and intrinsically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all interface security devices of": ["UNLOCK"],
+  "deactivate all interface security devices of the": ["UNLOCK"],
+  "bypass all interface security devices on": ["UNLOCK"],
+  "bypass all interface security devices on the": ["UNLOCK"],
+  "disengage the primary interface security device on": ["UNLOCK"],
+  "disengage the primary interface security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full operational deployment of": ["USE"],
+  "harness the full operational deployment of the": ["USE"],
+  "bring into active operational deployment": ["USE"],
+  "bring into active operational deployment the": ["USE"],
+  "make complete operational deployment of": ["USE"],
+  "make complete operational deployment of the": ["USE"],
+
+  // Combat
+  "initiate a brutal confrontation against": ["FIGHT"],
+  "initiate a brutal confrontation against the": ["FIGHT"],
+  "commence a brutal confrontation against": ["FIGHT"],
+  "commence a brutal confrontation against the": ["FIGHT"],
+  "engage in a brutal confrontation against": ["FIGHT"],
+  "engage in a brutal confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a cordial face to face discussion with": ["TALK"],
+  "initiate a cordial face to face discussion with the": ["TALK"],
+  "engage in a cordial face to face discussion with": ["TALK"],
+  "engage in a cordial face to face discussion with the": ["TALK"],
+  "strike up a cordial face to face discussion with": ["TALK"],
+  "strike up a cordial face to face discussion with the": ["TALK"]
+});
+
 compoundVerbs.push(
   // Phase 47 compound verbs
   "navigate one's vector of displacement towards the location of the",
@@ -16435,6 +16518,72 @@ compoundVerbs.push(
   "engage in a respectful face to face discussion with",
   "strike up a respectful face to face discussion with the",
   "strike up a respectful face to face discussion with"
+);
+
+// Cycle #74 / Task-F97: Phase 60 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of expedition towards the location of the",
+  "navigate one's vector of expedition towards the location of",
+  "navigate ones vector of expedition towards the location of the",
+  "navigate ones vector of expedition towards the location of",
+  "steer one's vector of expedition in the direction of the coordinates of the",
+  "steer one's vector of expedition in the direction of the coordinates of",
+  "steer ones vector of expedition in the direction of the coordinates of the",
+  "steer ones vector of expedition in the direction of the coordinates of",
+  "direct one's vector of expedition towards the coordinates of the location of the",
+  "direct one's vector of expedition towards the coordinates of the location of",
+  "direct ones vector of expedition towards the coordinates of the location of the",
+  "direct ones vector of expedition towards the coordinates of the location of",
+  "subject to a comprehensive visual review the",
+  "subject to a comprehensive visual review",
+  "subject to a thorough visual review the",
+  "subject to a thorough visual review",
+  "subject to a detailed visual review the",
+  "subject to a detailed visual review",
+  "assume direct exclusive acquisition of the",
+  "assume direct exclusive acquisition of",
+  "assume absolute exclusive acquisition of the",
+  "assume absolute exclusive acquisition of",
+  "assume immediate exclusive acquisition of the",
+  "assume immediate exclusive acquisition of",
+  "divest oneself of all exclusive acquisition of the",
+  "divest oneself of all exclusive acquisition of",
+  "relinquish all exclusive acquisition of the",
+  "relinquish all exclusive acquisition of",
+  "free oneself from all exclusive acquisition of the",
+  "free oneself from all exclusive acquisition of",
+  "force completely and intrinsically wide open the",
+  "force completely and intrinsically wide open",
+  "pry completely and intrinsically wide open the",
+  "pry completely and intrinsically wide open",
+  "fasten completely and intrinsically closed the",
+  "fasten completely and intrinsically closed",
+  "seal completely and intrinsically shut the",
+  "seal completely and intrinsically shut",
+  "deactivate all interface security devices of the",
+  "deactivate all interface security devices of",
+  "bypass all interface security devices on the",
+  "bypass all interface security devices on",
+  "disengage the primary interface security device on the",
+  "disengage the primary interface security device on",
+  "harness the full operational deployment of the",
+  "harness the full operational deployment of",
+  "bring into active operational deployment the",
+  "bring into active operational deployment",
+  "make complete operational deployment of the",
+  "make complete operational deployment of",
+  "initiate a brutal confrontation against the",
+  "initiate a brutal confrontation against",
+  "commence a brutal confrontation against the",
+  "commence a brutal confrontation against",
+  "engage in a brutal confrontation against the",
+  "engage in a brutal confrontation against",
+  "initiate a cordial face to face discussion with the",
+  "initiate a cordial face to face discussion with",
+  "engage in a cordial face to face discussion with the",
+  "engage in a cordial face to face discussion with",
+  "strike up a cordial face to face discussion with the",
+  "strike up a cordial face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
