@@ -28618,9 +28618,100 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a climatological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #204 / Task-F223: Phase 185 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of osteogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of osteogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of osteogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of osteogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of osteogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of osteogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of osteogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of osteogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of osteogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of osteogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of osteogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of osteogenesis towards the coordinates of the location of the": ["MOVE"],
 
+  // Inspection
+  "subject to a comprehensive visual virtualization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual virtualization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual virtualization": ["LOOK_INSPECT"],
+  "subject to a thorough visual virtualization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual virtualization": ["LOOK_INSPECT"],
+  "subject to a detailed visual virtualization the": ["LOOK_INSPECT"],
 
+  // Take
+  "assume direct exclusive shrouding of": ["TAKE"],
+  "assume direct exclusive shrouding of the": ["TAKE"],
+  "assume absolute exclusive shrouding of": ["TAKE"],
+  "assume absolute exclusive shrouding of the": ["TAKE"],
+  "assume immediate exclusive shrouding of": ["TAKE"],
+  "assume immediate exclusive shrouding of the": ["TAKE"],
 
+  // Drop
+  "divest oneself of all exclusive shrouding of": ["DROP"],
+  "divest oneself of all exclusive shrouding of the": ["DROP"],
+  "relinquish all exclusive shrouding of": ["DROP"],
+  "relinquish all exclusive shrouding of the": ["DROP"],
+  "free oneself from all exclusive shrouding of": ["DROP"],
+  "free oneself from all exclusive shrouding of the": ["DROP"],
+
+  // Open/Close
+  "force completely and magnetoviscoelastically wide open": ["OPEN"],
+  "force completely and magnetoviscoelastically wide open the": ["OPEN"],
+  "pry completely and magnetoviscoelastically wide open": ["OPEN"],
+  "pry completely and magnetoviscoelastically wide open the": ["OPEN"],
+  "fasten completely and magnetoviscoelastically closed": ["CLOSE"],
+  "fasten completely and magnetoviscoelastically closed the": ["CLOSE"],
+  "seal completely and magnetoviscoelastically shut": ["CLOSE"],
+  "seal completely and magnetoviscoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all penrose security devices of": ["UNLOCK"],
+  "deactivate all penrose security devices of the": ["UNLOCK"],
+  "deactivate all kerr security devices of": ["UNLOCK"],
+  "deactivate all kerr security devices of the": ["UNLOCK"],
+  "deactivate all reissner security devices of": ["UNLOCK"],
+  "deactivate all reissner security devices of the": ["UNLOCK"],
+  "deactivate all nordstrom security devices of": ["UNLOCK"],
+  "deactivate all nordstrom security devices of the": ["UNLOCK"],
+  "bypass all penrose security devices on": ["UNLOCK"],
+  "bypass all penrose security devices on the": ["UNLOCK"],
+  "bypass all kerr security devices on": ["UNLOCK"],
+  "bypass all kerr security devices on the": ["UNLOCK"],
+  "bypass all reissner security devices on": ["UNLOCK"],
+  "bypass all reissner security devices on the": ["UNLOCK"],
+  "bypass all nordstrom security devices on": ["UNLOCK"],
+  "bypass all nordstrom security devices on the": ["UNLOCK"],
+  "disengage the primary penrose security device on": ["UNLOCK"],
+  "disengage the primary penrose security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full gyrotropic deployment of": ["USE"],
+  "harness the full gyrotropic deployment of the": ["USE"],
+  "bring into active gyrotropic deployment": ["USE"],
+  "bring into active gyrotropic deployment the": ["USE"],
+  "make complete gyrotropic deployment of": ["USE"],
+  "make complete gyrotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unequivocally hostile confrontation against": ["FIGHT"],
+  "initiate an unequivocally hostile confrontation against the": ["FIGHT"],
+  "commence an unequivocally hostile confrontation against": ["FIGHT"],
+  "commence an unequivocally hostile confrontation against the": ["FIGHT"],
+  "engage in an unequivocally hostile confrontation against": ["FIGHT"],
+  "engage in an unequivocally hostile confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a glaciological face to face discussion with": ["TALK"],
+  "initiate a glaciological face to face discussion with the": ["TALK"],
+  "engage in a glaciological face to face discussion with": ["TALK"],
+  "engage in a glaciological face to face discussion with the": ["TALK"],
+  "strike up a glaciological face to face discussion with": ["TALK"],
+  "strike up a glaciological face to face discussion with the": ["TALK"]
+});
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -35632,6 +35723,84 @@ compoundVerbs.push(
   "engage in a climatological face to face discussion with",
   "strike up a climatological face to face discussion with the",
   "strike up a climatological face to face discussion with"
+);
+
+// Cycle #204 / Task-F223: Phase 185 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of osteogenesis towards the location of the",
+  "navigate one's vector of osteogenesis towards the location of",
+  "navigate ones vector of osteogenesis towards the location of the",
+  "navigate ones vector of osteogenesis towards the location of",
+  "steer one's vector of osteogenesis in the direction of the coordinates of the",
+  "steer one's vector of osteogenesis in the direction of the coordinates of",
+  "steer ones vector of osteogenesis in the direction of the coordinates of the",
+  "steer ones vector of osteogenesis in the direction of the coordinates of",
+  "direct one's vector of osteogenesis towards the coordinates of the location of the",
+  "direct one's vector of osteogenesis towards the coordinates of the location of",
+  "direct ones vector of osteogenesis towards the coordinates of the location of the",
+  "direct ones vector of osteogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual virtualization the",
+  "subject to a comprehensive visual virtualization",
+  "subject to a thorough visual virtualization the",
+  "subject to a thorough visual virtualization",
+  "subject to a detailed visual virtualization the",
+  "subject to a detailed visual virtualization",
+  "assume direct exclusive shrouding of the",
+  "assume direct exclusive shrouding of",
+  "assume absolute exclusive shrouding of the",
+  "assume absolute exclusive shrouding of",
+  "assume immediate exclusive shrouding of the",
+  "assume immediate exclusive shrouding of",
+  "divest oneself of all exclusive shrouding of the",
+  "divest oneself of all exclusive shrouding of",
+  "relinquish all exclusive shrouding of the",
+  "relinquish all exclusive shrouding of",
+  "free oneself from all exclusive shrouding of the",
+  "free oneself from all exclusive shrouding of",
+  "force completely and magnetoviscoelastically wide open the",
+  "force completely and magnetoviscoelastically wide open",
+  "pry completely and magnetoviscoelastically wide open the",
+  "pry completely and magnetoviscoelastically wide open",
+  "fasten completely and magnetoviscoelastically closed the",
+  "fasten completely and magnetoviscoelastically closed",
+  "seal completely and magnetoviscoelastically shut the",
+  "seal completely and magnetoviscoelastically shut",
+  "deactivate all penrose security devices of the",
+  "deactivate all penrose security devices of",
+  "deactivate all kerr security devices of the",
+  "deactivate all kerr security devices of",
+  "deactivate all reissner security devices of the",
+  "deactivate all reissner security devices of",
+  "deactivate all nordstrom security devices of the",
+  "deactivate all nordstrom security devices of",
+  "bypass all penrose security devices on the",
+  "bypass all penrose security devices on",
+  "bypass all kerr security devices on the",
+  "bypass all kerr security devices on",
+  "bypass all reissner security devices on the",
+  "bypass all reissner security devices on",
+  "bypass all nordstrom security devices on the",
+  "bypass all nordstrom security devices on",
+  "disengage the primary penrose security device on the",
+  "disengage the primary penrose security device on",
+  "harness the full gyrotropic deployment of the",
+  "harness the full gyrotropic deployment of",
+  "bring into active gyrotropic deployment the",
+  "bring into active gyrotropic deployment",
+  "make complete gyrotropic deployment of the",
+  "make complete gyrotropic deployment of",
+  "initiate an unequivocally hostile confrontation against the",
+  "initiate an unequivocally hostile confrontation against",
+  "commence an unequivocally hostile confrontation against the",
+  "commence an unequivocally hostile confrontation against",
+  "engage in an unequivocally hostile confrontation against the",
+  "engage in an unequivocally hostile confrontation against",
+  "initiate a glaciological face to face discussion with the",
+  "initiate a glaciological face to face discussion with",
+  "engage in a glaciological face to face discussion with the",
+  "engage in a glaciological face to face discussion with",
+  "strike up a glaciological face to face discussion with the",
+  "strike up a glaciological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
