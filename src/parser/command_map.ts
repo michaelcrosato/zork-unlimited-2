@@ -23294,7 +23294,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a teleological face to face discussion with": ["TALK"],
   "engage in a teleological face to face discussion with the": ["TALK"],
   "strike up a teleological face to face discussion with": ["TALK"],
-  "strike up a teleological face to face discussion with the": ["TALK"]
+  "strike up a teleological face to face discussion with the": ["TALK"],
+
+  // Cycle #140 / Task-F161: Phase 124 VERB_CATEGORIES mappings
+  // Movement
+  "navigate one's vector of radiolysis towards the location of": ["MOVE"],
+  "navigate one's vector of radiolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of radiolysis towards the location of": ["MOVE"],
+  "navigate ones vector of radiolysis towards the location of the": ["MOVE"],
+  "steer one's vector of radiolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of radiolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of radiolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of radiolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of radiolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of radiolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of radiolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of radiolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual conceptualization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual conceptualization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual conceptualization": ["LOOK_INSPECT"],
+  "subject to a thorough visual conceptualization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual conceptualization": ["LOOK_INSPECT"],
+  "subject to a detailed visual conceptualization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive bequest of": ["TAKE"],
+  "assume direct exclusive bequest of the": ["TAKE"],
+  "assume absolute exclusive bequest of": ["TAKE"],
+  "assume absolute exclusive bequest of the": ["TAKE"],
+  "assume immediate exclusive bequest of": ["TAKE"],
+  "assume immediate exclusive bequest of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive bequest of": ["DROP"],
+  "divest oneself of all exclusive bequest of the": ["DROP"],
+  "relinquish all exclusive bequest of": ["DROP"],
+  "relinquish all exclusive bequest of the": ["DROP"],
+  "free oneself from all exclusive bequest of": ["DROP"],
+  "free oneself from all exclusive bequest of the": ["DROP"],
+
+  // Open/Close
+  "force completely and isochorically wide open": ["OPEN"],
+  "force completely and isochorically wide open the": ["OPEN"],
+  "pry completely and isochorically wide open": ["OPEN"],
+  "pry completely and isochorically wide open the": ["OPEN"],
+  "fasten completely and isochorically closed": ["CLOSE"],
+  "fasten completely and isochorically closed the": ["CLOSE"],
+  "seal completely and isochorically shut": ["CLOSE"],
+  "seal completely and isochorically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all gravitino security devices of": ["UNLOCK"],
+  "deactivate all gravitino security devices of the": ["UNLOCK"],
+  "bypass all gravitino security devices on": ["UNLOCK"],
+  "bypass all gravitino security devices on the": ["UNLOCK"],
+  "disengage the primary gravitino security device on": ["UNLOCK"],
+  "disengage the primary gravitino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unremitting deployment of": ["USE"],
+  "harness the full unremitting deployment of the": ["USE"],
+  "bring into active unremitting deployment": ["USE"],
+  "bring into active unremitting deployment the": ["USE"],
+  "make complete unremitting deployment of": ["USE"],
+  "make complete unremitting deployment of the": ["USE"],
+
+  // Combat
+  "initiate a rapacious confrontation against": ["FIGHT"],
+  "initiate a rapacious confrontation against the": ["FIGHT"],
+  "commence a rapacious confrontation against": ["FIGHT"],
+  "commence a rapacious confrontation against the": ["FIGHT"],
+  "engage in a rapacious confrontation against": ["FIGHT"],
+  "engage in a rapacious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a hermeneutic face to face discussion with": ["TALK"],
+  "initiate a hermeneutic face to face discussion with the": ["TALK"],
+  "engage in a hermeneutic face to face discussion with": ["TALK"],
+  "engage in a hermeneutic face to face discussion with the": ["TALK"],
+  "strike up a hermeneutic face to face discussion with": ["TALK"],
+  "strike up a hermeneutic face to face discussion with the": ["TALK"]
 });
 
 
@@ -25938,6 +26019,72 @@ compoundVerbs.push(
   "engage in a teleological face to face discussion with",
   "strike up a teleological face to face discussion with the",
   "strike up a teleological face to face discussion with"
+);
+
+// Cycle #140 / Task-F161: Phase 124 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of radiolysis towards the location of the",
+  "navigate one's vector of radiolysis towards the location of",
+  "navigate ones vector of radiolysis towards the location of the",
+  "navigate ones vector of radiolysis towards the location of",
+  "steer one's vector of radiolysis in the direction of the coordinates of the",
+  "steer one's vector of radiolysis in the direction of the coordinates of",
+  "steer ones vector of radiolysis in the direction of the coordinates of the",
+  "steer ones vector of radiolysis in the direction of the coordinates of",
+  "direct one's vector of radiolysis towards the coordinates of the location of the",
+  "direct one's vector of radiolysis towards the coordinates of the location of",
+  "direct ones vector of radiolysis towards the coordinates of the location of the",
+  "direct ones vector of radiolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual conceptualization the",
+  "subject to a comprehensive visual conceptualization",
+  "subject to a thorough visual conceptualization the",
+  "subject to a thorough visual conceptualization",
+  "subject to a detailed visual conceptualization the",
+  "subject to a detailed visual conceptualization",
+  "assume direct exclusive bequest of the",
+  "assume direct exclusive bequest of",
+  "assume absolute exclusive bequest of the",
+  "assume absolute exclusive bequest of",
+  "assume immediate exclusive bequest of the",
+  "assume immediate exclusive bequest of",
+  "divest oneself of all exclusive bequest of the",
+  "divest oneself of all exclusive bequest of",
+  "relinquish all exclusive bequest of the",
+  "relinquish all exclusive bequest of",
+  "free oneself from all exclusive bequest of the",
+  "free oneself from all exclusive bequest of",
+  "force completely and isochorically wide open the",
+  "force completely and isochorically wide open",
+  "pry completely and isochorically wide open the",
+  "pry completely and isochorically wide open",
+  "fasten completely and isochorically closed the",
+  "fasten completely and isochorically closed",
+  "seal completely and isochorically shut the",
+  "seal completely and isochorically shut",
+  "deactivate all gravitino security devices of the",
+  "deactivate all gravitino security devices of",
+  "bypass all gravitino security devices on the",
+  "bypass all gravitino security devices on",
+  "disengage the primary gravitino security device on the",
+  "disengage the primary gravitino security device on",
+  "harness the full unremitting deployment of the",
+  "harness the full unremitting deployment of",
+  "bring into active unremitting deployment the",
+  "bring into active unremitting deployment",
+  "make complete unremitting deployment of the",
+  "make complete unremitting deployment of",
+  "initiate a rapacious confrontation against the",
+  "initiate a rapacious confrontation against",
+  "commence a rapacious confrontation against the",
+  "commence a rapacious confrontation against",
+  "engage in a rapacious confrontation against the",
+  "engage in a rapacious confrontation against",
+  "initiate a hermeneutic face to face discussion with the",
+  "initiate a hermeneutic face to face discussion with",
+  "engage in a hermeneutic face to face discussion with the",
+  "engage in a hermeneutic face to face discussion with",
+  "strike up a hermeneutic face to face discussion with the",
+  "strike up a hermeneutic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
