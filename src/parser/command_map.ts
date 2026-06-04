@@ -29865,6 +29865,107 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an ichthyological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #217 / Task-F236: Phase 198 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of sporogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of sporogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of sporogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of sporogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of sporogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of sporogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of sporogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of sporogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of sporogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of sporogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of sporogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of sporogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual diagnostics": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual diagnostics the": ["LOOK_INSPECT"],
+  "subject to a thorough visual diagnostics": ["LOOK_INSPECT"],
+  "subject to a thorough visual diagnostics the": ["LOOK_INSPECT"],
+  "subject to a detailed visual diagnostics": ["LOOK_INSPECT"],
+  "subject to a detailed visual diagnostics the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive segregation of": ["TAKE"],
+  "assume direct exclusive segregation of the": ["TAKE"],
+  "assume absolute exclusive segregation of": ["TAKE"],
+  "assume absolute exclusive segregation of the": ["TAKE"],
+  "assume immediate exclusive segregation of": ["TAKE"],
+  "assume immediate exclusive segregation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive segregation of": ["DROP"],
+  "divest oneself of all exclusive segregation of the": ["DROP"],
+  "relinquish all exclusive segregation of": ["DROP"],
+  "relinquish all exclusive segregation of the": ["DROP"],
+  "free oneself from all exclusive segregation of": ["DROP"],
+  "free oneself from all exclusive segregation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and tribochemically wide open": ["OPEN"],
+  "force completely and tribochemically wide open the": ["OPEN"],
+  "pry completely and tribochemically wide open": ["OPEN"],
+  "pry completely and tribochemically wide open the": ["OPEN"],
+  "fasten completely and tribochemically closed": ["CLOSE"],
+  "fasten completely and tribochemically closed the": ["CLOSE"],
+  "seal completely and tribochemically shut": ["CLOSE"],
+  "seal completely and tribochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all hubble security devices of": ["UNLOCK"],
+  "deactivate all hubble security devices of the": ["UNLOCK"],
+  "deactivate all gamow security devices of": ["UNLOCK"],
+  "deactivate all gamow security devices of the": ["UNLOCK"],
+  "deactivate all lemaitre security devices of": ["UNLOCK"],
+  "deactivate all lemaitre security devices of the": ["UNLOCK"],
+  "deactivate all hoyle security devices of": ["UNLOCK"],
+  "deactivate all hoyle security devices of the": ["UNLOCK"],
+  "bypass all hubble security devices on": ["UNLOCK"],
+  "bypass all hubble security devices on the": ["UNLOCK"],
+  "bypass all gamow security devices on": ["UNLOCK"],
+  "bypass all gamow security devices on the": ["UNLOCK"],
+  "bypass all lemaitre security devices on": ["UNLOCK"],
+  "bypass all lemaitre security devices on the": ["UNLOCK"],
+  "bypass all hoyle security devices on": ["UNLOCK"],
+  "bypass all hoyle security devices on the": ["UNLOCK"],
+  "disengage the primary hubble security device on": ["UNLOCK"],
+  "disengage the primary hubble security device on the": ["UNLOCK"],
+  "disengage the primary gamow security device on": ["UNLOCK"],
+  "disengage the primary gamow security device on the": ["UNLOCK"],
+  "disengage the primary lemaitre security device on": ["UNLOCK"],
+  "disengage the primary lemaitre security device on the": ["UNLOCK"],
+  "disengage the primary hoyle security device on": ["UNLOCK"],
+  "disengage the primary hoyle security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full heliotropic deployment of": ["USE"],
+  "harness the full heliotropic deployment of the": ["USE"],
+  "bring into active heliotropic deployment": ["USE"],
+  "bring into active heliotropic deployment the": ["USE"],
+  "make complete heliotropic deployment of": ["USE"],
+  "make complete heliotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a vigorously antagonistic confrontation against": ["FIGHT"],
+  "initiate a vigorously antagonistic confrontation against the": ["FIGHT"],
+  "commence a vigorously antagonistic confrontation against": ["FIGHT"],
+  "commence a vigorously antagonistic confrontation against the": ["FIGHT"],
+  "engage in a vigorously antagonistic confrontation against": ["FIGHT"],
+  "engage in a vigorously antagonistic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an arachnological face to face discussion with": ["TALK"],
+  "initiate an arachnological face to face discussion with the": ["TALK"],
+  "engage in an arachnological face to face discussion with": ["TALK"],
+  "engage in an arachnological face to face discussion with the": ["TALK"],
+  "strike up an arachnological face to face discussion with": ["TALK"],
+  "strike up an arachnological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -37904,6 +38005,90 @@ compoundVerbs.push(
   "engage in an ichthyological face to face discussion with",
   "strike up an ichthyological face to face discussion with the",
   "strike up an ichthyological face to face discussion with"
+);
+
+// Cycle #217 / Task-F236: Phase 198 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of sporogenesis towards the location of the",
+  "navigate one's vector of sporogenesis towards the location of",
+  "navigate ones vector of sporogenesis towards the location of the",
+  "navigate ones vector of sporogenesis towards the location of",
+  "steer one's vector of sporogenesis in the direction of the coordinates of the",
+  "steer one's vector of sporogenesis in the direction of the coordinates of",
+  "steer ones vector of sporogenesis in the direction of the coordinates of the",
+  "steer ones vector of sporogenesis in the direction of the coordinates of",
+  "direct one's vector of sporogenesis towards the coordinates of the location of the",
+  "direct one's vector of sporogenesis towards the coordinates of the location of",
+  "direct ones vector of sporogenesis towards the coordinates of the location of the",
+  "direct ones vector of sporogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual diagnostics the",
+  "subject to a comprehensive visual diagnostics",
+  "subject to a thorough visual diagnostics the",
+  "subject to a thorough visual diagnostics",
+  "subject to a detailed visual diagnostics the",
+  "subject to a detailed visual diagnostics",
+  "assume direct exclusive segregation of the",
+  "assume direct exclusive segregation of",
+  "assume absolute exclusive segregation of the",
+  "assume absolute exclusive segregation of",
+  "assume immediate exclusive segregation of the",
+  "assume immediate exclusive segregation of",
+  "divest oneself of all exclusive segregation of the",
+  "divest oneself of all exclusive segregation of",
+  "relinquish all exclusive segregation of the",
+  "relinquish all exclusive segregation of",
+  "free oneself from all exclusive segregation of the",
+  "free oneself from all exclusive segregation of",
+  "force completely and tribochemically wide open the",
+  "force completely and tribochemically wide open",
+  "pry completely and tribochemically wide open the",
+  "pry completely and tribochemically wide open",
+  "fasten completely and tribochemically closed the",
+  "fasten completely and tribochemically closed",
+  "seal completely and tribochemically shut the",
+  "seal completely and tribochemically shut",
+  "deactivate all hubble security devices of the",
+  "deactivate all hubble security devices of",
+  "deactivate all gamow security devices of the",
+  "deactivate all gamow security devices of",
+  "deactivate all lemaitre security devices of the",
+  "deactivate all lemaitre security devices of",
+  "deactivate all hoyle security devices of the",
+  "deactivate all hoyle security devices of",
+  "bypass all hubble security devices on the",
+  "bypass all hubble security devices on",
+  "bypass all gamow security devices on the",
+  "bypass all gamow security devices on",
+  "bypass all lemaitre security devices on the",
+  "bypass all lemaitre security devices on",
+  "bypass all hoyle security devices on the",
+  "bypass all hoyle security devices on",
+  "disengage the primary hubble security device on the",
+  "disengage the primary hubble security device on",
+  "disengage the primary gamow security device on the",
+  "disengage the primary gamow security device on",
+  "disengage the primary lemaitre security device on the",
+  "disengage the primary lemaitre security device on",
+  "disengage the primary hoyle security device on the",
+  "disengage the primary hoyle security device on",
+  "harness the full heliotropic deployment of the",
+  "harness the full heliotropic deployment of",
+  "bring into active heliotropic deployment the",
+  "bring into active heliotropic deployment",
+  "make complete heliotropic deployment of the",
+  "make complete heliotropic deployment of",
+  "initiate a vigorously antagonistic confrontation against the",
+  "initiate a vigorously antagonistic confrontation against",
+  "commence a vigorously antagonistic confrontation against the",
+  "commence a vigorously antagonistic confrontation against",
+  "engage in a vigorously antagonistic confrontation against the",
+  "engage in a vigorously antagonistic confrontation against",
+  "initiate an arachnological face to face discussion with the",
+  "initiate an arachnological face to face discussion with",
+  "engage in an arachnological face to face discussion with the",
+  "engage in an arachnological face to face discussion with",
+  "strike up an arachnological face to face discussion with the",
+  "strike up an arachnological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
