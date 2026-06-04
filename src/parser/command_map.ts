@@ -21148,6 +21148,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a fruitful face to face discussion with the": ["TALK"]
 });
 
+// Cycle #113 / Task-F135: Phase 98 verb categories
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of conduction towards the location of": ["MOVE"],
+  "navigate one's vector of conduction towards the location of the": ["MOVE"],
+  "navigate ones vector of conduction towards the location of": ["MOVE"],
+  "navigate ones vector of conduction towards the location of the": ["MOVE"],
+  "steer one's vector of conduction in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of conduction in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of conduction in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of conduction in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of conduction towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of conduction towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of conduction towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of conduction towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual demonstration": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual demonstration the": ["LOOK_INSPECT"],
+  "subject to a thorough visual demonstration": ["LOOK_INSPECT"],
+  "subject to a thorough visual demonstration the": ["LOOK_INSPECT"],
+  "subject to a detailed visual demonstration": ["LOOK_INSPECT"],
+  "subject to a detailed visual demonstration the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive assumption of": ["TAKE"],
+  "assume direct exclusive assumption of the": ["TAKE"],
+  "assume absolute exclusive assumption of": ["TAKE"],
+  "assume absolute exclusive assumption of the": ["TAKE"],
+  "assume immediate exclusive assumption of": ["TAKE"],
+  "assume immediate exclusive assumption of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive assumption of": ["DROP"],
+  "divest oneself of all exclusive assumption of the": ["DROP"],
+  "relinquish all exclusive assumption of": ["DROP"],
+  "relinquish all exclusive assumption of the": ["DROP"],
+  "free oneself from all exclusive assumption of": ["DROP"],
+  "free oneself from all exclusive assumption of the": ["DROP"],
+
+  // Open/Close
+  "force completely and excitonically wide open": ["OPEN"],
+  "force completely and excitonically wide open the": ["OPEN"],
+  "pry completely and excitonically wide open": ["OPEN"],
+  "pry completely and excitonically wide open the": ["OPEN"],
+  "fasten completely and excitonically closed": ["CLOSE"],
+  "fasten completely and excitonically closed the": ["CLOSE"],
+  "seal completely and excitonically shut": ["CLOSE"],
+  "seal completely and excitonically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all plasmonic security devices of": ["UNLOCK"],
+  "deactivate all plasmonic security devices of the": ["UNLOCK"],
+  "bypass all plasmonic security devices on": ["UNLOCK"],
+  "bypass all plasmonic security devices on the": ["UNLOCK"],
+  "disengage the primary plasmonic security device on": ["UNLOCK"],
+  "disengage the primary plasmonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full paramount deployment of": ["USE"],
+  "harness the full paramount deployment of the": ["USE"],
+  "bring into active paramount deployment": ["USE"],
+  "bring into active paramount deployment the": ["USE"],
+  "make complete paramount deployment of": ["USE"],
+  "make complete paramount deployment of the": ["USE"],
+
+  // Combat
+  "initiate a dastardly confrontation against": ["FIGHT"],
+  "initiate a dastardly confrontation against the": ["FIGHT"],
+  "commence a dastardly confrontation against": ["FIGHT"],
+  "commence a dastardly confrontation against the": ["FIGHT"],
+  "engage in a dastardly confrontation against": ["FIGHT"],
+  "engage in a dastardly confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an edifying face to face discussion with": ["TALK"],
+  "initiate an edifying face to face discussion with the": ["TALK"],
+  "engage in an edifying face to face discussion with": ["TALK"],
+  "engage in an edifying face to face discussion with the": ["TALK"],
+  "strike up an edifying face to face discussion with": ["TALK"],
+  "strike up an edifying face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -22073,6 +22156,72 @@ compoundVerbs.push(
   "engage in a fruitful face to face discussion with",
   "strike up a fruitful face to face discussion with the",
   "strike up a fruitful face to face discussion with"
+);
+
+// Cycle #113 / Task-F135: Phase 98 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of conduction towards the location of the",
+  "navigate one's vector of conduction towards the location of",
+  "navigate ones vector of conduction towards the location of the",
+  "navigate ones vector of conduction towards the location of",
+  "steer one's vector of conduction in the direction of the coordinates of the",
+  "steer one's vector of conduction in the direction of the coordinates of",
+  "steer ones vector of conduction in the direction of the coordinates of the",
+  "steer ones vector of conduction in the direction of the coordinates of",
+  "direct one's vector of conduction towards the coordinates of the location of the",
+  "direct one's vector of conduction towards the coordinates of the location of",
+  "direct ones vector of conduction towards the coordinates of the location of the",
+  "direct ones vector of conduction towards the coordinates of the location of",
+  "subject to a comprehensive visual demonstration the",
+  "subject to a comprehensive visual demonstration",
+  "subject to a thorough visual demonstration the",
+  "subject to a thorough visual demonstration",
+  "subject to a detailed visual demonstration the",
+  "subject to a detailed visual demonstration",
+  "assume direct exclusive assumption of the",
+  "assume direct exclusive assumption of",
+  "assume absolute exclusive assumption of the",
+  "assume absolute exclusive assumption of",
+  "assume immediate exclusive assumption of the",
+  "assume immediate exclusive assumption of",
+  "divest oneself of all exclusive assumption of the",
+  "divest oneself of all exclusive assumption of",
+  "relinquish all exclusive assumption of the",
+  "relinquish all exclusive assumption of",
+  "free oneself from all exclusive assumption of the",
+  "free oneself from all exclusive assumption of",
+  "force completely and excitonically wide open the",
+  "force completely and excitonically wide open",
+  "pry completely and excitonically wide open the",
+  "pry completely and excitonically wide open",
+  "fasten completely and excitonically closed the",
+  "fasten completely and excitonically closed",
+  "seal completely and excitonically shut the",
+  "seal completely and excitonically shut",
+  "deactivate all plasmonic security devices of the",
+  "deactivate all plasmonic security devices of",
+  "bypass all plasmonic security devices on the",
+  "bypass all plasmonic security devices on",
+  "disengage the primary plasmonic security device on the",
+  "disengage the primary plasmonic security device on",
+  "harness the full paramount deployment of the",
+  "harness the full paramount deployment of",
+  "bring into active paramount deployment the",
+  "bring into active paramount deployment",
+  "make complete paramount deployment of the",
+  "make complete paramount deployment of",
+  "initiate a dastardly confrontation against the",
+  "initiate a dastardly confrontation against",
+  "commence a dastardly confrontation against the",
+  "commence a dastardly confrontation against",
+  "engage in a dastardly confrontation against the",
+  "engage in a dastardly confrontation against",
+  "initiate an edifying face to face discussion with the",
+  "initiate an edifying face to face discussion with",
+  "engage in an edifying face to face discussion with the",
+  "engage in an edifying face to face discussion with",
+  "strike up an edifying face to face discussion with the",
+  "strike up an edifying face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
