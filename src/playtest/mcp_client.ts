@@ -121,7 +121,7 @@ export class McpGameClient {
     const projectRoot = getProjectRoot();
     const serverScript = resolve(projectRoot, "src/bin/mcp-server.ts");
 
-    this.server = spawn("npx", ["tsx", serverScript], {
+    this.server = spawn("node", ["--import", "tsx", serverScript], {
       env: { ...process.env, PAGER: "cat" },
       cwd: projectRoot,
       stdio: ["pipe", "pipe", "pipe"],

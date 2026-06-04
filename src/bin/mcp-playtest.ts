@@ -12,7 +12,7 @@ async function runPlaytestSession(adventureId: string, turns: Turn[], verifySens
   console.log(`-----------------------------------------`);
 
   const serverScript = resolve("src/bin/mcp-server.ts");
-  const server = spawn("npx", ["tsx", serverScript], {
+  const server = spawn("node", ["--import", "tsx", serverScript], {
     env: { ...process.env, PAGER: "cat" },
   });
 

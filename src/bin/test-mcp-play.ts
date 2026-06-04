@@ -7,7 +7,7 @@ async function playThroughMcp() {
   console.log("=========================================\n");
 
   const serverScript = resolve("src/bin/mcp-server.ts");
-  const server = spawn("npx", ["tsx", serverScript], {
+  const server = spawn("node", ["--import", "tsx", serverScript], {
     env: { ...process.env, PAGER: "cat" },
   });
 
