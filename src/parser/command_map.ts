@@ -24218,6 +24218,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a pedagogical face to face discussion with the": ["TALK"],
 });
 
+// Cycle #152 / Task-F173: Phase 136 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of histolysis towards the location of": ["MOVE"],
+  "navigate one's vector of histolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of histolysis towards the location of": ["MOVE"],
+  "navigate ones vector of histolysis towards the location of the": ["MOVE"],
+  "steer one's vector of histolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of histolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of histolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of histolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of histolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of histolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of histolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of histolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual normalization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual normalization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual normalization": ["LOOK_INSPECT"],
+  "subject to a thorough visual normalization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual normalization": ["LOOK_INSPECT"],
+  "subject to a detailed visual normalization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive prioritization of": ["TAKE"],
+  "assume direct exclusive prioritization of the": ["TAKE"],
+  "assume absolute exclusive prioritization of": ["TAKE"],
+  "assume absolute exclusive prioritization of the": ["TAKE"],
+  "assume immediate exclusive prioritization of": ["TAKE"],
+  "assume immediate exclusive prioritization of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive prioritization of": ["DROP"],
+  "divest oneself of all exclusive prioritization of the": ["DROP"],
+  "relinquish all exclusive prioritization of": ["DROP"],
+  "relinquish all exclusive prioritization of the": ["DROP"],
+  "free oneself from all exclusive prioritization of": ["DROP"],
+  "free oneself from all exclusive prioritization of the": ["DROP"],
+
+  // Open/Close
+  "force completely and cytochemically wide open": ["OPEN"],
+  "force completely and cytochemically wide open the": ["OPEN"],
+  "pry completely and cytochemically wide open": ["OPEN"],
+  "pry completely and cytochemically wide open the": ["OPEN"],
+  "fasten completely and cytochemically closed": ["CLOSE"],
+  "fasten completely and cytochemically closed the": ["CLOSE"],
+  "seal completely and cytochemically shut": ["CLOSE"],
+  "seal completely and cytochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all tauonic security devices of": ["UNLOCK"],
+  "deactivate all tauonic security devices of the": ["UNLOCK"],
+  "bypass all tauonic security devices on": ["UNLOCK"],
+  "bypass all tauonic security devices on the": ["UNLOCK"],
+  "disengage the primary tauonic security device on": ["UNLOCK"],
+  "disengage the primary tauonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full boundless deployment of": ["USE"],
+  "harness the full boundless deployment of the": ["USE"],
+  "bring into active boundless deployment": ["USE"],
+  "bring into active boundless deployment the": ["USE"],
+  "make complete boundless deployment of": ["USE"],
+  "make complete boundless deployment of the": ["USE"],
+
+  // Combat
+  "initiate a provocative confrontation against": ["FIGHT"],
+  "initiate a provocative confrontation against the": ["FIGHT"],
+  "commence a provocative confrontation against": ["FIGHT"],
+  "commence a provocative confrontation against the": ["FIGHT"],
+  "engage in a provocative confrontation against": ["FIGHT"],
+  "engage in a provocative confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an epistemic face to face discussion with": ["TALK"],
+  "initiate an epistemic face to face discussion with the": ["TALK"],
+  "engage in an epistemic face to face discussion with": ["TALK"],
+  "engage in an epistemic face to face discussion with the": ["TALK"],
+  "strike up an epistemic face to face discussion with": ["TALK"],
+  "strike up an epistemic face to face discussion with the": ["TALK"],
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -27647,6 +27730,72 @@ compoundVerbs.push(
   "engage in a pedagogical face to face discussion with",
   "strike up a pedagogical face to face discussion with the",
   "strike up a pedagogical face to face discussion with"
+);
+
+// Cycle #152 / Task-F173: Phase 136 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of histolysis towards the location of the",
+  "navigate one's vector of histolysis towards the location of",
+  "navigate ones vector of histolysis towards the location of the",
+  "navigate ones vector of histolysis towards the location of",
+  "steer one's vector of histolysis in the direction of the coordinates of the",
+  "steer one's vector of histolysis in the direction of the coordinates of",
+  "steer ones vector of histolysis in the direction of the coordinates of the",
+  "steer ones vector of histolysis in the direction of the coordinates of",
+  "direct one's vector of histolysis towards the coordinates of the location of the",
+  "direct one's vector of histolysis towards the coordinates of the location of",
+  "direct ones vector of histolysis towards the coordinates of the location of the",
+  "direct ones vector of histolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual normalization the",
+  "subject to a comprehensive visual normalization",
+  "subject to a thorough visual normalization the",
+  "subject to a thorough visual normalization",
+  "subject to a detailed visual normalization the",
+  "subject to a detailed visual normalization",
+  "assume direct exclusive prioritization of the",
+  "assume direct exclusive prioritization of",
+  "assume absolute exclusive prioritization of the",
+  "assume absolute exclusive prioritization of",
+  "assume immediate exclusive prioritization of the",
+  "assume immediate exclusive prioritization of",
+  "divest oneself of all exclusive prioritization of the",
+  "divest oneself of all exclusive prioritization of",
+  "relinquish all exclusive prioritization of the",
+  "relinquish all exclusive prioritization of",
+  "free oneself from all exclusive prioritization of the",
+  "free oneself from all exclusive prioritization of",
+  "force completely and cytochemically wide open the",
+  "force completely and cytochemically wide open",
+  "pry completely and cytochemically wide open the",
+  "pry completely and cytochemically wide open",
+  "fasten completely and cytochemically closed the",
+  "fasten completely and cytochemically closed",
+  "seal completely and cytochemically shut the",
+  "seal completely and cytochemically shut",
+  "deactivate all tauonic security devices of the",
+  "deactivate all tauonic security devices of",
+  "bypass all tauonic security devices on the",
+  "bypass all tauonic security devices on",
+  "disengage the primary tauonic security device on the",
+  "disengage the primary tauonic security device on",
+  "harness the full boundless deployment of the",
+  "harness the full boundless deployment of",
+  "bring into active boundless deployment the",
+  "bring into active boundless deployment",
+  "make complete boundless deployment of the",
+  "make complete boundless deployment of",
+  "initiate a provocative confrontation against the",
+  "initiate a provocative confrontation against",
+  "commence a provocative confrontation against the",
+  "commence a provocative confrontation against",
+  "engage in a provocative confrontation against the",
+  "engage in a provocative confrontation against",
+  "initiate an epistemic face to face discussion with the",
+  "initiate an epistemic face to face discussion with",
+  "engage in an epistemic face to face discussion with the",
+  "engage in an epistemic face to face discussion with",
+  "strike up an epistemic face to face discussion with the",
+  "strike up an epistemic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
