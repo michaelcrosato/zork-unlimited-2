@@ -28998,6 +28998,102 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a morphological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #208 / Task-F227: Phase 189 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of chondrogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of chondrogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of chondrogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of chondrogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of chondrogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of chondrogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of chondrogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of chondrogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of chondrogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of chondrogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of chondrogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of chondrogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual definition": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual definition the": ["LOOK_INSPECT"],
+  "subject to a thorough visual definition": ["LOOK_INSPECT"],
+  "subject to a thorough visual definition the": ["LOOK_INSPECT"],
+  "subject to a detailed visual definition": ["LOOK_INSPECT"],
+  "subject to a detailed visual definition the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive blanketing of": ["TAKE"],
+  "assume direct exclusive blanketing of the": ["TAKE"],
+  "assume absolute exclusive blanketing of": ["TAKE"],
+  "assume absolute exclusive blanketing of the": ["TAKE"],
+  "assume immediate exclusive blanketing of": ["TAKE"],
+  "assume immediate exclusive blanketing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive blanketing of": ["DROP"],
+  "divest oneself of all exclusive blanketing of the": ["DROP"],
+  "relinquish all exclusive blanketing of": ["DROP"],
+  "relinquish all exclusive blanketing of the": ["DROP"],
+  "free oneself from all exclusive blanketing of": ["DROP"],
+  "free oneself from all exclusive blanketing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and dilatantly wide open": ["OPEN"],
+  "force completely and dilatantly wide open the": ["OPEN"],
+  "pry completely and dilatantly wide open": ["OPEN"],
+  "pry completely and dilatantly wide open the": ["OPEN"],
+  "fasten completely and dilatantly closed": ["CLOSE"],
+  "fasten completely and dilatantly closed the": ["CLOSE"],
+  "seal completely and dilatantly shut": ["CLOSE"],
+  "seal completely and dilatantly shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all curie security devices of": ["UNLOCK"],
+  "deactivate all curie security devices of the": ["UNLOCK"],
+  "deactivate all becquerel security devices of": ["UNLOCK"],
+  "deactivate all becquerel security devices of the": ["UNLOCK"],
+  "deactivate all roentgen security devices of": ["UNLOCK"],
+  "deactivate all roentgen security devices of the": ["UNLOCK"],
+  "deactivate all rutherford security devices of": ["UNLOCK"],
+  "deactivate all rutherford security devices of the": ["UNLOCK"],
+  "bypass all curie security devices on": ["UNLOCK"],
+  "bypass all curie security devices on the": ["UNLOCK"],
+  "bypass all becquerel security devices on": ["UNLOCK"],
+  "bypass all becquerel security devices on the": ["UNLOCK"],
+  "bypass all roentgen security devices on": ["UNLOCK"],
+  "bypass all roentgen security devices on the": ["UNLOCK"],
+  "bypass all rutherford security devices on": ["UNLOCK"],
+  "bypass all rutherford security devices on the": ["UNLOCK"],
+  "disengage the primary curie security device on": ["UNLOCK"],
+  "disengage the primary curie security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full barotropic deployment of": ["USE"],
+  "harness the full barotropic deployment of the": ["USE"],
+  "bring into active barotropic deployment": ["USE"],
+  "bring into active barotropic deployment the": ["USE"],
+  "make complete barotropic deployment of": ["USE"],
+  "make complete barotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an overwhelmingly dominant confrontation against": ["FIGHT"],
+  "initiate an overwhelmingly dominant confrontation against the": ["FIGHT"],
+  "commence an overwhelmingly dominant confrontation against": ["FIGHT"],
+  "commence an overwhelmingly dominant confrontation against the": ["FIGHT"],
+  "engage in an overwhelmingly dominant confrontation against": ["FIGHT"],
+  "engage in an overwhelmingly dominant confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a mineralogical face to face discussion with": ["TALK"],
+  "initiate a mineralogical face to face discussion with the": ["TALK"],
+  "engage in a mineralogical face to face discussion with": ["TALK"],
+  "engage in a mineralogical face to face discussion with the": ["TALK"],
+  "strike up a mineralogical face to face discussion with": ["TALK"],
+  "strike up a mineralogical face to face discussion with the": ["TALK"]
+});
+
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -36321,6 +36417,84 @@ compoundVerbs.push(
   "engage in a morphological face to face discussion with",
   "strike up a morphological face to face discussion with the",
   "strike up a morphological face to face discussion with"
+);
+
+// Cycle #208 / Task-F227: Phase 189 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of chondrogenesis towards the location of the",
+  "navigate one's vector of chondrogenesis towards the location of",
+  "navigate ones vector of chondrogenesis towards the location of the",
+  "navigate ones vector of chondrogenesis towards the location of",
+  "steer one's vector of chondrogenesis in the direction of the coordinates of the",
+  "steer one's vector of chondrogenesis in the direction of the coordinates of",
+  "steer ones vector of chondrogenesis in the direction of the coordinates of the",
+  "steer ones vector of chondrogenesis in the direction of the coordinates of",
+  "direct one's vector of chondrogenesis towards the coordinates of the location of the",
+  "direct one's vector of chondrogenesis towards the coordinates of the location of",
+  "direct ones vector of chondrogenesis towards the coordinates of the location of the",
+  "direct ones vector of chondrogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual definition the",
+  "subject to a comprehensive visual definition",
+  "subject to a thorough visual definition the",
+  "subject to a thorough visual definition",
+  "subject to a detailed visual definition the",
+  "subject to a detailed visual definition",
+  "assume direct exclusive blanketing of the",
+  "assume direct exclusive blanketing of",
+  "assume absolute exclusive blanketing of the",
+  "assume absolute exclusive blanketing of",
+  "assume immediate exclusive blanketing of the",
+  "assume immediate exclusive blanketing of",
+  "divest oneself of all exclusive blanketing of the",
+  "divest oneself of all exclusive blanketing of",
+  "relinquish all exclusive blanketing of the",
+  "relinquish all exclusive blanketing of",
+  "free oneself from all exclusive blanketing of the",
+  "free oneself from all exclusive blanketing of",
+  "force completely and dilatantly wide open the",
+  "force completely and dilatantly wide open",
+  "pry completely and dilatantly wide open the",
+  "pry completely and dilatantly wide open",
+  "fasten completely and dilatantly closed the",
+  "fasten completely and dilatantly closed",
+  "seal completely and dilatantly shut the",
+  "seal completely and dilatantly shut",
+  "deactivate all curie security devices of the",
+  "deactivate all curie security devices of",
+  "deactivate all becquerel security devices of the",
+  "deactivate all becquerel security devices of",
+  "deactivate all roentgen security devices of the",
+  "deactivate all roentgen security devices of",
+  "deactivate all rutherford security devices of the",
+  "deactivate all rutherford security devices of",
+  "bypass all curie security devices on the",
+  "bypass all curie security devices on",
+  "bypass all becquerel security devices on the",
+  "bypass all becquerel security devices on",
+  "bypass all roentgen security devices on the",
+  "bypass all roentgen security devices on",
+  "bypass all rutherford security devices on the",
+  "bypass all rutherford security devices on",
+  "disengage the primary curie security device on the",
+  "disengage the primary curie security device on",
+  "harness the full barotropic deployment of the",
+  "harness the full barotropic deployment of",
+  "bring into active barotropic deployment the",
+  "bring into active barotropic deployment",
+  "make complete barotropic deployment of the",
+  "make complete barotropic deployment of",
+  "initiate an overwhelmingly dominant confrontation against the",
+  "initiate an overwhelmingly dominant confrontation against",
+  "commence an overwhelmingly dominant confrontation against the",
+  "commence an overwhelmingly dominant confrontation against",
+  "engage in an overwhelmingly dominant confrontation against the",
+  "engage in an overwhelmingly dominant confrontation against",
+  "initiate a mineralogical face to face discussion with the",
+  "initiate a mineralogical face to face discussion with",
+  "engage in a mineralogical face to face discussion with the",
+  "engage in a mineralogical face to face discussion with",
+  "strike up a mineralogical face to face discussion with the",
+  "strike up a mineralogical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
