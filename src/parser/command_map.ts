@@ -25371,13 +25371,95 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a violent confrontation against": ["FIGHT"],
   "engage in a violent confrontation against the": ["FIGHT"],
 
-  // Dialogue
   "initiate a philosophical face to face discussion with": ["TALK"],
   "initiate a philosophical face to face discussion with the": ["TALK"],
   "engage in a philosophical face to face discussion with": ["TALK"],
   "engage in a philosophical face to face discussion with the": ["TALK"],
   "strike up a philosophical face to face discussion with": ["TALK"],
   "strike up a philosophical face to face discussion with the": ["TALK"],
+});
+
+// Cycle #166 / Task-F187: Phase 150 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of nucleolysis towards the location of": ["MOVE"],
+  "navigate one's vector of nucleolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of nucleolysis towards the location of": ["MOVE"],
+  "navigate ones vector of nucleolysis towards the location of the": ["MOVE"],
+  "steer one's vector of nucleolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of nucleolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of nucleolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of nucleolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of nucleolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of nucleolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of nucleolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of nucleolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual registration": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual registration the": ["LOOK_INSPECT"],
+  "subject to a thorough visual registration": ["LOOK_INSPECT"],
+  "subject to a thorough visual registration the": ["LOOK_INSPECT"],
+  "subject to a detailed visual registration": ["LOOK_INSPECT"],
+  "subject to a detailed visual registration the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive securing of": ["TAKE"],
+  "assume direct exclusive securing of the": ["TAKE"],
+  "assume absolute exclusive securing of": ["TAKE"],
+  "assume absolute exclusive securing of the": ["TAKE"],
+  "assume immediate exclusive securing of": ["TAKE"],
+  "assume immediate exclusive securing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive securing of": ["DROP"],
+  "divest oneself of all exclusive securing of the": ["DROP"],
+  "relinquish all exclusive securing of": ["DROP"],
+  "relinquish all exclusive securing of the": ["DROP"],
+  "free oneself from all exclusive securing of": ["DROP"],
+  "free oneself from all exclusive securing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and mechanophysically wide open": ["OPEN"],
+  "force completely and mechanophysically wide open the": ["OPEN"],
+  "pry completely and mechanophysically wide open": ["OPEN"],
+  "pry completely and mechanophysically wide open the": ["OPEN"],
+  "fasten completely and mechanophysically closed": ["CLOSE"],
+  "fasten completely and mechanophysically closed the": ["CLOSE"],
+  "seal completely and mechanophysically shut": ["CLOSE"],
+  "seal completely and mechanophysically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all tetraquark security devices of": ["UNLOCK"],
+  "deactivate all tetraquark security devices of the": ["UNLOCK"],
+  "bypass all tetraquark security devices on": ["UNLOCK"],
+  "bypass all tetraquark security devices on the": ["UNLOCK"],
+  "disengage the primary tetraquark security device on": ["UNLOCK"],
+  "disengage the primary tetraquark security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unending deployment of": ["USE"],
+  "harness the full unending deployment of the": ["USE"],
+  "bring into active unending deployment": ["USE"],
+  "bring into active unending deployment the": ["USE"],
+  "make complete unending deployment of": ["USE"],
+  "make complete unending deployment of the": ["USE"],
+
+  // Combat
+  "initiate an injurious confrontation against": ["FIGHT"],
+  "initiate an injurious confrontation against the": ["FIGHT"],
+  "commence an injurious confrontation against": ["FIGHT"],
+  "commence an injurious confrontation against the": ["FIGHT"],
+  "engage in an injurious confrontation against": ["FIGHT"],
+  "engage in an injurious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a conversational face to face discussion with": ["TALK"],
+  "initiate a conversational face to face discussion with the": ["TALK"],
+  "engage in a conversational face to face discussion with": ["TALK"],
+  "engage in a conversational face to face discussion with the": ["TALK"],
+  "strike up a conversational face to face discussion with": ["TALK"],
+  "strike up a conversational face to face discussion with the": ["TALK"],
 });
 
 
@@ -29737,6 +29819,72 @@ compoundVerbs.push(
   "engage in a philosophical face to face discussion with",
   "strike up a philosophical face to face discussion with the",
   "strike up a philosophical face to face discussion with"
+);
+
+// Cycle #166 / Task-F187: Phase 150 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of nucleolysis towards the location of the",
+  "navigate one's vector of nucleolysis towards the location of",
+  "navigate ones vector of nucleolysis towards the location of the",
+  "navigate ones vector of nucleolysis towards the location of",
+  "steer one's vector of nucleolysis in the direction of the coordinates of the",
+  "steer one's vector of nucleolysis in the direction of the coordinates of",
+  "steer ones vector of nucleolysis in the direction of the coordinates of the",
+  "steer ones vector of nucleolysis in the direction of the coordinates of",
+  "direct one's vector of nucleolysis towards the coordinates of the location of the",
+  "direct one's vector of nucleolysis towards the coordinates of the location of",
+  "direct ones vector of nucleolysis towards the coordinates of the location of the",
+  "direct ones vector of nucleolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual registration the",
+  "subject to a comprehensive visual registration",
+  "subject to a thorough visual registration the",
+  "subject to a thorough visual registration",
+  "subject to a detailed visual registration the",
+  "subject to a detailed visual registration",
+  "assume direct exclusive securing of the",
+  "assume direct exclusive securing of",
+  "assume absolute exclusive securing of the",
+  "assume absolute exclusive securing of",
+  "assume immediate exclusive securing of the",
+  "assume immediate exclusive securing of",
+  "divest oneself of all exclusive securing of the",
+  "divest oneself of all exclusive securing of",
+  "relinquish all exclusive securing of the",
+  "relinquish all exclusive securing of",
+  "free oneself from all exclusive securing of the",
+  "free oneself from all exclusive securing of",
+  "force completely and mechanophysically wide open the",
+  "force completely and mechanophysically wide open",
+  "pry completely and mechanophysically wide open the",
+  "pry completely and mechanophysically wide open",
+  "fasten completely and mechanophysically closed the",
+  "fasten completely and mechanophysically closed",
+  "seal completely and mechanophysically shut the",
+  "seal completely and mechanophysically shut",
+  "deactivate all tetraquark security devices of the",
+  "deactivate all tetraquark security devices of",
+  "bypass all tetraquark security devices on the",
+  "bypass all tetraquark security devices on",
+  "disengage the primary tetraquark security device on the",
+  "disengage the primary tetraquark security device on",
+  "harness the full unending deployment of the",
+  "harness the full unending deployment of",
+  "bring into active unending deployment the",
+  "bring into active unending deployment",
+  "make complete unending deployment of the",
+  "make complete unending deployment of",
+  "initiate an injurious confrontation against the",
+  "initiate an injurious confrontation against",
+  "commence an injurious confrontation against the",
+  "commence an injurious confrontation against",
+  "engage in an injurious confrontation against the",
+  "engage in an injurious confrontation against",
+  "initiate a conversational face to face discussion with the",
+  "initiate a conversational face to face discussion with",
+  "engage in a conversational face to face discussion with the",
+  "engage in a conversational face to face discussion with",
+  "strike up a conversational face to face discussion with the",
+  "strike up a conversational face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
