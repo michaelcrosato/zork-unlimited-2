@@ -26340,6 +26340,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a cosmological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #178 / Task-F198: Phase 161 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of morphogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of morphogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of morphogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of morphogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of morphogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of morphogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of morphogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of morphogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of morphogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of morphogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of morphogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of morphogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual segmentation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual segmentation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual segmentation": ["LOOK_INSPECT"],
+  "subject to a thorough visual segmentation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual segmentation": ["LOOK_INSPECT"],
+  "subject to a detailed visual segmentation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive cornering of": ["TAKE"],
+  "assume direct exclusive cornering of the": ["TAKE"],
+  "assume absolute exclusive cornering of": ["TAKE"],
+  "assume absolute exclusive cornering of the": ["TAKE"],
+  "assume immediate exclusive cornering of": ["TAKE"],
+  "assume immediate exclusive cornering of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive cornering of": ["DROP"],
+  "divest oneself of all exclusive cornering of the": ["DROP"],
+  "relinquish all exclusive cornering of": ["DROP"],
+  "relinquish all exclusive cornering of the": ["DROP"],
+  "free oneself from all exclusive cornering of": ["DROP"],
+  "free oneself from all exclusive cornering of the": ["DROP"],
+
+  // Open/Close
+  "force completely and vibroelastically wide open": ["OPEN"],
+  "force completely and vibroelastically wide open the": ["OPEN"],
+  "pry completely and vibroelastically wide open": ["OPEN"],
+  "pry completely and vibroelastically wide open the": ["OPEN"],
+  "fasten completely and vibroelastically closed": ["CLOSE"],
+  "fasten completely and vibroelastically closed the": ["CLOSE"],
+  "seal completely and vibroelastically shut": ["CLOSE"],
+  "seal completely and vibroelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all diquark security devices of": ["UNLOCK"],
+  "deactivate all diquark security devices of the": ["UNLOCK"],
+  "deactivate all plekton security devices of": ["UNLOCK"],
+  "deactivate all plekton security devices of the": ["UNLOCK"],
+  "deactivate all dyon security devices of": ["UNLOCK"],
+  "deactivate all dyon security devices of the": ["UNLOCK"],
+  "deactivate all familion security devices of": ["UNLOCK"],
+  "deactivate all familion security devices of the": ["UNLOCK"],
+  "bypass all diquark security devices on": ["UNLOCK"],
+  "bypass all diquark security devices on the": ["UNLOCK"],
+  "bypass all plekton security devices on": ["UNLOCK"],
+  "bypass all plekton security devices on the": ["UNLOCK"],
+  "bypass all dyon security devices on": ["UNLOCK"],
+  "bypass all dyon security devices on the": ["UNLOCK"],
+  "bypass all familion security devices on": ["UNLOCK"],
+  "bypass all familion security devices on the": ["UNLOCK"],
+  "disengage the primary diquark security device on": ["UNLOCK"],
+  "disengage the primary diquark security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full concerted deployment of": ["USE"],
+  "harness the full concerted deployment of the": ["USE"],
+  "bring into active concerted deployment": ["USE"],
+  "bring into active concerted deployment the": ["USE"],
+  "make complete concerted deployment of": ["USE"],
+  "make complete concerted deployment of the": ["USE"],
+
+  // Combat
+  "initiate a pestilential confrontation against": ["FIGHT"],
+  "initiate a pestilential confrontation against the": ["FIGHT"],
+  "commence a pestilential confrontation against": ["FIGHT"],
+  "commence a pestilential confrontation against the": ["FIGHT"],
+  "engage in a pestilential confrontation against": ["FIGHT"],
+  "engage in a pestilential confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a sociological face to face discussion with": ["TALK"],
+  "initiate a sociological face to face discussion with the": ["TALK"],
+  "engage in a sociological face to face discussion with": ["TALK"],
+  "engage in a sociological face to face discussion with the": ["TALK"],
+  "strike up a sociological face to face discussion with": ["TALK"],
+  "strike up a sociological face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -31478,6 +31573,84 @@ compoundVerbs.push(
   "engage in a cosmological face to face discussion with",
   "strike up a cosmological face to face discussion with the",
   "strike up a cosmological face to face discussion with"
+);
+
+// Cycle #178 / Task-F198: Phase 161 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of morphogenesis towards the location of the",
+  "navigate one's vector of morphogenesis towards the location of",
+  "navigate ones vector of morphogenesis towards the location of the",
+  "navigate ones vector of morphogenesis towards the location of",
+  "steer one's vector of morphogenesis in the direction of the coordinates of the",
+  "steer one's vector of morphogenesis in the direction of the coordinates of",
+  "steer ones vector of morphogenesis in the direction of the coordinates of the",
+  "steer ones vector of morphogenesis in the direction of the coordinates of",
+  "direct one's vector of morphogenesis towards the coordinates of the location of the",
+  "direct one's vector of morphogenesis towards the coordinates of the location of",
+  "direct ones vector of morphogenesis towards the coordinates of the location of the",
+  "direct ones vector of morphogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual segmentation the",
+  "subject to a comprehensive visual segmentation",
+  "subject to a thorough visual segmentation the",
+  "subject to a thorough visual segmentation",
+  "subject to a detailed visual segmentation the",
+  "subject to a detailed visual segmentation",
+  "assume direct exclusive cornering of the",
+  "assume direct exclusive cornering of",
+  "assume absolute exclusive cornering of the",
+  "assume absolute exclusive cornering of",
+  "assume immediate exclusive cornering of the",
+  "assume immediate exclusive cornering of",
+  "divest oneself of all exclusive cornering of the",
+  "divest oneself of all exclusive cornering of",
+  "relinquish all exclusive cornering of the",
+  "relinquish all exclusive cornering of",
+  "free oneself from all exclusive cornering of the",
+  "free oneself from all exclusive cornering of",
+  "force completely and vibroelastically wide open the",
+  "force completely and vibroelastically wide open",
+  "pry completely and vibroelastically wide open the",
+  "pry completely and vibroelastically wide open",
+  "fasten completely and vibroelastically closed the",
+  "fasten completely and vibroelastically closed",
+  "seal completely and vibroelastically shut the",
+  "seal completely and vibroelastically shut",
+  "deactivate all diquark security devices of the",
+  "deactivate all diquark security devices of",
+  "deactivate all plekton security devices of the",
+  "deactivate all plekton security devices of",
+  "deactivate all dyon security devices of the",
+  "deactivate all dyon security devices of",
+  "deactivate all familion security devices of the",
+  "deactivate all familion security devices of",
+  "bypass all diquark security devices on the",
+  "bypass all diquark security devices on",
+  "bypass all plekton security devices on the",
+  "bypass all plekton security devices on",
+  "bypass all dyon security devices on the",
+  "bypass all dyon security devices on",
+  "bypass all familion security devices on the",
+  "bypass all familion security devices on",
+  "disengage the primary diquark security device on the",
+  "disengage the primary diquark security device on",
+  "harness the full concerted deployment of the",
+  "harness the full concerted deployment of",
+  "bring into active concerted deployment the",
+  "bring into active concerted deployment",
+  "make complete concerted deployment of the",
+  "make complete concerted deployment of",
+  "initiate a pestilential confrontation against the",
+  "initiate a pestilential confrontation against",
+  "commence a pestilential confrontation against the",
+  "commence a pestilential confrontation against",
+  "engage in a pestilential confrontation against the",
+  "engage in a pestilential confrontation against",
+  "initiate a sociological face to face discussion with the",
+  "initiate a sociological face to face discussion with",
+  "engage in a sociological face to face discussion with the",
+  "engage in a sociological face to face discussion with",
+  "strike up a sociological face to face discussion with the",
+  "strike up a sociological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
