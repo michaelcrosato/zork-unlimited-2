@@ -23773,6 +23773,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a semianalytic face to face discussion with the": ["TALK"]
 });
 
+// Cycle #146 / Task-F167: Phase 130 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of proteolysis towards the location of": ["MOVE"],
+  "navigate one's vector of proteolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of proteolysis towards the location of": ["MOVE"],
+  "navigate ones vector of proteolysis towards the location of the": ["MOVE"],
+  "steer one's vector of proteolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of proteolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of proteolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of proteolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of proteolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of proteolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of proteolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of proteolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual contextualization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual contextualization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual contextualization": ["LOOK_INSPECT"],
+  "subject to a thorough visual contextualization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual contextualization": ["LOOK_INSPECT"],
+  "subject to a detailed visual contextualization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive consignment of": ["TAKE"],
+  "assume direct exclusive consignment of the": ["TAKE"],
+  "assume absolute exclusive consignment of": ["TAKE"],
+  "assume absolute exclusive consignment of the": ["TAKE"],
+  "assume immediate exclusive consignment of": ["TAKE"],
+  "assume immediate exclusive consignment of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive consignment of": ["DROP"],
+  "divest oneself of all exclusive consignment of the": ["DROP"],
+  "relinquish all exclusive consignment of": ["DROP"],
+  "relinquish all exclusive consignment of the": ["DROP"],
+  "free oneself from all exclusive consignment of": ["DROP"],
+  "free oneself from all exclusive consignment of the": ["DROP"],
+
+  // Open/Close
+  "force completely and mechanochemically wide open": ["OPEN"],
+  "force completely and mechanochemically wide open the": ["OPEN"],
+  "pry completely and mechanochemically wide open": ["OPEN"],
+  "pry completely and mechanochemically wide open the": ["OPEN"],
+  "fasten completely and mechanochemically closed": ["CLOSE"],
+  "fasten completely and mechanochemically closed the": ["CLOSE"],
+  "seal completely and mechanochemically shut": ["CLOSE"],
+  "seal completely and mechanochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all wino security devices of": ["UNLOCK"],
+  "deactivate all wino security devices of the": ["UNLOCK"],
+  "bypass all wino security devices on": ["UNLOCK"],
+  "bypass all wino security devices on the": ["UNLOCK"],
+  "disengage the primary wino security device on": ["UNLOCK"],
+  "disengage the primary wino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full inexhaustible deployment of": ["USE"],
+  "harness the full inexhaustible deployment of the": ["USE"],
+  "bring into active inexhaustible deployment": ["USE"],
+  "bring into active inexhaustible deployment the": ["USE"],
+  "make complete inexhaustible deployment of": ["USE"],
+  "make complete inexhaustible deployment of the": ["USE"],
+
+  // Combat
+  "initiate a menacing confrontation against": ["FIGHT"],
+  "initiate a menacing confrontation against the": ["FIGHT"],
+  "commence a menacing confrontation against": ["FIGHT"],
+  "commence a menacing confrontation against the": ["FIGHT"],
+  "engage in a menacing confrontation against": ["FIGHT"],
+  "engage in a menacing confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a semiotic face to face discussion with": ["TALK"],
+  "initiate a semiotic face to face discussion with the": ["TALK"],
+  "engage in a semiotic face to face discussion with": ["TALK"],
+  "engage in a semiotic face to face discussion with the": ["TALK"],
+  "strike up a semiotic face to face discussion with": ["TALK"],
+  "strike up a semiotic face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -26808,6 +26891,72 @@ compoundVerbs.push(
   "engage in a semianalytic face to face discussion with",
   "strike up a semianalytic face to face discussion with the",
   "strike up a semianalytic face to face discussion with"
+);
+
+// Cycle #146 / Task-F167: Phase 130 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of proteolysis towards the location of the",
+  "navigate one's vector of proteolysis towards the location of",
+  "navigate ones vector of proteolysis towards the location of the",
+  "navigate ones vector of proteolysis towards the location of",
+  "steer one's vector of proteolysis in the direction of the coordinates of the",
+  "steer one's vector of proteolysis in the direction of the coordinates of",
+  "steer ones vector of proteolysis in the direction of the coordinates of the",
+  "steer ones vector of proteolysis in the direction of the coordinates of",
+  "direct one's vector of proteolysis towards the coordinates of the location of the",
+  "direct one's vector of proteolysis towards the coordinates of the location of",
+  "direct ones vector of proteolysis towards the coordinates of the location of the",
+  "direct ones vector of proteolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual contextualization the",
+  "subject to a comprehensive visual contextualization",
+  "subject to a thorough visual contextualization the",
+  "subject to a thorough visual contextualization",
+  "subject to a detailed visual contextualization the",
+  "subject to a detailed visual contextualization",
+  "assume direct exclusive consignment of the",
+  "assume direct exclusive consignment of",
+  "assume absolute exclusive consignment of the",
+  "assume absolute exclusive consignment of",
+  "assume immediate exclusive consignment of the",
+  "assume immediate exclusive consignment of",
+  "divest oneself of all exclusive consignment of the",
+  "divest oneself of all exclusive consignment of",
+  "relinquish all exclusive consignment of the",
+  "relinquish all exclusive consignment of",
+  "free oneself from all exclusive consignment of the",
+  "free oneself from all exclusive consignment of",
+  "force completely and mechanochemically wide open the",
+  "force completely and mechanochemically wide open",
+  "pry completely and mechanochemically wide open the",
+  "pry completely and mechanochemically wide open",
+  "fasten completely and mechanochemically closed the",
+  "fasten completely and mechanochemically closed",
+  "seal completely and mechanochemically shut the",
+  "seal completely and mechanochemically shut",
+  "deactivate all wino security devices of the",
+  "deactivate all wino security devices of",
+  "bypass all wino security devices on the",
+  "bypass all wino security devices on",
+  "disengage the primary wino security device on the",
+  "disengage the primary wino security device on",
+  "harness the full inexhaustible deployment of the",
+  "harness the full inexhaustible deployment of",
+  "bring into active inexhaustible deployment the",
+  "bring into active inexhaustible deployment",
+  "make complete inexhaustible deployment of the",
+  "make complete inexhaustible deployment of",
+  "initiate a menacing confrontation against the",
+  "initiate a menacing confrontation against",
+  "commence a menacing confrontation against the",
+  "commence a menacing confrontation against",
+  "engage in a menacing confrontation against the",
+  "engage in a menacing confrontation against",
+  "initiate a semiotic face to face discussion with the",
+  "initiate a semiotic face to face discussion with",
+  "engage in a semiotic face to face discussion with the",
+  "engage in a semiotic face to face discussion with",
+  "strike up a semiotic face to face discussion with the",
+  "strike up a semiotic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
