@@ -22640,6 +22640,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an eloquent face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #132 / Task-F153: Phase 116
+  // Movement
+  "navigate one's vector of ionization towards the location of": ["MOVE"],
+  "navigate one's vector of ionization towards the location of the": ["MOVE"],
+  "navigate ones vector of ionization towards the location of": ["MOVE"],
+  "navigate ones vector of ionization towards the location of the": ["MOVE"],
+  "steer one's vector of ionization in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of ionization in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of ionization in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of ionization in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of ionization towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of ionization towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of ionization towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of ionization towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual synthesis": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual synthesis the": ["LOOK_INSPECT"],
+  "subject to a thorough visual synthesis": ["LOOK_INSPECT"],
+  "subject to a thorough visual synthesis the": ["LOOK_INSPECT"],
+  "subject to a detailed visual synthesis": ["LOOK_INSPECT"],
+  "subject to a detailed visual synthesis the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive authorization of": ["TAKE"],
+  "assume direct exclusive authorization of the": ["TAKE"],
+  "assume absolute exclusive authorization of": ["TAKE"],
+  "assume absolute exclusive authorization of the": ["TAKE"],
+  "assume immediate exclusive authorization of": ["TAKE"],
+  "assume immediate exclusive authorization of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive authorization of": ["DROP"],
+  "divest oneself of all exclusive authorization of the": ["DROP"],
+  "relinquish all exclusive authorization of": ["DROP"],
+  "relinquish all exclusive authorization of the": ["DROP"],
+  "free oneself from all exclusive authorization of": ["DROP"],
+  "free oneself from all exclusive authorization of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electromagnetically wide open": ["OPEN"],
+  "force completely and electromagnetically wide open the": ["OPEN"],
+  "pry completely and electromagnetically wide open": ["OPEN"],
+  "pry completely and electromagnetically wide open the": ["OPEN"],
+  "fasten completely and electromagnetically closed": ["CLOSE"],
+  "fasten completely and electromagnetically closed the": ["CLOSE"],
+  "seal completely and electromagnetically shut": ["CLOSE"],
+  "seal completely and electromagnetically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all axionic security devices of": ["UNLOCK"],
+  "deactivate all axionic security devices of the": ["UNLOCK"],
+  "bypass all axionic security devices on": ["UNLOCK"],
+  "bypass all axionic security devices on the": ["UNLOCK"],
+  "disengage the primary axionic security device on": ["UNLOCK"],
+  "disengage the primary axionic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full resolute deployment of": ["USE"],
+  "harness the full resolute deployment of the": ["USE"],
+  "bring into active resolute deployment": ["USE"],
+  "bring into active resolute deployment the": ["USE"],
+  "make complete resolute deployment of": ["USE"],
+  "make complete resolute deployment of the": ["USE"],
+
+  // Combat
+  "initiate a spiteful confrontation against": ["FIGHT"],
+  "initiate a spiteful confrontation against the": ["FIGHT"],
+  "commence a spiteful confrontation against": ["FIGHT"],
+  "commence a spiteful confrontation against the": ["FIGHT"],
+  "engage in a spiteful confrontation against": ["FIGHT"],
+  "engage in a spiteful confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a persuasive face to face discussion with": ["TALK"],
+  "initiate a persuasive face to face discussion with the": ["TALK"],
+  "engage in a persuasive face to face discussion with": ["TALK"],
+  "engage in a persuasive face to face discussion with the": ["TALK"],
+  "strike up a persuasive face to face discussion with": ["TALK"],
+  "strike up a persuasive face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -24753,6 +24836,72 @@ compoundVerbs.push(
   "engage in an eloquent face to face discussion with",
   "strike up an eloquent face to face discussion with the",
   "strike up an eloquent face to face discussion with"
+);
+
+// Cycle #132 / Task-F153: Phase 116 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of ionization towards the location of the",
+  "navigate one's vector of ionization towards the location of",
+  "navigate ones vector of ionization towards the location of the",
+  "navigate ones vector of ionization towards the location of",
+  "steer one's vector of ionization in the direction of the coordinates of the",
+  "steer one's vector of ionization in the direction of the coordinates of",
+  "steer ones vector of ionization in the direction of the coordinates of the",
+  "steer ones vector of ionization in the direction of the coordinates of",
+  "direct one's vector of ionization towards the coordinates of the location of the",
+  "direct one's vector of ionization towards the coordinates of the location of",
+  "direct ones vector of ionization towards the coordinates of the location of the",
+  "direct ones vector of ionization towards the coordinates of the location of",
+  "subject to a comprehensive visual synthesis the",
+  "subject to a comprehensive visual synthesis",
+  "subject to a thorough visual synthesis the",
+  "subject to a thorough visual synthesis",
+  "subject to a detailed visual synthesis the",
+  "subject to a detailed visual synthesis",
+  "assume direct exclusive authorization of the",
+  "assume direct exclusive authorization of",
+  "assume absolute exclusive authorization of the",
+  "assume absolute exclusive authorization of",
+  "assume immediate exclusive authorization of the",
+  "assume immediate exclusive authorization of",
+  "divest oneself of all exclusive authorization of the",
+  "divest oneself of all exclusive authorization of",
+  "relinquish all exclusive authorization of the",
+  "relinquish all exclusive authorization of",
+  "free oneself from all exclusive authorization of the",
+  "free oneself from all exclusive authorization of",
+  "force completely and electromagnetically wide open the",
+  "force completely and electromagnetically wide open",
+  "pry completely and electromagnetically wide open the",
+  "pry completely and electromagnetically wide open",
+  "fasten completely and electromagnetically closed the",
+  "fasten completely and electromagnetically closed",
+  "seal completely and electromagnetically shut the",
+  "seal completely and electromagnetically shut",
+  "deactivate all axionic security devices of the",
+  "deactivate all axionic security devices of",
+  "bypass all axionic security devices on the",
+  "bypass all axionic security devices on",
+  "disengage the primary axionic security device on the",
+  "disengage the primary axionic security device on",
+  "harness the full resolute deployment of the",
+  "harness the full resolute deployment of",
+  "bring into active resolute deployment the",
+  "bring into active resolute deployment",
+  "make complete resolute deployment of the",
+  "make complete resolute deployment of",
+  "initiate a spiteful confrontation against the",
+  "initiate a spiteful confrontation against",
+  "commence a spiteful confrontation against the",
+  "commence a spiteful confrontation against",
+  "engage in a spiteful confrontation against the",
+  "engage in a spiteful confrontation against",
+  "initiate a persuasive face to face discussion with the",
+  "initiate a persuasive face to face discussion with",
+  "engage in a persuasive face to face discussion with the",
+  "engage in a persuasive face to face discussion with",
+  "strike up a persuasive face to face discussion with the",
+  "strike up a persuasive face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
