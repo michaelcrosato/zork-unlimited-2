@@ -24633,6 +24633,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a logical face to face discussion with the": ["TALK"],
 });
 
+// Cycle #157 / Task-F178: Phase 141 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of osteolysis towards the location of": ["MOVE"],
+  "navigate one's vector of osteolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of osteolysis towards the location of": ["MOVE"],
+  "navigate ones vector of osteolysis towards the location of the": ["MOVE"],
+  "steer one's vector of osteolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of osteolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of osteolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of osteolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of osteolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of osteolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of osteolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of osteolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual generalization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual generalization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual generalization": ["LOOK_INSPECT"],
+  "subject to a thorough visual generalization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual generalization": ["LOOK_INSPECT"],
+  "subject to a detailed visual generalization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive registration of": ["TAKE"],
+  "assume direct exclusive registration of the": ["TAKE"],
+  "assume absolute exclusive registration of": ["TAKE"],
+  "assume absolute exclusive registration of the": ["TAKE"],
+  "assume immediate exclusive registration of": ["TAKE"],
+  "assume immediate exclusive registration of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive registration of": ["DROP"],
+  "divest oneself of all exclusive registration of the": ["DROP"],
+  "relinquish all exclusive registration of": ["DROP"],
+  "relinquish all exclusive registration of the": ["DROP"],
+  "free oneself from all exclusive registration of": ["DROP"],
+  "free oneself from all exclusive registration of the": ["DROP"],
+
+  // Open/Close
+  "force completely and biocatalytically wide open": ["OPEN"],
+  "force completely and biocatalytically wide open the": ["OPEN"],
+  "pry completely and biocatalytically wide open": ["OPEN"],
+  "pry completely and biocatalytically wide open the": ["OPEN"],
+  "fasten completely and biocatalytically closed": ["CLOSE"],
+  "fasten completely and biocatalytically closed the": ["CLOSE"],
+  "seal completely and biocatalytically shut": ["CLOSE"],
+  "seal completely and biocatalytically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all yukawa security devices of": ["UNLOCK"],
+  "deactivate all yukawa security devices of the": ["UNLOCK"],
+  "bypass all yukawa security devices on": ["UNLOCK"],
+  "bypass all yukawa security devices on the": ["UNLOCK"],
+  "disengage the primary yukawa security device on": ["UNLOCK"],
+  "disengage the primary yukawa security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unshakable deployment of": ["USE"],
+  "harness the full unshakable deployment of the": ["USE"],
+  "bring into active unshakable deployment": ["USE"],
+  "bring into active unshakable deployment the": ["USE"],
+  "make complete unshakable deployment of": ["USE"],
+  "make complete unshakable deployment of the": ["USE"],
+
+  // Combat
+  "initiate a poisonous confrontation against": ["FIGHT"],
+  "initiate a poisonous confrontation against the": ["FIGHT"],
+  "commence a poisonous confrontation against": ["FIGHT"],
+  "commence a poisonous confrontation against the": ["FIGHT"],
+  "engage in a poisonous confrontation against": ["FIGHT"],
+  "engage in a poisonous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a semantic face to face discussion with": ["TALK"],
+  "initiate a semantic face to face discussion with the": ["TALK"],
+  "engage in a semantic face to face discussion with": ["TALK"],
+  "engage in a semantic face to face discussion with the": ["TALK"],
+  "strike up a semantic face to face discussion with": ["TALK"],
+  "strike up a semantic face to face discussion with the": ["TALK"],
+});
+
 
 
 
@@ -28394,6 +28477,72 @@ compoundVerbs.push(
   "engage in a logical face to face discussion with",
   "strike up a logical face to face discussion with the",
   "strike up a logical face to face discussion with"
+);
+
+// Cycle #157 / Task-F178: Phase 141 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of osteolysis towards the location of the",
+  "navigate one's vector of osteolysis towards the location of",
+  "navigate ones vector of osteolysis towards the location of the",
+  "navigate ones vector of osteolysis towards the location of",
+  "steer one's vector of osteolysis in the direction of the coordinates of the",
+  "steer one's vector of osteolysis in the direction of the coordinates of",
+  "steer ones vector of osteolysis in the direction of the coordinates of the",
+  "steer ones vector of osteolysis in the direction of the coordinates of",
+  "direct one's vector of osteolysis towards the coordinates of the location of the",
+  "direct one's vector of osteolysis towards the coordinates of the location of",
+  "direct ones vector of osteolysis towards the coordinates of the location of the",
+  "direct ones vector of osteolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual generalization the",
+  "subject to a comprehensive visual generalization",
+  "subject to a thorough visual generalization the",
+  "subject to a thorough visual generalization",
+  "subject to a detailed visual generalization the",
+  "subject to a detailed visual generalization",
+  "assume direct exclusive registration of the",
+  "assume direct exclusive registration of",
+  "assume absolute exclusive registration of the",
+  "assume absolute exclusive registration of",
+  "assume immediate exclusive registration of the",
+  "assume immediate exclusive registration of",
+  "divest oneself of all exclusive registration of the",
+  "divest oneself of all exclusive registration of",
+  "relinquish all exclusive registration of the",
+  "relinquish all exclusive registration of",
+  "free oneself from all exclusive registration of the",
+  "free oneself from all exclusive registration of",
+  "force completely and biocatalytically wide open the",
+  "force completely and biocatalytically wide open",
+  "pry completely and biocatalytically wide open the",
+  "pry completely and biocatalytically wide open",
+  "fasten completely and biocatalytically closed the",
+  "fasten completely and biocatalytically closed",
+  "seal completely and biocatalytically shut the",
+  "seal completely and biocatalytically shut",
+  "deactivate all yukawa security devices of the",
+  "deactivate all yukawa security devices of",
+  "bypass all yukawa security devices on the",
+  "bypass all yukawa security devices on",
+  "disengage the primary yukawa security device on the",
+  "disengage the primary yukawa security device on",
+  "harness the full unshakable deployment of the",
+  "harness the full unshakable deployment of",
+  "bring into active unshakable deployment the",
+  "bring into active unshakable deployment",
+  "make complete unshakable deployment of the",
+  "make complete unshakable deployment of",
+  "initiate a poisonous confrontation against the",
+  "initiate a poisonous confrontation against",
+  "commence a poisonous confrontation against the",
+  "commence a poisonous confrontation against",
+  "engage in a poisonous confrontation against the",
+  "engage in a poisonous confrontation against",
+  "initiate a semantic face to face discussion with the",
+  "initiate a semantic face to face discussion with",
+  "engage in a semantic face to face discussion with the",
+  "engage in a semantic face to face discussion with",
+  "strike up a semantic face to face discussion with the",
+  "strike up a semantic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
