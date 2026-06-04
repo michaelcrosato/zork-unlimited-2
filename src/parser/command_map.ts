@@ -29764,6 +29764,107 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a toxicological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #216 / Task-F235: Phase 197 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of schizogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of schizogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of schizogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of schizogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of schizogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of schizogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of schizogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of schizogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of schizogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of schizogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of schizogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of schizogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual distillation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual distillation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual distillation": ["LOOK_INSPECT"],
+  "subject to a thorough visual distillation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual distillation": ["LOOK_INSPECT"],
+  "subject to a detailed visual distillation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive isolation of": ["TAKE"],
+  "assume direct exclusive isolation of the": ["TAKE"],
+  "assume absolute exclusive isolation of": ["TAKE"],
+  "assume absolute exclusive isolation of the": ["TAKE"],
+  "assume immediate exclusive isolation of": ["TAKE"],
+  "assume immediate exclusive isolation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive isolation of": ["DROP"],
+  "divest oneself of all exclusive isolation of the": ["DROP"],
+  "relinquish all exclusive isolation of": ["DROP"],
+  "relinquish all exclusive isolation of the": ["DROP"],
+  "free oneself from all exclusive isolation of": ["DROP"],
+  "free oneself from all exclusive isolation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and triboelectrically wide open": ["OPEN"],
+  "force completely and triboelectrically wide open the": ["OPEN"],
+  "pry completely and triboelectrically wide open": ["OPEN"],
+  "pry completely and triboelectrically wide open the": ["OPEN"],
+  "fasten completely and triboelectrically closed": ["CLOSE"],
+  "fasten completely and triboelectrically closed the": ["CLOSE"],
+  "seal completely and triboelectrically shut": ["CLOSE"],
+  "seal completely and triboelectrically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all podolsky security devices of": ["UNLOCK"],
+  "deactivate all podolsky security devices of the": ["UNLOCK"],
+  "deactivate all rosen security devices of": ["UNLOCK"],
+  "deactivate all rosen security devices of the": ["UNLOCK"],
+  "deactivate all bell security devices of": ["UNLOCK"],
+  "deactivate all bell security devices of the": ["UNLOCK"],
+  "deactivate all aspect security devices of": ["UNLOCK"],
+  "deactivate all aspect security devices of the": ["UNLOCK"],
+  "bypass all podolsky security devices on": ["UNLOCK"],
+  "bypass all podolsky security devices on the": ["UNLOCK"],
+  "bypass all rosen security devices on": ["UNLOCK"],
+  "bypass all rosen security devices on the": ["UNLOCK"],
+  "bypass all bell security devices on": ["UNLOCK"],
+  "bypass all bell security devices on the": ["UNLOCK"],
+  "bypass all aspect security devices on": ["UNLOCK"],
+  "bypass all aspect security devices on the": ["UNLOCK"],
+  "disengage the primary podolsky security device on": ["UNLOCK"],
+  "disengage the primary podolsky security device on the": ["UNLOCK"],
+  "disengage the primary rosen security device on": ["UNLOCK"],
+  "disengage the primary rosen security device on the": ["UNLOCK"],
+  "disengage the primary bell security device on": ["UNLOCK"],
+  "disengage the primary bell security device on the": ["UNLOCK"],
+  "disengage the primary aspect security device on": ["UNLOCK"],
+  "disengage the primary aspect security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full geotropic deployment of": ["USE"],
+  "harness the full geotropic deployment of the": ["USE"],
+  "bring into active geotropic deployment": ["USE"],
+  "bring into active geotropic deployment the": ["USE"],
+  "make complete geotropic deployment of": ["USE"],
+  "make complete geotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unrelentingly adversarial confrontation against": ["FIGHT"],
+  "initiate an unrelentingly adversarial confrontation against the": ["FIGHT"],
+  "commence an unrelentingly adversarial confrontation against": ["FIGHT"],
+  "commence an unrelentingly adversarial confrontation against the": ["FIGHT"],
+  "engage in an unrelentingly adversarial confrontation against": ["FIGHT"],
+  "engage in an unrelentingly adversarial confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an ichthyological face to face discussion with": ["TALK"],
+  "initiate an ichthyological face to face discussion with the": ["TALK"],
+  "engage in an ichthyological face to face discussion with": ["TALK"],
+  "engage in an ichthyological face to face discussion with the": ["TALK"],
+  "strike up an ichthyological face to face discussion with": ["TALK"],
+  "strike up an ichthyological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -37719,6 +37820,90 @@ compoundVerbs.push(
   "engage in a toxicological face to face discussion with",
   "strike up a toxicological face to face discussion with the",
   "strike up a toxicological face to face discussion with"
+);
+
+// Cycle #216 / Task-F235: Phase 197 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of schizogenesis towards the location of the",
+  "navigate one's vector of schizogenesis towards the location of",
+  "navigate ones vector of schizogenesis towards the location of the",
+  "navigate ones vector of schizogenesis towards the location of",
+  "steer one's vector of schizogenesis in the direction of the coordinates of the",
+  "steer one's vector of schizogenesis in the direction of the coordinates of",
+  "steer ones vector of schizogenesis in the direction of the coordinates of the",
+  "steer ones vector of schizogenesis in the direction of the coordinates of",
+  "direct one's vector of schizogenesis towards the coordinates of the location of the",
+  "direct one's vector of schizogenesis towards the coordinates of the location of",
+  "direct ones vector of schizogenesis towards the coordinates of the location of the",
+  "direct ones vector of schizogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual distillation the",
+  "subject to a comprehensive visual distillation",
+  "subject to a thorough visual distillation the",
+  "subject to a thorough visual distillation",
+  "subject to a detailed visual distillation the",
+  "subject to a detailed visual distillation",
+  "assume direct exclusive isolation of the",
+  "assume direct exclusive isolation of",
+  "assume absolute exclusive isolation of the",
+  "assume absolute exclusive isolation of",
+  "assume immediate exclusive isolation of the",
+  "assume immediate exclusive isolation of",
+  "divest oneself of all exclusive isolation of the",
+  "divest oneself of all exclusive isolation of",
+  "relinquish all exclusive isolation of the",
+  "relinquish all exclusive isolation of",
+  "free oneself from all exclusive isolation of the",
+  "free oneself from all exclusive isolation of",
+  "force completely and triboelectrically wide open the",
+  "force completely and triboelectrically wide open",
+  "pry completely and triboelectrically wide open the",
+  "pry completely and triboelectrically wide open",
+  "fasten completely and triboelectrically closed the",
+  "fasten completely and triboelectrically closed",
+  "seal completely and triboelectrically shut the",
+  "seal completely and triboelectrically shut",
+  "deactivate all podolsky security devices of the",
+  "deactivate all podolsky security devices of",
+  "deactivate all rosen security devices of the",
+  "deactivate all rosen security devices of",
+  "deactivate all bell security devices of the",
+  "deactivate all bell security devices of",
+  "deactivate all aspect security devices of the",
+  "deactivate all aspect security devices of",
+  "bypass all podolsky security devices on the",
+  "bypass all podolsky security devices on",
+  "bypass all rosen security devices on the",
+  "bypass all rosen security devices on",
+  "bypass all bell security devices on the",
+  "bypass all bell security devices on",
+  "bypass all aspect security devices on the",
+  "bypass all aspect security devices on",
+  "disengage the primary podolsky security device on the",
+  "disengage the primary podolsky security device on",
+  "disengage the primary rosen security device on the",
+  "disengage the primary rosen security device on",
+  "disengage the primary bell security device on the",
+  "disengage the primary bell security device on",
+  "disengage the primary aspect security device on the",
+  "disengage the primary aspect security device on",
+  "harness the full geotropic deployment of the",
+  "harness the full geotropic deployment of",
+  "bring into active geotropic deployment the",
+  "bring into active geotropic deployment",
+  "make complete geotropic deployment of the",
+  "make complete geotropic deployment of",
+  "initiate an unrelentingly adversarial confrontation against the",
+  "initiate an unrelentingly adversarial confrontation against",
+  "commence an unrelentingly adversarial confrontation against the",
+  "commence an unrelentingly adversarial confrontation against",
+  "engage in an unrelentingly adversarial confrontation against the",
+  "engage in an unrelentingly adversarial confrontation against",
+  "initiate an ichthyological face to face discussion with the",
+  "initiate an ichthyological face to face discussion with",
+  "engage in an ichthyological face to face discussion with the",
+  "engage in an ichthyological face to face discussion with",
+  "strike up an ichthyological face to face discussion with the",
+  "strike up an ichthyological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
