@@ -21563,6 +21563,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a discerning face to face discussion with the": ["TALK"]
 });
 
+// Cycle #118 / Task-F140: Phase 103 verb categories
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of diffusion towards the location of": ["MOVE"],
+  "navigate one's vector of diffusion towards the location of the": ["MOVE"],
+  "navigate ones vector of diffusion towards the location of": ["MOVE"],
+  "navigate ones vector of diffusion towards the location of the": ["MOVE"],
+  "steer one's vector of diffusion in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of diffusion in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of diffusion in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of diffusion in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of diffusion towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of diffusion towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of diffusion towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of diffusion towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual scanning": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual scanning the": ["LOOK_INSPECT"],
+  "subject to a thorough visual scanning": ["LOOK_INSPECT"],
+  "subject to a thorough visual scanning the": ["LOOK_INSPECT"],
+  "subject to a detailed visual scanning": ["LOOK_INSPECT"],
+  "subject to a detailed visual scanning the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive grip of": ["TAKE"],
+  "assume direct exclusive grip of the": ["TAKE"],
+  "assume absolute exclusive grip of": ["TAKE"],
+  "assume absolute exclusive grip of the": ["TAKE"],
+  "assume immediate exclusive grip of": ["TAKE"],
+  "assume immediate exclusive grip of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive grip of": ["DROP"],
+  "divest oneself of all exclusive grip of the": ["DROP"],
+  "relinquish all exclusive grip of": ["DROP"],
+  "relinquish all exclusive grip of the": ["DROP"],
+  "free oneself from all exclusive grip of": ["DROP"],
+  "free oneself from all exclusive grip of the": ["DROP"],
+
+  // Open/Close
+  "force completely and spintronically wide open": ["OPEN"],
+  "force completely and spintronically wide open the": ["OPEN"],
+  "pry completely and spintronically wide open": ["OPEN"],
+  "pry completely and spintronically wide open the": ["OPEN"],
+  "fasten completely and spintronically closed": ["CLOSE"],
+  "fasten completely and spintronically closed the": ["CLOSE"],
+  "seal completely and spintronically shut": ["CLOSE"],
+  "seal completely and spintronically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all orbitronic security devices of": ["UNLOCK"],
+  "deactivate all orbitronic security devices of the": ["UNLOCK"],
+  "bypass all orbitronic security devices on": ["UNLOCK"],
+  "bypass all orbitronic security devices on the": ["UNLOCK"],
+  "disengage the primary orbitronic security device on": ["UNLOCK"],
+  "disengage the primary orbitronic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full matchless deployment of": ["USE"],
+  "harness the full matchless deployment of the": ["USE"],
+  "bring into active matchless deployment": ["USE"],
+  "bring into active matchless deployment the": ["USE"],
+  "make complete matchless deployment of": ["USE"],
+  "make complete matchless deployment of the": ["USE"],
+
+  // Combat
+  "initiate a treacherous confrontation against": ["FIGHT"],
+  "initiate a treacherous confrontation against the": ["FIGHT"],
+  "commence a treacherous confrontation against": ["FIGHT"],
+  "commence a treacherous confrontation against the": ["FIGHT"],
+  "engage in a treacherous confrontation against": ["FIGHT"],
+  "engage in a treacherous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a perceptive face to face discussion with": ["TALK"],
+  "initiate a perceptive face to face discussion with the": ["TALK"],
+  "engage in a perceptive face to face discussion with": ["TALK"],
+  "engage in a perceptive face to face discussion with the": ["TALK"],
+  "strike up a perceptive face to face discussion with": ["TALK"],
+  "strike up a perceptive face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -22818,6 +22901,72 @@ compoundVerbs.push(
   "engage in a discerning face to face discussion with",
   "strike up a discerning face to face discussion with the",
   "strike up a discerning face to face discussion with"
+);
+
+// Cycle #118 / Task-F140: Phase 103 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of diffusion towards the location of the",
+  "navigate one's vector of diffusion towards the location of",
+  "navigate ones vector of diffusion towards the location of the",
+  "navigate ones vector of diffusion towards the location of",
+  "steer one's vector of diffusion in the direction of the coordinates of the",
+  "steer one's vector of diffusion in the direction of the coordinates of",
+  "steer ones vector of diffusion in the direction of the coordinates of the",
+  "steer ones vector of diffusion in the direction of the coordinates of",
+  "direct one's vector of diffusion towards the coordinates of the location of the",
+  "direct one's vector of diffusion towards the coordinates of the location of",
+  "direct ones vector of diffusion towards the coordinates of the location of the",
+  "direct ones vector of diffusion towards the coordinates of the location of",
+  "subject to a comprehensive visual scanning the",
+  "subject to a comprehensive visual scanning",
+  "subject to a thorough visual scanning the",
+  "subject to a thorough visual scanning",
+  "subject to a detailed visual scanning the",
+  "subject to a detailed visual scanning",
+  "assume direct exclusive grip of the",
+  "assume direct exclusive grip of",
+  "assume absolute exclusive grip of the",
+  "assume absolute exclusive grip of",
+  "assume immediate exclusive grip of the",
+  "assume immediate exclusive grip of",
+  "divest oneself of all exclusive grip of the",
+  "divest oneself of all exclusive grip of",
+  "relinquish all exclusive grip of the",
+  "relinquish all exclusive grip of",
+  "free oneself from all exclusive grip of the",
+  "free oneself from all exclusive grip of",
+  "force completely and spintronically wide open the",
+  "force completely and spintronically wide open",
+  "pry completely and spintronically wide open the",
+  "pry completely and spintronically wide open",
+  "fasten completely and spintronically closed the",
+  "fasten completely and spintronically closed",
+  "seal completely and spintronically shut the",
+  "seal completely and spintronically shut",
+  "deactivate all orbitronic security devices of the",
+  "deactivate all orbitronic security devices of",
+  "bypass all orbitronic security devices on the",
+  "bypass all orbitronic security devices on",
+  "disengage the primary orbitronic security device on the",
+  "disengage the primary orbitronic security device on",
+  "harness the full matchless deployment of the",
+  "harness the full matchless deployment of",
+  "bring into active matchless deployment the",
+  "bring into active matchless deployment",
+  "make complete matchless deployment of the",
+  "make complete matchless deployment of",
+  "initiate a treacherous confrontation against the",
+  "initiate a treacherous confrontation against",
+  "commence a treacherous confrontation against the",
+  "commence a treacherous confrontation against",
+  "engage in a treacherous confrontation against the",
+  "engage in a treacherous confrontation against",
+  "initiate a perceptive face to face discussion with the",
+  "initiate a perceptive face to face discussion with",
+  "engage in a perceptive face to face discussion with the",
+  "engage in a perceptive face to face discussion with",
+  "strike up a perceptive face to face discussion with the",
+  "strike up a perceptive face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
