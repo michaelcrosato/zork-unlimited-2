@@ -29093,6 +29093,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a mineralogical face to face discussion with the": ["TALK"]
 });
 
+// Cycle #209 / Task-F228: Phase 190 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of dermatogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of dermatogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of dermatogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of dermatogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of dermatogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of dermatogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of dermatogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of dermatogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of dermatogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of dermatogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of dermatogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of dermatogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual formulation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual formulation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual formulation": ["LOOK_INSPECT"],
+  "subject to a thorough visual formulation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual formulation": ["LOOK_INSPECT"],
+  "subject to a detailed visual formulation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive enclosing of": ["TAKE"],
+  "assume direct exclusive enclosing of the": ["TAKE"],
+  "assume absolute exclusive enclosing of": ["TAKE"],
+  "assume absolute exclusive enclosing of the": ["TAKE"],
+  "assume immediate exclusive enclosing of": ["TAKE"],
+  "assume immediate exclusive enclosing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive enclosing of": ["DROP"],
+  "divest oneself of all exclusive enclosing of the": ["DROP"],
+  "relinquish all exclusive enclosing of": ["DROP"],
+  "relinquish all exclusive enclosing of the": ["DROP"],
+  "free oneself from all exclusive enclosing of": ["DROP"],
+  "free oneself from all exclusive enclosing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and rheoelastically wide open": ["OPEN"],
+  "force completely and rheoelastically wide open the": ["OPEN"],
+  "pry completely and rheoelastically wide open": ["OPEN"],
+  "pry completely and rheoelastically wide open the": ["OPEN"],
+  "fasten completely and rheoelastically closed": ["CLOSE"],
+  "fasten completely and rheoelastically closed the": ["CLOSE"],
+  "seal completely and rheoelastically shut": ["CLOSE"],
+  "seal completely and rheoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all darwin security devices of": ["UNLOCK"],
+  "deactivate all darwin security devices of the": ["UNLOCK"],
+  "deactivate all wallace security devices of": ["UNLOCK"],
+  "deactivate all wallace security devices of the": ["UNLOCK"],
+  "deactivate all linnaeus security devices of": ["UNLOCK"],
+  "deactivate all linnaeus security devices of the": ["UNLOCK"],
+  "deactivate all mendel security devices of": ["UNLOCK"],
+  "deactivate all mendel security devices of the": ["UNLOCK"],
+  "bypass all darwin security devices on": ["UNLOCK"],
+  "bypass all darwin security devices on the": ["UNLOCK"],
+  "bypass all wallace security devices on": ["UNLOCK"],
+  "bypass all wallace security devices on the": ["UNLOCK"],
+  "bypass all linnaeus security devices on": ["UNLOCK"],
+  "bypass all linnaeus security devices on the": ["UNLOCK"],
+  "bypass all mendel security devices on": ["UNLOCK"],
+  "bypass all mendel security devices on the": ["UNLOCK"],
+  "disengage the primary darwin security device on": ["UNLOCK"],
+  "disengage the primary darwin security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full lyotropic deployment of": ["USE"],
+  "harness the full lyotropic deployment of the": ["USE"],
+  "bring into active lyotropic deployment": ["USE"],
+  "bring into active lyotropic deployment the": ["USE"],
+  "make complete lyotropic deployment of": ["USE"],
+  "make complete lyotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unflinchingly combative confrontation against": ["FIGHT"],
+  "initiate an unflinchingly combative confrontation against the": ["FIGHT"],
+  "commence an unflinchingly combative confrontation against": ["FIGHT"],
+  "commence an unflinchingly combative confrontation against the": ["FIGHT"],
+  "engage in an unflinchingly combative confrontation against": ["FIGHT"],
+  "engage in an unflinchingly combative confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a petrological face to face discussion with": ["TALK"],
+  "initiate a petrological face to face discussion with the": ["TALK"],
+  "engage in a petrological face to face discussion with": ["TALK"],
+  "engage in a petrological face to face discussion with the": ["TALK"],
+  "strike up a petrological face to face discussion with": ["TALK"],
+  "strike up a petrological face to face discussion with the": ["TALK"]
+});
+
 
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -36495,6 +36590,84 @@ compoundVerbs.push(
   "engage in a mineralogical face to face discussion with",
   "strike up a mineralogical face to face discussion with the",
   "strike up a mineralogical face to face discussion with"
+);
+
+// Cycle #209 / Task-F228: Phase 190 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of dermatogenesis towards the location of the",
+  "navigate one's vector of dermatogenesis towards the location of",
+  "navigate ones vector of dermatogenesis towards the location of the",
+  "navigate ones vector of dermatogenesis towards the location of",
+  "steer one's vector of dermatogenesis in the direction of the coordinates of the",
+  "steer one's vector of dermatogenesis in the direction of the coordinates of",
+  "steer ones vector of dermatogenesis in the direction of the coordinates of the",
+  "steer ones vector of dermatogenesis in the direction of the coordinates of",
+  "direct one's vector of dermatogenesis towards the coordinates of the location of the",
+  "direct one's vector of dermatogenesis towards the coordinates of the location of",
+  "direct ones vector of dermatogenesis towards the coordinates of the location of the",
+  "direct ones vector of dermatogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual formulation the",
+  "subject to a comprehensive visual formulation",
+  "subject to a thorough visual formulation the",
+  "subject to a thorough visual formulation",
+  "subject to a detailed visual formulation the",
+  "subject to a detailed visual formulation",
+  "assume direct exclusive enclosing of the",
+  "assume direct exclusive enclosing of",
+  "assume absolute exclusive enclosing of the",
+  "assume absolute exclusive enclosing of",
+  "assume immediate exclusive enclosing of the",
+  "assume immediate exclusive enclosing of",
+  "divest oneself of all exclusive enclosing of the",
+  "divest oneself of all exclusive enclosing of",
+  "relinquish all exclusive enclosing of the",
+  "relinquish all exclusive enclosing of",
+  "free oneself from all exclusive enclosing of the",
+  "free oneself from all exclusive enclosing of",
+  "force completely and rheoelastically wide open the",
+  "force completely and rheoelastically wide open",
+  "pry completely and rheoelastically wide open the",
+  "pry completely and rheoelastically wide open",
+  "fasten completely and rheoelastically closed the",
+  "fasten completely and rheoelastically closed",
+  "seal completely and rheoelastically shut the",
+  "seal completely and rheoelastically shut",
+  "deactivate all darwin security devices of the",
+  "deactivate all darwin security devices of",
+  "deactivate all wallace security devices of the",
+  "deactivate all wallace security devices of",
+  "deactivate all linnaeus security devices of the",
+  "deactivate all linnaeus security devices of",
+  "deactivate all mendel security devices of the",
+  "deactivate all mendel security devices of",
+  "bypass all darwin security devices on the",
+  "bypass all darwin security devices on",
+  "bypass all wallace security devices on the",
+  "bypass all wallace security devices on",
+  "bypass all linnaeus security devices on the",
+  "bypass all linnaeus security devices on",
+  "bypass all mendel security devices on the",
+  "bypass all mendel security devices on",
+  "disengage the primary darwin security device on the",
+  "disengage the primary darwin security device on",
+  "harness the full lyotropic deployment of the",
+  "harness the full lyotropic deployment of",
+  "bring into active lyotropic deployment the",
+  "bring into active lyotropic deployment",
+  "make complete lyotropic deployment of the",
+  "make complete lyotropic deployment of",
+  "initiate an unflinchingly combative confrontation against the",
+  "initiate an unflinchingly combative confrontation against",
+  "commence an unflinchingly combative confrontation against the",
+  "commence an unflinchingly combative confrontation against",
+  "engage in an unflinchingly combative confrontation against the",
+  "engage in an unflinchingly combative confrontation against",
+  "initiate a petrological face to face discussion with the",
+  "initiate a petrological face to face discussion with",
+  "engage in a petrological face to face discussion with the",
+  "engage in a petrological face to face discussion with",
+  "strike up a petrological face to face discussion with the",
+  "strike up a petrological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
