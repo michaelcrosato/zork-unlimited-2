@@ -20650,6 +20650,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a scintillating face to face discussion with the": ["TALK"]
 });
 
+// Cycle #107 / Task-F129: Phase 92 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of reflection towards the location of": ["MOVE"],
+  "navigate one's vector of reflection towards the location of the": ["MOVE"],
+  "navigate ones vector of reflection towards the location of": ["MOVE"],
+  "navigate ones vector of reflection towards the location of the": ["MOVE"],
+  "steer one's vector of reflection in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of reflection in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of reflection in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of reflection in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of reflection towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of reflection towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of reflection towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of reflection towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual examination": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual examination the": ["LOOK_INSPECT"],
+  "subject to a thorough visual examination": ["LOOK_INSPECT"],
+  "subject to a thorough visual examination the": ["LOOK_INSPECT"],
+  "subject to a detailed visual examination": ["LOOK_INSPECT"],
+  "subject to a detailed visual examination the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive sequestration of": ["TAKE"],
+  "assume direct exclusive sequestration of the": ["TAKE"],
+  "assume absolute exclusive sequestration of": ["TAKE"],
+  "assume absolute exclusive sequestration of the": ["TAKE"],
+  "assume immediate exclusive sequestration of": ["TAKE"],
+  "assume immediate exclusive sequestration of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive sequestration of": ["DROP"],
+  "divest oneself of all exclusive sequestration of the": ["DROP"],
+  "relinquish all exclusive sequestration of": ["DROP"],
+  "relinquish all exclusive sequestration of the": ["DROP"],
+  "free oneself from all exclusive sequestration of": ["DROP"],
+  "free oneself from all exclusive sequestration of the": ["DROP"],
+
+  // Open/Close
+  "force completely and optofluidically wide open": ["OPEN"],
+  "force completely and optofluidically wide open the": ["OPEN"],
+  "pry completely and optofluidically wide open": ["OPEN"],
+  "pry completely and optofluidically wide open the": ["OPEN"],
+  "fasten completely and optofluidically closed": ["CLOSE"],
+  "fasten completely and optofluidically closed the": ["CLOSE"],
+  "seal completely and optofluidically shut": ["CLOSE"],
+  "seal completely and optofluidically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all ferrofluidic security devices of": ["UNLOCK"],
+  "deactivate all ferrofluidic security devices of the": ["UNLOCK"],
+  "bypass all ferrofluidic security devices on": ["UNLOCK"],
+  "bypass all ferrofluidic security devices on the": ["UNLOCK"],
+  "disengage the primary ferrofluidic security device on": ["UNLOCK"],
+  "disengage the primary ferrofluidic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full exemplary deployment of": ["USE"],
+  "harness the full exemplary deployment of the": ["USE"],
+  "bring into active exemplary deployment": ["USE"],
+  "bring into active exemplary deployment the": ["USE"],
+  "make complete exemplary deployment of": ["USE"],
+  "make complete exemplary deployment of the": ["USE"],
+
+  // Combat
+  "initiate an atrocious confrontation against": ["FIGHT"],
+  "initiate an atrocious confrontation against the": ["FIGHT"],
+  "commence an atrocious confrontation against": ["FIGHT"],
+  "commence an atrocious confrontation against the": ["FIGHT"],
+  "engage in an atrocious confrontation against": ["FIGHT"],
+  "engage in an atrocious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a stimulating face to face discussion with": ["TALK"],
+  "initiate a stimulating face to face discussion with the": ["TALK"],
+  "engage in a stimulating face to face discussion with": ["TALK"],
+  "engage in a stimulating face to face discussion with the": ["TALK"],
+  "strike up a stimulating face to face discussion with": ["TALK"],
+  "strike up a stimulating face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -21177,6 +21260,72 @@ compoundVerbs.push(
   "engage in a scintillating face to face discussion with",
   "strike up a scintillating face to face discussion with the",
   "strike up a scintillating face to face discussion with"
+);
+
+// Cycle #107 / Task-F129: Phase 92 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of reflection towards the location of the",
+  "navigate one's vector of reflection towards the location of",
+  "navigate ones vector of reflection towards the location of the",
+  "navigate ones vector of reflection towards the location of",
+  "steer one's vector of reflection in the direction of the coordinates of the",
+  "steer one's vector of reflection in the direction of the coordinates of",
+  "steer ones vector of reflection in the direction of the coordinates of the",
+  "steer ones vector of reflection in the direction of the coordinates of",
+  "direct one's vector of reflection towards the coordinates of the location of the",
+  "direct one's vector of reflection towards the coordinates of the location of",
+  "direct ones vector of reflection towards the coordinates of the location of the",
+  "direct ones vector of reflection towards the coordinates of the location of",
+  "subject to a comprehensive visual examination the",
+  "subject to a comprehensive visual examination",
+  "subject to a thorough visual examination the",
+  "subject to a thorough visual examination",
+  "subject to a detailed visual examination the",
+  "subject to a detailed visual examination",
+  "assume direct exclusive sequestration of the",
+  "assume direct exclusive sequestration of",
+  "assume absolute exclusive sequestration of the",
+  "assume absolute exclusive sequestration of",
+  "assume immediate exclusive sequestration of the",
+  "assume immediate exclusive sequestration of",
+  "divest oneself of all exclusive sequestration of the",
+  "divest oneself of all exclusive sequestration of",
+  "relinquish all exclusive sequestration of the",
+  "relinquish all exclusive sequestration of",
+  "free oneself from all exclusive sequestration of the",
+  "free oneself from all exclusive sequestration of",
+  "force completely and optofluidically wide open the",
+  "force completely and optofluidically wide open",
+  "pry completely and optofluidically wide open the",
+  "pry completely and optofluidically wide open",
+  "fasten completely and optofluidically closed the",
+  "fasten completely and optofluidically closed",
+  "seal completely and optofluidically shut the",
+  "seal completely and optofluidically shut",
+  "deactivate all ferrofluidic security devices of the",
+  "deactivate all ferrofluidic security devices of",
+  "bypass all ferrofluidic security devices on the",
+  "bypass all ferrofluidic security devices on",
+  "disengage the primary ferrofluidic security device on the",
+  "disengage the primary ferrofluidic security device on",
+  "harness the full exemplary deployment of the",
+  "harness the full exemplary deployment of",
+  "bring into active exemplary deployment the",
+  "bring into active exemplary deployment",
+  "make complete exemplary deployment of the",
+  "make complete exemplary deployment of",
+  "initiate an atrocious confrontation against the",
+  "initiate an atrocious confrontation against",
+  "commence an atrocious confrontation against the",
+  "commence an atrocious confrontation against",
+  "engage in an atrocious confrontation against the",
+  "engage in an atrocious confrontation against",
+  "initiate a stimulating face to face discussion with the",
+  "initiate a stimulating face to face discussion with",
+  "engage in a stimulating face to face discussion with the",
+  "engage in a stimulating face to face discussion with",
+  "strike up a stimulating face to face discussion with the",
+  "strike up a stimulating face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
