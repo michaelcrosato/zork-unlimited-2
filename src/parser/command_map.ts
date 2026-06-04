@@ -23856,6 +23856,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a semiotic face to face discussion with the": ["TALK"]
 });
 
+// Cycle #147 / Task-F168: Phase 131 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of cytolysis towards the location of": ["MOVE"],
+  "navigate one's vector of cytolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of cytolysis towards the location of": ["MOVE"],
+  "navigate ones vector of cytolysis towards the location of the": ["MOVE"],
+  "steer one's vector of cytolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of cytolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of cytolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of cytolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of cytolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of cytolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of cytolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of cytolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual internalization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual internalization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual internalization": ["LOOK_INSPECT"],
+  "subject to a thorough visual internalization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual internalization": ["LOOK_INSPECT"],
+  "subject to a detailed visual internalization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive distribution of": ["TAKE"],
+  "assume direct exclusive distribution of the": ["TAKE"],
+  "assume absolute exclusive distribution of": ["TAKE"],
+  "assume absolute exclusive distribution of the": ["TAKE"],
+  "assume immediate exclusive distribution of": ["TAKE"],
+  "assume immediate exclusive distribution of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive distribution of": ["DROP"],
+  "divest oneself of all exclusive distribution of the": ["DROP"],
+  "relinquish all exclusive distribution of": ["DROP"],
+  "relinquish all exclusive distribution of the": ["DROP"],
+  "free oneself from all exclusive distribution of": ["DROP"],
+  "free oneself from all exclusive distribution of the": ["DROP"],
+
+  // Open/Close
+  "force completely and thermochemically wide open": ["OPEN"],
+  "force completely and thermochemically wide open the": ["OPEN"],
+  "pry completely and thermochemically wide open": ["OPEN"],
+  "pry completely and thermochemically wide open the": ["OPEN"],
+  "fasten completely and thermochemically closed": ["CLOSE"],
+  "fasten completely and thermochemically closed the": ["CLOSE"],
+  "seal completely and thermochemically shut": ["CLOSE"],
+  "seal completely and thermochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all zino security devices of": ["UNLOCK"],
+  "deactivate all zino security devices of the": ["UNLOCK"],
+  "bypass all zino security devices on": ["UNLOCK"],
+  "bypass all zino security devices on the": ["UNLOCK"],
+  "disengage the primary zino security device on": ["UNLOCK"],
+  "disengage the primary zino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full constant deployment of": ["USE"],
+  "harness the full constant deployment of the": ["USE"],
+  "bring into active constant deployment": ["USE"],
+  "bring into active constant deployment the": ["USE"],
+  "make complete constant deployment of": ["USE"],
+  "make complete constant deployment of the": ["USE"],
+
+  // Combat
+  "initiate a catastrophic confrontation against": ["FIGHT"],
+  "initiate a catastrophic confrontation against the": ["FIGHT"],
+  "commence a catastrophic confrontation against": ["FIGHT"],
+  "commence a catastrophic confrontation against the": ["FIGHT"],
+  "engage in a catastrophic confrontation against": ["FIGHT"],
+  "engage in a catastrophic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a hermeneutical face to face discussion with": ["TALK"],
+  "initiate a hermeneutical face to face discussion with the": ["TALK"],
+  "engage in a hermeneutical face to face discussion with": ["TALK"],
+  "engage in a hermeneutical face to face discussion with the": ["TALK"],
+  "strike up a hermeneutical face to face discussion with": ["TALK"],
+  "strike up a hermeneutical face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -26957,6 +27040,72 @@ compoundVerbs.push(
   "engage in a semiotic face to face discussion with",
   "strike up a semiotic face to face discussion with the",
   "strike up a semiotic face to face discussion with"
+);
+
+// Cycle #147 / Task-F168: Phase 131 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of cytolysis towards the location of the",
+  "navigate one's vector of cytolysis towards the location of",
+  "navigate ones vector of cytolysis towards the location of the",
+  "navigate ones vector of cytolysis towards the location of",
+  "steer one's vector of cytolysis in the direction of the coordinates of the",
+  "steer one's vector of cytolysis in the direction of the coordinates of",
+  "steer ones vector of cytolysis in the direction of the coordinates of the",
+  "steer ones vector of cytolysis in the direction of the coordinates of",
+  "direct one's vector of cytolysis towards the coordinates of the location of the",
+  "direct one's vector of cytolysis towards the coordinates of the location of",
+  "direct ones vector of cytolysis towards the coordinates of the location of the",
+  "direct ones vector of cytolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual internalization the",
+  "subject to a comprehensive visual internalization",
+  "subject to a thorough visual internalization the",
+  "subject to a thorough visual internalization",
+  "subject to a detailed visual internalization the",
+  "subject to a detailed visual internalization",
+  "assume direct exclusive distribution of the",
+  "assume direct exclusive distribution of",
+  "assume absolute exclusive distribution of the",
+  "assume absolute exclusive distribution of",
+  "assume immediate exclusive distribution of the",
+  "assume immediate exclusive distribution of",
+  "divest oneself of all exclusive distribution of the",
+  "divest oneself of all exclusive distribution of",
+  "relinquish all exclusive distribution of the",
+  "relinquish all exclusive distribution of",
+  "free oneself from all exclusive distribution of the",
+  "free oneself from all exclusive distribution of",
+  "force completely and thermochemically wide open the",
+  "force completely and thermochemically wide open",
+  "pry completely and thermochemically wide open the",
+  "pry completely and thermochemically wide open",
+  "fasten completely and thermochemically closed the",
+  "fasten completely and thermochemically closed",
+  "seal completely and thermochemically shut the",
+  "seal completely and thermochemically shut",
+  "deactivate all zino security devices of the",
+  "deactivate all zino security devices of",
+  "bypass all zino security devices on the",
+  "bypass all zino security devices on",
+  "disengage the primary zino security device on the",
+  "disengage the primary zino security device on",
+  "harness the full constant deployment of the",
+  "harness the full constant deployment of",
+  "bring into active constant deployment the",
+  "bring into active constant deployment",
+  "make complete constant deployment of the",
+  "make complete constant deployment of",
+  "initiate a catastrophic confrontation against the",
+  "initiate a catastrophic confrontation against",
+  "commence a catastrophic confrontation against the",
+  "commence a catastrophic confrontation against",
+  "engage in a catastrophic confrontation against the",
+  "engage in a catastrophic confrontation against",
+  "initiate a hermeneutical face to face discussion with the",
+  "initiate a hermeneutical face to face discussion with",
+  "engage in a hermeneutical face to face discussion with the",
+  "engage in a hermeneutical face to face discussion with",
+  "strike up a hermeneutical face to face discussion with the",
+  "strike up a hermeneutical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
