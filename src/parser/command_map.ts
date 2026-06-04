@@ -24301,6 +24301,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an epistemic face to face discussion with the": ["TALK"],
 });
 
+// Cycle #153 / Task-F174: Phase 137 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of necrolysis towards the location of": ["MOVE"],
+  "navigate one's vector of necrolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of necrolysis towards the location of": ["MOVE"],
+  "navigate ones vector of necrolysis towards the location of the": ["MOVE"],
+  "steer one's vector of necrolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of necrolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of necrolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of necrolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of necrolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of necrolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of necrolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of necrolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual rationalization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual rationalization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual rationalization": ["LOOK_INSPECT"],
+  "subject to a thorough visual rationalization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual rationalization": ["LOOK_INSPECT"],
+  "subject to a detailed visual rationalization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive designation of": ["TAKE"],
+  "assume direct exclusive designation of the": ["TAKE"],
+  "assume absolute exclusive designation of": ["TAKE"],
+  "assume absolute exclusive designation of the": ["TAKE"],
+  "assume immediate exclusive designation of": ["TAKE"],
+  "assume immediate exclusive designation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive designation of": ["DROP"],
+  "divest oneself of all exclusive designation of the": ["DROP"],
+  "relinquish all exclusive designation of": ["DROP"],
+  "relinquish all exclusive designation of the": ["DROP"],
+  "free oneself from all exclusive designation of": ["DROP"],
+  "free oneself from all exclusive designation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and histochemically wide open": ["OPEN"],
+  "force completely and histochemically wide open the": ["OPEN"],
+  "pry completely and histochemically wide open": ["OPEN"],
+  "pry completely and histochemically wide open the": ["OPEN"],
+  "fasten completely and histochemically closed": ["CLOSE"],
+  "fasten completely and histochemically closed the": ["CLOSE"],
+  "seal completely and histochemically shut": ["CLOSE"],
+  "seal completely and histochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all majorana security devices of": ["UNLOCK"],
+  "deactivate all majorana security devices of the": ["UNLOCK"],
+  "bypass all majorana security devices on": ["UNLOCK"],
+  "bypass all majorana security devices on the": ["UNLOCK"],
+  "disengage the primary majorana security device on": ["UNLOCK"],
+  "disengage the primary majorana security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full limitless deployment of": ["USE"],
+  "harness the full limitless deployment of the": ["USE"],
+  "bring into active limitless deployment": ["USE"],
+  "bring into active limitless deployment the": ["USE"],
+  "make complete limitless deployment of": ["USE"],
+  "make complete limitless deployment of the": ["USE"],
+
+  // Combat
+  "initiate an antagonistic confrontation against": ["FIGHT"],
+  "initiate an antagonistic confrontation against the": ["FIGHT"],
+  "commence an antagonistic confrontation against": ["FIGHT"],
+  "commence an antagonistic confrontation against the": ["FIGHT"],
+  "engage in an antagonistic confrontation against": ["FIGHT"],
+  "engage in an antagonistic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a methodological face to face discussion with": ["TALK"],
+  "initiate a methodological face to face discussion with the": ["TALK"],
+  "engage in a methodological face to face discussion with": ["TALK"],
+  "engage in a methodological face to face discussion with the": ["TALK"],
+  "strike up a methodological face to face discussion with": ["TALK"],
+  "strike up a methodological face to face discussion with the": ["TALK"],
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -27796,6 +27879,72 @@ compoundVerbs.push(
   "engage in an epistemic face to face discussion with",
   "strike up an epistemic face to face discussion with the",
   "strike up an epistemic face to face discussion with"
+);
+
+// Cycle #153 / Task-F174: Phase 137 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of necrolysis towards the location of the",
+  "navigate one's vector of necrolysis towards the location of",
+  "navigate ones vector of necrolysis towards the location of the",
+  "navigate ones vector of necrolysis towards the location of",
+  "steer one's vector of necrolysis in the direction of the coordinates of the",
+  "steer one's vector of necrolysis in the direction of the coordinates of",
+  "steer ones vector of necrolysis in the direction of the coordinates of the",
+  "steer ones vector of necrolysis in the direction of the coordinates of",
+  "direct one's vector of necrolysis towards the coordinates of the location of the",
+  "direct one's vector of necrolysis towards the coordinates of the location of",
+  "direct ones vector of necrolysis towards the coordinates of the location of the",
+  "direct ones vector of necrolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual rationalization the",
+  "subject to a comprehensive visual rationalization",
+  "subject to a thorough visual rationalization the",
+  "subject to a thorough visual rationalization",
+  "subject to a detailed visual rationalization the",
+  "subject to a detailed visual rationalization",
+  "assume direct exclusive designation of the",
+  "assume direct exclusive designation of",
+  "assume absolute exclusive designation of the",
+  "assume absolute exclusive designation of",
+  "assume immediate exclusive designation of the",
+  "assume immediate exclusive designation of",
+  "divest oneself of all exclusive designation of the",
+  "divest oneself of all exclusive designation of",
+  "relinquish all exclusive designation of the",
+  "relinquish all exclusive designation of",
+  "free oneself from all exclusive designation of the",
+  "free oneself from all exclusive designation of",
+  "force completely and histochemically wide open the",
+  "force completely and histochemically wide open",
+  "pry completely and histochemically wide open the",
+  "pry completely and histochemically wide open",
+  "fasten completely and histochemically closed the",
+  "fasten completely and histochemically closed",
+  "seal completely and histochemically shut the",
+  "seal completely and histochemically shut",
+  "deactivate all majorana security devices of the",
+  "deactivate all majorana security devices of",
+  "bypass all majorana security devices on the",
+  "bypass all majorana security devices on",
+  "disengage the primary majorana security device on the",
+  "disengage the primary majorana security device on",
+  "harness the full limitless deployment of the",
+  "harness the full limitless deployment of",
+  "bring into active limitless deployment the",
+  "bring into active limitless deployment",
+  "make complete limitless deployment of the",
+  "make complete limitless deployment of",
+  "initiate an antagonistic confrontation against the",
+  "initiate an antagonistic confrontation against",
+  "commence an antagonistic confrontation against the",
+  "commence an antagonistic confrontation against",
+  "engage in an antagonistic confrontation against the",
+  "engage in an antagonistic confrontation against",
+  "initiate a methodological face to face discussion with the",
+  "initiate a methodological face to face discussion with",
+  "engage in a methodological face to face discussion with the",
+  "engage in a methodological face to face discussion with",
+  "strike up a methodological face to face discussion with the",
+  "strike up a methodological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
