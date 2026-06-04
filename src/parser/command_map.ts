@@ -26055,6 +26055,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a professional face to face discussion with the": ["TALK"]
 });
 
+// Cycle #175 / Task-F195: Phase 158 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of histogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of histogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of histogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of histogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of histogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of histogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of histogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of histogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of histogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of histogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of histogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of histogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual identification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual identification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual identification": ["LOOK_INSPECT"],
+  "subject to a thorough visual identification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual identification": ["LOOK_INSPECT"],
+  "subject to a detailed visual identification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive retention of": ["TAKE"],
+  "assume direct exclusive retention of the": ["TAKE"],
+  "assume absolute exclusive retention of": ["TAKE"],
+  "assume absolute exclusive retention of the": ["TAKE"],
+  "assume immediate exclusive retention of": ["TAKE"],
+  "assume immediate exclusive retention of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive retention of": ["DROP"],
+  "divest oneself of all exclusive retention of the": ["DROP"],
+  "relinquish all exclusive retention of": ["DROP"],
+  "relinquish all exclusive retention of the": ["DROP"],
+  "free oneself from all exclusive retention of": ["DROP"],
+  "free oneself from all exclusive retention of the": ["DROP"],
+
+  // Open/Close
+  "force completely and piezoelastically wide open": ["OPEN"],
+  "force completely and piezoelastically wide open the": ["OPEN"],
+  "pry completely and piezoelastically wide open": ["OPEN"],
+  "pry completely and piezoelastically wide open the": ["OPEN"],
+  "fasten completely and piezoelastically closed": ["CLOSE"],
+  "fasten completely and piezoelastically closed the": ["CLOSE"],
+  "seal completely and piezoelastically shut": ["CLOSE"],
+  "seal completely and piezoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all glueball security devices of": ["UNLOCK"],
+  "deactivate all glueball security devices of the": ["UNLOCK"],
+  "deactivate all smuon security devices of": ["UNLOCK"],
+  "deactivate all smuon security devices of the": ["UNLOCK"],
+  "deactivate all preon security devices of": ["UNLOCK"],
+  "deactivate all preon security devices of the": ["UNLOCK"],
+  "deactivate all boson security devices of": ["UNLOCK"],
+  "deactivate all boson security devices of the": ["UNLOCK"],
+  "bypass all glueball security devices on": ["UNLOCK"],
+  "bypass all glueball security devices on the": ["UNLOCK"],
+  "bypass all smuon security devices on": ["UNLOCK"],
+  "bypass all smuon security devices on the": ["UNLOCK"],
+  "bypass all preon security devices on": ["UNLOCK"],
+  "bypass all preon security devices on the": ["UNLOCK"],
+  "bypass all boson security devices on": ["UNLOCK"],
+  "bypass all boson security devices on the": ["UNLOCK"],
+  "disengage the primary glueball security device on": ["UNLOCK"],
+  "disengage the primary glueball security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full specialized deployment of": ["USE"],
+  "harness the full specialized deployment of the": ["USE"],
+  "bring into active specialized deployment": ["USE"],
+  "bring into active specialized deployment the": ["USE"],
+  "make complete specialized deployment of": ["USE"],
+  "make complete specialized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a disastrous confrontation against": ["FIGHT"],
+  "initiate a disastrous confrontation against the": ["FIGHT"],
+  "commence a disastrous confrontation against": ["FIGHT"],
+  "commence a disastrous confrontation against the": ["FIGHT"],
+  "engage in a disastrous confrontation against": ["FIGHT"],
+  "engage in a disastrous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an academic face to face discussion with": ["TALK"],
+  "initiate an academic face to face discussion with the": ["TALK"],
+  "engage in an academic face to face discussion with": ["TALK"],
+  "engage in an academic face to face discussion with the": ["TALK"],
+  "strike up an academic face to face discussion with": ["TALK"],
+  "strike up an academic face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -30959,6 +31054,84 @@ compoundVerbs.push(
   "engage in a professional face to face discussion with",
   "strike up a professional face to face discussion with the",
   "strike up a professional face to face discussion with"
+);
+
+// Cycle #175 / Task-F195: Phase 158 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of histogenesis towards the location of the",
+  "navigate one's vector of histogenesis towards the location of",
+  "navigate ones vector of histogenesis towards the location of the",
+  "navigate ones vector of histogenesis towards the location of",
+  "steer one's vector of histogenesis in the direction of the coordinates of the",
+  "steer one's vector of histogenesis in the direction of the coordinates of",
+  "steer ones vector of histogenesis in the direction of the coordinates of the",
+  "steer ones vector of histogenesis in the direction of the coordinates of",
+  "direct one's vector of histogenesis towards the coordinates of the location of the",
+  "direct one's vector of histogenesis towards the coordinates of the location of",
+  "direct ones vector of histogenesis towards the coordinates of the location of the",
+  "direct ones vector of histogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual identification the",
+  "subject to a comprehensive visual identification",
+  "subject to a thorough visual identification the",
+  "subject to a thorough visual identification",
+  "subject to a detailed visual identification the",
+  "subject to a detailed visual identification",
+  "assume direct exclusive retention of the",
+  "assume direct exclusive retention of",
+  "assume absolute exclusive retention of the",
+  "assume absolute exclusive retention of",
+  "assume immediate exclusive retention of the",
+  "assume immediate exclusive retention of",
+  "divest oneself of all exclusive retention of the",
+  "divest oneself of all exclusive retention of",
+  "relinquish all exclusive retention of the",
+  "relinquish all exclusive retention of",
+  "free oneself from all exclusive retention of the",
+  "free oneself from all exclusive retention of",
+  "force completely and piezoelastically wide open the",
+  "force completely and piezoelastically wide open",
+  "pry completely and piezoelastically wide open the",
+  "pry completely and piezoelastically wide open",
+  "fasten completely and piezoelastically closed the",
+  "fasten completely and piezoelastically closed",
+  "seal completely and piezoelastically shut the",
+  "seal completely and piezoelastically shut",
+  "deactivate all glueball security devices of the",
+  "deactivate all glueball security devices of",
+  "deactivate all smuon security devices of the",
+  "deactivate all smuon security devices of",
+  "deactivate all preon security devices of the",
+  "deactivate all preon security devices of",
+  "deactivate all boson security devices of the",
+  "deactivate all boson security devices of",
+  "bypass all glueball security devices on the",
+  "bypass all glueball security devices on",
+  "bypass all smuon security devices on the",
+  "bypass all smuon security devices on",
+  "bypass all preon security devices on the",
+  "bypass all preon security devices on",
+  "bypass all boson security devices on the",
+  "bypass all boson security devices on",
+  "disengage the primary glueball security device on the",
+  "disengage the primary glueball security device on",
+  "harness the full specialized deployment of the",
+  "harness the full specialized deployment of",
+  "bring into active specialized deployment the",
+  "bring into active specialized deployment",
+  "make complete specialized deployment of the",
+  "make complete specialized deployment of",
+  "initiate a disastrous confrontation against the",
+  "initiate a disastrous confrontation against",
+  "commence a disastrous confrontation against the",
+  "commence a disastrous confrontation against",
+  "engage in a disastrous confrontation against the",
+  "engage in a disastrous confrontation against",
+  "initiate an academic face to face discussion with the",
+  "initiate an academic face to face discussion with",
+  "engage in an academic face to face discussion with the",
+  "engage in an academic face to face discussion with",
+  "strike up an academic face to face discussion with the",
+  "strike up an academic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
