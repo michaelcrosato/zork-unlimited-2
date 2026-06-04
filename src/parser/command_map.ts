@@ -25131,6 +25131,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an etymological face to face discussion with the": ["TALK"],
 });
 
+// Cycle #163 / Task-F184: Phase 147 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of cytorrhysis towards the location of": ["MOVE"],
+  "navigate one's vector of cytorrhysis towards the location of the": ["MOVE"],
+  "navigate ones vector of cytorrhysis towards the location of": ["MOVE"],
+  "navigate ones vector of cytorrhysis towards the location of the": ["MOVE"],
+  "steer one's vector of cytorrhysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of cytorrhysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of cytorrhysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of cytorrhysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of cytorrhysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of cytorrhysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of cytorrhysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of cytorrhysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual evaluation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual evaluation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual evaluation": ["LOOK_INSPECT"],
+  "subject to a thorough visual evaluation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual evaluation": ["LOOK_INSPECT"],
+  "subject to a detailed visual evaluation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive provisioning of": ["TAKE"],
+  "assume direct exclusive provisioning of the": ["TAKE"],
+  "assume absolute exclusive provisioning of": ["TAKE"],
+  "assume absolute exclusive provisioning of the": ["TAKE"],
+  "assume immediate exclusive provisioning of": ["TAKE"],
+  "assume immediate exclusive provisioning of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive provisioning of": ["DROP"],
+  "divest oneself of all exclusive provisioning of the": ["DROP"],
+  "relinquish all exclusive provisioning of": ["DROP"],
+  "relinquish all exclusive provisioning of the": ["DROP"],
+  "free oneself from all exclusive provisioning of": ["DROP"],
+  "free oneself from all exclusive provisioning of the": ["DROP"],
+
+  // Open/Close
+  "force completely and magnetochemically wide open": ["OPEN"],
+  "force completely and magnetochemically wide open the": ["OPEN"],
+  "pry completely and magnetochemically wide open": ["OPEN"],
+  "pry completely and magnetochemically wide open the": ["OPEN"],
+  "fasten completely and magnetochemically closed": ["CLOSE"],
+  "fasten completely and magnetochemically closed the": ["CLOSE"],
+  "seal completely and magnetochemically shut": ["CLOSE"],
+  "seal completely and magnetochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all sphaleron security devices of": ["UNLOCK"],
+  "deactivate all sphaleron security devices of the": ["UNLOCK"],
+  "bypass all sphaleron security devices on": ["UNLOCK"],
+  "bypass all sphaleron security devices on the": ["UNLOCK"],
+  "disengage the primary sphaleron security device on": ["UNLOCK"],
+  "disengage the primary sphaleron security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full absolute deployment of": ["USE"],
+  "harness the full absolute deployment of the": ["USE"],
+  "bring into active absolute deployment": ["USE"],
+  "bring into active absolute deployment the": ["USE"],
+  "make complete absolute deployment of": ["USE"],
+  "make complete absolute deployment of the": ["USE"],
+
+  // Combat
+  "initiate an inexorable confrontation against": ["FIGHT"],
+  "initiate an inexorable confrontation against the": ["FIGHT"],
+  "commence an inexorable confrontation against": ["FIGHT"],
+  "commence an inexorable confrontation against the": ["FIGHT"],
+  "engage in an inexorable confrontation against": ["FIGHT"],
+  "engage in an inexorable confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a theoretical face to face discussion with": ["TALK"],
+  "initiate a theoretical face to face discussion with the": ["TALK"],
+  "engage in a theoretical face to face discussion with": ["TALK"],
+  "engage in a theoretical face to face discussion with the": ["TALK"],
+  "strike up a theoretical face to face discussion with": ["TALK"],
+  "strike up a theoretical face to face discussion with the": ["TALK"],
+});
+
 
 
 
@@ -29289,6 +29372,72 @@ compoundVerbs.push(
   "engage in an etymological face to face discussion with",
   "strike up an etymological face to face discussion with the",
   "strike up an etymological face to face discussion with"
+);
+
+// Cycle #163 / Task-F184: Phase 147 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of cytorrhysis towards the location of the",
+  "navigate one's vector of cytorrhysis towards the location of",
+  "navigate ones vector of cytorrhysis towards the location of the",
+  "navigate ones vector of cytorrhysis towards the location of",
+  "steer one's vector of cytorrhysis in the direction of the coordinates of the",
+  "steer one's vector of cytorrhysis in the direction of the coordinates of",
+  "steer ones vector of cytorrhysis in the direction of the coordinates of the",
+  "steer ones vector of cytorrhysis in the direction of the coordinates of",
+  "direct one's vector of cytorrhysis towards the coordinates of the location of the",
+  "direct one's vector of cytorrhysis towards the coordinates of the location of",
+  "direct ones vector of cytorrhysis towards the coordinates of the location of the",
+  "direct ones vector of cytorrhysis towards the coordinates of the location of",
+  "subject to a comprehensive visual evaluation the",
+  "subject to a comprehensive visual evaluation",
+  "subject to a thorough visual evaluation the",
+  "subject to a thorough visual evaluation",
+  "subject to a detailed visual evaluation the",
+  "subject to a detailed visual evaluation",
+  "assume direct exclusive provisioning of the",
+  "assume direct exclusive provisioning of",
+  "assume absolute exclusive provisioning of the",
+  "assume absolute exclusive provisioning of",
+  "assume immediate exclusive provisioning of the",
+  "assume immediate exclusive provisioning of",
+  "divest oneself of all exclusive provisioning of the",
+  "divest oneself of all exclusive provisioning of",
+  "relinquish all exclusive provisioning of the",
+  "relinquish all exclusive provisioning of",
+  "free oneself from all exclusive provisioning of the",
+  "free oneself from all exclusive provisioning of",
+  "force completely and magnetochemically wide open the",
+  "force completely and magnetochemically wide open",
+  "pry completely and magnetochemically wide open the",
+  "pry completely and magnetochemically wide open",
+  "fasten completely and magnetochemically closed the",
+  "fasten completely and magnetochemically closed",
+  "seal completely and magnetochemically shut the",
+  "seal completely and magnetochemically shut",
+  "deactivate all sphaleron security devices of the",
+  "deactivate all sphaleron security devices of",
+  "bypass all sphaleron security devices on the",
+  "bypass all sphaleron security devices on",
+  "disengage the primary sphaleron security device on the",
+  "disengage the primary sphaleron security device on",
+  "harness the full absolute deployment of the",
+  "harness the full absolute deployment of",
+  "bring into active absolute deployment the",
+  "bring into active absolute deployment",
+  "make complete absolute deployment of the",
+  "make complete absolute deployment of",
+  "initiate an inexorable confrontation against the",
+  "initiate an inexorable confrontation against",
+  "commence an inexorable confrontation against the",
+  "commence an inexorable confrontation against",
+  "engage in an inexorable confrontation against the",
+  "engage in an inexorable confrontation against",
+  "initiate a theoretical face to face discussion with the",
+  "initiate a theoretical face to face discussion with",
+  "engage in a theoretical face to face discussion with the",
+  "engage in a theoretical face to face discussion with",
+  "strike up a theoretical face to face discussion with the",
+  "strike up a theoretical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
