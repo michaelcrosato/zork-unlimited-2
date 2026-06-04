@@ -58211,6 +58211,10 @@ compoundVerbs.push(
   "engage in a microgliopathological facetoface discussion with",
   "engage in a microgliopathological face-to-face discussion with the",
   "engage in a microgliopathological face-to-face discussion with",
+  "strike up a microgliopathological face to face discussion with the",
+  "strike up a microgliopathological face to face discussion with",
+  "strike up a microgliopathological facetoface discussion with the",
+  "strike up a microgliopathological facetoface discussion with",
   "strike up a microgliopathological face-to-face discussion with the",
   "strike up a microgliopathological face-to-face discussion with"
 );
