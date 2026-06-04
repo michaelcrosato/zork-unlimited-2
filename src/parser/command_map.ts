@@ -27763,6 +27763,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a lexicographical face to face discussion with the": ["TALK"]
 });
 
+// Cycle #194 / Task-F213: Phase 176 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of phytogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of phytogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of phytogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of phytogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of phytogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of phytogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of phytogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of phytogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of phytogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of phytogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of phytogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of phytogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual sketching": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual sketching the": ["LOOK_INSPECT"],
+  "subject to a thorough visual sketching": ["LOOK_INSPECT"],
+  "subject to a thorough visual sketching the": ["LOOK_INSPECT"],
+  "subject to a detailed visual sketching": ["LOOK_INSPECT"],
+  "subject to a detailed visual sketching the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive wrapping of": ["TAKE"],
+  "assume direct exclusive wrapping of the": ["TAKE"],
+  "assume absolute exclusive wrapping of": ["TAKE"],
+  "assume absolute exclusive wrapping of the": ["TAKE"],
+  "assume immediate exclusive wrapping of": ["TAKE"],
+  "assume immediate exclusive wrapping of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive wrapping of": ["DROP"],
+  "divest oneself of all exclusive wrapping of the": ["DROP"],
+  "relinquish all exclusive wrapping of": ["DROP"],
+  "relinquish all exclusive wrapping of the": ["DROP"],
+  "free oneself from all exclusive wrapping of": ["DROP"],
+  "free oneself from all exclusive wrapping of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electrodynamically wide open": ["OPEN"],
+  "force completely and electrodynamically wide open the": ["OPEN"],
+  "pry completely and electrodynamically wide open": ["OPEN"],
+  "pry completely and electrodynamically wide open the": ["OPEN"],
+  "fasten completely and electrodynamically closed": ["CLOSE"],
+  "fasten completely and electrodynamically closed the": ["CLOSE"],
+  "seal completely and electrodynamically shut": ["CLOSE"],
+  "seal completely and electrodynamically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all yukawa security devices of": ["UNLOCK"],
+  "deactivate all yukawa security devices of the": ["UNLOCK"],
+  "deactivate all klein security devices of": ["UNLOCK"],
+  "deactivate all klein security devices of the": ["UNLOCK"],
+  "deactivate all dirac security devices of": ["UNLOCK"],
+  "deactivate all dirac security devices of the": ["UNLOCK"],
+  "deactivate all soliton security devices of": ["UNLOCK"],
+  "deactivate all soliton security devices of the": ["UNLOCK"],
+  "bypass all yukawa security devices on": ["UNLOCK"],
+  "bypass all yukawa security devices on the": ["UNLOCK"],
+  "bypass all klein security devices on": ["UNLOCK"],
+  "bypass all klein security devices on the": ["UNLOCK"],
+  "bypass all dirac security devices on": ["UNLOCK"],
+  "bypass all dirac security devices on the": ["UNLOCK"],
+  "bypass all soliton security devices on": ["UNLOCK"],
+  "bypass all soliton security devices on the": ["UNLOCK"],
+  "disengage the primary yukawa security device on": ["UNLOCK"],
+  "disengage the primary yukawa security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full cooperative deployment of": ["USE"],
+  "harness the full cooperative deployment of the": ["USE"],
+  "bring into active cooperative deployment": ["USE"],
+  "bring into active cooperative deployment the": ["USE"],
+  "make complete cooperative deployment of": ["USE"],
+  "make complete cooperative deployment of the": ["USE"],
+
+  // Combat
+  "initiate a bellicose confrontation against": ["FIGHT"],
+  "initiate a bellicose confrontation against the": ["FIGHT"],
+  "commence a bellicose confrontation against": ["FIGHT"],
+  "commence a bellicose confrontation against the": ["FIGHT"],
+  "engage in a bellicose confrontation against": ["FIGHT"],
+  "engage in a bellicose confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a theological face to face discussion with": ["TALK"],
+  "initiate a theological face to face discussion with the": ["TALK"],
+  "engage in a theological face to face discussion with": ["TALK"],
+  "engage in a theological face to face discussion with the": ["TALK"],
+  "strike up a theological face to face discussion with": ["TALK"],
+  "strike up a theological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -34074,6 +34169,84 @@ compoundVerbs.push(
   "engage in a lexicographical face to face discussion with",
   "strike up a lexicographical face to face discussion with the",
   "strike up a lexicographical face to face discussion with"
+);
+
+// Cycle #194 / Task-F213: Phase 176 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of phytogenesis towards the location of the",
+  "navigate one's vector of phytogenesis towards the location of",
+  "navigate ones vector of phytogenesis towards the location of the",
+  "navigate ones vector of phytogenesis towards the location of",
+  "steer one's vector of phytogenesis in the direction of the coordinates of the",
+  "steer one's vector of phytogenesis in the direction of the coordinates of",
+  "steer ones vector of phytogenesis in the direction of the coordinates of the",
+  "steer ones vector of phytogenesis in the direction of the coordinates of",
+  "direct one's vector of phytogenesis towards the coordinates of the location of the",
+  "direct one's vector of phytogenesis towards the coordinates of the location of",
+  "direct ones vector of phytogenesis towards the coordinates of the location of the",
+  "direct ones vector of phytogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual sketching the",
+  "subject to a comprehensive visual sketching",
+  "subject to a thorough visual sketching the",
+  "subject to a thorough visual sketching",
+  "subject to a detailed visual sketching the",
+  "subject to a detailed visual sketching",
+  "assume direct exclusive wrapping of the",
+  "assume direct exclusive wrapping of",
+  "assume absolute exclusive wrapping of the",
+  "assume absolute exclusive wrapping of",
+  "assume immediate exclusive wrapping of the",
+  "assume immediate exclusive wrapping of",
+  "divest oneself of all exclusive wrapping of the",
+  "divest oneself of all exclusive wrapping of",
+  "relinquish all exclusive wrapping of the",
+  "relinquish all exclusive wrapping of",
+  "free oneself from all exclusive wrapping of the",
+  "free oneself from all exclusive wrapping of",
+  "force completely and electrodynamically wide open the",
+  "force completely and electrodynamically wide open",
+  "pry completely and electrodynamically wide open the",
+  "pry completely and electrodynamically wide open",
+  "fasten completely and electrodynamically closed the",
+  "fasten completely and electrodynamically closed",
+  "seal completely and electrodynamically shut the",
+  "seal completely and electrodynamically shut",
+  "deactivate all yukawa security devices of the",
+  "deactivate all yukawa security devices of",
+  "deactivate all klein security devices of the",
+  "deactivate all klein security devices of",
+  "deactivate all dirac security devices of the",
+  "deactivate all dirac security devices of",
+  "deactivate all soliton security devices of the",
+  "deactivate all soliton security devices of",
+  "bypass all yukawa security devices on the",
+  "bypass all yukawa security devices on",
+  "bypass all klein security devices on the",
+  "bypass all klein security devices on",
+  "bypass all dirac security devices on the",
+  "bypass all dirac security devices on",
+  "bypass all soliton security devices on the",
+  "bypass all soliton security devices on",
+  "disengage the primary yukawa security device on the",
+  "disengage the primary yukawa security device on",
+  "harness the full cooperative deployment of the",
+  "harness the full cooperative deployment of",
+  "bring into active cooperative deployment the",
+  "bring into active cooperative deployment",
+  "make complete cooperative deployment of the",
+  "make complete cooperative deployment of",
+  "initiate a bellicose confrontation against the",
+  "initiate a bellicose confrontation against",
+  "commence a bellicose confrontation against the",
+  "commence a bellicose confrontation against",
+  "engage in a bellicose confrontation against the",
+  "engage in a bellicose confrontation against",
+  "initiate a theological face to face discussion with the",
+  "initiate a theological face to face discussion with",
+  "engage in a theological face to face discussion with the",
+  "engage in a theological face to face discussion with",
+  "strike up a theological face to face discussion with the",
+  "strike up a theological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
