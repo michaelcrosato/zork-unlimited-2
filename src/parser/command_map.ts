@@ -25561,6 +25561,19 @@ Object.assign(VERB_CATEGORIES, {
   "direct ones vector of cytokinesis towards the coordinates of the location of": ["MOVE"],
   "direct ones vector of cytokinesis towards the coordinates of the location of the": ["MOVE"],
 
+  "navigate one's vector of amitosis towards the location of": ["MOVE"],
+  "navigate one's vector of amitosis towards the location of the": ["MOVE"],
+  "navigate ones vector of amitosis towards the location of": ["MOVE"],
+  "navigate ones vector of amitosis towards the location of the": ["MOVE"],
+  "steer one's vector of amitosis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of amitosis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of amitosis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of amitosis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of amitosis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of amitosis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of amitosis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of amitosis towards the coordinates of the location of the": ["MOVE"],
+
   // Inspection
   "subject to a comprehensive visual identification": ["LOOK_INSPECT"],
   "subject to a comprehensive visual identification the": ["LOOK_INSPECT"],
@@ -25568,6 +25581,13 @@ Object.assign(VERB_CATEGORIES, {
   "subject to a thorough visual identification the": ["LOOK_INSPECT"],
   "subject to a detailed visual identification": ["LOOK_INSPECT"],
   "subject to a detailed visual identification the": ["LOOK_INSPECT"],
+
+  "subject to a comprehensive visual recording": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual recording the": ["LOOK_INSPECT"],
+  "subject to a thorough visual recording": ["LOOK_INSPECT"],
+  "subject to a thorough visual recording the": ["LOOK_INSPECT"],
+  "subject to a detailed visual recording": ["LOOK_INSPECT"],
+  "subject to a detailed visual recording the": ["LOOK_INSPECT"],
 
   // Take
   "assume direct exclusive reserve of": ["TAKE"],
@@ -25577,6 +25597,13 @@ Object.assign(VERB_CATEGORIES, {
   "assume immediate exclusive reserve of": ["TAKE"],
   "assume immediate exclusive reserve of the": ["TAKE"],
 
+  "assume direct exclusive containment of": ["TAKE"],
+  "assume direct exclusive containment of the": ["TAKE"],
+  "assume absolute exclusive containment of": ["TAKE"],
+  "assume absolute exclusive containment of the": ["TAKE"],
+  "assume immediate exclusive containment of": ["TAKE"],
+  "assume immediate exclusive containment of the": ["TAKE"],
+
   // Drop
   "divest oneself of all exclusive reserve of": ["DROP"],
   "divest oneself of all exclusive reserve of the": ["DROP"],
@@ -25584,6 +25611,13 @@ Object.assign(VERB_CATEGORIES, {
   "relinquish all exclusive reserve of the": ["DROP"],
   "free oneself from all exclusive reserve of": ["DROP"],
   "free oneself from all exclusive reserve of the": ["DROP"],
+
+  "divest oneself of all exclusive containment of": ["DROP"],
+  "divest oneself of all exclusive containment of the": ["DROP"],
+  "relinquish all exclusive containment of": ["DROP"],
+  "relinquish all exclusive containment of the": ["DROP"],
+  "free oneself from all exclusive containment of": ["DROP"],
+  "free oneself from all exclusive containment of the": ["DROP"],
 
   // Open/Close
   "force completely and elastomechanically wide open": ["OPEN"],
@@ -25595,6 +25629,15 @@ Object.assign(VERB_CATEGORIES, {
   "seal completely and elastomechanically shut": ["CLOSE"],
   "seal completely and elastomechanically shut the": ["CLOSE"],
 
+  "force completely and thermoelastically wide open": ["OPEN"],
+  "force completely and thermoelastically wide open the": ["OPEN"],
+  "pry completely and thermoelastically wide open": ["OPEN"],
+  "pry completely and thermoelastically wide open the": ["OPEN"],
+  "fasten completely and thermoelastically closed": ["CLOSE"],
+  "fasten completely and thermoelastically closed the": ["CLOSE"],
+  "seal completely and thermoelastically shut": ["CLOSE"],
+  "seal completely and thermoelastically shut the": ["CLOSE"],
+
   // Unlock
   "deactivate all graviton security devices of": ["UNLOCK"],
   "deactivate all graviton security devices of the": ["UNLOCK"],
@@ -25602,6 +25645,13 @@ Object.assign(VERB_CATEGORIES, {
   "bypass all graviton security devices on the": ["UNLOCK"],
   "disengage the primary graviton security device on": ["UNLOCK"],
   "disengage the primary graviton security device on the": ["UNLOCK"],
+
+  "deactivate all smuon security devices of": ["UNLOCK"],
+  "deactivate all smuon security devices of the": ["UNLOCK"],
+  "bypass all smuon security devices on": ["UNLOCK"],
+  "bypass all smuon security devices on the": ["UNLOCK"],
+  "disengage the primary smuon security device on": ["UNLOCK"],
+  "disengage the primary smuon security device on the": ["UNLOCK"],
 
   // Use
   "harness the full integrated deployment of": ["USE"],
@@ -25611,6 +25661,13 @@ Object.assign(VERB_CATEGORIES, {
   "make complete integrated deployment of": ["USE"],
   "make complete integrated deployment of the": ["USE"],
 
+  "harness the full determined deployment of": ["USE"],
+  "harness the full determined deployment of the": ["USE"],
+  "bring into active determined deployment": ["USE"],
+  "bring into active determined deployment the": ["USE"],
+  "make complete determined deployment of": ["USE"],
+  "make complete determined deployment of the": ["USE"],
+
   // Combat
   "initiate a harmful confrontation against": ["FIGHT"],
   "initiate a harmful confrontation against the": ["FIGHT"],
@@ -25619,6 +25676,13 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a harmful confrontation against": ["FIGHT"],
   "engage in a harmful confrontation against the": ["FIGHT"],
 
+  "initiate a disastrous confrontation against": ["FIGHT"],
+  "initiate a disastrous confrontation against the": ["FIGHT"],
+  "commence a disastrous confrontation against": ["FIGHT"],
+  "commence a disastrous confrontation against the": ["FIGHT"],
+  "engage in a disastrous confrontation against": ["FIGHT"],
+  "engage in a disastrous confrontation against the": ["FIGHT"],
+
   // Dialogue
   "initiate a structured face to face discussion with": ["TALK"],
   "initiate a structured face to face discussion with the": ["TALK"],
@@ -25626,6 +25690,13 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a structured face to face discussion with the": ["TALK"],
   "strike up a structured face to face discussion with": ["TALK"],
   "strike up a structured face to face discussion with the": ["TALK"],
+
+  "initiate a systemic face to face discussion with": ["TALK"],
+  "initiate a systemic face to face discussion with the": ["TALK"],
+  "engage in a systemic face to face discussion with": ["TALK"],
+  "engage in a systemic face to face discussion with the": ["TALK"],
+  "strike up a systemic face to face discussion with": ["TALK"],
+  "strike up a systemic face to face discussion with the": ["TALK"]
 });
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -30178,6 +30249,72 @@ compoundVerbs.push(
   "engage in a structured face to face discussion with",
   "strike up a structured face to face discussion with the",
   "strike up a structured face to face discussion with"
+);
+
+// Cycle #169 / Task-F190: Phase 153 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of amitosis towards the location of the",
+  "navigate one's vector of amitosis towards the location of",
+  "navigate ones vector of amitosis towards the location of the",
+  "navigate ones vector of amitosis towards the location of",
+  "steer one's vector of amitosis in the direction of the coordinates of the",
+  "steer one's vector of amitosis in the direction of the coordinates of",
+  "steer ones vector of amitosis in the direction of the coordinates of the",
+  "steer ones vector of amitosis in the direction of the coordinates of",
+  "direct one's vector of amitosis towards the coordinates of the location of the",
+  "direct one's vector of amitosis towards the coordinates of the location of",
+  "direct ones vector of amitosis towards the coordinates of the location of the",
+  "direct ones vector of amitosis towards the coordinates of the location of",
+  "subject to a comprehensive visual recording the",
+  "subject to a comprehensive visual recording",
+  "subject to a thorough visual recording the",
+  "subject to a thorough visual recording",
+  "subject to a detailed visual recording the",
+  "subject to a detailed visual recording",
+  "assume direct exclusive containment of the",
+  "assume direct exclusive containment of",
+  "assume absolute exclusive containment of the",
+  "assume absolute exclusive containment of",
+  "assume immediate exclusive containment of the",
+  "assume immediate exclusive containment of",
+  "divest oneself of all exclusive containment of the",
+  "divest oneself of all exclusive containment of",
+  "relinquish all exclusive containment of the",
+  "relinquish all exclusive containment of",
+  "free oneself from all exclusive containment of the",
+  "free oneself from all exclusive containment of",
+  "force completely and thermoelastically wide open the",
+  "force completely and thermoelastically wide open",
+  "pry completely and thermoelastically wide open the",
+  "pry completely and thermoelastically wide open",
+  "fasten completely and thermoelastically closed the",
+  "fasten completely and thermoelastically closed",
+  "seal completely and thermoelastically shut the",
+  "seal completely and thermoelastically shut",
+  "deactivate all smuon security devices of the",
+  "deactivate all smuon security devices of",
+  "bypass all smuon security devices on the",
+  "bypass all smuon security devices on",
+  "disengage the primary smuon security device on the",
+  "disengage the primary smuon security device on",
+  "harness the full determined deployment of the",
+  "harness the full determined deployment of",
+  "bring into active determined deployment the",
+  "bring into active determined deployment",
+  "make complete determined deployment of the",
+  "make complete determined deployment of",
+  "initiate a disastrous confrontation against the",
+  "initiate a disastrous confrontation against",
+  "commence a disastrous confrontation against the",
+  "commence a disastrous confrontation against",
+  "engage in a disastrous confrontation against the",
+  "engage in a disastrous confrontation against",
+  "initiate a systemic face to face discussion with the",
+  "initiate a systemic face to face discussion with",
+  "engage in a systemic face to face discussion with the",
+  "engage in a systemic face to face discussion with",
+  "strike up a systemic face to face discussion with the",
+  "strike up a systemic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
