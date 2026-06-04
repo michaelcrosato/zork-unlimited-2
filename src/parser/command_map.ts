@@ -23375,7 +23375,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a hermeneutic face to face discussion with": ["TALK"],
   "engage in a hermeneutic face to face discussion with the": ["TALK"],
   "strike up a hermeneutic face to face discussion with": ["TALK"],
-  "strike up a hermeneutic face to face discussion with the": ["TALK"]
+  "strike up a hermeneutic face to face discussion with the": ["TALK"],
+
+  // Cycle #141 / Task-F162: Phase 125 VERB_CATEGORIES mappings
+  // Movement
+  "navigate one's vector of catalysis towards the location of": ["MOVE"],
+  "navigate one's vector of catalysis towards the location of the": ["MOVE"],
+  "navigate ones vector of catalysis towards the location of": ["MOVE"],
+  "navigate ones vector of catalysis towards the location of the": ["MOVE"],
+  "steer one's vector of catalysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of catalysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of catalysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of catalysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of catalysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of catalysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of catalysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of catalysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual abstraction": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual abstraction the": ["LOOK_INSPECT"],
+  "subject to a thorough visual abstraction": ["LOOK_INSPECT"],
+  "subject to a thorough visual abstraction the": ["LOOK_INSPECT"],
+  "subject to a detailed visual abstraction": ["LOOK_INSPECT"],
+  "subject to a detailed visual abstraction the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive assignment of": ["TAKE"],
+  "assume direct exclusive assignment of the": ["TAKE"],
+  "assume absolute exclusive assignment of": ["TAKE"],
+  "assume absolute exclusive assignment of the": ["TAKE"],
+  "assume immediate exclusive assignment of": ["TAKE"],
+  "assume immediate exclusive assignment of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive assignment of": ["DROP"],
+  "divest oneself of all exclusive assignment of the": ["DROP"],
+  "relinquish all exclusive assignment of": ["DROP"],
+  "relinquish all exclusive assignment of the": ["DROP"],
+  "free oneself from all exclusive assignment of": ["DROP"],
+  "free oneself from all exclusive assignment of the": ["DROP"],
+
+  // Open/Close
+  "force completely and isentropically wide open": ["OPEN"],
+  "force completely and isentropically wide open the": ["OPEN"],
+  "pry completely and isentropically wide open": ["OPEN"],
+  "pry completely and isentropically wide open the": ["OPEN"],
+  "fasten completely and isentropically closed": ["CLOSE"],
+  "fasten completely and isentropically closed the": ["CLOSE"],
+  "seal completely and isentropically shut": ["CLOSE"],
+  "seal completely and isentropically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all selectronic security devices of": ["UNLOCK"],
+  "deactivate all selectronic security devices of the": ["UNLOCK"],
+  "bypass all selectronic security devices on": ["UNLOCK"],
+  "bypass all selectronic security devices on the": ["UNLOCK"],
+  "disengage the primary selectronic security device on": ["UNLOCK"],
+  "disengage the primary selectronic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full undeviating deployment of": ["USE"],
+  "harness the full undeviating deployment of the": ["USE"],
+  "bring into active undeviating deployment": ["USE"],
+  "bring into active undeviating deployment the": ["USE"],
+  "make complete undeviating deployment of": ["USE"],
+  "make complete undeviating deployment of the": ["USE"],
+
+  // Combat
+  "initiate a voracious confrontation against": ["FIGHT"],
+  "initiate a voracious confrontation against the": ["FIGHT"],
+  "commence a voracious confrontation against": ["FIGHT"],
+  "commence a voracious confrontation against the": ["FIGHT"],
+  "engage in a voracious confrontation against": ["FIGHT"],
+  "engage in a voracious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a deontological face to face discussion with": ["TALK"],
+  "initiate a deontological face to face discussion with the": ["TALK"],
+  "engage in a deontological face to face discussion with": ["TALK"],
+  "engage in a deontological face to face discussion with the": ["TALK"],
+  "strike up a deontological face to face discussion with": ["TALK"],
+  "strike up a deontological face to face discussion with the": ["TALK"]
 });
 
 
@@ -26085,6 +26166,72 @@ compoundVerbs.push(
   "engage in a hermeneutic face to face discussion with",
   "strike up a hermeneutic face to face discussion with the",
   "strike up a hermeneutic face to face discussion with"
+);
+
+// Cycle #141 / Task-F162: Phase 125 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of catalysis towards the location of the",
+  "navigate one's vector of catalysis towards the location of",
+  "navigate ones vector of catalysis towards the location of the",
+  "navigate ones vector of catalysis towards the location of",
+  "steer one's vector of catalysis in the direction of the coordinates of the",
+  "steer one's vector of catalysis in the direction of the coordinates of",
+  "steer ones vector of catalysis in the direction of the coordinates of the",
+  "steer ones vector of catalysis in the direction of the coordinates of",
+  "direct one's vector of catalysis towards the coordinates of the location of the",
+  "direct one's vector of catalysis towards the coordinates of the location of",
+  "direct ones vector of catalysis towards the coordinates of the location of the",
+  "direct ones vector of catalysis towards the coordinates of the location of",
+  "subject to a comprehensive visual abstraction the",
+  "subject to a comprehensive visual abstraction",
+  "subject to a thorough visual abstraction the",
+  "subject to a thorough visual abstraction",
+  "subject to a detailed visual abstraction the",
+  "subject to a detailed visual abstraction",
+  "assume direct exclusive assignment of the",
+  "assume direct exclusive assignment of",
+  "assume absolute exclusive assignment of the",
+  "assume absolute exclusive assignment of",
+  "assume immediate exclusive assignment of the",
+  "assume immediate exclusive assignment of",
+  "divest oneself of all exclusive assignment of the",
+  "divest oneself of all exclusive assignment of",
+  "relinquish all exclusive assignment of the",
+  "relinquish all exclusive assignment of",
+  "free oneself from all exclusive assignment of the",
+  "free oneself from all exclusive assignment of",
+  "force completely and isentropically wide open the",
+  "force completely and isentropically wide open",
+  "pry completely and isentropically wide open the",
+  "pry completely and isentropically wide open",
+  "fasten completely and isentropically closed the",
+  "fasten completely and isentropically closed",
+  "seal completely and isentropically shut the",
+  "seal completely and isentropically shut",
+  "deactivate all selectronic security devices of the",
+  "deactivate all selectronic security devices of",
+  "bypass all selectronic security devices on the",
+  "bypass all selectronic security devices on",
+  "disengage the primary selectronic security device on the",
+  "disengage the primary selectronic security device on",
+  "harness the full undeviating deployment of the",
+  "harness the full undeviating deployment of",
+  "bring into active undeviating deployment the",
+  "bring into active undeviating deployment",
+  "make complete undeviating deployment of the",
+  "make complete undeviating deployment of",
+  "initiate a voracious confrontation against the",
+  "initiate a voracious confrontation against",
+  "commence a voracious confrontation against the",
+  "commence a voracious confrontation against",
+  "engage in a voracious confrontation against the",
+  "engage in a voracious confrontation against",
+  "initiate a deontological face to face discussion with the",
+  "initiate a deontological face to face discussion with",
+  "engage in a deontological face to face discussion with the",
+  "engage in a deontological face to face discussion with",
+  "strike up a deontological face to face discussion with the",
+  "strike up a deontological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
