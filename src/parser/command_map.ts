@@ -26150,6 +26150,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an academic face to face discussion with the": ["TALK"]
 });
 
+// Cycle #176 / Task-F196: Phase 159 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of organogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of organogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of organogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of organogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of organogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of organogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of organogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of organogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of organogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of organogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of organogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of organogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual categorization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual categorization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual categorization": ["LOOK_INSPECT"],
+  "subject to a thorough visual categorization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual categorization": ["LOOK_INSPECT"],
+  "subject to a detailed visual categorization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive possession of": ["TAKE"],
+  "assume direct exclusive possession of the": ["TAKE"],
+  "assume absolute exclusive possession of": ["TAKE"],
+  "assume absolute exclusive possession of the": ["TAKE"],
+  "assume immediate exclusive possession of": ["TAKE"],
+  "assume immediate exclusive possession of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive possession of": ["DROP"],
+  "divest oneself of all exclusive possession of the": ["DROP"],
+  "relinquish all exclusive possession of": ["DROP"],
+  "relinquish all exclusive possession of the": ["DROP"],
+  "free oneself from all exclusive possession of": ["DROP"],
+  "free oneself from all exclusive possession of the": ["DROP"],
+
+  // Open/Close
+  "force completely and photoelastically wide open": ["OPEN"],
+  "force completely and photoelastically wide open the": ["OPEN"],
+  "pry completely and photoelastically wide open": ["OPEN"],
+  "pry completely and photoelastically wide open the": ["OPEN"],
+  "fasten completely and photoelastically closed": ["CLOSE"],
+  "fasten completely and photoelastically closed the": ["CLOSE"],
+  "seal completely and photoelastically shut": ["CLOSE"],
+  "seal completely and photoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all pentaquark security devices of": ["UNLOCK"],
+  "deactivate all pentaquark security devices of the": ["UNLOCK"],
+  "deactivate all meson security devices of": ["UNLOCK"],
+  "deactivate all meson security devices of the": ["UNLOCK"],
+  "deactivate all baryon security devices of": ["UNLOCK"],
+  "deactivate all baryon security devices of the": ["UNLOCK"],
+  "deactivate all fermion security devices of": ["UNLOCK"],
+  "deactivate all fermion security devices of the": ["UNLOCK"],
+  "bypass all pentaquark security devices on": ["UNLOCK"],
+  "bypass all pentaquark security devices on the": ["UNLOCK"],
+  "bypass all meson security devices on": ["UNLOCK"],
+  "bypass all meson security devices on the": ["UNLOCK"],
+  "bypass all baryon security devices on": ["UNLOCK"],
+  "bypass all baryon security devices on the": ["UNLOCK"],
+  "bypass all fermion security devices on": ["UNLOCK"],
+  "bypass all fermion security devices on the": ["UNLOCK"],
+  "disengage the primary pentaquark security device on": ["UNLOCK"],
+  "disengage the primary pentaquark security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full optimized deployment of": ["USE"],
+  "harness the full optimized deployment of the": ["USE"],
+  "bring into active optimized deployment": ["USE"],
+  "bring into active optimized deployment the": ["USE"],
+  "make complete optimized deployment of": ["USE"],
+  "make complete optimized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a ruinous confrontation against": ["FIGHT"],
+  "initiate a ruinous confrontation against the": ["FIGHT"],
+  "commence a ruinous confrontation against": ["FIGHT"],
+  "commence a ruinous confrontation against the": ["FIGHT"],
+  "engage in a ruinous confrontation against": ["FIGHT"],
+  "engage in a ruinous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an analytical face to face discussion with": ["TALK"],
+  "initiate an analytical face to face discussion with the": ["TALK"],
+  "engage in an analytical face to face discussion with": ["TALK"],
+  "engage in an analytical face to face discussion with the": ["TALK"],
+  "strike up an analytical face to face discussion with": ["TALK"],
+  "strike up an analytical face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -31132,6 +31227,84 @@ compoundVerbs.push(
   "engage in an academic face to face discussion with",
   "strike up an academic face to face discussion with the",
   "strike up an academic face to face discussion with"
+);
+
+// Cycle #176 / Task-F196: Phase 159 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of organogenesis towards the location of the",
+  "navigate one's vector of organogenesis towards the location of",
+  "navigate ones vector of organogenesis towards the location of the",
+  "navigate ones vector of organogenesis towards the location of",
+  "steer one's vector of organogenesis in the direction of the coordinates of the",
+  "steer one's vector of organogenesis in the direction of the coordinates of",
+  "steer ones vector of organogenesis in the direction of the coordinates of the",
+  "steer ones vector of organogenesis in the direction of the coordinates of",
+  "direct one's vector of organogenesis towards the coordinates of the location of the",
+  "direct one's vector of organogenesis towards the coordinates of the location of",
+  "direct ones vector of organogenesis towards the coordinates of the location of the",
+  "direct ones vector of organogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual categorization the",
+  "subject to a comprehensive visual categorization",
+  "subject to a thorough visual categorization the",
+  "subject to a thorough visual categorization",
+  "subject to a detailed visual categorization the",
+  "subject to a detailed visual categorization",
+  "assume direct exclusive possession of the",
+  "assume direct exclusive possession of",
+  "assume absolute exclusive possession of the",
+  "assume absolute exclusive possession of",
+  "assume immediate exclusive possession of the",
+  "assume immediate exclusive possession of",
+  "divest oneself of all exclusive possession of the",
+  "divest oneself of all exclusive possession of",
+  "relinquish all exclusive possession of the",
+  "relinquish all exclusive possession of",
+  "free oneself from all exclusive possession of the",
+  "free oneself from all exclusive possession of",
+  "force completely and photoelastically wide open the",
+  "force completely and photoelastically wide open",
+  "pry completely and photoelastically wide open the",
+  "pry completely and photoelastically wide open",
+  "fasten completely and photoelastically closed the",
+  "fasten completely and photoelastically closed",
+  "seal completely and photoelastically shut the",
+  "seal completely and photoelastically shut",
+  "deactivate all pentaquark security devices of the",
+  "deactivate all pentaquark security devices of",
+  "deactivate all meson security devices of the",
+  "deactivate all meson security devices of",
+  "deactivate all baryon security devices of the",
+  "deactivate all baryon security devices of",
+  "deactivate all fermion security devices of the",
+  "deactivate all fermion security devices of",
+  "bypass all pentaquark security devices on the",
+  "bypass all pentaquark security devices on",
+  "bypass all meson security devices on the",
+  "bypass all meson security devices on",
+  "bypass all baryon security devices on the",
+  "bypass all baryon security devices on",
+  "bypass all fermion security devices on the",
+  "bypass all fermion security devices on",
+  "disengage the primary pentaquark security device on the",
+  "disengage the primary pentaquark security device on",
+  "harness the full optimized deployment of the",
+  "harness the full optimized deployment of",
+  "bring into active optimized deployment the",
+  "bring into active optimized deployment",
+  "make complete optimized deployment of the",
+  "make complete optimized deployment of",
+  "initiate a ruinous confrontation against the",
+  "initiate a ruinous confrontation against",
+  "commence a ruinous confrontation against the",
+  "commence a ruinous confrontation against",
+  "engage in a ruinous confrontation against the",
+  "engage in a ruinous confrontation against",
+  "initiate an analytical face to face discussion with the",
+  "initiate an analytical face to face discussion with",
+  "engage in an analytical face to face discussion with the",
+  "engage in an analytical face to face discussion with",
+  "strike up an analytical face to face discussion with the",
+  "strike up an analytical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
