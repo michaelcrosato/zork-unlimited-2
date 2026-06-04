@@ -25699,6 +25699,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a systemic face to face discussion with the": ["TALK"]
 });
 
+// Cycle #170 / Task-F191: Phase 154 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of mitosis towards the location of": ["MOVE"],
+  "navigate one's vector of mitosis towards the location of the": ["MOVE"],
+  "navigate ones vector of mitosis towards the location of": ["MOVE"],
+  "navigate ones vector of mitosis towards the location of the": ["MOVE"],
+  "steer one's vector of mitosis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of mitosis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of mitosis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of mitosis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of mitosis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of mitosis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of mitosis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of mitosis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual logging": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual logging the": ["LOOK_INSPECT"],
+  "subject to a thorough visual logging": ["LOOK_INSPECT"],
+  "subject to a thorough visual logging the": ["LOOK_INSPECT"],
+  "subject to a detailed visual logging": ["LOOK_INSPECT"],
+  "subject to a detailed visual logging the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive storage of": ["TAKE"],
+  "assume direct exclusive storage of the": ["TAKE"],
+  "assume absolute exclusive storage of": ["TAKE"],
+  "assume absolute exclusive storage of the": ["TAKE"],
+  "assume immediate exclusive storage of": ["TAKE"],
+  "assume immediate exclusive storage of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive storage of": ["DROP"],
+  "divest oneself of all exclusive storage of the": ["DROP"],
+  "relinquish all exclusive storage of": ["DROP"],
+  "relinquish all exclusive storage of the": ["DROP"],
+  "free oneself from all exclusive storage of": ["DROP"],
+  "free oneself from all exclusive storage of the": ["DROP"],
+
+  // Open/Close
+  "force completely and plastomechanically wide open": ["OPEN"],
+  "force completely and plastomechanically wide open the": ["OPEN"],
+  "pry completely and plastomechanically wide open": ["OPEN"],
+  "pry completely and plastomechanically wide open the": ["OPEN"],
+  "fasten completely and plastomechanically closed": ["CLOSE"],
+  "fasten completely and plastomechanically closed the": ["CLOSE"],
+  "seal completely and plastomechanically shut": ["CLOSE"],
+  "seal completely and plastomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all tachyon security devices of": ["UNLOCK"],
+  "deactivate all tachyon security devices of the": ["UNLOCK"],
+  "bypass all tachyon security devices on": ["UNLOCK"],
+  "bypass all tachyon security devices on the": ["UNLOCK"],
+  "disengage the primary tachyon security device on": ["UNLOCK"],
+  "disengage the primary tachyon security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full standardized deployment of": ["USE"],
+  "harness the full standardized deployment of the": ["USE"],
+  "bring into active standardized deployment": ["USE"],
+  "bring into active standardized deployment the": ["USE"],
+  "make complete standardized deployment of": ["USE"],
+  "make complete standardized deployment of the": ["USE"],
+
+  // Combat
+  "initiate an adverse confrontation against": ["FIGHT"],
+  "initiate an adverse confrontation against the": ["FIGHT"],
+  "commence an adverse confrontation against": ["FIGHT"],
+  "commence an adverse confrontation against the": ["FIGHT"],
+  "engage in an adverse confrontation against": ["FIGHT"],
+  "engage in an adverse confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an objective face to face discussion with": ["TALK"],
+  "initiate an objective face to face discussion with the": ["TALK"],
+  "engage in an objective face to face discussion with": ["TALK"],
+  "engage in an objective face to face discussion with the": ["TALK"],
+  "strike up an objective face to face discussion with": ["TALK"],
+  "strike up an objective face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -30315,6 +30398,72 @@ compoundVerbs.push(
   "engage in a systemic face to face discussion with",
   "strike up a systemic face to face discussion with the",
   "strike up a systemic face to face discussion with"
+);
+
+// Cycle #170 / Task-F191: Phase 154 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of mitosis towards the location of the",
+  "navigate one's vector of mitosis towards the location of",
+  "navigate ones vector of mitosis towards the location of the",
+  "navigate ones vector of mitosis towards the location of",
+  "steer one's vector of mitosis in the direction of the coordinates of the",
+  "steer one's vector of mitosis in the direction of the coordinates of",
+  "steer ones vector of mitosis in the direction of the coordinates of the",
+  "steer ones vector of mitosis in the direction of the coordinates of",
+  "direct one's vector of mitosis towards the coordinates of the location of the",
+  "direct one's vector of mitosis towards the coordinates of the location of",
+  "direct ones vector of mitosis towards the coordinates of the location of the",
+  "direct ones vector of mitosis towards the coordinates of the location of",
+  "subject to a comprehensive visual logging the",
+  "subject to a comprehensive visual logging",
+  "subject to a thorough visual logging the",
+  "subject to a thorough visual logging",
+  "subject to a detailed visual logging the",
+  "subject to a detailed visual logging",
+  "assume direct exclusive storage of the",
+  "assume direct exclusive storage of",
+  "assume absolute exclusive storage of the",
+  "assume absolute exclusive storage of",
+  "assume immediate exclusive storage of the",
+  "assume immediate exclusive storage of",
+  "divest oneself of all exclusive storage of the",
+  "divest oneself of all exclusive storage of",
+  "relinquish all exclusive storage of the",
+  "relinquish all exclusive storage of",
+  "free oneself from all exclusive storage of the",
+  "free oneself from all exclusive storage of",
+  "force completely and plastomechanically wide open the",
+  "force completely and plastomechanically wide open",
+  "pry completely and plastomechanically wide open the",
+  "pry completely and plastomechanically wide open",
+  "fasten completely and plastomechanically closed the",
+  "fasten completely and plastomechanically closed",
+  "seal completely and plastomechanically shut the",
+  "seal completely and plastomechanically shut",
+  "deactivate all tachyon security devices of the",
+  "deactivate all tachyon security devices of",
+  "bypass all tachyon security devices on the",
+  "bypass all tachyon security devices on",
+  "disengage the primary tachyon security device on the",
+  "disengage the primary tachyon security device on",
+  "harness the full standardized deployment of the",
+  "harness the full standardized deployment of",
+  "bring into active standardized deployment the",
+  "bring into active standardized deployment",
+  "make complete standardized deployment of the",
+  "make complete standardized deployment of",
+  "initiate an adverse confrontation against the",
+  "initiate an adverse confrontation against",
+  "commence an adverse confrontation against the",
+  "commence an adverse confrontation against",
+  "engage in an adverse confrontation against the",
+  "engage in an adverse confrontation against",
+  "initiate an objective face to face discussion with the",
+  "initiate an objective face to face discussion with",
+  "engage in an objective face to face discussion with the",
+  "engage in an objective face to face discussion with",
+  "strike up an objective face to face discussion with the",
+  "strike up an objective face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
