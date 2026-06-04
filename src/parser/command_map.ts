@@ -21397,6 +21397,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a revelatory face to face discussion with the": ["TALK"]
 });
 
+// Cycle #116 / Task-F138: Phase 101 verb categories
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of propagation towards the location of": ["MOVE"],
+  "navigate one's vector of propagation towards the location of the": ["MOVE"],
+  "navigate ones vector of propagation towards the location of": ["MOVE"],
+  "navigate ones vector of propagation towards the location of the": ["MOVE"],
+  "steer one's vector of propagation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of propagation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of propagation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of propagation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of propagation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of propagation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of propagation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of propagation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual projection": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual projection the": ["LOOK_INSPECT"],
+  "subject to a thorough visual projection": ["LOOK_INSPECT"],
+  "subject to a thorough visual projection the": ["LOOK_INSPECT"],
+  "subject to a detailed visual projection": ["LOOK_INSPECT"],
+  "subject to a detailed visual projection the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive grasp of": ["TAKE"],
+  "assume direct exclusive grasp of the": ["TAKE"],
+  "assume absolute exclusive grasp of": ["TAKE"],
+  "assume absolute exclusive grasp of the": ["TAKE"],
+  "assume immediate exclusive grasp of": ["TAKE"],
+  "assume immediate exclusive grasp of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive grasp of": ["DROP"],
+  "divest oneself of all exclusive grasp of the": ["DROP"],
+  "relinquish all exclusive grasp of": ["DROP"],
+  "relinquish all exclusive grasp of the": ["DROP"],
+  "free oneself from all exclusive grasp of": ["DROP"],
+  "free oneself from all exclusive grasp of the": ["DROP"],
+
+  // Open/Close
+  "force completely and solitonically wide open": ["OPEN"],
+  "force completely and solitonically wide open the": ["OPEN"],
+  "pry completely and solitonically wide open": ["OPEN"],
+  "pry completely and solitonically wide open the": ["OPEN"],
+  "fasten completely and solitonically closed": ["CLOSE"],
+  "fasten completely and solitonically closed the": ["CLOSE"],
+  "seal completely and solitonically shut": ["CLOSE"],
+  "seal completely and solitonically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all multiferroic security devices of": ["UNLOCK"],
+  "deactivate all multiferroic security devices of the": ["UNLOCK"],
+  "bypass all multiferroic security devices on": ["UNLOCK"],
+  "bypass all multiferroic security devices on the": ["UNLOCK"],
+  "disengage the primary multiferroic security device on": ["UNLOCK"],
+  "disengage the primary multiferroic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unrivaled deployment of": ["USE"],
+  "harness the full unrivaled deployment of the": ["USE"],
+  "bring into active unrivaled deployment": ["USE"],
+  "bring into active unrivaled deployment the": ["USE"],
+  "make complete unrivaled deployment of": ["USE"],
+  "make complete unrivaled deployment of the": ["USE"],
+
+  // Combat
+  "initiate an insidious confrontation against": ["FIGHT"],
+  "initiate an insidious confrontation against the": ["FIGHT"],
+  "commence an insidious confrontation against": ["FIGHT"],
+  "commence an insidious confrontation against the": ["FIGHT"],
+  "engage in an insidious confrontation against": ["FIGHT"],
+  "engage in an insidious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an informative face to face discussion with": ["TALK"],
+  "initiate an informative face to face discussion with the": ["TALK"],
+  "engage in an informative face to face discussion with": ["TALK"],
+  "engage in an informative face to face discussion with the": ["TALK"],
+  "strike up an informative face to face discussion with": ["TALK"],
+  "strike up an informative face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -22520,6 +22603,72 @@ compoundVerbs.push(
   "engage in a revelatory face to face discussion with",
   "strike up a revelatory face to face discussion with the",
   "strike up a revelatory face to face discussion with"
+);
+
+// Cycle #116 / Task-F138: Phase 101 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of propagation towards the location of the",
+  "navigate one's vector of propagation towards the location of",
+  "navigate ones vector of propagation towards the location of the",
+  "navigate ones vector of propagation towards the location of",
+  "steer one's vector of propagation in the direction of the coordinates of the",
+  "steer one's vector of propagation in the direction of the coordinates of",
+  "steer ones vector of propagation in the direction of the coordinates of the",
+  "steer ones vector of propagation in the direction of the coordinates of",
+  "direct one's vector of propagation towards the coordinates of the location of the",
+  "direct one's vector of propagation towards the coordinates of the location of",
+  "direct ones vector of propagation towards the coordinates of the location of the",
+  "direct ones vector of propagation towards the coordinates of the location of",
+  "subject to a comprehensive visual projection the",
+  "subject to a comprehensive visual projection",
+  "subject to a thorough visual projection the",
+  "subject to a thorough visual projection",
+  "subject to a detailed visual projection the",
+  "subject to a detailed visual projection",
+  "assume direct exclusive grasp of the",
+  "assume direct exclusive grasp of",
+  "assume absolute exclusive grasp of the",
+  "assume absolute exclusive grasp of",
+  "assume immediate exclusive grasp of the",
+  "assume immediate exclusive grasp of",
+  "divest oneself of all exclusive grasp of the",
+  "divest oneself of all exclusive grasp of",
+  "relinquish all exclusive grasp of the",
+  "relinquish all exclusive grasp of",
+  "free oneself from all exclusive grasp of the",
+  "free oneself from all exclusive grasp of",
+  "force completely and solitonically wide open the",
+  "force completely and solitonically wide open",
+  "pry completely and solitonically wide open the",
+  "pry completely and solitonically wide open",
+  "fasten completely and solitonically closed the",
+  "fasten completely and solitonically closed",
+  "seal completely and solitonically shut the",
+  "seal completely and solitonically shut",
+  "deactivate all multiferroic security devices of the",
+  "deactivate all multiferroic security devices of",
+  "bypass all multiferroic security devices on the",
+  "bypass all multiferroic security devices on",
+  "disengage the primary multiferroic security device on the",
+  "disengage the primary multiferroic security device on",
+  "harness the full unrivaled deployment of the",
+  "harness the full unrivaled deployment of",
+  "bring into active unrivaled deployment the",
+  "bring into active unrivaled deployment",
+  "make complete unrivaled deployment of the",
+  "make complete unrivaled deployment of",
+  "initiate an insidious confrontation against the",
+  "initiate an insidious confrontation against",
+  "commence an insidious confrontation against the",
+  "commence an insidious confrontation against",
+  "engage in an insidious confrontation against the",
+  "engage in an insidious confrontation against",
+  "initiate an informative face to face discussion with the",
+  "initiate an informative face to face discussion with",
+  "engage in an informative face to face discussion with the",
+  "engage in an informative face to face discussion with",
+  "strike up an informative face to face discussion with the",
+  "strike up an informative face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
