@@ -29966,6 +29966,107 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an arachnological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #219 / Task-F237: Phase 199 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of nucleogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of nucleogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of nucleogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of nucleogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of nucleogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of nucleogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of nucleogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of nucleogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of nucleogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of nucleogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of nucleogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of nucleogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual overview": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual overview the": ["LOOK_INSPECT"],
+  "subject to a thorough visual overview": ["LOOK_INSPECT"],
+  "subject to a thorough visual overview the": ["LOOK_INSPECT"],
+  "subject to a detailed visual overview": ["LOOK_INSPECT"],
+  "subject to a detailed visual overview the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive arrangement of": ["TAKE"],
+  "assume direct exclusive arrangement of the": ["TAKE"],
+  "assume absolute exclusive arrangement of": ["TAKE"],
+  "assume absolute exclusive arrangement of the": ["TAKE"],
+  "assume immediate exclusive arrangement of": ["TAKE"],
+  "assume immediate exclusive arrangement of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive arrangement of": ["DROP"],
+  "divest oneself of all exclusive arrangement of the": ["DROP"],
+  "relinquish all exclusive arrangement of": ["DROP"],
+  "relinquish all exclusive arrangement of the": ["DROP"],
+  "free oneself from all exclusive arrangement of": ["DROP"],
+  "free oneself from all exclusive arrangement of the": ["DROP"],
+
+  // Open/Close
+  "force completely and chemomechanically wide open": ["OPEN"],
+  "force completely and chemomechanically wide open the": ["OPEN"],
+  "pry completely and chemomechanically wide open": ["OPEN"],
+  "pry completely and chemomechanically wide open the": ["OPEN"],
+  "fasten completely and chemomechanically closed": ["CLOSE"],
+  "fasten completely and chemomechanically closed the": ["CLOSE"],
+  "seal completely and chemomechanically shut": ["CLOSE"],
+  "seal completely and chemomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all euclid security devices of": ["UNLOCK"],
+  "deactivate all euclid security devices of the": ["UNLOCK"],
+  "deactivate all pythagoras security devices of": ["UNLOCK"],
+  "deactivate all pythagoras security devices of the": ["UNLOCK"],
+  "deactivate all archimedes security devices of": ["UNLOCK"],
+  "deactivate all archimedes security devices of the": ["UNLOCK"],
+  "deactivate all hypatia security devices of": ["UNLOCK"],
+  "deactivate all hypatia security devices of the": ["UNLOCK"],
+  "bypass all euclid security devices on": ["UNLOCK"],
+  "bypass all euclid security devices on the": ["UNLOCK"],
+  "bypass all pythagoras security devices on": ["UNLOCK"],
+  "bypass all pythagoras security devices on the": ["UNLOCK"],
+  "bypass all archimedes security devices on": ["UNLOCK"],
+  "bypass all archimedes security devices on the": ["UNLOCK"],
+  "bypass all hypatia security devices on": ["UNLOCK"],
+  "bypass all hypatia security devices on the": ["UNLOCK"],
+  "disengage the primary euclid security device on": ["UNLOCK"],
+  "disengage the primary euclid security device on the": ["UNLOCK"],
+  "disengage the primary pythagoras security device on": ["UNLOCK"],
+  "disengage the primary pythagoras security device on the": ["UNLOCK"],
+  "disengage the primary archimedes security device on": ["UNLOCK"],
+  "disengage the primary archimedes security device on the": ["UNLOCK"],
+  "disengage the primary hypatia security device on": ["UNLOCK"],
+  "disengage the primary hypatia security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full magnetotropic deployment of": ["USE"],
+  "harness the full magnetotropic deployment of the": ["USE"],
+  "bring into active magnetotropic deployment": ["USE"],
+  "bring into active magnetotropic deployment the": ["USE"],
+  "make complete magnetotropic deployment of": ["USE"],
+  "make complete magnetotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unflinchingly aggressive confrontation against": ["FIGHT"],
+  "initiate an unflinchingly aggressive confrontation against the": ["FIGHT"],
+  "commence an unflinchingly aggressive confrontation against": ["FIGHT"],
+  "commence an unflinchingly aggressive confrontation against the": ["FIGHT"],
+  "engage in an unflinchingly aggressive confrontation against": ["FIGHT"],
+  "engage in an unflinchingly aggressive confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an immunological face to face discussion with": ["TALK"],
+  "initiate an immunological face to face discussion with the": ["TALK"],
+  "engage in an immunological face to face discussion with": ["TALK"],
+  "engage in an immunological face to face discussion with the": ["TALK"],
+  "strike up an immunological face to face discussion with": ["TALK"],
+  "strike up an immunological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -38089,6 +38190,90 @@ compoundVerbs.push(
   "engage in an arachnological face to face discussion with",
   "strike up an arachnological face to face discussion with the",
   "strike up an arachnological face to face discussion with"
+);
+
+// Cycle #219 / Task-F237: Phase 199 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of nucleogenesis towards the location of the",
+  "navigate one's vector of nucleogenesis towards the location of",
+  "navigate ones vector of nucleogenesis towards the location of the",
+  "navigate ones vector of nucleogenesis towards the location of",
+  "steer one's vector of nucleogenesis in the direction of the coordinates of the",
+  "steer one's vector of nucleogenesis in the direction of the coordinates of",
+  "steer ones vector of nucleogenesis in the direction of the coordinates of the",
+  "steer ones vector of nucleogenesis in the direction of the coordinates of",
+  "direct one's vector of nucleogenesis towards the coordinates of the location of the",
+  "direct one's vector of nucleogenesis towards the coordinates of the location of",
+  "direct ones vector of nucleogenesis towards the coordinates of the location of the",
+  "direct ones vector of nucleogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual overview the",
+  "subject to a comprehensive visual overview",
+  "subject to a thorough visual overview the",
+  "subject to a thorough visual overview",
+  "subject to a detailed visual overview the",
+  "subject to a detailed visual overview",
+  "assume direct exclusive arrangement of the",
+  "assume direct exclusive arrangement of",
+  "assume absolute exclusive arrangement of the",
+  "assume absolute exclusive arrangement of",
+  "assume immediate exclusive arrangement of the",
+  "assume immediate exclusive arrangement of",
+  "divest oneself of all exclusive arrangement of the",
+  "divest oneself of all exclusive arrangement of",
+  "relinquish all exclusive arrangement of the",
+  "relinquish all exclusive arrangement of",
+  "free oneself from all exclusive arrangement of the",
+  "free oneself from all exclusive arrangement of",
+  "force completely and chemomechanically wide open the",
+  "force completely and chemomechanically wide open",
+  "pry completely and chemomechanically wide open the",
+  "pry completely and chemomechanically wide open",
+  "fasten completely and chemomechanically closed the",
+  "fasten completely and chemomechanically closed",
+  "seal completely and chemomechanically shut the",
+  "seal completely and chemomechanically shut",
+  "deactivate all euclid security devices of the",
+  "deactivate all euclid security devices of",
+  "deactivate all pythagoras security devices of the",
+  "deactivate all pythagoras security devices of",
+  "deactivate all archimedes security devices of the",
+  "deactivate all archimedes security devices of",
+  "deactivate all hypatia security devices of the",
+  "deactivate all hypatia security devices of",
+  "bypass all euclid security devices on the",
+  "bypass all euclid security devices on",
+  "bypass all pythagoras security devices on the",
+  "bypass all pythagoras security devices on",
+  "bypass all archimedes security devices on the",
+  "bypass all archimedes security devices on",
+  "bypass all hypatia security devices on the",
+  "bypass all hypatia security devices on",
+  "disengage the primary euclid security device on the",
+  "disengage the primary euclid security device on",
+  "disengage the primary pythagoras security device on the",
+  "disengage the primary pythagoras security device on",
+  "disengage the primary archimedes security device on the",
+  "disengage the primary archimedes security device on",
+  "disengage the primary hypatia security device on the",
+  "disengage the primary hypatia security device on",
+  "harness the full magnetotropic deployment of the",
+  "harness the full magnetotropic deployment of",
+  "bring into active magnetotropic deployment the",
+  "bring into active magnetotropic deployment",
+  "make complete magnetotropic deployment of the",
+  "make complete magnetotropic deployment of",
+  "initiate an unflinchingly aggressive confrontation against the",
+  "initiate an unflinchingly aggressive confrontation against",
+  "commence an unflinchingly aggressive confrontation against the",
+  "commence an unflinchingly aggressive confrontation against",
+  "engage in an unflinchingly aggressive confrontation against the",
+  "engage in an unflinchingly aggressive confrontation against",
+  "initiate an immunological face to face discussion with the",
+  "initiate an immunological face to face discussion with",
+  "engage in an immunological face to face discussion with the",
+  "engage in an immunological face to face discussion with",
+  "strike up an immunological face to face discussion with the",
+  "strike up an immunological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
