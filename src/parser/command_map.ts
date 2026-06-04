@@ -23132,7 +23132,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an epistemological face to face discussion with": ["TALK"],
   "engage in an epistemological face to face discussion with the": ["TALK"],
   "strike up an epistemological face to face discussion with": ["TALK"],
-  "strike up an epistemological face to face discussion with the": ["TALK"]
+  "strike up an epistemological face to face discussion with the": ["TALK"],
+
+  // Cycle #138 / Task-F159: Phase 122 VERB_CATEGORIES mappings
+  // Movement
+  "navigate one's vector of photolysis towards the location of": ["MOVE"],
+  "navigate one's vector of photolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of photolysis towards the location of": ["MOVE"],
+  "navigate ones vector of photolysis towards the location of the": ["MOVE"],
+  "steer one's vector of photolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of photolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of photolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of photolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of photolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of photolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of photolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of photolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual magnification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual magnification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual magnification": ["LOOK_INSPECT"],
+  "subject to a thorough visual magnification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual magnification": ["LOOK_INSPECT"],
+  "subject to a detailed visual magnification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive warrant of": ["TAKE"],
+  "assume direct exclusive warrant of the": ["TAKE"],
+  "assume absolute exclusive warrant of": ["TAKE"],
+  "assume absolute exclusive warrant of the": ["TAKE"],
+  "assume immediate exclusive warrant of": ["TAKE"],
+  "assume immediate exclusive warrant of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive warrant of": ["DROP"],
+  "divest oneself of all exclusive warrant of the": ["DROP"],
+  "relinquish all exclusive warrant of": ["DROP"],
+  "relinquish all exclusive warrant of the": ["DROP"],
+  "free oneself from all exclusive warrant of": ["DROP"],
+  "free oneself from all exclusive warrant of the": ["DROP"],
+
+  // Open/Close
+  "force completely and isothermally wide open": ["OPEN"],
+  "force completely and isothermally wide open the": ["OPEN"],
+  "pry completely and isothermally wide open": ["OPEN"],
+  "pry completely and isothermally wide open the": ["OPEN"],
+  "fasten completely and isothermally closed": ["CLOSE"],
+  "fasten completely and isothermally closed the": ["CLOSE"],
+  "seal completely and isothermally shut": ["CLOSE"],
+  "seal completely and isothermally shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all pionic security devices of": ["UNLOCK"],
+  "deactivate all pionic security devices of the": ["UNLOCK"],
+  "bypass all pionic security devices on": ["UNLOCK"],
+  "bypass all pionic security devices on the": ["UNLOCK"],
+  "disengage the primary pionic security device on": ["UNLOCK"],
+  "disengage the primary pionic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unswerving deployment of": ["USE"],
+  "harness the full unswerving deployment of the": ["USE"],
+  "bring into active unswerving deployment": ["USE"],
+  "bring into active unswerving deployment the": ["USE"],
+  "make complete unswerving deployment of": ["USE"],
+  "make complete unswerving deployment of the": ["USE"],
+
+  // Combat
+  "initiate a lethal confrontation against": ["FIGHT"],
+  "initiate a lethal confrontation against the": ["FIGHT"],
+  "commence a lethal confrontation against": ["FIGHT"],
+  "commence a lethal confrontation against the": ["FIGHT"],
+  "engage in a lethal confrontation against": ["FIGHT"],
+  "engage in a lethal confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an ontological face to face discussion with": ["TALK"],
+  "initiate an ontological face to face discussion with the": ["TALK"],
+  "engage in an ontological face to face discussion with": ["TALK"],
+  "engage in an ontological face to face discussion with the": ["TALK"],
+  "strike up an ontological face to face discussion with": ["TALK"],
+  "strike up an ontological face to face discussion with the": ["TALK"]
 });
 
 
@@ -25644,6 +25725,72 @@ compoundVerbs.push(
   "engage in an epistemological face to face discussion with",
   "strike up an epistemological face to face discussion with the",
   "strike up an epistemological face to face discussion with"
+);
+
+// Cycle #138 / Task-F159: Phase 122 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of photolysis towards the location of the",
+  "navigate one's vector of photolysis towards the location of",
+  "navigate ones vector of photolysis towards the location of the",
+  "navigate ones vector of photolysis towards the location of",
+  "steer one's vector of photolysis in the direction of the coordinates of the",
+  "steer one's vector of photolysis in the direction of the coordinates of",
+  "steer ones vector of photolysis in the direction of the coordinates of the",
+  "steer ones vector of photolysis in the direction of the coordinates of",
+  "direct one's vector of photolysis towards the coordinates of the location of the",
+  "direct one's vector of photolysis towards the coordinates of the location of",
+  "direct ones vector of photolysis towards the coordinates of the location of the",
+  "direct ones vector of photolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual magnification the",
+  "subject to a comprehensive visual magnification",
+  "subject to a thorough visual magnification the",
+  "subject to a thorough visual magnification",
+  "subject to a detailed visual magnification the",
+  "subject to a detailed visual magnification",
+  "assume direct exclusive warrant of the",
+  "assume direct exclusive warrant of",
+  "assume absolute exclusive warrant of the",
+  "assume absolute exclusive warrant of",
+  "assume immediate exclusive warrant of the",
+  "assume immediate exclusive warrant of",
+  "divest oneself of all exclusive warrant of the",
+  "divest oneself of all exclusive warrant of",
+  "relinquish all exclusive warrant of the",
+  "relinquish all exclusive warrant of",
+  "free oneself from all exclusive warrant of the",
+  "free oneself from all exclusive warrant of",
+  "force completely and isothermally wide open the",
+  "force completely and isothermally wide open",
+  "pry completely and isothermally wide open the",
+  "pry completely and isothermally wide open",
+  "fasten completely and isothermally closed the",
+  "fasten completely and isothermally closed",
+  "seal completely and isothermally shut the",
+  "seal completely and isothermally shut",
+  "deactivate all pionic security devices of the",
+  "deactivate all pionic security devices of",
+  "bypass all pionic security devices on the",
+  "bypass all pionic security devices on",
+  "disengage the primary pionic security device on the",
+  "disengage the primary pionic security device on",
+  "harness the full unswerving deployment of the",
+  "harness the full unswerving deployment of",
+  "bring into active unswerving deployment the",
+  "bring into active unswerving deployment",
+  "make complete unswerving deployment of the",
+  "make complete unswerving deployment of",
+  "initiate a lethal confrontation against the",
+  "initiate a lethal confrontation against",
+  "commence a lethal confrontation against the",
+  "commence a lethal confrontation against",
+  "engage in a lethal confrontation against the",
+  "engage in a lethal confrontation against",
+  "initiate an ontological face to face discussion with the",
+  "initiate an ontological face to face discussion with",
+  "engage in an ontological face to face discussion with the",
+  "engage in an ontological face to face discussion with",
+  "strike up an ontological face to face discussion with the",
+  "strike up an ontological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
