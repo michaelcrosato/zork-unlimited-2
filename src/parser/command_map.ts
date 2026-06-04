@@ -22806,6 +22806,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a theological face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #134 / Task-F155: Phase 118
+  // Movement
+  "navigate one's vector of fusion towards the location of": ["MOVE"],
+  "navigate one's vector of fusion towards the location of the": ["MOVE"],
+  "navigate ones vector of fusion towards the location of": ["MOVE"],
+  "navigate ones vector of fusion towards the location of the": ["MOVE"],
+  "steer one's vector of fusion in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of fusion in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of fusion in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of fusion in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of fusion towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of fusion towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of fusion towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of fusion towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual decryption": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual decryption the": ["LOOK_INSPECT"],
+  "subject to a thorough visual decryption": ["LOOK_INSPECT"],
+  "subject to a thorough visual decryption the": ["LOOK_INSPECT"],
+  "subject to a detailed visual decryption": ["LOOK_INSPECT"],
+  "subject to a detailed visual decryption the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive title of": ["TAKE"],
+  "assume direct exclusive title of the": ["TAKE"],
+  "assume absolute exclusive title of": ["TAKE"],
+  "assume absolute exclusive title of the": ["TAKE"],
+  "assume immediate exclusive title of": ["TAKE"],
+  "assume immediate exclusive title of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive title of": ["DROP"],
+  "divest oneself of all exclusive title of the": ["DROP"],
+  "relinquish all exclusive title of": ["DROP"],
+  "relinquish all exclusive title of the": ["DROP"],
+  "free oneself from all exclusive title of": ["DROP"],
+  "free oneself from all exclusive title of the": ["DROP"],
+
+  // Open/Close
+  "force completely and photomechanically wide open": ["OPEN"],
+  "force completely and photomechanically wide open the": ["OPEN"],
+  "pry completely and photomechanically wide open": ["OPEN"],
+  "pry completely and photomechanically wide open the": ["OPEN"],
+  "fasten completely and photomechanically closed": ["CLOSE"],
+  "fasten completely and photomechanically closed the": ["CLOSE"],
+  "seal completely and photomechanically shut": ["CLOSE"],
+  "seal completely and photomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all dilatonic security devices of": ["UNLOCK"],
+  "deactivate all dilatonic security devices of the": ["UNLOCK"],
+  "bypass all dilatonic security devices on": ["UNLOCK"],
+  "bypass all dilatonic security devices on the": ["UNLOCK"],
+  "disengage the primary dilatonic security device on": ["UNLOCK"],
+  "disengage the primary dilatonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unwavering deployment of": ["USE"],
+  "harness the full unwavering deployment of the": ["USE"],
+  "bring into active unwavering deployment": ["USE"],
+  "bring into active unwavering deployment the": ["USE"],
+  "make complete unwavering deployment of": ["USE"],
+  "make complete unwavering deployment of the": ["USE"],
+
+  // Combat
+  "initiate a wrathful confrontation against": ["FIGHT"],
+  "initiate a wrathful confrontation against the": ["FIGHT"],
+  "commence a wrathful confrontation against": ["FIGHT"],
+  "commence a wrathful confrontation against the": ["FIGHT"],
+  "engage in a wrathful confrontation against": ["FIGHT"],
+  "engage in a wrathful confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a metaphysical face to face discussion with": ["TALK"],
+  "initiate a metaphysical face to face discussion with the": ["TALK"],
+  "engage in a metaphysical face to face discussion with": ["TALK"],
+  "engage in a metaphysical face to face discussion with the": ["TALK"],
+  "strike up a metaphysical face to face discussion with": ["TALK"],
+  "strike up a metaphysical face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -25051,6 +25134,72 @@ compoundVerbs.push(
   "engage in a theological face to face discussion with",
   "strike up a theological face to face discussion with the",
   "strike up a theological face to face discussion with"
+);
+
+// Cycle #134 / Task-F155: Phase 118 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of fusion towards the location of the",
+  "navigate one's vector of fusion towards the location of",
+  "navigate ones vector of fusion towards the location of the",
+  "navigate ones vector of fusion towards the location of",
+  "steer one's vector of fusion in the direction of the coordinates of the",
+  "steer one's vector of fusion in the direction of the coordinates of",
+  "steer ones vector of fusion in the direction of the coordinates of the",
+  "steer ones vector of fusion in the direction of the coordinates of",
+  "direct one's vector of fusion towards the coordinates of the location of the",
+  "direct one's vector of fusion towards the coordinates of the location of",
+  "direct ones vector of fusion towards the coordinates of the location of the",
+  "direct ones vector of fusion towards the coordinates of the location of",
+  "subject to a comprehensive visual decryption the",
+  "subject to a comprehensive visual decryption",
+  "subject to a thorough visual decryption the",
+  "subject to a thorough visual decryption",
+  "subject to a detailed visual decryption the",
+  "subject to a detailed visual decryption",
+  "assume direct exclusive title of the",
+  "assume direct exclusive title of",
+  "assume absolute exclusive title of the",
+  "assume absolute exclusive title of",
+  "assume immediate exclusive title of the",
+  "assume immediate exclusive title of",
+  "divest oneself of all exclusive title of the",
+  "divest oneself of all exclusive title of",
+  "relinquish all exclusive title of the",
+  "relinquish all exclusive title of",
+  "free oneself from all exclusive title of the",
+  "free oneself from all exclusive title of",
+  "force completely and photomechanically wide open the",
+  "force completely and photomechanically wide open",
+  "pry completely and photomechanically wide open the",
+  "pry completely and photomechanically wide open",
+  "fasten completely and photomechanically closed the",
+  "fasten completely and photomechanically closed",
+  "seal completely and photomechanically shut the",
+  "seal completely and photomechanically shut",
+  "deactivate all dilatonic security devices of the",
+  "deactivate all dilatonic security devices of",
+  "bypass all dilatonic security devices on the",
+  "bypass all dilatonic security devices on",
+  "disengage the primary dilatonic security device on the",
+  "disengage the primary dilatonic security device on",
+  "harness the full unwavering deployment of the",
+  "harness the full unwavering deployment of",
+  "bring into active unwavering deployment the",
+  "bring into active unwavering deployment",
+  "make complete unwavering deployment of the",
+  "make complete unwavering deployment of",
+  "initiate a wrathful confrontation against the",
+  "initiate a wrathful confrontation against",
+  "commence a wrathful confrontation against the",
+  "commence a wrathful confrontation against",
+  "engage in a wrathful confrontation against the",
+  "engage in a wrathful confrontation against",
+  "initiate a metaphysical face to face discussion with the",
+  "initiate a metaphysical face to face discussion with",
+  "engage in a metaphysical face to face discussion with the",
+  "engage in a metaphysical face to face discussion with",
+  "strike up a metaphysical face to face discussion with the",
+  "strike up a metaphysical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
