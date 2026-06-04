@@ -28428,6 +28428,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an eschatological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #201 / Task-F220: Phase 183 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of cardiogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of cardiogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of cardiogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of cardiogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of cardiogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of cardiogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of cardiogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of cardiogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of cardiogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of cardiogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of cardiogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of cardiogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual calibration": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual calibration the": ["LOOK_INSPECT"],
+  "subject to a thorough visual calibration": ["LOOK_INSPECT"],
+  "subject to a thorough visual calibration the": ["LOOK_INSPECT"],
+  "subject to a detailed visual calibration": ["LOOK_INSPECT"],
+  "subject to a detailed visual calibration the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive covering of": ["TAKE"],
+  "assume direct exclusive covering of the": ["TAKE"],
+  "assume absolute exclusive covering of": ["TAKE"],
+  "assume absolute exclusive covering of the": ["TAKE"],
+  "assume immediate exclusive covering of": ["TAKE"],
+  "assume immediate exclusive covering of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive covering of": ["DROP"],
+  "divest oneself of all exclusive covering of the": ["DROP"],
+  "relinquish all exclusive covering of": ["DROP"],
+  "relinquish all exclusive covering of the": ["DROP"],
+  "free oneself from all exclusive covering of": ["DROP"],
+  "free oneself from all exclusive covering of the": ["DROP"],
+
+  // Open/Close
+  "force completely and thermoviscoelastically wide open": ["OPEN"],
+  "force completely and thermoviscoelastically wide open the": ["OPEN"],
+  "pry completely and thermoviscoelastically wide open": ["OPEN"],
+  "pry completely and thermoviscoelastically wide open the": ["OPEN"],
+  "fasten completely and thermoviscoelastically closed": ["CLOSE"],
+  "fasten completely and thermoviscoelastically closed the": ["CLOSE"],
+  "seal completely and thermoviscoelastically shut": ["CLOSE"],
+  "seal completely and thermoviscoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all clausius security devices of": ["UNLOCK"],
+  "deactivate all clausius security devices of the": ["UNLOCK"],
+  "deactivate all boltzmann security devices of": ["UNLOCK"],
+  "deactivate all boltzmann security devices of the": ["UNLOCK"],
+  "deactivate all gibbs security devices of": ["UNLOCK"],
+  "deactivate all gibbs security devices of the": ["UNLOCK"],
+  "deactivate all carnot security devices of": ["UNLOCK"],
+  "deactivate all carnot security devices of the": ["UNLOCK"],
+  "bypass all clausius security devices on": ["UNLOCK"],
+  "bypass all clausius security devices on the": ["UNLOCK"],
+  "bypass all boltzmann security devices on": ["UNLOCK"],
+  "bypass all boltzmann security devices on the": ["UNLOCK"],
+  "bypass all gibbs security devices on": ["UNLOCK"],
+  "bypass all gibbs security devices on the": ["UNLOCK"],
+  "bypass all carnot security devices on": ["UNLOCK"],
+  "bypass all carnot security devices on the": ["UNLOCK"],
+  "disengage the primary clausius security device on": ["UNLOCK"],
+  "disengage the primary clausius security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full isotropic deployment of": ["USE"],
+  "harness the full isotropic deployment of the": ["USE"],
+  "bring into active isotropic deployment": ["USE"],
+  "bring into active isotropic deployment the": ["USE"],
+  "make complete isotropic deployment of": ["USE"],
+  "make complete isotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an irreconcilable confrontation against": ["FIGHT"],
+  "initiate an irreconcilable confrontation against the": ["FIGHT"],
+  "commence an irreconcilable confrontation against": ["FIGHT"],
+  "commence an irreconcilable confrontation against the": ["FIGHT"],
+  "engage in an irreconcilable confrontation against": ["FIGHT"],
+  "engage in an irreconcilable confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a seismological face to face discussion with": ["TALK"],
+  "initiate a seismological face to face discussion with the": ["TALK"],
+  "engage in a seismological face to face discussion with": ["TALK"],
+  "engage in a seismological face to face discussion with the": ["TALK"],
+  "strike up a seismological face to face discussion with": ["TALK"],
+  "strike up a seismological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -35285,6 +35380,84 @@ compoundVerbs.push(
   "engage in an eschatological face to face discussion with",
   "strike up an eschatological face to face discussion with the",
   "strike up an eschatological face to face discussion with"
+);
+
+// Cycle #201 / Task-F220: Phase 183 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of cardiogenesis towards the location of the",
+  "navigate one's vector of cardiogenesis towards the location of",
+  "navigate ones vector of cardiogenesis towards the location of the",
+  "navigate ones vector of cardiogenesis towards the location of",
+  "steer one's vector of cardiogenesis in the direction of the coordinates of the",
+  "steer one's vector of cardiogenesis in the direction of the coordinates of",
+  "steer ones vector of cardiogenesis in the direction of the coordinates of the",
+  "steer ones vector of cardiogenesis in the direction of the coordinates of",
+  "direct one's vector of cardiogenesis towards the coordinates of the location of the",
+  "direct one's vector of cardiogenesis towards the coordinates of the location of",
+  "direct ones vector of cardiogenesis towards the coordinates of the location of the",
+  "direct ones vector of cardiogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual calibration the",
+  "subject to a comprehensive visual calibration",
+  "subject to a thorough visual calibration the",
+  "subject to a thorough visual calibration",
+  "subject to a detailed visual calibration the",
+  "subject to a detailed visual calibration",
+  "assume direct exclusive covering of the",
+  "assume direct exclusive covering of",
+  "assume absolute exclusive covering of the",
+  "assume absolute exclusive covering of",
+  "assume immediate exclusive covering of the",
+  "assume immediate exclusive covering of",
+  "divest oneself of all exclusive covering of the",
+  "divest oneself of all exclusive covering of",
+  "relinquish all exclusive covering of the",
+  "relinquish all exclusive covering of",
+  "free oneself from all exclusive covering of the",
+  "free oneself from all exclusive covering of",
+  "force completely and thermoviscoelastically wide open the",
+  "force completely and thermoviscoelastically wide open",
+  "pry completely and thermoviscoelastically wide open the",
+  "pry completely and thermoviscoelastically wide open",
+  "fasten completely and thermoviscoelastically closed the",
+  "fasten completely and thermoviscoelastically closed",
+  "seal completely and thermoviscoelastically shut the",
+  "seal completely and thermoviscoelastically shut",
+  "deactivate all clausius security devices of the",
+  "deactivate all clausius security devices of",
+  "deactivate all boltzmann security devices of the",
+  "deactivate all boltzmann security devices of",
+  "deactivate all gibbs security devices of the",
+  "deactivate all gibbs security devices of",
+  "deactivate all carnot security devices of the",
+  "deactivate all carnot security devices of",
+  "bypass all clausius security devices on the",
+  "bypass all clausius security devices on",
+  "bypass all boltzmann security devices on the",
+  "bypass all boltzmann security devices on",
+  "bypass all gibbs security devices on the",
+  "bypass all gibbs security devices on",
+  "bypass all carnot security devices on the",
+  "bypass all carnot security devices on",
+  "disengage the primary clausius security device on the",
+  "disengage the primary clausius security device on",
+  "harness the full isotropic deployment of the",
+  "harness the full isotropic deployment of",
+  "bring into active isotropic deployment the",
+  "bring into active isotropic deployment",
+  "make complete isotropic deployment of the",
+  "make complete isotropic deployment of",
+  "initiate an irreconcilable confrontation against the",
+  "initiate an irreconcilable confrontation against",
+  "commence an irreconcilable confrontation against the",
+  "commence an irreconcilable confrontation against",
+  "engage in an irreconcilable confrontation against the",
+  "engage in an irreconcilable confrontation against",
+  "initiate a seismological face to face discussion with the",
+  "initiate a seismological face to face discussion with",
+  "engage in a seismological face to face discussion with the",
+  "engage in a seismological face to face discussion with",
+  "strike up a seismological face to face discussion with the",
+  "strike up a seismological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
