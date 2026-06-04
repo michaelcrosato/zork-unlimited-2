@@ -29188,6 +29188,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a petrological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #210 / Task-F229: Phase 191 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of meiosis towards the location of": ["MOVE"],
+  "navigate one's vector of meiosis towards the location of the": ["MOVE"],
+  "navigate ones vector of meiosis towards the location of": ["MOVE"],
+  "navigate ones vector of meiosis towards the location of the": ["MOVE"],
+  "steer one's vector of meiosis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of meiosis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of meiosis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of meiosis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of meiosis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of meiosis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of meiosis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of meiosis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual integration": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual integration the": ["LOOK_INSPECT"],
+  "subject to a thorough visual integration": ["LOOK_INSPECT"],
+  "subject to a thorough visual integration the": ["LOOK_INSPECT"],
+  "subject to a detailed visual integration": ["LOOK_INSPECT"],
+  "subject to a detailed visual integration the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive encompassing of": ["TAKE"],
+  "assume direct exclusive encompassing of the": ["TAKE"],
+  "assume absolute exclusive encompassing of": ["TAKE"],
+  "assume absolute exclusive encompassing of the": ["TAKE"],
+  "assume immediate exclusive encompassing of": ["TAKE"],
+  "assume immediate exclusive encompassing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive encompassing of": ["DROP"],
+  "divest oneself of all exclusive encompassing of the": ["DROP"],
+  "relinquish all exclusive encompassing of": ["DROP"],
+  "relinquish all exclusive encompassing of the": ["DROP"],
+  "free oneself from all exclusive encompassing of": ["DROP"],
+  "free oneself from all exclusive encompassing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and ferrofluidically wide open": ["OPEN"],
+  "force completely and ferrofluidically wide open the": ["OPEN"],
+  "pry completely and ferrofluidically wide open": ["OPEN"],
+  "pry completely and ferrofluidically wide open the": ["OPEN"],
+  "fasten completely and ferrofluidically closed": ["CLOSE"],
+  "fasten completely and ferrofluidically closed the": ["CLOSE"],
+  "seal completely and ferrofluidically shut": ["CLOSE"],
+  "seal completely and ferrofluidically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all turing security devices of": ["UNLOCK"],
+  "deactivate all turing security devices of the": ["UNLOCK"],
+  "deactivate all shannon security devices of": ["UNLOCK"],
+  "deactivate all shannon security devices of the": ["UNLOCK"],
+  "deactivate all neumann security devices of": ["UNLOCK"],
+  "deactivate all neumann security devices of the": ["UNLOCK"],
+  "deactivate all lovelace security devices of": ["UNLOCK"],
+  "deactivate all lovelace security devices of the": ["UNLOCK"],
+  "bypass all turing security devices on": ["UNLOCK"],
+  "bypass all turing security devices on the": ["UNLOCK"],
+  "bypass all shannon security devices on": ["UNLOCK"],
+  "bypass all shannon security devices on the": ["UNLOCK"],
+  "bypass all neumann security devices on": ["UNLOCK"],
+  "bypass all neumann security devices on the": ["UNLOCK"],
+  "bypass all lovelace security devices on": ["UNLOCK"],
+  "bypass all lovelace security devices on the": ["UNLOCK"],
+  "disengage the primary turing security device on": ["UNLOCK"],
+  "disengage the primary turing security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full hydrotropic deployment of": ["USE"],
+  "harness the full hydrotropic deployment of the": ["USE"],
+  "bring into active hydrotropic deployment": ["USE"],
+  "bring into active hydrotropic deployment the": ["USE"],
+  "make complete hydrotropic deployment of": ["USE"],
+  "make complete hydrotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a mercilessly militant confrontation against": ["FIGHT"],
+  "initiate a mercilessly militant confrontation against the": ["FIGHT"],
+  "commence a mercilessly militant confrontation against": ["FIGHT"],
+  "commence a mercilessly militant confrontation against the": ["FIGHT"],
+  "engage in a mercilessly militant confrontation against": ["FIGHT"],
+  "engage in a mercilessly militant confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an entomological face to face discussion with": ["TALK"],
+  "initiate an entomological face to face discussion with the": ["TALK"],
+  "engage in an entomological face to face discussion with": ["TALK"],
+  "engage in an entomological face to face discussion with the": ["TALK"],
+  "strike up an entomological face to face discussion with": ["TALK"],
+  "strike up an entomological face to face discussion with the": ["TALK"]
+});
+
 
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -36668,6 +36763,84 @@ compoundVerbs.push(
   "engage in a petrological face to face discussion with",
   "strike up a petrological face to face discussion with the",
   "strike up a petrological face to face discussion with"
+);
+
+// Cycle #210 / Task-F229: Phase 191 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of meiosis towards the location of the",
+  "navigate one's vector of meiosis towards the location of",
+  "navigate ones vector of meiosis towards the location of the",
+  "navigate ones vector of meiosis towards the location of",
+  "steer one's vector of meiosis in the direction of the coordinates of the",
+  "steer one's vector of meiosis in the direction of the coordinates of",
+  "steer ones vector of meiosis in the direction of the coordinates of the",
+  "steer ones vector of meiosis in the direction of the coordinates of",
+  "direct one's vector of meiosis towards the coordinates of the location of the",
+  "direct one's vector of meiosis towards the coordinates of the location of",
+  "direct ones vector of meiosis towards the coordinates of the location of the",
+  "direct ones vector of meiosis towards the coordinates of the location of",
+  "subject to a comprehensive visual integration the",
+  "subject to a comprehensive visual integration",
+  "subject to a thorough visual integration the",
+  "subject to a thorough visual integration",
+  "subject to a detailed visual integration the",
+  "subject to a detailed visual integration",
+  "assume direct exclusive encompassing of the",
+  "assume direct exclusive encompassing of",
+  "assume absolute exclusive encompassing of the",
+  "assume absolute exclusive encompassing of",
+  "assume immediate exclusive encompassing of the",
+  "assume immediate exclusive encompassing of",
+  "divest oneself of all exclusive encompassing of the",
+  "divest oneself of all exclusive encompassing of",
+  "relinquish all exclusive encompassing of the",
+  "relinquish all exclusive encompassing of",
+  "free oneself from all exclusive encompassing of the",
+  "free oneself from all exclusive encompassing of",
+  "force completely and ferrofluidically wide open the",
+  "force completely and ferrofluidically wide open",
+  "pry completely and ferrofluidically wide open the",
+  "pry completely and ferrofluidically wide open",
+  "fasten completely and ferrofluidically closed the",
+  "fasten completely and ferrofluidically closed",
+  "seal completely and ferrofluidically shut the",
+  "seal completely and ferrofluidically shut",
+  "deactivate all turing security devices of the",
+  "deactivate all turing security devices of",
+  "deactivate all shannon security devices of the",
+  "deactivate all shannon security devices of",
+  "deactivate all neumann security devices of the",
+  "deactivate all neumann security devices of",
+  "deactivate all lovelace security devices of the",
+  "deactivate all lovelace security devices of",
+  "bypass all turing security devices on the",
+  "bypass all turing security devices on",
+  "bypass all shannon security devices on the",
+  "bypass all shannon security devices on",
+  "bypass all neumann security devices on the",
+  "bypass all neumann security devices on",
+  "bypass all lovelace security devices on the",
+  "bypass all lovelace security devices on",
+  "disengage the primary turing security device on the",
+  "disengage the primary turing security device on",
+  "harness the full hydrotropic deployment of the",
+  "harness the full hydrotropic deployment of",
+  "bring into active hydrotropic deployment the",
+  "bring into active hydrotropic deployment",
+  "make complete hydrotropic deployment of the",
+  "make complete hydrotropic deployment of",
+  "initiate a mercilessly militant confrontation against the",
+  "initiate a mercilessly militant confrontation against",
+  "commence a mercilessly militant confrontation against the",
+  "commence a mercilessly militant confrontation against",
+  "engage in a mercilessly militant confrontation against the",
+  "engage in a mercilessly militant confrontation against",
+  "initiate an entomological face to face discussion with the",
+  "initiate an entomological face to face discussion with",
+  "engage in an entomological face to face discussion with the",
+  "engage in an entomological face to face discussion with",
+  "strike up an entomological face to face discussion with the",
+  "strike up an entomological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
