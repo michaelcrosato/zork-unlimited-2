@@ -16,15 +16,23 @@ describe("Parser Synonym Expansion Phase 242 (Task-F280)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of proplasmacytopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of proplasmacytopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of proplasmacytopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of proplasmacytopoiesis in the direction of the coordinates of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of proplasmacytopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of proplasmacytopoiesis towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -96,15 +104,19 @@ describe("Parser Synonym Expansion Phase 242 (Task-F280)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all cosmologist and cosmographer security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
+    expect(mapCommand("deactivate all cosmologist and cosmographer security devices of chest", actions).action).toEqual(
+      {
+        type: "UNLOCK",
+        target: "chest",
+      }
+    );
     expect(mapCommand("bypass all cosmologists and cosmographers security devices on chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("disengage the primary cosmologist and cosmographer security device on chest", actions).action).toEqual({
+    expect(
+      mapCommand("disengage the primary cosmologist and cosmographer security device on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });

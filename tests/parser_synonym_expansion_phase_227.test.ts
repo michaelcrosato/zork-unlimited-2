@@ -16,15 +16,22 @@ describe("Parser Synonym Expansion Phase 227 (Task-F265)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of osteocytopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of osteocytopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of osteocytopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of osteocytopoiesis in the direction of the coordinates of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of osteocytopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of osteocytopoiesis towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });

@@ -25696,7 +25696,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a systemic face to face discussion with": ["TALK"],
   "engage in a systemic face to face discussion with the": ["TALK"],
   "strike up a systemic face to face discussion with": ["TALK"],
-  "strike up a systemic face to face discussion with the": ["TALK"]
+  "strike up a systemic face to face discussion with the": ["TALK"],
 });
 
 // Cycle #170 / Task-F191: Phase 154 VERB_CATEGORIES mappings
@@ -25779,7 +25779,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an objective face to face discussion with": ["TALK"],
   "engage in an objective face to face discussion with the": ["TALK"],
   "strike up an objective face to face discussion with": ["TALK"],
-  "strike up an objective face to face discussion with the": ["TALK"]
+  "strike up an objective face to face discussion with the": ["TALK"],
 });
 
 // Cycle #172 / Task-F192: Phase 155 VERB_CATEGORIES mappings
@@ -25862,7 +25862,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a transparent face to face discussion with": ["TALK"],
   "engage in a transparent face to face discussion with the": ["TALK"],
   "strike up a transparent face to face discussion with": ["TALK"],
-  "strike up a transparent face to face discussion with the": ["TALK"]
+  "strike up a transparent face to face discussion with the": ["TALK"],
 });
 
 // Cycle #173 / Task-F193: Phase 156 VERB_CATEGORIES mappings
@@ -25957,7 +25957,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a deliberative face to face discussion with": ["TALK"],
   "engage in a deliberative face to face discussion with the": ["TALK"],
   "strike up a deliberative face to face discussion with": ["TALK"],
-  "strike up a deliberative face to face discussion with the": ["TALK"]
+  "strike up a deliberative face to face discussion with the": ["TALK"],
 });
 
 // Cycle #174 / Task-F194: Phase 157 VERB_CATEGORIES mappings
@@ -26052,7 +26052,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a professional face to face discussion with": ["TALK"],
   "engage in a professional face to face discussion with the": ["TALK"],
   "strike up a professional face to face discussion with": ["TALK"],
-  "strike up a professional face to face discussion with the": ["TALK"]
+  "strike up a professional face to face discussion with the": ["TALK"],
 });
 
 // Cycle #175 / Task-F195: Phase 158 VERB_CATEGORIES mappings
@@ -26147,7 +26147,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an academic face to face discussion with": ["TALK"],
   "engage in an academic face to face discussion with the": ["TALK"],
   "strike up an academic face to face discussion with": ["TALK"],
-  "strike up an academic face to face discussion with the": ["TALK"]
+  "strike up an academic face to face discussion with the": ["TALK"],
 });
 
 // Cycle #176 / Task-F196: Phase 159 VERB_CATEGORIES mappings
@@ -26242,7 +26242,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an analytical face to face discussion with": ["TALK"],
   "engage in an analytical face to face discussion with the": ["TALK"],
   "strike up an analytical face to face discussion with": ["TALK"],
-  "strike up an analytical face to face discussion with the": ["TALK"]
+  "strike up an analytical face to face discussion with the": ["TALK"],
 });
 
 // Cycle #177 / Task-F197: Phase 160 VERB_CATEGORIES mappings
@@ -26337,7 +26337,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a cosmological face to face discussion with": ["TALK"],
   "engage in a cosmological face to face discussion with the": ["TALK"],
   "strike up a cosmological face to face discussion with": ["TALK"],
-  "strike up a cosmological face to face discussion with the": ["TALK"]
+  "strike up a cosmological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #178 / Task-F198: Phase 161 VERB_CATEGORIES mappings
@@ -26432,7 +26432,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a sociological face to face discussion with": ["TALK"],
   "engage in a sociological face to face discussion with the": ["TALK"],
   "strike up a sociological face to face discussion with": ["TALK"],
-  "strike up a sociological face to face discussion with the": ["TALK"]
+  "strike up a sociological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #179 / Task-F199: Phase 162 VERB_CATEGORIES mappings
@@ -26527,7 +26527,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a psychological face to face discussion with": ["TALK"],
   "engage in a psychological face to face discussion with the": ["TALK"],
   "strike up a psychological face to face discussion with": ["TALK"],
-  "strike up a psychological face to face discussion with the": ["TALK"]
+  "strike up a psychological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #180 / Task-F200: Phase 163 VERB_CATEGORIES mappings
@@ -26622,7 +26622,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an anthropological face to face discussion with": ["TALK"],
   "engage in an anthropological face to face discussion with the": ["TALK"],
   "strike up an anthropological face to face discussion with": ["TALK"],
-  "strike up an anthropological face to face discussion with the": ["TALK"]
+  "strike up an anthropological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #181 / Task-F201: Phase 164 VERB_CATEGORIES mappings
@@ -26717,7 +26717,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an epidemiological face to face discussion with": ["TALK"],
   "engage in an epidemiological face to face discussion with the": ["TALK"],
   "strike up an epidemiological face to face discussion with": ["TALK"],
-  "strike up an epidemiological face to face discussion with the": ["TALK"]
+  "strike up an epidemiological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #182 / Task-F202: Phase 165 VERB_CATEGORIES mappings
@@ -26812,7 +26812,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a physiological face to face discussion with": ["TALK"],
   "engage in a physiological face to face discussion with the": ["TALK"],
   "strike up a physiological face to face discussion with": ["TALK"],
-  "strike up a physiological face to face discussion with the": ["TALK"]
+  "strike up a physiological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #183 / Task-F203: Phase 166 VERB_CATEGORIES mappings
@@ -26907,7 +26907,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an archaeological face to face discussion with": ["TALK"],
   "engage in an archaeological face to face discussion with the": ["TALK"],
   "strike up an archaeological face to face discussion with": ["TALK"],
-  "strike up an archaeological face to face discussion with the": ["TALK"]
+  "strike up an archaeological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #184 / Task-F204: Phase 167 VERB_CATEGORIES mappings
@@ -27002,7 +27002,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a paleontological face to face discussion with": ["TALK"],
   "engage in a paleontological face to face discussion with the": ["TALK"],
   "strike up a paleontological face to face discussion with": ["TALK"],
-  "strike up a paleontological face to face discussion with the": ["TALK"]
+  "strike up a paleontological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #185 / Task-F205: Phase 168 VERB_CATEGORIES mappings
@@ -27097,7 +27097,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a geological face to face discussion with": ["TALK"],
   "engage in a geological face to face discussion with the": ["TALK"],
   "strike up a geological face to face discussion with": ["TALK"],
-  "strike up a geological face to face discussion with the": ["TALK"]
+  "strike up a geological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #186 / Task-F206: Phase 169 VERB_CATEGORIES mappings
@@ -27192,7 +27192,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an ecological face to face discussion with": ["TALK"],
   "engage in an ecological face to face discussion with the": ["TALK"],
   "strike up an ecological face to face discussion with": ["TALK"],
-  "strike up an ecological face to face discussion with the": ["TALK"]
+  "strike up an ecological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #187 / Task-F207: Phase 170 VERB_CATEGORIES mappings
@@ -27380,7 +27380,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a speleological face to face discussion with": ["TALK"],
   "engage in a speleological face to face discussion with the": ["TALK"],
   "strike up a speleological face to face discussion with": ["TALK"],
-  "strike up a speleological face to face discussion with the": ["TALK"]
+  "strike up a speleological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #190 / Task-F209: Phase 172 VERB_CATEGORIES mappings
@@ -27475,7 +27475,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an oceanographical face to face discussion with": ["TALK"],
   "engage in an oceanographical face to face discussion with the": ["TALK"],
   "strike up an oceanographical face to face discussion with": ["TALK"],
-  "strike up an oceanographical face to face discussion with the": ["TALK"]
+  "strike up an oceanographical face to face discussion with the": ["TALK"],
 });
 
 // Cycle #191 / Task-F210: Phase 173 VERB_CATEGORIES mappings
@@ -27570,7 +27570,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a chronological face to face discussion with": ["TALK"],
   "engage in a chronological face to face discussion with the": ["TALK"],
   "strike up a chronological face to face discussion with": ["TALK"],
-  "strike up a chronological face to face discussion with the": ["TALK"]
+  "strike up a chronological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #192 / Task-F211: Phase 174 VERB_CATEGORIES mappings
@@ -27665,7 +27665,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a historiographical face to face discussion with": ["TALK"],
   "engage in a historiographical face to face discussion with the": ["TALK"],
   "strike up a historiographical face to face discussion with": ["TALK"],
-  "strike up a historiographical face to face discussion with the": ["TALK"]
+  "strike up a historiographical face to face discussion with the": ["TALK"],
 });
 
 // Cycle #193 / Task-F212: Phase 175 VERB_CATEGORIES mappings
@@ -27760,7 +27760,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a lexicographical face to face discussion with": ["TALK"],
   "engage in a lexicographical face to face discussion with the": ["TALK"],
   "strike up a lexicographical face to face discussion with": ["TALK"],
-  "strike up a lexicographical face to face discussion with the": ["TALK"]
+  "strike up a lexicographical face to face discussion with the": ["TALK"],
 });
 
 // Cycle #194 / Task-F213: Phase 176 VERB_CATEGORIES mappings
@@ -27855,7 +27855,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a theological face to face discussion with": ["TALK"],
   "engage in a theological face to face discussion with the": ["TALK"],
   "strike up a theological face to face discussion with": ["TALK"],
-  "strike up a theological face to face discussion with the": ["TALK"]
+  "strike up a theological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #195 / Task-F214: Phase 177 VERB_CATEGORIES mappings
@@ -27950,7 +27950,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a philological face to face discussion with": ["TALK"],
   "engage in a philological face to face discussion with the": ["TALK"],
   "strike up a philological face to face discussion with": ["TALK"],
-  "strike up a philological face to face discussion with the": ["TALK"]
+  "strike up a philological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #196 / Task-F215: Phase 178 VERB_CATEGORIES mappings
@@ -28045,7 +28045,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a sociological face to face discussion with": ["TALK"],
   "engage in a sociological face to face discussion with the": ["TALK"],
   "strike up a sociological face to face discussion with": ["TALK"],
-  "strike up a sociological face to face discussion with the": ["TALK"]
+  "strike up a sociological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #197 / Task-F216: Phase 179 VERB_CATEGORIES mappings
@@ -28140,7 +28140,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a criminological face to face discussion with": ["TALK"],
   "engage in a criminological face to face discussion with the": ["TALK"],
   "strike up a criminological face to face discussion with": ["TALK"],
-  "strike up a criminological face to face discussion with the": ["TALK"]
+  "strike up a criminological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #198 / Task-F217: Phase 180 VERB_CATEGORIES mappings
@@ -28235,7 +28235,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a neurological face to face discussion with": ["TALK"],
   "engage in a neurological face to face discussion with the": ["TALK"],
   "strike up a neurological face to face discussion with": ["TALK"],
-  "strike up a neurological face to face discussion with the": ["TALK"]
+  "strike up a neurological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #199 / Task-F218: Phase 181 VERB_CATEGORIES mappings
@@ -28330,7 +28330,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a mythological face to face discussion with": ["TALK"],
   "engage in a mythological face to face discussion with the": ["TALK"],
   "strike up a mythological face to face discussion with": ["TALK"],
-  "strike up a mythological face to face discussion with the": ["TALK"]
+  "strike up a mythological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #200 / Task-F219: Phase 182 VERB_CATEGORIES mappings
@@ -28425,7 +28425,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an eschatological face to face discussion with": ["TALK"],
   "engage in an eschatological face to face discussion with the": ["TALK"],
   "strike up an eschatological face to face discussion with": ["TALK"],
-  "strike up an eschatological face to face discussion with the": ["TALK"]
+  "strike up an eschatological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #201 / Task-F220: Phase 183 VERB_CATEGORIES mappings
@@ -28520,7 +28520,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a seismological face to face discussion with": ["TALK"],
   "engage in a seismological face to face discussion with the": ["TALK"],
   "strike up a seismological face to face discussion with": ["TALK"],
-  "strike up a seismological face to face discussion with the": ["TALK"]
+  "strike up a seismological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #202 / Task-F221: Phase 184 VERB_CATEGORIES mappings
@@ -28615,7 +28615,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a climatological face to face discussion with": ["TALK"],
   "engage in a climatological face to face discussion with the": ["TALK"],
   "strike up a climatological face to face discussion with": ["TALK"],
-  "strike up a climatological face to face discussion with the": ["TALK"]
+  "strike up a climatological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #204 / Task-F223: Phase 185 VERB_CATEGORIES mappings
@@ -28710,7 +28710,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a glaciological face to face discussion with": ["TALK"],
   "engage in a glaciological face to face discussion with the": ["TALK"],
   "strike up a glaciological face to face discussion with": ["TALK"],
-  "strike up a glaciological face to face discussion with the": ["TALK"]
+  "strike up a glaciological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #205 / Task-F224: Phase 186 VERB_CATEGORIES mappings
@@ -28805,7 +28805,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a limnological face to face discussion with": ["TALK"],
   "engage in a limnological face to face discussion with the": ["TALK"],
   "strike up a limnological face to face discussion with": ["TALK"],
-  "strike up a limnological face to face discussion with the": ["TALK"]
+  "strike up a limnological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #206 / Task-F225: Phase 187 VERB_CATEGORIES mappings
@@ -28900,7 +28900,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a volcanological face to face discussion with": ["TALK"],
   "engage in a volcanological face to face discussion with the": ["TALK"],
   "strike up a volcanological face to face discussion with": ["TALK"],
-  "strike up a volcanological face to face discussion with the": ["TALK"]
+  "strike up a volcanological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #207 / Task-F226: Phase 188 VERB_CATEGORIES mappings
@@ -28995,7 +28995,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a morphological face to face discussion with": ["TALK"],
   "engage in a morphological face to face discussion with the": ["TALK"],
   "strike up a morphological face to face discussion with": ["TALK"],
-  "strike up a morphological face to face discussion with the": ["TALK"]
+  "strike up a morphological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #208 / Task-F227: Phase 189 VERB_CATEGORIES mappings
@@ -29090,7 +29090,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a mineralogical face to face discussion with": ["TALK"],
   "engage in a mineralogical face to face discussion with the": ["TALK"],
   "strike up a mineralogical face to face discussion with": ["TALK"],
-  "strike up a mineralogical face to face discussion with the": ["TALK"]
+  "strike up a mineralogical face to face discussion with the": ["TALK"],
 });
 
 // Cycle #209 / Task-F228: Phase 190 VERB_CATEGORIES mappings
@@ -29185,7 +29185,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a petrological face to face discussion with": ["TALK"],
   "engage in a petrological face to face discussion with the": ["TALK"],
   "strike up a petrological face to face discussion with": ["TALK"],
-  "strike up a petrological face to face discussion with the": ["TALK"]
+  "strike up a petrological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #210 / Task-F229: Phase 191 VERB_CATEGORIES mappings
@@ -29280,7 +29280,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an entomological face to face discussion with": ["TALK"],
   "engage in an entomological face to face discussion with the": ["TALK"],
   "strike up an entomological face to face discussion with": ["TALK"],
-  "strike up an entomological face to face discussion with the": ["TALK"]
+  "strike up an entomological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #211 / Task-F230: Phase 192 VERB_CATEGORIES mappings
@@ -29375,7 +29375,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a mycological face to face discussion with": ["TALK"],
   "engage in a mycological face to face discussion with the": ["TALK"],
   "strike up a mycological face to face discussion with": ["TALK"],
-  "strike up a mycological face to face discussion with the": ["TALK"]
+  "strike up a mycological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #212 / Task-F231: Phase 193 VERB_CATEGORIES mappings
@@ -29470,7 +29470,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an ornithological face to face discussion with": ["TALK"],
   "engage in an ornithological face to face discussion with the": ["TALK"],
   "strike up an ornithological face to face discussion with": ["TALK"],
-  "strike up an ornithological face to face discussion with the": ["TALK"]
+  "strike up an ornithological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #213 / Task-F232: Phase 194 VERB_CATEGORIES mappings
@@ -29565,7 +29565,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a mineralogical face to face discussion with": ["TALK"],
   "engage in a mineralogical face to face discussion with the": ["TALK"],
   "strike up a mineralogical face to face discussion with": ["TALK"],
-  "strike up a mineralogical face to face discussion with the": ["TALK"]
+  "strike up a mineralogical face to face discussion with the": ["TALK"],
 });
 
 // Cycle #214 / Task-F233: Phase 195 VERB_CATEGORIES mappings
@@ -29660,7 +29660,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a herpetological face to face discussion with": ["TALK"],
   "engage in a herpetological face to face discussion with the": ["TALK"],
   "strike up a herpetological face to face discussion with": ["TALK"],
-  "strike up a herpetological face to face discussion with the": ["TALK"]
+  "strike up a herpetological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #215 / Task-F234: Phase 196 VERB_CATEGORIES mappings
@@ -29761,7 +29761,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a toxicological face to face discussion with": ["TALK"],
   "engage in a toxicological face to face discussion with the": ["TALK"],
   "strike up a toxicological face to face discussion with": ["TALK"],
-  "strike up a toxicological face to face discussion with the": ["TALK"]
+  "strike up a toxicological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #216 / Task-F235: Phase 197 VERB_CATEGORIES mappings
@@ -29862,7 +29862,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an ichthyological face to face discussion with": ["TALK"],
   "engage in an ichthyological face to face discussion with the": ["TALK"],
   "strike up an ichthyological face to face discussion with": ["TALK"],
-  "strike up an ichthyological face to face discussion with the": ["TALK"]
+  "strike up an ichthyological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #217 / Task-F236: Phase 198 VERB_CATEGORIES mappings
@@ -29963,7 +29963,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an arachnological face to face discussion with": ["TALK"],
   "engage in an arachnological face to face discussion with the": ["TALK"],
   "strike up an arachnological face to face discussion with": ["TALK"],
-  "strike up an arachnological face to face discussion with the": ["TALK"]
+  "strike up an arachnological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #219 / Task-F237: Phase 199 VERB_CATEGORIES mappings
@@ -30064,7 +30064,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an immunological face to face discussion with": ["TALK"],
   "engage in an immunological face to face discussion with the": ["TALK"],
   "strike up an immunological face to face discussion with": ["TALK"],
-  "strike up an immunological face to face discussion with the": ["TALK"]
+  "strike up an immunological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #220 / Task-F238: Phase 200 VERB_CATEGORIES mappings
@@ -30165,7 +30165,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an ethnological face to face discussion with": ["TALK"],
   "engage in an ethnological face to face discussion with the": ["TALK"],
   "strike up an ethnological face to face discussion with": ["TALK"],
-  "strike up an ethnological face to face discussion with the": ["TALK"]
+  "strike up an ethnological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #221 / Task-F239: Phase 201 VERB_CATEGORIES mappings
@@ -30266,7 +30266,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a paleobiological face to face discussion with": ["TALK"],
   "engage in a paleobiological face to face discussion with the": ["TALK"],
   "strike up a paleobiological face to face discussion with": ["TALK"],
-  "strike up a paleobiological face to face discussion with the": ["TALK"]
+  "strike up a paleobiological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #222 / Task-F240: Phase 202 VERB_CATEGORIES mappings
@@ -30367,7 +30367,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a sociological face to face discussion with": ["TALK"],
   "engage in a sociological face to face discussion with the": ["TALK"],
   "strike up a sociological face to face discussion with": ["TALK"],
-  "strike up a sociological face to face discussion with the": ["TALK"]
+  "strike up a sociological face to face discussion with the": ["TALK"],
 });
 
 // Cycle #223 / Task-F241: Phase 203 VERB_CATEGORIES mappings
@@ -30496,7 +30496,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an anthropological facetoface discussion with": ["TALK"],
   "strike up an anthropological facetoface discussion with the": ["TALK"],
   "strike up an anthropological face-to-face discussion with": ["TALK"],
-  "strike up an anthropological face-to-face discussion with the": ["TALK"]
+  "strike up an anthropological face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #224 / Task-F242: Phase 204 VERB_CATEGORIES mappings
@@ -30625,7 +30625,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a philosophical facetoface discussion with": ["TALK"],
   "strike up a philosophical facetoface discussion with the": ["TALK"],
   "strike up a philosophical face-to-face discussion with": ["TALK"],
-  "strike up a philosophical face-to-face discussion with the": ["TALK"]
+  "strike up a philosophical face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #225 / Task-F243: Phase 205 VERB_CATEGORIES mappings
@@ -30754,7 +30754,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a theological facetoface discussion with": ["TALK"],
   "strike up a theological facetoface discussion with the": ["TALK"],
   "strike up a theological face-to-face discussion with": ["TALK"],
-  "strike up a theological face-to-face discussion with the": ["TALK"]
+  "strike up a theological face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #226 / Task-F244: Phase 206 VERB_CATEGORIES mappings
@@ -30877,7 +30877,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a teleological facetoface discussion with": ["TALK"],
   "strike up a teleological facetoface discussion with the": ["TALK"],
   "strike up a teleological face-to-face discussion with": ["TALK"],
-  "strike up a teleological face-to-face discussion with the": ["TALK"]
+  "strike up a teleological face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #227 / Task-F245: Phase 207 VERB_CATEGORIES mappings
@@ -31006,7 +31006,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a heuristic facetoface discussion with": ["TALK"],
   "strike up a heuristic facetoface discussion with the": ["TALK"],
   "strike up a heuristic face-to-face discussion with": ["TALK"],
-  "strike up a heuristic face-to-face discussion with the": ["TALK"]
+  "strike up a heuristic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #228 / Task-F246: Phase 208 VERB_CATEGORIES mappings
@@ -31127,7 +31127,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a teleonomic face to face discussion with": ["TALK"],
   "engage in a teleonomic face to face discussion with the": ["TALK"],
   "engage in a teleonomic facetoface discussion with": ["TALK"],
-  "strike up a teleonomic face-to-face discussion with the": ["TALK"]
+  "strike up a teleonomic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #229 / Task-F247: Phase 209 VERB_CATEGORIES mappings
@@ -31256,7 +31256,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a cryptological facetoface discussion with": ["TALK"],
   "strike up a cryptological facetoface discussion with the": ["TALK"],
   "strike up a cryptological face-to-face discussion with": ["TALK"],
-  "strike up a cryptological face-to-face discussion with the": ["TALK"]
+  "strike up a cryptological face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #230 / Task-F248: Phase 210 VERB_CATEGORIES mappings
@@ -31385,7 +31385,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a genealogical facetoface discussion with": ["TALK"],
   "strike up a genealogical facetoface discussion with the": ["TALK"],
   "strike up a genealogical face-to-face discussion with": ["TALK"],
-  "strike up a genealogical face-to-face discussion with the": ["TALK"]
+  "strike up a genealogical face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #231 / Task-F249: Phase 211 VERB_CATEGORIES mappings
@@ -31514,7 +31514,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a dermatological facetoface discussion with": ["TALK"],
   "strike up a dermatological facetoface discussion with the": ["TALK"],
   "strike up a dermatological face-to-face discussion with": ["TALK"],
-  "strike up a dermatological face-to-face discussion with the": ["TALK"]
+  "strike up a dermatological face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #232 / Task-F250: Phase 212 VERB_CATEGORIES mappings
@@ -31643,7 +31643,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a psychoanalytic facetoface discussion with": ["TALK"],
   "strike up a psychoanalytic facetoface discussion with the": ["TALK"],
   "strike up a psychoanalytic face-to-face discussion with": ["TALK"],
-  "strike up a psychoanalytic face-to-face discussion with the": ["TALK"]
+  "strike up a psychoanalytic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #233 / Task-F251: Phase 213 VERB_CATEGORIES mappings
@@ -31772,7 +31772,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an existentialist facetoface discussion with": ["TALK"],
   "strike up an existentialist facetoface discussion with the": ["TALK"],
   "strike up an existentialist face-to-face discussion with": ["TALK"],
-  "strike up an existentialist face-to-face discussion with the": ["TALK"]
+  "strike up an existentialist face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #234 / Task-F252: Phase 214 VERB_CATEGORIES mappings
@@ -31901,7 +31901,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an aesthetic facetoface discussion with": ["TALK"],
   "strike up an aesthetic facetoface discussion with the": ["TALK"],
   "strike up an aesthetic face-to-face discussion with": ["TALK"],
-  "strike up an aesthetic face-to-face discussion with the": ["TALK"]
+  "strike up an aesthetic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #235 / Task-F253: Phase 215 VERB_CATEGORIES mappings
@@ -32019,7 +32019,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a phenomenological facetoface discussion with": ["TALK"],
   "strike up a phenomenological facetoface discussion with the": ["TALK"],
   "strike up a phenomenological face-to-face discussion with": ["TALK"],
-  "strike up a phenomenological face-to-face discussion with the": ["TALK"]
+  "strike up a phenomenological face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #238 / Task-F256: Phase 218 VERB_CATEGORIES mappings
@@ -32136,9 +32136,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an epistemological facetoface discussion with": ["TALK"],
   "strike up an epistemological facetoface discussion with the": ["TALK"],
   "strike up an epistemological face-to-face discussion with": ["TALK"],
-  "strike up an epistemological face-to-face discussion with the": ["TALK"]
+  "strike up an epistemological face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #262 / Task-F279: Phase 241 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -32266,9 +32265,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a stylistic facetoface discussion with": ["TALK"],
   "strike up a stylistic facetoface discussion with the": ["TALK"],
   "strike up a stylistic face-to-face discussion with": ["TALK"],
-  "strike up a stylistic face-to-face discussion with the": ["TALK"]
+  "strike up a stylistic face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #259 / Task-F278: Phase 240 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -32396,9 +32394,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a phonetic facetoface discussion with": ["TALK"],
   "strike up a phonetic facetoface discussion with the": ["TALK"],
   "strike up a phonetic face-to-face discussion with": ["TALK"],
-  "strike up a phonetic face-to-face discussion with the": ["TALK"]
+  "strike up a phonetic face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #258 / Task-F277: Phase 239 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -32526,9 +32523,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an orthographic facetoface discussion with": ["TALK"],
   "strike up an orthographic facetoface discussion with the": ["TALK"],
   "strike up an orthographic face-to-face discussion with": ["TALK"],
-  "strike up an orthographic face-to-face discussion with the": ["TALK"]
+  "strike up an orthographic face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #257 / Task-F276: Phase 238 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -32656,9 +32652,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a lexical facetoface discussion with": ["TALK"],
   "strike up a lexical facetoface discussion with the": ["TALK"],
   "strike up a lexical face-to-face discussion with": ["TALK"],
-  "strike up a lexical face-to-face discussion with the": ["TALK"]
+  "strike up a lexical face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #258 / Task-F275: Phase 237 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -32786,9 +32781,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a syntactic facetoface discussion with": ["TALK"],
   "strike up a syntactic facetoface discussion with the": ["TALK"],
   "strike up a syntactic face-to-face discussion with": ["TALK"],
-  "strike up a syntactic face-to-face discussion with the": ["TALK"]
+  "strike up a syntactic face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #256 / Task-F273: Phase 235 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -32928,9 +32922,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a grammatical facetoface discussion with": ["TALK"],
   "strike up a grammatical facetoface discussion with the": ["TALK"],
   "strike up a grammatical face-to-face discussion with": ["TALK"],
-  "strike up a grammatical face-to-face discussion with the": ["TALK"]
+  "strike up a grammatical face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #257 / Task-F274: Phase 236 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -33070,9 +33063,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a phonological facetoface discussion with": ["TALK"],
   "strike up a phonological facetoface discussion with the": ["TALK"],
   "strike up a phonological face-to-face discussion with": ["TALK"],
-  "strike up a phonological face-to-face discussion with the": ["TALK"]
+  "strike up a phonological face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #255 / Task-F272: Phase 234 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -33212,9 +33204,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a terminological facetoface discussion with": ["TALK"],
   "strike up a terminological facetoface discussion with the": ["TALK"],
   "strike up a terminological face-to-face discussion with": ["TALK"],
-  "strike up a terminological face-to-face discussion with the": ["TALK"]
+  "strike up a terminological face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #254 / Task-F271: Phase 233 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -33354,9 +33345,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a lexicographical facetoface discussion with": ["TALK"],
   "strike up a lexicographical facetoface discussion with the": ["TALK"],
   "strike up a lexicographical face-to-face discussion with": ["TALK"],
-  "strike up a lexicographical face-to-face discussion with the": ["TALK"]
+  "strike up a lexicographical face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #253: Phase 232 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -33496,9 +33486,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a phraseological facetoface discussion with": ["TALK"],
   "strike up a phraseological facetoface discussion with the": ["TALK"],
   "strike up a phraseological face-to-face discussion with": ["TALK"],
-  "strike up a phraseological face-to-face discussion with the": ["TALK"]
+  "strike up a phraseological face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #252 / Task-F269: Phase 231 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -33638,9 +33627,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an etymological facetoface discussion with": ["TALK"],
   "strike up an etymological facetoface discussion with the": ["TALK"],
   "strike up an etymological face-to-face discussion with": ["TALK"],
-  "strike up an etymological face-to-face discussion with the": ["TALK"]
+  "strike up an etymological face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #251 / Task-F268: Phase 230 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -33768,9 +33756,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an astrological facetoface discussion with": ["TALK"],
   "strike up an astrological facetoface discussion with the": ["TALK"],
   "strike up an astrological face-to-face discussion with": ["TALK"],
-  "strike up an astrological face-to-face discussion with the": ["TALK"]
+  "strike up an astrological face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #249 / Task-F266: Phase 228 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -33904,7 +33891,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a cytological facetoface discussion with": ["TALK"],
   "strike up a cytological facetoface discussion with the": ["TALK"],
   "strike up a cytological face-to-face discussion with": ["TALK"],
-  "strike up a cytological face-to-face discussion with the": ["TALK"]
+  "strike up a cytological face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #250 / Task-F267: Phase 229 VERB_CATEGORIES mappings
@@ -34033,9 +34020,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a philosophical facetoface discussion with": ["TALK"],
   "strike up a philosophical facetoface discussion with the": ["TALK"],
   "strike up a philosophical face-to-face discussion with": ["TALK"],
-  "strike up a philosophical face-to-face discussion with the": ["TALK"]
+  "strike up a philosophical face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #248 / Task-F265: Phase 227 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -34169,9 +34155,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an argumentative facetoface discussion with": ["TALK"],
   "strike up an argumentative facetoface discussion with the": ["TALK"],
   "strike up an argumentative face-to-face discussion with": ["TALK"],
-  "strike up an argumentative face-to-face discussion with the": ["TALK"]
+  "strike up an argumentative face-to-face discussion with the": ["TALK"],
 });
-
 
 // Cycle #247 / Task-F264: Phase 226 VERB_CATEGORIES mappings
 Object.assign(VERB_CATEGORIES, {
@@ -34305,7 +34290,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a deliberative facetoface discussion with": ["TALK"],
   "strike up a deliberative facetoface discussion with the": ["TALK"],
   "strike up a deliberative face-to-face discussion with": ["TALK"],
-  "strike up a deliberative face-to-face discussion with the": ["TALK"]
+  "strike up a deliberative face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #246 / Task-F263: Phase 225 VERB_CATEGORIES mappings
@@ -34422,7 +34407,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an inquisitive facetoface discussion with": ["TALK"],
   "strike up an inquisitive facetoface discussion with the": ["TALK"],
   "strike up an inquisitive face-to-face discussion with": ["TALK"],
-  "strike up an inquisitive face-to-face discussion with the": ["TALK"]
+  "strike up an inquisitive face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #245 / Task-F262: Phase 224 VERB_CATEGORIES mappings
@@ -34545,7 +34530,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an argumentative facetoface discussion with": ["TALK"],
   "strike up an argumentative facetoface discussion with the": ["TALK"],
   "strike up an argumentative face-to-face discussion with": ["TALK"],
-  "strike up an argumentative face-to-face discussion with the": ["TALK"]
+  "strike up an argumentative face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #243 / Task-F261: Phase 223 VERB_CATEGORIES mappings
@@ -34668,7 +34653,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a noncommittal facetoface discussion with": ["TALK"],
   "strike up a noncommittal facetoface discussion with the": ["TALK"],
   "strike up a noncommittal face-to-face discussion with": ["TALK"],
-  "strike up a noncommittal face-to-face discussion with the": ["TALK"]
+  "strike up a noncommittal face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #242 / Task-F260: Phase 222 VERB_CATEGORIES mappings
@@ -34785,7 +34770,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an interrogative facetoface discussion with": ["TALK"],
   "strike up an interrogative facetoface discussion with the": ["TALK"],
   "strike up an interrogative face-to-face discussion with": ["TALK"],
-  "strike up an interrogative face-to-face discussion with the": ["TALK"]
+  "strike up an interrogative face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #241 / Task-F259: Phase 221 VERB_CATEGORIES mappings
@@ -34902,7 +34887,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an objective facetoface discussion with": ["TALK"],
   "strike up an objective facetoface discussion with the": ["TALK"],
   "strike up an objective face-to-face discussion with": ["TALK"],
-  "strike up an objective face-to-face discussion with the": ["TALK"]
+  "strike up an objective face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #240 / Task-F258: Phase 220 VERB_CATEGORIES mappings
@@ -35019,7 +35004,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a skeptical facetoface discussion with": ["TALK"],
   "strike up a skeptical facetoface discussion with the": ["TALK"],
   "strike up a skeptical face-to-face discussion with": ["TALK"],
-  "strike up a skeptical face-to-face discussion with the": ["TALK"]
+  "strike up a skeptical face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #239 / Task-F257: Phase 219 VERB_CATEGORIES mappings
@@ -35136,7 +35121,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a solipsistic facetoface discussion with": ["TALK"],
   "strike up a solipsistic facetoface discussion with the": ["TALK"],
   "strike up a solipsistic face-to-face discussion with": ["TALK"],
-  "strike up a solipsistic face-to-face discussion with the": ["TALK"]
+  "strike up a solipsistic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #237 / Task-F255: Phase 217 VERB_CATEGORIES mappings
@@ -35395,12 +35380,8 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a paradigmatic facetoface discussion with": ["TALK"],
   "strike up a paradigmatic facetoface discussion with the": ["TALK"],
   "strike up a paradigmatic face-to-face discussion with": ["TALK"],
-  "strike up a paradigmatic face-to-face discussion with the": ["TALK"]
+  "strike up a paradigmatic face-to-face discussion with the": ["TALK"],
 });
-
-
-
-
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -45858,7 +45839,6 @@ compoundVerbs.push(
   "strike up a phonetic face-to-face discussion with"
 );
 
-
 // Cycle #258 / Task-F277: Phase 239 compound verbs
 compoundVerbs.push(
   "navigate one's vector of promegakaryocytopoiesis towards the location of the",
@@ -47287,7 +47267,6 @@ compoundVerbs.push(
   "strike up an argumentative face-to-face discussion with"
 );
 
-
 // Cycle #247 / Task-F264: Phase 226 compound verbs
 compoundVerbs.push(
   "navigate one's vector of chondrocytopoiesis towards the location of the",
@@ -48356,7 +48335,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a stylistic facetoface discussion with": ["TALK"],
   "strike up a stylistic facetoface discussion with the": ["TALK"],
   "strike up a stylistic face-to-face discussion with": ["TALK"],
-  "strike up a stylistic face-to-face discussion with the": ["TALK"]
+  "strike up a stylistic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #263 / Task-F280: Phase 242 compound verbs
@@ -48597,7 +48576,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a structural facetoface discussion with": ["TALK"],
   "strike up a structural facetoface discussion with the": ["TALK"],
   "strike up a structural face-to-face discussion with": ["TALK"],
-  "strike up a structural face-to-face discussion with the": ["TALK"]
+  "strike up a structural face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #264 / Task-F281: Phase 243 compound verbs
@@ -48862,7 +48841,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a semantic facetoface discussion with": ["TALK"],
   "strike up a semantic facetoface discussion with the": ["TALK"],
   "strike up a semantic face-to-face discussion with": ["TALK"],
-  "strike up a semantic face-to-face discussion with the": ["TALK"]
+  "strike up a semantic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #265 / Task-F282: Phase 244 compound verbs
@@ -49127,7 +49106,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a pragmatic facetoface discussion with": ["TALK"],
   "strike up a pragmatic facetoface discussion with the": ["TALK"],
   "strike up a pragmatic face-to-face discussion with": ["TALK"],
-  "strike up a pragmatic face-to-face discussion with the": ["TALK"]
+  "strike up a pragmatic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #266 / Task-F283: Phase 245 compound verbs
@@ -49368,7 +49347,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a political facetoface discussion with": ["TALK"],
   "strike up a political facetoface discussion with the": ["TALK"],
   "strike up a political face-to-face discussion with": ["TALK"],
-  "strike up a political face-to-face discussion with the": ["TALK"]
+  "strike up a political face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #267 / Task-F284: Phase 246 compound verbs
@@ -49609,7 +49588,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a diplomatic facetoface discussion with": ["TALK"],
   "strike up a diplomatic facetoface discussion with the": ["TALK"],
   "strike up a diplomatic face-to-face discussion with": ["TALK"],
-  "strike up a diplomatic face-to-face discussion with the": ["TALK"]
+  "strike up a diplomatic face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #268 / Task-F285: Phase 247 compound verbs
@@ -49850,7 +49829,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a philosophical facetoface discussion with": ["TALK"],
   "strike up a philosophical facetoface discussion with the": ["TALK"],
   "strike up a philosophical face-to-face discussion with": ["TALK"],
-  "strike up a philosophical face-to-face discussion with the": ["TALK"]
+  "strike up a philosophical face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #270 / Task-F287: Phase 249 VERB_CATEGORIES mappings
@@ -49979,7 +49958,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a lexicological facetoface discussion with": ["TALK"],
   "strike up a lexicological facetoface discussion with the": ["TALK"],
   "strike up a lexicological face-to-face discussion with": ["TALK"],
-  "strike up a lexicological face-to-face discussion with the": ["TALK"]
+  "strike up a lexicological face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #271 / Task-F288: Phase 250 VERB_CATEGORIES mappings
@@ -50108,7 +50087,136 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a paleographical facetoface discussion with": ["TALK"],
   "strike up a paleographical facetoface discussion with the": ["TALK"],
   "strike up a paleographical face-to-face discussion with": ["TALK"],
-  "strike up a paleographical face-to-face discussion with the": ["TALK"]
+  "strike up a paleographical face-to-face discussion with the": ["TALK"],
+});
+
+// Cycle #273 / Task-F289: Phase 251 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of normoblastopoiesis towards the location of": ["MOVE"],
+  "navigate one's vector of normoblastopoiesis towards the location of the": ["MOVE"],
+  "navigate ones vector of normoblastopoiesis towards the location of": ["MOVE"],
+  "navigate ones vector of normoblastopoiesis towards the location of the": ["MOVE"],
+  "steer one's vector of normoblastopoiesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of normoblastopoiesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of normoblastopoiesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of normoblastopoiesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of normoblastopoiesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of normoblastopoiesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of normoblastopoiesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of normoblastopoiesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual deconceptualization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual deconceptualization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual deconceptualization": ["LOOK_INSPECT"],
+  "subject to a thorough visual deconceptualization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual deconceptualization": ["LOOK_INSPECT"],
+  "subject to a detailed visual deconceptualization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive senatorship of": ["TAKE"],
+  "assume direct exclusive senatorship of the": ["TAKE"],
+  "assume absolute exclusive senatorship of": ["TAKE"],
+  "assume absolute exclusive senatorship of the": ["TAKE"],
+  "assume immediate exclusive senatorship of": ["TAKE"],
+  "assume immediate exclusive senatorship of the": ["TAKE"],
+  "assume direct exclusive ambassadorship of": ["TAKE"],
+  "assume direct exclusive ambassadorship of the": ["TAKE"],
+  "assume absolute exclusive ambassadorship of": ["TAKE"],
+  "assume absolute exclusive ambassadorship of the": ["TAKE"],
+  "assume immediate exclusive ambassadorship of": ["TAKE"],
+  "assume immediate exclusive ambassadorship of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive senatorship of": ["DROP"],
+  "divest oneself of all exclusive senatorship of the": ["DROP"],
+  "relinquish all exclusive senatorship of": ["DROP"],
+  "relinquish all exclusive senatorship of the": ["DROP"],
+  "free oneself from all exclusive senatorship of": ["DROP"],
+  "free oneself from all exclusive senatorship of the": ["DROP"],
+  "divest oneself of all exclusive ambassadorship of": ["DROP"],
+  "divest oneself of all exclusive ambassadorship of the": ["DROP"],
+  "relinquish all exclusive ambassadorship of": ["DROP"],
+  "relinquish all exclusive ambassadorship of the": ["DROP"],
+  "free oneself from all exclusive ambassadorship of": ["DROP"],
+  "free oneself from all exclusive ambassadorship of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electrorheologically wide open": ["OPEN"],
+  "force completely and electrorheologically wide open the": ["OPEN"],
+  "force completely and electro-rheologically wide open": ["OPEN"],
+  "force completely and electro-rheologically wide open the": ["OPEN"],
+  "force completely and electro rheologically wide open": ["OPEN"],
+  "force completely and electro rheologically wide open the": ["OPEN"],
+  "pry completely and electrorheologically wide open": ["OPEN"],
+  "pry completely and electrorheologically wide open the": ["OPEN"],
+  "pry completely and electro-rheologically wide open": ["OPEN"],
+  "pry completely and electro-rheologically wide open the": ["OPEN"],
+  "pry completely and electro rheologically wide open": ["OPEN"],
+  "pry completely and electro rheologically wide open the": ["OPEN"],
+  "fasten completely and electrorheologically closed": ["CLOSE"],
+  "fasten completely and electrorheologically closed the": ["CLOSE"],
+  "fasten completely and electro-rheologically closed": ["CLOSE"],
+  "fasten completely and electro-rheologically closed the": ["CLOSE"],
+  "fasten completely and electro rheologically closed": ["CLOSE"],
+  "fasten completely and electro rheologically closed the": ["CLOSE"],
+  "seal completely and electrorheologically shut": ["CLOSE"],
+  "seal completely and electrorheologically shut the": ["CLOSE"],
+  "seal completely and electro-rheologically shut": ["CLOSE"],
+  "seal completely and electro-rheologically shut the": ["CLOSE"],
+  "seal completely and electro rheologically shut": ["CLOSE"],
+  "seal completely and electro rheologically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all epigraphist and numismatist security devices of": ["UNLOCK"],
+  "deactivate all epigraphist and numismatist security devices of the": ["UNLOCK"],
+  "deactivate all epigraphists and numismatists security devices of": ["UNLOCK"],
+  "deactivate all epigraphists and numismatists security devices of the": ["UNLOCK"],
+  "bypass all epigraphist and numismatist security devices on": ["UNLOCK"],
+  "bypass all epigraphist and numismatist security devices on the": ["UNLOCK"],
+  "bypass all epigraphists and numismatists security devices on": ["UNLOCK"],
+  "bypass all epigraphists and numismatists security devices on the": ["UNLOCK"],
+  "disengage the primary epigraphist and numismatist security device on": ["UNLOCK"],
+  "disengage the primary epigraphist and numismatist security device on the": ["UNLOCK"],
+  "disengage the primary epigraphists and numismatists security device on": ["UNLOCK"],
+  "disengage the primary epigraphists and numismatists security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full autokinetic deployment of": ["USE"],
+  "harness the full autokinetic deployment of the": ["USE"],
+  "bring into active autokinetic deployment": ["USE"],
+  "bring into active autokinetic deployment the": ["USE"],
+  "make complete autokinetic deployment of": ["USE"],
+  "make complete autokinetic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a ruthlessly antagonistic confrontation against": ["FIGHT"],
+  "initiate a ruthlessly antagonistic confrontation against the": ["FIGHT"],
+  "commence a ruthlessly antagonistic confrontation against": ["FIGHT"],
+  "commence a ruthlessly antagonistic confrontation against the": ["FIGHT"],
+  "engage in a ruthlessly antagonistic confrontation against": ["FIGHT"],
+  "engage in a ruthlessly antagonistic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an epigraphical face to face discussion with": ["TALK"],
+  "initiate an epigraphical face to face discussion with the": ["TALK"],
+  "initiate an epigraphical facetoface discussion with": ["TALK"],
+  "initiate an epigraphical facetoface discussion with the": ["TALK"],
+  "initiate an epigraphical face-to-face discussion with": ["TALK"],
+  "initiate an epigraphical face-to-face discussion with the": ["TALK"],
+  "engage in an epigraphical face to face discussion with": ["TALK"],
+  "engage in an epigraphical face to face discussion with the": ["TALK"],
+  "engage in an epigraphical facetoface discussion with": ["TALK"],
+  "engage in an epigraphical facetoface discussion with the": ["TALK"],
+  "engage in an epigraphical face-to-face discussion with": ["TALK"],
+  "engage in an epigraphical face-to-face discussion with the": ["TALK"],
+  "strike up an epigraphical face to face discussion with": ["TALK"],
+  "strike up an epigraphical face to face discussion with the": ["TALK"],
+  "strike up an epigraphical facetoface discussion with": ["TALK"],
+  "strike up an epigraphical facetoface discussion with the": ["TALK"],
+  "strike up an epigraphical face-to-face discussion with": ["TALK"],
+  "strike up an epigraphical face-to-face discussion with the": ["TALK"],
 });
 
 // Cycle #269 / Task-F286: Phase 248 compound verbs
@@ -50447,5 +50555,116 @@ compoundVerbs.push(
   "strike up a paleographical face-to-face discussion with"
 );
 
-compoundVerbs.sort((a, b) => b.length - a.length);
+// Cycle #273 / Task-F289: Phase 251 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of normoblastopoiesis towards the location of the",
+  "navigate one's vector of normoblastopoiesis towards the location of",
+  "navigate ones vector of normoblastopoiesis towards the location of the",
+  "navigate ones vector of normoblastopoiesis towards the location of",
+  "steer one's vector of normoblastopoiesis in the direction of the coordinates of the",
+  "steer one's vector of normoblastopoiesis in the direction of the coordinates of",
+  "steer ones vector of normoblastopoiesis in the direction of the coordinates of the",
+  "steer ones vector of normoblastopoiesis in the direction of the coordinates of",
+  "direct one's vector of normoblastopoiesis towards the coordinates of the location of the",
+  "direct one's vector of normoblastopoiesis towards the coordinates of the location of",
+  "direct ones vector of normoblastopoiesis towards the coordinates of the location of the",
+  "direct ones vector of normoblastopoiesis towards the coordinates of the location of",
+  "subject to a comprehensive visual deconceptualization the",
+  "subject to a comprehensive visual deconceptualization",
+  "subject to a thorough visual deconceptualization the",
+  "subject to a thorough visual deconceptualization",
+  "subject to a detailed visual deconceptualization the",
+  "subject to a detailed visual deconceptualization",
+  "assume direct exclusive senatorship of the",
+  "assume direct exclusive senatorship of",
+  "assume absolute exclusive senatorship of the",
+  "assume absolute exclusive senatorship of",
+  "assume immediate exclusive senatorship of the",
+  "assume immediate exclusive senatorship of",
+  "assume direct exclusive ambassadorship of the",
+  "assume direct exclusive ambassadorship of",
+  "assume absolute exclusive ambassadorship of the",
+  "assume absolute exclusive ambassadorship of",
+  "assume immediate exclusive ambassadorship of the",
+  "assume immediate exclusive ambassadorship of",
+  "divest oneself of all exclusive senatorship of the",
+  "divest oneself of all exclusive senatorship of",
+  "relinquish all exclusive senatorship of the",
+  "relinquish all exclusive senatorship of",
+  "free oneself from all exclusive senatorship of the",
+  "free oneself from all exclusive senatorship of",
+  "divest oneself of all exclusive ambassadorship of the",
+  "divest oneself of all exclusive ambassadorship of",
+  "relinquish all exclusive ambassadorship of the",
+  "relinquish all exclusive ambassadorship of",
+  "free oneself from all exclusive ambassadorship of the",
+  "free oneself from all exclusive ambassadorship of",
+  "force completely and electrorheologically wide open the",
+  "force completely and electrorheologically wide open",
+  "force completely and electro-rheologically wide open the",
+  "force completely and electro-rheologically wide open",
+  "force completely and electro rheologically wide open the",
+  "force completely and electro rheologically wide open",
+  "pry completely and electrorheologically wide open the",
+  "pry completely and electrorheologically wide open",
+  "pry completely and electro-rheologically wide open the",
+  "pry completely and electro-rheologically wide open",
+  "pry completely and electro rheologically wide open the",
+  "pry completely and electro rheologically wide open",
+  "fasten completely and electrorheologically closed the",
+  "fasten completely and electrorheologically closed",
+  "fasten completely and electro-rheologically closed the",
+  "fasten completely and electro-rheologically closed",
+  "fasten completely and electro rheologically closed the",
+  "fasten completely and electro rheologically closed",
+  "seal completely and electrorheologically shut the",
+  "seal completely and electrorheologically shut",
+  "seal completely and electro-rheologically shut the",
+  "seal completely and electro-rheologically shut",
+  "seal completely and electro rheologically shut the",
+  "seal completely and electro rheologically shut",
+  "deactivate all epigraphist and numismatist security devices of the",
+  "deactivate all epigraphist and numismatist security devices of",
+  "deactivate all epigraphists and numismatists security devices of the",
+  "deactivate all epigraphists and numismatists security devices of",
+  "bypass all epigraphist and numismatist security devices on the",
+  "bypass all epigraphist and numismatist security devices on",
+  "bypass all epigraphists and numismatists security devices on the",
+  "bypass all epigraphists and numismatists security devices on",
+  "disengage the primary epigraphist and numismatist security device on the",
+  "disengage the primary epigraphist and numismatist security device on",
+  "disengage the primary epigraphists and numismatists security device on the",
+  "disengage the primary epigraphists and numismatists security device on",
+  "harness the full autokinetic deployment of the",
+  "harness the full autokinetic deployment of",
+  "bring into active autokinetic deployment the",
+  "bring into active autokinetic deployment",
+  "make complete autokinetic deployment of the",
+  "make complete autokinetic deployment of",
+  "initiate a ruthlessly antagonistic confrontation against the",
+  "initiate a ruthlessly antagonistic confrontation against",
+  "commence a ruthlessly antagonistic confrontation against the",
+  "commence a ruthlessly antagonistic confrontation against",
+  "engage in a ruthlessly antagonistic confrontation against the",
+  "engage in a ruthlessly antagonistic confrontation against",
+  "initiate an epigraphical face to face discussion with the",
+  "initiate an epigraphical face to face discussion with",
+  "initiate an epigraphical facetoface discussion with the",
+  "initiate an epigraphical facetoface discussion with",
+  "initiate an epigraphical face-to-face discussion with the",
+  "initiate an epigraphical face-to-face discussion with",
+  "engage in an epigraphical face to face discussion with the",
+  "engage in an epigraphical face to face discussion with",
+  "engage in an epigraphical facetoface discussion with the",
+  "engage in an epigraphical facetoface discussion with",
+  "engage in an epigraphical face-to-face discussion with the",
+  "engage in an epigraphical face-to-face discussion with",
+  "strike up an epigraphical face to face discussion with the",
+  "strike up an epigraphical face to face discussion with",
+  "strike up an epigraphical facetoface discussion with the",
+  "strike up an epigraphical facetoface discussion with",
+  "strike up an epigraphical face-to-face discussion with the",
+  "strike up an epigraphical face-to-face discussion with"
+);
 
+compoundVerbs.sort((a, b) => b.length - a.length);

@@ -16,10 +16,12 @@ describe("Parser Synonym Expansion Phase 155 (Task-F192)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of parthenogenesis towards the location of east", actions).action).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
+    expect(mapCommand("navigate one's vector of parthenogenesis towards the location of east", actions).action).toEqual(
+      {
+        type: "MOVE",
+        direction: "east",
+      }
+    );
     expect(
       mapCommand("navigate one's vector of parthenogenesis towards the location of the east", actions).action
     ).toEqual({
@@ -30,18 +32,19 @@ describe("Parser Synonym Expansion Phase 155 (Task-F192)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("navigate ones vector of parthenogenesis towards the location of the east", actions).action).toEqual(
-      {
-        type: "MOVE",
-        direction: "east",
-      }
-    );
+    expect(
+      mapCommand("navigate ones vector of parthenogenesis towards the location of the east", actions).action
+    ).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
 
     expect(
       mapCommand("steer one's vector of parthenogenesis in the direction of the coordinates of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("steer one's vector of parthenogenesis in the direction of the coordinates of the east", actions).action
+      mapCommand("steer one's vector of parthenogenesis in the direction of the coordinates of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("steer ones vector of parthenogenesis in the direction of the coordinates of east", actions).action
@@ -51,14 +54,16 @@ describe("Parser Synonym Expansion Phase 155 (Task-F192)", () => {
     ).toEqual({ type: "MOVE", direction: "east" });
 
     expect(
-      mapCommand("direct one's vector of parthenogenesis towards the coordinates of the location of east", actions).action
+      mapCommand("direct one's vector of parthenogenesis towards the coordinates of the location of east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("direct one's vector of parthenogenesis towards the coordinates of the location of the east", actions)
         .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct ones vector of parthenogenesis towards the coordinates of the location of east", actions).action
+      mapCommand("direct ones vector of parthenogenesis towards the coordinates of the location of east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("direct ones vector of parthenogenesis towards the coordinates of the location of the east", actions)

@@ -20,11 +20,15 @@ describe("Parser Synonym Expansion Phase 207 (Task-F245)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of hematopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of hematopoiesis in the direction of the coordinates of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of hematopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of hematopoiesis towards the coordinates of the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });

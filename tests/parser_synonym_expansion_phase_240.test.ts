@@ -16,15 +16,23 @@ describe("Parser Synonym Expansion Phase 240 (Task-F278)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of promyelocytopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of promyelocytopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of promyelocytopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of promyelocytopoiesis in the direction of the coordinates of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of promyelocytopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of promyelocytopoiesis towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -96,7 +104,9 @@ describe("Parser Synonym Expansion Phase 240 (Task-F278)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all astronomer and astrophysicist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all astronomer and astrophysicist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
@@ -104,7 +114,9 @@ describe("Parser Synonym Expansion Phase 240 (Task-F278)", () => {
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("disengage the primary astronomer and astrophysicist security device on chest", actions).action).toEqual({
+    expect(
+      mapCommand("disengage the primary astronomer and astrophysicist security device on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });

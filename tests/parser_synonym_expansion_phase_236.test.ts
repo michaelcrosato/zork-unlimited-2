@@ -16,15 +16,23 @@ describe("Parser Synonym Expansion Phase 236 (Task-F274)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of promonoblastopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of promonoblastopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of promonoblastopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of promonoblastopoiesis in the direction of the coordinates of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of promonoblastopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of promonoblastopoiesis towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -126,15 +134,21 @@ describe("Parser Synonym Expansion Phase 236 (Task-F274)", () => {
   });
 
   it("should map newly added combat verbs to FIGHT action", () => {
-    expect(mapCommand("initiate an unapologetically antagonistic confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
-    expect(mapCommand("commence an unapologetically antagonistic confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
-    expect(mapCommand("engage in an unapologetically antagonistic confrontation against ghoul", actions).action).toEqual({
+    expect(mapCommand("initiate an unapologetically antagonistic confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
+    expect(mapCommand("commence an unapologetically antagonistic confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
+    expect(
+      mapCommand("engage in an unapologetically antagonistic confrontation against ghoul", actions).action
+    ).toEqual({
       type: "FIGHT",
       npc: "ghoul",
     });

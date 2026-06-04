@@ -20,11 +20,15 @@ describe("Parser Synonym Expansion Phase 183 (Task-F220)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of cardiogenesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of cardiogenesis in the direction of the coordinates of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of cardiogenesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of cardiogenesis towards the coordinates of the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });

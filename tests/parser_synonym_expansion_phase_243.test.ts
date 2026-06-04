@@ -16,15 +16,23 @@ describe("Parser Synonym Expansion Phase 243 (Task-F281)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of proerythrocytopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of proerythrocytopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of proerythrocytopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of proerythrocytopoiesis in the direction of the coordinates of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of proerythrocytopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of proerythrocytopoiesis towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -96,15 +104,21 @@ describe("Parser Synonym Expansion Phase 243 (Task-F281)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all archaeologist and anthropologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all archaeologist and anthropologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all archaeologists and anthropologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("bypass all archaeologists and anthropologists security devices on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("disengage the primary archaeologist and anthropologist security device on chest", actions).action).toEqual({
+    expect(
+      mapCommand("disengage the primary archaeologist and anthropologist security device on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });

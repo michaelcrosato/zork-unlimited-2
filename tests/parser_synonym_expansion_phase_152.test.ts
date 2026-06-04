@@ -20,22 +20,20 @@ describe("Parser Synonym Expansion Phase 152 (Task-F189)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(
-      mapCommand("navigate one's vector of cytokinesis towards the location of the east", actions).action
-    ).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
-    expect(mapCommand("navigate ones vector of cytokinesis towards the location of east", actions).action).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
-    expect(mapCommand("navigate ones vector of cytokinesis towards the location of the east", actions).action).toEqual(
+    expect(mapCommand("navigate one's vector of cytokinesis towards the location of the east", actions).action).toEqual(
       {
         type: "MOVE",
         direction: "east",
       }
     );
+    expect(mapCommand("navigate ones vector of cytokinesis towards the location of east", actions).action).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
+    expect(mapCommand("navigate ones vector of cytokinesis towards the location of the east", actions).action).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
 
     expect(
       mapCommand("steer one's vector of cytokinesis in the direction of the coordinates of east", actions).action

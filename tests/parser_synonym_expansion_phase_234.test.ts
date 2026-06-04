@@ -16,15 +16,25 @@ describe("Parser Synonym Expansion Phase 234 (Task-F272)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of proerythroblastopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of proerythroblastopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of proerythroblastopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of proerythroblastopoiesis in the direction of the coordinates of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of proerythroblastopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand(
+        "direct ones vector of proerythroblastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -133,10 +143,12 @@ describe("Parser Synonym Expansion Phase 234 (Task-F272)", () => {
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("engage in an unapologetically belligerent confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
+    expect(mapCommand("engage in an unapologetically belligerent confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {

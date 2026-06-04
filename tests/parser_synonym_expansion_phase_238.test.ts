@@ -16,15 +16,23 @@ describe("Parser Synonym Expansion Phase 238 (Task-F276)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of prolymphocytopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of prolymphocytopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of prolymphocytopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of prolymphocytopoiesis in the direction of the coordinates of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of prolymphocytopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of prolymphocytopoiesis towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -104,7 +112,9 @@ describe("Parser Synonym Expansion Phase 238 (Task-F276)", () => {
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("disengage the primary geologist and mineralogist security device on chest", actions).action).toEqual({
+    expect(
+      mapCommand("disengage the primary geologist and mineralogist security device on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
@@ -134,10 +144,12 @@ describe("Parser Synonym Expansion Phase 238 (Task-F276)", () => {
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("engage in an uncompromisingly belligerent confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
+    expect(mapCommand("engage in an uncompromisingly belligerent confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {

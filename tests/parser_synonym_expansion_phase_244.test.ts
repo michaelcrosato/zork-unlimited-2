@@ -16,15 +16,23 @@ describe("Parser Synonym Expansion Phase 244 (Task-F282)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of proleukocytopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of proleukocytopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of proleukocytopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of proleukocytopoiesis in the direction of the coordinates of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of proleukocytopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of proleukocytopoiesis towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -104,15 +112,19 @@ describe("Parser Synonym Expansion Phase 244 (Task-F282)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all sociologist and psychologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
+    expect(mapCommand("deactivate all sociologist and psychologist security devices of chest", actions).action).toEqual(
+      {
+        type: "UNLOCK",
+        target: "chest",
+      }
+    );
     expect(mapCommand("bypass all sociologists and psychologists security devices on chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("disengage the primary sociologist and psychologist security device on chest", actions).action).toEqual({
+    expect(
+      mapCommand("disengage the primary sociologist and psychologist security device on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
@@ -142,10 +154,12 @@ describe("Parser Synonym Expansion Phase 244 (Task-F282)", () => {
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("engage in an unapologetically adversarial confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
+    expect(mapCommand("engage in an unapologetically adversarial confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {

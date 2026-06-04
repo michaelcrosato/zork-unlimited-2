@@ -16,15 +16,23 @@ describe("Parser Synonym Expansion Phase 250 (Task-F288)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of reticulocytopoiesis towards the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of reticulocytopoiesis towards the location of east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of reticulocytopoiesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(
+      mapCommand("steer one's vector of reticulocytopoiesis in the direction of the coordinates of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of reticulocytopoiesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(
+      mapCommand("direct ones vector of reticulocytopoiesis towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -116,7 +124,9 @@ describe("Parser Synonym Expansion Phase 250 (Task-F288)", () => {
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("disengage the primary genealogist and heraldist security device on chest", actions).action).toEqual({
+    expect(
+      mapCommand("disengage the primary genealogist and heraldist security device on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
