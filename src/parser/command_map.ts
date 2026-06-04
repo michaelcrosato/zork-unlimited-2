@@ -28903,6 +28903,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a volcanological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #207 / Task-F226: Phase 188 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of glycogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of glycogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of glycogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of glycogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of glycogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of glycogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of glycogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of glycogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of glycogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of glycogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of glycogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of glycogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual depiction": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual depiction the": ["LOOK_INSPECT"],
+  "subject to a thorough visual depiction": ["LOOK_INSPECT"],
+  "subject to a thorough visual depiction the": ["LOOK_INSPECT"],
+  "subject to a detailed visual depiction": ["LOOK_INSPECT"],
+  "subject to a detailed visual depiction the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive anchoring of": ["TAKE"],
+  "assume direct exclusive anchoring of the": ["TAKE"],
+  "assume absolute exclusive anchoring of": ["TAKE"],
+  "assume absolute exclusive anchoring of the": ["TAKE"],
+  "assume immediate exclusive anchoring of": ["TAKE"],
+  "assume immediate exclusive anchoring of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive anchoring of": ["DROP"],
+  "divest oneself of all exclusive anchoring of the": ["DROP"],
+  "relinquish all exclusive anchoring of": ["DROP"],
+  "relinquish all exclusive anchoring of the": ["DROP"],
+  "free oneself from all exclusive anchoring of": ["DROP"],
+  "free oneself from all exclusive anchoring of the": ["DROP"],
+
+  // Open/Close
+  "force completely and chemoviscoelastically wide open": ["OPEN"],
+  "force completely and chemoviscoelastically wide open the": ["OPEN"],
+  "pry completely and chemoviscoelastically wide open": ["OPEN"],
+  "pry completely and chemoviscoelastically wide open the": ["OPEN"],
+  "fasten completely and chemoviscoelastically closed": ["CLOSE"],
+  "fasten completely and chemoviscoelastically closed the": ["CLOSE"],
+  "seal completely and chemoviscoelastically shut": ["CLOSE"],
+  "seal completely and chemoviscoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all lavoisier security devices of": ["UNLOCK"],
+  "deactivate all lavoisier security devices of the": ["UNLOCK"],
+  "deactivate all dalton security devices of": ["UNLOCK"],
+  "deactivate all dalton security devices of the": ["UNLOCK"],
+  "deactivate all mendeleev security devices of": ["UNLOCK"],
+  "deactivate all mendeleev security devices of the": ["UNLOCK"],
+  "deactivate all avogadro security devices of": ["UNLOCK"],
+  "deactivate all avogadro security devices of the": ["UNLOCK"],
+  "bypass all lavoisier security devices on": ["UNLOCK"],
+  "bypass all lavoisier security devices on the": ["UNLOCK"],
+  "bypass all dalton security devices on": ["UNLOCK"],
+  "bypass all dalton security devices on the": ["UNLOCK"],
+  "bypass all mendeleev security devices on": ["UNLOCK"],
+  "bypass all mendeleev security devices on the": ["UNLOCK"],
+  "bypass all avogadro security devices on": ["UNLOCK"],
+  "bypass all avogadro security devices on the": ["UNLOCK"],
+  "disengage the primary lavoisier security device on": ["UNLOCK"],
+  "disengage the primary lavoisier security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full thermotropic deployment of": ["USE"],
+  "harness the full thermotropic deployment of the": ["USE"],
+  "bring into active thermotropic deployment": ["USE"],
+  "bring into active thermotropic deployment the": ["USE"],
+  "make complete thermotropic deployment of": ["USE"],
+  "make complete thermotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unrelentingly militant confrontation against": ["FIGHT"],
+  "initiate an unrelentingly militant confrontation against the": ["FIGHT"],
+  "commence an unrelentingly militant confrontation against": ["FIGHT"],
+  "commence an unrelentingly militant confrontation against the": ["FIGHT"],
+  "engage in an unrelentingly militant confrontation against": ["FIGHT"],
+  "engage in an unrelentingly militant confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a morphological face to face discussion with": ["TALK"],
+  "initiate a morphological face to face discussion with the": ["TALK"],
+  "engage in a morphological face to face discussion with": ["TALK"],
+  "engage in a morphological face to face discussion with the": ["TALK"],
+  "strike up a morphological face to face discussion with": ["TALK"],
+  "strike up a morphological face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -36148,6 +36243,84 @@ compoundVerbs.push(
   "engage in a volcanological face to face discussion with",
   "strike up a volcanological face to face discussion with the",
   "strike up a volcanological face to face discussion with"
+);
+
+// Cycle #207 / Task-F226: Phase 188 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of glycogenesis towards the location of the",
+  "navigate one's vector of glycogenesis towards the location of",
+  "navigate ones vector of glycogenesis towards the location of the",
+  "navigate ones vector of glycogenesis towards the location of",
+  "steer one's vector of glycogenesis in the direction of the coordinates of the",
+  "steer one's vector of glycogenesis in the direction of the coordinates of",
+  "steer ones vector of glycogenesis in the direction of the coordinates of the",
+  "steer ones vector of glycogenesis in the direction of the coordinates of",
+  "direct one's vector of glycogenesis towards the coordinates of the location of the",
+  "direct one's vector of glycogenesis towards the coordinates of the location of",
+  "direct ones vector of glycogenesis towards the coordinates of the location of the",
+  "direct ones vector of glycogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual depiction the",
+  "subject to a comprehensive visual depiction",
+  "subject to a thorough visual depiction the",
+  "subject to a thorough visual depiction",
+  "subject to a detailed visual depiction the",
+  "subject to a detailed visual depiction",
+  "assume direct exclusive anchoring of the",
+  "assume direct exclusive anchoring of",
+  "assume absolute exclusive anchoring of the",
+  "assume absolute exclusive anchoring of",
+  "assume immediate exclusive anchoring of the",
+  "assume immediate exclusive anchoring of",
+  "divest oneself of all exclusive anchoring of the",
+  "divest oneself of all exclusive anchoring of",
+  "relinquish all exclusive anchoring of the",
+  "relinquish all exclusive anchoring of",
+  "free oneself from all exclusive anchoring of the",
+  "free oneself from all exclusive anchoring of",
+  "force completely and chemoviscoelastically wide open the",
+  "force completely and chemoviscoelastically wide open",
+  "pry completely and chemoviscoelastically wide open the",
+  "pry completely and chemoviscoelastically wide open",
+  "fasten completely and chemoviscoelastically closed the",
+  "fasten completely and chemoviscoelastically closed",
+  "seal completely and chemoviscoelastically shut the",
+  "seal completely and chemoviscoelastically shut",
+  "deactivate all lavoisier security devices of the",
+  "deactivate all lavoisier security devices of",
+  "deactivate all dalton security devices of the",
+  "deactivate all dalton security devices of",
+  "deactivate all mendeleev security devices of the",
+  "deactivate all mendeleev security devices of",
+  "deactivate all avogadro security devices of the",
+  "deactivate all avogadro security devices of",
+  "bypass all lavoisier security devices on the",
+  "bypass all lavoisier security devices on",
+  "bypass all dalton security devices on the",
+  "bypass all dalton security devices on",
+  "bypass all mendeleev security devices on the",
+  "bypass all mendeleev security devices on",
+  "bypass all avogadro security devices on the",
+  "bypass all avogadro security devices on",
+  "disengage the primary lavoisier security device on the",
+  "disengage the primary lavoisier security device on",
+  "harness the full thermotropic deployment of the",
+  "harness the full thermotropic deployment of",
+  "bring into active thermotropic deployment the",
+  "bring into active thermotropic deployment",
+  "make complete thermotropic deployment of the",
+  "make complete thermotropic deployment of",
+  "initiate an unrelentingly militant confrontation against the",
+  "initiate an unrelentingly militant confrontation against",
+  "commence an unrelentingly militant confrontation against the",
+  "commence an unrelentingly militant confrontation against",
+  "engage in an unrelentingly militant confrontation against the",
+  "engage in an unrelentingly militant confrontation against",
+  "initiate a morphological face to face discussion with the",
+  "initiate a morphological face to face discussion with",
+  "engage in a morphological face to face discussion with the",
+  "engage in a morphological face to face discussion with",
+  "strike up a morphological face to face discussion with the",
+  "strike up a morphological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
