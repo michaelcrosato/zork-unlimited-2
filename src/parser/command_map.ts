@@ -21646,6 +21646,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a perceptive face to face discussion with the": ["TALK"]
 });
 
+// Cycle #119 / Task-F141: Phase 104 verb categories
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of dissipation towards the location of": ["MOVE"],
+  "navigate one's vector of dissipation towards the location of the": ["MOVE"],
+  "navigate ones vector of dissipation towards the location of": ["MOVE"],
+  "navigate ones vector of dissipation towards the location of the": ["MOVE"],
+  "steer one's vector of dissipation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of dissipation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of dissipation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of dissipation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of dissipation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of dissipation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of dissipation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of dissipation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual scrutinization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual scrutinization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual scrutinization": ["LOOK_INSPECT"],
+  "subject to a thorough visual scrutinization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual scrutinization": ["LOOK_INSPECT"],
+  "subject to a detailed visual scrutinization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive hold of": ["TAKE"],
+  "assume direct exclusive hold of the": ["TAKE"],
+  "assume absolute exclusive hold of": ["TAKE"],
+  "assume absolute exclusive hold of the": ["TAKE"],
+  "assume immediate exclusive hold of": ["TAKE"],
+  "assume immediate exclusive hold of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive hold of": ["DROP"],
+  "divest oneself of all exclusive hold of the": ["DROP"],
+  "relinquish all exclusive hold of": ["DROP"],
+  "relinquish all exclusive hold of the": ["DROP"],
+  "free oneself from all exclusive hold of": ["DROP"],
+  "free oneself from all exclusive hold of the": ["DROP"],
+
+  // Open/Close
+  "force completely and memristively wide open": ["OPEN"],
+  "force completely and memristively wide open the": ["OPEN"],
+  "pry completely and memristively wide open": ["OPEN"],
+  "pry completely and memristively wide open the": ["OPEN"],
+  "fasten completely and memristively closed": ["CLOSE"],
+  "fasten completely and memristively closed the": ["CLOSE"],
+  "seal completely and memristively shut": ["CLOSE"],
+  "seal completely and memristively shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all skyrmionic security devices of": ["UNLOCK"],
+  "deactivate all skyrmionic security devices of the": ["UNLOCK"],
+  "bypass all skyrmionic security devices on": ["UNLOCK"],
+  "bypass all skyrmionic security devices on the": ["UNLOCK"],
+  "disengage the primary skyrmionic security device on": ["UNLOCK"],
+  "disengage the primary skyrmionic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full incomparable deployment of": ["USE"],
+  "harness the full incomparable deployment of the": ["USE"],
+  "bring into active incomparable deployment": ["USE"],
+  "bring into active incomparable deployment the": ["USE"],
+  "make complete incomparable deployment of": ["USE"],
+  "make complete incomparable deployment of the": ["USE"],
+
+  // Combat
+  "initiate a malicious confrontation against": ["FIGHT"],
+  "initiate a malicious confrontation against the": ["FIGHT"],
+  "commence a malicious confrontation against": ["FIGHT"],
+  "commence a malicious confrontation against the": ["FIGHT"],
+  "engage in a malicious confrontation against": ["FIGHT"],
+  "engage in a malicious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a sagacious face to face discussion with": ["TALK"],
+  "initiate a sagacious face to face discussion with the": ["TALK"],
+  "engage in a sagacious face to face discussion with": ["TALK"],
+  "engage in a sagacious face to face discussion with the": ["TALK"],
+  "strike up a sagacious face to face discussion with": ["TALK"],
+  "strike up a sagacious face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -22967,6 +23050,72 @@ compoundVerbs.push(
   "engage in a perceptive face to face discussion with",
   "strike up a perceptive face to face discussion with the",
   "strike up a perceptive face to face discussion with"
+);
+
+// Cycle #119 / Task-F141: Phase 104 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of dissipation towards the location of the",
+  "navigate one's vector of dissipation towards the location of",
+  "navigate ones vector of dissipation towards the location of the",
+  "navigate ones vector of dissipation towards the location of",
+  "steer one's vector of dissipation in the direction of the coordinates of the",
+  "steer one's vector of dissipation in the direction of the coordinates of",
+  "steer ones vector of dissipation in the direction of the coordinates of the",
+  "steer ones vector of dissipation in the direction of the coordinates of",
+  "direct one's vector of dissipation towards the coordinates of the location of the",
+  "direct one's vector of dissipation towards the coordinates of the location of",
+  "direct ones vector of dissipation towards the coordinates of the location of the",
+  "direct ones vector of dissipation towards the coordinates of the location of",
+  "subject to a comprehensive visual scrutinization the",
+  "subject to a comprehensive visual scrutinization",
+  "subject to a thorough visual scrutinization the",
+  "subject to a thorough visual scrutinization",
+  "subject to a detailed visual scrutinization the",
+  "subject to a detailed visual scrutinization",
+  "assume direct exclusive hold of the",
+  "assume direct exclusive hold of",
+  "assume absolute exclusive hold of the",
+  "assume absolute exclusive hold of",
+  "assume immediate exclusive hold of the",
+  "assume immediate exclusive hold of",
+  "divest oneself of all exclusive hold of the",
+  "divest oneself of all exclusive hold of",
+  "relinquish all exclusive hold of the",
+  "relinquish all exclusive hold of",
+  "free oneself from all exclusive hold of the",
+  "free oneself from all exclusive hold of",
+  "force completely and memristively wide open the",
+  "force completely and memristively wide open",
+  "pry completely and memristively wide open the",
+  "pry completely and memristively wide open",
+  "fasten completely and memristively closed the",
+  "fasten completely and memristively closed",
+  "seal completely and memristively shut the",
+  "seal completely and memristively shut",
+  "deactivate all skyrmionic security devices of the",
+  "deactivate all skyrmionic security devices of",
+  "bypass all skyrmionic security devices on the",
+  "bypass all skyrmionic security devices on",
+  "disengage the primary skyrmionic security device on the",
+  "disengage the primary skyrmionic security device on",
+  "harness the full incomparable deployment of the",
+  "harness the full incomparable deployment of",
+  "bring into active incomparable deployment the",
+  "bring into active incomparable deployment",
+  "make complete incomparable deployment of the",
+  "make complete incomparable deployment of",
+  "initiate a malicious confrontation against the",
+  "initiate a malicious confrontation against",
+  "commence a malicious confrontation against the",
+  "commence a malicious confrontation against",
+  "engage in a malicious confrontation against the",
+  "engage in a malicious confrontation against",
+  "initiate a sagacious face to face discussion with the",
+  "initiate a sagacious face to face discussion with",
+  "engage in a sagacious face to face discussion with the",
+  "engage in a sagacious face to face discussion with",
+  "strike up a sagacious face to face discussion with the",
+  "strike up a sagacious face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
