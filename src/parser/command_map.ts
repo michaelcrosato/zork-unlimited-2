@@ -26530,6 +26530,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a psychological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #180 / Task-F200: Phase 163 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of phylogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of phylogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of phylogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of phylogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of phylogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of phylogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of phylogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of phylogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of phylogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of phylogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of phylogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of phylogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual enumeration": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual enumeration the": ["LOOK_INSPECT"],
+  "subject to a thorough visual enumeration": ["LOOK_INSPECT"],
+  "subject to a thorough visual enumeration the": ["LOOK_INSPECT"],
+  "subject to a detailed visual enumeration": ["LOOK_INSPECT"],
+  "subject to a detailed visual enumeration the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive sequestering of": ["TAKE"],
+  "assume direct exclusive sequestering of the": ["TAKE"],
+  "assume absolute exclusive sequestering of": ["TAKE"],
+  "assume absolute exclusive sequestering of the": ["TAKE"],
+  "assume immediate exclusive sequestering of": ["TAKE"],
+  "assume immediate exclusive sequestering of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive sequestering of": ["DROP"],
+  "divest oneself of all exclusive sequestering of the": ["DROP"],
+  "relinquish all exclusive sequestering of": ["DROP"],
+  "relinquish all exclusive sequestering of the": ["DROP"],
+  "free oneself from all exclusive sequestering of": ["DROP"],
+  "free oneself from all exclusive sequestering of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electroelastically wide open": ["OPEN"],
+  "force completely and electroelastically wide open the": ["OPEN"],
+  "pry completely and electroelastically wide open": ["OPEN"],
+  "pry completely and electroelastically wide open the": ["OPEN"],
+  "fasten completely and electroelastically closed": ["CLOSE"],
+  "fasten completely and electroelastically closed the": ["CLOSE"],
+  "seal completely and electroelastically shut": ["CLOSE"],
+  "seal completely and electroelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all sfermion security devices of": ["UNLOCK"],
+  "deactivate all sfermion security devices of the": ["UNLOCK"],
+  "deactivate all slepton security devices of": ["UNLOCK"],
+  "deactivate all slepton security devices of the": ["UNLOCK"],
+  "deactivate all selectron security devices of": ["UNLOCK"],
+  "deactivate all selectron security devices of the": ["UNLOCK"],
+  "deactivate all sneutrino security devices of": ["UNLOCK"],
+  "deactivate all sneutrino security devices of the": ["UNLOCK"],
+  "bypass all sfermion security devices on": ["UNLOCK"],
+  "bypass all sfermion security devices on the": ["UNLOCK"],
+  "bypass all slepton security devices on": ["UNLOCK"],
+  "bypass all slepton security devices on the": ["UNLOCK"],
+  "bypass all selectron security devices on": ["UNLOCK"],
+  "bypass all selectron security devices on the": ["UNLOCK"],
+  "bypass all sneutrino security devices on": ["UNLOCK"],
+  "bypass all sneutrino security devices on the": ["UNLOCK"],
+  "disengage the primary sfermion security device on": ["UNLOCK"],
+  "disengage the primary sfermion security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full consolidated deployment of": ["USE"],
+  "harness the full consolidated deployment of the": ["USE"],
+  "bring into active consolidated deployment": ["USE"],
+  "bring into active consolidated deployment the": ["USE"],
+  "make complete consolidated deployment of": ["USE"],
+  "make complete consolidated deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unfavorable confrontation against": ["FIGHT"],
+  "initiate an unfavorable confrontation against the": ["FIGHT"],
+  "commence an unfavorable confrontation against": ["FIGHT"],
+  "commence an unfavorable confrontation against the": ["FIGHT"],
+  "engage in an unfavorable confrontation against": ["FIGHT"],
+  "engage in an unfavorable confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an anthropological face to face discussion with": ["TALK"],
+  "initiate an anthropological face to face discussion with the": ["TALK"],
+  "engage in an anthropological face to face discussion with": ["TALK"],
+  "engage in an anthropological face to face discussion with the": ["TALK"],
+  "strike up an anthropological face to face discussion with": ["TALK"],
+  "strike up an anthropological face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -31824,6 +31919,84 @@ compoundVerbs.push(
   "engage in a psychological face to face discussion with",
   "strike up a psychological face to face discussion with the",
   "strike up a psychological face to face discussion with"
+);
+
+// Cycle #180 / Task-F200: Phase 163 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of phylogenesis towards the location of the",
+  "navigate one's vector of phylogenesis towards the location of",
+  "navigate ones vector of phylogenesis towards the location of the",
+  "navigate ones vector of phylogenesis towards the location of",
+  "steer one's vector of phylogenesis in the direction of the coordinates of the",
+  "steer one's vector of phylogenesis in the direction of the coordinates of",
+  "steer ones vector of phylogenesis in the direction of the coordinates of the",
+  "steer ones vector of phylogenesis in the direction of the coordinates of",
+  "direct one's vector of phylogenesis towards the coordinates of the location of the",
+  "direct one's vector of phylogenesis towards the coordinates of the location of",
+  "direct ones vector of phylogenesis towards the coordinates of the location of the",
+  "direct ones vector of phylogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual enumeration the",
+  "subject to a comprehensive visual enumeration",
+  "subject to a thorough visual enumeration the",
+  "subject to a thorough visual enumeration",
+  "subject to a detailed visual enumeration the",
+  "subject to a detailed visual enumeration",
+  "assume direct exclusive sequestering of the",
+  "assume direct exclusive sequestering of",
+  "assume absolute exclusive sequestering of the",
+  "assume absolute exclusive sequestering of",
+  "assume immediate exclusive sequestering of the",
+  "assume immediate exclusive sequestering of",
+  "divest oneself of all exclusive sequestering of the",
+  "divest oneself of all exclusive sequestering of",
+  "relinquish all exclusive sequestering of the",
+  "relinquish all exclusive sequestering of",
+  "free oneself from all exclusive sequestering of the",
+  "free oneself from all exclusive sequestering of",
+  "force completely and electroelastically wide open the",
+  "force completely and electroelastically wide open",
+  "pry completely and electroelastically wide open the",
+  "pry completely and electroelastically wide open",
+  "fasten completely and electroelastically closed the",
+  "fasten completely and electroelastically closed",
+  "seal completely and electroelastically shut the",
+  "seal completely and electroelastically shut",
+  "deactivate all sfermion security devices of the",
+  "deactivate all sfermion security devices of",
+  "deactivate all slepton security devices of the",
+  "deactivate all slepton security devices of",
+  "deactivate all selectron security devices of the",
+  "deactivate all selectron security devices of",
+  "deactivate all sneutrino security devices of the",
+  "deactivate all sneutrino security devices of",
+  "bypass all sfermion security devices on the",
+  "bypass all sfermion security devices on",
+  "bypass all slepton security devices on the",
+  "bypass all slepton security devices on",
+  "bypass all selectron security devices on the",
+  "bypass all selectron security devices on",
+  "bypass all sneutrino security devices on the",
+  "bypass all sneutrino security devices on",
+  "disengage the primary sfermion security device on the",
+  "disengage the primary sfermion security device on",
+  "harness the full consolidated deployment of the",
+  "harness the full consolidated deployment of",
+  "bring into active consolidated deployment the",
+  "bring into active consolidated deployment",
+  "make complete consolidated deployment of the",
+  "make complete consolidated deployment of",
+  "initiate an unfavorable confrontation against the",
+  "initiate an unfavorable confrontation against",
+  "commence an unfavorable confrontation against the",
+  "commence an unfavorable confrontation against",
+  "engage in an unfavorable confrontation against the",
+  "engage in an unfavorable confrontation against",
+  "initiate an anthropological face to face discussion with the",
+  "initiate an anthropological face to face discussion with",
+  "engage in an anthropological face to face discussion with the",
+  "engage in an anthropological face to face discussion with",
+  "strike up an anthropological face to face discussion with the",
+  "strike up an anthropological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
