@@ -22723,6 +22723,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a persuasive face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #133 / Task-F154: Phase 117
+  // Movement
+  "navigate one's vector of fission towards the location of": ["MOVE"],
+  "navigate one's vector of fission towards the location of the": ["MOVE"],
+  "navigate ones vector of fission towards the location of": ["MOVE"],
+  "navigate ones vector of fission towards the location of the": ["MOVE"],
+  "steer one's vector of fission in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of fission in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of fission in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of fission in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of fission towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of fission towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of fission towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of fission towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual parsing": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual parsing the": ["LOOK_INSPECT"],
+  "subject to a thorough visual parsing": ["LOOK_INSPECT"],
+  "subject to a thorough visual parsing the": ["LOOK_INSPECT"],
+  "subject to a detailed visual parsing": ["LOOK_INSPECT"],
+  "subject to a detailed visual parsing the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive entitlement of": ["TAKE"],
+  "assume direct exclusive entitlement of the": ["TAKE"],
+  "assume absolute exclusive entitlement of": ["TAKE"],
+  "assume absolute exclusive entitlement of the": ["TAKE"],
+  "assume immediate exclusive entitlement of": ["TAKE"],
+  "assume immediate exclusive entitlement of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive entitlement of": ["DROP"],
+  "divest oneself of all exclusive entitlement of the": ["DROP"],
+  "relinquish all exclusive entitlement of": ["DROP"],
+  "relinquish all exclusive entitlement of the": ["DROP"],
+  "free oneself from all exclusive entitlement of": ["DROP"],
+  "free oneself from all exclusive entitlement of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electrostatically wide open": ["OPEN"],
+  "force completely and electrostatically wide open the": ["OPEN"],
+  "pry completely and electrostatically wide open": ["OPEN"],
+  "pry completely and electrostatically wide open the": ["OPEN"],
+  "fasten completely and electrostatically closed": ["CLOSE"],
+  "fasten completely and electrostatically closed the": ["CLOSE"],
+  "seal completely and electrostatically shut": ["CLOSE"],
+  "seal completely and electrostatically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all gravitonic security devices of": ["UNLOCK"],
+  "deactivate all gravitonic security devices of the": ["UNLOCK"],
+  "bypass all gravitonic security devices on": ["UNLOCK"],
+  "bypass all gravitonic security devices on the": ["UNLOCK"],
+  "disengage the primary gravitonic security device on": ["UNLOCK"],
+  "disengage the primary gravitonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unflinching deployment of": ["USE"],
+  "harness the full unflinching deployment of the": ["USE"],
+  "bring into active unflinching deployment": ["USE"],
+  "bring into active unflinching deployment the": ["USE"],
+  "make complete unflinching deployment of": ["USE"],
+  "make complete unflinching deployment of the": ["USE"],
+
+  // Combat
+  "initiate a vindictive confrontation against": ["FIGHT"],
+  "initiate a vindictive confrontation against the": ["FIGHT"],
+  "commence a vindictive confrontation against": ["FIGHT"],
+  "commence a vindictive confrontation against the": ["FIGHT"],
+  "engage in a vindictive confrontation against": ["FIGHT"],
+  "engage in a vindictive confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a theological face to face discussion with": ["TALK"],
+  "initiate a theological face to face discussion with the": ["TALK"],
+  "engage in a theological face to face discussion with": ["TALK"],
+  "engage in a theological face to face discussion with the": ["TALK"],
+  "strike up a theological face to face discussion with": ["TALK"],
+  "strike up a theological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -24902,6 +24985,72 @@ compoundVerbs.push(
   "engage in a persuasive face to face discussion with",
   "strike up a persuasive face to face discussion with the",
   "strike up a persuasive face to face discussion with"
+);
+
+// Cycle #133 / Task-F154: Phase 117 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of fission towards the location of the",
+  "navigate one's vector of fission towards the location of",
+  "navigate ones vector of fission towards the location of the",
+  "navigate ones vector of fission towards the location of",
+  "steer one's vector of fission in the direction of the coordinates of the",
+  "steer one's vector of fission in the direction of the coordinates of",
+  "steer ones vector of fission in the direction of the coordinates of the",
+  "steer ones vector of fission in the direction of the coordinates of",
+  "direct one's vector of fission towards the coordinates of the location of the",
+  "direct one's vector of fission towards the coordinates of the location of",
+  "direct ones vector of fission towards the coordinates of the location of the",
+  "direct ones vector of fission towards the coordinates of the location of",
+  "subject to a comprehensive visual parsing the",
+  "subject to a comprehensive visual parsing",
+  "subject to a thorough visual parsing the",
+  "subject to a thorough visual parsing",
+  "subject to a detailed visual parsing the",
+  "subject to a detailed visual parsing",
+  "assume direct exclusive entitlement of the",
+  "assume direct exclusive entitlement of",
+  "assume absolute exclusive entitlement of the",
+  "assume absolute exclusive entitlement of",
+  "assume immediate exclusive entitlement of the",
+  "assume immediate exclusive entitlement of",
+  "divest oneself of all exclusive entitlement of the",
+  "divest oneself of all exclusive entitlement of",
+  "relinquish all exclusive entitlement of the",
+  "relinquish all exclusive entitlement of",
+  "free oneself from all exclusive entitlement of the",
+  "free oneself from all exclusive entitlement of",
+  "force completely and electrostatically wide open the",
+  "force completely and electrostatically wide open",
+  "pry completely and electrostatically wide open the",
+  "pry completely and electrostatically wide open",
+  "fasten completely and electrostatically closed the",
+  "fasten completely and electrostatically closed",
+  "seal completely and electrostatically shut the",
+  "seal completely and electrostatically shut",
+  "deactivate all gravitonic security devices of the",
+  "deactivate all gravitonic security devices of",
+  "bypass all gravitonic security devices on the",
+  "bypass all gravitonic security devices on",
+  "disengage the primary gravitonic security device on the",
+  "disengage the primary gravitonic security device on",
+  "harness the full unflinching deployment of the",
+  "harness the full unflinching deployment of",
+  "bring into active unflinching deployment the",
+  "bring into active unflinching deployment",
+  "make complete unflinching deployment of the",
+  "make complete unflinching deployment of",
+  "initiate a vindictive confrontation against the",
+  "initiate a vindictive confrontation against",
+  "commence a vindictive confrontation against the",
+  "commence a vindictive confrontation against",
+  "engage in a vindictive confrontation against the",
+  "engage in a vindictive confrontation against",
+  "initiate a theological face to face discussion with the",
+  "initiate a theological face to face discussion with",
+  "engage in a theological face to face discussion with the",
+  "engage in a theological face to face discussion with",
+  "strike up a theological face to face discussion with the",
+  "strike up a theological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
