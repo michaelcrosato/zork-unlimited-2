@@ -26245,6 +26245,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an analytical face to face discussion with the": ["TALK"]
 });
 
+// Cycle #177 / Task-F197: Phase 160 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of gametogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of gametogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of gametogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of gametogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of gametogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of gametogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of gametogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of gametogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of gametogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of gametogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of gametogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of gametogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual stratification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual stratification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual stratification": ["LOOK_INSPECT"],
+  "subject to a thorough visual stratification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual stratification": ["LOOK_INSPECT"],
+  "subject to a detailed visual stratification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive earmarking of": ["TAKE"],
+  "assume direct exclusive earmarking of the": ["TAKE"],
+  "assume absolute exclusive earmarking of": ["TAKE"],
+  "assume absolute exclusive earmarking of the": ["TAKE"],
+  "assume immediate exclusive earmarking of": ["TAKE"],
+  "assume immediate exclusive earmarking of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive earmarking of": ["DROP"],
+  "divest oneself of all exclusive earmarking of the": ["DROP"],
+  "relinquish all exclusive earmarking of": ["DROP"],
+  "relinquish all exclusive earmarking of the": ["DROP"],
+  "free oneself from all exclusive earmarking of": ["DROP"],
+  "free oneself from all exclusive earmarking of the": ["DROP"],
+
+  // Open/Close
+  "force completely and optoelastically wide open": ["OPEN"],
+  "force completely and optoelastically wide open the": ["OPEN"],
+  "pry completely and optoelastically wide open": ["OPEN"],
+  "pry completely and optoelastically wide open the": ["OPEN"],
+  "fasten completely and optoelastically closed": ["CLOSE"],
+  "fasten completely and optoelastically closed the": ["CLOSE"],
+  "seal completely and optoelastically shut": ["CLOSE"],
+  "seal completely and optoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all hyperon security devices of": ["UNLOCK"],
+  "deactivate all hyperon security devices of the": ["UNLOCK"],
+  "deactivate all odderon security devices of": ["UNLOCK"],
+  "deactivate all odderon security devices of the": ["UNLOCK"],
+  "deactivate all stau security devices of": ["UNLOCK"],
+  "deactivate all stau security devices of the": ["UNLOCK"],
+  "deactivate all axino security devices of": ["UNLOCK"],
+  "deactivate all axino security devices of the": ["UNLOCK"],
+  "bypass all hyperon security devices on": ["UNLOCK"],
+  "bypass all hyperon security devices on the": ["UNLOCK"],
+  "bypass all odderon security devices on": ["UNLOCK"],
+  "bypass all odderon security devices on the": ["UNLOCK"],
+  "bypass all stau security devices on": ["UNLOCK"],
+  "bypass all stau security devices on the": ["UNLOCK"],
+  "bypass all axino security devices on": ["UNLOCK"],
+  "bypass all axino security devices on the": ["UNLOCK"],
+  "disengage the primary hyperon security device on": ["UNLOCK"],
+  "disengage the primary hyperon security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full orchestrated deployment of": ["USE"],
+  "harness the full orchestrated deployment of the": ["USE"],
+  "bring into active orchestrated deployment": ["USE"],
+  "bring into active orchestrated deployment the": ["USE"],
+  "make complete orchestrated deployment of": ["USE"],
+  "make complete orchestrated deployment of the": ["USE"],
+
+  // Combat
+  "initiate a fatal confrontation against": ["FIGHT"],
+  "initiate a fatal confrontation against the": ["FIGHT"],
+  "commence a fatal confrontation against": ["FIGHT"],
+  "commence a fatal confrontation against the": ["FIGHT"],
+  "engage in a fatal confrontation against": ["FIGHT"],
+  "engage in a fatal confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a cosmological face to face discussion with": ["TALK"],
+  "initiate a cosmological face to face discussion with the": ["TALK"],
+  "engage in a cosmological face to face discussion with": ["TALK"],
+  "engage in a cosmological face to face discussion with the": ["TALK"],
+  "strike up a cosmological face to face discussion with": ["TALK"],
+  "strike up a cosmological face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -31305,6 +31400,84 @@ compoundVerbs.push(
   "engage in an analytical face to face discussion with",
   "strike up an analytical face to face discussion with the",
   "strike up an analytical face to face discussion with"
+);
+
+// Cycle #177 / Task-F197: Phase 160 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of gametogenesis towards the location of the",
+  "navigate one's vector of gametogenesis towards the location of",
+  "navigate ones vector of gametogenesis towards the location of the",
+  "navigate ones vector of gametogenesis towards the location of",
+  "steer one's vector of gametogenesis in the direction of the coordinates of the",
+  "steer one's vector of gametogenesis in the direction of the coordinates of",
+  "steer ones vector of gametogenesis in the direction of the coordinates of the",
+  "steer ones vector of gametogenesis in the direction of the coordinates of",
+  "direct one's vector of gametogenesis towards the coordinates of the location of the",
+  "direct one's vector of gametogenesis towards the coordinates of the location of",
+  "direct ones vector of gametogenesis towards the coordinates of the location of the",
+  "direct ones vector of gametogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual stratification the",
+  "subject to a comprehensive visual stratification",
+  "subject to a thorough visual stratification the",
+  "subject to a thorough visual stratification",
+  "subject to a detailed visual stratification the",
+  "subject to a detailed visual stratification",
+  "assume direct exclusive earmarking of the",
+  "assume direct exclusive earmarking of",
+  "assume absolute exclusive earmarking of the",
+  "assume absolute exclusive earmarking of",
+  "assume immediate exclusive earmarking of the",
+  "assume immediate exclusive earmarking of",
+  "divest oneself of all exclusive earmarking of the",
+  "divest oneself of all exclusive earmarking of",
+  "relinquish all exclusive earmarking of the",
+  "relinquish all exclusive earmarking of",
+  "free oneself from all exclusive earmarking of the",
+  "free oneself from all exclusive earmarking of",
+  "force completely and optoelastically wide open the",
+  "force completely and optoelastically wide open",
+  "pry completely and optoelastically wide open the",
+  "pry completely and optoelastically wide open",
+  "fasten completely and optoelastically closed the",
+  "fasten completely and optoelastically closed",
+  "seal completely and optoelastically shut the",
+  "seal completely and optoelastically shut",
+  "deactivate all hyperon security devices of the",
+  "deactivate all hyperon security devices of",
+  "deactivate all odderon security devices of the",
+  "deactivate all odderon security devices of",
+  "deactivate all stau security devices of the",
+  "deactivate all stau security devices of",
+  "deactivate all axino security devices of the",
+  "deactivate all axino security devices of",
+  "bypass all hyperon security devices on the",
+  "bypass all hyperon security devices on",
+  "bypass all odderon security devices on the",
+  "bypass all odderon security devices on",
+  "bypass all stau security devices on the",
+  "bypass all stau security devices on",
+  "bypass all axino security devices on the",
+  "bypass all axino security devices on",
+  "disengage the primary hyperon security device on the",
+  "disengage the primary hyperon security device on",
+  "harness the full orchestrated deployment of the",
+  "harness the full orchestrated deployment of",
+  "bring into active orchestrated deployment the",
+  "bring into active orchestrated deployment",
+  "make complete orchestrated deployment of the",
+  "make complete orchestrated deployment of",
+  "initiate a fatal confrontation against the",
+  "initiate a fatal confrontation against",
+  "commence a fatal confrontation against the",
+  "commence a fatal confrontation against",
+  "engage in a fatal confrontation against the",
+  "engage in a fatal confrontation against",
+  "initiate a cosmological face to face discussion with the",
+  "initiate a cosmological face to face discussion with",
+  "engage in a cosmological face to face discussion with the",
+  "engage in a cosmological face to face discussion with",
+  "strike up a cosmological face to face discussion with the",
+  "strike up a cosmological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
