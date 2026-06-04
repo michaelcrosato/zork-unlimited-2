@@ -20816,6 +20816,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an enlightening face to face discussion with the": ["TALK"]
 });
 
+// Cycle #109 / Task-F131: Phase 94 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of interference towards the location of": ["MOVE"],
+  "navigate one's vector of interference towards the location of the": ["MOVE"],
+  "navigate ones vector of interference towards the location of": ["MOVE"],
+  "navigate ones vector of interference towards the location of the": ["MOVE"],
+  "steer one's vector of interference in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of interference in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of interference in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of interference in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of interference towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of interference towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of interference towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of interference towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual corroboration": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual corroboration the": ["LOOK_INSPECT"],
+  "subject to a thorough visual corroboration": ["LOOK_INSPECT"],
+  "subject to a thorough visual corroboration the": ["LOOK_INSPECT"],
+  "subject to a detailed visual corroboration": ["LOOK_INSPECT"],
+  "subject to a detailed visual corroboration the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive arrogation of": ["TAKE"],
+  "assume direct exclusive arrogation of the": ["TAKE"],
+  "assume absolute exclusive arrogation of": ["TAKE"],
+  "assume absolute exclusive arrogation of the": ["TAKE"],
+  "assume immediate exclusive arrogation of": ["TAKE"],
+  "assume immediate exclusive arrogation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive arrogation of": ["DROP"],
+  "divest oneself of all exclusive arrogation of the": ["DROP"],
+  "relinquish all exclusive arrogation of": ["DROP"],
+  "relinquish all exclusive arrogation of the": ["DROP"],
+  "free oneself from all exclusive arrogation of": ["DROP"],
+  "free oneself from all exclusive arrogation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and nanofluidically wide open": ["OPEN"],
+  "force completely and nanofluidically wide open the": ["OPEN"],
+  "pry completely and nanofluidically wide open": ["OPEN"],
+  "pry completely and nanofluidically wide open the": ["OPEN"],
+  "fasten completely and nanofluidically closed": ["CLOSE"],
+  "fasten completely and nanofluidically closed the": ["CLOSE"],
+  "seal completely and nanofluidically shut": ["CLOSE"],
+  "seal completely and nanofluidically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all electrorheological security devices of": ["UNLOCK"],
+  "deactivate all electrorheological security devices of the": ["UNLOCK"],
+  "bypass all electrorheological security devices on": ["UNLOCK"],
+  "bypass all electrorheological security devices on the": ["UNLOCK"],
+  "disengage the primary electrorheological security device on": ["UNLOCK"],
+  "disengage the primary electrorheological security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unprecedented deployment of": ["USE"],
+  "harness the full unprecedented deployment of the": ["USE"],
+  "bring into active unprecedented deployment": ["USE"],
+  "bring into active unprecedented deployment the": ["USE"],
+  "make complete unprecedented deployment of": ["USE"],
+  "make complete unprecedented deployment of the": ["USE"],
+
+  // Combat
+  "initiate a barbarous confrontation against": ["FIGHT"],
+  "initiate a barbarous confrontation against the": ["FIGHT"],
+  "commence a barbarous confrontation against": ["FIGHT"],
+  "commence a barbarous confrontation against the": ["FIGHT"],
+  "engage in a barbarous confrontation against": ["FIGHT"],
+  "engage in a barbarous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an enriching face to face discussion with": ["TALK"],
+  "initiate an enriching face to face discussion with the": ["TALK"],
+  "engage in an enriching face to face discussion with": ["TALK"],
+  "engage in an enriching face to face discussion with the": ["TALK"],
+  "strike up an enriching face to face discussion with": ["TALK"],
+  "strike up an enriching face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -21475,6 +21558,72 @@ compoundVerbs.push(
   "engage in an enlightening face to face discussion with",
   "strike up an enlightening face to face discussion with the",
   "strike up an enlightening face to face discussion with"
+);
+
+// Cycle #109 / Task-F131: Phase 94 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of interference towards the location of the",
+  "navigate one's vector of interference towards the location of",
+  "navigate ones vector of interference towards the location of the",
+  "navigate ones vector of interference towards the location of",
+  "steer one's vector of interference in the direction of the coordinates of the",
+  "steer one's vector of interference in the direction of the coordinates of",
+  "steer ones vector of interference in the direction of the coordinates of the",
+  "steer ones vector of interference in the direction of the coordinates of",
+  "direct one's vector of interference towards the coordinates of the location of the",
+  "direct one's vector of interference towards the coordinates of the location of",
+  "direct ones vector of interference towards the coordinates of the location of the",
+  "direct ones vector of interference towards the coordinates of the location of",
+  "subject to a comprehensive visual corroboration the",
+  "subject to a comprehensive visual corroboration",
+  "subject to a thorough visual corroboration the",
+  "subject to a thorough visual corroboration",
+  "subject to a detailed visual corroboration the",
+  "subject to a detailed visual corroboration",
+  "assume direct exclusive arrogation of the",
+  "assume direct exclusive arrogation of",
+  "assume absolute exclusive arrogation of the",
+  "assume absolute exclusive arrogation of",
+  "assume immediate exclusive arrogation of the",
+  "assume immediate exclusive arrogation of",
+  "divest oneself of all exclusive arrogation of the",
+  "divest oneself of all exclusive arrogation of",
+  "relinquish all exclusive arrogation of the",
+  "relinquish all exclusive arrogation of",
+  "free oneself from all exclusive arrogation of the",
+  "free oneself from all exclusive arrogation of",
+  "force completely and nanofluidically wide open the",
+  "force completely and nanofluidically wide open",
+  "pry completely and nanofluidically wide open the",
+  "pry completely and nanofluidically wide open",
+  "fasten completely and nanofluidically closed the",
+  "fasten completely and nanofluidically closed",
+  "seal completely and nanofluidically shut the",
+  "seal completely and nanofluidically shut",
+  "deactivate all electrorheological security devices of the",
+  "deactivate all electrorheological security devices of",
+  "bypass all electrorheological security devices on the",
+  "bypass all electrorheological security devices on",
+  "disengage the primary electrorheological security device on the",
+  "disengage the primary electrorheological security device on",
+  "harness the full unprecedented deployment of the",
+  "harness the full unprecedented deployment of",
+  "bring into active unprecedented deployment the",
+  "bring into active unprecedented deployment",
+  "make complete unprecedented deployment of the",
+  "make complete unprecedented deployment of",
+  "initiate a barbarous confrontation against the",
+  "initiate a barbarous confrontation against",
+  "commence a barbarous confrontation against the",
+  "commence a barbarous confrontation against",
+  "engage in a barbarous confrontation against the",
+  "engage in a barbarous confrontation against",
+  "initiate an enriching face to face discussion with the",
+  "initiate an enriching face to face discussion with",
+  "engage in an enriching face to face discussion with the",
+  "engage in an enriching face to face discussion with",
+  "strike up an enriching face to face discussion with the",
+  "strike up an enriching face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
