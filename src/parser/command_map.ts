@@ -22225,6 +22225,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a probing face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #127 / Task-F148: Phase 111
+  // Movement
+  "navigate one's vector of vaporization towards the location of": ["MOVE"],
+  "navigate one's vector of vaporization towards the location of the": ["MOVE"],
+  "navigate ones vector of vaporization towards the location of": ["MOVE"],
+  "navigate ones vector of vaporization towards the location of the": ["MOVE"],
+  "steer one's vector of vaporization in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of vaporization in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of vaporization in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of vaporization in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of vaporization towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of vaporization towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of vaporization towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of vaporization towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual differentiation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual differentiation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual differentiation": ["LOOK_INSPECT"],
+  "subject to a thorough visual differentiation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual differentiation": ["LOOK_INSPECT"],
+  "subject to a detailed visual differentiation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive franchise of": ["TAKE"],
+  "assume direct exclusive franchise of the": ["TAKE"],
+  "assume absolute exclusive franchise of": ["TAKE"],
+  "assume absolute exclusive franchise of the": ["TAKE"],
+  "assume immediate exclusive franchise of": ["TAKE"],
+  "assume immediate exclusive franchise of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive franchise of": ["DROP"],
+  "divest oneself of all exclusive franchise of the": ["DROP"],
+  "relinquish all exclusive franchise of": ["DROP"],
+  "relinquish all exclusive franchise of the": ["DROP"],
+  "free oneself from all exclusive franchise of": ["DROP"],
+  "free oneself from all exclusive franchise of the": ["DROP"],
+
+  // Open/Close
+  "force completely and rheopectically wide open": ["OPEN"],
+  "force completely and rheopectically wide open the": ["OPEN"],
+  "pry completely and rheopectically wide open": ["OPEN"],
+  "pry completely and rheopectically wide open the": ["OPEN"],
+  "fasten completely and rheopectically closed": ["CLOSE"],
+  "fasten completely and rheopectically closed the": ["CLOSE"],
+  "seal completely and rheopectically shut": ["CLOSE"],
+  "seal completely and rheopectically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all gluonic security devices of": ["UNLOCK"],
+  "deactivate all gluonic security devices of the": ["UNLOCK"],
+  "bypass all gluonic security devices on": ["UNLOCK"],
+  "bypass all gluonic security devices on the": ["UNLOCK"],
+  "disengage the primary gluonic security device on": ["UNLOCK"],
+  "disengage the primary gluonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full impregnable deployment of": ["USE"],
+  "harness the full impregnable deployment of the": ["USE"],
+  "bring into active impregnable deployment": ["USE"],
+  "bring into active impregnable deployment the": ["USE"],
+  "make complete impregnable deployment of": ["USE"],
+  "make complete impregnable deployment of the": ["USE"],
+
+  // Combat
+  "initiate a discordant confrontation against": ["FIGHT"],
+  "initiate a discordant confrontation against the": ["FIGHT"],
+  "commence a discordant confrontation against": ["FIGHT"],
+  "commence a discordant confrontation against the": ["FIGHT"],
+  "engage in a discordant confrontation against": ["FIGHT"],
+  "engage in a discordant confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a circumspect face to face discussion with": ["TALK"],
+  "initiate a circumspect face to face discussion with the": ["TALK"],
+  "engage in a circumspect face to face discussion with": ["TALK"],
+  "engage in a circumspect face to face discussion with the": ["TALK"],
+  "strike up a circumspect face to face discussion with": ["TALK"],
+  "strike up a circumspect face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -24008,6 +24091,72 @@ compoundVerbs.push(
   "engage in a probing face to face discussion with",
   "strike up a probing face to face discussion with the",
   "strike up a probing face to face discussion with"
+);
+
+// Cycle #127 / Task-F148: Phase 111 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of vaporization towards the location of the",
+  "navigate one's vector of vaporization towards the location of",
+  "navigate ones vector of vaporization towards the location of the",
+  "navigate ones vector of vaporization towards the location of",
+  "steer one's vector of vaporization in the direction of the coordinates of the",
+  "steer one's vector of vaporization in the direction of the coordinates of",
+  "steer ones vector of vaporization in the direction of the coordinates of the",
+  "steer ones vector of vaporization in the direction of the coordinates of",
+  "direct one's vector of vaporization towards the coordinates of the location of the",
+  "direct one's vector of vaporization towards the coordinates of the location of",
+  "direct ones vector of vaporization towards the coordinates of the location of the",
+  "direct ones vector of vaporization towards the coordinates of the location of",
+  "subject to a comprehensive visual differentiation the",
+  "subject to a comprehensive visual differentiation",
+  "subject to a thorough visual differentiation the",
+  "subject to a thorough visual differentiation",
+  "subject to a detailed visual differentiation the",
+  "subject to a detailed visual differentiation",
+  "assume direct exclusive franchise of the",
+  "assume direct exclusive franchise of",
+  "assume absolute exclusive franchise of the",
+  "assume absolute exclusive franchise of",
+  "assume immediate exclusive franchise of the",
+  "assume immediate exclusive franchise of",
+  "divest oneself of all exclusive franchise of the",
+  "divest oneself of all exclusive franchise of",
+  "relinquish all exclusive franchise of the",
+  "relinquish all exclusive franchise of",
+  "free oneself from all exclusive franchise of the",
+  "free oneself from all exclusive franchise of",
+  "force completely and rheopectically wide open the",
+  "force completely and rheopectically wide open",
+  "pry completely and rheopectically wide open the",
+  "pry completely and rheopectically wide open",
+  "fasten completely and rheopectically closed the",
+  "fasten completely and rheopectically closed",
+  "seal completely and rheopectically shut the",
+  "seal completely and rheopectically shut",
+  "deactivate all gluonic security devices of the",
+  "deactivate all gluonic security devices of",
+  "bypass all gluonic security devices on the",
+  "bypass all gluonic security devices on",
+  "disengage the primary gluonic security device on the",
+  "disengage the primary gluonic security device on",
+  "harness the full impregnable deployment of the",
+  "harness the full impregnable deployment of",
+  "bring into active impregnable deployment the",
+  "bring into active impregnable deployment",
+  "make complete impregnable deployment of the",
+  "make complete impregnable deployment of",
+  "initiate a discordant confrontation against the",
+  "initiate a discordant confrontation against",
+  "commence a discordant confrontation against the",
+  "commence a discordant confrontation against",
+  "engage in a discordant confrontation against the",
+  "engage in a discordant confrontation against",
+  "initiate a circumspect face to face discussion with the",
+  "initiate a circumspect face to face discussion with",
+  "engage in a circumspect face to face discussion with the",
+  "engage in a circumspect face to face discussion with",
+  "strike up a circumspect face to face discussion with the",
+  "strike up a circumspect face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
