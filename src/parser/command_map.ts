@@ -22391,6 +22391,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an investigative face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #129 / Task-F150: Phase 113
+  // Movement
+  "navigate one's vector of solidification towards the location of": ["MOVE"],
+  "navigate one's vector of solidification towards the location of the": ["MOVE"],
+  "navigate ones vector of solidification towards the location of": ["MOVE"],
+  "navigate ones vector of solidification towards the location of the": ["MOVE"],
+  "steer one's vector of solidification in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of solidification in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of solidification in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of solidification in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of solidification towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of solidification towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of solidification towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of solidification towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual authentication": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual authentication the": ["LOOK_INSPECT"],
+  "subject to a thorough visual authentication": ["LOOK_INSPECT"],
+  "subject to a thorough visual authentication the": ["LOOK_INSPECT"],
+  "subject to a detailed visual authentication": ["LOOK_INSPECT"],
+  "subject to a detailed visual authentication the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive prerogative of": ["TAKE"],
+  "assume direct exclusive prerogative of the": ["TAKE"],
+  "assume absolute exclusive prerogative of": ["TAKE"],
+  "assume absolute exclusive prerogative of the": ["TAKE"],
+  "assume immediate exclusive prerogative of": ["TAKE"],
+  "assume immediate exclusive prerogative of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive prerogative of": ["DROP"],
+  "divest oneself of all exclusive prerogative of the": ["DROP"],
+  "relinquish all exclusive prerogative of": ["DROP"],
+  "relinquish all exclusive prerogative of the": ["DROP"],
+  "free oneself from all exclusive prerogative of": ["DROP"],
+  "free oneself from all exclusive prerogative of the": ["DROP"],
+
+  // Open/Close
+  "force completely and viscoplastically wide open": ["OPEN"],
+  "force completely and viscoplastically wide open the": ["OPEN"],
+  "pry completely and viscoplastically wide open": ["OPEN"],
+  "pry completely and viscoplastically wide open the": ["OPEN"],
+  "fasten completely and viscoplastically closed": ["CLOSE"],
+  "fasten completely and viscoplastically closed the": ["CLOSE"],
+  "seal completely and viscoplastically shut": ["CLOSE"],
+  "seal completely and viscoplastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all tachyonic security devices of": ["UNLOCK"],
+  "deactivate all tachyonic security devices of the": ["UNLOCK"],
+  "bypass all tachyonic security devices on": ["UNLOCK"],
+  "bypass all tachyonic security devices on the": ["UNLOCK"],
+  "disengage the primary tachyonic security device on": ["UNLOCK"],
+  "disengage the primary tachyonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full inviolable deployment of": ["USE"],
+  "harness the full inviolable deployment of the": ["USE"],
+  "bring into active inviolable deployment": ["USE"],
+  "bring into active inviolable deployment the": ["USE"],
+  "make complete inviolable deployment of": ["USE"],
+  "make complete inviolable deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unfriendly confrontation against": ["FIGHT"],
+  "initiate an unfriendly confrontation against the": ["FIGHT"],
+  "commence an unfriendly confrontation against": ["FIGHT"],
+  "commence an unfriendly confrontation against the": ["FIGHT"],
+  "engage in an unfriendly confrontation against": ["FIGHT"],
+  "engage in an unfriendly confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a discursive face to face discussion with": ["TALK"],
+  "initiate a discursive face to face discussion with the": ["TALK"],
+  "engage in a discursive face to face discussion with": ["TALK"],
+  "engage in a discursive face to face discussion with the": ["TALK"],
+  "strike up a discursive face to face discussion with": ["TALK"],
+  "strike up a discursive face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -24306,6 +24389,72 @@ compoundVerbs.push(
   "engage in an investigative face to face discussion with",
   "strike up an investigative face to face discussion with the",
   "strike up an investigative face to face discussion with"
+);
+
+// Cycle #129 / Task-F150: Phase 113 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of solidification towards the location of the",
+  "navigate one's vector of solidification towards the location of",
+  "navigate ones vector of solidification towards the location of the",
+  "navigate ones vector of solidification towards the location of",
+  "steer one's vector of solidification in the direction of the coordinates of the",
+  "steer one's vector of solidification in the direction of the coordinates of",
+  "steer ones vector of solidification in the direction of the coordinates of the",
+  "steer ones vector of solidification in the direction of the coordinates of",
+  "direct one's vector of solidification towards the coordinates of the location of the",
+  "direct one's vector of solidification towards the coordinates of the location of",
+  "direct ones vector of solidification towards the coordinates of the location of the",
+  "direct ones vector of solidification towards the coordinates of the location of",
+  "subject to a comprehensive visual authentication the",
+  "subject to a comprehensive visual authentication",
+  "subject to a thorough visual authentication the",
+  "subject to a thorough visual authentication",
+  "subject to a detailed visual authentication the",
+  "subject to a detailed visual authentication",
+  "assume direct exclusive prerogative of the",
+  "assume direct exclusive prerogative of",
+  "assume absolute exclusive prerogative of the",
+  "assume absolute exclusive prerogative of",
+  "assume immediate exclusive prerogative of the",
+  "assume immediate exclusive prerogative of",
+  "divest oneself of all exclusive prerogative of the",
+  "divest oneself of all exclusive prerogative of",
+  "relinquish all exclusive prerogative of the",
+  "relinquish all exclusive prerogative of",
+  "free oneself from all exclusive prerogative of the",
+  "free oneself from all exclusive prerogative of",
+  "force completely and viscoplastically wide open the",
+  "force completely and viscoplastically wide open",
+  "pry completely and viscoplastically wide open the",
+  "pry completely and viscoplastically wide open",
+  "fasten completely and viscoplastically closed the",
+  "fasten completely and viscoplastically closed",
+  "seal completely and viscoplastically shut the",
+  "seal completely and viscoplastically shut",
+  "deactivate all tachyonic security devices of the",
+  "deactivate all tachyonic security devices of",
+  "bypass all tachyonic security devices on the",
+  "bypass all tachyonic security devices on",
+  "disengage the primary tachyonic security device on the",
+  "disengage the primary tachyonic security device on",
+  "harness the full inviolable deployment of the",
+  "harness the full inviolable deployment of",
+  "bring into active inviolable deployment the",
+  "bring into active inviolable deployment",
+  "make complete inviolable deployment of the",
+  "make complete inviolable deployment of",
+  "initiate an unfriendly confrontation against the",
+  "initiate an unfriendly confrontation against",
+  "commence an unfriendly confrontation against the",
+  "commence an unfriendly confrontation against",
+  "engage in an unfriendly confrontation against the",
+  "engage in an unfriendly confrontation against",
+  "initiate a discursive face to face discussion with the",
+  "initiate a discursive face to face discussion with",
+  "engage in a discursive face to face discussion with the",
+  "engage in a discursive face to face discussion with",
+  "strike up a discursive face to face discussion with the",
+  "strike up a discursive face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
