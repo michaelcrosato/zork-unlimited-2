@@ -29568,6 +29568,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a mineralogical face to face discussion with the": ["TALK"]
 });
 
+// Cycle #214 / Task-F233: Phase 195 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of oncogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of oncogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of oncogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of oncogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of oncogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of oncogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of oncogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of oncogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of oncogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of oncogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of oncogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of oncogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual decomposition": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual decomposition the": ["LOOK_INSPECT"],
+  "subject to a thorough visual decomposition": ["LOOK_INSPECT"],
+  "subject to a thorough visual decomposition the": ["LOOK_INSPECT"],
+  "subject to a detailed visual decomposition": ["LOOK_INSPECT"],
+  "subject to a detailed visual decomposition the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive placement of": ["TAKE"],
+  "assume direct exclusive placement of the": ["TAKE"],
+  "assume absolute exclusive placement of": ["TAKE"],
+  "assume absolute exclusive placement of the": ["TAKE"],
+  "assume immediate exclusive placement of": ["TAKE"],
+  "assume immediate exclusive placement of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive placement of": ["DROP"],
+  "divest oneself of all exclusive placement of the": ["DROP"],
+  "relinquish all exclusive placement of": ["DROP"],
+  "relinquish all exclusive placement of the": ["DROP"],
+  "free oneself from all exclusive placement of": ["DROP"],
+  "free oneself from all exclusive placement of the": ["DROP"],
+
+  // Open/Close
+  "force completely and triboelastically wide open": ["OPEN"],
+  "force completely and triboelastically wide open the": ["OPEN"],
+  "pry completely and triboelastically wide open": ["OPEN"],
+  "pry completely and triboelastically wide open the": ["OPEN"],
+  "fasten completely and triboelastically closed": ["CLOSE"],
+  "fasten completely and triboelastically closed the": ["CLOSE"],
+  "seal completely and triboelastically shut": ["CLOSE"],
+  "seal completely and triboelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all tesla security devices of": ["UNLOCK"],
+  "deactivate all tesla security devices of the": ["UNLOCK"],
+  "deactivate all edison security devices of": ["UNLOCK"],
+  "deactivate all edison security devices of the": ["UNLOCK"],
+  "deactivate all marconi security devices of": ["UNLOCK"],
+  "deactivate all marconi security devices of the": ["UNLOCK"],
+  "deactivate all hertz security devices of": ["UNLOCK"],
+  "deactivate all hertz security devices of the": ["UNLOCK"],
+  "bypass all tesla security devices on": ["UNLOCK"],
+  "bypass all tesla security devices on the": ["UNLOCK"],
+  "bypass all edison security devices on": ["UNLOCK"],
+  "bypass all edison security devices on the": ["UNLOCK"],
+  "bypass all marconi security devices on": ["UNLOCK"],
+  "bypass all marconi security devices on the": ["UNLOCK"],
+  "bypass all hertz security devices on": ["UNLOCK"],
+  "bypass all hertz security devices on the": ["UNLOCK"],
+  "disengage the primary tesla security device on": ["UNLOCK"],
+  "disengage the primary tesla security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full thigmotropic deployment of": ["USE"],
+  "harness the full thigmotropic deployment of the": ["USE"],
+  "bring into active thigmotropic deployment": ["USE"],
+  "bring into active thigmotropic deployment the": ["USE"],
+  "make complete thigmotropic deployment of": ["USE"],
+  "make complete thigmotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unyieldingly valiant confrontation against": ["FIGHT"],
+  "initiate an unyieldingly valiant confrontation against the": ["FIGHT"],
+  "commence an unyieldingly valiant confrontation against": ["FIGHT"],
+  "commence an unyieldingly valiant confrontation against the": ["FIGHT"],
+  "engage in an unyieldingly valiant confrontation against": ["FIGHT"],
+  "engage in an unyieldingly valiant confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a herpetological face to face discussion with": ["TALK"],
+  "initiate a herpetological face to face discussion with the": ["TALK"],
+  "engage in a herpetological face to face discussion with": ["TALK"],
+  "engage in a herpetological face to face discussion with the": ["TALK"],
+  "strike up a herpetological face to face discussion with": ["TALK"],
+  "strike up a herpetological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -37361,6 +37456,84 @@ compoundVerbs.push(
   "engage in a mineralogical face to face discussion with",
   "strike up a mineralogical face to face discussion with the",
   "strike up a mineralogical face to face discussion with"
+);
+
+// Cycle #214 / Task-F233: Phase 195 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of oncogenesis towards the location of the",
+  "navigate one's vector of oncogenesis towards the location of",
+  "navigate ones vector of oncogenesis towards the location of the",
+  "navigate ones vector of oncogenesis towards the location of",
+  "steer one's vector of oncogenesis in the direction of the coordinates of the",
+  "steer one's vector of oncogenesis in the direction of the coordinates of",
+  "steer ones vector of oncogenesis in the direction of the coordinates of the",
+  "steer ones vector of oncogenesis in the direction of the coordinates of",
+  "direct one's vector of oncogenesis towards the coordinates of the location of the",
+  "direct one's vector of oncogenesis towards the coordinates of the location of",
+  "direct ones vector of oncogenesis towards the coordinates of the location of the",
+  "direct ones vector of oncogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual decomposition the",
+  "subject to a comprehensive visual decomposition",
+  "subject to a thorough visual decomposition the",
+  "subject to a thorough visual decomposition",
+  "subject to a detailed visual decomposition the",
+  "subject to a detailed visual decomposition",
+  "assume direct exclusive placement of the",
+  "assume direct exclusive placement of",
+  "assume absolute exclusive placement of the",
+  "assume absolute exclusive placement of",
+  "assume immediate exclusive placement of the",
+  "assume immediate exclusive placement of",
+  "divest oneself of all exclusive placement of the",
+  "divest oneself of all exclusive placement of",
+  "relinquish all exclusive placement of the",
+  "relinquish all exclusive placement of",
+  "free oneself from all exclusive placement of the",
+  "free oneself from all exclusive placement of",
+  "force completely and triboelastically wide open the",
+  "force completely and triboelastically wide open",
+  "pry completely and triboelastically wide open the",
+  "pry completely and triboelastically wide open",
+  "fasten completely and triboelastically closed the",
+  "fasten completely and triboelastically closed",
+  "seal completely and triboelastically shut the",
+  "seal completely and triboelastically shut",
+  "deactivate all tesla security devices of the",
+  "deactivate all tesla security devices of",
+  "deactivate all edison security devices of the",
+  "deactivate all edison security devices of",
+  "deactivate all marconi security devices of the",
+  "deactivate all marconi security devices of",
+  "deactivate all hertz security devices of the",
+  "deactivate all hertz security devices of",
+  "bypass all tesla security devices on the",
+  "bypass all tesla security devices on",
+  "bypass all edison security devices on the",
+  "bypass all edison security devices on",
+  "bypass all marconi security devices on the",
+  "bypass all marconi security devices on",
+  "bypass all hertz security devices on the",
+  "bypass all hertz security devices on",
+  "disengage the primary tesla security device on the",
+  "disengage the primary tesla security device on",
+  "harness the full thigmotropic deployment of the",
+  "harness the full thigmotropic deployment of",
+  "bring into active thigmotropic deployment the",
+  "bring into active thigmotropic deployment",
+  "make complete thigmotropic deployment of the",
+  "make complete thigmotropic deployment of",
+  "initiate an unyieldingly valiant confrontation against the",
+  "initiate an unyieldingly valiant confrontation against",
+  "commence an unyieldingly valiant confrontation against the",
+  "commence an unyieldingly valiant confrontation against",
+  "engage in an unyieldingly valiant confrontation against the",
+  "engage in an unyieldingly valiant confrontation against",
+  "initiate a herpetological face to face discussion with the",
+  "initiate a herpetological face to face discussion with",
+  "engage in a herpetological face to face discussion with the",
+  "engage in a herpetological face to face discussion with",
+  "strike up a herpetological face to face discussion with the",
+  "strike up a herpetological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
