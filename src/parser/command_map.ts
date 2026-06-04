@@ -22059,6 +22059,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a penetrating face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #125 / Task-F146: Phase 109
+  // Movement
+  "navigate one's vector of sublimation towards the location of": ["MOVE"],
+  "navigate one's vector of sublimation towards the location of the": ["MOVE"],
+  "navigate ones vector of sublimation towards the location of": ["MOVE"],
+  "navigate ones vector of sublimation towards the location of the": ["MOVE"],
+  "steer one's vector of sublimation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of sublimation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of sublimation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of sublimation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of sublimation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of sublimation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of sublimation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of sublimation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual determination": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual determination the": ["LOOK_INSPECT"],
+  "subject to a thorough visual determination": ["LOOK_INSPECT"],
+  "subject to a thorough visual determination the": ["LOOK_INSPECT"],
+  "subject to a detailed visual determination": ["LOOK_INSPECT"],
+  "subject to a detailed visual determination the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive charter of": ["TAKE"],
+  "assume direct exclusive charter of the": ["TAKE"],
+  "assume absolute exclusive charter of": ["TAKE"],
+  "assume absolute exclusive charter of the": ["TAKE"],
+  "assume immediate exclusive charter of": ["TAKE"],
+  "assume immediate exclusive charter of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive charter of": ["DROP"],
+  "divest oneself of all exclusive charter of the": ["DROP"],
+  "relinquish all exclusive charter of": ["DROP"],
+  "relinquish all exclusive charter of the": ["DROP"],
+  "free oneself from all exclusive charter of": ["DROP"],
+  "free oneself from all exclusive charter of the": ["DROP"],
+
+  // Open/Close
+  "force completely and elastomerically wide open": ["OPEN"],
+  "force completely and elastomerically wide open the": ["OPEN"],
+  "pry completely and elastomerically wide open": ["OPEN"],
+  "pry completely and elastomerically wide open the": ["OPEN"],
+  "fasten completely and elastomerically closed": ["CLOSE"],
+  "fasten completely and elastomerically closed the": ["CLOSE"],
+  "seal completely and elastomerically shut": ["CLOSE"],
+  "seal completely and elastomerically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all fermionic security devices of": ["UNLOCK"],
+  "deactivate all fermionic security devices of the": ["UNLOCK"],
+  "bypass all fermionic security devices on": ["UNLOCK"],
+  "bypass all fermionic security devices on the": ["UNLOCK"],
+  "disengage the primary fermionic security device on": ["UNLOCK"],
+  "disengage the primary fermionic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full invulnerable deployment of": ["USE"],
+  "harness the full invulnerable deployment of the": ["USE"],
+  "bring into active invulnerable deployment": ["USE"],
+  "bring into active invulnerable deployment the": ["USE"],
+  "make complete invulnerable deployment of": ["USE"],
+  "make complete invulnerable deployment of the": ["USE"],
+
+  // Combat
+  "initiate a quarrelsome confrontation against": ["FIGHT"],
+  "initiate a quarrelsome confrontation against the": ["FIGHT"],
+  "commence a quarrelsome confrontation against": ["FIGHT"],
+  "commence a quarrelsome confrontation against the": ["FIGHT"],
+  "engage in a quarrelsome confrontation against": ["FIGHT"],
+  "engage in a quarrelsome confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a searching face to face discussion with": ["TALK"],
+  "initiate a searching face to face discussion with the": ["TALK"],
+  "engage in a searching face to face discussion with": ["TALK"],
+  "engage in a searching face to face discussion with the": ["TALK"],
+  "strike up a searching face to face discussion with": ["TALK"],
+  "strike up a searching face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -23710,6 +23793,72 @@ compoundVerbs.push(
   "engage in a penetrating face to face discussion with",
   "strike up a penetrating face to face discussion with the",
   "strike up a penetrating face to face discussion with"
+);
+
+// Cycle #125 / Task-F146: Phase 109 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of sublimation towards the location of the",
+  "navigate one's vector of sublimation towards the location of",
+  "navigate ones vector of sublimation towards the location of the",
+  "navigate ones vector of sublimation towards the location of",
+  "steer one's vector of sublimation in the direction of the coordinates of the",
+  "steer one's vector of sublimation in the direction of the coordinates of",
+  "steer ones vector of sublimation in the direction of the coordinates of the",
+  "steer ones vector of sublimation in the direction of the coordinates of",
+  "direct one's vector of sublimation towards the coordinates of the location of the",
+  "direct one's vector of sublimation towards the coordinates of the location of",
+  "direct ones vector of sublimation towards the coordinates of the location of the",
+  "direct ones vector of sublimation towards the coordinates of the location of",
+  "subject to a comprehensive visual determination the",
+  "subject to a comprehensive visual determination",
+  "subject to a thorough visual determination the",
+  "subject to a thorough visual determination",
+  "subject to a detailed visual determination the",
+  "subject to a detailed visual determination",
+  "assume direct exclusive charter of the",
+  "assume direct exclusive charter of",
+  "assume absolute exclusive charter of the",
+  "assume absolute exclusive charter of",
+  "assume immediate exclusive charter of the",
+  "assume immediate exclusive charter of",
+  "divest oneself of all exclusive charter of the",
+  "divest oneself of all exclusive charter of",
+  "relinquish all exclusive charter of the",
+  "relinquish all exclusive charter of",
+  "free oneself from all exclusive charter of the",
+  "free oneself from all exclusive charter of",
+  "force completely and elastomerically wide open the",
+  "force completely and elastomerically wide open",
+  "pry completely and elastomerically wide open the",
+  "pry completely and elastomerically wide open",
+  "fasten completely and elastomerically closed the",
+  "fasten completely and elastomerically closed",
+  "seal completely and elastomerically shut the",
+  "seal completely and elastomerically shut",
+  "deactivate all fermionic security devices of the",
+  "deactivate all fermionic security devices of",
+  "bypass all fermionic security devices on the",
+  "bypass all fermionic security devices on",
+  "disengage the primary fermionic security device on the",
+  "disengage the primary fermionic security device on",
+  "harness the full invulnerable deployment of the",
+  "harness the full invulnerable deployment of",
+  "bring into active invulnerable deployment the",
+  "bring into active invulnerable deployment",
+  "make complete invulnerable deployment of the",
+  "make complete invulnerable deployment of",
+  "initiate a quarrelsome confrontation against the",
+  "initiate a quarrelsome confrontation against",
+  "commence a quarrelsome confrontation against the",
+  "commence a quarrelsome confrontation against",
+  "engage in a quarrelsome confrontation against the",
+  "engage in a quarrelsome confrontation against",
+  "initiate a searching face to face discussion with the",
+  "initiate a searching face to face discussion with",
+  "engage in a searching face to face discussion with the",
+  "engage in a searching face to face discussion with",
+  "strike up a searching face to face discussion with the",
+  "strike up a searching face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
