@@ -29378,6 +29378,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a mycological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #212 / Task-F231: Phase 193 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of gliogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of gliogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of gliogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of gliogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of gliogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of gliogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of gliogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of gliogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of gliogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of gliogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of gliogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of gliogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual actualization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual actualization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual actualization": ["LOOK_INSPECT"],
+  "subject to a thorough visual actualization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual actualization": ["LOOK_INSPECT"],
+  "subject to a detailed visual actualization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive requisitioning of": ["TAKE"],
+  "assume direct exclusive requisitioning of the": ["TAKE"],
+  "assume absolute exclusive requisitioning of": ["TAKE"],
+  "assume absolute exclusive requisitioning of the": ["TAKE"],
+  "assume immediate exclusive requisitioning of": ["TAKE"],
+  "assume immediate exclusive requisitioning of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive requisitioning of": ["DROP"],
+  "divest oneself of all exclusive requisitioning of the": ["DROP"],
+  "relinquish all exclusive requisitioning of": ["DROP"],
+  "relinquish all exclusive requisitioning of the": ["DROP"],
+  "free oneself from all exclusive requisitioning of": ["DROP"],
+  "free oneself from all exclusive requisitioning of the": ["DROP"],
+
+  // Open/Close
+  "force completely and triboelectrically wide open": ["OPEN"],
+  "force completely and triboelectrically wide open the": ["OPEN"],
+  "pry completely and triboelectrically wide open": ["OPEN"],
+  "pry completely and triboelectrically wide open the": ["OPEN"],
+  "fasten completely and triboelectrically closed": ["CLOSE"],
+  "fasten completely and triboelectrically closed the": ["CLOSE"],
+  "seal completely and triboelectrically shut": ["CLOSE"],
+  "seal completely and triboelectrically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all godel security devices of": ["UNLOCK"],
+  "deactivate all godel security devices of the": ["UNLOCK"],
+  "deactivate all cantor security devices of": ["UNLOCK"],
+  "deactivate all cantor security devices of the": ["UNLOCK"],
+  "deactivate all peano security devices of": ["UNLOCK"],
+  "deactivate all peano security devices of the": ["UNLOCK"],
+  "deactivate all frege security devices of": ["UNLOCK"],
+  "deactivate all frege security devices of the": ["UNLOCK"],
+  "bypass all godel security devices on": ["UNLOCK"],
+  "bypass all godel security devices on the": ["UNLOCK"],
+  "bypass all cantor security devices on": ["UNLOCK"],
+  "bypass all cantor security devices on the": ["UNLOCK"],
+  "bypass all peano security devices on": ["UNLOCK"],
+  "bypass all peano security devices on the": ["UNLOCK"],
+  "bypass all frege security devices on": ["UNLOCK"],
+  "bypass all frege security devices on the": ["UNLOCK"],
+  "disengage the primary godel security device on": ["UNLOCK"],
+  "disengage the primary godel security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full chemotropic deployment of": ["USE"],
+  "harness the full chemotropic deployment of the": ["USE"],
+  "bring into active chemotropic deployment": ["USE"],
+  "bring into active chemotropic deployment the": ["USE"],
+  "make complete chemotropic deployment of": ["USE"],
+  "make complete chemotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a relentlessly truculent confrontation against": ["FIGHT"],
+  "initiate a relentlessly truculent confrontation against the": ["FIGHT"],
+  "commence a relentlessly truculent confrontation against": ["FIGHT"],
+  "commence a relentlessly truculent confrontation against the": ["FIGHT"],
+  "engage in a relentlessly truculent confrontation against": ["FIGHT"],
+  "engage in a relentlessly truculent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an ornithological face to face discussion with": ["TALK"],
+  "initiate an ornithological face to face discussion with the": ["TALK"],
+  "engage in an ornithological face to face discussion with": ["TALK"],
+  "engage in an ornithological face to face discussion with the": ["TALK"],
+  "strike up an ornithological face to face discussion with": ["TALK"],
+  "strike up an ornithological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -37015,6 +37110,84 @@ compoundVerbs.push(
   "engage in a mycological face to face discussion with",
   "strike up a mycological face to face discussion with the",
   "strike up a mycological face to face discussion with"
+);
+
+// Cycle #212 / Task-F231: Phase 193 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of gliogenesis towards the location of the",
+  "navigate one's vector of gliogenesis towards the location of",
+  "navigate ones vector of gliogenesis towards the location of the",
+  "navigate ones vector of gliogenesis towards the location of",
+  "steer one's vector of gliogenesis in the direction of the coordinates of the",
+  "steer one's vector of gliogenesis in the direction of the coordinates of",
+  "steer ones vector of gliogenesis in the direction of the coordinates of the",
+  "steer ones vector of gliogenesis in the direction of the coordinates of",
+  "direct one's vector of gliogenesis towards the coordinates of the location of the",
+  "direct one's vector of gliogenesis towards the coordinates of the location of",
+  "direct ones vector of gliogenesis towards the coordinates of the location of the",
+  "direct ones vector of gliogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual actualization the",
+  "subject to a comprehensive visual actualization",
+  "subject to a thorough visual actualization the",
+  "subject to a thorough visual actualization",
+  "subject to a detailed visual actualization the",
+  "subject to a detailed visual actualization",
+  "assume direct exclusive requisitioning of the",
+  "assume direct exclusive requisitioning of",
+  "assume absolute exclusive requisitioning of the",
+  "assume absolute exclusive requisitioning of",
+  "assume immediate exclusive requisitioning of the",
+  "assume immediate exclusive requisitioning of",
+  "divest oneself of all exclusive requisitioning of the",
+  "divest oneself of all exclusive requisitioning of",
+  "relinquish all exclusive requisitioning of the",
+  "relinquish all exclusive requisitioning of",
+  "free oneself from all exclusive requisitioning of the",
+  "free oneself from all exclusive requisitioning of",
+  "force completely and triboelectrically wide open the",
+  "force completely and triboelectrically wide open",
+  "pry completely and triboelectrically wide open the",
+  "pry completely and triboelectrically wide open",
+  "fasten completely and triboelectrically closed the",
+  "fasten completely and triboelectrically closed",
+  "seal completely and triboelectrically shut the",
+  "seal completely and triboelectrically shut",
+  "deactivate all godel security devices of the",
+  "deactivate all godel security devices of",
+  "deactivate all cantor security devices of the",
+  "deactivate all cantor security devices of",
+  "deactivate all peano security devices of the",
+  "deactivate all peano security devices of",
+  "deactivate all frege security devices of the",
+  "deactivate all frege security devices of",
+  "bypass all godel security devices on the",
+  "bypass all godel security devices on",
+  "bypass all cantor security devices on the",
+  "bypass all cantor security devices on",
+  "bypass all peano security devices on the",
+  "bypass all peano security devices on",
+  "bypass all frege security devices on the",
+  "bypass all frege security devices on",
+  "disengage the primary godel security device on the",
+  "disengage the primary godel security device on",
+  "harness the full chemotropic deployment of the",
+  "harness the full chemotropic deployment of",
+  "bring into active chemotropic deployment the",
+  "bring into active chemotropic deployment",
+  "make complete chemotropic deployment of the",
+  "make complete chemotropic deployment of",
+  "initiate a relentlessly truculent confrontation against the",
+  "initiate a relentlessly truculent confrontation against",
+  "commence a relentlessly truculent confrontation against the",
+  "commence a relentlessly truculent confrontation against",
+  "engage in a relentlessly truculent confrontation against the",
+  "engage in a relentlessly truculent confrontation against",
+  "initiate an ornithological face to face discussion with the",
+  "initiate an ornithological face to face discussion with",
+  "engage in an ornithological face to face discussion with the",
+  "engage in an ornithological face to face discussion with",
+  "strike up an ornithological face to face discussion with the",
+  "strike up an ornithological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
