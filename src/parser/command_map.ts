@@ -25545,6 +25545,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an interactive face to face discussion with the": ["TALK"],
 });
 
+// Cycle #168 / Task-F189: Phase 152 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of cytokinesis towards the location of": ["MOVE"],
+  "navigate one's vector of cytokinesis towards the location of the": ["MOVE"],
+  "navigate ones vector of cytokinesis towards the location of": ["MOVE"],
+  "navigate ones vector of cytokinesis towards the location of the": ["MOVE"],
+  "steer one's vector of cytokinesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of cytokinesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of cytokinesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of cytokinesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of cytokinesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of cytokinesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of cytokinesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of cytokinesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual identification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual identification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual identification": ["LOOK_INSPECT"],
+  "subject to a thorough visual identification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual identification": ["LOOK_INSPECT"],
+  "subject to a detailed visual identification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive reserve of": ["TAKE"],
+  "assume direct exclusive reserve of the": ["TAKE"],
+  "assume absolute exclusive reserve of": ["TAKE"],
+  "assume absolute exclusive reserve of the": ["TAKE"],
+  "assume immediate exclusive reserve of": ["TAKE"],
+  "assume immediate exclusive reserve of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive reserve of": ["DROP"],
+  "divest oneself of all exclusive reserve of the": ["DROP"],
+  "relinquish all exclusive reserve of": ["DROP"],
+  "relinquish all exclusive reserve of the": ["DROP"],
+  "free oneself from all exclusive reserve of": ["DROP"],
+  "free oneself from all exclusive reserve of the": ["DROP"],
+
+  // Open/Close
+  "force completely and elastomechanically wide open": ["OPEN"],
+  "force completely and elastomechanically wide open the": ["OPEN"],
+  "pry completely and elastomechanically wide open": ["OPEN"],
+  "pry completely and elastomechanically wide open the": ["OPEN"],
+  "fasten completely and elastomechanically closed": ["CLOSE"],
+  "fasten completely and elastomechanically closed the": ["CLOSE"],
+  "seal completely and elastomechanically shut": ["CLOSE"],
+  "seal completely and elastomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all graviton security devices of": ["UNLOCK"],
+  "deactivate all graviton security devices of the": ["UNLOCK"],
+  "bypass all graviton security devices on": ["UNLOCK"],
+  "bypass all graviton security devices on the": ["UNLOCK"],
+  "disengage the primary graviton security device on": ["UNLOCK"],
+  "disengage the primary graviton security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full integrated deployment of": ["USE"],
+  "harness the full integrated deployment of the": ["USE"],
+  "bring into active integrated deployment": ["USE"],
+  "bring into active integrated deployment the": ["USE"],
+  "make complete integrated deployment of": ["USE"],
+  "make complete integrated deployment of the": ["USE"],
+
+  // Combat
+  "initiate a harmful confrontation against": ["FIGHT"],
+  "initiate a harmful confrontation against the": ["FIGHT"],
+  "commence a harmful confrontation against": ["FIGHT"],
+  "commence a harmful confrontation against the": ["FIGHT"],
+  "engage in a harmful confrontation against": ["FIGHT"],
+  "engage in a harmful confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a structured face to face discussion with": ["TALK"],
+  "initiate a structured face to face discussion with the": ["TALK"],
+  "engage in a structured face to face discussion with": ["TALK"],
+  "engage in a structured face to face discussion with the": ["TALK"],
+  "strike up a structured face to face discussion with": ["TALK"],
+  "strike up a structured face to face discussion with the": ["TALK"],
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -30029,6 +30112,72 @@ compoundVerbs.push(
   "engage in an interactive face to face discussion with",
   "strike up an interactive face to face discussion with the",
   "strike up an interactive face to face discussion with"
+);
+
+// Cycle #168 / Task-F189: Phase 152 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of cytokinesis towards the location of the",
+  "navigate one's vector of cytokinesis towards the location of",
+  "navigate ones vector of cytokinesis towards the location of the",
+  "navigate ones vector of cytokinesis towards the location of",
+  "steer one's vector of cytokinesis in the direction of the coordinates of the",
+  "steer one's vector of cytokinesis in the direction of the coordinates of",
+  "steer ones vector of cytokinesis in the direction of the coordinates of the",
+  "steer ones vector of cytokinesis in the direction of the coordinates of",
+  "direct one's vector of cytokinesis towards the coordinates of the location of the",
+  "direct one's vector of cytokinesis towards the coordinates of the location of",
+  "direct ones vector of cytokinesis towards the coordinates of the location of the",
+  "direct ones vector of cytokinesis towards the coordinates of the location of",
+  "subject to a comprehensive visual identification the",
+  "subject to a comprehensive visual identification",
+  "subject to a thorough visual identification the",
+  "subject to a thorough visual identification",
+  "subject to a detailed visual identification the",
+  "subject to a detailed visual identification",
+  "assume direct exclusive reserve of the",
+  "assume direct exclusive reserve of",
+  "assume absolute exclusive reserve of the",
+  "assume absolute exclusive reserve of",
+  "assume immediate exclusive reserve of the",
+  "assume immediate exclusive reserve of",
+  "divest oneself of all exclusive reserve of the",
+  "divest oneself of all exclusive reserve of",
+  "relinquish all exclusive reserve of the",
+  "relinquish all exclusive reserve of",
+  "free oneself from all exclusive reserve of the",
+  "free oneself from all exclusive reserve of",
+  "force completely and elastomechanically wide open the",
+  "force completely and elastomechanically wide open",
+  "pry completely and elastomechanically wide open the",
+  "pry completely and elastomechanically wide open",
+  "fasten completely and elastomechanically closed the",
+  "fasten completely and elastomechanically closed",
+  "seal completely and elastomechanically shut the",
+  "seal completely and elastomechanically shut",
+  "deactivate all graviton security devices of the",
+  "deactivate all graviton security devices of",
+  "bypass all graviton security devices on the",
+  "bypass all graviton security devices on",
+  "disengage the primary graviton security device on the",
+  "disengage the primary graviton security device on",
+  "harness the full integrated deployment of the",
+  "harness the full integrated deployment of",
+  "bring into active integrated deployment the",
+  "bring into active integrated deployment",
+  "make complete integrated deployment of the",
+  "make complete integrated deployment of",
+  "initiate a harmful confrontation against the",
+  "initiate a harmful confrontation against",
+  "commence a harmful confrontation against the",
+  "commence a harmful confrontation against",
+  "engage in a harmful confrontation against the",
+  "engage in a harmful confrontation against",
+  "initiate a structured face to face discussion with the",
+  "initiate a structured face to face discussion with",
+  "engage in a structured face to face discussion with the",
+  "engage in a structured face to face discussion with",
+  "strike up a structured face to face discussion with the",
+  "strike up a structured face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
