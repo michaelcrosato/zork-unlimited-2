@@ -24384,6 +24384,90 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a methodological face to face discussion with the": ["TALK"],
 });
 
+// Cycle #154 / Task-F175: Phase 138 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of apoptosis towards the location of": ["MOVE"],
+  "navigate one's vector of apoptosis towards the location of the": ["MOVE"],
+  "navigate ones vector of apoptosis towards the location of": ["MOVE"],
+  "navigate ones vector of apoptosis towards the location of the": ["MOVE"],
+  "steer one's vector of apoptosis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of apoptosis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of apoptosis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of apoptosis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of apoptosis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of apoptosis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of apoptosis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of apoptosis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual compartmentalization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual compartmentalization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual compartmentalization": ["LOOK_INSPECT"],
+  "subject to a thorough visual compartmentalization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual compartmentalization": ["LOOK_INSPECT"],
+  "subject to a detailed visual compartmentalization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive classification of": ["TAKE"],
+  "assume direct exclusive classification of the": ["TAKE"],
+  "assume absolute exclusive classification of": ["TAKE"],
+  "assume absolute exclusive classification of the": ["TAKE"],
+  "assume immediate exclusive classification of": ["TAKE"],
+  "assume immediate exclusive classification of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive classification of": ["DROP"],
+  "divest oneself of all exclusive classification of the": ["DROP"],
+  "relinquish all exclusive classification of": ["DROP"],
+  "relinquish all exclusive classification of the": ["DROP"],
+  "free oneself from all exclusive classification of": ["DROP"],
+  "free oneself from all exclusive classification of the": ["DROP"],
+
+  // Open/Close
+  "force completely and neurochemically wide open": ["OPEN"],
+  "force completely and neurochemically wide open the": ["OPEN"],
+  "pry completely and neurochemically wide open": ["OPEN"],
+  "pry completely and neurochemically wide open the": ["OPEN"],
+  "fasten completely and neurochemically closed": ["CLOSE"],
+  "fasten completely and neurochemically closed the": ["CLOSE"],
+  "seal completely and neurochemically shut": ["CLOSE"],
+  "seal completely and neurochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all dirac security devices of": ["UNLOCK"],
+  "deactivate all dirac security devices of the": ["UNLOCK"],
+  "bypass all dirac security devices on": ["UNLOCK"],
+  "bypass all dirac security devices on the": ["UNLOCK"],
+  "disengage the primary dirac security device on": ["UNLOCK"],
+  "disengage the primary dirac security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unrestricted deployment of": ["USE"],
+  "harness the full unrestricted deployment of the": ["USE"],
+  "bring into active unrestricted deployment": ["USE"],
+  "bring into active unrestricted deployment the": ["USE"],
+  "make complete unrestricted deployment of": ["USE"],
+  "make complete unrestricted deployment of the": ["USE"],
+
+  // Combat
+  "initiate a hostile confrontation against": ["FIGHT"],
+  "initiate a hostile confrontation against the": ["FIGHT"],
+  "commence a hostile confrontation against": ["FIGHT"],
+  "commence a hostile confrontation against the": ["FIGHT"],
+  "engage in a hostile confrontation against": ["FIGHT"],
+  "engage in a hostile confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an empirical face to face discussion with": ["TALK"],
+  "initiate an empirical face to face discussion with the": ["TALK"],
+  "engage in an empirical face to face discussion with": ["TALK"],
+  "engage in an empirical face to face discussion with the": ["TALK"],
+  "strike up an empirical face to face discussion with": ["TALK"],
+  "strike up an empirical face to face discussion with the": ["TALK"],
+});
+
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -27945,6 +28029,72 @@ compoundVerbs.push(
   "engage in a methodological face to face discussion with",
   "strike up a methodological face to face discussion with the",
   "strike up a methodological face to face discussion with"
+);
+
+// Cycle #154 / Task-F175: Phase 138 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of apoptosis towards the location of the",
+  "navigate one's vector of apoptosis towards the location of",
+  "navigate ones vector of apoptosis towards the location of the",
+  "navigate ones vector of apoptosis towards the location of",
+  "steer one's vector of apoptosis in the direction of the coordinates of the",
+  "steer one's vector of apoptosis in the direction of the coordinates of",
+  "steer ones vector of apoptosis in the direction of the coordinates of the",
+  "steer ones vector of apoptosis in the direction of the coordinates of",
+  "direct one's vector of apoptosis towards the coordinates of the location of the",
+  "direct one's vector of apoptosis towards the coordinates of the location of",
+  "direct ones vector of apoptosis towards the coordinates of the location of the",
+  "direct ones vector of apoptosis towards the coordinates of the location of",
+  "subject to a comprehensive visual compartmentalization the",
+  "subject to a comprehensive visual compartmentalization",
+  "subject to a thorough visual compartmentalization the",
+  "subject to a thorough visual compartmentalization",
+  "subject to a detailed visual compartmentalization the",
+  "subject to a detailed visual compartmentalization",
+  "assume direct exclusive classification of the",
+  "assume direct exclusive classification of",
+  "assume absolute exclusive classification of the",
+  "assume absolute exclusive classification of",
+  "assume immediate exclusive classification of the",
+  "assume immediate exclusive classification of",
+  "divest oneself of all exclusive classification of the",
+  "divest oneself of all exclusive classification of",
+  "relinquish all exclusive classification of the",
+  "relinquish all exclusive classification of",
+  "free oneself from all exclusive classification of the",
+  "free oneself from all exclusive classification of",
+  "force completely and neurochemically wide open the",
+  "force completely and neurochemically wide open",
+  "pry completely and neurochemically wide open the",
+  "pry completely and neurochemically wide open",
+  "fasten completely and neurochemically closed the",
+  "fasten completely and neurochemically closed",
+  "seal completely and neurochemically shut the",
+  "seal completely and neurochemically shut",
+  "deactivate all dirac security devices of the",
+  "deactivate all dirac security devices of",
+  "bypass all dirac security devices on the",
+  "bypass all dirac security devices on",
+  "disengage the primary dirac security device on the",
+  "disengage the primary dirac security device on",
+  "harness the full unrestricted deployment of the",
+  "harness the full unrestricted deployment of",
+  "bring into active unrestricted deployment the",
+  "bring into active unrestricted deployment",
+  "make complete unrestricted deployment of the",
+  "make complete unrestricted deployment of",
+  "initiate a hostile confrontation against the",
+  "initiate a hostile confrontation against",
+  "commence a hostile confrontation against the",
+  "commence a hostile confrontation against",
+  "engage in a hostile confrontation against the",
+  "engage in a hostile confrontation against",
+  "initiate an empirical face to face discussion with the",
+  "initiate an empirical face to face discussion with",
+  "engage in an empirical face to face discussion with the",
+  "engage in an empirical face to face discussion with",
+  "strike up an empirical face to face discussion with the",
+  "strike up an empirical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
