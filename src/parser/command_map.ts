@@ -28238,6 +28238,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a neurological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #199 / Task-F218: Phase 181 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of thermogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of thermogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of thermogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of thermogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of thermogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of thermogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of thermogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of thermogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of thermogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of thermogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of thermogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of thermogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual assessment": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual assessment the": ["LOOK_INSPECT"],
+  "subject to a thorough visual assessment": ["LOOK_INSPECT"],
+  "subject to a thorough visual assessment the": ["LOOK_INSPECT"],
+  "subject to a detailed visual assessment": ["LOOK_INSPECT"],
+  "subject to a detailed visual assessment the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive layering of": ["TAKE"],
+  "assume direct exclusive layering of the": ["TAKE"],
+  "assume absolute exclusive layering of": ["TAKE"],
+  "assume absolute exclusive layering of the": ["TAKE"],
+  "assume immediate exclusive layering of": ["TAKE"],
+  "assume immediate exclusive layering of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive layering of": ["DROP"],
+  "divest oneself of all exclusive layering of the": ["DROP"],
+  "relinquish all exclusive layering of": ["DROP"],
+  "relinquish all exclusive layering of the": ["DROP"],
+  "free oneself from all exclusive layering of": ["DROP"],
+  "free oneself from all exclusive layering of the": ["DROP"],
+
+  // Open/Close
+  "force completely and ferroelastically wide open": ["OPEN"],
+  "force completely and ferroelastically wide open the": ["OPEN"],
+  "pry completely and ferroelastically wide open": ["OPEN"],
+  "pry completely and ferroelastically wide open the": ["OPEN"],
+  "fasten completely and ferroelastically closed": ["CLOSE"],
+  "fasten completely and ferroelastically closed the": ["CLOSE"],
+  "seal completely and ferroelastically shut": ["CLOSE"],
+  "seal completely and ferroelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all hooke security devices of": ["UNLOCK"],
+  "deactivate all hooke security devices of the": ["UNLOCK"],
+  "deactivate all young security devices of": ["UNLOCK"],
+  "deactivate all young security devices of the": ["UNLOCK"],
+  "deactivate all poisson security devices of": ["UNLOCK"],
+  "deactivate all poisson security devices of the": ["UNLOCK"],
+  "deactivate all cauchy security devices of": ["UNLOCK"],
+  "deactivate all cauchy security devices of the": ["UNLOCK"],
+  "bypass all hooke security devices on": ["UNLOCK"],
+  "bypass all hooke security devices on the": ["UNLOCK"],
+  "bypass all young security devices on": ["UNLOCK"],
+  "bypass all young security devices on the": ["UNLOCK"],
+  "bypass all poisson security devices on": ["UNLOCK"],
+  "bypass all poisson security devices on the": ["UNLOCK"],
+  "bypass all cauchy security devices on": ["UNLOCK"],
+  "bypass all cauchy security devices on the": ["UNLOCK"],
+  "disengage the primary hooke security device on": ["UNLOCK"],
+  "disengage the primary hooke security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full resonant deployment of": ["USE"],
+  "harness the full resonant deployment of the": ["USE"],
+  "bring into active resonant deployment": ["USE"],
+  "bring into active resonant deployment the": ["USE"],
+  "make complete resonant deployment of": ["USE"],
+  "make complete resonant deployment of the": ["USE"],
+
+  // Combat
+  "initiate a courageously chivalric confrontation against": ["FIGHT"],
+  "initiate a courageously chivalric confrontation against the": ["FIGHT"],
+  "commence a courageously chivalric confrontation against": ["FIGHT"],
+  "commence a courageously chivalric confrontation against the": ["FIGHT"],
+  "engage in a courageously chivalric confrontation against": ["FIGHT"],
+  "engage in a courageously chivalric confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a mythological face to face discussion with": ["TALK"],
+  "initiate a mythological face to face discussion with the": ["TALK"],
+  "engage in a mythological face to face discussion with": ["TALK"],
+  "engage in a mythological face to face discussion with the": ["TALK"],
+  "strike up a mythological face to face discussion with": ["TALK"],
+  "strike up a mythological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -34939,6 +35034,84 @@ compoundVerbs.push(
   "engage in a neurological face to face discussion with",
   "strike up a neurological face to face discussion with the",
   "strike up a neurological face to face discussion with"
+);
+
+// Cycle #199 / Task-F218: Phase 181 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of thermogenesis towards the location of the",
+  "navigate one's vector of thermogenesis towards the location of",
+  "navigate ones vector of thermogenesis towards the location of the",
+  "navigate ones vector of thermogenesis towards the location of",
+  "steer one's vector of thermogenesis in the direction of the coordinates of the",
+  "steer one's vector of thermogenesis in the direction of the coordinates of",
+  "steer ones vector of thermogenesis in the direction of the coordinates of the",
+  "steer ones vector of thermogenesis in the direction of the coordinates of",
+  "direct one's vector of thermogenesis towards the coordinates of the location of the",
+  "direct one's vector of thermogenesis towards the coordinates of the location of",
+  "direct ones vector of thermogenesis towards the coordinates of the location of the",
+  "direct ones vector of thermogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual assessment the",
+  "subject to a comprehensive visual assessment",
+  "subject to a thorough visual assessment the",
+  "subject to a thorough visual assessment",
+  "subject to a detailed visual assessment the",
+  "subject to a detailed visual assessment",
+  "assume direct exclusive layering of the",
+  "assume direct exclusive layering of",
+  "assume absolute exclusive layering of the",
+  "assume absolute exclusive layering of",
+  "assume immediate exclusive layering of the",
+  "assume immediate exclusive layering of",
+  "divest oneself of all exclusive layering of the",
+  "divest oneself of all exclusive layering of",
+  "relinquish all exclusive layering of the",
+  "relinquish all exclusive layering of",
+  "free oneself from all exclusive layering of the",
+  "free oneself from all exclusive layering of",
+  "force completely and ferroelastically wide open the",
+  "force completely and ferroelastically wide open",
+  "pry completely and ferroelastically wide open the",
+  "pry completely and ferroelastically wide open",
+  "fasten completely and ferroelastically closed the",
+  "fasten completely and ferroelastically closed",
+  "seal completely and ferroelastically shut the",
+  "seal completely and ferroelastically shut",
+  "deactivate all hooke security devices of the",
+  "deactivate all hooke security devices of",
+  "deactivate all young security devices of the",
+  "deactivate all young security devices of",
+  "deactivate all poisson security devices of the",
+  "deactivate all poisson security devices of",
+  "deactivate all cauchy security devices of the",
+  "deactivate all cauchy security devices of",
+  "bypass all hooke security devices on the",
+  "bypass all hooke security devices on",
+  "bypass all young security devices on the",
+  "bypass all young security devices on",
+  "bypass all poisson security devices on the",
+  "bypass all poisson security devices on",
+  "bypass all cauchy security devices on the",
+  "bypass all cauchy security devices on",
+  "disengage the primary hooke security device on the",
+  "disengage the primary hooke security device on",
+  "harness the full resonant deployment of the",
+  "harness the full resonant deployment of",
+  "bring into active resonant deployment the",
+  "bring into active resonant deployment",
+  "make complete resonant deployment of the",
+  "make complete resonant deployment of",
+  "initiate a courageously chivalric confrontation against the",
+  "initiate a courageously chivalric confrontation against",
+  "commence a courageously chivalric confrontation against the",
+  "commence a courageously chivalric confrontation against",
+  "engage in a courageously chivalric confrontation against the",
+  "engage in a courageously chivalric confrontation against",
+  "initiate a mythological face to face discussion with the",
+  "initiate a mythological face to face discussion with",
+  "engage in a mythological face to face discussion with the",
+  "engage in a mythological face to face discussion with",
+  "strike up a mythological face to face discussion with the",
+  "strike up a mythological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
