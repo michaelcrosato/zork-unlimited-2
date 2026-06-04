@@ -22474,6 +22474,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a discursive face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #130 / Task-F151: Phase 114
+  // Movement
+  "navigate one's vector of liquefaction towards the location of": ["MOVE"],
+  "navigate one's vector of liquefaction towards the location of the": ["MOVE"],
+  "navigate ones vector of liquefaction towards the location of": ["MOVE"],
+  "navigate ones vector of liquefaction towards the location of the": ["MOVE"],
+  "steer one's vector of liquefaction in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of liquefaction in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of liquefaction in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of liquefaction in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of liquefaction towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of liquefaction towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of liquefaction towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of liquefaction towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual deconstruction": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual deconstruction the": ["LOOK_INSPECT"],
+  "subject to a thorough visual deconstruction": ["LOOK_INSPECT"],
+  "subject to a thorough visual deconstruction the": ["LOOK_INSPECT"],
+  "subject to a detailed visual deconstruction": ["LOOK_INSPECT"],
+  "subject to a detailed visual deconstruction the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive jurisdiction of": ["TAKE"],
+  "assume direct exclusive jurisdiction of the": ["TAKE"],
+  "assume absolute exclusive jurisdiction of": ["TAKE"],
+  "assume absolute exclusive jurisdiction of the": ["TAKE"],
+  "assume immediate exclusive jurisdiction of": ["TAKE"],
+  "assume immediate exclusive jurisdiction of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive jurisdiction of": ["DROP"],
+  "divest oneself of all exclusive jurisdiction of the": ["DROP"],
+  "relinquish all exclusive jurisdiction of": ["DROP"],
+  "relinquish all exclusive jurisdiction of the": ["DROP"],
+  "free oneself from all exclusive jurisdiction of": ["DROP"],
+  "free oneself from all exclusive jurisdiction of the": ["DROP"],
+
+  // Open/Close
+  "force completely and elastoplastically wide open": ["OPEN"],
+  "force completely and elastoplastically wide open the": ["OPEN"],
+  "pry completely and elastoplastically wide open": ["OPEN"],
+  "pry completely and elastoplastically wide open the": ["OPEN"],
+  "fasten completely and elastoplastically closed": ["CLOSE"],
+  "fasten completely and elastoplastically closed the": ["CLOSE"],
+  "seal completely and elastoplastically shut": ["CLOSE"],
+  "seal completely and elastoplastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all positronic security devices of": ["UNLOCK"],
+  "deactivate all positronic security devices of the": ["UNLOCK"],
+  "bypass all positronic security devices on": ["UNLOCK"],
+  "bypass all positronic security devices on the": ["UNLOCK"],
+  "disengage the primary positronic security device on": ["UNLOCK"],
+  "disengage the primary positronic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full impenetrable deployment of": ["USE"],
+  "harness the full impenetrable deployment of the": ["USE"],
+  "bring into active impenetrable deployment": ["USE"],
+  "bring into active impenetrable deployment the": ["USE"],
+  "make complete impenetrable deployment of": ["USE"],
+  "make complete impenetrable deployment of the": ["USE"],
+
+  // Combat
+  "initiate an offensive confrontation against": ["FIGHT"],
+  "initiate an offensive confrontation against the": ["FIGHT"],
+  "commence an offensive confrontation against": ["FIGHT"],
+  "commence an offensive confrontation against the": ["FIGHT"],
+  "engage in an offensive confrontation against": ["FIGHT"],
+  "engage in an offensive confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an exploratory face to face discussion with": ["TALK"],
+  "initiate an exploratory face to face discussion with the": ["TALK"],
+  "engage in an exploratory face to face discussion with": ["TALK"],
+  "engage in an exploratory face to face discussion with the": ["TALK"],
+  "strike up an exploratory face to face discussion with": ["TALK"],
+  "strike up an exploratory face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -24455,6 +24538,72 @@ compoundVerbs.push(
   "engage in a discursive face to face discussion with",
   "strike up a discursive face to face discussion with the",
   "strike up a discursive face to face discussion with"
+);
+
+// Cycle #130 / Task-F151: Phase 114 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of liquefaction towards the location of the",
+  "navigate one's vector of liquefaction towards the location of",
+  "navigate ones vector of liquefaction towards the location of the",
+  "navigate ones vector of liquefaction towards the location of",
+  "steer one's vector of liquefaction in the direction of the coordinates of the",
+  "steer one's vector of liquefaction in the direction of the coordinates of",
+  "steer ones vector of liquefaction in the direction of the coordinates of the",
+  "steer ones vector of liquefaction in the direction of the coordinates of",
+  "direct one's vector of liquefaction towards the coordinates of the location of the",
+  "direct one's vector of liquefaction towards the coordinates of the location of",
+  "direct ones vector of liquefaction towards the coordinates of the location of the",
+  "direct ones vector of liquefaction towards the coordinates of the location of",
+  "subject to a comprehensive visual deconstruction the",
+  "subject to a comprehensive visual deconstruction",
+  "subject to a thorough visual deconstruction the",
+  "subject to a thorough visual deconstruction",
+  "subject to a detailed visual deconstruction the",
+  "subject to a detailed visual deconstruction",
+  "assume direct exclusive jurisdiction of the",
+  "assume direct exclusive jurisdiction of",
+  "assume absolute exclusive jurisdiction of the",
+  "assume absolute exclusive jurisdiction of",
+  "assume immediate exclusive jurisdiction of the",
+  "assume immediate exclusive jurisdiction of",
+  "divest oneself of all exclusive jurisdiction of the",
+  "divest oneself of all exclusive jurisdiction of",
+  "relinquish all exclusive jurisdiction of the",
+  "relinquish all exclusive jurisdiction of",
+  "free oneself from all exclusive jurisdiction of the",
+  "free oneself from all exclusive jurisdiction of",
+  "force completely and elastoplastically wide open the",
+  "force completely and elastoplastically wide open",
+  "pry completely and elastoplastically wide open the",
+  "pry completely and elastoplastically wide open",
+  "fasten completely and elastoplastically closed the",
+  "fasten completely and elastoplastically closed",
+  "seal completely and elastoplastically shut the",
+  "seal completely and elastoplastically shut",
+  "deactivate all positronic security devices of the",
+  "deactivate all positronic security devices of",
+  "bypass all positronic security devices on the",
+  "bypass all positronic security devices on",
+  "disengage the primary positronic security device on the",
+  "disengage the primary positronic security device on",
+  "harness the full impenetrable deployment of the",
+  "harness the full impenetrable deployment of",
+  "bring into active impenetrable deployment the",
+  "bring into active impenetrable deployment",
+  "make complete impenetrable deployment of the",
+  "make complete impenetrable deployment of",
+  "initiate an offensive confrontation against the",
+  "initiate an offensive confrontation against",
+  "commence an offensive confrontation against the",
+  "commence an offensive confrontation against",
+  "engage in an offensive confrontation against the",
+  "engage in an offensive confrontation against",
+  "initiate an exploratory face to face discussion with the",
+  "initiate an exploratory face to face discussion with",
+  "engage in an exploratory face to face discussion with the",
+  "engage in an exploratory face to face discussion with",
+  "strike up an exploratory face to face discussion with the",
+  "strike up an exploratory face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
