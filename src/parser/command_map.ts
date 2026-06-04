@@ -27195,6 +27195,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an ecological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #187 / Task-F207: Phase 170 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of metagenesis towards the location of": ["MOVE"],
+  "navigate one's vector of metagenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of metagenesis towards the location of": ["MOVE"],
+  "navigate ones vector of metagenesis towards the location of the": ["MOVE"],
+  "steer one's vector of metagenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of metagenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of metagenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of metagenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of metagenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of metagenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of metagenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of metagenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual charting": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual charting the": ["LOOK_INSPECT"],
+  "subject to a thorough visual charting": ["LOOK_INSPECT"],
+  "subject to a thorough visual charting the": ["LOOK_INSPECT"],
+  "subject to a detailed visual charting": ["LOOK_INSPECT"],
+  "subject to a detailed visual charting the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive bagging of": ["TAKE"],
+  "assume direct exclusive bagging of the": ["TAKE"],
+  "assume absolute exclusive bagging of": ["TAKE"],
+  "assume absolute exclusive bagging of the": ["TAKE"],
+  "assume immediate exclusive bagging of": ["TAKE"],
+  "assume immediate exclusive bagging of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive bagging of": ["DROP"],
+  "divest oneself of all exclusive bagging of the": ["DROP"],
+  "relinquish all exclusive bagging of": ["DROP"],
+  "relinquish all exclusive bagging of the": ["DROP"],
+  "free oneself from all exclusive bagging of": ["DROP"],
+  "free oneself from all exclusive bagging of the": ["DROP"],
+
+  // Open/Close
+  "force completely and plastoelastically wide open": ["OPEN"],
+  "force completely and plastoelastically wide open the": ["OPEN"],
+  "pry completely and plastoelastically wide open": ["OPEN"],
+  "pry completely and plastoelastically wide open the": ["OPEN"],
+  "fasten completely and plastoelastically closed": ["CLOSE"],
+  "fasten completely and plastoelastically closed the": ["CLOSE"],
+  "seal completely and plastoelastically shut": ["CLOSE"],
+  "seal completely and plastoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all majoron security devices of": ["UNLOCK"],
+  "deactivate all majoron security devices of the": ["UNLOCK"],
+  "deactivate all meron security devices of": ["UNLOCK"],
+  "deactivate all meron security devices of the": ["UNLOCK"],
+  "deactivate all soliton security devices of": ["UNLOCK"],
+  "deactivate all soliton security devices of the": ["UNLOCK"],
+  "deactivate all vortex security devices of": ["UNLOCK"],
+  "deactivate all vortex security devices of the": ["UNLOCK"],
+  "bypass all majoron security devices on": ["UNLOCK"],
+  "bypass all majoron security devices on the": ["UNLOCK"],
+  "bypass all meron security devices on": ["UNLOCK"],
+  "bypass all meron security devices on the": ["UNLOCK"],
+  "bypass all soliton security devices on": ["UNLOCK"],
+  "bypass all soliton security devices on the": ["UNLOCK"],
+  "bypass all vortex security devices on": ["UNLOCK"],
+  "bypass all vortex security devices on the": ["UNLOCK"],
+  "disengage the primary majoron security device on": ["UNLOCK"],
+  "disengage the primary majoron security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full federated deployment of": ["USE"],
+  "harness the full federated deployment of the": ["USE"],
+  "bring into active federated deployment": ["USE"],
+  "bring into active federated deployment the": ["USE"],
+  "make complete federated deployment of": ["USE"],
+  "make complete federated deployment of the": ["USE"],
+
+  // Combat
+  "initiate a seditious confrontation against": ["FIGHT"],
+  "initiate a seditious confrontation against the": ["FIGHT"],
+  "commence a seditious confrontation against": ["FIGHT"],
+  "commence a seditious confrontation against the": ["FIGHT"],
+  "engage in a seditious confrontation against": ["FIGHT"],
+  "engage in a seditious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a meteorological face to face discussion with": ["TALK"],
+  "initiate a meteorological face to face discussion with the": ["TALK"],
+  "engage in a meteorological face to face discussion with": ["TALK"],
+  "engage in a meteorological face to face discussion with the": ["TALK"],
+  "strike up a meteorological face to face discussion with": ["TALK"],
+  "strike up a meteorological face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -33036,6 +33131,84 @@ compoundVerbs.push(
   "engage in an ecological face to face discussion with",
   "strike up an ecological face to face discussion with the",
   "strike up an ecological face to face discussion with"
+);
+
+// Cycle #187 / Task-F207: Phase 170 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of metagenesis towards the location of the",
+  "navigate one's vector of metagenesis towards the location of",
+  "navigate ones vector of metagenesis towards the location of the",
+  "navigate ones vector of metagenesis towards the location of",
+  "steer one's vector of metagenesis in the direction of the coordinates of the",
+  "steer one's vector of metagenesis in the direction of the coordinates of",
+  "steer ones vector of metagenesis in the direction of the coordinates of the",
+  "steer ones vector of metagenesis in the direction of the coordinates of",
+  "direct one's vector of metagenesis towards the coordinates of the location of the",
+  "direct one's vector of metagenesis towards the coordinates of the location of",
+  "direct ones vector of metagenesis towards the coordinates of the location of the",
+  "direct ones vector of metagenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual charting the",
+  "subject to a comprehensive visual charting",
+  "subject to a thorough visual charting the",
+  "subject to a thorough visual charting",
+  "subject to a detailed visual charting the",
+  "subject to a detailed visual charting",
+  "assume direct exclusive bagging of the",
+  "assume direct exclusive bagging of",
+  "assume absolute exclusive bagging of the",
+  "assume absolute exclusive bagging of",
+  "assume immediate exclusive bagging of the",
+  "assume immediate exclusive bagging of",
+  "divest oneself of all exclusive bagging of the",
+  "divest oneself of all exclusive bagging of",
+  "relinquish all exclusive bagging of the",
+  "relinquish all exclusive bagging of",
+  "free oneself from all exclusive bagging of the",
+  "free oneself from all exclusive bagging of",
+  "force completely and plastoelastically wide open the",
+  "force completely and plastoelastically wide open",
+  "pry completely and plastoelastically wide open the",
+  "pry completely and plastoelastically wide open",
+  "fasten completely and plastoelastically closed the",
+  "fasten completely and plastoelastically closed",
+  "seal completely and plastoelastically shut the",
+  "seal completely and plastoelastically shut",
+  "deactivate all majoron security devices of the",
+  "deactivate all majoron security devices of",
+  "deactivate all meron security devices of the",
+  "deactivate all meron security devices of",
+  "deactivate all soliton security devices of the",
+  "deactivate all soliton security devices of",
+  "deactivate all vortex security devices of the",
+  "deactivate all vortex security devices of",
+  "bypass all majoron security devices on the",
+  "bypass all majoron security devices on",
+  "bypass all meron security devices on the",
+  "bypass all meron security devices on",
+  "bypass all soliton security devices on the",
+  "bypass all soliton security devices on",
+  "bypass all vortex security devices on the",
+  "bypass all vortex security devices on",
+  "disengage the primary majoron security device on the",
+  "disengage the primary majoron security device on",
+  "harness the full federated deployment of the",
+  "harness the full federated deployment of",
+  "bring into active federated deployment the",
+  "bring into active federated deployment",
+  "make complete federated deployment of the",
+  "make complete federated deployment of",
+  "initiate a seditious confrontation against the",
+  "initiate a seditious confrontation against",
+  "commence a seditious confrontation against the",
+  "commence a seditious confrontation against",
+  "engage in a seditious confrontation against the",
+  "engage in a seditious confrontation against",
+  "initiate a meteorological face to face discussion with the",
+  "initiate a meteorological face to face discussion with",
+  "engage in a meteorological face to face discussion with the",
+  "engage in a meteorological face to face discussion with",
+  "strike up a meteorological face to face discussion with the",
+  "strike up a meteorological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
