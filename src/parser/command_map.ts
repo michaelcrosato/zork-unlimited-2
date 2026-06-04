@@ -27100,6 +27100,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a geological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #186 / Task-F206: Phase 169 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of epigenesis towards the location of": ["MOVE"],
+  "navigate one's vector of epigenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of epigenesis towards the location of": ["MOVE"],
+  "navigate ones vector of epigenesis towards the location of the": ["MOVE"],
+  "steer one's vector of epigenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of epigenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of epigenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of epigenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of epigenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of epigenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of epigenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of epigenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual indexing": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual indexing the": ["LOOK_INSPECT"],
+  "subject to a thorough visual indexing": ["LOOK_INSPECT"],
+  "subject to a thorough visual indexing the": ["LOOK_INSPECT"],
+  "subject to a detailed visual indexing": ["LOOK_INSPECT"],
+  "subject to a detailed visual indexing the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive snatching of": ["TAKE"],
+  "assume direct exclusive snatching of the": ["TAKE"],
+  "assume absolute exclusive snatching of": ["TAKE"],
+  "assume absolute exclusive snatching of the": ["TAKE"],
+  "assume immediate exclusive snatching of": ["TAKE"],
+  "assume immediate exclusive snatching of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive snatching of": ["DROP"],
+  "divest oneself of all exclusive snatching of the": ["DROP"],
+  "relinquish all exclusive snatching of": ["DROP"],
+  "relinquish all exclusive snatching of the": ["DROP"],
+  "free oneself from all exclusive snatching of": ["DROP"],
+  "free oneself from all exclusive snatching of the": ["DROP"],
+
+  // Open/Close
+  "force completely and nucleoelastically wide open": ["OPEN"],
+  "force completely and nucleoelastically wide open the": ["OPEN"],
+  "pry completely and nucleoelastically wide open": ["OPEN"],
+  "pry completely and nucleoelastically wide open the": ["OPEN"],
+  "fasten completely and nucleoelastically closed": ["CLOSE"],
+  "fasten completely and nucleoelastically closed the": ["CLOSE"],
+  "seal completely and nucleoelastically shut": ["CLOSE"],
+  "seal completely and nucleoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all josephson security devices of": ["UNLOCK"],
+  "deactivate all josephson security devices of the": ["UNLOCK"],
+  "deactivate all cooper security devices of": ["UNLOCK"],
+  "deactivate all cooper security devices of the": ["UNLOCK"],
+  "deactivate all squid security devices of": ["UNLOCK"],
+  "deactivate all squid security devices of the": ["UNLOCK"],
+  "deactivate all fluxonium security devices of": ["UNLOCK"],
+  "deactivate all fluxonium security devices of the": ["UNLOCK"],
+  "bypass all josephson security devices on": ["UNLOCK"],
+  "bypass all josephson security devices on the": ["UNLOCK"],
+  "bypass all cooper security devices on": ["UNLOCK"],
+  "bypass all cooper security devices on the": ["UNLOCK"],
+  "bypass all squid security devices on": ["UNLOCK"],
+  "bypass all squid security devices on the": ["UNLOCK"],
+  "bypass all fluxonium security devices on": ["UNLOCK"],
+  "bypass all fluxonium security devices on the": ["UNLOCK"],
+  "disengage the primary josephson security device on": ["UNLOCK"],
+  "disengage the primary josephson security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full distributed deployment of": ["USE"],
+  "harness the full distributed deployment of the": ["USE"],
+  "bring into active distributed deployment": ["USE"],
+  "bring into active distributed deployment the": ["USE"],
+  "make complete distributed deployment of": ["USE"],
+  "make complete distributed deployment of the": ["USE"],
+
+  // Combat
+  "initiate a subversive confrontation against": ["FIGHT"],
+  "initiate a subversive confrontation against the": ["FIGHT"],
+  "commence a subversive confrontation against": ["FIGHT"],
+  "commence a subversive confrontation against the": ["FIGHT"],
+  "engage in a subversive confrontation against": ["FIGHT"],
+  "engage in a subversive confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an ecological face to face discussion with": ["TALK"],
+  "initiate an ecological face to face discussion with the": ["TALK"],
+  "engage in an ecological face to face discussion with": ["TALK"],
+  "engage in an ecological face to face discussion with the": ["TALK"],
+  "strike up an ecological face to face discussion with": ["TALK"],
+  "strike up an ecological face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -32863,6 +32958,84 @@ compoundVerbs.push(
   "engage in a geological face to face discussion with",
   "strike up a geological face to face discussion with the",
   "strike up a geological face to face discussion with"
+);
+
+// Cycle #186 / Task-F206: Phase 169 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of epigenesis towards the location of the",
+  "navigate one's vector of epigenesis towards the location of",
+  "navigate ones vector of epigenesis towards the location of the",
+  "navigate ones vector of epigenesis towards the location of",
+  "steer one's vector of epigenesis in the direction of the coordinates of the",
+  "steer one's vector of epigenesis in the direction of the coordinates of",
+  "steer ones vector of epigenesis in the direction of the coordinates of the",
+  "steer ones vector of epigenesis in the direction of the coordinates of",
+  "direct one's vector of epigenesis towards the coordinates of the location of the",
+  "direct one's vector of epigenesis towards the coordinates of the location of",
+  "direct ones vector of epigenesis towards the coordinates of the location of the",
+  "direct ones vector of epigenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual indexing the",
+  "subject to a comprehensive visual indexing",
+  "subject to a thorough visual indexing the",
+  "subject to a thorough visual indexing",
+  "subject to a detailed visual indexing the",
+  "subject to a detailed visual indexing",
+  "assume direct exclusive snatching of the",
+  "assume direct exclusive snatching of",
+  "assume absolute exclusive snatching of the",
+  "assume absolute exclusive snatching of",
+  "assume immediate exclusive snatching of the",
+  "assume immediate exclusive snatching of",
+  "divest oneself of all exclusive snatching of the",
+  "divest oneself of all exclusive snatching of",
+  "relinquish all exclusive snatching of the",
+  "relinquish all exclusive snatching of",
+  "free oneself from all exclusive snatching of the",
+  "free oneself from all exclusive snatching of",
+  "force completely and nucleoelastically wide open the",
+  "force completely and nucleoelastically wide open",
+  "pry completely and nucleoelastically wide open the",
+  "pry completely and nucleoelastically wide open",
+  "fasten completely and nucleoelastically closed the",
+  "fasten completely and nucleoelastically closed",
+  "seal completely and nucleoelastically shut the",
+  "seal completely and nucleoelastically shut",
+  "deactivate all josephson security devices of the",
+  "deactivate all josephson security devices of",
+  "deactivate all cooper security devices of the",
+  "deactivate all cooper security devices of",
+  "deactivate all squid security devices of the",
+  "deactivate all squid security devices of",
+  "deactivate all fluxonium security devices of the",
+  "deactivate all fluxonium security devices of",
+  "bypass all josephson security devices on the",
+  "bypass all josephson security devices on",
+  "bypass all cooper security devices on the",
+  "bypass all cooper security devices on",
+  "bypass all squid security devices on the",
+  "bypass all squid security devices on",
+  "bypass all fluxonium security devices on the",
+  "bypass all fluxonium security devices on",
+  "disengage the primary josephson security device on the",
+  "disengage the primary josephson security device on",
+  "harness the full distributed deployment of the",
+  "harness the full distributed deployment of",
+  "bring into active distributed deployment the",
+  "bring into active distributed deployment",
+  "make complete distributed deployment of the",
+  "make complete distributed deployment of",
+  "initiate a subversive confrontation against the",
+  "initiate a subversive confrontation against",
+  "commence a subversive confrontation against the",
+  "commence a subversive confrontation against",
+  "engage in a subversive confrontation against the",
+  "engage in a subversive confrontation against",
+  "initiate an ecological face to face discussion with the",
+  "initiate an ecological face to face discussion with",
+  "engage in an ecological face to face discussion with the",
+  "engage in an ecological face to face discussion with",
+  "strike up an ecological face to face discussion with the",
+  "strike up an ecological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
