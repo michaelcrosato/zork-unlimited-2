@@ -25214,6 +25214,90 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a theoretical face to face discussion with the": ["TALK"],
 });
 
+// Cycle #164 / Task-F185: Phase 148 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of karyoptysis towards the location of": ["MOVE"],
+  "navigate one's vector of karyoptysis towards the location of the": ["MOVE"],
+  "navigate ones vector of karyoptysis towards the location of": ["MOVE"],
+  "navigate ones vector of karyoptysis towards the location of the": ["MOVE"],
+  "steer one's vector of karyoptysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of karyoptysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of karyoptysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of karyoptysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of karyoptysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of karyoptysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of karyoptysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of karyoptysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual validation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual validation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual validation": ["LOOK_INSPECT"],
+  "subject to a thorough visual validation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual validation": ["LOOK_INSPECT"],
+  "subject to a detailed visual validation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive allocation of": ["TAKE"],
+  "assume direct exclusive allocation of the": ["TAKE"],
+  "assume absolute exclusive allocation of": ["TAKE"],
+  "assume absolute exclusive allocation of the": ["TAKE"],
+  "assume immediate exclusive allocation of": ["TAKE"],
+  "assume immediate exclusive allocation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive allocation of": ["DROP"],
+  "divest oneself of all exclusive allocation of the": ["DROP"],
+  "relinquish all exclusive allocation of": ["DROP"],
+  "relinquish all exclusive allocation of the": ["DROP"],
+  "free oneself from all exclusive allocation of": ["DROP"],
+  "free oneself from all exclusive allocation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and nucleochemically wide open": ["OPEN"],
+  "force completely and nucleochemically wide open the": ["OPEN"],
+  "pry completely and nucleochemically wide open": ["OPEN"],
+  "pry completely and nucleochemically wide open the": ["OPEN"],
+  "fasten completely and nucleochemically closed": ["CLOSE"],
+  "fasten completely and nucleochemically closed the": ["CLOSE"],
+  "seal completely and nucleochemically shut": ["CLOSE"],
+  "seal completely and nucleochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all skyrmion security devices of": ["UNLOCK"],
+  "deactivate all skyrmion security devices of the": ["UNLOCK"],
+  "bypass all skyrmion security devices on": ["UNLOCK"],
+  "bypass all skyrmion security devices on the": ["UNLOCK"],
+  "disengage the primary skyrmion security device on": ["UNLOCK"],
+  "disengage the primary skyrmion security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full synchronized deployment of": ["USE"],
+  "harness the full synchronized deployment of the": ["USE"],
+  "bring into active synchronized deployment": ["USE"],
+  "bring into active synchronized deployment the": ["USE"],
+  "make complete synchronized deployment of": ["USE"],
+  "make complete synchronized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a terrible confrontation against": ["FIGHT"],
+  "initiate a terrible confrontation against the": ["FIGHT"],
+  "commence a terrible confrontation against": ["FIGHT"],
+  "commence a terrible confrontation against the": ["FIGHT"],
+  "engage in a terrible confrontation against": ["FIGHT"],
+  "engage in a terrible confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a professional face to face discussion with": ["TALK"],
+  "initiate a professional face to face discussion with the": ["TALK"],
+  "engage in a professional face to face discussion with": ["TALK"],
+  "engage in a professional face to face discussion with the": ["TALK"],
+  "strike up a professional face to face discussion with": ["TALK"],
+  "strike up a professional face to face discussion with the": ["TALK"],
+});
+
+
 
 
 
@@ -29438,6 +29522,72 @@ compoundVerbs.push(
   "engage in a theoretical face to face discussion with",
   "strike up a theoretical face to face discussion with the",
   "strike up a theoretical face to face discussion with"
+);
+
+// Cycle #164 / Task-F185: Phase 148 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of karyoptysis towards the location of the",
+  "navigate one's vector of karyoptysis towards the location of",
+  "navigate ones vector of karyoptysis towards the location of the",
+  "navigate ones vector of karyoptysis towards the location of",
+  "steer one's vector of karyoptysis in the direction of the coordinates of the",
+  "steer one's vector of karyoptysis in the direction of the coordinates of",
+  "steer ones vector of karyoptysis in the direction of the coordinates of the",
+  "steer ones vector of karyoptysis in the direction of the coordinates of",
+  "direct one's vector of karyoptysis towards the coordinates of the location of the",
+  "direct one's vector of karyoptysis towards the coordinates of the location of",
+  "direct ones vector of karyoptysis towards the coordinates of the location of the",
+  "direct ones vector of karyoptysis towards the coordinates of the location of",
+  "subject to a comprehensive visual validation the",
+  "subject to a comprehensive visual validation",
+  "subject to a thorough visual validation the",
+  "subject to a thorough visual validation",
+  "subject to a detailed visual validation the",
+  "subject to a detailed visual validation",
+  "assume direct exclusive allocation of the",
+  "assume direct exclusive allocation of",
+  "assume absolute exclusive allocation of the",
+  "assume absolute exclusive allocation of",
+  "assume immediate exclusive allocation of the",
+  "assume immediate exclusive allocation of",
+  "divest oneself of all exclusive allocation of the",
+  "divest oneself of all exclusive allocation of",
+  "relinquish all exclusive allocation of the",
+  "relinquish all exclusive allocation of",
+  "free oneself from all exclusive allocation of the",
+  "free oneself from all exclusive allocation of",
+  "force completely and nucleochemically wide open the",
+  "force completely and nucleochemically wide open",
+  "pry completely and nucleochemically wide open the",
+  "pry completely and nucleochemically wide open",
+  "fasten completely and nucleochemically closed the",
+  "fasten completely and nucleochemically closed",
+  "seal completely and nucleochemically shut the",
+  "seal completely and nucleochemically shut",
+  "deactivate all skyrmion security devices of the",
+  "deactivate all skyrmion security devices of",
+  "bypass all skyrmion security devices on the",
+  "bypass all skyrmion security devices on",
+  "disengage the primary skyrmion security device on the",
+  "disengage the primary skyrmion security device on",
+  "harness the full synchronized deployment of the",
+  "harness the full synchronized deployment of",
+  "bring into active synchronized deployment the",
+  "bring into active synchronized deployment",
+  "make complete synchronized deployment of the",
+  "make complete synchronized deployment of",
+  "initiate a terrible confrontation against the",
+  "initiate a terrible confrontation against",
+  "commence a terrible confrontation against the",
+  "commence a terrible confrontation against",
+  "engage in a terrible confrontation against the",
+  "engage in a terrible confrontation against",
+  "initiate a professional face to face discussion with the",
+  "initiate a professional face to face discussion with",
+  "engage in a professional face to face discussion with the",
+  "engage in a professional face to face discussion with",
+  "strike up a professional face to face discussion with the",
+  "strike up a professional face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
