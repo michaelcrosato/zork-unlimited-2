@@ -28048,6 +28048,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a sociological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #197 / Task-F216: Phase 179 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of oogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of oogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of oogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of oogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of oogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of oogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of oogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of oogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of oogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of oogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of oogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of oogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual structuring": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual structuring the": ["LOOK_INSPECT"],
+  "subject to a thorough visual structuring": ["LOOK_INSPECT"],
+  "subject to a thorough visual structuring the": ["LOOK_INSPECT"],
+  "subject to a detailed visual structuring": ["LOOK_INSPECT"],
+  "subject to a detailed visual structuring the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive cladding of": ["TAKE"],
+  "assume direct exclusive cladding of the": ["TAKE"],
+  "assume absolute exclusive cladding of": ["TAKE"],
+  "assume absolute exclusive cladding of the": ["TAKE"],
+  "assume immediate exclusive cladding of": ["TAKE"],
+  "assume immediate exclusive cladding of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive cladding of": ["DROP"],
+  "divest oneself of all exclusive cladding of the": ["DROP"],
+  "relinquish all exclusive cladding of": ["DROP"],
+  "relinquish all exclusive cladding of the": ["DROP"],
+  "free oneself from all exclusive cladding of": ["DROP"],
+  "free oneself from all exclusive cladding of the": ["DROP"],
+
+  // Open/Close
+  "force completely and photocatalytically wide open": ["OPEN"],
+  "force completely and photocatalytically wide open the": ["OPEN"],
+  "pry completely and photocatalytically wide open": ["OPEN"],
+  "pry completely and photocatalytically wide open the": ["OPEN"],
+  "fasten completely and photocatalytically closed": ["CLOSE"],
+  "fasten completely and photocatalytically closed the": ["CLOSE"],
+  "seal completely and photocatalytically shut": ["CLOSE"],
+  "seal completely and photocatalytically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all lorentz security devices of": ["UNLOCK"],
+  "deactivate all lorentz security devices of the": ["UNLOCK"],
+  "deactivate all poincare security devices of": ["UNLOCK"],
+  "deactivate all poincare security devices of the": ["UNLOCK"],
+  "deactivate all minkowski security devices of": ["UNLOCK"],
+  "deactivate all minkowski security devices of the": ["UNLOCK"],
+  "deactivate all hilbert security devices of": ["UNLOCK"],
+  "deactivate all hilbert security devices of the": ["UNLOCK"],
+  "bypass all lorentz security devices on": ["UNLOCK"],
+  "bypass all lorentz security devices on the": ["UNLOCK"],
+  "bypass all poincare security devices on": ["UNLOCK"],
+  "bypass all poincare security devices on the": ["UNLOCK"],
+  "bypass all minkowski security devices on": ["UNLOCK"],
+  "bypass all minkowski security devices on the": ["UNLOCK"],
+  "bypass all hilbert security devices on": ["UNLOCK"],
+  "bypass all hilbert security devices on the": ["UNLOCK"],
+  "disengage the primary lorentz security device on": ["UNLOCK"],
+  "disengage the primary lorentz security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full harmonic deployment of": ["USE"],
+  "harness the full harmonic deployment of the": ["USE"],
+  "bring into active harmonic deployment": ["USE"],
+  "bring into active harmonic deployment the": ["USE"],
+  "make complete harmonic deployment of": ["USE"],
+  "make complete harmonic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a valiant confrontation against": ["FIGHT"],
+  "initiate a valiant confrontation against the": ["FIGHT"],
+  "commence a valiant confrontation against": ["FIGHT"],
+  "commence a valiant confrontation against the": ["FIGHT"],
+  "engage in a valiant confrontation against": ["FIGHT"],
+  "engage in a valiant confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a criminological face to face discussion with": ["TALK"],
+  "initiate a criminological face to face discussion with the": ["TALK"],
+  "engage in a criminological face to face discussion with": ["TALK"],
+  "engage in a criminological face to face discussion with the": ["TALK"],
+  "strike up a criminological face to face discussion with": ["TALK"],
+  "strike up a criminological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -34593,6 +34688,84 @@ compoundVerbs.push(
   "engage in a sociological face to face discussion with",
   "strike up a sociological face to face discussion with the",
   "strike up a sociological face to face discussion with"
+);
+
+// Cycle #197 / Task-F216: Phase 179 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of oogenesis towards the location of the",
+  "navigate one's vector of oogenesis towards the location of",
+  "navigate ones vector of oogenesis towards the location of the",
+  "navigate ones vector of oogenesis towards the location of",
+  "steer one's vector of oogenesis in the direction of the coordinates of the",
+  "steer one's vector of oogenesis in the direction of the coordinates of",
+  "steer ones vector of oogenesis in the direction of the coordinates of the",
+  "steer ones vector of oogenesis in the direction of the coordinates of",
+  "direct one's vector of oogenesis towards the coordinates of the location of the",
+  "direct one's vector of oogenesis towards the coordinates of the location of",
+  "direct ones vector of oogenesis towards the coordinates of the location of the",
+  "direct ones vector of oogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual structuring the",
+  "subject to a comprehensive visual structuring",
+  "subject to a thorough visual structuring the",
+  "subject to a thorough visual structuring",
+  "subject to a detailed visual structuring the",
+  "subject to a detailed visual structuring",
+  "assume direct exclusive cladding of the",
+  "assume direct exclusive cladding of",
+  "assume absolute exclusive cladding of the",
+  "assume absolute exclusive cladding of",
+  "assume immediate exclusive cladding of the",
+  "assume immediate exclusive cladding of",
+  "divest oneself of all exclusive cladding of the",
+  "divest oneself of all exclusive cladding of",
+  "relinquish all exclusive cladding of the",
+  "relinquish all exclusive cladding of",
+  "free oneself from all exclusive cladding of the",
+  "free oneself from all exclusive cladding of",
+  "force completely and photocatalytically wide open the",
+  "force completely and photocatalytically wide open",
+  "pry completely and photocatalytically wide open the",
+  "pry completely and photocatalytically wide open",
+  "fasten completely and photocatalytically closed the",
+  "fasten completely and photocatalytically closed",
+  "seal completely and photocatalytically shut the",
+  "seal completely and photocatalytically shut",
+  "deactivate all lorentz security devices of the",
+  "deactivate all lorentz security devices of",
+  "deactivate all poincare security devices of the",
+  "deactivate all poincare security devices of",
+  "deactivate all minkowski security devices of the",
+  "deactivate all minkowski security devices of",
+  "deactivate all hilbert security devices of the",
+  "deactivate all hilbert security devices of",
+  "bypass all lorentz security devices on the",
+  "bypass all lorentz security devices on",
+  "bypass all poincare security devices on the",
+  "bypass all poincare security devices on",
+  "bypass all minkowski security devices on the",
+  "bypass all minkowski security devices on",
+  "bypass all hilbert security devices on the",
+  "bypass all hilbert security devices on",
+  "disengage the primary lorentz security device on the",
+  "disengage the primary lorentz security device on",
+  "harness the full harmonic deployment of the",
+  "harness the full harmonic deployment of",
+  "bring into active harmonic deployment the",
+  "bring into active harmonic deployment",
+  "make complete harmonic deployment of the",
+  "make complete harmonic deployment of",
+  "initiate a valiant confrontation against the",
+  "initiate a valiant confrontation against",
+  "commence a valiant confrontation against the",
+  "commence a valiant confrontation against",
+  "engage in a valiant confrontation against the",
+  "engage in a valiant confrontation against",
+  "initiate a criminological face to face discussion with the",
+  "initiate a criminological face to face discussion with",
+  "engage in a criminological face to face discussion with the",
+  "engage in a criminological face to face discussion with",
+  "strike up a criminological face to face discussion with the",
+  "strike up a criminological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
