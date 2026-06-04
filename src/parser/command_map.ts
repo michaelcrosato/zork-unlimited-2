@@ -23690,6 +23690,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a dialogic face to face discussion with the": ["TALK"]
 });
 
+// Cycle #145 / Task-F166: Phase 129 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of plasmolysis towards the location of": ["MOVE"],
+  "navigate one's vector of plasmolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of plasmolysis towards the location of": ["MOVE"],
+  "navigate ones vector of plasmolysis towards the location of the": ["MOVE"],
+  "steer one's vector of plasmolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of plasmolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of plasmolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of plasmolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of plasmolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of plasmolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of plasmolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of plasmolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual externalization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual externalization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual externalization": ["LOOK_INSPECT"],
+  "subject to a thorough visual externalization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual externalization": ["LOOK_INSPECT"],
+  "subject to a detailed visual externalization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive allocation of": ["TAKE"],
+  "assume direct exclusive allocation of the": ["TAKE"],
+  "assume absolute exclusive allocation of": ["TAKE"],
+  "assume absolute exclusive allocation of the": ["TAKE"],
+  "assume immediate exclusive allocation of": ["TAKE"],
+  "assume immediate exclusive allocation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive allocation of": ["DROP"],
+  "divest oneself of all exclusive allocation of the": ["DROP"],
+  "relinquish all exclusive allocation of": ["DROP"],
+  "relinquish all exclusive allocation of the": ["DROP"],
+  "free oneself from all exclusive allocation of": ["DROP"],
+  "free oneself from all exclusive allocation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and biochemically wide open": ["OPEN"],
+  "force completely and biochemically wide open the": ["OPEN"],
+  "pry completely and biochemically wide open": ["OPEN"],
+  "pry completely and biochemically wide open the": ["OPEN"],
+  "fasten completely and biochemically closed": ["CLOSE"],
+  "fasten completely and biochemically closed the": ["CLOSE"],
+  "seal completely and biochemically shut": ["CLOSE"],
+  "seal completely and biochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all chargino security devices of": ["UNLOCK"],
+  "deactivate all chargino security devices of the": ["UNLOCK"],
+  "bypass all chargino security devices on": ["UNLOCK"],
+  "bypass all chargino security devices on the": ["UNLOCK"],
+  "disengage the primary chargino security device on": ["UNLOCK"],
+  "disengage the primary chargino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full tireless deployment of": ["USE"],
+  "harness the full tireless deployment of the": ["USE"],
+  "bring into active tireless deployment": ["USE"],
+  "bring into active tireless deployment the": ["USE"],
+  "make complete tireless deployment of": ["USE"],
+  "make complete tireless deployment of the": ["USE"],
+
+  // Combat
+  "initiate a ferocious confrontation against": ["FIGHT"],
+  "initiate a ferocious confrontation against the": ["FIGHT"],
+  "commence a ferocious confrontation against": ["FIGHT"],
+  "commence a ferocious confrontation against the": ["FIGHT"],
+  "engage in a ferocious confrontation against": ["FIGHT"],
+  "engage in a ferocious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a semianalytic face to face discussion with": ["TALK"],
+  "initiate a semianalytic face to face discussion with the": ["TALK"],
+  "engage in a semianalytic face to face discussion with": ["TALK"],
+  "engage in a semianalytic face to face discussion with the": ["TALK"],
+  "strike up a semianalytic face to face discussion with": ["TALK"],
+  "strike up a semianalytic face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -26659,6 +26742,72 @@ compoundVerbs.push(
   "engage in a dialogic face to face discussion with",
   "strike up a dialogic face to face discussion with the",
   "strike up a dialogic face to face discussion with"
+);
+
+// Cycle #145 / Task-F166: Phase 129 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of plasmolysis towards the location of the",
+  "navigate one's vector of plasmolysis towards the location of",
+  "navigate ones vector of plasmolysis towards the location of the",
+  "navigate ones vector of plasmolysis towards the location of",
+  "steer one's vector of plasmolysis in the direction of the coordinates of the",
+  "steer one's vector of plasmolysis in the direction of the coordinates of",
+  "steer ones vector of plasmolysis in the direction of the coordinates of the",
+  "steer ones vector of plasmolysis in the direction of the coordinates of",
+  "direct one's vector of plasmolysis towards the coordinates of the location of the",
+  "direct one's vector of plasmolysis towards the coordinates of the location of",
+  "direct ones vector of plasmolysis towards the coordinates of the location of the",
+  "direct ones vector of plasmolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual externalization the",
+  "subject to a comprehensive visual externalization",
+  "subject to a thorough visual externalization the",
+  "subject to a thorough visual externalization",
+  "subject to a detailed visual externalization the",
+  "subject to a detailed visual externalization",
+  "assume direct exclusive allocation of the",
+  "assume direct exclusive allocation of",
+  "assume absolute exclusive allocation of the",
+  "assume absolute exclusive allocation of",
+  "assume immediate exclusive allocation of the",
+  "assume immediate exclusive allocation of",
+  "divest oneself of all exclusive allocation of the",
+  "divest oneself of all exclusive allocation of",
+  "relinquish all exclusive allocation of the",
+  "relinquish all exclusive allocation of",
+  "free oneself from all exclusive allocation of the",
+  "free oneself from all exclusive allocation of",
+  "force completely and biochemically wide open the",
+  "force completely and biochemically wide open",
+  "pry completely and biochemically wide open the",
+  "pry completely and biochemically wide open",
+  "fasten completely and biochemically closed the",
+  "fasten completely and biochemically closed",
+  "seal completely and biochemically shut the",
+  "seal completely and biochemically shut",
+  "deactivate all chargino security devices of the",
+  "deactivate all chargino security devices of",
+  "bypass all chargino security devices on the",
+  "bypass all chargino security devices on",
+  "disengage the primary chargino security device on the",
+  "disengage the primary chargino security device on",
+  "harness the full tireless deployment of the",
+  "harness the full tireless deployment of",
+  "bring into active tireless deployment the",
+  "bring into active tireless deployment",
+  "make complete tireless deployment of the",
+  "make complete tireless deployment of",
+  "initiate a ferocious confrontation against the",
+  "initiate a ferocious confrontation against",
+  "commence a ferocious confrontation against the",
+  "commence a ferocious confrontation against",
+  "engage in a ferocious confrontation against the",
+  "engage in a ferocious confrontation against",
+  "initiate a semianalytic face to face discussion with the",
+  "initiate a semianalytic face to face discussion with",
+  "engage in a semianalytic face to face discussion with the",
+  "engage in a semianalytic face to face discussion with",
+  "strike up a semianalytic face to face discussion with the",
+  "strike up a semianalytic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
