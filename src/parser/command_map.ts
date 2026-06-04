@@ -28333,6 +28333,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a mythological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #200 / Task-F219: Phase 182 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of somatogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of somatogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of somatogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of somatogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of somatogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of somatogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of somatogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of somatogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of somatogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of somatogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of somatogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of somatogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual configuration": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual configuration the": ["LOOK_INSPECT"],
+  "subject to a thorough visual configuration": ["LOOK_INSPECT"],
+  "subject to a thorough visual configuration the": ["LOOK_INSPECT"],
+  "subject to a detailed visual configuration": ["LOOK_INSPECT"],
+  "subject to a detailed visual configuration the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive coating of": ["TAKE"],
+  "assume direct exclusive coating of the": ["TAKE"],
+  "assume absolute exclusive coating of": ["TAKE"],
+  "assume absolute exclusive coating of the": ["TAKE"],
+  "assume immediate exclusive coating of": ["TAKE"],
+  "assume immediate exclusive coating of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive coating of": ["DROP"],
+  "divest oneself of all exclusive coating of the": ["DROP"],
+  "relinquish all exclusive coating of": ["DROP"],
+  "relinquish all exclusive coating of the": ["DROP"],
+  "free oneself from all exclusive coating of": ["DROP"],
+  "free oneself from all exclusive coating of the": ["DROP"],
+
+  // Open/Close
+  "force completely and pseudoplastically wide open": ["OPEN"],
+  "force completely and pseudoplastically wide open the": ["OPEN"],
+  "pry completely and pseudoplastically wide open": ["OPEN"],
+  "pry completely and pseudoplastically wide open the": ["OPEN"],
+  "fasten completely and pseudoplastically closed": ["CLOSE"],
+  "fasten completely and pseudoplastically closed the": ["CLOSE"],
+  "seal completely and pseudoplastically shut": ["CLOSE"],
+  "seal completely and pseudoplastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all navier security devices of": ["UNLOCK"],
+  "deactivate all navier security devices of the": ["UNLOCK"],
+  "deactivate all stokes security devices of": ["UNLOCK"],
+  "deactivate all stokes security devices of the": ["UNLOCK"],
+  "deactivate all euler security devices of": ["UNLOCK"],
+  "deactivate all euler security devices of the": ["UNLOCK"],
+  "deactivate all bernoulli security devices of": ["UNLOCK"],
+  "deactivate all bernoulli security devices of the": ["UNLOCK"],
+  "bypass all navier security devices on": ["UNLOCK"],
+  "bypass all navier security devices on the": ["UNLOCK"],
+  "bypass all stokes security devices on": ["UNLOCK"],
+  "bypass all stokes security devices on the": ["UNLOCK"],
+  "bypass all euler security devices on": ["UNLOCK"],
+  "bypass all euler security devices on the": ["UNLOCK"],
+  "bypass all bernoulli security devices on": ["UNLOCK"],
+  "bypass all bernoulli security devices on the": ["UNLOCK"],
+  "disengage the primary navier security device on": ["UNLOCK"],
+  "disengage the primary navier security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full chromatic deployment of": ["USE"],
+  "harness the full chromatic deployment of the": ["USE"],
+  "bring into active chromatic deployment": ["USE"],
+  "bring into active chromatic deployment the": ["USE"],
+  "make complete chromatic deployment of": ["USE"],
+  "make complete chromatic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unflinchingly heroic confrontation against": ["FIGHT"],
+  "initiate an unflinchingly heroic confrontation against the": ["FIGHT"],
+  "commence an unflinchingly heroic confrontation against": ["FIGHT"],
+  "commence an unflinchingly heroic confrontation against the": ["FIGHT"],
+  "engage in an unflinchingly heroic confrontation against": ["FIGHT"],
+  "engage in an unflinchingly heroic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an eschatological face to face discussion with": ["TALK"],
+  "initiate an eschatological face to face discussion with the": ["TALK"],
+  "engage in an eschatological face to face discussion with": ["TALK"],
+  "engage in an eschatological face to face discussion with the": ["TALK"],
+  "strike up an eschatological face to face discussion with": ["TALK"],
+  "strike up an eschatological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -35112,6 +35207,84 @@ compoundVerbs.push(
   "engage in a mythological face to face discussion with",
   "strike up a mythological face to face discussion with the",
   "strike up a mythological face to face discussion with"
+);
+
+// Cycle #200 / Task-F219: Phase 182 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of somatogenesis towards the location of the",
+  "navigate one's vector of somatogenesis towards the location of",
+  "navigate ones vector of somatogenesis towards the location of the",
+  "navigate ones vector of somatogenesis towards the location of",
+  "steer one's vector of somatogenesis in the direction of the coordinates of the",
+  "steer one's vector of somatogenesis in the direction of the coordinates of",
+  "steer ones vector of somatogenesis in the direction of the coordinates of the",
+  "steer ones vector of somatogenesis in the direction of the coordinates of",
+  "direct one's vector of somatogenesis towards the coordinates of the location of the",
+  "direct one's vector of somatogenesis towards the coordinates of the location of",
+  "direct ones vector of somatogenesis towards the coordinates of the location of the",
+  "direct ones vector of somatogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual configuration the",
+  "subject to a comprehensive visual configuration",
+  "subject to a thorough visual configuration the",
+  "subject to a thorough visual configuration",
+  "subject to a detailed visual configuration the",
+  "subject to a detailed visual configuration",
+  "assume direct exclusive coating of the",
+  "assume direct exclusive coating of",
+  "assume absolute exclusive coating of the",
+  "assume absolute exclusive coating of",
+  "assume immediate exclusive coating of the",
+  "assume immediate exclusive coating of",
+  "divest oneself of all exclusive coating of the",
+  "divest oneself of all exclusive coating of",
+  "relinquish all exclusive coating of the",
+  "relinquish all exclusive coating of",
+  "free oneself from all exclusive coating of the",
+  "free oneself from all exclusive coating of",
+  "force completely and pseudoplastically wide open the",
+  "force completely and pseudoplastically wide open",
+  "pry completely and pseudoplastically wide open the",
+  "pry completely and pseudoplastically wide open",
+  "fasten completely and pseudoplastically closed the",
+  "fasten completely and pseudoplastically closed",
+  "seal completely and pseudoplastically shut the",
+  "seal completely and pseudoplastically shut",
+  "deactivate all navier security devices of the",
+  "deactivate all navier security devices of",
+  "deactivate all stokes security devices of the",
+  "deactivate all stokes security devices of",
+  "deactivate all euler security devices of the",
+  "deactivate all euler security devices of",
+  "deactivate all bernoulli security devices of the",
+  "deactivate all bernoulli security devices of",
+  "bypass all navier security devices on the",
+  "bypass all navier security devices on",
+  "bypass all stokes security devices on the",
+  "bypass all stokes security devices on",
+  "bypass all euler security devices on the",
+  "bypass all euler security devices on",
+  "bypass all bernoulli security devices on the",
+  "bypass all bernoulli security devices on",
+  "disengage the primary navier security device on the",
+  "disengage the primary navier security device on",
+  "harness the full chromatic deployment of the",
+  "harness the full chromatic deployment of",
+  "bring into active chromatic deployment the",
+  "bring into active chromatic deployment",
+  "make complete chromatic deployment of the",
+  "make complete chromatic deployment of",
+  "initiate an unflinchingly heroic confrontation against the",
+  "initiate an unflinchingly heroic confrontation against",
+  "commence an unflinchingly heroic confrontation against the",
+  "commence an unflinchingly heroic confrontation against",
+  "engage in an unflinchingly heroic confrontation against the",
+  "engage in an unflinchingly heroic confrontation against",
+  "initiate an eschatological face to face discussion with the",
+  "initiate an eschatological face to face discussion with",
+  "engage in an eschatological face to face discussion with the",
+  "engage in an eschatological face to face discussion with",
+  "strike up an eschatological face to face discussion with the",
+  "strike up an eschatological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
