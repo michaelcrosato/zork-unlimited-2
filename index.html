@@ -915,7 +915,7 @@
           class="form-group"
           style="flex-direction: row; align-items: center; gap: 0.5rem"
         >
-          <label class="form-label" style="margin: 0">Game Pack:</label>
+          <label for="game-pack-select" class="form-label" style="margin: 0">Game Pack:</label>
           <select id="game-pack-select" onchange="switchGamePack()">
             <option value="heros_quest">🏰 Castle of Shadows (RPG)</option>
             <option value="chapel">⛪ The Sealed Crypt (Zork-style)</option>
@@ -927,7 +927,7 @@
           class="form-group"
           style="flex-direction: row; align-items: center; gap: 0.5rem"
         >
-          <label class="form-label" style="margin: 0">Seed:</label>
+          <label for="game-seed-input" class="form-label" style="margin: 0">Seed:</label>
           <input
             type="number"
             id="game-seed-input"
@@ -939,6 +939,7 @@
         <!-- Retro Speaker Audio Toggle button -->
         <button
           id="audio-toggle-btn"
+          aria-label="Toggle Synth Sound Effects"
           onclick="toggleAudio()"
           style="
             font-size: 1.1rem;
@@ -1080,11 +1081,12 @@
 
         <!-- Dynamic input prompt -->
         <div class="input-frame">
-          <span class="prompt-prefix">></span>
+          <span class="prompt-prefix" aria-hidden="true">></span>
           <input
             type="text"
             class="console-input"
             id="console-prompt-input"
+            aria-label="Adventure command prompt"
             autocomplete="off"
             placeholder="Enter a choice or a command (e.g. 'go west', 'look at chest')..."
           />
@@ -3890,7 +3892,7 @@
             <p class="save-date">${saveObj.date}</p>
           </div>
           <div class="save-actions">
-            <button class="btn-icon" onclick="triggerDeleteSave(${i})" title="Delete save">🗑️</button>
+            <button class="btn-icon" aria-label="Delete save" onclick="triggerDeleteSave(${i})" title="Delete save">🗑️</button>
           </div>`;
           listEl.appendChild(slotEl);
         });
@@ -4306,6 +4308,7 @@
             📖 Commands & Onboarding Guide
           </h2>
           <button
+            aria-label="Close tutorial"
             onclick="closeTutorialModal()"
             style="
               background: none;
