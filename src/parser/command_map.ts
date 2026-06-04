@@ -28808,6 +28808,102 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a limnological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #206 / Task-F225: Phase 187 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of vasculogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of vasculogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of vasculogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of vasculogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of vasculogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of vasculogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of vasculogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of vasculogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of vasculogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of vasculogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of vasculogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of vasculogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual characterization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual characterization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual characterization": ["LOOK_INSPECT"],
+  "subject to a thorough visual characterization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual characterization": ["LOOK_INSPECT"],
+  "subject to a detailed visual characterization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive binding of": ["TAKE"],
+  "assume direct exclusive binding of the": ["TAKE"],
+  "assume absolute exclusive binding of": ["TAKE"],
+  "assume absolute exclusive binding of the": ["TAKE"],
+  "assume immediate exclusive binding of": ["TAKE"],
+  "assume immediate exclusive binding of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive binding of": ["DROP"],
+  "divest oneself of all exclusive binding of the": ["DROP"],
+  "relinquish all exclusive binding of": ["DROP"],
+  "relinquish all exclusive binding of the": ["DROP"],
+  "free oneself from all exclusive binding of": ["DROP"],
+  "free oneself from all exclusive binding of the": ["DROP"],
+
+  // Open/Close
+  "force completely and nanoviscoelastically wide open": ["OPEN"],
+  "force completely and nanoviscoelastically wide open the": ["OPEN"],
+  "pry completely and nanoviscoelastically wide open": ["OPEN"],
+  "pry completely and nanoviscoelastically wide open the": ["OPEN"],
+  "fasten completely and nanoviscoelastically closed": ["CLOSE"],
+  "fasten completely and nanoviscoelastically closed the": ["CLOSE"],
+  "seal completely and nanoviscoelastically shut": ["CLOSE"],
+  "seal completely and nanoviscoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all newton security devices of": ["UNLOCK"],
+  "deactivate all newton security devices of the": ["UNLOCK"],
+  "deactivate all leibniz security devices of": ["UNLOCK"],
+  "deactivate all leibniz security devices of the": ["UNLOCK"],
+  "deactivate all descartes security devices of": ["UNLOCK"],
+  "deactivate all descartes security devices of the": ["UNLOCK"],
+  "deactivate all fermat security devices of": ["UNLOCK"],
+  "deactivate all fermat security devices of the": ["UNLOCK"],
+  "bypass all newton security devices on": ["UNLOCK"],
+  "bypass all newton security devices on the": ["UNLOCK"],
+  "bypass all leibniz security devices on": ["UNLOCK"],
+  "bypass all leibniz security devices on the": ["UNLOCK"],
+  "bypass all descartes security devices on": ["UNLOCK"],
+  "bypass all descartes security devices on the": ["UNLOCK"],
+  "bypass all fermat security devices on": ["UNLOCK"],
+  "bypass all fermat security devices on the": ["UNLOCK"],
+  "disengage the primary newton security device on": ["UNLOCK"],
+  "disengage the primary newton security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full allotropic deployment of": ["USE"],
+  "harness the full allotropic deployment of the": ["USE"],
+  "bring into active allotropic deployment": ["USE"],
+  "bring into active allotropic deployment the": ["USE"],
+  "make complete allotropic deployment of": ["USE"],
+  "make complete allotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unsparingly adversarial confrontation against": ["FIGHT"],
+  "initiate an unsparingly adversarial confrontation against the": ["FIGHT"],
+  "commence an unsparingly adversarial confrontation against": ["FIGHT"],
+  "commence an unsparingly adversarial confrontation against the": ["FIGHT"],
+  "engage in an unsparingly adversarial confrontation against": ["FIGHT"],
+  "engage in an unsparingly adversarial confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a volcanological face to face discussion with": ["TALK"],
+  "initiate a volcanological face to face discussion with the": ["TALK"],
+  "engage in a volcanological face to face discussion with": ["TALK"],
+  "engage in a volcanological face to face discussion with the": ["TALK"],
+  "strike up a volcanological face to face discussion with": ["TALK"],
+  "strike up a volcanological face to face discussion with the": ["TALK"]
+});
+
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -35974,6 +36070,84 @@ compoundVerbs.push(
   "engage in a limnological face to face discussion with",
   "strike up a limnological face to face discussion with the",
   "strike up a limnological face to face discussion with"
+);
+
+// Cycle #206 / Task-F225: Phase 187 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of vasculogenesis towards the location of the",
+  "navigate one's vector of vasculogenesis towards the location of",
+  "navigate ones vector of vasculogenesis towards the location of the",
+  "navigate ones vector of vasculogenesis towards the location of",
+  "steer one's vector of vasculogenesis in the direction of the coordinates of the",
+  "steer one's vector of vasculogenesis in the direction of the coordinates of",
+  "steer ones vector of vasculogenesis in the direction of the coordinates of the",
+  "steer ones vector of vasculogenesis in the direction of the coordinates of",
+  "direct one's vector of vasculogenesis towards the coordinates of the location of the",
+  "direct one's vector of vasculogenesis towards the coordinates of the location of",
+  "direct ones vector of vasculogenesis towards the coordinates of the location of the",
+  "direct ones vector of vasculogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual characterization the",
+  "subject to a comprehensive visual characterization",
+  "subject to a thorough visual characterization the",
+  "subject to a thorough visual characterization",
+  "subject to a detailed visual characterization the",
+  "subject to a detailed visual characterization",
+  "assume direct exclusive binding of the",
+  "assume direct exclusive binding of",
+  "assume absolute exclusive binding of the",
+  "assume absolute exclusive binding of",
+  "assume immediate exclusive binding of the",
+  "assume immediate exclusive binding of",
+  "divest oneself of all exclusive binding of the",
+  "divest oneself of all exclusive binding of",
+  "relinquish all exclusive binding of the",
+  "relinquish all exclusive binding of",
+  "free oneself from all exclusive binding of the",
+  "free oneself from all exclusive binding of",
+  "force completely and nanoviscoelastically wide open the",
+  "force completely and nanoviscoelastically wide open",
+  "pry completely and nanoviscoelastically wide open the",
+  "pry completely and nanoviscoelastically wide open",
+  "fasten completely and nanoviscoelastically closed the",
+  "fasten completely and nanoviscoelastically closed",
+  "seal completely and nanoviscoelastically shut the",
+  "seal completely and nanoviscoelastically shut",
+  "deactivate all newton security devices of the",
+  "deactivate all newton security devices of",
+  "deactivate all leibniz security devices of the",
+  "deactivate all leibniz security devices of",
+  "deactivate all descartes security devices of the",
+  "deactivate all descartes security devices of",
+  "deactivate all fermat security devices of the",
+  "deactivate all fermat security devices of",
+  "bypass all newton security devices on the",
+  "bypass all newton security devices on",
+  "bypass all leibniz security devices on the",
+  "bypass all leibniz security devices on",
+  "bypass all descartes security devices on the",
+  "bypass all descartes security devices on",
+  "bypass all fermat security devices on the",
+  "bypass all fermat security devices on",
+  "disengage the primary newton security device on the",
+  "disengage the primary newton security device on",
+  "harness the full allotropic deployment of the",
+  "harness the full allotropic deployment of",
+  "bring into active allotropic deployment the",
+  "bring into active allotropic deployment",
+  "make complete allotropic deployment of the",
+  "make complete allotropic deployment of",
+  "initiate an unsparingly adversarial confrontation against the",
+  "initiate an unsparingly adversarial confrontation against",
+  "commence an unsparingly adversarial confrontation against the",
+  "commence an unsparingly adversarial confrontation against",
+  "engage in an unsparingly adversarial confrontation against the",
+  "engage in an unsparingly adversarial confrontation against",
+  "initiate a volcanological face to face discussion with the",
+  "initiate a volcanological face to face discussion with",
+  "engage in a volcanological face to face discussion with the",
+  "engage in a volcanological face to face discussion with",
+  "strike up a volcanological face to face discussion with the",
+  "strike up a volcanological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
