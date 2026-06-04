@@ -20,7 +20,9 @@ describe("Parser Synonym Expansion Phase 145 (Task-F182)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("navigate one's vector of bacteriolysis towards the location of the east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of bacteriolysis towards the location of the east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -28,7 +30,9 @@ describe("Parser Synonym Expansion Phase 145 (Task-F182)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("navigate ones vector of bacteriolysis towards the location of the east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate ones vector of bacteriolysis towards the location of the east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -50,13 +54,15 @@ describe("Parser Synonym Expansion Phase 145 (Task-F182)", () => {
       mapCommand("direct one's vector of bacteriolysis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct one's vector of bacteriolysis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct one's vector of bacteriolysis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("direct ones vector of bacteriolysis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct ones vector of bacteriolysis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct ones vector of bacteriolysis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
   });
 

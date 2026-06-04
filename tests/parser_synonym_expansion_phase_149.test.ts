@@ -20,7 +20,9 @@ describe("Parser Synonym Expansion Phase 149 (Task-F186)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("navigate one's vector of karyorrhexis towards the location of the east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of karyorrhexis towards the location of the east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -28,10 +30,12 @@ describe("Parser Synonym Expansion Phase 149 (Task-F186)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("navigate ones vector of karyorrhexis towards the location of the east", actions).action).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
+    expect(mapCommand("navigate ones vector of karyorrhexis towards the location of the east", actions).action).toEqual(
+      {
+        type: "MOVE",
+        direction: "east",
+      }
+    );
 
     expect(
       mapCommand("steer one's vector of karyorrhexis in the direction of the coordinates of east", actions).action
@@ -50,13 +54,15 @@ describe("Parser Synonym Expansion Phase 149 (Task-F186)", () => {
       mapCommand("direct one's vector of karyorrhexis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct one's vector of karyorrhexis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct one's vector of karyorrhexis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("direct ones vector of karyorrhexis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct ones vector of karyorrhexis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct ones vector of karyorrhexis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
   });
 

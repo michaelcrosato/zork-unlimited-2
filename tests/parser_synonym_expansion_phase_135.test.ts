@@ -50,7 +50,8 @@ describe("Parser Synonym Expansion Phase 135 (Task-F172)", () => {
       mapCommand("direct one's vector of karyolysis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct one's vector of karyolysis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct one's vector of karyolysis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("direct ones vector of karyolysis towards the coordinates of the location of east", actions).action

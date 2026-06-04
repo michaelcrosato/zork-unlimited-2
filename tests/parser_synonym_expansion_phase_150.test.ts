@@ -20,10 +20,12 @@ describe("Parser Synonym Expansion Phase 150 (Task-F187)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("navigate one's vector of nucleolysis towards the location of the east", actions).action).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
+    expect(mapCommand("navigate one's vector of nucleolysis towards the location of the east", actions).action).toEqual(
+      {
+        type: "MOVE",
+        direction: "east",
+      }
+    );
     expect(mapCommand("navigate ones vector of nucleolysis towards the location of east", actions).action).toEqual({
       type: "MOVE",
       direction: "east",
@@ -50,13 +52,15 @@ describe("Parser Synonym Expansion Phase 150 (Task-F187)", () => {
       mapCommand("direct one's vector of nucleolysis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct one's vector of nucleolysis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct one's vector of nucleolysis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("direct ones vector of nucleolysis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct ones vector of nucleolysis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct ones vector of nucleolysis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
   });
 

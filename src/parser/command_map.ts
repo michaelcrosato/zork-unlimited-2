@@ -25462,10 +25462,88 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a conversational face to face discussion with the": ["TALK"],
 });
 
+// Cycle #167 / Task-F188: Phase 151 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of karyokinesis towards the location of": ["MOVE"],
+  "navigate one's vector of karyokinesis towards the location of the": ["MOVE"],
+  "navigate ones vector of karyokinesis towards the location of": ["MOVE"],
+  "navigate ones vector of karyokinesis towards the location of the": ["MOVE"],
+  "steer one's vector of karyokinesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of karyokinesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of karyokinesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of karyokinesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of karyokinesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of karyokinesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of karyokinesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of karyokinesis towards the coordinates of the location of the": ["MOVE"],
 
+  // Inspection
+  "subject to a comprehensive visual organization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual organization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual organization": ["LOOK_INSPECT"],
+  "subject to a thorough visual organization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual organization": ["LOOK_INSPECT"],
+  "subject to a detailed visual organization the": ["LOOK_INSPECT"],
 
+  // Take
+  "assume direct exclusive keeping of": ["TAKE"],
+  "assume direct exclusive keeping of the": ["TAKE"],
+  "assume absolute exclusive keeping of": ["TAKE"],
+  "assume absolute exclusive keeping of the": ["TAKE"],
+  "assume immediate exclusive keeping of": ["TAKE"],
+  "assume immediate exclusive keeping of the": ["TAKE"],
 
+  // Drop
+  "divest oneself of all exclusive keeping of": ["DROP"],
+  "divest oneself of all exclusive keeping of the": ["DROP"],
+  "relinquish all exclusive keeping of": ["DROP"],
+  "relinquish all exclusive keeping of the": ["DROP"],
+  "free oneself from all exclusive keeping of": ["DROP"],
+  "free oneself from all exclusive keeping of the": ["DROP"],
 
+  // Open/Close
+  "force completely and magnetophysically wide open": ["OPEN"],
+  "force completely and magnetophysically wide open the": ["OPEN"],
+  "pry completely and magnetophysically wide open": ["OPEN"],
+  "pry completely and magnetophysically wide open the": ["OPEN"],
+  "fasten completely and magnetophysically closed": ["CLOSE"],
+  "fasten completely and magnetophysically closed the": ["CLOSE"],
+  "seal completely and magnetophysically shut": ["CLOSE"],
+  "seal completely and magnetophysically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all preon security devices of": ["UNLOCK"],
+  "deactivate all preon security devices of the": ["UNLOCK"],
+  "bypass all preon security devices on": ["UNLOCK"],
+  "bypass all preon security devices on the": ["UNLOCK"],
+  "disengage the primary preon security device on": ["UNLOCK"],
+  "disengage the primary preon security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full autonomous deployment of": ["USE"],
+  "harness the full autonomous deployment of the": ["USE"],
+  "bring into active autonomous deployment": ["USE"],
+  "bring into active autonomous deployment the": ["USE"],
+  "make complete autonomous deployment of": ["USE"],
+  "make complete autonomous deployment of the": ["USE"],
+
+  // Combat
+  "initiate a deleterious confrontation against": ["FIGHT"],
+  "initiate a deleterious confrontation against the": ["FIGHT"],
+  "commence a deleterious confrontation against": ["FIGHT"],
+  "commence a deleterious confrontation against the": ["FIGHT"],
+  "engage in a deleterious confrontation against": ["FIGHT"],
+  "engage in a deleterious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an interactive face to face discussion with": ["TALK"],
+  "initiate an interactive face to face discussion with the": ["TALK"],
+  "engage in an interactive face to face discussion with": ["TALK"],
+  "engage in an interactive face to face discussion with the": ["TALK"],
+  "strike up an interactive face to face discussion with": ["TALK"],
+  "strike up an interactive face to face discussion with the": ["TALK"],
+});
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -29887,5 +29965,70 @@ compoundVerbs.push(
   "strike up a conversational face to face discussion with"
 );
 
-compoundVerbs.sort((a, b) => b.length - a.length);
+// Cycle #167 / Task-F188: Phase 151 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of karyokinesis towards the location of the",
+  "navigate one's vector of karyokinesis towards the location of",
+  "navigate ones vector of karyokinesis towards the location of the",
+  "navigate ones vector of karyokinesis towards the location of",
+  "steer one's vector of karyokinesis in the direction of the coordinates of the",
+  "steer one's vector of karyokinesis in the direction of the coordinates of",
+  "steer ones vector of karyokinesis in the direction of the coordinates of the",
+  "steer ones vector of karyokinesis in the direction of the coordinates of",
+  "direct one's vector of karyokinesis towards the coordinates of the location of the",
+  "direct one's vector of karyokinesis towards the coordinates of the location of",
+  "direct ones vector of karyokinesis towards the coordinates of the location of the",
+  "direct ones vector of karyokinesis towards the coordinates of the location of",
+  "subject to a comprehensive visual organization the",
+  "subject to a comprehensive visual organization",
+  "subject to a thorough visual organization the",
+  "subject to a thorough visual organization",
+  "subject to a detailed visual organization the",
+  "subject to a detailed visual organization",
+  "assume direct exclusive keeping of the",
+  "assume direct exclusive keeping of",
+  "assume absolute exclusive keeping of the",
+  "assume absolute exclusive keeping of",
+  "assume immediate exclusive keeping of the",
+  "assume immediate exclusive keeping of",
+  "divest oneself of all exclusive keeping of the",
+  "divest oneself of all exclusive keeping of",
+  "relinquish all exclusive keeping of the",
+  "relinquish all exclusive keeping of",
+  "free oneself from all exclusive keeping of the",
+  "free oneself from all exclusive keeping of",
+  "force completely and magnetophysically wide open the",
+  "force completely and magnetophysically wide open",
+  "pry completely and magnetophysically wide open the",
+  "pry completely and magnetophysically wide open",
+  "fasten completely and magnetophysically closed the",
+  "fasten completely and magnetophysically closed",
+  "seal completely and magnetophysically shut the",
+  "seal completely and magnetophysically shut",
+  "deactivate all preon security devices of the",
+  "deactivate all preon security devices of",
+  "bypass all preon security devices on the",
+  "bypass all preon security devices on",
+  "disengage the primary preon security device on the",
+  "disengage the primary preon security device on",
+  "harness the full autonomous deployment of the",
+  "harness the full autonomous deployment of",
+  "bring into active autonomous deployment the",
+  "bring into active autonomous deployment",
+  "make complete autonomous deployment of the",
+  "make complete autonomous deployment of",
+  "initiate a deleterious confrontation against the",
+  "initiate a deleterious confrontation against",
+  "commence a deleterious confrontation against the",
+  "commence a deleterious confrontation against",
+  "engage in a deleterious confrontation against the",
+  "engage in a deleterious confrontation against",
+  "initiate an interactive face to face discussion with the",
+  "initiate an interactive face to face discussion with",
+  "engage in an interactive face to face discussion with the",
+  "engage in an interactive face to face discussion with",
+  "strike up an interactive face to face discussion with the",
+  "strike up an interactive face to face discussion with"
+);
 
+compoundVerbs.sort((a, b) => b.length - a.length);

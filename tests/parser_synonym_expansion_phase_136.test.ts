@@ -50,7 +50,8 @@ describe("Parser Synonym Expansion Phase 136 (Task-F173)", () => {
       mapCommand("direct one's vector of histolysis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct one's vector of histolysis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct one's vector of histolysis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("direct ones vector of histolysis towards the coordinates of the location of east", actions).action

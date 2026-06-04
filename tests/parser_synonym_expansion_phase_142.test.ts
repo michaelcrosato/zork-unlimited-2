@@ -20,7 +20,9 @@ describe("Parser Synonym Expansion Phase 142 (Task-F179)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("navigate one's vector of fibrinolysis towards the location of the east", actions).action).toEqual({
+    expect(
+      mapCommand("navigate one's vector of fibrinolysis towards the location of the east", actions).action
+    ).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -28,10 +30,12 @@ describe("Parser Synonym Expansion Phase 142 (Task-F179)", () => {
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("navigate ones vector of fibrinolysis towards the location of the east", actions).action).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
+    expect(mapCommand("navigate ones vector of fibrinolysis towards the location of the east", actions).action).toEqual(
+      {
+        type: "MOVE",
+        direction: "east",
+      }
+    );
 
     expect(
       mapCommand("steer one's vector of fibrinolysis in the direction of the coordinates of east", actions).action
@@ -50,13 +54,15 @@ describe("Parser Synonym Expansion Phase 142 (Task-F179)", () => {
       mapCommand("direct one's vector of fibrinolysis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct one's vector of fibrinolysis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct one's vector of fibrinolysis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
       mapCommand("direct ones vector of fibrinolysis towards the coordinates of the location of east", actions).action
     ).toEqual({ type: "MOVE", direction: "east" });
     expect(
-      mapCommand("direct ones vector of fibrinolysis towards the coordinates of the location of the east", actions).action
+      mapCommand("direct ones vector of fibrinolysis towards the coordinates of the location of the east", actions)
+        .action
     ).toEqual({ type: "MOVE", direction: "east" });
   });
 
