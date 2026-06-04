@@ -21314,6 +21314,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an illuminating face to face discussion with the": ["TALK"]
 });
 
+// Cycle #115 / Task-F137: Phase 100 verb categories
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of radiation towards the location of": ["MOVE"],
+  "navigate one's vector of radiation towards the location of the": ["MOVE"],
+  "navigate ones vector of radiation towards the location of": ["MOVE"],
+  "navigate ones vector of radiation towards the location of the": ["MOVE"],
+  "steer one's vector of radiation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of radiation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of radiation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of radiation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of radiation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of radiation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of radiation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of radiation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual exhibition": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual exhibition the": ["LOOK_INSPECT"],
+  "subject to a thorough visual exhibition": ["LOOK_INSPECT"],
+  "subject to a thorough visual exhibition the": ["LOOK_INSPECT"],
+  "subject to a detailed visual exhibition": ["LOOK_INSPECT"],
+  "subject to a detailed visual exhibition the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive detention of": ["TAKE"],
+  "assume direct exclusive detention of the": ["TAKE"],
+  "assume absolute exclusive detention of": ["TAKE"],
+  "assume absolute exclusive detention of the": ["TAKE"],
+  "assume immediate exclusive detention of": ["TAKE"],
+  "assume immediate exclusive detention of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive detention of": ["DROP"],
+  "divest oneself of all exclusive detention of the": ["DROP"],
+  "relinquish all exclusive detention of": ["DROP"],
+  "relinquish all exclusive detention of the": ["DROP"],
+  "free oneself from all exclusive detention of": ["DROP"],
+  "free oneself from all exclusive detention of the": ["DROP"],
+
+  // Open/Close
+  "force completely and magnonically wide open": ["OPEN"],
+  "force completely and magnonically wide open the": ["OPEN"],
+  "pry completely and magnonically wide open": ["OPEN"],
+  "pry completely and magnonically wide open the": ["OPEN"],
+  "fasten completely and magnonically closed": ["CLOSE"],
+  "fasten completely and magnonically closed the": ["CLOSE"],
+  "seal completely and magnonically shut": ["CLOSE"],
+  "seal completely and magnonically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all phononic security devices of": ["UNLOCK"],
+  "deactivate all phononic security devices of the": ["UNLOCK"],
+  "bypass all phononic security devices on": ["UNLOCK"],
+  "bypass all phononic security devices on the": ["UNLOCK"],
+  "disengage the primary phononic security device on": ["UNLOCK"],
+  "disengage the primary phononic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full preeminent deployment of": ["USE"],
+  "harness the full preeminent deployment of the": ["USE"],
+  "bring into active preeminent deployment": ["USE"],
+  "bring into active preeminent deployment the": ["USE"],
+  "make complete preeminent deployment of": ["USE"],
+  "make complete preeminent deployment of the": ["USE"],
+
+  // Combat
+  "initiate a heinous confrontation against": ["FIGHT"],
+  "initiate a heinous confrontation against the": ["FIGHT"],
+  "commence a heinous confrontation against": ["FIGHT"],
+  "commence a heinous confrontation against the": ["FIGHT"],
+  "engage in a heinous confrontation against": ["FIGHT"],
+  "engage in a heinous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a revelatory face to face discussion with": ["TALK"],
+  "initiate a revelatory face to face discussion with the": ["TALK"],
+  "engage in a revelatory face to face discussion with": ["TALK"],
+  "engage in a revelatory face to face discussion with the": ["TALK"],
+  "strike up a revelatory face to face discussion with": ["TALK"],
+  "strike up a revelatory face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -22371,6 +22454,72 @@ compoundVerbs.push(
   "engage in an illuminating face to face discussion with",
   "strike up an illuminating face to face discussion with the",
   "strike up an illuminating face to face discussion with"
+);
+
+// Cycle #115 / Task-F137: Phase 100 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of radiation towards the location of the",
+  "navigate one's vector of radiation towards the location of",
+  "navigate ones vector of radiation towards the location of the",
+  "navigate ones vector of radiation towards the location of",
+  "steer one's vector of radiation in the direction of the coordinates of the",
+  "steer one's vector of radiation in the direction of the coordinates of",
+  "steer ones vector of radiation in the direction of the coordinates of the",
+  "steer ones vector of radiation in the direction of the coordinates of",
+  "direct one's vector of radiation towards the coordinates of the location of the",
+  "direct one's vector of radiation towards the coordinates of the location of",
+  "direct ones vector of radiation towards the coordinates of the location of the",
+  "direct ones vector of radiation towards the coordinates of the location of",
+  "subject to a comprehensive visual exhibition the",
+  "subject to a comprehensive visual exhibition",
+  "subject to a thorough visual exhibition the",
+  "subject to a thorough visual exhibition",
+  "subject to a detailed visual exhibition the",
+  "subject to a detailed visual exhibition",
+  "assume direct exclusive detention of the",
+  "assume direct exclusive detention of",
+  "assume absolute exclusive detention of the",
+  "assume absolute exclusive detention of",
+  "assume immediate exclusive detention of the",
+  "assume immediate exclusive detention of",
+  "divest oneself of all exclusive detention of the",
+  "divest oneself of all exclusive detention of",
+  "relinquish all exclusive detention of the",
+  "relinquish all exclusive detention of",
+  "free oneself from all exclusive detention of the",
+  "free oneself from all exclusive detention of",
+  "force completely and magnonically wide open the",
+  "force completely and magnonically wide open",
+  "pry completely and magnonically wide open the",
+  "pry completely and magnonically wide open",
+  "fasten completely and magnonically closed the",
+  "fasten completely and magnonically closed",
+  "seal completely and magnonically shut the",
+  "seal completely and magnonically shut",
+  "deactivate all phononic security devices of the",
+  "deactivate all phononic security devices of",
+  "bypass all phononic security devices on the",
+  "bypass all phononic security devices on",
+  "disengage the primary phononic security device on the",
+  "disengage the primary phononic security device on",
+  "harness the full preeminent deployment of the",
+  "harness the full preeminent deployment of",
+  "bring into active preeminent deployment the",
+  "bring into active preeminent deployment",
+  "make complete preeminent deployment of the",
+  "make complete preeminent deployment of",
+  "initiate a heinous confrontation against the",
+  "initiate a heinous confrontation against",
+  "commence a heinous confrontation against the",
+  "commence a heinous confrontation against",
+  "engage in a heinous confrontation against the",
+  "engage in a heinous confrontation against",
+  "initiate a revelatory face to face discussion with the",
+  "initiate a revelatory face to face discussion with",
+  "engage in a revelatory face to face discussion with the",
+  "engage in a revelatory face to face discussion with",
+  "strike up a revelatory face to face discussion with the",
+  "strike up a revelatory face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
