@@ -23456,7 +23456,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a deontological face to face discussion with": ["TALK"],
   "engage in a deontological face to face discussion with the": ["TALK"],
   "strike up a deontological face to face discussion with": ["TALK"],
-  "strike up a deontological face to face discussion with the": ["TALK"]
+  "strike up a deontological face to face discussion with the": ["TALK"],
+
+  // Cycle #142 / Task-F163: Phase 126 VERB_CATEGORIES mappings
+  // Movement
+  "navigate one's vector of hydrolysis towards the location of": ["MOVE"],
+  "navigate one's vector of hydrolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of hydrolysis towards the location of": ["MOVE"],
+  "navigate ones vector of hydrolysis towards the location of the": ["MOVE"],
+  "steer one's vector of hydrolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of hydrolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of hydrolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of hydrolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of hydrolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of hydrolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of hydrolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of hydrolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual idealization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual idealization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual idealization": ["LOOK_INSPECT"],
+  "subject to a thorough visual idealization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual idealization": ["LOOK_INSPECT"],
+  "subject to a detailed visual idealization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive dispensation of": ["TAKE"],
+  "assume direct exclusive dispensation of the": ["TAKE"],
+  "assume absolute exclusive dispensation of": ["TAKE"],
+  "assume absolute exclusive dispensation of the": ["TAKE"],
+  "assume immediate exclusive dispensation of": ["TAKE"],
+  "assume immediate exclusive dispensation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive dispensation of": ["DROP"],
+  "divest oneself of all exclusive dispensation of the": ["DROP"],
+  "relinquish all exclusive dispensation of": ["DROP"],
+  "relinquish all exclusive dispensation of the": ["DROP"],
+  "free oneself from all exclusive dispensation of": ["DROP"],
+  "free oneself from all exclusive dispensation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and isenthalpically wide open": ["OPEN"],
+  "force completely and isenthalpically wide open the": ["OPEN"],
+  "pry completely and isenthalpically wide open": ["OPEN"],
+  "pry completely and isenthalpically wide open the": ["OPEN"],
+  "fasten completely and isenthalpically closed": ["CLOSE"],
+  "fasten completely and isenthalpically closed the": ["CLOSE"],
+  "seal completely and isenthalpically shut": ["CLOSE"],
+  "seal completely and isenthalpically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all sneutrinic security devices of": ["UNLOCK"],
+  "deactivate all sneutrinic security devices of the": ["UNLOCK"],
+  "bypass all sneutrinic security devices on": ["UNLOCK"],
+  "bypass all sneutrinic security devices on the": ["UNLOCK"],
+  "disengage the primary sneutrinic security device on": ["UNLOCK"],
+  "disengage the primary sneutrinic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unceasing deployment of": ["USE"],
+  "harness the full unceasing deployment of the": ["USE"],
+  "bring into active unceasing deployment": ["USE"],
+  "bring into active unceasing deployment the": ["USE"],
+  "make complete unceasing deployment of": ["USE"],
+  "make complete unceasing deployment of the": ["USE"],
+
+  // Combat
+  "initiate a baleful confrontation against": ["FIGHT"],
+  "initiate a baleful confrontation against the": ["FIGHT"],
+  "commence a baleful confrontation against": ["FIGHT"],
+  "commence a baleful confrontation against the": ["FIGHT"],
+  "engage in a baleful confrontation against": ["FIGHT"],
+  "engage in a baleful confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an axiological face to face discussion with": ["TALK"],
+  "initiate an axiological face to face discussion with the": ["TALK"],
+  "engage in an axiological face to face discussion with": ["TALK"],
+  "engage in an axiological face to face discussion with the": ["TALK"],
+  "strike up an axiological face to face discussion with": ["TALK"],
+  "strike up an axiological face to face discussion with the": ["TALK"]
 });
 
 
@@ -26231,7 +26312,71 @@ compoundVerbs.push(
   "engage in a deontological face to face discussion with the",
   "engage in a deontological face to face discussion with",
   "strike up a deontological face to face discussion with the",
-  "strike up a deontological face to face discussion with"
+  "strike up a deontological face to face discussion with",
+
+  // Cycle #142 / Task-F163: Phase 126 compound verbs
+  "navigate one's vector of hydrolysis towards the location of the",
+  "navigate one's vector of hydrolysis towards the location of",
+  "navigate ones vector of hydrolysis towards the location of the",
+  "navigate ones vector of hydrolysis towards the location of",
+  "steer one's vector of hydrolysis in the direction of the coordinates of the",
+  "steer one's vector of hydrolysis in the direction of the coordinates of",
+  "steer ones vector of hydrolysis in the direction of the coordinates of the",
+  "steer ones vector of hydrolysis in the direction of the coordinates of",
+  "direct one's vector of hydrolysis towards the coordinates of the location of the",
+  "direct one's vector of hydrolysis towards the coordinates of the location of",
+  "direct ones vector of hydrolysis towards the coordinates of the location of the",
+  "direct ones vector of hydrolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual idealization the",
+  "subject to a comprehensive visual idealization",
+  "subject to a thorough visual idealization the",
+  "subject to a thorough visual idealization",
+  "subject to a detailed visual idealization the",
+  "subject to a detailed visual idealization",
+  "assume direct exclusive dispensation of the",
+  "assume direct exclusive dispensation of",
+  "assume absolute exclusive dispensation of the",
+  "assume absolute exclusive dispensation of",
+  "assume immediate exclusive dispensation of the",
+  "assume immediate exclusive dispensation of",
+  "divest oneself of all exclusive dispensation of the",
+  "divest oneself of all exclusive dispensation of",
+  "relinquish all exclusive dispensation of the",
+  "relinquish all exclusive dispensation of",
+  "free oneself from all exclusive dispensation of the",
+  "free oneself from all exclusive dispensation of",
+  "force completely and isenthalpically wide open the",
+  "force completely and isenthalpically wide open",
+  "pry completely and isenthalpically wide open the",
+  "pry completely and isenthalpically wide open",
+  "fasten completely and isenthalpically closed the",
+  "fasten completely and isenthalpically closed",
+  "seal completely and isenthalpically shut the",
+  "seal completely and isenthalpically shut",
+  "deactivate all sneutrinic security devices of the",
+  "deactivate all sneutrinic security devices of",
+  "bypass all sneutrinic security devices on the",
+  "bypass all sneutrinic security devices on",
+  "disengage the primary sneutrinic security device on the",
+  "disengage the primary sneutrinic security device on",
+  "harness the full unceasing deployment of the",
+  "harness the full unceasing deployment of",
+  "bring into active unceasing deployment the",
+  "bring into active unceasing deployment",
+  "make complete unceasing deployment of the",
+  "make complete unceasing deployment of",
+  "initiate a baleful confrontation against the",
+  "initiate a baleful confrontation against",
+  "commence a baleful confrontation against the",
+  "commence a baleful confrontation against",
+  "engage in a baleful confrontation against the",
+  "engage in a baleful confrontation against",
+  "initiate an axiological face to face discussion with the",
+  "initiate an axiological face to face discussion with",
+  "engage in an axiological face to face discussion with the",
+  "engage in an axiological face to face discussion with",
+  "strike up an axiological face to face discussion with the",
+  "strike up an axiological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
