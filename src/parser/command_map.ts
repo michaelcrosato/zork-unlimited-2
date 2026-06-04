@@ -27953,6 +27953,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a philological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #196 / Task-F215: Phase 178 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of spermatogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of spermatogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of spermatogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of spermatogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of spermatogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of spermatogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of spermatogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of spermatogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of spermatogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of spermatogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of spermatogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of spermatogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual detailing": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual detailing the": ["LOOK_INSPECT"],
+  "subject to a thorough visual detailing": ["LOOK_INSPECT"],
+  "subject to a thorough visual detailing the": ["LOOK_INSPECT"],
+  "subject to a detailed visual detailing": ["LOOK_INSPECT"],
+  "subject to a detailed visual detailing the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive shielding of": ["TAKE"],
+  "assume direct exclusive shielding of the": ["TAKE"],
+  "assume absolute exclusive shielding of": ["TAKE"],
+  "assume absolute exclusive shielding of the": ["TAKE"],
+  "assume immediate exclusive shielding of": ["TAKE"],
+  "assume immediate exclusive shielding of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive shielding of": ["DROP"],
+  "divest oneself of all exclusive shielding of the": ["DROP"],
+  "relinquish all exclusive shielding of": ["DROP"],
+  "relinquish all exclusive shielding of the": ["DROP"],
+  "free oneself from all exclusive shielding of": ["DROP"],
+  "free oneself from all exclusive shielding of the": ["DROP"],
+
+  // Open/Close
+  "force completely and piezoresistively wide open": ["OPEN"],
+  "force completely and piezoresistively wide open the": ["OPEN"],
+  "pry completely and piezoresistively wide open": ["OPEN"],
+  "pry completely and piezoresistively wide open the": ["OPEN"],
+  "fasten completely and piezoresistively closed": ["CLOSE"],
+  "fasten completely and piezoresistively closed the": ["CLOSE"],
+  "seal completely and piezoresistively shut": ["CLOSE"],
+  "seal completely and piezoresistively shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all fermi security devices of": ["UNLOCK"],
+  "deactivate all fermi security devices of the": ["UNLOCK"],
+  "deactivate all dirac security devices of": ["UNLOCK"],
+  "deactivate all dirac security devices of the": ["UNLOCK"],
+  "deactivate all majorana security devices of": ["UNLOCK"],
+  "deactivate all majorana security devices of the": ["UNLOCK"],
+  "deactivate all weyl security devices of": ["UNLOCK"],
+  "deactivate all weyl security devices of the": ["UNLOCK"],
+  "bypass all fermi security devices on": ["UNLOCK"],
+  "bypass all fermi security devices on the": ["UNLOCK"],
+  "bypass all dirac security devices on": ["UNLOCK"],
+  "bypass all dirac security devices on the": ["UNLOCK"],
+  "bypass all majorana security devices on": ["UNLOCK"],
+  "bypass all majorana security devices on the": ["UNLOCK"],
+  "bypass all weyl security devices on": ["UNLOCK"],
+  "bypass all weyl security devices on the": ["UNLOCK"],
+  "disengage the primary fermi security device on": ["UNLOCK"],
+  "disengage the primary fermi security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full symphonic deployment of": ["USE"],
+  "harness the full symphonic deployment of the": ["USE"],
+  "bring into active symphonic deployment": ["USE"],
+  "bring into active symphonic deployment the": ["USE"],
+  "make complete symphonic deployment of": ["USE"],
+  "make complete symphonic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a relentless confrontation against": ["FIGHT"],
+  "initiate a relentless confrontation against the": ["FIGHT"],
+  "commence a relentless confrontation against": ["FIGHT"],
+  "commence a relentless confrontation against the": ["FIGHT"],
+  "engage in a relentless confrontation against": ["FIGHT"],
+  "engage in a relentless confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a sociological face to face discussion with": ["TALK"],
+  "initiate a sociological face to face discussion with the": ["TALK"],
+  "engage in a sociological face to face discussion with": ["TALK"],
+  "engage in a sociological face to face discussion with the": ["TALK"],
+  "strike up a sociological face to face discussion with": ["TALK"],
+  "strike up a sociological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -34420,6 +34515,84 @@ compoundVerbs.push(
   "engage in a philological face to face discussion with",
   "strike up a philological face to face discussion with the",
   "strike up a philological face to face discussion with"
+);
+
+// Cycle #196 / Task-F215: Phase 178 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of spermatogenesis towards the location of the",
+  "navigate one's vector of spermatogenesis towards the location of",
+  "navigate ones vector of spermatogenesis towards the location of the",
+  "navigate ones vector of spermatogenesis towards the location of",
+  "steer one's vector of spermatogenesis in the direction of the coordinates of the",
+  "steer one's vector of spermatogenesis in the direction of the coordinates of",
+  "steer ones vector of spermatogenesis in the direction of the coordinates of the",
+  "steer ones vector of spermatogenesis in the direction of the coordinates of",
+  "direct one's vector of spermatogenesis towards the coordinates of the location of the",
+  "direct one's vector of spermatogenesis towards the coordinates of the location of",
+  "direct ones vector of spermatogenesis towards the coordinates of the location of the",
+  "direct ones vector of spermatogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual detailing the",
+  "subject to a comprehensive visual detailing",
+  "subject to a thorough visual detailing the",
+  "subject to a thorough visual detailing",
+  "subject to a detailed visual detailing the",
+  "subject to a detailed visual detailing",
+  "assume direct exclusive shielding of the",
+  "assume direct exclusive shielding of",
+  "assume absolute exclusive shielding of the",
+  "assume absolute exclusive shielding of",
+  "assume immediate exclusive shielding of the",
+  "assume immediate exclusive shielding of",
+  "divest oneself of all exclusive shielding of the",
+  "divest oneself of all exclusive shielding of",
+  "relinquish all exclusive shielding of the",
+  "relinquish all exclusive shielding of",
+  "free oneself from all exclusive shielding of the",
+  "free oneself from all exclusive shielding of",
+  "force completely and piezoresistively wide open the",
+  "force completely and piezoresistively wide open",
+  "pry completely and piezoresistively wide open the",
+  "pry completely and piezoresistively wide open",
+  "fasten completely and piezoresistively closed the",
+  "fasten completely and piezoresistively closed",
+  "seal completely and piezoresistively shut the",
+  "seal completely and piezoresistively shut",
+  "deactivate all fermi security devices of the",
+  "deactivate all fermi security devices of",
+  "deactivate all dirac security devices of the",
+  "deactivate all dirac security devices of",
+  "deactivate all majorana security devices of the",
+  "deactivate all majorana security devices of",
+  "deactivate all weyl security devices of the",
+  "deactivate all weyl security devices of",
+  "bypass all fermi security devices on the",
+  "bypass all fermi security devices on",
+  "bypass all dirac security devices on the",
+  "bypass all dirac security devices on",
+  "bypass all majorana security devices on the",
+  "bypass all majorana security devices on",
+  "bypass all weyl security devices on the",
+  "bypass all weyl security devices on",
+  "disengage the primary fermi security device on the",
+  "disengage the primary fermi security device on",
+  "harness the full symphonic deployment of the",
+  "harness the full symphonic deployment of",
+  "bring into active symphonic deployment the",
+  "bring into active symphonic deployment",
+  "make complete symphonic deployment of the",
+  "make complete symphonic deployment of",
+  "initiate a relentless confrontation against the",
+  "initiate a relentless confrontation against",
+  "commence a relentless confrontation against the",
+  "commence a relentless confrontation against",
+  "engage in a relentless confrontation against the",
+  "engage in a relentless confrontation against",
+  "initiate a sociological face to face discussion with the",
+  "initiate a sociological face to face discussion with",
+  "engage in a sociological face to face discussion with the",
+  "engage in a sociological face to face discussion with",
+  "strike up a sociological face to face discussion with the",
+  "strike up a sociological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
