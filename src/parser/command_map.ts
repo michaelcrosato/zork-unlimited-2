@@ -20899,6 +20899,90 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an enriching face to face discussion with the": ["TALK"]
 });
 
+// Cycle #110 / Task-F132: Phase 95 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of resonance towards the location of": ["MOVE"],
+  "navigate one's vector of resonance towards the location of the": ["MOVE"],
+  "navigate ones vector of resonance towards the location of": ["MOVE"],
+  "navigate ones vector of resonance towards the location of the": ["MOVE"],
+  "steer one's vector of resonance in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of resonance in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of resonance in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of resonance in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of resonance towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of resonance towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of resonance towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of resonance towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual substantiation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual substantiation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual substantiation": ["LOOK_INSPECT"],
+  "subject to a thorough visual substantiation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual substantiation": ["LOOK_INSPECT"],
+  "subject to a detailed visual substantiation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive annexation of": ["TAKE"],
+  "assume direct exclusive annexation of the": ["TAKE"],
+  "assume absolute exclusive annexation of": ["TAKE"],
+  "assume absolute exclusive annexation of the": ["TAKE"],
+  "assume immediate exclusive annexation of": ["TAKE"],
+  "assume immediate exclusive annexation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive annexation of": ["DROP"],
+  "divest oneself of all exclusive annexation of the": ["DROP"],
+  "relinquish all exclusive annexation of": ["DROP"],
+  "relinquish all exclusive annexation of the": ["DROP"],
+  "free oneself from all exclusive annexation of": ["DROP"],
+  "free oneself from all exclusive annexation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and superfluidically wide open": ["OPEN"],
+  "force completely and superfluidically wide open the": ["OPEN"],
+  "pry completely and superfluidically wide open": ["OPEN"],
+  "pry completely and superfluidically wide open the": ["OPEN"],
+  "fasten completely and superfluidically closed": ["CLOSE"],
+  "fasten completely and superfluidically closed the": ["CLOSE"],
+  "seal completely and superfluidically shut": ["CLOSE"],
+  "seal completely and superfluidically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all nucleonic security devices of": ["UNLOCK"],
+  "deactivate all nucleonic security devices of the": ["UNLOCK"],
+  "bypass all nucleonic security devices on": ["UNLOCK"],
+  "bypass all nucleonic security devices on the": ["UNLOCK"],
+  "disengage the primary nucleonic security device on": ["UNLOCK"],
+  "disengage the primary nucleonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full exceptional deployment of": ["USE"],
+  "harness the full exceptional deployment of the": ["USE"],
+  "bring into active exceptional deployment": ["USE"],
+  "bring into active exceptional deployment the": ["USE"],
+  "make complete exceptional deployment of": ["USE"],
+  "make complete exceptional deployment of the": ["USE"],
+
+  // Combat
+  "initiate a malevolent confrontation against": ["FIGHT"],
+  "initiate a malevolent confrontation against the": ["FIGHT"],
+  "commence a malevolent confrontation against": ["FIGHT"],
+  "commence a malevolent confrontation against the": ["FIGHT"],
+  "engage in a malevolent confrontation against": ["FIGHT"],
+  "engage in a malevolent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an instructive face to face discussion with": ["TALK"],
+  "initiate an instructive face to face discussion with the": ["TALK"],
+  "engage in an instructive face to face discussion with": ["TALK"],
+  "engage in an instructive face to face discussion with the": ["TALK"],
+  "strike up an instructive face to face discussion with": ["TALK"],
+  "strike up an instructive face to face discussion with the": ["TALK"]
+});
+
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -21624,6 +21708,72 @@ compoundVerbs.push(
   "engage in an enriching face to face discussion with",
   "strike up an enriching face to face discussion with the",
   "strike up an enriching face to face discussion with"
+);
+
+// Cycle #110 / Task-F132: Phase 95 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of resonance towards the location of the",
+  "navigate one's vector of resonance towards the location of",
+  "navigate ones vector of resonance towards the location of the",
+  "navigate ones vector of resonance towards the location of",
+  "steer one's vector of resonance in the direction of the coordinates of the",
+  "steer one's vector of resonance in the direction of the coordinates of",
+  "steer ones vector of resonance in the direction of the coordinates of the",
+  "steer ones vector of resonance in the direction of the coordinates of",
+  "direct one's vector of resonance towards the coordinates of the location of the",
+  "direct one's vector of resonance towards the coordinates of the location of",
+  "direct ones vector of resonance towards the coordinates of the location of the",
+  "direct ones vector of resonance towards the coordinates of the location of",
+  "subject to a comprehensive visual substantiation the",
+  "subject to a comprehensive visual substantiation",
+  "subject to a thorough visual substantiation the",
+  "subject to a thorough visual substantiation",
+  "subject to a detailed visual substantiation the",
+  "subject to a detailed visual substantiation",
+  "assume direct exclusive annexation of the",
+  "assume direct exclusive annexation of",
+  "assume absolute exclusive annexation of the",
+  "assume absolute exclusive annexation of",
+  "assume immediate exclusive annexation of the",
+  "assume immediate exclusive annexation of",
+  "divest oneself of all exclusive annexation of the",
+  "divest oneself of all exclusive annexation of",
+  "relinquish all exclusive annexation of the",
+  "relinquish all exclusive annexation of",
+  "free oneself from all exclusive annexation of the",
+  "free oneself from all exclusive annexation of",
+  "force completely and superfluidically wide open the",
+  "force completely and superfluidically wide open",
+  "pry completely and superfluidically wide open the",
+  "pry completely and superfluidically wide open",
+  "fasten completely and superfluidically closed the",
+  "fasten completely and superfluidically closed",
+  "seal completely and superfluidically shut the",
+  "seal completely and superfluidically shut",
+  "deactivate all nucleonic security devices of the",
+  "deactivate all nucleonic security devices of",
+  "bypass all nucleonic security devices on the",
+  "bypass all nucleonic security devices on",
+  "disengage the primary nucleonic security device on the",
+  "disengage the primary nucleonic security device on",
+  "harness the full exceptional deployment of the",
+  "harness the full exceptional deployment of",
+  "bring into active exceptional deployment the",
+  "bring into active exceptional deployment",
+  "make complete exceptional deployment of the",
+  "make complete exceptional deployment of",
+  "initiate a malevolent confrontation against the",
+  "initiate a malevolent confrontation against",
+  "commence a malevolent confrontation against the",
+  "commence a malevolent confrontation against",
+  "engage in a malevolent confrontation against the",
+  "engage in a malevolent confrontation against",
+  "initiate an instructive face to face discussion with the",
+  "initiate an instructive face to face discussion with",
+  "engage in an instructive face to face discussion with the",
+  "engage in an instructive face to face discussion with",
+  "strike up an instructive face to face discussion with the",
+  "strike up an instructive face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
