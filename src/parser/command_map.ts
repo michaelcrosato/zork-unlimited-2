@@ -25782,6 +25782,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an objective face to face discussion with the": ["TALK"]
 });
 
+// Cycle #172 / Task-F192: Phase 155 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of parthenogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of parthenogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of parthenogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of parthenogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of parthenogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of parthenogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of parthenogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of parthenogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of parthenogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of parthenogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of parthenogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of parthenogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual mapping": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual mapping the": ["LOOK_INSPECT"],
+  "subject to a thorough visual mapping": ["LOOK_INSPECT"],
+  "subject to a thorough visual mapping the": ["LOOK_INSPECT"],
+  "subject to a detailed visual mapping": ["LOOK_INSPECT"],
+  "subject to a detailed visual mapping the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive preservation of": ["TAKE"],
+  "assume direct exclusive preservation of the": ["TAKE"],
+  "assume absolute exclusive preservation of": ["TAKE"],
+  "assume absolute exclusive preservation of the": ["TAKE"],
+  "assume immediate exclusive preservation of": ["TAKE"],
+  "assume immediate exclusive preservation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive preservation of": ["DROP"],
+  "divest oneself of all exclusive preservation of the": ["DROP"],
+  "relinquish all exclusive preservation of": ["DROP"],
+  "relinquish all exclusive preservation of the": ["DROP"],
+  "free oneself from all exclusive preservation of": ["DROP"],
+  "free oneself from all exclusive preservation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and bioelastically wide open": ["OPEN"],
+  "force completely and bioelastically wide open the": ["OPEN"],
+  "pry completely and bioelastically wide open": ["OPEN"],
+  "pry completely and bioelastically wide open the": ["OPEN"],
+  "fasten completely and bioelastically closed": ["CLOSE"],
+  "fasten completely and bioelastically closed the": ["CLOSE"],
+  "seal completely and bioelastically shut": ["CLOSE"],
+  "seal completely and bioelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all higgs security devices of": ["UNLOCK"],
+  "deactivate all higgs security devices of the": ["UNLOCK"],
+  "bypass all higgs security devices on": ["UNLOCK"],
+  "bypass all higgs security devices on the": ["UNLOCK"],
+  "disengage the primary higgs security device on": ["UNLOCK"],
+  "disengage the primary higgs security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full structured deployment of": ["USE"],
+  "harness the full structured deployment of the": ["USE"],
+  "bring into active structured deployment": ["USE"],
+  "bring into active structured deployment the": ["USE"],
+  "make complete structured deployment of": ["USE"],
+  "make complete structured deployment of the": ["USE"],
+
+  // Combat
+  "initiate a critical confrontation against": ["FIGHT"],
+  "initiate a critical confrontation against the": ["FIGHT"],
+  "commence a critical confrontation against": ["FIGHT"],
+  "commence a critical confrontation against the": ["FIGHT"],
+  "engage in a critical confrontation against": ["FIGHT"],
+  "engage in a critical confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a transparent face to face discussion with": ["TALK"],
+  "initiate a transparent face to face discussion with the": ["TALK"],
+  "engage in a transparent face to face discussion with": ["TALK"],
+  "engage in a transparent face to face discussion with the": ["TALK"],
+  "strike up a transparent face to face discussion with": ["TALK"],
+  "strike up a transparent face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -30464,6 +30547,72 @@ compoundVerbs.push(
   "engage in an objective face to face discussion with",
   "strike up an objective face to face discussion with the",
   "strike up an objective face to face discussion with"
+);
+
+// Cycle #172 / Task-F192: Phase 155 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of parthenogenesis towards the location of the",
+  "navigate one's vector of parthenogenesis towards the location of",
+  "navigate ones vector of parthenogenesis towards the location of the",
+  "navigate ones vector of parthenogenesis towards the location of",
+  "steer one's vector of parthenogenesis in the direction of the coordinates of the",
+  "steer one's vector of parthenogenesis in the direction of the coordinates of",
+  "steer ones vector of parthenogenesis in the direction of the coordinates of the",
+  "steer ones vector of parthenogenesis in the direction of the coordinates of",
+  "direct one's vector of parthenogenesis towards the coordinates of the location of the",
+  "direct one's vector of parthenogenesis towards the coordinates of the location of",
+  "direct ones vector of parthenogenesis towards the coordinates of the location of the",
+  "direct ones vector of parthenogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual mapping the",
+  "subject to a comprehensive visual mapping",
+  "subject to a thorough visual mapping the",
+  "subject to a thorough visual mapping",
+  "subject to a detailed visual mapping the",
+  "subject to a detailed visual mapping",
+  "assume direct exclusive preservation of the",
+  "assume direct exclusive preservation of",
+  "assume absolute exclusive preservation of the",
+  "assume absolute exclusive preservation of",
+  "assume immediate exclusive preservation of the",
+  "assume immediate exclusive preservation of",
+  "divest oneself of all exclusive preservation of the",
+  "divest oneself of all exclusive preservation of",
+  "relinquish all exclusive preservation of the",
+  "relinquish all exclusive preservation of",
+  "free oneself from all exclusive preservation of the",
+  "free oneself from all exclusive preservation of",
+  "force completely and bioelastically wide open the",
+  "force completely and bioelastically wide open",
+  "pry completely and bioelastically wide open the",
+  "pry completely and bioelastically wide open",
+  "fasten completely and bioelastically closed the",
+  "fasten completely and bioelastically closed",
+  "seal completely and bioelastically shut the",
+  "seal completely and bioelastically shut",
+  "deactivate all higgs security devices of the",
+  "deactivate all higgs security devices of",
+  "bypass all higgs security devices on the",
+  "bypass all higgs security devices on",
+  "disengage the primary higgs security device on the",
+  "disengage the primary higgs security device on",
+  "harness the full structured deployment of the",
+  "harness the full structured deployment of",
+  "bring into active structured deployment the",
+  "bring into active structured deployment",
+  "make complete structured deployment of the",
+  "make complete structured deployment of",
+  "initiate a critical confrontation against the",
+  "initiate a critical confrontation against",
+  "commence a critical confrontation against the",
+  "commence a critical confrontation against",
+  "engage in a critical confrontation against the",
+  "engage in a critical confrontation against",
+  "initiate a transparent face to face discussion with the",
+  "initiate a transparent face to face discussion with",
+  "engage in a transparent face to face discussion with the",
+  "engage in a transparent face to face discussion with",
+  "strike up a transparent face to face discussion with the",
+  "strike up a transparent face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
