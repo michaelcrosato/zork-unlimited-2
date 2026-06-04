@@ -29283,6 +29283,102 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an entomological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #211 / Task-F230: Phase 192 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of synaptogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of synaptogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of synaptogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of synaptogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of synaptogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of synaptogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of synaptogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of synaptogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of synaptogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of synaptogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of synaptogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of synaptogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual synchronization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual synchronization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual synchronization": ["LOOK_INSPECT"],
+  "subject to a thorough visual synchronization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual synchronization": ["LOOK_INSPECT"],
+  "subject to a detailed visual synchronization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive tethering of": ["TAKE"],
+  "assume direct exclusive tethering of the": ["TAKE"],
+  "assume absolute exclusive tethering of": ["TAKE"],
+  "assume absolute exclusive tethering of the": ["TAKE"],
+  "assume immediate exclusive tethering of": ["TAKE"],
+  "assume immediate exclusive tethering of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive tethering of": ["DROP"],
+  "divest oneself of all exclusive tethering of the": ["DROP"],
+  "relinquish all exclusive tethering of": ["DROP"],
+  "relinquish all exclusive tethering of the": ["DROP"],
+  "free oneself from all exclusive tethering of": ["DROP"],
+  "free oneself from all exclusive tethering of the": ["DROP"],
+
+  // Open/Close
+  "force completely and superplastically wide open": ["OPEN"],
+  "force completely and superplastically wide open the": ["OPEN"],
+  "pry completely and superplastically wide open": ["OPEN"],
+  "pry completely and superplastically wide open the": ["OPEN"],
+  "fasten completely and superplastically closed": ["CLOSE"],
+  "fasten completely and superplastically closed the": ["CLOSE"],
+  "seal completely and superplastically shut": ["CLOSE"],
+  "seal completely and superplastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all watt security devices of": ["UNLOCK"],
+  "deactivate all watt security devices of the": ["UNLOCK"],
+  "deactivate all joule security devices of": ["UNLOCK"],
+  "deactivate all joule security devices of the": ["UNLOCK"],
+  "deactivate all kelvin security devices of": ["UNLOCK"],
+  "deactivate all kelvin security devices of the": ["UNLOCK"],
+  "deactivate all rankine security devices of": ["UNLOCK"],
+  "deactivate all rankine security devices of the": ["UNLOCK"],
+  "bypass all watt security devices on": ["UNLOCK"],
+  "bypass all watt security devices on the": ["UNLOCK"],
+  "bypass all joule security devices on": ["UNLOCK"],
+  "bypass all joule security devices on the": ["UNLOCK"],
+  "bypass all kelvin security devices on": ["UNLOCK"],
+  "bypass all kelvin security devices on the": ["UNLOCK"],
+  "bypass all rankine security devices on": ["UNLOCK"],
+  "bypass all rankine security devices on the": ["UNLOCK"],
+  "disengage the primary watt security device on": ["UNLOCK"],
+  "disengage the primary watt security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full phototropic deployment of": ["USE"],
+  "harness the full phototropic deployment of the": ["USE"],
+  "bring into active phototropic deployment": ["USE"],
+  "bring into active phototropic deployment the": ["USE"],
+  "make complete phototropic deployment of": ["USE"],
+  "make complete phototropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a ferociously bellicose confrontation against": ["FIGHT"],
+  "initiate a ferociously bellicose confrontation against the": ["FIGHT"],
+  "commence a ferociously bellicose confrontation against": ["FIGHT"],
+  "commence a ferociously bellicose confrontation against the": ["FIGHT"],
+  "engage in a ferociously bellicose confrontation against": ["FIGHT"],
+  "engage in a ferociously bellicose confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a mycological face to face discussion with": ["TALK"],
+  "initiate a mycological face to face discussion with the": ["TALK"],
+  "engage in a mycological face to face discussion with": ["TALK"],
+  "engage in a mycological face to face discussion with the": ["TALK"],
+  "strike up a mycological face to face discussion with": ["TALK"],
+  "strike up a mycological face to face discussion with the": ["TALK"]
+});
+
+
 
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -36841,6 +36937,84 @@ compoundVerbs.push(
   "engage in an entomological face to face discussion with",
   "strike up an entomological face to face discussion with the",
   "strike up an entomological face to face discussion with"
+);
+
+// Cycle #211 / Task-F230: Phase 192 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of synaptogenesis towards the location of the",
+  "navigate one's vector of synaptogenesis towards the location of",
+  "navigate ones vector of synaptogenesis towards the location of the",
+  "navigate ones vector of synaptogenesis towards the location of",
+  "steer one's vector of synaptogenesis in the direction of the coordinates of the",
+  "steer one's vector of synaptogenesis in the direction of the coordinates of",
+  "steer ones vector of synaptogenesis in the direction of the coordinates of the",
+  "steer ones vector of synaptogenesis in the direction of the coordinates of",
+  "direct one's vector of synaptogenesis towards the coordinates of the location of the",
+  "direct one's vector of synaptogenesis towards the coordinates of the location of",
+  "direct ones vector of synaptogenesis towards the coordinates of the location of the",
+  "direct ones vector of synaptogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual synchronization the",
+  "subject to a comprehensive visual synchronization",
+  "subject to a thorough visual synchronization the",
+  "subject to a thorough visual synchronization",
+  "subject to a detailed visual synchronization the",
+  "subject to a detailed visual synchronization",
+  "assume direct exclusive tethering of the",
+  "assume direct exclusive tethering of",
+  "assume absolute exclusive tethering of the",
+  "assume absolute exclusive tethering of",
+  "assume immediate exclusive tethering of the",
+  "assume immediate exclusive tethering of",
+  "divest oneself of all exclusive tethering of the",
+  "divest oneself of all exclusive tethering of",
+  "relinquish all exclusive tethering of the",
+  "relinquish all exclusive tethering of",
+  "free oneself from all exclusive tethering of the",
+  "free oneself from all exclusive tethering of",
+  "force completely and superplastically wide open the",
+  "force completely and superplastically wide open",
+  "pry completely and superplastically wide open the",
+  "pry completely and superplastically wide open",
+  "fasten completely and superplastically closed the",
+  "fasten completely and superplastically closed",
+  "seal completely and superplastically shut the",
+  "seal completely and superplastically shut",
+  "deactivate all watt security devices of the",
+  "deactivate all watt security devices of",
+  "deactivate all joule security devices of the",
+  "deactivate all joule security devices of",
+  "deactivate all kelvin security devices of the",
+  "deactivate all kelvin security devices of",
+  "deactivate all rankine security devices of the",
+  "deactivate all rankine security devices of",
+  "bypass all watt security devices on the",
+  "bypass all watt security devices on",
+  "bypass all joule security devices on the",
+  "bypass all joule security devices on",
+  "bypass all kelvin security devices on the",
+  "bypass all kelvin security devices on",
+  "bypass all rankine security devices on the",
+  "bypass all rankine security devices on",
+  "disengage the primary watt security device on the",
+  "disengage the primary watt security device on",
+  "harness the full phototropic deployment of the",
+  "harness the full phototropic deployment of",
+  "bring into active phototropic deployment the",
+  "bring into active phototropic deployment",
+  "make complete phototropic deployment of the",
+  "make complete phototropic deployment of",
+  "initiate a ferociously bellicose confrontation against the",
+  "initiate a ferociously bellicose confrontation against",
+  "commence a ferociously bellicose confrontation against the",
+  "commence a ferociously bellicose confrontation against",
+  "engage in a ferociously bellicose confrontation against the",
+  "engage in a ferociously bellicose confrontation against",
+  "initiate a mycological face to face discussion with the",
+  "initiate a mycological face to face discussion with",
+  "engage in a mycological face to face discussion with the",
+  "engage in a mycological face to face discussion with",
+  "strike up a mycological face to face discussion with the",
+  "strike up a mycological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
