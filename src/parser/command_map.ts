@@ -22142,6 +22142,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a searching face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #126 / Task-F147: Phase 110
+  // Movement
+  "navigate one's vector of deposition towards the location of": ["MOVE"],
+  "navigate one's vector of deposition towards the location of the": ["MOVE"],
+  "navigate ones vector of deposition towards the location of": ["MOVE"],
+  "navigate ones vector of deposition towards the location of the": ["MOVE"],
+  "steer one's vector of deposition in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of deposition in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of deposition in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of deposition in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of deposition towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of deposition towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of deposition towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of deposition towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual discrimination": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual discrimination the": ["LOOK_INSPECT"],
+  "subject to a thorough visual discrimination": ["LOOK_INSPECT"],
+  "subject to a thorough visual discrimination the": ["LOOK_INSPECT"],
+  "subject to a detailed visual discrimination": ["LOOK_INSPECT"],
+  "subject to a detailed visual discrimination the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive license of": ["TAKE"],
+  "assume direct exclusive license of the": ["TAKE"],
+  "assume absolute exclusive license of": ["TAKE"],
+  "assume absolute exclusive license of the": ["TAKE"],
+  "assume immediate exclusive license of": ["TAKE"],
+  "assume immediate exclusive license of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive license of": ["DROP"],
+  "divest oneself of all exclusive license of the": ["DROP"],
+  "relinquish all exclusive license of": ["DROP"],
+  "relinquish all exclusive license of the": ["DROP"],
+  "free oneself from all exclusive license of": ["DROP"],
+  "free oneself from all exclusive license of the": ["DROP"],
+
+  // Open/Close
+  "force completely and thixotropically wide open": ["OPEN"],
+  "force completely and thixotropically wide open the": ["OPEN"],
+  "pry completely and thixotropically wide open": ["OPEN"],
+  "pry completely and thixotropically wide open the": ["OPEN"],
+  "fasten completely and thixotropically closed": ["CLOSE"],
+  "fasten completely and thixotropically closed the": ["CLOSE"],
+  "seal completely and thixotropically shut": ["CLOSE"],
+  "seal completely and thixotropically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all baryonic security devices of": ["UNLOCK"],
+  "deactivate all baryonic security devices of the": ["UNLOCK"],
+  "bypass all baryonic security devices on": ["UNLOCK"],
+  "bypass all baryonic security devices on the": ["UNLOCK"],
+  "disengage the primary baryonic security device on": ["UNLOCK"],
+  "disengage the primary baryonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full indomitable deployment of": ["USE"],
+  "harness the full indomitable deployment of the": ["USE"],
+  "bring into active indomitable deployment": ["USE"],
+  "bring into active indomitable deployment the": ["USE"],
+  "make complete indomitable deployment of": ["USE"],
+  "make complete indomitable deployment of the": ["USE"],
+
+  // Combat
+  "initiate an acrimonious confrontation against": ["FIGHT"],
+  "initiate an acrimonious confrontation against the": ["FIGHT"],
+  "commence an acrimonious confrontation against": ["FIGHT"],
+  "commence an acrimonious confrontation against the": ["FIGHT"],
+  "engage in an acrimonious confrontation against": ["FIGHT"],
+  "engage in an acrimonious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a probing face to face discussion with": ["TALK"],
+  "initiate a probing face to face discussion with the": ["TALK"],
+  "engage in a probing face to face discussion with": ["TALK"],
+  "engage in a probing face to face discussion with the": ["TALK"],
+  "strike up a probing face to face discussion with": ["TALK"],
+  "strike up a probing face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -23859,6 +23942,72 @@ compoundVerbs.push(
   "engage in a searching face to face discussion with",
   "strike up a searching face to face discussion with the",
   "strike up a searching face to face discussion with"
+);
+
+// Cycle #126 / Task-F147: Phase 110 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of deposition towards the location of the",
+  "navigate one's vector of deposition towards the location of",
+  "navigate ones vector of deposition towards the location of the",
+  "navigate ones vector of deposition towards the location of",
+  "steer one's vector of deposition in the direction of the coordinates of the",
+  "steer one's vector of deposition in the direction of the coordinates of",
+  "steer ones vector of deposition in the direction of the coordinates of the",
+  "steer ones vector of deposition in the direction of the coordinates of",
+  "direct one's vector of deposition towards the coordinates of the location of the",
+  "direct one's vector of deposition towards the coordinates of the location of",
+  "direct ones vector of deposition towards the coordinates of the location of the",
+  "direct ones vector of deposition towards the coordinates of the location of",
+  "subject to a comprehensive visual discrimination the",
+  "subject to a comprehensive visual discrimination",
+  "subject to a thorough visual discrimination the",
+  "subject to a thorough visual discrimination",
+  "subject to a detailed visual discrimination the",
+  "subject to a detailed visual discrimination",
+  "assume direct exclusive license of the",
+  "assume direct exclusive license of",
+  "assume absolute exclusive license of the",
+  "assume absolute exclusive license of",
+  "assume immediate exclusive license of the",
+  "assume immediate exclusive license of",
+  "divest oneself of all exclusive license of the",
+  "divest oneself of all exclusive license of",
+  "relinquish all exclusive license of the",
+  "relinquish all exclusive license of",
+  "free oneself from all exclusive license of the",
+  "free oneself from all exclusive license of",
+  "force completely and thixotropically wide open the",
+  "force completely and thixotropically wide open",
+  "pry completely and thixotropically wide open the",
+  "pry completely and thixotropically wide open",
+  "fasten completely and thixotropically closed the",
+  "fasten completely and thixotropically closed",
+  "seal completely and thixotropically shut the",
+  "seal completely and thixotropically shut",
+  "deactivate all baryonic security devices of the",
+  "deactivate all baryonic security devices of",
+  "bypass all baryonic security devices on the",
+  "bypass all baryonic security devices on",
+  "disengage the primary baryonic security device on the",
+  "disengage the primary baryonic security device on",
+  "harness the full indomitable deployment of the",
+  "harness the full indomitable deployment of",
+  "bring into active indomitable deployment the",
+  "bring into active indomitable deployment",
+  "make complete indomitable deployment of the",
+  "make complete indomitable deployment of",
+  "initiate an acrimonious confrontation against the",
+  "initiate an acrimonious confrontation against",
+  "commence an acrimonious confrontation against the",
+  "commence an acrimonious confrontation against",
+  "engage in an acrimonious confrontation against the",
+  "engage in an acrimonious confrontation against",
+  "initiate a probing face to face discussion with the",
+  "initiate a probing face to face discussion with",
+  "engage in a probing face to face discussion with the",
+  "engage in a probing face to face discussion with",
+  "strike up a probing face to face discussion with the",
+  "strike up a probing face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
