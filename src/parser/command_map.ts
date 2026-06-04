@@ -29663,6 +29663,107 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a herpetological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #215 / Task-F234: Phase 196 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of gliogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of gliogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of gliogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of gliogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of gliogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of gliogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of gliogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of gliogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of gliogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of gliogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of gliogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of gliogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual breakdown": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual breakdown the": ["LOOK_INSPECT"],
+  "subject to a thorough visual breakdown": ["LOOK_INSPECT"],
+  "subject to a thorough visual breakdown the": ["LOOK_INSPECT"],
+  "subject to a detailed visual breakdown": ["LOOK_INSPECT"],
+  "subject to a detailed visual breakdown the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive positioning of": ["TAKE"],
+  "assume direct exclusive positioning of the": ["TAKE"],
+  "assume absolute exclusive positioning of": ["TAKE"],
+  "assume absolute exclusive positioning of the": ["TAKE"],
+  "assume immediate exclusive positioning of": ["TAKE"],
+  "assume immediate exclusive positioning of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive positioning of": ["DROP"],
+  "divest oneself of all exclusive positioning of the": ["DROP"],
+  "relinquish all exclusive positioning of": ["DROP"],
+  "relinquish all exclusive positioning of the": ["DROP"],
+  "free oneself from all exclusive positioning of": ["DROP"],
+  "free oneself from all exclusive positioning of the": ["DROP"],
+
+  // Open/Close
+  "force completely and tribomechanically wide open": ["OPEN"],
+  "force completely and tribomechanically wide open the": ["OPEN"],
+  "pry completely and tribomechanically wide open": ["OPEN"],
+  "pry completely and tribomechanically wide open the": ["OPEN"],
+  "fasten completely and tribomechanically closed": ["CLOSE"],
+  "fasten completely and tribomechanically closed the": ["CLOSE"],
+  "seal completely and tribomechanically shut": ["CLOSE"],
+  "seal completely and tribomechanically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all babbage security devices of": ["UNLOCK"],
+  "deactivate all babbage security devices of the": ["UNLOCK"],
+  "deactivate all boole security devices of": ["UNLOCK"],
+  "deactivate all boole security devices of the": ["UNLOCK"],
+  "deactivate all hollerith security devices of": ["UNLOCK"],
+  "deactivate all hollerith security devices of the": ["UNLOCK"],
+  "deactivate all jacquard security devices of": ["UNLOCK"],
+  "deactivate all jacquard security devices of the": ["UNLOCK"],
+  "bypass all babbage security devices on": ["UNLOCK"],
+  "bypass all babbage security devices on the": ["UNLOCK"],
+  "bypass all boole security devices on": ["UNLOCK"],
+  "bypass all boole security devices on the": ["UNLOCK"],
+  "bypass all hollerith security devices on": ["UNLOCK"],
+  "bypass all hollerith security devices on the": ["UNLOCK"],
+  "bypass all jacquard security devices on": ["UNLOCK"],
+  "bypass all jacquard security devices on the": ["UNLOCK"],
+  "disengage the primary babbage security device on": ["UNLOCK"],
+  "disengage the primary babbage security device on the": ["UNLOCK"],
+  "disengage the primary boole security device on": ["UNLOCK"],
+  "disengage the primary boole security device on the": ["UNLOCK"],
+  "disengage the primary hollerith security device on": ["UNLOCK"],
+  "disengage the primary hollerith security device on the": ["UNLOCK"],
+  "disengage the primary jacquard security device on": ["UNLOCK"],
+  "disengage the primary jacquard security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full electrotropic deployment of": ["USE"],
+  "harness the full electrotropic deployment of the": ["USE"],
+  "bring into active electrotropic deployment": ["USE"],
+  "bring into active electrotropic deployment the": ["USE"],
+  "make complete electrotropic deployment of": ["USE"],
+  "make complete electrotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an uncompromisingly aggressive confrontation against": ["FIGHT"],
+  "initiate an uncompromisingly aggressive confrontation against the": ["FIGHT"],
+  "commence an uncompromisingly aggressive confrontation against": ["FIGHT"],
+  "commence an uncompromisingly aggressive confrontation against the": ["FIGHT"],
+  "engage in an uncompromisingly aggressive confrontation against": ["FIGHT"],
+  "engage in an uncompromisingly aggressive confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a toxicological face to face discussion with": ["TALK"],
+  "initiate a toxicological face to face discussion with the": ["TALK"],
+  "engage in a toxicological face to face discussion with": ["TALK"],
+  "engage in a toxicological face to face discussion with the": ["TALK"],
+  "strike up a toxicological face to face discussion with": ["TALK"],
+  "strike up a toxicological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -37534,6 +37635,90 @@ compoundVerbs.push(
   "engage in a herpetological face to face discussion with",
   "strike up a herpetological face to face discussion with the",
   "strike up a herpetological face to face discussion with"
+);
+
+// Cycle #215 / Task-F234: Phase 196 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of gliogenesis towards the location of the",
+  "navigate one's vector of gliogenesis towards the location of",
+  "navigate ones vector of gliogenesis towards the location of the",
+  "navigate ones vector of gliogenesis towards the location of",
+  "steer one's vector of gliogenesis in the direction of the coordinates of the",
+  "steer one's vector of gliogenesis in the direction of the coordinates of",
+  "steer ones vector of gliogenesis in the direction of the coordinates of the",
+  "steer ones vector of gliogenesis in the direction of the coordinates of",
+  "direct one's vector of gliogenesis towards the coordinates of the location of the",
+  "direct one's vector of gliogenesis towards the coordinates of the location of",
+  "direct ones vector of gliogenesis towards the coordinates of the location of the",
+  "direct ones vector of gliogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual breakdown the",
+  "subject to a comprehensive visual breakdown",
+  "subject to a thorough visual breakdown the",
+  "subject to a thorough visual breakdown",
+  "subject to a detailed visual breakdown the",
+  "subject to a detailed visual breakdown",
+  "assume direct exclusive positioning of the",
+  "assume direct exclusive positioning of",
+  "assume absolute exclusive positioning of the",
+  "assume absolute exclusive positioning of",
+  "assume immediate exclusive positioning of the",
+  "assume immediate exclusive positioning of",
+  "divest oneself of all exclusive positioning of the",
+  "divest oneself of all exclusive positioning of",
+  "relinquish all exclusive positioning of the",
+  "relinquish all exclusive positioning of",
+  "free oneself from all exclusive positioning of the",
+  "free oneself from all exclusive positioning of",
+  "force completely and tribomechanically wide open the",
+  "force completely and tribomechanically wide open",
+  "pry completely and tribomechanically wide open the",
+  "pry completely and tribomechanically wide open",
+  "fasten completely and tribomechanically closed the",
+  "fasten completely and tribomechanically closed",
+  "seal completely and tribomechanically shut the",
+  "seal completely and tribomechanically shut",
+  "deactivate all babbage security devices of the",
+  "deactivate all babbage security devices of",
+  "deactivate all boole security devices of the",
+  "deactivate all boole security devices of",
+  "deactivate all hollerith security devices of the",
+  "deactivate all hollerith security devices of",
+  "deactivate all jacquard security devices of the",
+  "deactivate all jacquard security devices of",
+  "bypass all babbage security devices on the",
+  "bypass all babbage security devices on",
+  "bypass all boole security devices on the",
+  "bypass all boole security devices on",
+  "bypass all hollerith security devices on the",
+  "bypass all hollerith security devices on",
+  "bypass all jacquard security devices on the",
+  "bypass all jacquard security devices on",
+  "disengage the primary babbage security device on the",
+  "disengage the primary babbage security device on",
+  "disengage the primary boole security device on the",
+  "disengage the primary boole security device on",
+  "disengage the primary hollerith security device on the",
+  "disengage the primary hollerith security device on",
+  "disengage the primary jacquard security device on the",
+  "disengage the primary jacquard security device on",
+  "harness the full electrotropic deployment of the",
+  "harness the full electrotropic deployment of",
+  "bring into active electrotropic deployment the",
+  "bring into active electrotropic deployment",
+  "make complete electrotropic deployment of the",
+  "make complete electrotropic deployment of",
+  "initiate an uncompromisingly aggressive confrontation against the",
+  "initiate an uncompromisingly aggressive confrontation against",
+  "commence an uncompromisingly aggressive confrontation against the",
+  "commence an uncompromisingly aggressive confrontation against",
+  "engage in an uncompromisingly aggressive confrontation against the",
+  "engage in an uncompromisingly aggressive confrontation against",
+  "initiate a toxicological face to face discussion with the",
+  "initiate a toxicological face to face discussion with",
+  "engage in a toxicological face to face discussion with the",
+  "engage in a toxicological face to face discussion with",
+  "strike up a toxicological face to face discussion with the",
+  "strike up a toxicological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
