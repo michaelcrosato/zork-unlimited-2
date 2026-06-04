@@ -26625,6 +26625,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an anthropological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #181 / Task-F201: Phase 164 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of blastogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of blastogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of blastogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of blastogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of blastogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of blastogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of blastogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of blastogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of blastogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of blastogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of blastogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of blastogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual tabulation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual tabulation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual tabulation": ["LOOK_INSPECT"],
+  "subject to a thorough visual tabulation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual tabulation": ["LOOK_INSPECT"],
+  "subject to a detailed visual tabulation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive grasping of": ["TAKE"],
+  "assume direct exclusive grasping of the": ["TAKE"],
+  "assume absolute exclusive grasping of": ["TAKE"],
+  "assume absolute exclusive grasping of the": ["TAKE"],
+  "assume immediate exclusive grasping of": ["TAKE"],
+  "assume immediate exclusive grasping of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive grasping of": ["DROP"],
+  "divest oneself of all exclusive grasping of the": ["DROP"],
+  "relinquish all exclusive grasping of": ["DROP"],
+  "relinquish all exclusive grasping of the": ["DROP"],
+  "free oneself from all exclusive grasping of": ["DROP"],
+  "free oneself from all exclusive grasping of the": ["DROP"],
+
+  // Open/Close
+  "force completely and baroelastically wide open": ["OPEN"],
+  "force completely and baroelastically wide open the": ["OPEN"],
+  "pry completely and baroelastically wide open": ["OPEN"],
+  "pry completely and baroelastically wide open the": ["OPEN"],
+  "fasten completely and baroelastically closed": ["CLOSE"],
+  "fasten completely and baroelastically closed the": ["CLOSE"],
+  "seal completely and baroelastically shut": ["CLOSE"],
+  "seal completely and baroelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all planck security devices of": ["UNLOCK"],
+  "deactivate all planck security devices of the": ["UNLOCK"],
+  "deactivate all einstein security devices of": ["UNLOCK"],
+  "deactivate all einstein security devices of the": ["UNLOCK"],
+  "deactivate all schwarzschild security devices of": ["UNLOCK"],
+  "deactivate all schwarzschild security devices of the": ["UNLOCK"],
+  "deactivate all hawking security devices of": ["UNLOCK"],
+  "deactivate all hawking security devices of the": ["UNLOCK"],
+  "bypass all planck security devices on": ["UNLOCK"],
+  "bypass all planck security devices on the": ["UNLOCK"],
+  "bypass all einstein security devices on": ["UNLOCK"],
+  "bypass all einstein security devices on the": ["UNLOCK"],
+  "bypass all schwarzschild security devices on": ["UNLOCK"],
+  "bypass all schwarzschild security devices on the": ["UNLOCK"],
+  "bypass all hawking security devices on": ["UNLOCK"],
+  "bypass all hawking security devices on the": ["UNLOCK"],
+  "disengage the primary planck security device on": ["UNLOCK"],
+  "disengage the primary planck security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full centralized deployment of": ["USE"],
+  "harness the full centralized deployment of the": ["USE"],
+  "bring into active centralized deployment": ["USE"],
+  "bring into active centralized deployment the": ["USE"],
+  "make complete centralized deployment of": ["USE"],
+  "make complete centralized deployment of the": ["USE"],
+
+  // Combat
+  "initiate an intolerable confrontation against": ["FIGHT"],
+  "initiate an intolerable confrontation against the": ["FIGHT"],
+  "commence an intolerable confrontation against": ["FIGHT"],
+  "commence an intolerable confrontation against the": ["FIGHT"],
+  "engage in an intolerable confrontation against": ["FIGHT"],
+  "engage in an intolerable confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an epidemiological face to face discussion with": ["TALK"],
+  "initiate an epidemiological face to face discussion with the": ["TALK"],
+  "engage in an epidemiological face to face discussion with": ["TALK"],
+  "engage in an epidemiological face to face discussion with the": ["TALK"],
+  "strike up an epidemiological face to face discussion with": ["TALK"],
+  "strike up an epidemiological face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -31997,6 +32092,84 @@ compoundVerbs.push(
   "engage in an anthropological face to face discussion with",
   "strike up an anthropological face to face discussion with the",
   "strike up an anthropological face to face discussion with"
+);
+
+// Cycle #181 / Task-F201: Phase 164 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of blastogenesis towards the location of the",
+  "navigate one's vector of blastogenesis towards the location of",
+  "navigate ones vector of blastogenesis towards the location of the",
+  "navigate ones vector of blastogenesis towards the location of",
+  "steer one's vector of blastogenesis in the direction of the coordinates of the",
+  "steer one's vector of blastogenesis in the direction of the coordinates of",
+  "steer ones vector of blastogenesis in the direction of the coordinates of the",
+  "steer ones vector of blastogenesis in the direction of the coordinates of",
+  "direct one's vector of blastogenesis towards the coordinates of the location of the",
+  "direct one's vector of blastogenesis towards the coordinates of the location of",
+  "direct ones vector of blastogenesis towards the coordinates of the location of the",
+  "direct ones vector of blastogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual tabulation the",
+  "subject to a comprehensive visual tabulation",
+  "subject to a thorough visual tabulation the",
+  "subject to a thorough visual tabulation",
+  "subject to a detailed visual tabulation the",
+  "subject to a detailed visual tabulation",
+  "assume direct exclusive grasping of the",
+  "assume direct exclusive grasping of",
+  "assume absolute exclusive grasping of the",
+  "assume absolute exclusive grasping of",
+  "assume immediate exclusive grasping of the",
+  "assume immediate exclusive grasping of",
+  "divest oneself of all exclusive grasping of the",
+  "divest oneself of all exclusive grasping of",
+  "relinquish all exclusive grasping of the",
+  "relinquish all exclusive grasping of",
+  "free oneself from all exclusive grasping of the",
+  "free oneself from all exclusive grasping of",
+  "force completely and baroelastically wide open the",
+  "force completely and baroelastically wide open",
+  "pry completely and baroelastically wide open the",
+  "pry completely and baroelastically wide open",
+  "fasten completely and baroelastically closed the",
+  "fasten completely and baroelastically closed",
+  "seal completely and baroelastically shut the",
+  "seal completely and baroelastically shut",
+  "deactivate all planck security devices of the",
+  "deactivate all planck security devices of",
+  "deactivate all einstein security devices of the",
+  "deactivate all einstein security devices of",
+  "deactivate all schwarzschild security devices of the",
+  "deactivate all schwarzschild security devices of",
+  "deactivate all hawking security devices of the",
+  "deactivate all hawking security devices of",
+  "bypass all planck security devices on the",
+  "bypass all planck security devices on",
+  "bypass all einstein security devices on the",
+  "bypass all einstein security devices on",
+  "bypass all schwarzschild security devices on the",
+  "bypass all schwarzschild security devices on",
+  "bypass all hawking security devices on the",
+  "bypass all hawking security devices on",
+  "disengage the primary planck security device on the",
+  "disengage the primary planck security device on",
+  "harness the full centralized deployment of the",
+  "harness the full centralized deployment of",
+  "bring into active centralized deployment the",
+  "bring into active centralized deployment",
+  "make complete centralized deployment of the",
+  "make complete centralized deployment of",
+  "initiate an intolerable confrontation against the",
+  "initiate an intolerable confrontation against",
+  "commence an intolerable confrontation against the",
+  "commence an intolerable confrontation against",
+  "engage in an intolerable confrontation against the",
+  "engage in an intolerable confrontation against",
+  "initiate an epidemiological face to face discussion with the",
+  "initiate an epidemiological face to face discussion with",
+  "engage in an epidemiological face to face discussion with the",
+  "engage in an epidemiological face to face discussion with",
+  "strike up an epidemiological face to face discussion with the",
+  "strike up an epidemiological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
