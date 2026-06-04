@@ -30,7 +30,7 @@ function mix(a: number, b: number, c: number): number {
   h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
   h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
   h ^= h >>> 16;
-  return (h >>> 0);
+  return h >>> 0;
 }
 
 const WEATHER_EFFECTS: Record<string, string[]> = {
@@ -42,7 +42,7 @@ const WEATHER_EFFECTS: Record<string, string[]> = {
     "Clear, open skies stretch out above you.",
     "A gentle warmth radiates from the clear sky.",
     "The bright sky overhead is devoid of clouds.",
-    "Soft sunlight filters down from an open, blue sky."
+    "Soft sunlight filters down from an open, blue sky.",
   ],
   rain: [
     "Rain is falling steadily from the gray sky.",
@@ -52,7 +52,7 @@ const WEATHER_EFFECTS: Record<string, string[]> = {
     "Water runs in small streams along the ground as the rain continues.",
     "A light rain falls, leaving everything cool and wet.",
     "A steady, soft rainfall drums a rhythm on the earth.",
-    "Cool rain patters down from the gray canopy above."
+    "Cool rain patters down from the gray canopy above.",
   ],
   fog: [
     "A damp, cold fog clings to the surroundings, reducing visibility.",
@@ -62,7 +62,7 @@ const WEATHER_EFFECTS: Record<string, string[]> = {
     "Visibility is poor as a heavy shroud of fog settles in.",
     "Wisps of damp fog roll silently past.",
     "A dense fog blankets the landscape, dampening sound and sight.",
-    "The damp air is thick with creeping tendrils of cold mist."
+    "The damp air is thick with creeping tendrils of cold mist.",
   ],
   storm: [
     "A violent storm rages, with howling winds and flashing lightning.",
@@ -72,7 +72,7 @@ const WEATHER_EFFECTS: Record<string, string[]> = {
     "The elements are furious, rain pouring down in torrents amidst the gale.",
     "A heavy storm sweeps through, lashing the ground with wind and rain.",
     "Flashes of lightning periodically illuminate the stormy dark.",
-    "Thunderclaps shake the ground as the tempest rages around you."
+    "Thunderclaps shake the ground as the tempest rages around you.",
   ],
 };
 
@@ -128,7 +128,7 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The ground here is spongy with decades of decayed leaves.",
       "A trickle of water from a hidden spring murmurs nearby.",
       "Pockets of warm air drift through the cooler forest paths.",
-      "A spider crawls slowly across a rotten log near your feet."
+      "A spider crawls slowly across a rotten log near your feet.",
     ],
     crypt: [
       "A faint smell of incense and damp stonework lingers in the shadows.",
@@ -155,7 +155,7 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "Ancient engravings on the stone floor are almost worn away by time.",
       "A sense of dread, faint but persistent, settles in your stomach.",
       "The stone slabs underfoot are icy cold, even through your soles.",
-      "A small pile of crumbled mortar lies in the corner, disturbed recently."
+      "A small pile of crumbled mortar lies in the corner, disturbed recently.",
     ],
     castle: [
       "The stones here feel intensely cold, radiating an ancient chill.",
@@ -182,7 +182,7 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "Heavy iron brackets are bolted deep into the solid masonry.",
       "A draft sweeps dust across the floor in tiny, twisting eddies.",
       "The stone archways overhead show fine cracks from age and settling.",
-      "An oppressive weight of history clings to the grand, silent halls."
+      "An oppressive weight of history clings to the grand, silent halls.",
     ],
     underground: [
       "The walls are slick with condensation, dripping slowly into dark puddles.",
@@ -209,7 +209,7 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The mineral scent of iron and wet stone is sharp in your nose.",
       "A high-pitched squeak of a bat echoes briefly from the darkness above.",
       "The rock formations look like frozen, melting pillars in the shadows.",
-      "A layer of fine silt covers the flat surfaces, undisturbed for ages."
+      "A layer of fine silt covers the flat surfaces, undisturbed for ages.",
     ],
     outpost: [
       "The wind howls fiercely against the reinforced stone battlements.",
@@ -236,7 +236,7 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "The air is drafty and brisk, constantly moving through the chamber.",
       "A discarded buckle from a piece of armor lies tarnished in the dust.",
       "Heavy iron bolts secure the window shutters against the elements.",
-      "The structure feels solid and functional, built for utility, not comfort."
+      "The structure feels solid and functional, built for utility, not comfort.",
     ],
     settlement: [
       "The faint scent of woodsmoke and roasting meat drifts from afar.",
@@ -263,8 +263,8 @@ function getSensoryFlavor(roomId: string, seed: number, step: number): string {
       "Discarded straw and loose twigs are scattered across the path.",
       "A post for hitching horses stands weathered and empty near the trail.",
       "The distant lowing of cattle drifts lazily on the warm wind.",
-      "The soft rustle of laundry drying on a line can be heard nearby."
-    ]
+      "The soft rustle of laundry drying on a line can be heard nearby.",
+    ],
   };
 
   let category = "castle";
@@ -352,7 +352,7 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
 
     const availableChoices = currentScene.choices.filter((choice) => evaluateConditions(state, choice.conditions));
 
-    let sensoryFlavor = getSensoryFlavor(currentScene.id, state.seed, state.step);
+    const sensoryFlavor = getSensoryFlavor(currentScene.id, state.seed, state.step);
     let wEffect = "";
     if (state.environment && isOutdoorRoom(currentScene.id)) {
       wEffect = getWeatherEffect(state.environment.weather, state.seed, state.step, currentScene.id);
@@ -361,7 +361,7 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
     const sceneCharSum = currentScene.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
     let sceneStructureType = mix(state.seed, state.step + 100, sceneCharSum) % 12;
     if (state.step > 0) {
-      const prevStructureType = mix(state.seed, (state.step - 1) + 100, sceneCharSum) % 12;
+      const prevStructureType = mix(state.seed, state.step - 1 + 100, sceneCharSum) % 12;
       if (sceneStructureType === prevStructureType) {
         sceneStructureType = (sceneStructureType + 1) % 12;
       }
@@ -502,7 +502,7 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
   // Compile available legal actions
   const legalActions = generateLegalActions(state, parserPack);
 
-  let sensoryFlavor = getSensoryFlavor(room.id, state.seed, state.step);
+  const sensoryFlavor = getSensoryFlavor(room.id, state.seed, state.step);
   let wEffect = "";
   if (state.environment && isOutdoorRoom(room.id)) {
     wEffect = getWeatherEffect(state.environment.weather, state.seed, state.step, room.id);
@@ -511,7 +511,7 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
   const roomCharSum = room.id.split("").reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
   let roomStructureType = mix(state.seed, state.step + 100, roomCharSum) % 12;
   if (state.step > 0) {
-    const prevStructureType = mix(state.seed, (state.step - 1) + 100, roomCharSum) % 12;
+    const prevStructureType = mix(state.seed, state.step - 1 + 100, roomCharSum) % 12;
     if (roomStructureType === prevStructureType) {
       roomStructureType = (roomStructureType + 1) % 12;
     }

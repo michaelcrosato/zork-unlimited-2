@@ -13,8 +13,16 @@ describe("Parser Synonym Expansion Phase 5 (Task-F40)", () => {
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
     { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
     { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } },
-    { id: "buy-bread", command: "buy travelbread from merchant", action: { type: "BUY" as const, item: "travelbread" } },
-    { id: "sell-bread", command: "sell travelbread to merchant", action: { type: "SELL" as const, item: "travelbread" } }
+    {
+      id: "buy-bread",
+      command: "buy travelbread from merchant",
+      action: { type: "BUY" as const, item: "travelbread" },
+    },
+    {
+      id: "sell-bread",
+      command: "sell travelbread to merchant",
+      action: { type: "SELL" as const, item: "travelbread" },
+    },
   ];
 
   it("should map newly added movement verbs and compound verbs to MOVE action", () => {
@@ -64,7 +72,10 @@ describe("Parser Synonym Expansion Phase 5 (Task-F40)", () => {
   });
 
   it("should map newly added trading verbs and compound verbs to BUY and SELL actions", () => {
-    expect(mapCommand("acquire travelbread from merchant", actions).action).toEqual({ type: "BUY", item: "travelbread" });
+    expect(mapCommand("acquire travelbread from merchant", actions).action).toEqual({
+      type: "BUY",
+      item: "travelbread",
+    });
     expect(mapCommand("vend travelbread to merchant", actions).action).toEqual({ type: "SELL", item: "travelbread" });
   });
 

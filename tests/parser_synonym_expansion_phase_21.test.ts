@@ -12,7 +12,7 @@ describe("Parser Synonym Expansion Phase 21 (Task-F58)", () => {
     { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
     { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
-    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } }
+    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } },
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
@@ -66,7 +66,10 @@ describe("Parser Synonym Expansion Phase 21 (Task-F58)", () => {
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
     expect(mapCommand("deactivate the locks on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("deactivate the locks on the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("deactivate the locks on the chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
     expect(mapCommand("bypass the lock of chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
     expect(mapCommand("bypass the lock of the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
     expect(mapCommand("release lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });

@@ -12,7 +12,7 @@ describe("Parser Synonym Expansion Phase 8 (Task-F44)", () => {
     { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
     { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
-    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } }
+    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } },
   ];
 
   it("should map newly added movement verbs and compound verbs to MOVE action", () => {
@@ -90,7 +90,10 @@ describe("Parser Synonym Expansion Phase 8 (Task-F44)", () => {
   it("should map newly added unlock verbs to UNLOCK action", () => {
     expect(mapCommand("unlatch the lock of the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
     expect(mapCommand("bypass the lock on the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("disengage the locking mechanism of chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("disengage the locking mechanism of chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
     expect(mapCommand("key open chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
     expect(mapCommand("decode the lock on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
     expect(mapCommand("crack the code of chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
@@ -103,8 +106,14 @@ describe("Parser Synonym Expansion Phase 8 (Task-F44)", () => {
     expect(mapCommand("take advantage of the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
     expect(mapCommand("resort to the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
     expect(mapCommand("bring to bear the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
-    expect(mapCommand("utilize the services of the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
-    expect(mapCommand("consume the contents of the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("utilize the services of the lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
+    expect(mapCommand("consume the contents of the lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
     expect(mapCommand("imbibe the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
     expect(mapCommand("swill the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
     expect(mapCommand("gulp the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });

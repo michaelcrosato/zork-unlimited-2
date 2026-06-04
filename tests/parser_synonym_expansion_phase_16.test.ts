@@ -12,13 +12,16 @@ describe("Parser Synonym Expansion Phase 16 (Task-F53)", () => {
     { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
     { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
-    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } }
+    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } },
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
     expect(mapCommand("proceed along the path to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
     expect(mapCommand("proceed along path to east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("proceed along the path to the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("proceed along the path to the east", actions).action).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
     expect(mapCommand("proceed along path to the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
     expect(mapCommand("make a beeline for east", actions).action).toEqual({ type: "MOVE", direction: "east" });
     expect(mapCommand("make a beeline for the east", actions).action).toEqual({ type: "MOVE", direction: "east" });

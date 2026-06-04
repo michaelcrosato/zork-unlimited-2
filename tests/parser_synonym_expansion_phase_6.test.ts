@@ -12,7 +12,7 @@ describe("Parser Synonym Expansion Phase 6 (Task-F42)", () => {
     { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
     { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
-    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } }
+    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } },
   ];
 
   it("should map newly added movement verbs and compound verbs to MOVE action", () => {
@@ -56,7 +56,7 @@ describe("Parser Synonym Expansion Phase 6 (Task-F42)", () => {
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
     const unlockActions = [
-      { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } }
+      { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     ];
     expect(mapCommand("pick the lock on chest", unlockActions).action).toEqual({ type: "UNLOCK", target: "chest" });
     expect(mapCommand("pick lock of the chest", unlockActions).action).toEqual({ type: "UNLOCK", target: "chest" });

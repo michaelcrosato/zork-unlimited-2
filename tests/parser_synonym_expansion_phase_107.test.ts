@@ -12,110 +12,290 @@ describe("Parser Synonym Expansion Phase 107 (Task-F144)", () => {
     { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
     { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
-    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } }
+    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } },
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of crystallization towards the location of east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("navigate one's vector of crystallization towards the location of the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("navigate ones vector of crystallization towards the location of east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("navigate ones vector of crystallization towards the location of the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("navigate one's vector of crystallization towards the location of east", actions).action).toEqual(
+      { type: "MOVE", direction: "east" }
+    );
+    expect(
+      mapCommand("navigate one's vector of crystallization towards the location of the east", actions).action
+    ).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("navigate ones vector of crystallization towards the location of east", actions).action).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
+    expect(
+      mapCommand("navigate ones vector of crystallization towards the location of the east", actions).action
+    ).toEqual({ type: "MOVE", direction: "east" });
 
-    expect(mapCommand("steer one's vector of crystallization in the direction of the coordinates of east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("steer one's vector of crystallization in the direction of the coordinates of the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("steer ones vector of crystallization in the direction of the coordinates of east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("steer ones vector of crystallization in the direction of the coordinates of the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(
+      mapCommand("steer one's vector of crystallization in the direction of the coordinates of east", actions).action
+    ).toEqual({ type: "MOVE", direction: "east" });
+    expect(
+      mapCommand("steer one's vector of crystallization in the direction of the coordinates of the east", actions)
+        .action
+    ).toEqual({ type: "MOVE", direction: "east" });
+    expect(
+      mapCommand("steer ones vector of crystallization in the direction of the coordinates of east", actions).action
+    ).toEqual({ type: "MOVE", direction: "east" });
+    expect(
+      mapCommand("steer ones vector of crystallization in the direction of the coordinates of the east", actions).action
+    ).toEqual({ type: "MOVE", direction: "east" });
 
-    expect(mapCommand("direct one's vector of crystallization towards the coordinates of the location of east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("direct one's vector of crystallization towards the coordinates of the location of the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("direct ones vector of crystallization towards the coordinates of the location of east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("direct ones vector of crystallization towards the coordinates of the location of the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(
+      mapCommand("direct one's vector of crystallization towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({ type: "MOVE", direction: "east" });
+    expect(
+      mapCommand("direct one's vector of crystallization towards the coordinates of the location of the east", actions)
+        .action
+    ).toEqual({ type: "MOVE", direction: "east" });
+    expect(
+      mapCommand("direct ones vector of crystallization towards the coordinates of the location of east", actions)
+        .action
+    ).toEqual({ type: "MOVE", direction: "east" });
+    expect(
+      mapCommand("direct ones vector of crystallization towards the coordinates of the location of the east", actions)
+        .action
+    ).toEqual({ type: "MOVE", direction: "east" });
   });
 
   it("should map newly added inspection verbs to LOOK action", () => {
-    expect(mapCommand("subject to a comprehensive visual valuation altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
-    expect(mapCommand("subject to a comprehensive visual valuation the altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("subject to a comprehensive visual valuation altar", actions).action).toEqual({
+      type: "LOOK",
+      target: "altar",
+    });
+    expect(mapCommand("subject to a comprehensive visual valuation the altar", actions).action).toEqual({
+      type: "LOOK",
+      target: "altar",
+    });
 
-    expect(mapCommand("subject to a thorough visual valuation altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
-    expect(mapCommand("subject to a thorough visual valuation the altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("subject to a thorough visual valuation altar", actions).action).toEqual({
+      type: "LOOK",
+      target: "altar",
+    });
+    expect(mapCommand("subject to a thorough visual valuation the altar", actions).action).toEqual({
+      type: "LOOK",
+      target: "altar",
+    });
 
-    expect(mapCommand("subject to a detailed visual valuation altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
-    expect(mapCommand("subject to a detailed visual valuation the altar", actions).action).toEqual({ type: "LOOK", target: "altar" });
+    expect(mapCommand("subject to a detailed visual valuation altar", actions).action).toEqual({
+      type: "LOOK",
+      target: "altar",
+    });
+    expect(mapCommand("subject to a detailed visual valuation the altar", actions).action).toEqual({
+      type: "LOOK",
+      target: "altar",
+    });
   });
 
   it("should map newly added take verbs to TAKE action", () => {
-    expect(mapCommand("assume direct exclusive tenure of katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
-    expect(mapCommand("assume direct exclusive tenure of the katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("assume direct exclusive tenure of katana", actions).action).toEqual({
+      type: "TAKE",
+      item: "katana",
+    });
+    expect(mapCommand("assume direct exclusive tenure of the katana", actions).action).toEqual({
+      type: "TAKE",
+      item: "katana",
+    });
 
-    expect(mapCommand("assume absolute exclusive tenure of katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
-    expect(mapCommand("assume absolute exclusive tenure of the katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("assume absolute exclusive tenure of katana", actions).action).toEqual({
+      type: "TAKE",
+      item: "katana",
+    });
+    expect(mapCommand("assume absolute exclusive tenure of the katana", actions).action).toEqual({
+      type: "TAKE",
+      item: "katana",
+    });
 
-    expect(mapCommand("assume immediate exclusive tenure of katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
-    expect(mapCommand("assume immediate exclusive tenure of the katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("assume immediate exclusive tenure of katana", actions).action).toEqual({
+      type: "TAKE",
+      item: "katana",
+    });
+    expect(mapCommand("assume immediate exclusive tenure of the katana", actions).action).toEqual({
+      type: "TAKE",
+      item: "katana",
+    });
   });
 
   it("should map newly added drop verbs to DROP action", () => {
-    expect(mapCommand("divest oneself of all exclusive tenure of boots", actions).action).toEqual({ type: "DROP", item: "boots" });
-    expect(mapCommand("divest oneself of all exclusive tenure of the boots", actions).action).toEqual({ type: "DROP", item: "boots" });
+    expect(mapCommand("divest oneself of all exclusive tenure of boots", actions).action).toEqual({
+      type: "DROP",
+      item: "boots",
+    });
+    expect(mapCommand("divest oneself of all exclusive tenure of the boots", actions).action).toEqual({
+      type: "DROP",
+      item: "boots",
+    });
 
-    expect(mapCommand("relinquish all exclusive tenure of boots", actions).action).toEqual({ type: "DROP", item: "boots" });
-    expect(mapCommand("relinquish all exclusive tenure of the boots", actions).action).toEqual({ type: "DROP", item: "boots" });
+    expect(mapCommand("relinquish all exclusive tenure of boots", actions).action).toEqual({
+      type: "DROP",
+      item: "boots",
+    });
+    expect(mapCommand("relinquish all exclusive tenure of the boots", actions).action).toEqual({
+      type: "DROP",
+      item: "boots",
+    });
 
-    expect(mapCommand("free oneself from all exclusive tenure of boots", actions).action).toEqual({ type: "DROP", item: "boots" });
-    expect(mapCommand("free oneself from all exclusive tenure of the boots", actions).action).toEqual({ type: "DROP", item: "boots" });
+    expect(mapCommand("free oneself from all exclusive tenure of boots", actions).action).toEqual({
+      type: "DROP",
+      item: "boots",
+    });
+    expect(mapCommand("free oneself from all exclusive tenure of the boots", actions).action).toEqual({
+      type: "DROP",
+      item: "boots",
+    });
   });
 
   it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-    expect(mapCommand("force completely and hysterically wide open vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
-    expect(mapCommand("force completely and hysterically wide open the vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
-    expect(mapCommand("pry completely and hysterically wide open vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
-    expect(mapCommand("pry completely and hysterically wide open the vault", actions).action).toEqual({ type: "OPEN", target: "vault" });
+    expect(mapCommand("force completely and hysterically wide open vault", actions).action).toEqual({
+      type: "OPEN",
+      target: "vault",
+    });
+    expect(mapCommand("force completely and hysterically wide open the vault", actions).action).toEqual({
+      type: "OPEN",
+      target: "vault",
+    });
+    expect(mapCommand("pry completely and hysterically wide open vault", actions).action).toEqual({
+      type: "OPEN",
+      target: "vault",
+    });
+    expect(mapCommand("pry completely and hysterically wide open the vault", actions).action).toEqual({
+      type: "OPEN",
+      target: "vault",
+    });
 
-    expect(mapCommand("fasten completely and hysterically closed door", actions).action).toEqual({ type: "CLOSE", target: "door" });
-    expect(mapCommand("fasten completely and hysterically closed the door", actions).action).toEqual({ type: "CLOSE", target: "door" });
-    expect(mapCommand("seal completely and hysterically shut door", actions).action).toEqual({ type: "CLOSE", target: "door" });
-    expect(mapCommand("seal completely and hysterically shut the door", actions).action).toEqual({ type: "CLOSE", target: "door" });
+    expect(mapCommand("fasten completely and hysterically closed door", actions).action).toEqual({
+      type: "CLOSE",
+      target: "door",
+    });
+    expect(mapCommand("fasten completely and hysterically closed the door", actions).action).toEqual({
+      type: "CLOSE",
+      target: "door",
+    });
+    expect(mapCommand("seal completely and hysterically shut door", actions).action).toEqual({
+      type: "CLOSE",
+      target: "door",
+    });
+    expect(mapCommand("seal completely and hysterically shut the door", actions).action).toEqual({
+      type: "CLOSE",
+      target: "door",
+    });
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all leptonic security devices of chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("deactivate all leptonic security devices of the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("bypass all leptonic security devices on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("bypass all leptonic security devices on the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("disengage the primary leptonic security device on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("disengage the primary leptonic security device on the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("deactivate all leptonic security devices of chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("deactivate all leptonic security devices of the chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("bypass all leptonic security devices on chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("bypass all leptonic security devices on the chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("disengage the primary leptonic security device on chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("disengage the primary leptonic security device on the chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
   });
 
   it("should map newly added use verbs to USE action", () => {
-    expect(mapCommand("harness the full infallible deployment of lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
-    expect(mapCommand("harness the full infallible deployment of the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("harness the full infallible deployment of lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
+    expect(mapCommand("harness the full infallible deployment of the lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
 
-    expect(mapCommand("bring into active infallible deployment lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
-    expect(mapCommand("bring into active infallible deployment the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("bring into active infallible deployment lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
+    expect(mapCommand("bring into active infallible deployment the lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
 
-    expect(mapCommand("make complete infallible deployment of lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
-    expect(mapCommand("make complete infallible deployment of the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("make complete infallible deployment of lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
+    expect(mapCommand("make complete infallible deployment of the lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
   });
 
   it("should map newly added combat verbs to FIGHT action", () => {
-    expect(mapCommand("initiate a rancorous confrontation against ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
-    expect(mapCommand("initiate a rancorous confrontation against the ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
+    expect(mapCommand("initiate a rancorous confrontation against ghoul", actions).action).toEqual({
+      type: "FIGHT",
+      npc: "ghoul",
+    });
+    expect(mapCommand("initiate a rancorous confrontation against the ghoul", actions).action).toEqual({
+      type: "FIGHT",
+      npc: "ghoul",
+    });
 
-    expect(mapCommand("commence a rancorous confrontation against ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
-    expect(mapCommand("commence a rancorous confrontation against the ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
+    expect(mapCommand("commence a rancorous confrontation against ghoul", actions).action).toEqual({
+      type: "FIGHT",
+      npc: "ghoul",
+    });
+    expect(mapCommand("commence a rancorous confrontation against the ghoul", actions).action).toEqual({
+      type: "FIGHT",
+      npc: "ghoul",
+    });
 
-    expect(mapCommand("engage in a rancorous confrontation against ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
-    expect(mapCommand("engage in a rancorous confrontation against the ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
+    expect(mapCommand("engage in a rancorous confrontation against ghoul", actions).action).toEqual({
+      type: "FIGHT",
+      npc: "ghoul",
+    });
+    expect(mapCommand("engage in a rancorous confrontation against the ghoul", actions).action).toEqual({
+      type: "FIGHT",
+      npc: "ghoul",
+    });
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate an incisive face to face discussion with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
-    expect(mapCommand("initiate an incisive face to face discussion with the capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
+    expect(mapCommand("initiate an incisive face to face discussion with capo", actions).action).toEqual({
+      type: "TALK",
+      npc: "capo",
+    });
+    expect(mapCommand("initiate an incisive face to face discussion with the capo", actions).action).toEqual({
+      type: "TALK",
+      npc: "capo",
+    });
 
-    expect(mapCommand("engage in an incisive face to face discussion with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
-    expect(mapCommand("engage in an incisive face to face discussion with the capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
+    expect(mapCommand("engage in an incisive face to face discussion with capo", actions).action).toEqual({
+      type: "TALK",
+      npc: "capo",
+    });
+    expect(mapCommand("engage in an incisive face to face discussion with the capo", actions).action).toEqual({
+      type: "TALK",
+      npc: "capo",
+    });
 
-    expect(mapCommand("strike up an incisive face to face discussion with capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
-    expect(mapCommand("strike up an incisive face to face discussion with the capo", actions).action).toEqual({ type: "TALK", npc: "capo" });
+    expect(mapCommand("strike up an incisive face to face discussion with capo", actions).action).toEqual({
+      type: "TALK",
+      npc: "capo",
+    });
+    expect(mapCommand("strike up an incisive face to face discussion with the capo", actions).action).toEqual({
+      type: "TALK",
+      npc: "capo",
+    });
   });
 });

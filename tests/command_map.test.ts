@@ -318,7 +318,10 @@ describe("mapCommand", () => {
     expect(mapCommand("retrieve the magic scroll", actions).action).toEqual({ type: "TAKE", item: "scroll" });
     expect(mapCommand("discard the heavy sword", actions).action).toEqual({ type: "DROP", item: "sword" });
     expect(mapCommand("unwrap the leather bag", actions).action).toEqual({ type: "OPEN", target: "bag" });
-    expect(mapCommand("play around with the ancient console", actions).action).toEqual({ type: "USE", target: "console" });
+    expect(mapCommand("play around with the ancient console", actions).action).toEqual({
+      type: "USE",
+      target: "console",
+    });
     expect(mapCommand("greet the dungeon keeper", actions).action).toEqual({ type: "TALK", npc: "keeper" });
     expect(mapCommand("slay the massive red dragon", actions).action).toEqual({ type: "FIGHT", npc: "dragon" });
   });
@@ -758,8 +761,12 @@ describe("mapCommand", () => {
       { id: "talk-capo", command: "talk to smuggler capo", action: { type: "TALK" as const, npc: "capo" } },
       { id: "give-token", command: "give smuggler token", action: { type: "GIVE" as const, item: "token" } },
       { id: "fight-knight", command: "fight shadow knight", action: { type: "FIGHT" as const, npc: "knight" } },
-      { id: "cast-spell", command: "cast fireball at shadow knight", action: { type: "CAST" as const, spell: "fireball", target: "knight" } },
-      { id: "flee-knight", command: "flee from shadow knight", action: { type: "FLEE" as const } }
+      {
+        id: "cast-spell",
+        command: "cast fireball at shadow knight",
+        action: { type: "CAST" as const, spell: "fireball", target: "knight" },
+      },
+      { id: "flee-knight", command: "flee from shadow knight", action: { type: "FLEE" as const } },
     ];
 
     expect(mapCommand("sprint east", actions).action).toEqual({ type: "MOVE", direction: "east" });
@@ -776,7 +783,7 @@ describe("mapCommand", () => {
     expect(mapCommand("throw a fireball at the monster", actions).action).toEqual({
       type: "CAST",
       spell: "fireball",
-      target: "knight"
+      target: "knight",
     });
     expect(mapCommand("escape", actions).action).toEqual({ type: "FLEE" });
   });

@@ -12,18 +12,30 @@ describe("Parser Synonym Expansion Phase 22 (Task-F59)", () => {
     { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
     { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
-    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } }
+    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } },
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
     expect(mapCommand("undertake a journey towards east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("undertake a journey towards the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("undertake a journey towards the east", actions).action).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
     expect(mapCommand("undertake travel towards east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("undertake travel towards the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("undertake travel towards the east", actions).action).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
     expect(mapCommand("steer one's steps towards east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("steer one's steps towards the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("steer one's steps towards the east", actions).action).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
     expect(mapCommand("steer ones steps towards east", actions).action).toEqual({ type: "MOVE", direction: "east" });
-    expect(mapCommand("steer ones steps towards the east", actions).action).toEqual({ type: "MOVE", direction: "east" });
+    expect(mapCommand("steer ones steps towards the east", actions).action).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
   });
 
   it("should map newly added inspection verbs to LOOK action", () => {
@@ -63,19 +75,43 @@ describe("Parser Synonym Expansion Phase 22 (Task-F59)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate the locking system on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("deactivate the locking system on the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("bypass the locking system of chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("bypass the locking system of the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("disable the locking system on chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
-    expect(mapCommand("disable the locking system on the chest", actions).action).toEqual({ type: "UNLOCK", target: "chest" });
+    expect(mapCommand("deactivate the locking system on chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("deactivate the locking system on the chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("bypass the locking system of chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("bypass the locking system of the chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("disable the locking system on chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(mapCommand("disable the locking system on the chest", actions).action).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
   });
 
   it("should map newly added use verbs to USE action", () => {
     expect(mapCommand("utilize the functions of lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
-    expect(mapCommand("utilize the functions of the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("utilize the functions of the lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
     expect(mapCommand("employ the functions of lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
-    expect(mapCommand("employ the functions of the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
+    expect(mapCommand("employ the functions of the lockpick", actions).action).toEqual({
+      type: "USE",
+      target: "chest",
+    });
     expect(mapCommand("put to service lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
     expect(mapCommand("put to service the lockpick", actions).action).toEqual({ type: "USE", target: "chest" });
   });
@@ -84,7 +120,10 @@ describe("Parser Synonym Expansion Phase 22 (Task-F59)", () => {
     expect(mapCommand("launch an assault against ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
     expect(mapCommand("launch an assault against the ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
     expect(mapCommand("initiate hostilities against ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
-    expect(mapCommand("initiate hostilities against the ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
+    expect(mapCommand("initiate hostilities against the ghoul", actions).action).toEqual({
+      type: "FIGHT",
+      npc: "ghoul",
+    });
     expect(mapCommand("enter combat with ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
     expect(mapCommand("enter combat with the ghoul", actions).action).toEqual({ type: "FIGHT", npc: "ghoul" });
   });

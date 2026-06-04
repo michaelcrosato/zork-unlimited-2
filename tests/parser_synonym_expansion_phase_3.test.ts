@@ -11,7 +11,7 @@ describe("Parser Synonym Expansion Phase 3 (Task-F38)", () => {
     { id: "use-lockpick", command: "use lockpick on chest", action: { type: "USE" as const, target: "chest" } },
     { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
-    { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } }
+    { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
   ];
 
   it("should map newly added movement verbs and compound verbs to MOVE action", () => {

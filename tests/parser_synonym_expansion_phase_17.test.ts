@@ -12,7 +12,7 @@ describe("Parser Synonym Expansion Phase 17 (Task-F54)", () => {
     { id: "unlock-chest", command: "unlock chest with key", action: { type: "UNLOCK" as const, target: "chest" } },
     { id: "open-vault", command: "open iron vault", action: { type: "OPEN" as const, target: "vault" } },
     { id: "close-door", command: "close heavy door", action: { type: "CLOSE" as const, target: "door" } },
-    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } }
+    { id: "fight-ghoul", command: "fight crypt ghoul", action: { type: "FIGHT" as const, npc: "ghoul" } },
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
@@ -41,7 +41,10 @@ describe("Parser Synonym Expansion Phase 17 (Task-F54)", () => {
     expect(mapCommand("lay claim to katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
     expect(mapCommand("lay claim to the katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
     expect(mapCommand("bring under one's control katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
-    expect(mapCommand("bring under one's control the katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
+    expect(mapCommand("bring under one's control the katana", actions).action).toEqual({
+      type: "TAKE",
+      item: "katana",
+    });
     expect(mapCommand("bring under ones control katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
     expect(mapCommand("bring under ones control the katana", actions).action).toEqual({ type: "TAKE", item: "katana" });
   });

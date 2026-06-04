@@ -1202,16 +1202,16 @@ const VERB_CATEGORIES: Record<string, string[]> = {
   "flit to": ["MOVE"],
   "wend one's way to": ["MOVE"],
   "wend ones way to": ["MOVE"],
-  "vault": ["MOVE"],
-  "skitter": ["MOVE"],
-  "scud": ["MOVE"],
-  "flit": ["MOVE"],
-  "wend": ["MOVE"],
-  "contemplate": ["LOOK_INSPECT"],
+  vault: ["MOVE"],
+  skitter: ["MOVE"],
+  scud: ["MOVE"],
+  flit: ["MOVE"],
+  wend: ["MOVE"],
+  contemplate: ["LOOK_INSPECT"],
   "inspect the contents of": ["LOOK_INSPECT"],
   "look through the contents of": ["LOOK_INSPECT"],
   "cart off": ["TAKE"],
-  "pluck": ["TAKE"],
+  pluck: ["TAKE"],
   "lay hands on": ["TAKE"],
   "cart off the": ["TAKE"],
   "pluck the": ["TAKE"],
@@ -3288,7 +3288,19 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
       const DIALOGUE_SYNONYM_GROUPS = [
         ["accept", "agree", "take"],
         ["report", "complete", "finish", "turn", "submit", "completion"],
-        ["prestige", "reputation", "standing", "alliances", "alliance", "status", "loyalty", "check", "show", "view", "display"],
+        [
+          "prestige",
+          "reputation",
+          "standing",
+          "alliances",
+          "alliance",
+          "status",
+          "loyalty",
+          "check",
+          "show",
+          "view",
+          "display",
+        ],
         ["prestige", "check"],
         ["bye", "goodbye", "leave", "exit"],
         [
@@ -5703,26 +5715,57 @@ compoundVerbs.push(
 
 SYNONYM_GROUPS.push(
   // Directions synonym group
-  [
-    "north", "n",
-    "south", "s",
-    "east", "e",
-    "west", "w",
-    "up", "u",
-    "down", "d"
-  ],
+  ["north", "n", "south", "s", "east", "e", "west", "w", "up", "u", "down", "d"],
   // Attack synonyms group
   [
-    "kill", "slay", "murder", "assassinate", "attack", "fight", "strike", "hit", "battle", "engage", "assail", "assault", "duel", "vanquish", "defeat", "destroy"
+    "kill",
+    "slay",
+    "murder",
+    "assassinate",
+    "attack",
+    "fight",
+    "strike",
+    "hit",
+    "battle",
+    "engage",
+    "assail",
+    "assault",
+    "duel",
+    "vanquish",
+    "defeat",
+    "destroy",
   ],
   // Looting synonyms group
   [
-    "take", "get", "grab", "pick", "collect", "acquire", "steal", "pocket", "gather", "lift", "snatch", "retrieve", "secure", "loot", "plunder", "rob", "pilfer", "scoop", "harvest", "extract", "salvage", "claim", "remove", "add", "obtain", "procure"
+    "take",
+    "get",
+    "grab",
+    "pick",
+    "collect",
+    "acquire",
+    "steal",
+    "pocket",
+    "gather",
+    "lift",
+    "snatch",
+    "retrieve",
+    "secure",
+    "loot",
+    "plunder",
+    "rob",
+    "pilfer",
+    "scoop",
+    "harvest",
+    "extract",
+    "salvage",
+    "claim",
+    "remove",
+    "add",
+    "obtain",
+    "procure",
   ],
   // Dropping synonyms group
-  [
-    "drop", "discard", "throw", "put", "place", "dump", "toss", "abandon", "leave", "jettison", "shed"
-  ]
+  ["drop", "discard", "throw", "put", "place", "dump", "toss", "abandon", "leave", "jettison", "shed"]
 );
 
 // Always ensure all compoundVerbs are sorted by length to prevent substring prefix mismatch bugs
@@ -5798,7 +5841,7 @@ Object.assign(VERB_CATEGORIES, {
   shop: ["BUY"],
 
   // Sell
-  vend: ["SELL"]
+  vend: ["SELL"],
 });
 
 compoundVerbs.push(
@@ -5845,62 +5888,15 @@ compoundVerbs.push(
 
 SYNONYM_GROUPS.push(
   // NPC Boss/Capo synonym group
-  [
-    "capo",
-    "boss",
-    "leader",
-    "chief",
-    "head",
-    "commander"
-  ],
+  ["capo", "boss", "leader", "chief", "head", "commander"],
   // Merchant/Shopkeeper synonym group
-  [
-    "merchant",
-    "trader",
-    "shopkeeper",
-    "vendor",
-    "dealer",
-    "seller",
-    "monger",
-    "barterer"
-  ],
+  ["merchant", "trader", "shopkeeper", "vendor", "dealer", "seller", "monger", "barterer"],
   // Money/Gold/Currency synonym group
-  [
-    "gold",
-    "coin",
-    "coins",
-    "money",
-    "funds",
-    "currency",
-    "cash",
-    "wealth",
-    "loot",
-    "riches",
-    "credits"
-  ],
+  ["gold", "coin", "coins", "money", "funds", "currency", "cash", "wealth", "loot", "riches", "credits"],
   // Potion/Elixir/Flask synonym group
-  [
-    "potion",
-    "elixir",
-    "phial",
-    "flask",
-    "vial",
-    "draught",
-    "brew",
-    "tonic"
-  ],
+  ["potion", "elixir", "phial", "flask", "vial", "draught", "brew", "tonic"],
   // Scroll/Book/Tome synonym group
-  [
-    "scroll",
-    "book",
-    "tome",
-    "parchment",
-    "document",
-    "manuscript",
-    "ledger",
-    "journal",
-    "diary"
-  ]
+  ["scroll", "book", "tome", "parchment", "document", "manuscript", "ledger", "journal", "diary"]
 );
 
 Object.assign(VERB_CATEGORIES, {
@@ -5985,7 +5981,7 @@ Object.assign(VERB_CATEGORIES, {
 
   // Flee
   escape: ["FLEE"],
-  withdraw: ["FLEE"]
+  withdraw: ["FLEE"],
 });
 
 compoundVerbs.push(
@@ -6011,17 +6007,7 @@ compoundVerbs.push(
 
 SYNONYM_GROUPS.push(
   // Light sources
-  [
-    "lamp",
-    "lantern",
-    "torch",
-    "light",
-    "candle",
-    "beacon",
-    "flashlight",
-    "flame",
-    "illumination"
-  ],
+  ["lamp", "lantern", "torch", "light", "candle", "beacon", "flashlight", "flame", "illumination"],
   // Doors and exits
   [
     "door",
@@ -6035,31 +6021,12 @@ SYNONYM_GROUPS.push(
     "barrier",
     "grate",
     "portcullis",
-    "archway"
+    "archway",
   ],
   // Ropes and coils
-  [
-    "rope",
-    "coil",
-    "cable",
-    "chain",
-    "cord",
-    "line",
-    "string",
-    "tether",
-    "lasso"
-  ],
+  ["rope", "coil", "cable", "chain", "cord", "line", "string", "tether", "lasso"],
   // Digging tools
-  [
-    "shovel",
-    "spade",
-    "trowel",
-    "scoop",
-    "mattock",
-    "pickaxe",
-    "implement",
-    "tool"
-  ],
+  ["shovel", "spade", "trowel", "scoop", "mattock", "pickaxe", "implement", "tool"],
   // Enemies / Hostiles
   [
     "enemy",
@@ -6077,30 +6044,12 @@ SYNONYM_GROUPS.push(
     "boss",
     "sheriff",
     "enforcer",
-    "capo"
+    "capo",
   ],
   // Bandits / Thieves
-  [
-    "bandit",
-    "thug",
-    "thief",
-    "rogue",
-    "brigand",
-    "outlaw",
-    "raider",
-    "robber",
-    "marauder"
-  ],
+  ["bandit", "thug", "thief", "rogue", "brigand", "outlaw", "raider", "robber", "marauder"],
   // Key variations
-  [
-    "key",
-    "brass_key",
-    "iron_key",
-    "vault_key",
-    "passkey",
-    "lockpick",
-    "pick"
-  ]
+  ["key", "brass_key", "iron_key", "vault_key", "passkey", "lockpick", "pick"]
 );
 
 // Cycle #69 / Task-F36: Expanded synonym mappings for combat actions, trading, and faction-related commands
@@ -6208,7 +6157,7 @@ Object.assign(VERB_CATEGORIES, {
   "pawn to": ["SELL"],
   "cash in the": ["SELL"],
   "cash in": ["SELL"],
-  "convert to cash": ["SELL"]
+  "convert to cash": ["SELL"],
 });
 
 compoundVerbs.push(
@@ -6579,7 +6528,7 @@ Object.assign(VERB_CATEGORIES, {
   "ask a question to the": ["TALK", "ASK"],
   "ask a question to": ["TALK", "ASK"],
   "strike up a chat with the": ["TALK", "ASK"],
-  "strike up a chat with": ["TALK", "ASK"]
+  "strike up a chat with": ["TALK", "ASK"],
 });
 
 compoundVerbs.push(
@@ -6782,7 +6731,7 @@ Object.assign(VERB_CATEGORIES, {
 
   // Compound Use
   "activate the": ["USE"],
-  "deploy the": ["USE"]
+  "deploy the": ["USE"],
 });
 
 compoundVerbs.push(
@@ -6832,7 +6781,7 @@ Object.assign(VERB_CATEGORIES, {
 
   // Compound Use
   "put to use": ["USE"],
-  "make use of": ["USE"]
+  "make use of": ["USE"],
 });
 
 compoundVerbs.push(
@@ -7008,7 +6957,7 @@ Object.assign(VERB_CATEGORIES, {
   "greet the": ["TALK", "ASK"],
   "hail the": ["TALK", "ASK"],
   "whisper to": ["TALK", "ASK"],
-  "whisper to the": ["TALK", "ASK"]
+  "whisper to the": ["TALK", "ASK"],
 });
 
 compoundVerbs.push(
@@ -7408,7 +7357,7 @@ Object.assign(VERB_CATEGORIES, {
   "plead with the": ["TALK", "ASK"],
   "plead with": ["TALK", "ASK"],
   "beg the": ["TALK", "ASK"],
-  beg: ["TALK", "ASK"]
+  beg: ["TALK", "ASK"],
 });
 
 // Cycle #18 / Task-F44: Expanded synonym mappings Phase 8 (rich multi-word and compound verbs for Q4 playtester feedback)
@@ -7638,7 +7587,7 @@ Object.assign(VERB_CATEGORIES, {
   "have a word with the": ["TALK", "ASK"],
   "have a word with": ["TALK", "ASK"],
   "hold talks with the": ["TALK", "ASK"],
-  "hold talks with": ["TALK", "ASK"]
+  "hold talks with": ["TALK", "ASK"],
 });
 
 compoundVerbs.push(
@@ -8250,7 +8199,7 @@ Object.assign(VERB_CATEGORIES, {
   "confab with": ["TALK"],
   "confab with the": ["TALK"],
   "palaver with": ["TALK"],
-  "palaver with the": ["TALK"]
+  "palaver with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -8639,7 +8588,7 @@ Object.assign(VERB_CATEGORIES, {
   "address the": ["TALK"],
   "speak to": ["TALK"],
   "speak to the": ["TALK"],
-  "talk to the": ["TALK"]
+  "talk to the": ["TALK"],
 });
 
 // Cycle #21 / Task-F48: Expanded synonym mappings Phase 11 (for playtester request to add even more synonyms)
@@ -8701,7 +8650,7 @@ Object.assign(VERB_CATEGORIES, {
   "study carefully the": ["LOOK_INSPECT"],
   "survey visually": ["LOOK_INSPECT"],
   "survey visually the": ["LOOK_INSPECT"],
-  "eyeball": ["LOOK_INSPECT"],
+  eyeball: ["LOOK_INSPECT"],
   "eyeball the": ["LOOK_INSPECT"],
   "scan visually": ["LOOK_INSPECT"],
   "scan visually the": ["LOOK_INSPECT"],
@@ -8717,21 +8666,21 @@ Object.assign(VERB_CATEGORIES, {
   "lay hold of the": ["TAKE"],
   "take possession of": ["TAKE"],
   "take possession of the": ["TAKE"],
-  "pocket": ["TAKE"],
+  pocket: ["TAKE"],
   "pocket the": ["TAKE"],
-  "bag": ["TAKE"],
+  bag: ["TAKE"],
   "bag the": ["TAKE"],
   "scoop up": ["TAKE"],
   "scoop up the": ["TAKE"],
   "seize control of": ["TAKE"],
   "seize control of the": ["TAKE"],
-  "snag": ["TAKE"],
+  snag: ["TAKE"],
   "snag the": ["TAKE"],
   "acquire possession of": ["TAKE"],
   "acquire possession of the": ["TAKE"],
 
   // Drop
-  "discard": ["DROP"],
+  discard: ["DROP"],
   "discard the": ["DROP"],
   "throw away": ["DROP"],
   "throw away the": ["DROP"],
@@ -8741,21 +8690,21 @@ Object.assign(VERB_CATEGORIES, {
   "get rid of the": ["DROP"],
   "cast off": ["DROP"],
   "cast off the": ["DROP"],
-  "jettison": ["DROP"],
+  jettison: ["DROP"],
   "jettison the": ["DROP"],
   "lay aside": ["DROP"],
   "lay aside the": ["DROP"],
   "part with": ["DROP"],
   "part with the": ["DROP"],
-  "shed": ["DROP"],
+  shed: ["DROP"],
   "shed the": ["DROP"],
-  "abandon": ["DROP"],
+  abandon: ["DROP"],
   "abandon the": ["DROP"],
 
   // Open/Close
-  "unbar": ["OPEN"],
+  unbar: ["OPEN"],
   "unbar the": ["OPEN"],
-  "unbolt": ["UNLOCK", "OPEN"],
+  unbolt: ["UNLOCK", "OPEN"],
   "unbolt the": ["UNLOCK", "OPEN"],
   "unlock and swing open": ["OPEN"],
   "unlock and swing open the": ["OPEN"],
@@ -8767,15 +8716,15 @@ Object.assign(VERB_CATEGORIES, {
   "pry open the": ["OPEN"],
   "force open": ["OPEN"],
   "force open the": ["OPEN"],
-  "bar": ["CLOSE"],
+  bar: ["CLOSE"],
   "bar the": ["CLOSE"],
-  "bolt": ["MOVE", "CLOSE", "CAST"],
+  bolt: ["MOVE", "CLOSE", "CAST"],
   "bolt the": ["CLOSE"],
   "lock shut": ["CLOSE"],
   "lock shut the": ["CLOSE"],
   "secure shut": ["CLOSE"],
   "secure shut the": ["CLOSE"],
-  "fasten": ["CLOSE", "USE"],
+  fasten: ["CLOSE", "USE"],
   "fasten the": ["CLOSE"],
   "make fast": ["CLOSE"],
   "make fast the": ["CLOSE"],
@@ -8797,9 +8746,9 @@ Object.assign(VERB_CATEGORIES, {
   "key open the": ["UNLOCK"],
 
   // Use
-  "consume": ["USE"],
+  consume: ["USE"],
   "consume the": ["USE"],
-  "devour": ["USE"],
+  devour: ["USE"],
   "devour the": ["USE"],
   "put to use": ["USE"],
   "put to use the": ["USE"],
@@ -8807,17 +8756,17 @@ Object.assign(VERB_CATEGORIES, {
   "bring to bear the": ["USE"],
   "employ the use of": ["USE"],
   "employ the use of the": ["USE"],
-  "activate": ["USE"],
+  activate: ["USE"],
   "activate the": ["USE"],
   "turn on": ["USE"],
   "turn on the": ["USE"],
-  "trigger": ["USE"],
+  trigger: ["USE"],
   "trigger the": ["USE"],
-  "enable": ["USE"],
+  enable: ["USE"],
   "enable the": ["USE"],
   "switch on": ["USE"],
   "switch on the": ["USE"],
-  "imbibe": ["USE"],
+  imbibe: ["USE"],
   "imbibe the": ["USE"],
   "don oneself in": ["USE"],
   "don oneself in the": ["USE"],
@@ -8831,23 +8780,23 @@ Object.assign(VERB_CATEGORIES, {
   "trade blows with the": ["FIGHT"],
   "wage war against": ["FIGHT"],
   "wage war against the": ["FIGHT"],
-  "attack": ["FIGHT"],
+  attack: ["FIGHT"],
   "attack the": ["FIGHT"],
   "strike at": ["FIGHT"],
   "strike at the": ["FIGHT"],
   "inflict blows upon": ["FIGHT"],
   "inflict blows upon the": ["FIGHT"],
-  "combat": ["FIGHT"],
+  combat: ["FIGHT"],
   "combat the": ["FIGHT"],
   "fall on": ["FIGHT"],
   "fall on the": ["FIGHT"],
-  "slug": ["FIGHT"],
+  slug: ["FIGHT"],
   "slug the": ["FIGHT"],
-  "pummel": ["FIGHT"],
+  pummel: ["FIGHT"],
   "pummel the": ["FIGHT"],
-  "vanquish": ["FIGHT"],
+  vanquish: ["FIGHT"],
   "vanquish the": ["FIGHT"],
-  "slaughter": ["FIGHT"],
+  slaughter: ["FIGHT"],
   "slaughter the": ["FIGHT"],
 
   // Talk/Dialogue
@@ -8866,7 +8815,7 @@ Object.assign(VERB_CATEGORIES, {
   "commune with": ["TALK"],
   "commune with the": ["TALK"],
   "socialize with": ["TALK"],
-  "socialize with the": ["TALK"]
+  "socialize with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -9261,11 +9210,11 @@ Object.assign(VERB_CATEGORIES, {
   "run off with the": ["TAKE"],
   "walk away with": ["TAKE"],
   "walk away with the": ["TAKE"],
-  "clutch": ["TAKE"],
+  clutch: ["TAKE"],
   "clutch the": ["TAKE"],
   "secure possession of": ["TAKE"],
   "secure possession of the": ["TAKE"],
-  "collar": ["TAKE"],
+  collar: ["TAKE"],
   "collar the": ["TAKE"],
 
   // Drop
@@ -9279,7 +9228,7 @@ Object.assign(VERB_CATEGORIES, {
   "let go of the": ["DROP"],
 
   // Open/Close
-  "unwrap": ["OPEN"],
+  unwrap: ["OPEN"],
   "unwrap the": ["OPEN"],
   "slide open": ["OPEN"],
   "slide open the": ["OPEN"],
@@ -9315,9 +9264,9 @@ Object.assign(VERB_CATEGORIES, {
   "avail oneself of the": ["USE"],
   "partake of": ["USE"],
   "partake of the": ["USE"],
-  "quaff": ["USE"],
+  quaff: ["USE"],
   "quaff the": ["USE"],
-  "swill": ["USE"],
+  swill: ["USE"],
   "swill the": ["USE"],
 
   // Combat
@@ -9336,7 +9285,7 @@ Object.assign(VERB_CATEGORIES, {
   "chew the fat with": ["TALK"],
   "chew the fat with the": ["TALK"],
   "shoot the breeze with": ["TALK"],
-  "shoot the breeze with the": ["TALK"]
+  "shoot the breeze with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -9502,7 +9451,7 @@ Object.assign(VERB_CATEGORIES, {
   "exchange blows with the": ["FIGHT"],
   "lay blows upon": ["FIGHT"],
   "lay blows upon the": ["FIGHT"],
-  "clobber": ["FIGHT"],
+  clobber: ["FIGHT"],
   "clobber the": ["FIGHT"],
 
   // Dialogue
@@ -9703,7 +9652,7 @@ Object.assign(VERB_CATEGORIES, {
   "peer closely at the": ["LOOK_INSPECT"],
 
   // Take
-  "appropriate": ["TAKE"],
+  appropriate: ["TAKE"],
   "appropriate the": ["TAKE"],
   "help oneself to": ["TAKE"],
   "help oneself to the": ["TAKE"],
@@ -9715,7 +9664,7 @@ Object.assign(VERB_CATEGORIES, {
   // Drop
   "part with": ["DROP"],
   "part with the": ["DROP"],
-  "jettison": ["DROP"],
+  jettison: ["DROP"],
   "jettison the": ["DROP"],
   "relinquish control of": ["DROP"],
   "relinquish control of the": ["DROP"],
@@ -9747,7 +9696,7 @@ Object.assign(VERB_CATEGORIES, {
   "put to work the": ["USE"],
 
   // Combat
-  "assault": ["FIGHT"],
+  assault: ["FIGHT"],
   "assault the": ["FIGHT"],
   "initiate combat with": ["FIGHT"],
   "initiate combat with the": ["FIGHT"],
@@ -9762,7 +9711,7 @@ Object.assign(VERB_CATEGORIES, {
   "exchange words with": ["TALK"],
   "exchange words with the": ["TALK"],
   "engage in dialogue with": ["TALK"],
-  "engage in dialogue with the": ["TALK"]
+  "engage in dialogue with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -10093,7 +10042,7 @@ Object.assign(VERB_CATEGORIES, {
   "have a chat with": ["TALK"],
   "have a chat with the": ["TALK"],
   "hold conversation with": ["TALK"],
-  "hold conversation with the": ["TALK"]
+  "hold conversation with the": ["TALK"],
 });
 
 // Cycle #32 / Task-F55: Phase 18 mappings (expansion requested by playtesters)
@@ -10174,7 +10123,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a discussion with": ["TALK"],
   "strike up a discussion with the": ["TALK"],
   "engage in a chat with": ["TALK"],
-  "engage in a chat with the": ["TALK"]
+  "engage in a chat with the": ["TALK"],
 });
 
 // Cycle #33 / Task-F56: Phase 19 mappings (expansion requested by playtesters)
@@ -10561,7 +10510,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up communication with": ["TALK"],
   "strike up communication with the": ["TALK"],
   "strike up a chat with": ["TALK"],
-  "strike up a chat with the": ["TALK"]
+  "strike up a chat with the": ["TALK"],
 });
 
 // Cycle #38 / Task-F61: Phase 24 mappings (expansion requested by playtesters)
@@ -10644,7 +10593,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a dialogue with": ["TALK"],
   "strike up a dialogue with the": ["TALK"],
   "engage in verbal communication with": ["TALK"],
-  "engage in verbal communication with the": ["TALK"]
+  "engage in verbal communication with the": ["TALK"],
 });
 
 // Cycle #39 / Task-F62: Phase 25 mappings (expansion requested by playtesters)
@@ -10727,7 +10676,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a conversation with": ["TALK"],
   "strike up a conversation with the": ["TALK"],
   "initiate verbal communication with": ["TALK"],
-  "initiate verbal communication with the": ["TALK"]
+  "initiate verbal communication with the": ["TALK"],
 });
 
 // Cycle #40 / Task-F63: Phase 26 mappings (expansion requested by playtesters)
@@ -10812,7 +10761,7 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a verbal discussion with": ["TALK"],
   "strike up a verbal discussion with the": ["TALK"],
   "initiate direct communication with": ["TALK"],
-  "initiate direct communication with the": ["TALK"]
+  "initiate direct communication with the": ["TALK"],
 });
 
 // Cycle #41 / Task-F64: Phase 27 mappings (expansion requested by playtesters)
@@ -10901,7 +10850,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a verbal discussion with": ["TALK"],
   "engage in a verbal discussion with the": ["TALK"],
   "strike up a direct dialogue with": ["TALK"],
-  "strike up a direct dialogue with the": ["TALK"]
+  "strike up a direct dialogue with the": ["TALK"],
 });
 
 // Cycle #42 / Task-F65: Phase 28 mappings (expansion requested by playtesters)
@@ -10990,7 +10939,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a verbal conversation with": ["TALK"],
   "engage in a verbal conversation with the": ["TALK"],
   "strike up a personal dialogue with": ["TALK"],
-  "strike up a personal dialogue with the": ["TALK"]
+  "strike up a personal dialogue with the": ["TALK"],
 });
 
 // Cycle #43 / Task-F66: Phase 29 mappings (expansion requested by playtesters)
@@ -11079,7 +11028,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a personal dialogue with": ["TALK"],
   "engage in a personal dialogue with the": ["TALK"],
   "strike up a personal conversation with": ["TALK"],
-  "strike up a personal conversation with the": ["TALK"]
+  "strike up a personal conversation with the": ["TALK"],
 });
 
 // Cycle #44 / Task-F67: Phase 30 mappings (expansion requested by playtesters)
@@ -11168,7 +11117,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a direct conversation with": ["TALK"],
   "engage in a direct conversation with the": ["TALK"],
   "strike up a direct discussion with": ["TALK"],
-  "strike up a direct discussion with the": ["TALK"]
+  "strike up a direct discussion with the": ["TALK"],
 });
 
 // Cycle #45 / Task-F68: Phase 31 mappings (expansion requested by playtesters)
@@ -11257,7 +11206,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a direct verbal conversation with": ["TALK"],
   "engage in a direct verbal conversation with the": ["TALK"],
   "strike up a direct verbal discussion with": ["TALK"],
-  "strike up a direct verbal discussion with the": ["TALK"]
+  "strike up a direct verbal discussion with the": ["TALK"],
 });
 
 // Cycle #46 / Task-F69: Phase 32 mappings (expansion requested by playtesters)
@@ -11346,7 +11295,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a direct verbal discussion with": ["TALK"],
   "engage in a direct verbal discussion with the": ["TALK"],
   "strike up a direct verbal conversation with": ["TALK"],
-  "strike up a direct verbal conversation with the": ["TALK"]
+  "strike up a direct verbal conversation with the": ["TALK"],
 });
 
 // Cycle #47 / Task-F70: Phase 33 mappings (expansion requested by playtesters)
@@ -11435,7 +11384,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a detailed verbal conversation with": ["TALK"],
   "engage in a detailed verbal conversation with the": ["TALK"],
   "strike up a detailed verbal conversation with": ["TALK"],
-  "strike up a detailed verbal conversation with the": ["TALK"]
+  "strike up a detailed verbal conversation with the": ["TALK"],
 });
 
 // Cycle #48 / Task-F71: Phase 34 mappings (expansion requested by playtesters)
@@ -11524,7 +11473,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a detailed verbal dialogue with": ["TALK"],
   "engage in a detailed verbal dialogue with the": ["TALK"],
   "strike up a detailed verbal discussion with": ["TALK"],
-  "strike up a detailed verbal discussion with the": ["TALK"]
+  "strike up a detailed verbal discussion with the": ["TALK"],
 });
 
 // Cycle #49 / Task-F72: Phase 35 mappings (expansion requested by playtesters)
@@ -11613,7 +11562,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a detailed personal dialogue with": ["TALK"],
   "engage in a detailed personal dialogue with the": ["TALK"],
   "strike up a detailed personal discussion with": ["TALK"],
-  "strike up a detailed personal discussion with the": ["TALK"]
+  "strike up a detailed personal discussion with the": ["TALK"],
 });
 
 // Cycle #50 / Task-F73: Phase 36 mappings
@@ -11702,10 +11651,8 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a direct verbal dialogue with": ["TALK"],
   "engage in a direct verbal dialogue with the": ["TALK"],
   "strike up a detailed personal conversation with": ["TALK"],
-  "strike up a detailed personal conversation with the": ["TALK"]
+  "strike up a detailed personal conversation with the": ["TALK"],
 });
-
-
 
 compoundVerbs.push(
   "wing one's way to the",
@@ -13110,7 +13057,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a detailed face to face dialogue with": ["TALK"],
   "engage in a detailed face to face dialogue with the": ["TALK"],
   "strike up a detailed face to face conversation with": ["TALK"],
-  "strike up a detailed face to face conversation with the": ["TALK"]
+  "strike up a detailed face to face conversation with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -13259,7 +13206,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a detailed face to face discussion with": ["TALK"],
   "engage in a detailed face to face discussion with the": ["TALK"],
   "strike up a detailed face to face discussion with": ["TALK"],
-  "strike up a detailed face to face discussion with the": ["TALK"]
+  "strike up a detailed face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -13408,7 +13355,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a comprehensive face to face discussion with": ["TALK"],
   "engage in a comprehensive face to face discussion with the": ["TALK"],
   "strike up a comprehensive face to face discussion with": ["TALK"],
-  "strike up a comprehensive face to face discussion with the": ["TALK"]
+  "strike up a comprehensive face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -13557,7 +13504,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a formal face to face discussion with": ["TALK"],
   "engage in a formal face to face discussion with the": ["TALK"],
   "strike up a formal face to face discussion with": ["TALK"],
-  "strike up a formal face to face discussion with the": ["TALK"]
+  "strike up a formal face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -13706,7 +13653,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a structured face to face discussion with": ["TALK"],
   "engage in a structured face to face discussion with the": ["TALK"],
   "strike up a structured face to face discussion with": ["TALK"],
-  "strike up a structured face to face discussion with the": ["TALK"]
+  "strike up a structured face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -13855,7 +13802,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a direct face to face discussion with": ["TALK"],
   "engage in a direct face to face discussion with the": ["TALK"],
   "strike up a direct face to face discussion with": ["TALK"],
-  "strike up a direct face to face discussion with the": ["TALK"]
+  "strike up a direct face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -14004,7 +13951,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a candid face to face discussion with": ["TALK"],
   "engage in a candid face to face discussion with the": ["TALK"],
   "strike up a candid face to face discussion with": ["TALK"],
-  "strike up a candid face to face discussion with the": ["TALK"]
+  "strike up a candid face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -14153,7 +14100,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a serious face to face discussion with": ["TALK"],
   "engage in a serious face to face discussion with the": ["TALK"],
   "strike up a serious face to face discussion with": ["TALK"],
-  "strike up a serious face to face discussion with the": ["TALK"]
+  "strike up a serious face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -14302,7 +14249,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a constructive face to face discussion with": ["TALK"],
   "engage in a constructive face to face discussion with the": ["TALK"],
   "strike up a constructive face to face discussion with": ["TALK"],
-  "strike up a constructive face to face discussion with the": ["TALK"]
+  "strike up a constructive face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -14451,7 +14398,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a diplomatic face to face discussion with": ["TALK"],
   "engage in a diplomatic face to face discussion with the": ["TALK"],
   "strike up a diplomatic face to face discussion with": ["TALK"],
-  "strike up a diplomatic face to face discussion with the": ["TALK"]
+  "strike up a diplomatic face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -14600,7 +14547,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a professional face to face discussion with": ["TALK"],
   "engage in a professional face to face discussion with the": ["TALK"],
   "strike up a professional face to face discussion with": ["TALK"],
-  "strike up a professional face to face discussion with the": ["TALK"]
+  "strike up a professional face to face discussion with the": ["TALK"],
 });
 
 // Cycle #62 / Task-F85: Phase 48 mappings
@@ -14683,7 +14630,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an intellectual face to face discussion with": ["TALK"],
   "engage in an intellectual face to face discussion with the": ["TALK"],
   "strike up an intellectual face to face discussion with": ["TALK"],
-  "strike up an intellectual face to face discussion with the": ["TALK"]
+  "strike up an intellectual face to face discussion with the": ["TALK"],
 });
 
 // Cycle #63 / Task-F86: Phase 49 mappings
@@ -14766,7 +14713,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a philosophical face to face discussion with": ["TALK"],
   "engage in a philosophical face to face discussion with the": ["TALK"],
   "strike up a philosophical face to face discussion with": ["TALK"],
-  "strike up a philosophical face to face discussion with the": ["TALK"]
+  "strike up a philosophical face to face discussion with the": ["TALK"],
 });
 
 // Cycle #64 / Task-F87: Phase 50 mappings
@@ -14849,7 +14796,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an analytical face to face discussion with": ["TALK"],
   "engage in an analytical face to face discussion with the": ["TALK"],
   "strike up an analytical face to face discussion with": ["TALK"],
-  "strike up an analytical face to face discussion with the": ["TALK"]
+  "strike up an analytical face to face discussion with the": ["TALK"],
 });
 
 // Cycle #65 / Task-F88: Phase 51 mappings
@@ -14932,7 +14879,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a deliberative face to face discussion with": ["TALK"],
   "engage in a deliberative face to face discussion with the": ["TALK"],
   "strike up a deliberative face to face discussion with": ["TALK"],
-  "strike up a deliberative face to face discussion with the": ["TALK"]
+  "strike up a deliberative face to face discussion with the": ["TALK"],
 });
 
 // Cycle #66 / Task-F89: Phase 52 mappings
@@ -15177,7 +15124,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a harmonious face to face discussion with": ["TALK"],
   "engage in a harmonious face to face discussion with the": ["TALK"],
   "strike up a harmonious face to face discussion with": ["TALK"],
-  "strike up a harmonious face to face discussion with the": ["TALK"]
+  "strike up a harmonious face to face discussion with the": ["TALK"],
 });
 
 // Cycle #69 / Task-F92: Phase 55 mappings
@@ -15260,7 +15207,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a confidential face to face discussion with": ["TALK"],
   "engage in a confidential face to face discussion with the": ["TALK"],
   "strike up a confidential face to face discussion with": ["TALK"],
-  "strike up a confidential face to face discussion with the": ["TALK"]
+  "strike up a confidential face to face discussion with the": ["TALK"],
 });
 
 // Cycle #70 / Task-F93: Phase 56 mappings
@@ -15343,7 +15290,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a cordial face to face discussion with": ["TALK"],
   "engage in a cordial face to face discussion with the": ["TALK"],
   "strike up a cordial face to face discussion with": ["TALK"],
-  "strike up a cordial face to face discussion with the": ["TALK"]
+  "strike up a cordial face to face discussion with the": ["TALK"],
 });
 
 // Cycle #71 / Task-F94: Phase 57 mappings
@@ -15426,7 +15373,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an earnest face to face discussion with": ["TALK"],
   "engage in an earnest face to face discussion with the": ["TALK"],
   "strike up an earnest face to face discussion with": ["TALK"],
-  "strike up an earnest face to face discussion with the": ["TALK"]
+  "strike up an earnest face to face discussion with the": ["TALK"],
 });
 
 // Cycle #72 / Task-F95: Phase 58 mappings
@@ -15509,7 +15456,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a sincere face to face discussion with": ["TALK"],
   "engage in a sincere face to face discussion with the": ["TALK"],
   "strike up a sincere face to face discussion with": ["TALK"],
-  "strike up a sincere face to face discussion with the": ["TALK"]
+  "strike up a sincere face to face discussion with the": ["TALK"],
 });
 
 // Cycle #73 / Task-F96: Phase 59 mappings
@@ -15592,7 +15539,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a respectful face to face discussion with": ["TALK"],
   "engage in a respectful face to face discussion with the": ["TALK"],
   "strike up a respectful face to face discussion with": ["TALK"],
-  "strike up a respectful face to face discussion with the": ["TALK"]
+  "strike up a respectful face to face discussion with the": ["TALK"],
 });
 
 // Cycle #74 / Task-F97: Phase 60 mappings
@@ -15675,7 +15622,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a cordial face to face discussion with": ["TALK"],
   "engage in a cordial face to face discussion with the": ["TALK"],
   "strike up a cordial face to face discussion with": ["TALK"],
-  "strike up a cordial face to face discussion with the": ["TALK"]
+  "strike up a cordial face to face discussion with the": ["TALK"],
 });
 
 // Cycle #75 / Task-F98: Phase 61 mappings
@@ -15758,7 +15705,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an insightful face to face discussion with": ["TALK"],
   "engage in an insightful face to face discussion with the": ["TALK"],
   "strike up an insightful face to face discussion with": ["TALK"],
-  "strike up an insightful face to face discussion with the": ["TALK"]
+  "strike up an insightful face to face discussion with the": ["TALK"],
 });
 
 compoundVerbs.push(
@@ -16815,7 +16762,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a profound face to face discussion with": ["TALK"],
   "engage in a profound face to face discussion with the": ["TALK"],
   "strike up a profound face to face discussion with": ["TALK"],
-  "strike up a profound face to face discussion with the": ["TALK"]
+  "strike up a profound face to face discussion with the": ["TALK"],
 });
 
 // Cycle #77 / Task-F100: Phase 63 mappings
@@ -16898,7 +16845,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a meaningful face to face discussion with": ["TALK"],
   "engage in a meaningful face to face discussion with the": ["TALK"],
   "strike up a meaningful face to face discussion with": ["TALK"],
-  "strike up a meaningful face to face discussion with the": ["TALK"]
+  "strike up a meaningful face to face discussion with the": ["TALK"],
 });
 
 // Cycle #76 / Task-F99: Phase 62 compound verbs
@@ -17113,7 +17060,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a scholarly face to face discussion with": ["TALK"],
   "engage in a scholarly face to face discussion with the": ["TALK"],
   "strike up a scholarly face to face discussion with": ["TALK"],
-  "strike up a scholarly face to face discussion with the": ["TALK"]
+  "strike up a scholarly face to face discussion with the": ["TALK"],
 });
 
 // Cycle #78 / Task-F101: Phase 64 compound verbs
@@ -17262,7 +17209,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a literary face to face discussion with": ["TALK"],
   "engage in a literary face to face discussion with the": ["TALK"],
   "strike up a literary face to face discussion with": ["TALK"],
-  "strike up a literary face to face discussion with the": ["TALK"]
+  "strike up a literary face to face discussion with the": ["TALK"],
 });
 
 // Cycle #79 / Task-F102: Phase 65 compound verbs
@@ -17816,7 +17763,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a productive face to face discussion with": ["TALK"],
   "engage in a productive face to face discussion with the": ["TALK"],
   "strike up a productive face to face discussion with": ["TALK"],
-  "strike up a productive face to face discussion with the": ["TALK"]
+  "strike up a productive face to face discussion with the": ["TALK"],
 });
 
 // Cycle #86 / Task-F109: Phase 72 mappings
@@ -17899,7 +17846,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an amiable face to face discussion with": ["TALK"],
   "engage in an amiable face to face discussion with the": ["TALK"],
   "strike up an amiable face to face discussion with": ["TALK"],
-  "strike up an amiable face to face discussion with the": ["TALK"]
+  "strike up an amiable face to face discussion with the": ["TALK"],
 });
 
 // Cycle #87 / Task-F110: Phase 73 mappings
@@ -17982,7 +17929,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a pleasant face to face discussion with": ["TALK"],
   "engage in a pleasant face to face discussion with the": ["TALK"],
   "strike up a pleasant face to face discussion with": ["TALK"],
-  "strike up a pleasant face to face discussion with the": ["TALK"]
+  "strike up a pleasant face to face discussion with the": ["TALK"],
 });
 
 // Cycle #88 / Task-F111: Phase 74 mappings
@@ -18065,7 +18012,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a genial face to face discussion with": ["TALK"],
   "engage in a genial face to face discussion with the": ["TALK"],
   "strike up a genial face to face discussion with": ["TALK"],
-  "strike up a genial face to face discussion with the": ["TALK"]
+  "strike up a genial face to face discussion with the": ["TALK"],
 });
 
 // Cycle #80 / Task-F103: Phase 66 compound verbs
@@ -18742,7 +18689,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a courteous face to face discussion with": ["TALK"],
   "engage in a courteous face to face discussion with the": ["TALK"],
   "strike up a courteous face to face discussion with": ["TALK"],
-  "strike up a courteous face to face discussion with the": ["TALK"]
+  "strike up a courteous face to face discussion with the": ["TALK"],
 });
 
 // Cycle #89 / Task-F112: Phase 75 compound verbs
@@ -18891,7 +18838,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a polite face to face discussion with": ["TALK"],
   "engage in a polite face to face discussion with the": ["TALK"],
   "strike up a polite face to face discussion with": ["TALK"],
-  "strike up a polite face to face discussion with the": ["TALK"]
+  "strike up a polite face to face discussion with the": ["TALK"],
 });
 
 // Cycle #90 / Task-F113: Phase 76 compound verbs
@@ -19040,7 +18987,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an agreeable face to face discussion with": ["TALK"],
   "engage in an agreeable face to face discussion with the": ["TALK"],
   "strike up an agreeable face to face discussion with": ["TALK"],
-  "strike up an agreeable face to face discussion with the": ["TALK"]
+  "strike up an agreeable face to face discussion with the": ["TALK"],
 });
 
 // Cycle #91 / Task-F114: Phase 77 compound verbs
@@ -19189,7 +19136,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a congenial face to face discussion with": ["TALK"],
   "engage in a congenial face to face discussion with the": ["TALK"],
   "strike up a congenial face to face discussion with": ["TALK"],
-  "strike up a congenial face to face discussion with the": ["TALK"]
+  "strike up a congenial face to face discussion with the": ["TALK"],
 });
 
 // Cycle #92 / Task-F115: Phase 78 compound verbs
@@ -19338,7 +19285,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a friendly face to face discussion with": ["TALK"],
   "engage in a friendly face to face discussion with the": ["TALK"],
   "strike up a friendly face to face discussion with": ["TALK"],
-  "strike up a friendly face to face discussion with the": ["TALK"]
+  "strike up a friendly face to face discussion with the": ["TALK"],
 });
 
 // Cycle #94 / Task-F117: Phase 80 mappings
@@ -19421,7 +19368,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a sociable face to face discussion with": ["TALK"],
   "engage in a sociable face to face discussion with the": ["TALK"],
   "strike up a sociable face to face discussion with": ["TALK"],
-  "strike up a sociable face to face discussion with the": ["TALK"]
+  "strike up a sociable face to face discussion with the": ["TALK"],
 });
 
 // Cycle #93 / Task-F116: Phase 79 compound verbs
@@ -19717,7 +19664,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a hospitable face to face discussion with": ["TALK"],
   "engage in a hospitable face to face discussion with the": ["TALK"],
   "strike up a hospitable face to face discussion with": ["TALK"],
-  "strike up a hospitable face to face discussion with the": ["TALK"]
+  "strike up a hospitable face to face discussion with the": ["TALK"],
 });
 
 // Cycle #97 / Task-F120: Phase 83 mappings
@@ -19800,7 +19747,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a companionable face to face discussion with": ["TALK"],
   "engage in a companionable face to face discussion with the": ["TALK"],
   "strike up a companionable face to face discussion with": ["TALK"],
-  "strike up a companionable face to face discussion with the": ["TALK"]
+  "strike up a companionable face to face discussion with the": ["TALK"],
 });
 
 // Cycle #95 / Task-F118: Phase 81 compound verbs
@@ -20081,7 +20028,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an amicable face to face discussion with": ["TALK"],
   "engage in an amicable face to face discussion with the": ["TALK"],
   "strike up an amicable face to face discussion with": ["TALK"],
-  "strike up an amicable face to face discussion with the": ["TALK"]
+  "strike up an amicable face to face discussion with the": ["TALK"],
 });
 
 // Cycle #99 / Task-F122: Phase 85 mappings
@@ -20564,7 +20511,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a magnanimous face to face discussion with": ["TALK"],
   "engage in a magnanimous face to face discussion with the": ["TALK"],
   "strike up a magnanimous face to face discussion with": ["TALK"],
-  "strike up a magnanimous face to face discussion with the": ["TALK"]
+  "strike up a magnanimous face to face discussion with the": ["TALK"],
 });
 
 // Cycle #106 / Task-F128: Phase 91 mappings
@@ -20647,7 +20594,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a scintillating face to face discussion with": ["TALK"],
   "engage in a scintillating face to face discussion with the": ["TALK"],
   "strike up a scintillating face to face discussion with": ["TALK"],
-  "strike up a scintillating face to face discussion with the": ["TALK"]
+  "strike up a scintillating face to face discussion with the": ["TALK"],
 });
 
 // Cycle #107 / Task-F129: Phase 92 mappings
@@ -20730,7 +20677,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a stimulating face to face discussion with": ["TALK"],
   "engage in a stimulating face to face discussion with the": ["TALK"],
   "strike up a stimulating face to face discussion with": ["TALK"],
-  "strike up a stimulating face to face discussion with the": ["TALK"]
+  "strike up a stimulating face to face discussion with the": ["TALK"],
 });
 
 // Cycle #108 / Task-F130: Phase 93 mappings
@@ -20813,7 +20760,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an enlightening face to face discussion with": ["TALK"],
   "engage in an enlightening face to face discussion with the": ["TALK"],
   "strike up an enlightening face to face discussion with": ["TALK"],
-  "strike up an enlightening face to face discussion with the": ["TALK"]
+  "strike up an enlightening face to face discussion with the": ["TALK"],
 });
 
 // Cycle #109 / Task-F131: Phase 94 mappings
@@ -20896,7 +20843,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an enriching face to face discussion with": ["TALK"],
   "engage in an enriching face to face discussion with the": ["TALK"],
   "strike up an enriching face to face discussion with": ["TALK"],
-  "strike up an enriching face to face discussion with the": ["TALK"]
+  "strike up an enriching face to face discussion with the": ["TALK"],
 });
 
 // Cycle #110 / Task-F132: Phase 95 mappings
@@ -20979,7 +20926,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an instructive face to face discussion with": ["TALK"],
   "engage in an instructive face to face discussion with the": ["TALK"],
   "strike up an instructive face to face discussion with": ["TALK"],
-  "strike up an instructive face to face discussion with the": ["TALK"]
+  "strike up an instructive face to face discussion with the": ["TALK"],
 });
 
 // Cycle #111 / Task-F133: Phase 96 mappings
@@ -21062,7 +21009,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a thoughtful face to face discussion with": ["TALK"],
   "engage in a thoughtful face to face discussion with the": ["TALK"],
   "strike up a thoughtful face to face discussion with": ["TALK"],
-  "strike up a thoughtful face to face discussion with the": ["TALK"]
+  "strike up a thoughtful face to face discussion with the": ["TALK"],
 });
 
 // Cycle #112 / Task-F134: Phase 97 verb categories
@@ -21145,7 +21092,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a fruitful face to face discussion with": ["TALK"],
   "engage in a fruitful face to face discussion with the": ["TALK"],
   "strike up a fruitful face to face discussion with": ["TALK"],
-  "strike up a fruitful face to face discussion with the": ["TALK"]
+  "strike up a fruitful face to face discussion with the": ["TALK"],
 });
 
 // Cycle #113 / Task-F135: Phase 98 verb categories
@@ -21228,7 +21175,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an edifying face to face discussion with": ["TALK"],
   "engage in an edifying face to face discussion with the": ["TALK"],
   "strike up an edifying face to face discussion with": ["TALK"],
-  "strike up an edifying face to face discussion with the": ["TALK"]
+  "strike up an edifying face to face discussion with the": ["TALK"],
 });
 
 // Cycle #114 / Task-F136: Phase 99 verb categories
@@ -21311,7 +21258,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an illuminating face to face discussion with": ["TALK"],
   "engage in an illuminating face to face discussion with the": ["TALK"],
   "strike up an illuminating face to face discussion with": ["TALK"],
-  "strike up an illuminating face to face discussion with the": ["TALK"]
+  "strike up an illuminating face to face discussion with the": ["TALK"],
 });
 
 // Cycle #115 / Task-F137: Phase 100 verb categories
@@ -21394,7 +21341,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a revelatory face to face discussion with": ["TALK"],
   "engage in a revelatory face to face discussion with the": ["TALK"],
   "strike up a revelatory face to face discussion with": ["TALK"],
-  "strike up a revelatory face to face discussion with the": ["TALK"]
+  "strike up a revelatory face to face discussion with the": ["TALK"],
 });
 
 // Cycle #116 / Task-F138: Phase 101 verb categories
@@ -21477,7 +21424,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an informative face to face discussion with": ["TALK"],
   "engage in an informative face to face discussion with the": ["TALK"],
   "strike up an informative face to face discussion with": ["TALK"],
-  "strike up an informative face to face discussion with the": ["TALK"]
+  "strike up an informative face to face discussion with the": ["TALK"],
 });
 
 // Cycle #117 / Task-F139: Phase 102 verb categories
@@ -21560,7 +21507,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a discerning face to face discussion with": ["TALK"],
   "engage in a discerning face to face discussion with the": ["TALK"],
   "strike up a discerning face to face discussion with": ["TALK"],
-  "strike up a discerning face to face discussion with the": ["TALK"]
+  "strike up a discerning face to face discussion with the": ["TALK"],
 });
 
 // Cycle #118 / Task-F140: Phase 103 verb categories
@@ -21643,7 +21590,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a perceptive face to face discussion with": ["TALK"],
   "engage in a perceptive face to face discussion with the": ["TALK"],
   "strike up a perceptive face to face discussion with": ["TALK"],
-  "strike up a perceptive face to face discussion with the": ["TALK"]
+  "strike up a perceptive face to face discussion with the": ["TALK"],
 });
 
 // Cycle #119 / Task-F141: Phase 104 verb categories
@@ -21807,7 +21754,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an erudite face to face discussion with": ["TALK"],
   "engage in an erudite face to face discussion with the": ["TALK"],
   "strike up an erudite face to face discussion with": ["TALK"],
-  "strike up an erudite face to face discussion with the": ["TALK"]
+  "strike up an erudite face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -21890,7 +21837,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a judicious face to face discussion with": ["TALK"],
   "engage in a judicious face to face discussion with the": ["TALK"],
   "strike up a judicious face to face discussion with": ["TALK"],
-  "strike up a judicious face to face discussion with the": ["TALK"]
+  "strike up a judicious face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -21973,7 +21920,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an incisive face to face discussion with": ["TALK"],
   "engage in an incisive face to face discussion with the": ["TALK"],
   "strike up an incisive face to face discussion with": ["TALK"],
-  "strike up an incisive face to face discussion with the": ["TALK"]
+  "strike up an incisive face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22056,7 +22003,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a penetrating face to face discussion with": ["TALK"],
   "engage in a penetrating face to face discussion with the": ["TALK"],
   "strike up a penetrating face to face discussion with": ["TALK"],
-  "strike up a penetrating face to face discussion with the": ["TALK"]
+  "strike up a penetrating face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22139,7 +22086,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a searching face to face discussion with": ["TALK"],
   "engage in a searching face to face discussion with the": ["TALK"],
   "strike up a searching face to face discussion with": ["TALK"],
-  "strike up a searching face to face discussion with the": ["TALK"]
+  "strike up a searching face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22222,7 +22169,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a probing face to face discussion with": ["TALK"],
   "engage in a probing face to face discussion with the": ["TALK"],
   "strike up a probing face to face discussion with": ["TALK"],
-  "strike up a probing face to face discussion with the": ["TALK"]
+  "strike up a probing face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22305,7 +22252,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a circumspect face to face discussion with": ["TALK"],
   "engage in a circumspect face to face discussion with the": ["TALK"],
   "strike up a circumspect face to face discussion with": ["TALK"],
-  "strike up a circumspect face to face discussion with the": ["TALK"]
+  "strike up a circumspect face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22388,7 +22335,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an investigative face to face discussion with": ["TALK"],
   "engage in an investigative face to face discussion with the": ["TALK"],
   "strike up an investigative face to face discussion with": ["TALK"],
-  "strike up an investigative face to face discussion with the": ["TALK"]
+  "strike up an investigative face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22471,7 +22418,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a discursive face to face discussion with": ["TALK"],
   "engage in a discursive face to face discussion with the": ["TALK"],
   "strike up a discursive face to face discussion with": ["TALK"],
-  "strike up a discursive face to face discussion with the": ["TALK"]
+  "strike up a discursive face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22554,7 +22501,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an exploratory face to face discussion with": ["TALK"],
   "engage in an exploratory face to face discussion with the": ["TALK"],
   "strike up an exploratory face to face discussion with": ["TALK"],
-  "strike up an exploratory face to face discussion with the": ["TALK"]
+  "strike up an exploratory face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22637,7 +22584,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an eloquent face to face discussion with": ["TALK"],
   "engage in an eloquent face to face discussion with the": ["TALK"],
   "strike up an eloquent face to face discussion with": ["TALK"],
-  "strike up an eloquent face to face discussion with the": ["TALK"]
+  "strike up an eloquent face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22720,7 +22667,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a persuasive face to face discussion with": ["TALK"],
   "engage in a persuasive face to face discussion with the": ["TALK"],
   "strike up a persuasive face to face discussion with": ["TALK"],
-  "strike up a persuasive face to face discussion with the": ["TALK"]
+  "strike up a persuasive face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22803,7 +22750,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a theological face to face discussion with": ["TALK"],
   "engage in a theological face to face discussion with the": ["TALK"],
   "strike up a theological face to face discussion with": ["TALK"],
-  "strike up a theological face to face discussion with the": ["TALK"]
+  "strike up a theological face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22886,7 +22833,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a metaphysical face to face discussion with": ["TALK"],
   "engage in a metaphysical face to face discussion with the": ["TALK"],
   "strike up a metaphysical face to face discussion with": ["TALK"],
-  "strike up a metaphysical face to face discussion with the": ["TALK"]
+  "strike up a metaphysical face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -22969,7 +22916,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an existential face to face discussion with": ["TALK"],
   "engage in an existential face to face discussion with the": ["TALK"],
   "strike up an existential face to face discussion with": ["TALK"],
-  "strike up an existential face to face discussion with the": ["TALK"]
+  "strike up an existential face to face discussion with the": ["TALK"],
 });
 
 Object.assign(VERB_CATEGORIES, {
@@ -23687,7 +23634,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a dialogic face to face discussion with": ["TALK"],
   "engage in a dialogic face to face discussion with the": ["TALK"],
   "strike up a dialogic face to face discussion with": ["TALK"],
-  "strike up a dialogic face to face discussion with the": ["TALK"]
+  "strike up a dialogic face to face discussion with the": ["TALK"],
 });
 
 // Cycle #145 / Task-F166: Phase 129 VERB_CATEGORIES mappings
@@ -23770,7 +23717,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a semianalytic face to face discussion with": ["TALK"],
   "engage in a semianalytic face to face discussion with the": ["TALK"],
   "strike up a semianalytic face to face discussion with": ["TALK"],
-  "strike up a semianalytic face to face discussion with the": ["TALK"]
+  "strike up a semianalytic face to face discussion with the": ["TALK"],
 });
 
 // Cycle #146 / Task-F167: Phase 130 VERB_CATEGORIES mappings
@@ -23853,7 +23800,7 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a semiotic face to face discussion with": ["TALK"],
   "engage in a semiotic face to face discussion with the": ["TALK"],
   "strike up a semiotic face to face discussion with": ["TALK"],
-  "strike up a semiotic face to face discussion with the": ["TALK"]
+  "strike up a semiotic face to face discussion with the": ["TALK"],
 });
 
 // Cycle #147 / Task-F168: Phase 131 VERB_CATEGORIES mappings
@@ -23936,11 +23883,91 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a hermeneutical face to face discussion with": ["TALK"],
   "engage in a hermeneutical face to face discussion with the": ["TALK"],
   "strike up a hermeneutical face to face discussion with": ["TALK"],
-  "strike up a hermeneutical face to face discussion with the": ["TALK"]
+  "strike up a hermeneutical face to face discussion with the": ["TALK"],
 });
 
+// Cycle #148 / Task-F169: Phase 132 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of autolysis towards the location of": ["MOVE"],
+  "navigate one's vector of autolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of autolysis towards the location of": ["MOVE"],
+  "navigate ones vector of autolysis towards the location of the": ["MOVE"],
+  "steer one's vector of autolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of autolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of autolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of autolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of autolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of autolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of autolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of autolysis towards the coordinates of the location of the": ["MOVE"],
 
+  // Inspection
+  "subject to a comprehensive visual representation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual representation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual representation": ["LOOK_INSPECT"],
+  "subject to a thorough visual representation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual representation": ["LOOK_INSPECT"],
+  "subject to a detailed visual representation the": ["LOOK_INSPECT"],
 
+  // Take
+  "assume direct exclusive conveyance of": ["TAKE"],
+  "assume direct exclusive conveyance of the": ["TAKE"],
+  "assume absolute exclusive conveyance of": ["TAKE"],
+  "assume absolute exclusive conveyance of the": ["TAKE"],
+  "assume immediate exclusive conveyance of": ["TAKE"],
+  "assume immediate exclusive conveyance of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive conveyance of": ["DROP"],
+  "divest oneself of all exclusive conveyance of the": ["DROP"],
+  "relinquish all exclusive conveyance of": ["DROP"],
+  "relinquish all exclusive conveyance of the": ["DROP"],
+  "free oneself from all exclusive conveyance of": ["DROP"],
+  "free oneself from all exclusive conveyance of the": ["DROP"],
+
+  // Open/Close
+  "force completely and physicochemically wide open": ["OPEN"],
+  "force completely and physicochemically wide open the": ["OPEN"],
+  "pry completely and physicochemically wide open": ["OPEN"],
+  "pry completely and physicochemically wide open the": ["OPEN"],
+  "fasten completely and physicochemically closed": ["CLOSE"],
+  "fasten completely and physicochemically closed the": ["CLOSE"],
+  "seal completely and physicochemically shut": ["CLOSE"],
+  "seal completely and physicochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all gluino security devices of": ["UNLOCK"],
+  "deactivate all gluino security devices of the": ["UNLOCK"],
+  "bypass all gluino security devices on": ["UNLOCK"],
+  "bypass all gluino security devices on the": ["UNLOCK"],
+  "disengage the primary gluino security device on": ["UNLOCK"],
+  "disengage the primary gluino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full perpetual deployment of": ["USE"],
+  "harness the full perpetual deployment of the": ["USE"],
+  "bring into active perpetual deployment": ["USE"],
+  "bring into active perpetual deployment the": ["USE"],
+  "make complete perpetual deployment of": ["USE"],
+  "make complete perpetual deployment of the": ["USE"],
+
+  // Combat
+  "initiate a harrowing confrontation against": ["FIGHT"],
+  "initiate a harrowing confrontation against the": ["FIGHT"],
+  "commence a harrowing confrontation against": ["FIGHT"],
+  "commence a harrowing confrontation against the": ["FIGHT"],
+  "engage in a harrowing confrontation against": ["FIGHT"],
+  "engage in a harrowing confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a socratic face to face discussion with": ["TALK"],
+  "initiate a socratic face to face discussion with the": ["TALK"],
+  "engage in a socratic face to face discussion with": ["TALK"],
+  "engage in a socratic face to face discussion with the": ["TALK"],
+  "strike up a socratic face to face discussion with": ["TALK"],
+  "strike up a socratic face to face discussion with the": ["TALK"],
+});
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -27108,8 +27135,70 @@ compoundVerbs.push(
   "strike up a hermeneutical face to face discussion with"
 );
 
+// Cycle #148 / Task-F169: Phase 132 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of autolysis towards the location of the",
+  "navigate one's vector of autolysis towards the location of",
+  "navigate ones vector of autolysis towards the location of the",
+  "navigate ones vector of autolysis towards the location of",
+  "steer one's vector of autolysis in the direction of the coordinates of the",
+  "steer one's vector of autolysis in the direction of the coordinates of",
+  "steer ones vector of autolysis in the direction of the coordinates of the",
+  "steer ones vector of autolysis in the direction of the coordinates of",
+  "direct one's vector of autolysis towards the coordinates of the location of the",
+  "direct one's vector of autolysis towards the coordinates of the location of",
+  "direct ones vector of autolysis towards the coordinates of the location of the",
+  "direct ones vector of autolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual representation the",
+  "subject to a comprehensive visual representation",
+  "subject to a thorough visual representation the",
+  "subject to a thorough visual representation",
+  "subject to a detailed visual representation the",
+  "subject to a detailed visual representation",
+  "assume direct exclusive conveyance of the",
+  "assume direct exclusive conveyance of",
+  "assume absolute exclusive conveyance of the",
+  "assume absolute exclusive conveyance of",
+  "assume immediate exclusive conveyance of the",
+  "assume immediate exclusive conveyance of",
+  "divest oneself of all exclusive conveyance of the",
+  "divest oneself of all exclusive conveyance of",
+  "relinquish all exclusive conveyance of the",
+  "relinquish all exclusive conveyance of",
+  "free oneself from all exclusive conveyance of the",
+  "free oneself from all exclusive conveyance of",
+  "force completely and physicochemically wide open the",
+  "force completely and physicochemically wide open",
+  "pry completely and physicochemically wide open the",
+  "pry completely and physicochemically wide open",
+  "fasten completely and physicochemically closed the",
+  "fasten completely and physicochemically closed",
+  "seal completely and physicochemically shut the",
+  "seal completely and physicochemically shut",
+  "deactivate all gluino security devices of the",
+  "deactivate all gluino security devices of",
+  "bypass all gluino security devices on the",
+  "bypass all gluino security devices on",
+  "disengage the primary gluino security device on the",
+  "disengage the primary gluino security device on",
+  "harness the full perpetual deployment of the",
+  "harness the full perpetual deployment of",
+  "bring into active perpetual deployment the",
+  "bring into active perpetual deployment",
+  "make complete perpetual deployment of the",
+  "make complete perpetual deployment of",
+  "initiate a harrowing confrontation against the",
+  "initiate a harrowing confrontation against",
+  "commence a harrowing confrontation against the",
+  "commence a harrowing confrontation against",
+  "engage in a harrowing confrontation against the",
+  "engage in a harrowing confrontation against",
+  "initiate a socratic face to face discussion with the",
+  "initiate a socratic face to face discussion with",
+  "engage in a socratic face to face discussion with the",
+  "engage in a socratic face to face discussion with",
+  "strike up a socratic face to face discussion with the",
+  "strike up a socratic face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
-
-
-
-

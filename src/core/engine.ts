@@ -1746,16 +1746,22 @@ export function step(
       }
 
       // If the target room doesn't exist, generate it procedurally right now!
-      let targetRoom = findRoom(newState, parserPack, exit.to);
+      const targetRoom = findRoom(newState, parserPack, exit.to);
       if (!targetRoom && parserPack.procedural_templates && parserPack.procedural_templates.length > 0) {
         const templateId = currentRoom?.template_id || parserPack.procedural_templates[0].id;
-        const res = applyEffects(newState, [{
-          generate_procedural_room: {
-            direction: action.direction,
-            to_id: exit.to,
-            template_id: templateId
-          }
-        } as any], parserPack);
+        const res = applyEffects(
+          newState,
+          [
+            {
+              generate_procedural_room: {
+                direction: action.direction,
+                to_id: exit.to,
+                template_id: templateId,
+              },
+            } as any,
+          ],
+          parserPack
+        );
         newState = res.state;
         if (res.events) {
           events.push(...res.events);
@@ -1830,14 +1836,17 @@ export function step(
           currentLower.includes("rock") ||
           currentLower.includes("peak");
 
-        if (isSlickSurface && (weather === "rain" || weather === "storm") && !newState.inventory.includes("leather_boots")) {
+        if (
+          isSlickSurface &&
+          (weather === "rain" || weather === "storm") &&
+          !newState.inventory.includes("leather_boots")
+        ) {
           return {
             state,
             events: [
               {
                 type: "rejected",
-                reason:
-                  "The rocks are too slick to climb in the rain. You need sturdy boots for traction.",
+                reason: "The rocks are too slick to climb in the rain. You need sturdy boots for traction.",
               },
             ],
             ok: false,
@@ -1861,11 +1870,11 @@ export function step(
               },
             ],
             ok: false,
-            rejectionReason: "The dense, clinging fog obscures all paths! You need a light source like a lantern or torch to find your way.",
+            rejectionReason:
+              "The dense, clinging fog obscures all paths! You need a light source like a lantern or torch to find your way.",
           };
         }
       }
-
 
       // Territory-based exit traversal constraints & faction tax mechanics
       const destRoomId = exit.to;

@@ -72,12 +72,27 @@ describe("Parser Synonym Expansion Phase 2 (Task-F36)", () => {
 
   it("should map newly added trade compound verbs to BUY and SELL actions", () => {
     expect(mapCommand("exchange travelbread for gold", actions).action).toEqual({ type: "SELL", item: "travelbread" });
-    expect(mapCommand("exchange the travelbread for coins", actions).action).toEqual({ type: "SELL", item: "travelbread" });
-    expect(mapCommand("buy the travelbread from the merchant", actions).action).toEqual({ type: "BUY", item: "travelbread" });
-    expect(mapCommand("purchase travelbread from merchant", actions).action).toEqual({ type: "BUY", item: "travelbread" });
-    expect(mapCommand("transact travelbread from merchant", actions).action).toEqual({ type: "BUY", item: "travelbread" });
+    expect(mapCommand("exchange the travelbread for coins", actions).action).toEqual({
+      type: "SELL",
+      item: "travelbread",
+    });
+    expect(mapCommand("buy the travelbread from the merchant", actions).action).toEqual({
+      type: "BUY",
+      item: "travelbread",
+    });
+    expect(mapCommand("purchase travelbread from merchant", actions).action).toEqual({
+      type: "BUY",
+      item: "travelbread",
+    });
+    expect(mapCommand("transact travelbread from merchant", actions).action).toEqual({
+      type: "BUY",
+      item: "travelbread",
+    });
 
-    expect(mapCommand("sell the manapotion to the merchant", actions).action).toEqual({ type: "SELL", item: "manapotion" });
+    expect(mapCommand("sell the manapotion to the merchant", actions).action).toEqual({
+      type: "SELL",
+      item: "manapotion",
+    });
     expect(mapCommand("pawn manapotion to merchant", actions).action).toEqual({ type: "SELL", item: "manapotion" });
     expect(mapCommand("cash in manapotion", actions).action).toEqual({ type: "SELL", item: "manapotion" });
     expect(mapCommand("convert to cash manapotion", actions).action).toEqual({ type: "SELL", item: "manapotion" });

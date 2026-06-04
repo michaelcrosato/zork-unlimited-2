@@ -377,9 +377,7 @@ describe("Stage 2 Procedural Templates & Generators", () => {
           id: "infinite_dungeon",
           name_pool: ["Dungeon Room"],
           description_pool: ["A stone chamber."],
-          exits: [
-            { direction: "east", to: "proc_room_2" },
-          ],
+          exits: [{ direction: "east", to: "proc_room_2" }],
         },
       ],
       win_conditions: [],
@@ -415,7 +413,7 @@ describe("Stage 2 Procedural Templates & Generators", () => {
     expect(state.current).toBe("proc_room_1_east");
 
     expect(state.proceduralRooms).toHaveLength(2);
-    const room2 = state.proceduralRooms!.find(r => r.id === "proc_room_1_east");
+    const room2 = state.proceduralRooms!.find((r) => r.id === "proc_room_1_east");
     expect(room2).toBeDefined();
     expect(room2!.exits).toEqual([
       { direction: "west", to: "proc_room_1" },

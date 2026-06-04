@@ -603,7 +603,7 @@ export function applyEffect(state: GameState, effect: Effect, pack?: any): { sta
           const targetId = targetExistsInPack ? ex.to : `${to_id}_${ex.direction}`;
           newRoomExits.push({
             ...ex,
-            to: targetId
+            to: targetId,
           });
         }
       }
