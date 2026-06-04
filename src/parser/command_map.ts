@@ -25865,6 +25865,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a transparent face to face discussion with the": ["TALK"]
 });
 
+// Cycle #173 / Task-F193: Phase 156 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of abiogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of abiogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of abiogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of abiogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of abiogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of abiogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of abiogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of abiogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of abiogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of abiogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of abiogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of abiogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual cataloging": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual cataloging the": ["LOOK_INSPECT"],
+  "subject to a thorough visual cataloging": ["LOOK_INSPECT"],
+  "subject to a thorough visual cataloging the": ["LOOK_INSPECT"],
+  "subject to a detailed visual cataloging": ["LOOK_INSPECT"],
+  "subject to a detailed visual cataloging the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive conservation of": ["TAKE"],
+  "assume direct exclusive conservation of the": ["TAKE"],
+  "assume absolute exclusive conservation of": ["TAKE"],
+  "assume absolute exclusive conservation of the": ["TAKE"],
+  "assume immediate exclusive conservation of": ["TAKE"],
+  "assume immediate exclusive conservation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive conservation of": ["DROP"],
+  "divest oneself of all exclusive conservation of the": ["DROP"],
+  "relinquish all exclusive conservation of": ["DROP"],
+  "relinquish all exclusive conservation of the": ["DROP"],
+  "free oneself from all exclusive conservation of": ["DROP"],
+  "free oneself from all exclusive conservation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and neuroelastically wide open": ["OPEN"],
+  "force completely and neuroelastically wide open the": ["OPEN"],
+  "pry completely and neuroelastically wide open": ["OPEN"],
+  "pry completely and neuroelastically wide open the": ["OPEN"],
+  "fasten completely and neuroelastically closed": ["CLOSE"],
+  "fasten completely and neuroelastically closed the": ["CLOSE"],
+  "seal completely and neuroelastically shut": ["CLOSE"],
+  "seal completely and neuroelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all graviton security devices of": ["UNLOCK"],
+  "deactivate all graviton security devices of the": ["UNLOCK"],
+  "deactivate all boson security devices of": ["UNLOCK"],
+  "deactivate all boson security devices of the": ["UNLOCK"],
+  "deactivate all meson security devices of": ["UNLOCK"],
+  "deactivate all meson security devices of the": ["UNLOCK"],
+  "deactivate all gravitino security devices of": ["UNLOCK"],
+  "deactivate all gravitino security devices of the": ["UNLOCK"],
+  "bypass all graviton security devices on": ["UNLOCK"],
+  "bypass all graviton security devices on the": ["UNLOCK"],
+  "bypass all boson security devices on": ["UNLOCK"],
+  "bypass all boson security devices on the": ["UNLOCK"],
+  "bypass all meson security devices on": ["UNLOCK"],
+  "bypass all meson security devices on the": ["UNLOCK"],
+  "bypass all gravitino security devices on": ["UNLOCK"],
+  "bypass all gravitino security devices on the": ["UNLOCK"],
+  "disengage the primary gravitino security device on": ["UNLOCK"],
+  "disengage the primary gravitino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full systematic deployment of": ["USE"],
+  "harness the full systematic deployment of the": ["USE"],
+  "bring into active systematic deployment": ["USE"],
+  "bring into active systematic deployment the": ["USE"],
+  "make complete systematic deployment of": ["USE"],
+  "make complete systematic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a critical confrontation against": ["FIGHT"],
+  "initiate a critical confrontation against the": ["FIGHT"],
+  "commence a critical confrontation against": ["FIGHT"],
+  "commence a critical confrontation against the": ["FIGHT"],
+  "engage in a critical confrontation against": ["FIGHT"],
+  "engage in a critical confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a deliberative face to face discussion with": ["TALK"],
+  "initiate a deliberative face to face discussion with the": ["TALK"],
+  "engage in a deliberative face to face discussion with": ["TALK"],
+  "engage in a deliberative face to face discussion with the": ["TALK"],
+  "strike up a deliberative face to face discussion with": ["TALK"],
+  "strike up a deliberative face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -30613,6 +30708,84 @@ compoundVerbs.push(
   "engage in a transparent face to face discussion with",
   "strike up a transparent face to face discussion with the",
   "strike up a transparent face to face discussion with"
+);
+
+// Cycle #173 / Task-F193: Phase 156 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of abiogenesis towards the location of the",
+  "navigate one's vector of abiogenesis towards the location of",
+  "navigate ones vector of abiogenesis towards the location of the",
+  "navigate ones vector of abiogenesis towards the location of",
+  "steer one's vector of abiogenesis in the direction of the coordinates of the",
+  "steer one's vector of abiogenesis in the direction of the coordinates of",
+  "steer ones vector of abiogenesis in the direction of the coordinates of the",
+  "steer ones vector of abiogenesis in the direction of the coordinates of",
+  "direct one's vector of abiogenesis towards the coordinates of the location of the",
+  "direct one's vector of abiogenesis towards the coordinates of the location of",
+  "direct ones vector of abiogenesis towards the coordinates of the location of the",
+  "direct ones vector of abiogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual cataloging the",
+  "subject to a comprehensive visual cataloging",
+  "subject to a thorough visual cataloging the",
+  "subject to a thorough visual cataloging",
+  "subject to a detailed visual cataloging the",
+  "subject to a detailed visual cataloging",
+  "assume direct exclusive conservation of the",
+  "assume direct exclusive conservation of",
+  "assume absolute exclusive conservation of the",
+  "assume absolute exclusive conservation of",
+  "assume immediate exclusive conservation of the",
+  "assume immediate exclusive conservation of",
+  "divest oneself of all exclusive conservation of the",
+  "divest oneself of all exclusive conservation of",
+  "relinquish all exclusive conservation of the",
+  "relinquish all exclusive conservation of",
+  "free oneself from all exclusive conservation of the",
+  "free oneself from all exclusive conservation of",
+  "force completely and neuroelastically wide open the",
+  "force completely and neuroelastically wide open",
+  "pry completely and neuroelastically wide open the",
+  "pry completely and neuroelastically wide open",
+  "fasten completely and neuroelastically closed the",
+  "fasten completely and neuroelastically closed",
+  "seal completely and neuroelastically shut the",
+  "seal completely and neuroelastically shut",
+  "deactivate all graviton security devices of the",
+  "deactivate all graviton security devices of",
+  "deactivate all boson security devices of the",
+  "deactivate all boson security devices of",
+  "deactivate all meson security devices of the",
+  "deactivate all meson security devices of",
+  "deactivate all gravitino security devices of the",
+  "deactivate all gravitino security devices of",
+  "bypass all graviton security devices on the",
+  "bypass all graviton security devices on",
+  "bypass all boson security devices on the",
+  "bypass all boson security devices on",
+  "bypass all meson security devices on the",
+  "bypass all meson security devices on",
+  "bypass all gravitino security devices on the",
+  "bypass all gravitino security devices on",
+  "disengage the primary gravitino security device on the",
+  "disengage the primary gravitino security device on",
+  "harness the full systematic deployment of the",
+  "harness the full systematic deployment of",
+  "bring into active systematic deployment the",
+  "bring into active systematic deployment",
+  "make complete systematic deployment of the",
+  "make complete systematic deployment of",
+  "initiate a critical confrontation against the",
+  "initiate a critical confrontation against",
+  "commence a critical confrontation against the",
+  "commence a critical confrontation against",
+  "engage in a critical confrontation against the",
+  "engage in a critical confrontation against",
+  "initiate a deliberative face to face discussion with the",
+  "initiate a deliberative face to face discussion with",
+  "engage in a deliberative face to face discussion with the",
+  "engage in a deliberative face to face discussion with",
+  "strike up a deliberative face to face discussion with the",
+  "strike up a deliberative face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
