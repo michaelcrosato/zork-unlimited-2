@@ -29473,6 +29473,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an ornithological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #213 / Task-F232: Phase 194 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of myelogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of myelogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of myelogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of myelogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of myelogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of myelogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of myelogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of myelogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of myelogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of myelogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of myelogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of myelogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual categorization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual categorization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual categorization": ["LOOK_INSPECT"],
+  "subject to a thorough visual categorization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual categorization": ["LOOK_INSPECT"],
+  "subject to a detailed visual categorization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive retention of": ["TAKE"],
+  "assume direct exclusive retention of the": ["TAKE"],
+  "assume absolute exclusive retention of": ["TAKE"],
+  "assume absolute exclusive retention of the": ["TAKE"],
+  "assume immediate exclusive retention of": ["TAKE"],
+  "assume immediate exclusive retention of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive retention of": ["DROP"],
+  "divest oneself of all exclusive retention of the": ["DROP"],
+  "relinquish all exclusive retention of": ["DROP"],
+  "relinquish all exclusive retention of the": ["DROP"],
+  "free oneself from all exclusive retention of": ["DROP"],
+  "free oneself from all exclusive retention of the": ["DROP"],
+
+  // Open/Close
+  "force completely and viscoplastically wide open": ["OPEN"],
+  "force completely and viscoplastically wide open the": ["OPEN"],
+  "pry completely and viscoplastically wide open": ["OPEN"],
+  "pry completely and viscoplastically wide open the": ["OPEN"],
+  "fasten completely and viscoplastically closed": ["CLOSE"],
+  "fasten completely and viscoplastically closed the": ["CLOSE"],
+  "seal completely and viscoplastically shut": ["CLOSE"],
+  "seal completely and viscoplastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all sanger security devices of": ["UNLOCK"],
+  "deactivate all sanger security devices of the": ["UNLOCK"],
+  "deactivate all franklin security devices of": ["UNLOCK"],
+  "deactivate all franklin security devices of the": ["UNLOCK"],
+  "deactivate all watson security devices of": ["UNLOCK"],
+  "deactivate all watson security devices of the": ["UNLOCK"],
+  "deactivate all crick security devices of": ["UNLOCK"],
+  "deactivate all crick security devices of the": ["UNLOCK"],
+  "bypass all sanger security devices on": ["UNLOCK"],
+  "bypass all sanger security devices on the": ["UNLOCK"],
+  "bypass all franklin security devices on": ["UNLOCK"],
+  "bypass all franklin security devices on the": ["UNLOCK"],
+  "bypass all watson security devices on": ["UNLOCK"],
+  "bypass all watson security devices on the": ["UNLOCK"],
+  "bypass all crick security devices on": ["UNLOCK"],
+  "bypass all crick security devices on the": ["UNLOCK"],
+  "disengage the primary sanger security device on": ["UNLOCK"],
+  "disengage the primary sanger security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full organotropic deployment of": ["USE"],
+  "harness the full organotropic deployment of the": ["USE"],
+  "bring into active organotropic deployment": ["USE"],
+  "bring into active organotropic deployment the": ["USE"],
+  "make complete organotropic deployment of": ["USE"],
+  "make complete organotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unflinchingly heroic confrontation against": ["FIGHT"],
+  "initiate an unflinchingly heroic confrontation against the": ["FIGHT"],
+  "commence an unflinchingly heroic confrontation against": ["FIGHT"],
+  "commence an unflinchingly heroic confrontation against the": ["FIGHT"],
+  "engage in an unflinchingly heroic confrontation against": ["FIGHT"],
+  "engage in an unflinchingly heroic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a mineralogical face to face discussion with": ["TALK"],
+  "initiate a mineralogical face to face discussion with the": ["TALK"],
+  "engage in a mineralogical face to face discussion with": ["TALK"],
+  "engage in a mineralogical face to face discussion with the": ["TALK"],
+  "strike up a mineralogical face to face discussion with": ["TALK"],
+  "strike up a mineralogical face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -37188,6 +37283,84 @@ compoundVerbs.push(
   "engage in an ornithological face to face discussion with",
   "strike up an ornithological face to face discussion with the",
   "strike up an ornithological face to face discussion with"
+);
+
+// Cycle #213 / Task-F232: Phase 194 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of myelogenesis towards the location of the",
+  "navigate one's vector of myelogenesis towards the location of",
+  "navigate ones vector of myelogenesis towards the location of the",
+  "navigate ones vector of myelogenesis towards the location of",
+  "steer one's vector of myelogenesis in the direction of the coordinates of the",
+  "steer one's vector of myelogenesis in the direction of the coordinates of",
+  "steer ones vector of myelogenesis in the direction of the coordinates of the",
+  "steer ones vector of myelogenesis in the direction of the coordinates of",
+  "direct one's vector of myelogenesis towards the coordinates of the location of the",
+  "direct one's vector of myelogenesis towards the coordinates of the location of",
+  "direct ones vector of myelogenesis towards the coordinates of the location of the",
+  "direct ones vector of myelogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual categorization the",
+  "subject to a comprehensive visual categorization",
+  "subject to a thorough visual categorization the",
+  "subject to a thorough visual categorization",
+  "subject to a detailed visual categorization the",
+  "subject to a detailed visual categorization",
+  "assume direct exclusive retention of the",
+  "assume direct exclusive retention of",
+  "assume absolute exclusive retention of the",
+  "assume absolute exclusive retention of",
+  "assume immediate exclusive retention of the",
+  "assume immediate exclusive retention of",
+  "divest oneself of all exclusive retention of the",
+  "divest oneself of all exclusive retention of",
+  "relinquish all exclusive retention of the",
+  "relinquish all exclusive retention of",
+  "free oneself from all exclusive retention of the",
+  "free oneself from all exclusive retention of",
+  "force completely and viscoplastically wide open the",
+  "force completely and viscoplastically wide open",
+  "pry completely and viscoplastically wide open the",
+  "pry completely and viscoplastically wide open",
+  "fasten completely and viscoplastically closed the",
+  "fasten completely and viscoplastically closed",
+  "seal completely and viscoplastically shut the",
+  "seal completely and viscoplastically shut",
+  "deactivate all sanger security devices of the",
+  "deactivate all sanger security devices of",
+  "deactivate all franklin security devices of the",
+  "deactivate all franklin security devices of",
+  "deactivate all watson security devices of the",
+  "deactivate all watson security devices of",
+  "deactivate all crick security devices of the",
+  "deactivate all crick security devices of",
+  "bypass all sanger security devices on the",
+  "bypass all sanger security devices on",
+  "bypass all franklin security devices on the",
+  "bypass all franklin security devices on",
+  "bypass all watson security devices on the",
+  "bypass all watson security devices on",
+  "bypass all crick security devices on the",
+  "bypass all crick security devices on",
+  "disengage the primary sanger security device on the",
+  "disengage the primary sanger security device on",
+  "harness the full organotropic deployment of the",
+  "harness the full organotropic deployment of",
+  "bring into active organotropic deployment the",
+  "bring into active organotropic deployment",
+  "make complete organotropic deployment of the",
+  "make complete organotropic deployment of",
+  "initiate an unflinchingly heroic confrontation against the",
+  "initiate an unflinchingly heroic confrontation against",
+  "commence an unflinchingly heroic confrontation against the",
+  "commence an unflinchingly heroic confrontation against",
+  "engage in an unflinchingly heroic confrontation against the",
+  "engage in an unflinchingly heroic confrontation against",
+  "initiate a mineralogical face to face discussion with the",
+  "initiate a mineralogical face to face discussion with",
+  "engage in a mineralogical face to face discussion with the",
+  "engage in a mineralogical face to face discussion with",
+  "strike up a mineralogical face to face discussion with the",
+  "strike up a mineralogical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
