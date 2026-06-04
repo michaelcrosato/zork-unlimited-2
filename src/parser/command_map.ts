@@ -25297,6 +25297,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a professional face to face discussion with the": ["TALK"],
 });
 
+// Cycle #165 / Task-F186: Phase 149 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of karyorrhexis towards the location of": ["MOVE"],
+  "navigate one's vector of karyorrhexis towards the location of the": ["MOVE"],
+  "navigate ones vector of karyorrhexis towards the location of": ["MOVE"],
+  "navigate ones vector of karyorrhexis towards the location of the": ["MOVE"],
+  "steer one's vector of karyorrhexis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of karyorrhexis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of karyorrhexis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of karyorrhexis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of karyorrhexis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of karyorrhexis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of karyorrhexis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of karyorrhexis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual representation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual representation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual representation": ["LOOK_INSPECT"],
+  "subject to a thorough visual representation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual representation": ["LOOK_INSPECT"],
+  "subject to a detailed visual representation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive acquisition of": ["TAKE"],
+  "assume direct exclusive acquisition of the": ["TAKE"],
+  "assume absolute exclusive acquisition of": ["TAKE"],
+  "assume absolute exclusive acquisition of the": ["TAKE"],
+  "assume immediate exclusive acquisition of": ["TAKE"],
+  "assume immediate exclusive acquisition of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive acquisition of": ["DROP"],
+  "divest oneself of all exclusive acquisition of the": ["DROP"],
+  "relinquish all exclusive acquisition of": ["DROP"],
+  "relinquish all exclusive acquisition of the": ["DROP"],
+  "free oneself from all exclusive acquisition of": ["DROP"],
+  "free oneself from all exclusive acquisition of the": ["DROP"],
+
+  // Open/Close
+  "force completely and optophysically wide open": ["OPEN"],
+  "force completely and optophysically wide open the": ["OPEN"],
+  "pry completely and optophysically wide open": ["OPEN"],
+  "pry completely and optophysically wide open the": ["OPEN"],
+  "fasten completely and optophysically closed": ["CLOSE"],
+  "fasten completely and optophysically closed the": ["CLOSE"],
+  "seal completely and optophysically shut": ["CLOSE"],
+  "seal completely and optophysically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all glueball security devices of": ["UNLOCK"],
+  "deactivate all glueball security devices of the": ["UNLOCK"],
+  "bypass all glueball security devices on": ["UNLOCK"],
+  "bypass all glueball security devices on the": ["UNLOCK"],
+  "disengage the primary glueball security device on": ["UNLOCK"],
+  "disengage the primary glueball security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full integrated deployment of": ["USE"],
+  "harness the full integrated deployment of the": ["USE"],
+  "bring into active integrated deployment": ["USE"],
+  "bring into active integrated deployment the": ["USE"],
+  "make complete integrated deployment of": ["USE"],
+  "make complete integrated deployment of the": ["USE"],
+
+  // Combat
+  "initiate a violent confrontation against": ["FIGHT"],
+  "initiate a violent confrontation against the": ["FIGHT"],
+  "commence a violent confrontation against": ["FIGHT"],
+  "commence a violent confrontation against the": ["FIGHT"],
+  "engage in a violent confrontation against": ["FIGHT"],
+  "engage in a violent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a philosophical face to face discussion with": ["TALK"],
+  "initiate a philosophical face to face discussion with the": ["TALK"],
+  "engage in a philosophical face to face discussion with": ["TALK"],
+  "engage in a philosophical face to face discussion with the": ["TALK"],
+  "strike up a philosophical face to face discussion with": ["TALK"],
+  "strike up a philosophical face to face discussion with the": ["TALK"],
+});
+
 
 
 
@@ -29588,6 +29671,72 @@ compoundVerbs.push(
   "engage in a professional face to face discussion with",
   "strike up a professional face to face discussion with the",
   "strike up a professional face to face discussion with"
+);
+
+// Cycle #165 / Task-F186: Phase 149 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of karyorrhexis towards the location of the",
+  "navigate one's vector of karyorrhexis towards the location of",
+  "navigate ones vector of karyorrhexis towards the location of the",
+  "navigate ones vector of karyorrhexis towards the location of",
+  "steer one's vector of karyorrhexis in the direction of the coordinates of the",
+  "steer one's vector of karyorrhexis in the direction of the coordinates of",
+  "steer ones vector of karyorrhexis in the direction of the coordinates of the",
+  "steer ones vector of karyorrhexis in the direction of the coordinates of",
+  "direct one's vector of karyorrhexis towards the coordinates of the location of the",
+  "direct one's vector of karyorrhexis towards the coordinates of the location of",
+  "direct ones vector of karyorrhexis towards the coordinates of the location of the",
+  "direct ones vector of karyorrhexis towards the coordinates of the location of",
+  "subject to a comprehensive visual representation the",
+  "subject to a comprehensive visual representation",
+  "subject to a thorough visual representation the",
+  "subject to a thorough visual representation",
+  "subject to a detailed visual representation the",
+  "subject to a detailed visual representation",
+  "assume direct exclusive acquisition of the",
+  "assume direct exclusive acquisition of",
+  "assume absolute exclusive acquisition of the",
+  "assume absolute exclusive acquisition of",
+  "assume immediate exclusive acquisition of the",
+  "assume immediate exclusive acquisition of",
+  "divest oneself of all exclusive acquisition of the",
+  "divest oneself of all exclusive acquisition of",
+  "relinquish all exclusive acquisition of the",
+  "relinquish all exclusive acquisition of",
+  "free oneself from all exclusive acquisition of the",
+  "free oneself from all exclusive acquisition of",
+  "force completely and optophysically wide open the",
+  "force completely and optophysically wide open",
+  "pry completely and optophysically wide open the",
+  "pry completely and optophysically wide open",
+  "fasten completely and optophysically closed the",
+  "fasten completely and optophysically closed",
+  "seal completely and optophysically shut the",
+  "seal completely and optophysically shut",
+  "deactivate all glueball security devices of the",
+  "deactivate all glueball security devices of",
+  "bypass all glueball security devices on the",
+  "bypass all glueball security devices on",
+  "disengage the primary glueball security device on the",
+  "disengage the primary glueball security device on",
+  "harness the full integrated deployment of the",
+  "harness the full integrated deployment of",
+  "bring into active integrated deployment the",
+  "bring into active integrated deployment",
+  "make complete integrated deployment of the",
+  "make complete integrated deployment of",
+  "initiate a violent confrontation against the",
+  "initiate a violent confrontation against",
+  "commence a violent confrontation against the",
+  "commence a violent confrontation against",
+  "engage in a violent confrontation against the",
+  "engage in a violent confrontation against",
+  "initiate a philosophical face to face discussion with the",
+  "initiate a philosophical face to face discussion with",
+  "engage in a philosophical face to face discussion with the",
+  "engage in a philosophical face to face discussion with",
+  "strike up a philosophical face to face discussion with the",
+  "strike up a philosophical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
