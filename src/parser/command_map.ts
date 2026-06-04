@@ -24716,6 +24716,90 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a semantic face to face discussion with the": ["TALK"],
 });
 
+// Cycle #158 / Task-F179: Phase 142 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of fibrinolysis towards the location of": ["MOVE"],
+  "navigate one's vector of fibrinolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of fibrinolysis towards the location of": ["MOVE"],
+  "navigate ones vector of fibrinolysis towards the location of the": ["MOVE"],
+  "steer one's vector of fibrinolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of fibrinolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of fibrinolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of fibrinolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of fibrinolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of fibrinolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of fibrinolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of fibrinolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual classification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual classification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual classification": ["LOOK_INSPECT"],
+  "subject to a thorough visual classification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual classification": ["LOOK_INSPECT"],
+  "subject to a detailed visual classification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive cataloging of": ["TAKE"],
+  "assume direct exclusive cataloging of the": ["TAKE"],
+  "assume absolute exclusive cataloging of": ["TAKE"],
+  "assume absolute exclusive cataloging of the": ["TAKE"],
+  "assume immediate exclusive cataloging of": ["TAKE"],
+  "assume immediate exclusive cataloging of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive cataloging of": ["DROP"],
+  "divest oneself of all exclusive cataloging of the": ["DROP"],
+  "relinquish all exclusive cataloging of": ["DROP"],
+  "relinquish all exclusive cataloging of the": ["DROP"],
+  "free oneself from all exclusive cataloging of": ["DROP"],
+  "free oneself from all exclusive cataloging of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electrochemically wide open": ["OPEN"],
+  "force completely and electrochemically wide open the": ["OPEN"],
+  "pry completely and electrochemically wide open": ["OPEN"],
+  "pry completely and electrochemically wide open the": ["OPEN"],
+  "fasten completely and electrochemically closed": ["CLOSE"],
+  "fasten completely and electrochemically closed the": ["CLOSE"],
+  "seal completely and electrochemically shut": ["CLOSE"],
+  "seal completely and electrochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all skyrmion security devices of": ["UNLOCK"],
+  "deactivate all skyrmion security devices of the": ["UNLOCK"],
+  "bypass all skyrmion security devices on": ["UNLOCK"],
+  "bypass all skyrmion security devices on the": ["UNLOCK"],
+  "disengage the primary skyrmion security device on": ["UNLOCK"],
+  "disengage the primary skyrmion security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unyielding deployment of": ["USE"],
+  "harness the full unyielding deployment of the": ["USE"],
+  "bring into active unyielding deployment": ["USE"],
+  "bring into active unyielding deployment the": ["USE"],
+  "make complete unyielding deployment of": ["USE"],
+  "make complete unyielding deployment of the": ["USE"],
+
+  // Combat
+  "initiate a combative confrontation against": ["FIGHT"],
+  "initiate a combative confrontation against the": ["FIGHT"],
+  "commence a combative confrontation against": ["FIGHT"],
+  "commence a combative confrontation against the": ["FIGHT"],
+  "engage in a combative confrontation against": ["FIGHT"],
+  "engage in a combative confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an academic face to face discussion with": ["TALK"],
+  "initiate an academic face to face discussion with the": ["TALK"],
+  "engage in an academic face to face discussion with": ["TALK"],
+  "engage in an academic face to face discussion with the": ["TALK"],
+  "strike up an academic face to face discussion with": ["TALK"],
+  "strike up an academic face to face discussion with the": ["TALK"],
+});
+
+
 
 
 
@@ -28545,4 +28629,71 @@ compoundVerbs.push(
   "strike up a semantic face to face discussion with"
 );
 
+// Cycle #158 / Task-F179: Phase 142 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of fibrinolysis towards the location of the",
+  "navigate one's vector of fibrinolysis towards the location of",
+  "navigate ones vector of fibrinolysis towards the location of the",
+  "navigate ones vector of fibrinolysis towards the location of",
+  "steer one's vector of fibrinolysis in the direction of the coordinates of the",
+  "steer one's vector of fibrinolysis in the direction of the coordinates of",
+  "steer ones vector of fibrinolysis in the direction of the coordinates of the",
+  "steer ones vector of fibrinolysis in the direction of the coordinates of",
+  "direct one's vector of fibrinolysis towards the coordinates of the location of the",
+  "direct one's vector of fibrinolysis towards the coordinates of the location of",
+  "direct ones vector of fibrinolysis towards the coordinates of the location of the",
+  "direct ones vector of fibrinolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual classification the",
+  "subject to a comprehensive visual classification",
+  "subject to a thorough visual classification the",
+  "subject to a thorough visual classification",
+  "subject to a detailed visual classification the",
+  "subject to a detailed visual classification",
+  "assume direct exclusive cataloging of the",
+  "assume direct exclusive cataloging of",
+  "assume absolute exclusive cataloging of the",
+  "assume absolute exclusive cataloging of",
+  "assume immediate exclusive cataloging of the",
+  "assume immediate exclusive cataloging of",
+  "divest oneself of all exclusive cataloging of the",
+  "divest oneself of all exclusive cataloging of",
+  "relinquish all exclusive cataloging of the",
+  "relinquish all exclusive cataloging of",
+  "free oneself from all exclusive cataloging of the",
+  "free oneself from all exclusive cataloging of",
+  "force completely and electrochemically wide open the",
+  "force completely and electrochemically wide open",
+  "pry completely and electrochemically wide open the",
+  "pry completely and electrochemically wide open",
+  "fasten completely and electrochemically closed the",
+  "fasten completely and electrochemically closed",
+  "seal completely and electrochemically shut the",
+  "seal completely and electrochemically shut",
+  "deactivate all skyrmion security devices of the",
+  "deactivate all skyrmion security devices of",
+  "bypass all skyrmion security devices on the",
+  "bypass all skyrmion security devices on",
+  "disengage the primary skyrmion security device on the",
+  "disengage the primary skyrmion security device on",
+  "harness the full unyielding deployment of the",
+  "harness the full unyielding deployment of",
+  "bring into active unyielding deployment the",
+  "bring into active unyielding deployment",
+  "make complete unyielding deployment of the",
+  "make complete unyielding deployment of",
+  "initiate a combative confrontation against the",
+  "initiate a combative confrontation against",
+  "commence a combative confrontation against the",
+  "commence a combative confrontation against",
+  "engage in a combative confrontation against the",
+  "engage in a combative confrontation against",
+  "initiate an academic face to face discussion with the",
+  "initiate an academic face to face discussion with",
+  "engage in an academic face to face discussion with the",
+  "engage in an academic face to face discussion with",
+  "strike up an academic face to face discussion with the",
+  "strike up an academic face to face discussion with"
+);
+
 compoundVerbs.sort((a, b) => b.length - a.length);
+
