@@ -21480,6 +21480,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an informative face to face discussion with the": ["TALK"]
 });
 
+// Cycle #117 / Task-F139: Phase 102 verb categories
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of circulation towards the location of": ["MOVE"],
+  "navigate one's vector of circulation towards the location of the": ["MOVE"],
+  "navigate ones vector of circulation towards the location of": ["MOVE"],
+  "navigate ones vector of circulation towards the location of the": ["MOVE"],
+  "steer one's vector of circulation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of circulation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of circulation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of circulation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of circulation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of circulation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of circulation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of circulation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual interrogation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual interrogation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual interrogation": ["LOOK_INSPECT"],
+  "subject to a thorough visual interrogation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual interrogation": ["LOOK_INSPECT"],
+  "subject to a detailed visual interrogation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive clasp of": ["TAKE"],
+  "assume direct exclusive clasp of the": ["TAKE"],
+  "assume absolute exclusive clasp of": ["TAKE"],
+  "assume absolute exclusive clasp of the": ["TAKE"],
+  "assume immediate exclusive clasp of": ["TAKE"],
+  "assume immediate exclusive clasp of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive clasp of": ["DROP"],
+  "divest oneself of all exclusive clasp of the": ["DROP"],
+  "relinquish all exclusive clasp of": ["DROP"],
+  "relinquish all exclusive clasp of the": ["DROP"],
+  "free oneself from all exclusive clasp of": ["DROP"],
+  "free oneself from all exclusive clasp of the": ["DROP"],
+
+  // Open/Close
+  "force completely and orbitronically wide open": ["OPEN"],
+  "force completely and orbitronically wide open the": ["OPEN"],
+  "pry completely and orbitronically wide open": ["OPEN"],
+  "pry completely and orbitronically wide open the": ["OPEN"],
+  "fasten completely and orbitronically closed": ["CLOSE"],
+  "fasten completely and orbitronically closed the": ["CLOSE"],
+  "seal completely and orbitronically shut": ["CLOSE"],
+  "seal completely and orbitronically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all valleytronic security devices of": ["UNLOCK"],
+  "deactivate all valleytronic security devices of the": ["UNLOCK"],
+  "bypass all valleytronic security devices on": ["UNLOCK"],
+  "bypass all valleytronic security devices on the": ["UNLOCK"],
+  "disengage the primary valleytronic security device on": ["UNLOCK"],
+  "disengage the primary valleytronic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full peerless deployment of": ["USE"],
+  "harness the full peerless deployment of the": ["USE"],
+  "bring into active peerless deployment": ["USE"],
+  "bring into active peerless deployment the": ["USE"],
+  "make complete peerless deployment of": ["USE"],
+  "make complete peerless deployment of the": ["USE"],
+
+  // Combat
+  "initiate a perfidious confrontation against": ["FIGHT"],
+  "initiate a perfidious confrontation against the": ["FIGHT"],
+  "commence a perfidious confrontation against": ["FIGHT"],
+  "commence a perfidious confrontation against the": ["FIGHT"],
+  "engage in a perfidious confrontation against": ["FIGHT"],
+  "engage in a perfidious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a discerning face to face discussion with": ["TALK"],
+  "initiate a discerning face to face discussion with the": ["TALK"],
+  "engage in a discerning face to face discussion with": ["TALK"],
+  "engage in a discerning face to face discussion with the": ["TALK"],
+  "strike up a discerning face to face discussion with": ["TALK"],
+  "strike up a discerning face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -22669,6 +22752,72 @@ compoundVerbs.push(
   "engage in an informative face to face discussion with",
   "strike up an informative face to face discussion with the",
   "strike up an informative face to face discussion with"
+);
+
+// Cycle #117 / Task-F139: Phase 102 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of circulation towards the location of the",
+  "navigate one's vector of circulation towards the location of",
+  "navigate ones vector of circulation towards the location of the",
+  "navigate ones vector of circulation towards the location of",
+  "steer one's vector of circulation in the direction of the coordinates of the",
+  "steer one's vector of circulation in the direction of the coordinates of",
+  "steer ones vector of circulation in the direction of the coordinates of the",
+  "steer ones vector of circulation in the direction of the coordinates of",
+  "direct one's vector of circulation towards the coordinates of the location of the",
+  "direct one's vector of circulation towards the coordinates of the location of",
+  "direct ones vector of circulation towards the coordinates of the location of the",
+  "direct ones vector of circulation towards the coordinates of the location of",
+  "subject to a comprehensive visual interrogation the",
+  "subject to a comprehensive visual interrogation",
+  "subject to a thorough visual interrogation the",
+  "subject to a thorough visual interrogation",
+  "subject to a detailed visual interrogation the",
+  "subject to a detailed visual interrogation",
+  "assume direct exclusive clasp of the",
+  "assume direct exclusive clasp of",
+  "assume absolute exclusive clasp of the",
+  "assume absolute exclusive clasp of",
+  "assume immediate exclusive clasp of the",
+  "assume immediate exclusive clasp of",
+  "divest oneself of all exclusive clasp of the",
+  "divest oneself of all exclusive clasp of",
+  "relinquish all exclusive clasp of the",
+  "relinquish all exclusive clasp of",
+  "free oneself from all exclusive clasp of the",
+  "free oneself from all exclusive clasp of",
+  "force completely and orbitronically wide open the",
+  "force completely and orbitronically wide open",
+  "pry completely and orbitronically wide open the",
+  "pry completely and orbitronically wide open",
+  "fasten completely and orbitronically closed the",
+  "fasten completely and orbitronically closed",
+  "seal completely and orbitronically shut the",
+  "seal completely and orbitronically shut",
+  "deactivate all valleytronic security devices of the",
+  "deactivate all valleytronic security devices of",
+  "bypass all valleytronic security devices on the",
+  "bypass all valleytronic security devices on",
+  "disengage the primary valleytronic security device on the",
+  "disengage the primary valleytronic security device on",
+  "harness the full peerless deployment of the",
+  "harness the full peerless deployment of",
+  "bring into active peerless deployment the",
+  "bring into active peerless deployment",
+  "make complete peerless deployment of the",
+  "make complete peerless deployment of",
+  "initiate a perfidious confrontation against the",
+  "initiate a perfidious confrontation against",
+  "commence a perfidious confrontation against the",
+  "commence a perfidious confrontation against",
+  "engage in a perfidious confrontation against the",
+  "engage in a perfidious confrontation against",
+  "initiate a discerning face to face discussion with the",
+  "initiate a discerning face to face discussion with",
+  "engage in a discerning face to face discussion with the",
+  "engage in a discerning face to face discussion with",
+  "strike up a discerning face to face discussion with the",
+  "strike up a discerning face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
