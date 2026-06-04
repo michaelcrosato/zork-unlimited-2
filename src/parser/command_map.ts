@@ -23052,7 +23052,87 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a phenomenological face to face discussion with": ["TALK"],
   "engage in a phenomenological face to face discussion with the": ["TALK"],
   "strike up a phenomenological face to face discussion with": ["TALK"],
-  "strike up a phenomenological face to face discussion with the": ["TALK"]
+  "strike up a phenomenological face to face discussion with the": ["TALK"],
+
+  // Movement
+  "navigate one's vector of electrolysis towards the location of": ["MOVE"],
+  "navigate one's vector of electrolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of electrolysis towards the location of": ["MOVE"],
+  "navigate ones vector of electrolysis towards the location of the": ["MOVE"],
+  "steer one's vector of electrolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of electrolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of electrolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of electrolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of electrolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of electrolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of electrolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of electrolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual extrapolation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual extrapolation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual extrapolation": ["LOOK_INSPECT"],
+  "subject to a thorough visual extrapolation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual extrapolation": ["LOOK_INSPECT"],
+  "subject to a detailed visual extrapolation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive patent of": ["TAKE"],
+  "assume direct exclusive patent of the": ["TAKE"],
+  "assume absolute exclusive patent of": ["TAKE"],
+  "assume absolute exclusive patent of the": ["TAKE"],
+  "assume immediate exclusive patent of": ["TAKE"],
+  "assume immediate exclusive patent of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive patent of": ["DROP"],
+  "divest oneself of all exclusive patent of the": ["DROP"],
+  "relinquish all exclusive patent of": ["DROP"],
+  "relinquish all exclusive patent of the": ["DROP"],
+  "free oneself from all exclusive patent of": ["DROP"],
+  "free oneself from all exclusive patent of the": ["DROP"],
+
+  // Open/Close
+  "force completely and adiabatically wide open": ["OPEN"],
+  "force completely and adiabatically wide open the": ["OPEN"],
+  "pry completely and adiabatically wide open": ["OPEN"],
+  "pry completely and adiabatically wide open the": ["OPEN"],
+  "fasten completely and adiabatically closed": ["CLOSE"],
+  "fasten completely and adiabatically closed the": ["CLOSE"],
+  "seal completely and adiabatically shut": ["CLOSE"],
+  "seal completely and adiabatically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all kaonic security devices of": ["UNLOCK"],
+  "deactivate all kaonic security devices of the": ["UNLOCK"],
+  "bypass all kaonic security devices on": ["UNLOCK"],
+  "bypass all kaonic security devices on the": ["UNLOCK"],
+  "disengage the primary kaonic security device on": ["UNLOCK"],
+  "disengage the primary kaonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unfaltering deployment of": ["USE"],
+  "harness the full unfaltering deployment of the": ["USE"],
+  "bring into active unfaltering deployment": ["USE"],
+  "bring into active unfaltering deployment the": ["USE"],
+  "make complete unfaltering deployment of": ["USE"],
+  "make complete unfaltering deployment of the": ["USE"],
+
+  // Combat
+  "initiate a murderous confrontation against": ["FIGHT"],
+  "initiate a murderous confrontation against the": ["FIGHT"],
+  "commence a murderous confrontation against": ["FIGHT"],
+  "commence a murderous confrontation against the": ["FIGHT"],
+  "engage in a murderous confrontation against": ["FIGHT"],
+  "engage in a murderous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an epistemological face to face discussion with": ["TALK"],
+  "initiate an epistemological face to face discussion with the": ["TALK"],
+  "engage in an epistemological face to face discussion with": ["TALK"],
+  "engage in an epistemological face to face discussion with the": ["TALK"],
+  "strike up an epistemological face to face discussion with": ["TALK"],
+  "strike up an epistemological face to face discussion with the": ["TALK"]
 });
 
 
@@ -25498,6 +25578,72 @@ compoundVerbs.push(
   "engage in a phenomenological face to face discussion with",
   "strike up a phenomenological face to face discussion with the",
   "strike up a phenomenological face to face discussion with"
+);
+
+// Cycle #137 / Task-F158: Phase 121 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of electrolysis towards the location of the",
+  "navigate one's vector of electrolysis towards the location of",
+  "navigate ones vector of electrolysis towards the location of the",
+  "navigate ones vector of electrolysis towards the location of",
+  "steer one's vector of electrolysis in the direction of the coordinates of the",
+  "steer one's vector of electrolysis in the direction of the coordinates of",
+  "steer ones vector of electrolysis in the direction of the coordinates of the",
+  "steer ones vector of electrolysis in the direction of the coordinates of",
+  "direct one's vector of electrolysis towards the coordinates of the location of the",
+  "direct one's vector of electrolysis towards the coordinates of the location of",
+  "direct ones vector of electrolysis towards the coordinates of the location of the",
+  "direct ones vector of electrolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual extrapolation the",
+  "subject to a comprehensive visual extrapolation",
+  "subject to a thorough visual extrapolation the",
+  "subject to a thorough visual extrapolation",
+  "subject to a detailed visual extrapolation the",
+  "subject to a detailed visual extrapolation",
+  "assume direct exclusive patent of the",
+  "assume direct exclusive patent of",
+  "assume absolute exclusive patent of the",
+  "assume absolute exclusive patent of",
+  "assume immediate exclusive patent of the",
+  "assume immediate exclusive patent of",
+  "divest oneself of all exclusive patent of the",
+  "divest oneself of all exclusive patent of",
+  "relinquish all exclusive patent of the",
+  "relinquish all exclusive patent of",
+  "free oneself from all exclusive patent of the",
+  "free oneself from all exclusive patent of",
+  "force completely and adiabatically wide open the",
+  "force completely and adiabatically wide open",
+  "pry completely and adiabatically wide open the",
+  "pry completely and adiabatically wide open",
+  "fasten completely and adiabatically closed the",
+  "fasten completely and adiabatically closed",
+  "seal completely and adiabatically shut the",
+  "seal completely and adiabatically shut",
+  "deactivate all kaonic security devices of the",
+  "deactivate all kaonic security devices of",
+  "bypass all kaonic security devices on the",
+  "bypass all kaonic security devices on",
+  "disengage the primary kaonic security device on the",
+  "disengage the primary kaonic security device on",
+  "harness the full unfaltering deployment of the",
+  "harness the full unfaltering deployment of",
+  "bring into active unfaltering deployment the",
+  "bring into active unfaltering deployment",
+  "make complete unfaltering deployment of the",
+  "make complete unfaltering deployment of",
+  "initiate a murderous confrontation against the",
+  "initiate a murderous confrontation against",
+  "commence a murderous confrontation against the",
+  "commence a murderous confrontation against",
+  "engage in a murderous confrontation against the",
+  "engage in a murderous confrontation against",
+  "initiate an epistemological face to face discussion with the",
+  "initiate an epistemological face to face discussion with",
+  "engage in an epistemological face to face discussion with the",
+  "engage in an epistemological face to face discussion with",
+  "strike up an epistemological face to face discussion with the",
+  "strike up an epistemological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
