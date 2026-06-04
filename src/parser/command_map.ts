@@ -28713,6 +28713,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a glaciological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #205 / Task-F224: Phase 186 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of lipogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of lipogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of lipogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of lipogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of lipogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of lipogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of lipogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of lipogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of lipogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of lipogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of lipogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of lipogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual materialization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual materialization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual materialization": ["LOOK_INSPECT"],
+  "subject to a thorough visual materialization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual materialization": ["LOOK_INSPECT"],
+  "subject to a detailed visual materialization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive masking of": ["TAKE"],
+  "assume direct exclusive masking of the": ["TAKE"],
+  "assume absolute exclusive masking of": ["TAKE"],
+  "assume absolute exclusive masking of the": ["TAKE"],
+  "assume immediate exclusive masking of": ["TAKE"],
+  "assume immediate exclusive masking of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive masking of": ["DROP"],
+  "divest oneself of all exclusive masking of the": ["DROP"],
+  "relinquish all exclusive masking of": ["DROP"],
+  "relinquish all exclusive masking of the": ["DROP"],
+  "free oneself from all exclusive masking of": ["DROP"],
+  "free oneself from all exclusive masking of the": ["DROP"],
+
+  // Open/Close
+  "force completely and photoviscoelastically wide open": ["OPEN"],
+  "force completely and photoviscoelastically wide open the": ["OPEN"],
+  "pry completely and photoviscoelastically wide open": ["OPEN"],
+  "pry completely and photoviscoelastically wide open the": ["OPEN"],
+  "fasten completely and photoviscoelastically closed": ["CLOSE"],
+  "fasten completely and photoviscoelastically closed the": ["CLOSE"],
+  "seal completely and photoviscoelastically shut": ["CLOSE"],
+  "seal completely and photoviscoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all galileo security devices of": ["UNLOCK"],
+  "deactivate all galileo security devices of the": ["UNLOCK"],
+  "deactivate all copernicus security devices of": ["UNLOCK"],
+  "deactivate all copernicus security devices of the": ["UNLOCK"],
+  "deactivate all kepler security devices of": ["UNLOCK"],
+  "deactivate all kepler security devices of the": ["UNLOCK"],
+  "deactivate all brahe security devices of": ["UNLOCK"],
+  "deactivate all brahe security devices of the": ["UNLOCK"],
+  "bypass all galileo security devices on": ["UNLOCK"],
+  "bypass all galileo security devices on the": ["UNLOCK"],
+  "bypass all copernicus security devices on": ["UNLOCK"],
+  "bypass all copernicus security devices on the": ["UNLOCK"],
+  "bypass all kepler security devices on": ["UNLOCK"],
+  "bypass all kepler security devices on the": ["UNLOCK"],
+  "bypass all brahe security devices on": ["UNLOCK"],
+  "bypass all brahe security devices on the": ["UNLOCK"],
+  "disengage the primary galileo security device on": ["UNLOCK"],
+  "disengage the primary galileo security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full orthotropic deployment of": ["USE"],
+  "harness the full orthotropic deployment of the": ["USE"],
+  "bring into active orthotropic deployment": ["USE"],
+  "bring into active orthotropic deployment the": ["USE"],
+  "make complete orthotropic deployment of": ["USE"],
+  "make complete orthotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unapologetically ruthless confrontation against": ["FIGHT"],
+  "initiate an unapologetically ruthless confrontation against the": ["FIGHT"],
+  "commence an unapologetically ruthless confrontation against": ["FIGHT"],
+  "commence an unapologetically ruthless confrontation against the": ["FIGHT"],
+  "engage in an unapologetically ruthless confrontation against": ["FIGHT"],
+  "engage in an unapologetically ruthless confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a limnological face to face discussion with": ["TALK"],
+  "initiate a limnological face to face discussion with the": ["TALK"],
+  "engage in a limnological face to face discussion with": ["TALK"],
+  "engage in a limnological face to face discussion with the": ["TALK"],
+  "strike up a limnological face to face discussion with": ["TALK"],
+  "strike up a limnological face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -35801,6 +35896,84 @@ compoundVerbs.push(
   "engage in a glaciological face to face discussion with",
   "strike up a glaciological face to face discussion with the",
   "strike up a glaciological face to face discussion with"
+);
+
+// Cycle #205 / Task-F224: Phase 186 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of lipogenesis towards the location of the",
+  "navigate one's vector of lipogenesis towards the location of",
+  "navigate ones vector of lipogenesis towards the location of the",
+  "navigate ones vector of lipogenesis towards the location of",
+  "steer one's vector of lipogenesis in the direction of the coordinates of the",
+  "steer one's vector of lipogenesis in the direction of the coordinates of",
+  "steer ones vector of lipogenesis in the direction of the coordinates of the",
+  "steer ones vector of lipogenesis in the direction of the coordinates of",
+  "direct one's vector of lipogenesis towards the coordinates of the location of the",
+  "direct one's vector of lipogenesis towards the coordinates of the location of",
+  "direct ones vector of lipogenesis towards the coordinates of the location of the",
+  "direct ones vector of lipogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual materialization the",
+  "subject to a comprehensive visual materialization",
+  "subject to a thorough visual materialization the",
+  "subject to a thorough visual materialization",
+  "subject to a detailed visual materialization the",
+  "subject to a detailed visual materialization",
+  "assume direct exclusive masking of the",
+  "assume direct exclusive masking of",
+  "assume absolute exclusive masking of the",
+  "assume absolute exclusive masking of",
+  "assume immediate exclusive masking of the",
+  "assume immediate exclusive masking of",
+  "divest oneself of all exclusive masking of the",
+  "divest oneself of all exclusive masking of",
+  "relinquish all exclusive masking of the",
+  "relinquish all exclusive masking of",
+  "free oneself from all exclusive masking of the",
+  "free oneself from all exclusive masking of",
+  "force completely and photoviscoelastically wide open the",
+  "force completely and photoviscoelastically wide open",
+  "pry completely and photoviscoelastically wide open the",
+  "pry completely and photoviscoelastically wide open",
+  "fasten completely and photoviscoelastically closed the",
+  "fasten completely and photoviscoelastically closed",
+  "seal completely and photoviscoelastically shut the",
+  "seal completely and photoviscoelastically shut",
+  "deactivate all galileo security devices of the",
+  "deactivate all galileo security devices of",
+  "deactivate all copernicus security devices of the",
+  "deactivate all copernicus security devices of",
+  "deactivate all kepler security devices of the",
+  "deactivate all kepler security devices of",
+  "deactivate all brahe security devices of the",
+  "deactivate all brahe security devices of",
+  "bypass all galileo security devices on the",
+  "bypass all galileo security devices on",
+  "bypass all copernicus security devices on the",
+  "bypass all copernicus security devices on",
+  "bypass all kepler security devices on the",
+  "bypass all kepler security devices on",
+  "bypass all brahe security devices on the",
+  "bypass all brahe security devices on",
+  "disengage the primary galileo security device on the",
+  "disengage the primary galileo security device on",
+  "harness the full orthotropic deployment of the",
+  "harness the full orthotropic deployment of",
+  "bring into active orthotropic deployment the",
+  "bring into active orthotropic deployment",
+  "make complete orthotropic deployment of the",
+  "make complete orthotropic deployment of",
+  "initiate an unapologetically ruthless confrontation against the",
+  "initiate an unapologetically ruthless confrontation against",
+  "commence an unapologetically ruthless confrontation against the",
+  "commence an unapologetically ruthless confrontation against",
+  "engage in an unapologetically ruthless confrontation against the",
+  "engage in an unapologetically ruthless confrontation against",
+  "initiate a limnological face to face discussion with the",
+  "initiate a limnological face to face discussion with",
+  "engage in a limnological face to face discussion with the",
+  "engage in a limnological face to face discussion with",
+  "strike up a limnological face to face discussion with the",
+  "strike up a limnological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
