@@ -26720,6 +26720,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an epidemiological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #182 / Task-F202: Phase 165 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of pathogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of pathogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of pathogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of pathogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of pathogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of pathogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of pathogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of pathogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of pathogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of pathogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of pathogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of pathogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual segregation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual segregation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual segregation": ["LOOK_INSPECT"],
+  "subject to a thorough visual segregation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual segregation": ["LOOK_INSPECT"],
+  "subject to a detailed visual segregation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive entitlement of": ["TAKE"],
+  "assume direct exclusive entitlement of the": ["TAKE"],
+  "assume absolute exclusive entitlement of": ["TAKE"],
+  "assume absolute exclusive entitlement of the": ["TAKE"],
+  "assume immediate exclusive entitlement of": ["TAKE"],
+  "assume immediate exclusive entitlement of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive entitlement of": ["DROP"],
+  "divest oneself of all exclusive entitlement of the": ["DROP"],
+  "relinquish all exclusive entitlement of": ["DROP"],
+  "relinquish all exclusive entitlement of the": ["DROP"],
+  "free oneself from all exclusive entitlement of": ["DROP"],
+  "free oneself from all exclusive entitlement of the": ["DROP"],
+
+  // Open/Close
+  "force completely and radioelastically wide open": ["OPEN"],
+  "force completely and radioelastically wide open the": ["OPEN"],
+  "pry completely and radioelastically wide open": ["OPEN"],
+  "pry completely and radioelastically wide open the": ["OPEN"],
+  "fasten completely and radioelastically closed": ["CLOSE"],
+  "fasten completely and radioelastically closed the": ["CLOSE"],
+  "seal completely and radioelastically shut": ["CLOSE"],
+  "seal completely and radioelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all wino security devices of": ["UNLOCK"],
+  "deactivate all wino security devices of the": ["UNLOCK"],
+  "deactivate all zino security devices of": ["UNLOCK"],
+  "deactivate all zino security devices of the": ["UNLOCK"],
+  "deactivate all gluino security devices of": ["UNLOCK"],
+  "deactivate all gluino security devices of the": ["UNLOCK"],
+  "deactivate all squark security devices of": ["UNLOCK"],
+  "deactivate all squark security devices of the": ["UNLOCK"],
+  "bypass all wino security devices on": ["UNLOCK"],
+  "bypass all wino security devices on the": ["UNLOCK"],
+  "bypass all zino security devices on": ["UNLOCK"],
+  "bypass all zino security devices on the": ["UNLOCK"],
+  "bypass all gluino security devices on": ["UNLOCK"],
+  "bypass all gluino security devices on the": ["UNLOCK"],
+  "bypass all squark security devices on": ["UNLOCK"],
+  "bypass all squark security devices on the": ["UNLOCK"],
+  "disengage the primary wino security device on": ["UNLOCK"],
+  "disengage the primary wino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full prioritized deployment of": ["USE"],
+  "harness the full prioritized deployment of the": ["USE"],
+  "bring into active prioritized deployment": ["USE"],
+  "bring into active prioritized deployment the": ["USE"],
+  "make complete prioritized deployment of": ["USE"],
+  "make complete prioritized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a pernicious confrontation against": ["FIGHT"],
+  "initiate a pernicious confrontation against the": ["FIGHT"],
+  "commence a pernicious confrontation against": ["FIGHT"],
+  "commence a pernicious confrontation against the": ["FIGHT"],
+  "engage in a pernicious confrontation against": ["FIGHT"],
+  "engage in a pernicious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a physiological face to face discussion with": ["TALK"],
+  "initiate a physiological face to face discussion with the": ["TALK"],
+  "engage in a physiological face to face discussion with": ["TALK"],
+  "engage in a physiological face to face discussion with the": ["TALK"],
+  "strike up a physiological face to face discussion with": ["TALK"],
+  "strike up a physiological face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -32170,6 +32265,84 @@ compoundVerbs.push(
   "engage in an epidemiological face to face discussion with",
   "strike up an epidemiological face to face discussion with the",
   "strike up an epidemiological face to face discussion with"
+);
+
+// Cycle #182 / Task-F202: Phase 165 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of pathogenesis towards the location of the",
+  "navigate one's vector of pathogenesis towards the location of",
+  "navigate ones vector of pathogenesis towards the location of the",
+  "navigate ones vector of pathogenesis towards the location of",
+  "steer one's vector of pathogenesis in the direction of the coordinates of the",
+  "steer one's vector of pathogenesis in the direction of the coordinates of",
+  "steer ones vector of pathogenesis in the direction of the coordinates of the",
+  "steer ones vector of pathogenesis in the direction of the coordinates of",
+  "direct one's vector of pathogenesis towards the coordinates of the location of the",
+  "direct one's vector of pathogenesis towards the coordinates of the location of",
+  "direct ones vector of pathogenesis towards the coordinates of the location of the",
+  "direct ones vector of pathogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual segregation the",
+  "subject to a comprehensive visual segregation",
+  "subject to a thorough visual segregation the",
+  "subject to a thorough visual segregation",
+  "subject to a detailed visual segregation the",
+  "subject to a detailed visual segregation",
+  "assume direct exclusive entitlement of the",
+  "assume direct exclusive entitlement of",
+  "assume absolute exclusive entitlement of the",
+  "assume absolute exclusive entitlement of",
+  "assume immediate exclusive entitlement of the",
+  "assume immediate exclusive entitlement of",
+  "divest oneself of all exclusive entitlement of the",
+  "divest oneself of all exclusive entitlement of",
+  "relinquish all exclusive entitlement of the",
+  "relinquish all exclusive entitlement of",
+  "free oneself from all exclusive entitlement of the",
+  "free oneself from all exclusive entitlement of",
+  "force completely and radioelastically wide open the",
+  "force completely and radioelastically wide open",
+  "pry completely and radioelastically wide open the",
+  "pry completely and radioelastically wide open",
+  "fasten completely and radioelastically closed the",
+  "fasten completely and radioelastically closed",
+  "seal completely and radioelastically shut the",
+  "seal completely and radioelastically shut",
+  "deactivate all wino security devices of the",
+  "deactivate all wino security devices of",
+  "deactivate all zino security devices of the",
+  "deactivate all zino security devices of",
+  "deactivate all gluino security devices of the",
+  "deactivate all gluino security devices of",
+  "deactivate all squark security devices of the",
+  "deactivate all squark security devices of",
+  "bypass all wino security devices on the",
+  "bypass all wino security devices on",
+  "bypass all zino security devices on the",
+  "bypass all zino security devices on",
+  "bypass all gluino security devices on the",
+  "bypass all gluino security devices on",
+  "bypass all squark security devices on the",
+  "bypass all squark security devices on",
+  "disengage the primary wino security device on the",
+  "disengage the primary wino security device on",
+  "harness the full prioritized deployment of the",
+  "harness the full prioritized deployment of",
+  "bring into active prioritized deployment the",
+  "bring into active prioritized deployment",
+  "make complete prioritized deployment of the",
+  "make complete prioritized deployment of",
+  "initiate a pernicious confrontation against the",
+  "initiate a pernicious confrontation against",
+  "commence a pernicious confrontation against the",
+  "commence a pernicious confrontation against",
+  "engage in a pernicious confrontation against the",
+  "engage in a pernicious confrontation against",
+  "initiate a physiological face to face discussion with the",
+  "initiate a physiological face to face discussion with",
+  "engage in a physiological face to face discussion with the",
+  "engage in a physiological face to face discussion with",
+  "strike up a physiological face to face discussion with the",
+  "strike up a physiological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
