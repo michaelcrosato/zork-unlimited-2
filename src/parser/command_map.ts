@@ -27383,6 +27383,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a speleological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #190 / Task-F209: Phase 172 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of cladogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of cladogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of cladogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of cladogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of cladogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of cladogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of cladogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of cladogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of cladogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of cladogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of cladogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of cladogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual tracing": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual tracing the": ["LOOK_INSPECT"],
+  "subject to a thorough visual tracing": ["LOOK_INSPECT"],
+  "subject to a thorough visual tracing the": ["LOOK_INSPECT"],
+  "subject to a detailed visual tracing": ["LOOK_INSPECT"],
+  "subject to a detailed visual tracing the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive boxing of": ["TAKE"],
+  "assume direct exclusive boxing of the": ["TAKE"],
+  "assume absolute exclusive boxing of": ["TAKE"],
+  "assume absolute exclusive boxing of the": ["TAKE"],
+  "assume immediate exclusive boxing of": ["TAKE"],
+  "assume immediate exclusive boxing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive boxing of": ["DROP"],
+  "divest oneself of all exclusive boxing of the": ["DROP"],
+  "relinquish all exclusive boxing of": ["DROP"],
+  "relinquish all exclusive boxing of the": ["DROP"],
+  "free oneself from all exclusive boxing of": ["DROP"],
+  "free oneself from all exclusive boxing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and dynamoelastically wide open": ["OPEN"],
+  "force completely and dynamoelastically wide open the": ["OPEN"],
+  "pry completely and dynamoelastically wide open": ["OPEN"],
+  "pry completely and dynamoelastically wide open the": ["OPEN"],
+  "fasten completely and dynamoelastically closed": ["CLOSE"],
+  "fasten completely and dynamoelastically closed the": ["CLOSE"],
+  "seal completely and dynamoelastically shut": ["CLOSE"],
+  "seal completely and dynamoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all lattice security devices of": ["UNLOCK"],
+  "deactivate all lattice security devices of the": ["UNLOCK"],
+  "deactivate all syndrome security devices of": ["UNLOCK"],
+  "deactivate all syndrome security devices of the": ["UNLOCK"],
+  "deactivate all surface security devices of": ["UNLOCK"],
+  "deactivate all surface security devices of the": ["UNLOCK"],
+  "deactivate all color security devices of": ["UNLOCK"],
+  "deactivate all color security devices of the": ["UNLOCK"],
+  "bypass all lattice security devices on": ["UNLOCK"],
+  "bypass all lattice security devices on the": ["UNLOCK"],
+  "bypass all syndrome security devices on": ["UNLOCK"],
+  "bypass all syndrome security devices on the": ["UNLOCK"],
+  "bypass all surface security devices on": ["UNLOCK"],
+  "bypass all surface security devices on the": ["UNLOCK"],
+  "bypass all color security devices on": ["UNLOCK"],
+  "bypass all color security devices on the": ["UNLOCK"],
+  "disengage the primary lattice security device on": ["UNLOCK"],
+  "disengage the primary lattice security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full concurrent deployment of": ["USE"],
+  "harness the full concurrent deployment of the": ["USE"],
+  "bring into active concurrent deployment": ["USE"],
+  "bring into active concurrent deployment the": ["USE"],
+  "make complete concurrent deployment of": ["USE"],
+  "make complete concurrent deployment of the": ["USE"],
+
+  // Combat
+  "initiate an insurrectionary confrontation against": ["FIGHT"],
+  "initiate an insurrectionary confrontation against the": ["FIGHT"],
+  "commence an insurrectionary confrontation against": ["FIGHT"],
+  "commence an insurrectionary confrontation against the": ["FIGHT"],
+  "engage in an insurrectionary confrontation against": ["FIGHT"],
+  "engage in an insurrectionary confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an oceanographical face to face discussion with": ["TALK"],
+  "initiate an oceanographical face to face discussion with the": ["TALK"],
+  "engage in an oceanographical face to face discussion with": ["TALK"],
+  "engage in an oceanographical face to face discussion with the": ["TALK"],
+  "strike up an oceanographical face to face discussion with": ["TALK"],
+  "strike up an oceanographical face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -33380,6 +33475,84 @@ compoundVerbs.push(
   "engage in a speleological face to face discussion with",
   "strike up a speleological face to face discussion with the",
   "strike up a speleological face to face discussion with"
+);
+
+// Cycle #190 / Task-F209: Phase 172 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of cladogenesis towards the location of the",
+  "navigate one's vector of cladogenesis towards the location of",
+  "navigate ones vector of cladogenesis towards the location of the",
+  "navigate ones vector of cladogenesis towards the location of",
+  "steer one's vector of cladogenesis in the direction of the coordinates of the",
+  "steer one's vector of cladogenesis in the direction of the coordinates of",
+  "steer ones vector of cladogenesis in the direction of the coordinates of the",
+  "steer ones vector of cladogenesis in the direction of the coordinates of",
+  "direct one's vector of cladogenesis towards the coordinates of the location of the",
+  "direct one's vector of cladogenesis towards the coordinates of the location of",
+  "direct ones vector of cladogenesis towards the coordinates of the location of the",
+  "direct ones vector of cladogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual tracing the",
+  "subject to a comprehensive visual tracing",
+  "subject to a thorough visual tracing the",
+  "subject to a thorough visual tracing",
+  "subject to a detailed visual tracing the",
+  "subject to a detailed visual tracing",
+  "assume direct exclusive boxing of the",
+  "assume direct exclusive boxing of",
+  "assume absolute exclusive boxing of the",
+  "assume absolute exclusive boxing of",
+  "assume immediate exclusive boxing of the",
+  "assume immediate exclusive boxing of",
+  "divest oneself of all exclusive boxing of the",
+  "divest oneself of all exclusive boxing of",
+  "relinquish all exclusive boxing of the",
+  "relinquish all exclusive boxing of",
+  "free oneself from all exclusive boxing of the",
+  "free oneself from all exclusive boxing of",
+  "force completely and dynamoelastically wide open the",
+  "force completely and dynamoelastically wide open",
+  "pry completely and dynamoelastically wide open the",
+  "pry completely and dynamoelastically wide open",
+  "fasten completely and dynamoelastically closed the",
+  "fasten completely and dynamoelastically closed",
+  "seal completely and dynamoelastically shut the",
+  "seal completely and dynamoelastically shut",
+  "deactivate all lattice security devices of the",
+  "deactivate all lattice security devices of",
+  "deactivate all syndrome security devices of the",
+  "deactivate all syndrome security devices of",
+  "deactivate all surface security devices of the",
+  "deactivate all surface security devices of",
+  "deactivate all color security devices of the",
+  "deactivate all color security devices of",
+  "bypass all lattice security devices on the",
+  "bypass all lattice security devices on",
+  "bypass all syndrome security devices on the",
+  "bypass all syndrome security devices on",
+  "bypass all surface security devices on the",
+  "bypass all surface security devices on",
+  "bypass all color security devices on the",
+  "bypass all color security devices on",
+  "disengage the primary lattice security device on the",
+  "disengage the primary lattice security device on",
+  "harness the full concurrent deployment of the",
+  "harness the full concurrent deployment of",
+  "bring into active concurrent deployment the",
+  "bring into active concurrent deployment",
+  "make complete concurrent deployment of the",
+  "make complete concurrent deployment of",
+  "initiate an insurrectionary confrontation against the",
+  "initiate an insurrectionary confrontation against",
+  "commence an insurrectionary confrontation against the",
+  "commence an insurrectionary confrontation against",
+  "engage in an insurrectionary confrontation against the",
+  "engage in an insurrectionary confrontation against",
+  "initiate an oceanographical face to face discussion with the",
+  "initiate an oceanographical face to face discussion with",
+  "engage in an oceanographical face to face discussion with the",
+  "engage in an oceanographical face to face discussion with",
+  "strike up an oceanographical face to face discussion with the",
+  "strike up an oceanographical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
