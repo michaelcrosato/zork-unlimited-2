@@ -28143,6 +28143,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a criminological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #198 / Task-F217: Phase 180 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of myogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of myogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of myogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of myogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of myogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of myogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of myogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of myogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of myogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of myogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of myogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of myogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual serialization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual serialization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual serialization": ["LOOK_INSPECT"],
+  "subject to a thorough visual serialization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual serialization": ["LOOK_INSPECT"],
+  "subject to a detailed visual serialization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive lining of": ["TAKE"],
+  "assume direct exclusive lining of the": ["TAKE"],
+  "assume absolute exclusive lining of": ["TAKE"],
+  "assume absolute exclusive lining of the": ["TAKE"],
+  "assume immediate exclusive lining of": ["TAKE"],
+  "assume immediate exclusive lining of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive lining of": ["DROP"],
+  "divest oneself of all exclusive lining of the": ["DROP"],
+  "relinquish all exclusive lining of": ["DROP"],
+  "relinquish all exclusive lining of the": ["DROP"],
+  "free oneself from all exclusive lining of": ["DROP"],
+  "free oneself from all exclusive lining of the": ["DROP"],
+
+  // Open/Close
+  "force completely and superelastically wide open": ["OPEN"],
+  "force completely and superelastically wide open the": ["OPEN"],
+  "pry completely and superelastically wide open": ["OPEN"],
+  "pry completely and superelastically wide open the": ["OPEN"],
+  "fasten completely and superelastically closed": ["CLOSE"],
+  "fasten completely and superelastically closed the": ["CLOSE"],
+  "seal completely and superelastically shut": ["CLOSE"],
+  "seal completely and superelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all maxwell security devices of": ["UNLOCK"],
+  "deactivate all maxwell security devices of the": ["UNLOCK"],
+  "deactivate all faraday security devices of": ["UNLOCK"],
+  "deactivate all faraday security devices of the": ["UNLOCK"],
+  "deactivate all ampere security devices of": ["UNLOCK"],
+  "deactivate all ampere security devices of the": ["UNLOCK"],
+  "deactivate all coulomb security devices of": ["UNLOCK"],
+  "deactivate all coulomb security devices of the": ["UNLOCK"],
+  "bypass all maxwell security devices on": ["UNLOCK"],
+  "bypass all maxwell security devices on the": ["UNLOCK"],
+  "bypass all faraday security devices on": ["UNLOCK"],
+  "bypass all faraday security devices on the": ["UNLOCK"],
+  "bypass all ampere security devices on": ["UNLOCK"],
+  "bypass all ampere security devices on the": ["UNLOCK"],
+  "bypass all coulomb security devices on": ["UNLOCK"],
+  "bypass all coulomb security devices on the": ["UNLOCK"],
+  "disengage the primary maxwell security device on": ["UNLOCK"],
+  "disengage the primary maxwell security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full polyphonic deployment of": ["USE"],
+  "harness the full polyphonic deployment of the": ["USE"],
+  "bring into active polyphonic deployment": ["USE"],
+  "bring into active polyphonic deployment the": ["USE"],
+  "make complete polyphonic deployment of": ["USE"],
+  "make complete polyphonic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an intrepid confrontation against": ["FIGHT"],
+  "initiate an intrepid confrontation against the": ["FIGHT"],
+  "commence an intrepid confrontation against": ["FIGHT"],
+  "commence an intrepid confrontation against the": ["FIGHT"],
+  "engage in an intrepid confrontation against": ["FIGHT"],
+  "engage in an intrepid confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a neurological face to face discussion with": ["TALK"],
+  "initiate a neurological face to face discussion with the": ["TALK"],
+  "engage in a neurological face to face discussion with": ["TALK"],
+  "engage in a neurological face to face discussion with the": ["TALK"],
+  "strike up a neurological face to face discussion with": ["TALK"],
+  "strike up a neurological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -34766,6 +34861,84 @@ compoundVerbs.push(
   "engage in a criminological face to face discussion with",
   "strike up a criminological face to face discussion with the",
   "strike up a criminological face to face discussion with"
+);
+
+// Cycle #198 / Task-F217: Phase 180 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of myogenesis towards the location of the",
+  "navigate one's vector of myogenesis towards the location of",
+  "navigate ones vector of myogenesis towards the location of the",
+  "navigate ones vector of myogenesis towards the location of",
+  "steer one's vector of myogenesis in the direction of the coordinates of the",
+  "steer one's vector of myogenesis in the direction of the coordinates of",
+  "steer ones vector of myogenesis in the direction of the coordinates of the",
+  "steer ones vector of myogenesis in the direction of the coordinates of",
+  "direct one's vector of myogenesis towards the coordinates of the location of the",
+  "direct one's vector of myogenesis towards the coordinates of the location of",
+  "direct ones vector of myogenesis towards the coordinates of the location of the",
+  "direct ones vector of myogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual serialization the",
+  "subject to a comprehensive visual serialization",
+  "subject to a thorough visual serialization the",
+  "subject to a thorough visual serialization",
+  "subject to a detailed visual serialization the",
+  "subject to a detailed visual serialization",
+  "assume direct exclusive lining of the",
+  "assume direct exclusive lining of",
+  "assume absolute exclusive lining of the",
+  "assume absolute exclusive lining of",
+  "assume immediate exclusive lining of the",
+  "assume immediate exclusive lining of",
+  "divest oneself of all exclusive lining of the",
+  "divest oneself of all exclusive lining of",
+  "relinquish all exclusive lining of the",
+  "relinquish all exclusive lining of",
+  "free oneself from all exclusive lining of the",
+  "free oneself from all exclusive lining of",
+  "force completely and superelastically wide open the",
+  "force completely and superelastically wide open",
+  "pry completely and superelastically wide open the",
+  "pry completely and superelastically wide open",
+  "fasten completely and superelastically closed the",
+  "fasten completely and superelastically closed",
+  "seal completely and superelastically shut the",
+  "seal completely and superelastically shut",
+  "deactivate all maxwell security devices of the",
+  "deactivate all maxwell security devices of",
+  "deactivate all faraday security devices of the",
+  "deactivate all faraday security devices of",
+  "deactivate all ampere security devices of the",
+  "deactivate all ampere security devices of",
+  "deactivate all coulomb security devices of the",
+  "deactivate all coulomb security devices of",
+  "bypass all maxwell security devices on the",
+  "bypass all maxwell security devices on",
+  "bypass all faraday security devices on the",
+  "bypass all faraday security devices on",
+  "bypass all ampere security devices on the",
+  "bypass all ampere security devices on",
+  "bypass all coulomb security devices on the",
+  "bypass all coulomb security devices on",
+  "disengage the primary maxwell security device on the",
+  "disengage the primary maxwell security device on",
+  "harness the full polyphonic deployment of the",
+  "harness the full polyphonic deployment of",
+  "bring into active polyphonic deployment the",
+  "bring into active polyphonic deployment",
+  "make complete polyphonic deployment of the",
+  "make complete polyphonic deployment of",
+  "initiate an intrepid confrontation against the",
+  "initiate an intrepid confrontation against",
+  "commence an intrepid confrontation against the",
+  "commence an intrepid confrontation against",
+  "engage in an intrepid confrontation against the",
+  "engage in an intrepid confrontation against",
+  "initiate a neurological face to face discussion with the",
+  "initiate a neurological face to face discussion with",
+  "engage in a neurological face to face discussion with the",
+  "engage in a neurological face to face discussion with",
+  "strike up a neurological face to face discussion with the",
+  "strike up a neurological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
