@@ -24467,6 +24467,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an empirical face to face discussion with the": ["TALK"],
 });
 
+// Cycle #155 / Task-F176: Phase 139 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of myolysis towards the location of": ["MOVE"],
+  "navigate one's vector of myolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of myolysis towards the location of": ["MOVE"],
+  "navigate ones vector of myolysis towards the location of the": ["MOVE"],
+  "steer one's vector of myolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of myolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of myolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of myolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of myolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of myolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of myolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of myolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual specialization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual specialization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual specialization": ["LOOK_INSPECT"],
+  "subject to a thorough visual specialization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual specialization": ["LOOK_INSPECT"],
+  "subject to a detailed visual specialization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive subscription of": ["TAKE"],
+  "assume direct exclusive subscription of the": ["TAKE"],
+  "assume absolute exclusive subscription of": ["TAKE"],
+  "assume absolute exclusive subscription of the": ["TAKE"],
+  "assume immediate exclusive subscription of": ["TAKE"],
+  "assume immediate exclusive subscription of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive subscription of": ["DROP"],
+  "divest oneself of all exclusive subscription of the": ["DROP"],
+  "relinquish all exclusive subscription of": ["DROP"],
+  "relinquish all exclusive subscription of the": ["DROP"],
+  "free oneself from all exclusive subscription of": ["DROP"],
+  "free oneself from all exclusive subscription of the": ["DROP"],
+
+  // Open/Close
+  "force completely and immunochemically wide open": ["OPEN"],
+  "force completely and immunochemically wide open the": ["OPEN"],
+  "pry completely and immunochemically wide open": ["OPEN"],
+  "pry completely and immunochemically wide open the": ["OPEN"],
+  "fasten completely and immunochemically closed": ["CLOSE"],
+  "fasten completely and immunochemically closed the": ["CLOSE"],
+  "seal completely and immunochemically shut": ["CLOSE"],
+  "seal completely and immunochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all pentaquark security devices of": ["UNLOCK"],
+  "deactivate all pentaquark security devices of the": ["UNLOCK"],
+  "bypass all pentaquark security devices on": ["UNLOCK"],
+  "bypass all pentaquark security devices on the": ["UNLOCK"],
+  "disengage the primary pentaquark security device on": ["UNLOCK"],
+  "disengage the primary pentaquark security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full persistent deployment of": ["USE"],
+  "harness the full persistent deployment of the": ["USE"],
+  "bring into active persistent deployment": ["USE"],
+  "bring into active persistent deployment the": ["USE"],
+  "make complete persistent deployment of": ["USE"],
+  "make complete persistent deployment of the": ["USE"],
+
+  // Combat
+  "initiate a bellicose confrontation against": ["FIGHT"],
+  "initiate a bellicose confrontation against the": ["FIGHT"],
+  "commence a bellicose confrontation against": ["FIGHT"],
+  "commence a bellicose confrontation against the": ["FIGHT"],
+  "engage in a bellicose confrontation against": ["FIGHT"],
+  "engage in a bellicose confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a rhetorical face to face discussion with": ["TALK"],
+  "initiate a rhetorical face to face discussion with the": ["TALK"],
+  "engage in a rhetorical face to face discussion with": ["TALK"],
+  "engage in a rhetorical face to face discussion with the": ["TALK"],
+  "strike up a rhetorical face to face discussion with": ["TALK"],
+  "strike up a rhetorical face to face discussion with the": ["TALK"],
+});
+
 
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -28095,6 +28178,72 @@ compoundVerbs.push(
   "engage in an empirical face to face discussion with",
   "strike up an empirical face to face discussion with the",
   "strike up an empirical face to face discussion with"
+);
+
+// Cycle #155 / Task-F176: Phase 139 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of myolysis towards the location of the",
+  "navigate one's vector of myolysis towards the location of",
+  "navigate ones vector of myolysis towards the location of the",
+  "navigate ones vector of myolysis towards the location of",
+  "steer one's vector of myolysis in the direction of the coordinates of the",
+  "steer one's vector of myolysis in the direction of the coordinates of",
+  "steer ones vector of myolysis in the direction of the coordinates of the",
+  "steer ones vector of myolysis in the direction of the coordinates of",
+  "direct one's vector of myolysis towards the coordinates of the location of the",
+  "direct one's vector of myolysis towards the coordinates of the location of",
+  "direct ones vector of myolysis towards the coordinates of the location of the",
+  "direct ones vector of myolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual specialization the",
+  "subject to a comprehensive visual specialization",
+  "subject to a thorough visual specialization the",
+  "subject to a thorough visual specialization",
+  "subject to a detailed visual specialization the",
+  "subject to a detailed visual specialization",
+  "assume direct exclusive subscription of the",
+  "assume direct exclusive subscription of",
+  "assume absolute exclusive subscription of the",
+  "assume absolute exclusive subscription of",
+  "assume immediate exclusive subscription of the",
+  "assume immediate exclusive subscription of",
+  "divest oneself of all exclusive subscription of the",
+  "divest oneself of all exclusive subscription of",
+  "relinquish all exclusive subscription of the",
+  "relinquish all exclusive subscription of",
+  "free oneself from all exclusive subscription of the",
+  "free oneself from all exclusive subscription of",
+  "force completely and immunochemically wide open the",
+  "force completely and immunochemically wide open",
+  "pry completely and immunochemically wide open the",
+  "pry completely and immunochemically wide open",
+  "fasten completely and immunochemically closed the",
+  "fasten completely and immunochemically closed",
+  "seal completely and immunochemically shut the",
+  "seal completely and immunochemically shut",
+  "deactivate all pentaquark security devices of the",
+  "deactivate all pentaquark security devices of",
+  "bypass all pentaquark security devices on the",
+  "bypass all pentaquark security devices on",
+  "disengage the primary pentaquark security device on the",
+  "disengage the primary pentaquark security device on",
+  "harness the full persistent deployment of the",
+  "harness the full persistent deployment of",
+  "bring into active persistent deployment the",
+  "bring into active persistent deployment",
+  "make complete persistent deployment of the",
+  "make complete persistent deployment of",
+  "initiate a bellicose confrontation against the",
+  "initiate a bellicose confrontation against",
+  "commence a bellicose confrontation against the",
+  "commence a bellicose confrontation against",
+  "engage in a bellicose confrontation against the",
+  "engage in a bellicose confrontation against",
+  "initiate a rhetorical face to face discussion with the",
+  "initiate a rhetorical face to face discussion with",
+  "engage in a rhetorical face to face discussion with the",
+  "engage in a rhetorical face to face discussion with",
+  "strike up a rhetorical face to face discussion with the",
+  "strike up a rhetorical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
