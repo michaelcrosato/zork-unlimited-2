@@ -25960,6 +25960,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a deliberative face to face discussion with the": ["TALK"]
 });
 
+// Cycle #174 / Task-F194: Phase 157 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of cytogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of cytogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of cytogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of cytogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of cytogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of cytogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of cytogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of cytogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of cytogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of cytogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of cytogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of cytogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual inspection": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual inspection the": ["LOOK_INSPECT"],
+  "subject to a thorough visual inspection": ["LOOK_INSPECT"],
+  "subject to a thorough visual inspection the": ["LOOK_INSPECT"],
+  "subject to a detailed visual inspection": ["LOOK_INSPECT"],
+  "subject to a detailed visual inspection the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive acquisition of": ["TAKE"],
+  "assume direct exclusive acquisition of the": ["TAKE"],
+  "assume absolute exclusive acquisition of": ["TAKE"],
+  "assume absolute exclusive acquisition of the": ["TAKE"],
+  "assume immediate exclusive acquisition of": ["TAKE"],
+  "assume immediate exclusive acquisition of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive acquisition of": ["DROP"],
+  "divest oneself of all exclusive acquisition of the": ["DROP"],
+  "relinquish all exclusive acquisition of": ["DROP"],
+  "relinquish all exclusive acquisition of the": ["DROP"],
+  "free oneself from all exclusive acquisition of": ["DROP"],
+  "free oneself from all exclusive acquisition of the": ["DROP"],
+
+  // Open/Close
+  "force completely and magnetoelastically wide open": ["OPEN"],
+  "force completely and magnetoelastically wide open the": ["OPEN"],
+  "pry completely and magnetoelastically wide open": ["OPEN"],
+  "pry completely and magnetoelastically wide open the": ["OPEN"],
+  "fasten completely and magnetoelastically closed": ["CLOSE"],
+  "fasten completely and magnetoelastically closed the": ["CLOSE"],
+  "seal completely and magnetoelastically shut": ["CLOSE"],
+  "seal completely and magnetoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all skyrmion security devices of": ["UNLOCK"],
+  "deactivate all skyrmion security devices of the": ["UNLOCK"],
+  "deactivate all glueball security devices of": ["UNLOCK"],
+  "deactivate all glueball security devices of the": ["UNLOCK"],
+  "deactivate all tetraquark security devices of": ["UNLOCK"],
+  "deactivate all tetraquark security devices of the": ["UNLOCK"],
+  "deactivate all smuon security devices of": ["UNLOCK"],
+  "deactivate all smuon security devices of the": ["UNLOCK"],
+  "bypass all skyrmion security devices on": ["UNLOCK"],
+  "bypass all skyrmion security devices on the": ["UNLOCK"],
+  "bypass all glueball security devices on": ["UNLOCK"],
+  "bypass all glueball security devices on the": ["UNLOCK"],
+  "bypass all tetraquark security devices on": ["UNLOCK"],
+  "bypass all tetraquark security devices on the": ["UNLOCK"],
+  "bypass all smuon security devices on": ["UNLOCK"],
+  "bypass all smuon security devices on the": ["UNLOCK"],
+  "disengage the primary skyrmion security device on": ["UNLOCK"],
+  "disengage the primary skyrmion security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full customized deployment of": ["USE"],
+  "harness the full customized deployment of the": ["USE"],
+  "bring into active customized deployment": ["USE"],
+  "bring into active customized deployment the": ["USE"],
+  "make complete customized deployment of": ["USE"],
+  "make complete customized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a devastating confrontation against": ["FIGHT"],
+  "initiate a devastating confrontation against the": ["FIGHT"],
+  "commence a devastating confrontation against": ["FIGHT"],
+  "commence a devastating confrontation against the": ["FIGHT"],
+  "engage in a devastating confrontation against": ["FIGHT"],
+  "engage in a devastating confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a professional face to face discussion with": ["TALK"],
+  "initiate a professional face to face discussion with the": ["TALK"],
+  "engage in a professional face to face discussion with": ["TALK"],
+  "engage in a professional face to face discussion with the": ["TALK"],
+  "strike up a professional face to face discussion with": ["TALK"],
+  "strike up a professional face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -30786,6 +30881,84 @@ compoundVerbs.push(
   "engage in a deliberative face to face discussion with",
   "strike up a deliberative face to face discussion with the",
   "strike up a deliberative face to face discussion with"
+);
+
+// Cycle #174 / Task-F194: Phase 157 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of cytogenesis towards the location of the",
+  "navigate one's vector of cytogenesis towards the location of",
+  "navigate ones vector of cytogenesis towards the location of the",
+  "navigate ones vector of cytogenesis towards the location of",
+  "steer one's vector of cytogenesis in the direction of the coordinates of the",
+  "steer one's vector of cytogenesis in the direction of the coordinates of",
+  "steer ones vector of cytogenesis in the direction of the coordinates of the",
+  "steer ones vector of cytogenesis in the direction of the coordinates of",
+  "direct one's vector of cytogenesis towards the coordinates of the location of the",
+  "direct one's vector of cytogenesis towards the coordinates of the location of",
+  "direct ones vector of cytogenesis towards the coordinates of the location of the",
+  "direct ones vector of cytogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual inspection the",
+  "subject to a comprehensive visual inspection",
+  "subject to a thorough visual inspection the",
+  "subject to a thorough visual inspection",
+  "subject to a detailed visual inspection the",
+  "subject to a detailed visual inspection",
+  "assume direct exclusive acquisition of the",
+  "assume direct exclusive acquisition of",
+  "assume absolute exclusive acquisition of the",
+  "assume absolute exclusive acquisition of",
+  "assume immediate exclusive acquisition of the",
+  "assume immediate exclusive acquisition of",
+  "divest oneself of all exclusive acquisition of the",
+  "divest oneself of all exclusive acquisition of",
+  "relinquish all exclusive acquisition of the",
+  "relinquish all exclusive acquisition of",
+  "free oneself from all exclusive acquisition of the",
+  "free oneself from all exclusive acquisition of",
+  "force completely and magnetoelastically wide open the",
+  "force completely and magnetoelastically wide open",
+  "pry completely and magnetoelastically wide open the",
+  "pry completely and magnetoelastically wide open",
+  "fasten completely and magnetoelastically closed the",
+  "fasten completely and magnetoelastically closed",
+  "seal completely and magnetoelastically shut the",
+  "seal completely and magnetoelastically shut",
+  "deactivate all skyrmion security devices of the",
+  "deactivate all skyrmion security devices of",
+  "deactivate all glueball security devices of the",
+  "deactivate all glueball security devices of",
+  "deactivate all tetraquark security devices of the",
+  "deactivate all tetraquark security devices of",
+  "deactivate all smuon security devices of the",
+  "deactivate all smuon security devices of",
+  "bypass all skyrmion security devices on the",
+  "bypass all skyrmion security devices on",
+  "bypass all glueball security devices on the",
+  "bypass all glueball security devices on",
+  "bypass all tetraquark security devices on the",
+  "bypass all tetraquark security devices on",
+  "bypass all smuon security devices on the",
+  "bypass all smuon security devices on",
+  "disengage the primary skyrmion security device on the",
+  "disengage the primary skyrmion security device on",
+  "harness the full customized deployment of the",
+  "harness the full customized deployment of",
+  "bring into active customized deployment the",
+  "bring into active customized deployment",
+  "make complete customized deployment of the",
+  "make complete customized deployment of",
+  "initiate a devastating confrontation against the",
+  "initiate a devastating confrontation against",
+  "commence a devastating confrontation against the",
+  "commence a devastating confrontation against",
+  "engage in a devastating confrontation against the",
+  "engage in a devastating confrontation against",
+  "initiate a professional face to face discussion with the",
+  "initiate a professional face to face discussion with",
+  "engage in a professional face to face discussion with the",
+  "engage in a professional face to face discussion with",
+  "strike up a professional face to face discussion with the",
+  "strike up a professional face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
