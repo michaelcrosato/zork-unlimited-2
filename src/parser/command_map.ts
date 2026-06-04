@@ -23213,7 +23213,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in an ontological face to face discussion with": ["TALK"],
   "engage in an ontological face to face discussion with the": ["TALK"],
   "strike up an ontological face to face discussion with": ["TALK"],
-  "strike up an ontological face to face discussion with the": ["TALK"]
+  "strike up an ontological face to face discussion with the": ["TALK"],
+
+  // Cycle #139 / Task-F160: Phase 123 VERB_CATEGORIES mappings
+  // Movement
+  "navigate one's vector of pyrolysis towards the location of": ["MOVE"],
+  "navigate one's vector of pyrolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of pyrolysis towards the location of": ["MOVE"],
+  "navigate ones vector of pyrolysis towards the location of the": ["MOVE"],
+  "steer one's vector of pyrolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of pyrolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of pyrolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of pyrolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of pyrolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of pyrolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of pyrolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of pyrolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual quantification": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual quantification the": ["LOOK_INSPECT"],
+  "subject to a thorough visual quantification": ["LOOK_INSPECT"],
+  "subject to a thorough visual quantification the": ["LOOK_INSPECT"],
+  "subject to a detailed visual quantification": ["LOOK_INSPECT"],
+  "subject to a detailed visual quantification the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive endowment of": ["TAKE"],
+  "assume direct exclusive endowment of the": ["TAKE"],
+  "assume absolute exclusive endowment of": ["TAKE"],
+  "assume absolute exclusive endowment of the": ["TAKE"],
+  "assume immediate exclusive endowment of": ["TAKE"],
+  "assume immediate exclusive endowment of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive endowment of": ["DROP"],
+  "divest oneself of all exclusive endowment of the": ["DROP"],
+  "relinquish all exclusive endowment of": ["DROP"],
+  "relinquish all exclusive endowment of the": ["DROP"],
+  "free oneself from all exclusive endowment of": ["DROP"],
+  "free oneself from all exclusive endowment of the": ["DROP"],
+
+  // Open/Close
+  "force completely and isobarically wide open": ["OPEN"],
+  "force completely and isobarically wide open the": ["OPEN"],
+  "pry completely and isobarically wide open": ["OPEN"],
+  "pry completely and isobarically wide open the": ["OPEN"],
+  "fasten completely and isobarically closed": ["CLOSE"],
+  "fasten completely and isobarically closed the": ["CLOSE"],
+  "seal completely and isobarically shut": ["CLOSE"],
+  "seal completely and isobarically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all photino security devices of": ["UNLOCK"],
+  "deactivate all photino security devices of the": ["UNLOCK"],
+  "bypass all photino security devices on": ["UNLOCK"],
+  "bypass all photino security devices on the": ["UNLOCK"],
+  "disengage the primary photino security device on": ["UNLOCK"],
+  "disengage the primary photino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unflagging deployment of": ["USE"],
+  "harness the full unflagging deployment of the": ["USE"],
+  "bring into active unflagging deployment": ["USE"],
+  "bring into active unflagging deployment the": ["USE"],
+  "make complete unflagging deployment of": ["USE"],
+  "make complete unflagging deployment of the": ["USE"],
+
+  // Combat
+  "initiate a predatory confrontation against": ["FIGHT"],
+  "initiate a predatory confrontation against the": ["FIGHT"],
+  "commence a predatory confrontation against": ["FIGHT"],
+  "commence a predatory confrontation against the": ["FIGHT"],
+  "engage in a predatory confrontation against": ["FIGHT"],
+  "engage in a predatory confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a teleological face to face discussion with": ["TALK"],
+  "initiate a teleological face to face discussion with the": ["TALK"],
+  "engage in a teleological face to face discussion with": ["TALK"],
+  "engage in a teleological face to face discussion with the": ["TALK"],
+  "strike up a teleological face to face discussion with": ["TALK"],
+  "strike up a teleological face to face discussion with the": ["TALK"]
 });
 
 
@@ -25791,6 +25872,72 @@ compoundVerbs.push(
   "engage in an ontological face to face discussion with",
   "strike up an ontological face to face discussion with the",
   "strike up an ontological face to face discussion with"
+);
+
+// Cycle #139 / Task-F160: Phase 123 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of pyrolysis towards the location of the",
+  "navigate one's vector of pyrolysis towards the location of",
+  "navigate ones vector of pyrolysis towards the location of the",
+  "navigate ones vector of pyrolysis towards the location of",
+  "steer one's vector of pyrolysis in the direction of the coordinates of the",
+  "steer one's vector of pyrolysis in the direction of the coordinates of",
+  "steer ones vector of pyrolysis in the direction of the coordinates of the",
+  "steer ones vector of pyrolysis in the direction of the coordinates of",
+  "direct one's vector of pyrolysis towards the coordinates of the location of the",
+  "direct one's vector of pyrolysis towards the coordinates of the location of",
+  "direct ones vector of pyrolysis towards the coordinates of the location of the",
+  "direct ones vector of pyrolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual quantification the",
+  "subject to a comprehensive visual quantification",
+  "subject to a thorough visual quantification the",
+  "subject to a thorough visual quantification",
+  "subject to a detailed visual quantification the",
+  "subject to a detailed visual quantification",
+  "assume direct exclusive endowment of the",
+  "assume direct exclusive endowment of",
+  "assume absolute exclusive endowment of the",
+  "assume absolute exclusive endowment of",
+  "assume immediate exclusive endowment of the",
+  "assume immediate exclusive endowment of",
+  "divest oneself of all exclusive endowment of the",
+  "divest oneself of all exclusive endowment of",
+  "relinquish all exclusive endowment of the",
+  "relinquish all exclusive endowment of",
+  "free oneself from all exclusive endowment of the",
+  "free oneself from all exclusive endowment of",
+  "force completely and isobarically wide open the",
+  "force completely and isobarically wide open",
+  "pry completely and isobarically wide open the",
+  "pry completely and isobarically wide open",
+  "fasten completely and isobarically closed the",
+  "fasten completely and isobarically closed",
+  "seal completely and isobarically shut the",
+  "seal completely and isobarically shut",
+  "deactivate all photino security devices of the",
+  "deactivate all photino security devices of",
+  "bypass all photino security devices on the",
+  "bypass all photino security devices on",
+  "disengage the primary photino security device on the",
+  "disengage the primary photino security device on",
+  "harness the full unflagging deployment of the",
+  "harness the full unflagging deployment of",
+  "bring into active unflagging deployment the",
+  "bring into active unflagging deployment",
+  "make complete unflagging deployment of the",
+  "make complete unflagging deployment of",
+  "initiate a predatory confrontation against the",
+  "initiate a predatory confrontation against",
+  "commence a predatory confrontation against the",
+  "commence a predatory confrontation against",
+  "engage in a predatory confrontation against the",
+  "engage in a predatory confrontation against",
+  "initiate a teleological face to face discussion with the",
+  "initiate a teleological face to face discussion with",
+  "engage in a teleological face to face discussion with the",
+  "engage in a teleological face to face discussion with",
+  "strike up a teleological face to face discussion with the",
+  "strike up a teleological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
