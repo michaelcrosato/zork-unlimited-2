@@ -16,115 +16,115 @@ describe("Parser Synonym Expansion Phase 193 (Task-F231)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(mapCommand("navigate one's vector of gliogenesis towards the location of east", actions).action).toEqual({
+    expect(mapCommand("navigate one's vector of odontogenesis towards the location of east", actions).action).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("steer one's vector of gliogenesis in the direction of the coordinates of east", actions).action).toEqual({
+    expect(mapCommand("steer one's vector of odontogenesis in the direction of the coordinates of east", actions).action).toEqual({
       type: "MOVE",
       direction: "east",
     });
-    expect(mapCommand("direct ones vector of gliogenesis towards the coordinates of the location of east", actions).action).toEqual({
+    expect(mapCommand("direct ones vector of odontogenesis towards the coordinates of the location of east", actions).action).toEqual({
       type: "MOVE",
       direction: "east",
     });
   });
 
   it("should map newly added inspection verbs to LOOK action", () => {
-    expect(mapCommand("subject to a comprehensive visual actualization altar", actions).action).toEqual({
+    expect(mapCommand("subject to a comprehensive visual classification altar", actions).action).toEqual({
       type: "LOOK",
       target: "altar",
     });
-    expect(mapCommand("subject to a thorough visual actualization the altar", actions).action).toEqual({
+    expect(mapCommand("subject to a thorough visual classification the altar", actions).action).toEqual({
       type: "LOOK",
       target: "altar",
     });
-    expect(mapCommand("subject to a detailed visual actualization altar", actions).action).toEqual({
+    expect(mapCommand("subject to a detailed visual classification altar", actions).action).toEqual({
       type: "LOOK",
       target: "altar",
     });
   });
 
   it("should map newly added take verbs to TAKE action", () => {
-    expect(mapCommand("assume direct exclusive requisitioning of katana", actions).action).toEqual({
+    expect(mapCommand("assume direct exclusive screening of katana", actions).action).toEqual({
       type: "TAKE",
       item: "katana",
     });
-    expect(mapCommand("assume absolute exclusive requisitioning of katana", actions).action).toEqual({
+    expect(mapCommand("assume absolute exclusive screening of katana", actions).action).toEqual({
       type: "TAKE",
       item: "katana",
     });
-    expect(mapCommand("assume immediate exclusive requisitioning of katana", actions).action).toEqual({
+    expect(mapCommand("assume immediate exclusive screening of katana", actions).action).toEqual({
       type: "TAKE",
       item: "katana",
     });
   });
 
   it("should map newly added drop verbs to DROP action", () => {
-    expect(mapCommand("divest oneself of all exclusive requisitioning of boots", actions).action).toEqual({
+    expect(mapCommand("divest oneself of all exclusive screening of boots", actions).action).toEqual({
       type: "DROP",
       item: "boots",
     });
-    expect(mapCommand("relinquish all exclusive requisitioning of boots", actions).action).toEqual({
+    expect(mapCommand("relinquish all exclusive screening of boots", actions).action).toEqual({
       type: "DROP",
       item: "boots",
     });
-    expect(mapCommand("free oneself from all exclusive requisitioning of boots", actions).action).toEqual({
+    expect(mapCommand("free oneself from all exclusive screening of boots", actions).action).toEqual({
       type: "DROP",
       item: "boots",
     });
   });
 
   it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-    expect(mapCommand("force completely and triboelectrically wide open vault", actions).action).toEqual({
+    expect(mapCommand("force completely and colloidally wide open vault", actions).action).toEqual({
       type: "OPEN",
       target: "vault",
     });
-    expect(mapCommand("fasten completely and triboelectrically closed door", actions).action).toEqual({
+    expect(mapCommand("fasten completely and colloidally closed door", actions).action).toEqual({
       type: "CLOSE",
       target: "door",
     });
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    // godel
-    expect(mapCommand("deactivate all godel security devices of chest", actions).action).toEqual({
+    // pasteur
+    expect(mapCommand("deactivate all pasteur security devices of chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all godel security devices on chest", actions).action).toEqual({
+    expect(mapCommand("bypass all pasteur security devices on chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    // cantor
-    expect(mapCommand("deactivate all cantor security devices of chest", actions).action).toEqual({
+    // koch
+    expect(mapCommand("deactivate all koch security devices of chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all cantor security devices on chest", actions).action).toEqual({
+    expect(mapCommand("bypass all koch security devices on chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    // peano
-    expect(mapCommand("deactivate all peano security devices of chest", actions).action).toEqual({
+    // lister
+    expect(mapCommand("deactivate all lister security devices of chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all peano security devices on chest", actions).action).toEqual({
+    expect(mapCommand("bypass all lister security devices on chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    // frege
-    expect(mapCommand("deactivate all frege security devices of chest", actions).action).toEqual({
+    // jenner
+    expect(mapCommand("deactivate all jenner security devices of chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all frege security devices on chest", actions).action).toEqual({
+    expect(mapCommand("bypass all jenner security devices on chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     // disengage primary
-    expect(mapCommand("disengage the primary godel security device on chest", actions).action).toEqual({
+    expect(mapCommand("disengage the primary pasteur security device on chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
@@ -146,15 +146,15 @@ describe("Parser Synonym Expansion Phase 193 (Task-F231)", () => {
   });
 
   it("should map newly added combat verbs to FIGHT action", () => {
-    expect(mapCommand("initiate a relentlessly truculent confrontation against ghoul", actions).action).toEqual({
+    expect(mapCommand("initiate an unforgivingly hostile confrontation against ghoul", actions).action).toEqual({
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("commence a relentlessly truculent confrontation against ghoul", actions).action).toEqual({
+    expect(mapCommand("commence an unforgivingly hostile confrontation against ghoul", actions).action).toEqual({
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("engage in a relentlessly truculent confrontation against ghoul", actions).action).toEqual({
+    expect(mapCommand("engage in an unforgivingly hostile confrontation against ghoul", actions).action).toEqual({
       type: "FIGHT",
       npc: "ghoul",
     });
