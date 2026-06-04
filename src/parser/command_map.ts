@@ -24550,6 +24550,90 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a rhetorical face to face discussion with the": ["TALK"],
 });
 
+// Cycle #156 / Task-F177: Phase 140 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of necrosis towards the location of": ["MOVE"],
+  "navigate one's vector of necrosis towards the location of the": ["MOVE"],
+  "navigate ones vector of necrosis towards the location of": ["MOVE"],
+  "navigate ones vector of necrosis towards the location of the": ["MOVE"],
+  "steer one's vector of necrosis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of necrosis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of necrosis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of necrosis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of necrosis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of necrosis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of necrosis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of necrosis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual differentiation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual differentiation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual differentiation": ["LOOK_INSPECT"],
+  "subject to a thorough visual differentiation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual differentiation": ["LOOK_INSPECT"],
+  "subject to a detailed visual differentiation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive configuration of": ["TAKE"],
+  "assume direct exclusive configuration of the": ["TAKE"],
+  "assume absolute exclusive configuration of": ["TAKE"],
+  "assume absolute exclusive configuration of the": ["TAKE"],
+  "assume immediate exclusive configuration of": ["TAKE"],
+  "assume immediate exclusive configuration of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive configuration of": ["DROP"],
+  "divest oneself of all exclusive configuration of the": ["DROP"],
+  "relinquish all exclusive configuration of": ["DROP"],
+  "relinquish all exclusive configuration of the": ["DROP"],
+  "free oneself from all exclusive configuration of": ["DROP"],
+  "free oneself from all exclusive configuration of the": ["DROP"],
+
+  // Open/Close
+  "force completely and cytochemically wide open": ["OPEN"],
+  "force completely and cytochemically wide open the": ["OPEN"],
+  "pry completely and cytochemically wide open": ["OPEN"],
+  "pry completely and cytochemically wide open the": ["OPEN"],
+  "fasten completely and cytochemically closed": ["CLOSE"],
+  "fasten completely and cytochemically closed the": ["CLOSE"],
+  "seal completely and cytochemically shut": ["CLOSE"],
+  "seal completely and cytochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all klein security devices of": ["UNLOCK"],
+  "deactivate all klein security devices of the": ["UNLOCK"],
+  "bypass all klein security devices on": ["UNLOCK"],
+  "bypass all klein security devices on the": ["UNLOCK"],
+  "disengage the primary klein security device on": ["UNLOCK"],
+  "disengage the primary klein security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full comprehensive deployment of": ["USE"],
+  "harness the full comprehensive deployment of the": ["USE"],
+  "bring into active comprehensive deployment": ["USE"],
+  "bring into active comprehensive deployment the": ["USE"],
+  "make complete comprehensive deployment of": ["USE"],
+  "make complete comprehensive deployment of the": ["USE"],
+
+  // Combat
+  "initiate a provocative confrontation against": ["FIGHT"],
+  "initiate a provocative confrontation against the": ["FIGHT"],
+  "commence a provocative confrontation against": ["FIGHT"],
+  "commence a provocative confrontation against the": ["FIGHT"],
+  "engage in a provocative confrontation against": ["FIGHT"],
+  "engage in a provocative confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a logical face to face discussion with": ["TALK"],
+  "initiate a logical face to face discussion with the": ["TALK"],
+  "engage in a logical face to face discussion with": ["TALK"],
+  "engage in a logical face to face discussion with the": ["TALK"],
+  "strike up a logical face to face discussion with": ["TALK"],
+  "strike up a logical face to face discussion with the": ["TALK"],
+});
+
+
 
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -28244,6 +28328,72 @@ compoundVerbs.push(
   "engage in a rhetorical face to face discussion with",
   "strike up a rhetorical face to face discussion with the",
   "strike up a rhetorical face to face discussion with"
+);
+
+// Cycle #156 / Task-F177: Phase 140 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of necrosis towards the location of the",
+  "navigate one's vector of necrosis towards the location of",
+  "navigate ones vector of necrosis towards the location of the",
+  "navigate ones vector of necrosis towards the location of",
+  "steer one's vector of necrosis in the direction of the coordinates of the",
+  "steer one's vector of necrosis in the direction of the coordinates of",
+  "steer ones vector of necrosis in the direction of the coordinates of the",
+  "steer ones vector of necrosis in the direction of the coordinates of",
+  "direct one's vector of necrosis towards the coordinates of the location of the",
+  "direct one's vector of necrosis towards the coordinates of the location of",
+  "direct ones vector of necrosis towards the coordinates of the location of the",
+  "direct ones vector of necrosis towards the coordinates of the location of",
+  "subject to a comprehensive visual differentiation the",
+  "subject to a comprehensive visual differentiation",
+  "subject to a thorough visual differentiation the",
+  "subject to a thorough visual differentiation",
+  "subject to a detailed visual differentiation the",
+  "subject to a detailed visual differentiation",
+  "assume direct exclusive configuration of the",
+  "assume direct exclusive configuration of",
+  "assume absolute exclusive configuration of the",
+  "assume absolute exclusive configuration of",
+  "assume immediate exclusive configuration of the",
+  "assume immediate exclusive configuration of",
+  "divest oneself of all exclusive configuration of the",
+  "divest oneself of all exclusive configuration of",
+  "relinquish all exclusive configuration of the",
+  "relinquish all exclusive configuration of",
+  "free oneself from all exclusive configuration of the",
+  "free oneself from all exclusive configuration of",
+  "force completely and cytochemically wide open the",
+  "force completely and cytochemically wide open",
+  "pry completely and cytochemically wide open the",
+  "pry completely and cytochemically wide open",
+  "fasten completely and cytochemically closed the",
+  "fasten completely and cytochemically closed",
+  "seal completely and cytochemically shut the",
+  "seal completely and cytochemically shut",
+  "deactivate all klein security devices of the",
+  "deactivate all klein security devices of",
+  "bypass all klein security devices on the",
+  "bypass all klein security devices on",
+  "disengage the primary klein security device on the",
+  "disengage the primary klein security device on",
+  "harness the full comprehensive deployment of the",
+  "harness the full comprehensive deployment of",
+  "bring into active comprehensive deployment the",
+  "bring into active comprehensive deployment",
+  "make complete comprehensive deployment of the",
+  "make complete comprehensive deployment of",
+  "initiate a provocative confrontation against the",
+  "initiate a provocative confrontation against",
+  "commence a provocative confrontation against the",
+  "commence a provocative confrontation against",
+  "engage in a provocative confrontation against the",
+  "engage in a provocative confrontation against",
+  "initiate a logical face to face discussion with the",
+  "initiate a logical face to face discussion with",
+  "engage in a logical face to face discussion with the",
+  "engage in a logical face to face discussion with",
+  "strike up a logical face to face discussion with the",
+  "strike up a logical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
