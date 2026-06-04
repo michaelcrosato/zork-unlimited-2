@@ -21810,6 +21810,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an erudite face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #122 / Task-F143: Phase 106
+  // Movement
+  "navigate one's vector of fluctuation towards the location of": ["MOVE"],
+  "navigate one's vector of fluctuation towards the location of the": ["MOVE"],
+  "navigate ones vector of fluctuation towards the location of": ["MOVE"],
+  "navigate ones vector of fluctuation towards the location of the": ["MOVE"],
+  "steer one's vector of fluctuation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of fluctuation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of fluctuation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of fluctuation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of fluctuation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of fluctuation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of fluctuation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of fluctuation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual assessment": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual assessment the": ["LOOK_INSPECT"],
+  "subject to a thorough visual assessment": ["LOOK_INSPECT"],
+  "subject to a thorough visual assessment the": ["LOOK_INSPECT"],
+  "subject to a detailed visual assessment": ["LOOK_INSPECT"],
+  "subject to a detailed visual assessment the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive occupancy of": ["TAKE"],
+  "assume direct exclusive occupancy of the": ["TAKE"],
+  "assume absolute exclusive occupancy of": ["TAKE"],
+  "assume absolute exclusive occupancy of the": ["TAKE"],
+  "assume immediate exclusive occupancy of": ["TAKE"],
+  "assume immediate exclusive occupancy of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive occupancy of": ["DROP"],
+  "divest oneself of all exclusive occupancy of the": ["DROP"],
+  "relinquish all exclusive occupancy of": ["DROP"],
+  "relinquish all exclusive occupancy of the": ["DROP"],
+  "free oneself from all exclusive occupancy of": ["DROP"],
+  "free oneself from all exclusive occupancy of the": ["DROP"],
+
+  // Open/Close
+  "force completely and topologically wide open": ["OPEN"],
+  "force completely and topologically wide open the": ["OPEN"],
+  "pry completely and topologically wide open": ["OPEN"],
+  "pry completely and topologically wide open the": ["OPEN"],
+  "fasten completely and topologically closed": ["CLOSE"],
+  "fasten completely and topologically closed the": ["CLOSE"],
+  "seal completely and topologically shut": ["CLOSE"],
+  "seal completely and topologically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all chiral security devices of": ["UNLOCK"],
+  "deactivate all chiral security devices of the": ["UNLOCK"],
+  "bypass all chiral security devices on": ["UNLOCK"],
+  "bypass all chiral security devices on the": ["UNLOCK"],
+  "disengage the primary chiral security device on": ["UNLOCK"],
+  "disengage the primary chiral security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full inestimable deployment of": ["USE"],
+  "harness the full inestimable deployment of the": ["USE"],
+  "bring into active inestimable deployment": ["USE"],
+  "bring into active inestimable deployment the": ["USE"],
+  "make complete inestimable deployment of": ["USE"],
+  "make complete inestimable deployment of the": ["USE"],
+
+  // Combat
+  "initiate an inimical confrontation against": ["FIGHT"],
+  "initiate an inimical confrontation against the": ["FIGHT"],
+  "commence an inimical confrontation against": ["FIGHT"],
+  "commence an inimical confrontation against the": ["FIGHT"],
+  "engage in an inimical confrontation against": ["FIGHT"],
+  "engage in an inimical confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a judicious face to face discussion with": ["TALK"],
+  "initiate a judicious face to face discussion with the": ["TALK"],
+  "engage in a judicious face to face discussion with": ["TALK"],
+  "engage in a judicious face to face discussion with the": ["TALK"],
+  "strike up a judicious face to face discussion with": ["TALK"],
+  "strike up a judicious face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -23263,6 +23346,72 @@ compoundVerbs.push(
   "engage in an erudite face to face discussion with",
   "strike up an erudite face to face discussion with the",
   "strike up an erudite face to face discussion with"
+);
+
+// Cycle #122 / Task-F143: Phase 106 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of fluctuation towards the location of the",
+  "navigate one's vector of fluctuation towards the location of",
+  "navigate ones vector of fluctuation towards the location of the",
+  "navigate ones vector of fluctuation towards the location of",
+  "steer one's vector of fluctuation in the direction of the coordinates of the",
+  "steer one's vector of fluctuation in the direction of the coordinates of",
+  "steer ones vector of fluctuation in the direction of the coordinates of the",
+  "steer ones vector of fluctuation in the direction of the coordinates of",
+  "direct one's vector of fluctuation towards the coordinates of the location of the",
+  "direct one's vector of fluctuation towards the coordinates of the location of",
+  "direct ones vector of fluctuation towards the coordinates of the location of the",
+  "direct ones vector of fluctuation towards the coordinates of the location of",
+  "subject to a comprehensive visual assessment the",
+  "subject to a comprehensive visual assessment",
+  "subject to a thorough visual assessment the",
+  "subject to a thorough visual assessment",
+  "subject to a detailed visual assessment the",
+  "subject to a detailed visual assessment",
+  "assume direct exclusive occupancy of the",
+  "assume direct exclusive occupancy of",
+  "assume absolute exclusive occupancy of the",
+  "assume absolute exclusive occupancy of",
+  "assume immediate exclusive occupancy of the",
+  "assume immediate exclusive occupancy of",
+  "divest oneself of all exclusive occupancy of the",
+  "divest oneself of all exclusive occupancy of",
+  "relinquish all exclusive occupancy of the",
+  "relinquish all exclusive occupancy of",
+  "free oneself from all exclusive occupancy of the",
+  "free oneself from all exclusive occupancy of",
+  "force completely and topologically wide open the",
+  "force completely and topologically wide open",
+  "pry completely and topologically wide open the",
+  "pry completely and topologically wide open",
+  "fasten completely and topologically closed the",
+  "fasten completely and topologically closed",
+  "seal completely and topologically shut the",
+  "seal completely and topologically shut",
+  "deactivate all chiral security devices of the",
+  "deactivate all chiral security devices of",
+  "bypass all chiral security devices on the",
+  "bypass all chiral security devices on",
+  "disengage the primary chiral security device on the",
+  "disengage the primary chiral security device on",
+  "harness the full inestimable deployment of the",
+  "harness the full inestimable deployment of",
+  "bring into active inestimable deployment the",
+  "bring into active inestimable deployment",
+  "make complete inestimable deployment of the",
+  "make complete inestimable deployment of",
+  "initiate an inimical confrontation against the",
+  "initiate an inimical confrontation against",
+  "commence an inimical confrontation against the",
+  "commence an inimical confrontation against",
+  "engage in an inimical confrontation against the",
+  "engage in an inimical confrontation against",
+  "initiate a judicious face to face discussion with the",
+  "initiate a judicious face to face discussion with",
+  "engage in a judicious face to face discussion with the",
+  "engage in a judicious face to face discussion with",
+  "strike up a judicious face to face discussion with the",
+  "strike up a judicious face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
