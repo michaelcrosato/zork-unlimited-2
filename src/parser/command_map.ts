@@ -21231,6 +21231,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an edifying face to face discussion with the": ["TALK"]
 });
 
+// Cycle #114 / Task-F136: Phase 99 verb categories
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of convection towards the location of": ["MOVE"],
+  "navigate one's vector of convection towards the location of the": ["MOVE"],
+  "navigate ones vector of convection towards the location of": ["MOVE"],
+  "navigate ones vector of convection towards the location of the": ["MOVE"],
+  "steer one's vector of convection in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of convection in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of convection in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of convection in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of convection towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of convection towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of convection towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of convection towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual display": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual display the": ["LOOK_INSPECT"],
+  "subject to a thorough visual display": ["LOOK_INSPECT"],
+  "subject to a thorough visual display the": ["LOOK_INSPECT"],
+  "subject to a detailed visual display": ["LOOK_INSPECT"],
+  "subject to a detailed visual display the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive interception of": ["TAKE"],
+  "assume direct exclusive interception of the": ["TAKE"],
+  "assume absolute exclusive interception of": ["TAKE"],
+  "assume absolute exclusive interception of the": ["TAKE"],
+  "assume immediate exclusive interception of": ["TAKE"],
+  "assume immediate exclusive interception of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive interception of": ["DROP"],
+  "divest oneself of all exclusive interception of the": ["DROP"],
+  "relinquish all exclusive interception of": ["DROP"],
+  "relinquish all exclusive interception of the": ["DROP"],
+  "free oneself from all exclusive interception of": ["DROP"],
+  "free oneself from all exclusive interception of the": ["DROP"],
+
+  // Open/Close
+  "force completely and phononically wide open": ["OPEN"],
+  "force completely and phononically wide open the": ["OPEN"],
+  "pry completely and phononically wide open": ["OPEN"],
+  "pry completely and phononically wide open the": ["OPEN"],
+  "fasten completely and phononically closed": ["CLOSE"],
+  "fasten completely and phononically closed the": ["CLOSE"],
+  "seal completely and phononically shut": ["CLOSE"],
+  "seal completely and phononically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all excitonic security devices of": ["UNLOCK"],
+  "deactivate all excitonic security devices of the": ["UNLOCK"],
+  "bypass all excitonic security devices on": ["UNLOCK"],
+  "bypass all excitonic security devices on the": ["UNLOCK"],
+  "disengage the primary excitonic security device on": ["UNLOCK"],
+  "disengage the primary excitonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full supreme deployment of": ["USE"],
+  "harness the full supreme deployment of the": ["USE"],
+  "bring into active supreme deployment": ["USE"],
+  "bring into active supreme deployment the": ["USE"],
+  "make complete supreme deployment of": ["USE"],
+  "make complete supreme deployment of the": ["USE"],
+
+  // Combat
+  "initiate a venomous confrontation against": ["FIGHT"],
+  "initiate a venomous confrontation against the": ["FIGHT"],
+  "commence a venomous confrontation against": ["FIGHT"],
+  "commence a venomous confrontation against the": ["FIGHT"],
+  "engage in a venomous confrontation against": ["FIGHT"],
+  "engage in a venomous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an illuminating face to face discussion with": ["TALK"],
+  "initiate an illuminating face to face discussion with the": ["TALK"],
+  "engage in an illuminating face to face discussion with": ["TALK"],
+  "engage in an illuminating face to face discussion with the": ["TALK"],
+  "strike up an illuminating face to face discussion with": ["TALK"],
+  "strike up an illuminating face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -22222,6 +22305,72 @@ compoundVerbs.push(
   "engage in an edifying face to face discussion with",
   "strike up an edifying face to face discussion with the",
   "strike up an edifying face to face discussion with"
+);
+
+// Cycle #114 / Task-F136: Phase 99 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of convection towards the location of the",
+  "navigate one's vector of convection towards the location of",
+  "navigate ones vector of convection towards the location of the",
+  "navigate ones vector of convection towards the location of",
+  "steer one's vector of convection in the direction of the coordinates of the",
+  "steer one's vector of convection in the direction of the coordinates of",
+  "steer ones vector of convection in the direction of the coordinates of the",
+  "steer ones vector of convection in the direction of the coordinates of",
+  "direct one's vector of convection towards the coordinates of the location of the",
+  "direct one's vector of convection towards the coordinates of the location of",
+  "direct ones vector of convection towards the coordinates of the location of the",
+  "direct ones vector of convection towards the coordinates of the location of",
+  "subject to a comprehensive visual display the",
+  "subject to a comprehensive visual display",
+  "subject to a thorough visual display the",
+  "subject to a thorough visual display",
+  "subject to a detailed visual display the",
+  "subject to a detailed visual display",
+  "assume direct exclusive interception of the",
+  "assume direct exclusive interception of",
+  "assume absolute exclusive interception of the",
+  "assume absolute exclusive interception of",
+  "assume immediate exclusive interception of the",
+  "assume immediate exclusive interception of",
+  "divest oneself of all exclusive interception of the",
+  "divest oneself of all exclusive interception of",
+  "relinquish all exclusive interception of the",
+  "relinquish all exclusive interception of",
+  "free oneself from all exclusive interception of the",
+  "free oneself from all exclusive interception of",
+  "force completely and phononically wide open the",
+  "force completely and phononically wide open",
+  "pry completely and phononically wide open the",
+  "pry completely and phononically wide open",
+  "fasten completely and phononically closed the",
+  "fasten completely and phononically closed",
+  "seal completely and phononically shut the",
+  "seal completely and phononically shut",
+  "deactivate all excitonic security devices of the",
+  "deactivate all excitonic security devices of",
+  "bypass all excitonic security devices on the",
+  "bypass all excitonic security devices on",
+  "disengage the primary excitonic security device on the",
+  "disengage the primary excitonic security device on",
+  "harness the full supreme deployment of the",
+  "harness the full supreme deployment of",
+  "bring into active supreme deployment the",
+  "bring into active supreme deployment",
+  "make complete supreme deployment of the",
+  "make complete supreme deployment of",
+  "initiate a venomous confrontation against the",
+  "initiate a venomous confrontation against",
+  "commence a venomous confrontation against the",
+  "commence a venomous confrontation against",
+  "engage in a venomous confrontation against the",
+  "engage in a venomous confrontation against",
+  "initiate an illuminating face to face discussion with the",
+  "initiate an illuminating face to face discussion with",
+  "engage in an illuminating face to face discussion with the",
+  "engage in an illuminating face to face discussion with",
+  "strike up an illuminating face to face discussion with the",
+  "strike up an illuminating face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
