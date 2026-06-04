@@ -25048,6 +25048,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a linguistic face to face discussion with the": ["TALK"],
 });
 
+// Cycle #162 / Task-F183: Phase 146 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of cytoptysis towards the location of": ["MOVE"],
+  "navigate one's vector of cytoptysis towards the location of the": ["MOVE"],
+  "navigate ones vector of cytoptysis towards the location of": ["MOVE"],
+  "navigate ones vector of cytoptysis towards the location of the": ["MOVE"],
+  "steer one's vector of cytoptysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of cytoptysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of cytoptysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of cytoptysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of cytoptysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of cytoptysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of cytoptysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of cytoptysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual structuralization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual structuralization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual structuralization": ["LOOK_INSPECT"],
+  "subject to a thorough visual structuralization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual structuralization": ["LOOK_INSPECT"],
+  "subject to a detailed visual structuralization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive pocketing of": ["TAKE"],
+  "assume direct exclusive pocketing of the": ["TAKE"],
+  "assume absolute exclusive pocketing of": ["TAKE"],
+  "assume absolute exclusive pocketing of the": ["TAKE"],
+  "assume immediate exclusive pocketing of": ["TAKE"],
+  "assume immediate exclusive pocketing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive pocketing of": ["DROP"],
+  "divest oneself of all exclusive pocketing of the": ["DROP"],
+  "relinquish all exclusive pocketing of": ["DROP"],
+  "relinquish all exclusive pocketing of the": ["DROP"],
+  "free oneself from all exclusive pocketing of": ["DROP"],
+  "free oneself from all exclusive pocketing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electrophysically wide open": ["OPEN"],
+  "force completely and electrophysically wide open the": ["OPEN"],
+  "pry completely and electrophysically wide open": ["OPEN"],
+  "pry completely and electrophysically wide open the": ["OPEN"],
+  "fasten completely and electrophysically closed": ["CLOSE"],
+  "fasten completely and electrophysically closed the": ["CLOSE"],
+  "seal completely and electrophysically shut": ["CLOSE"],
+  "seal completely and electrophysically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all anyon security devices of": ["UNLOCK"],
+  "deactivate all anyon security devices of the": ["UNLOCK"],
+  "bypass all anyon security devices on": ["UNLOCK"],
+  "bypass all anyon security devices on the": ["UNLOCK"],
+  "disengage the primary anyon security device on": ["UNLOCK"],
+  "disengage the primary anyon security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full irrepressible deployment of": ["USE"],
+  "harness the full irrepressible deployment of the": ["USE"],
+  "bring into active irrepressible deployment": ["USE"],
+  "bring into active irrepressible deployment the": ["USE"],
+  "make complete irrepressible deployment of": ["USE"],
+  "make complete irrepressible deployment of the": ["USE"],
+
+  // Combat
+  "initiate a litigious confrontation against": ["FIGHT"],
+  "initiate a litigious confrontation against the": ["FIGHT"],
+  "commence a litigious confrontation against": ["FIGHT"],
+  "commence a litigious confrontation against the": ["FIGHT"],
+  "engage in a litigious confrontation against": ["FIGHT"],
+  "engage in a litigious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an etymological face to face discussion with": ["TALK"],
+  "initiate an etymological face to face discussion with the": ["TALK"],
+  "engage in an etymological face to face discussion with": ["TALK"],
+  "engage in an etymological face to face discussion with the": ["TALK"],
+  "strike up an etymological face to face discussion with": ["TALK"],
+  "strike up an etymological face to face discussion with the": ["TALK"],
+});
+
 
 
 
@@ -29140,6 +29223,72 @@ compoundVerbs.push(
   "engage in a linguistic face to face discussion with",
   "strike up a linguistic face to face discussion with the",
   "strike up a linguistic face to face discussion with"
+);
+
+// Cycle #162 / Task-F183: Phase 146 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of cytoptysis towards the location of the",
+  "navigate one's vector of cytoptysis towards the location of",
+  "navigate ones vector of cytoptysis towards the location of the",
+  "navigate ones vector of cytoptysis towards the location of",
+  "steer one's vector of cytoptysis in the direction of the coordinates of the",
+  "steer one's vector of cytoptysis in the direction of the coordinates of",
+  "steer ones vector of cytoptysis in the direction of the coordinates of the",
+  "steer ones vector of cytoptysis in the direction of the coordinates of",
+  "direct one's vector of cytoptysis towards the coordinates of the location of the",
+  "direct one's vector of cytoptysis towards the coordinates of the location of",
+  "direct ones vector of cytoptysis towards the coordinates of the location of the",
+  "direct ones vector of cytoptysis towards the coordinates of the location of",
+  "subject to a comprehensive visual structuralization the",
+  "subject to a comprehensive visual structuralization",
+  "subject to a thorough visual structuralization the",
+  "subject to a thorough visual structuralization",
+  "subject to a detailed visual structuralization the",
+  "subject to a detailed visual structuralization",
+  "assume direct exclusive pocketing of the",
+  "assume direct exclusive pocketing of",
+  "assume absolute exclusive pocketing of the",
+  "assume absolute exclusive pocketing of",
+  "assume immediate exclusive pocketing of the",
+  "assume immediate exclusive pocketing of",
+  "divest oneself of all exclusive pocketing of the",
+  "divest oneself of all exclusive pocketing of",
+  "relinquish all exclusive pocketing of the",
+  "relinquish all exclusive pocketing of",
+  "free oneself from all exclusive pocketing of the",
+  "free oneself from all exclusive pocketing of",
+  "force completely and electrophysically wide open the",
+  "force completely and electrophysically wide open",
+  "pry completely and electrophysically wide open the",
+  "pry completely and electrophysically wide open",
+  "fasten completely and electrophysically closed the",
+  "fasten completely and electrophysically closed",
+  "seal completely and electrophysically shut the",
+  "seal completely and electrophysically shut",
+  "deactivate all anyon security devices of the",
+  "deactivate all anyon security devices of",
+  "bypass all anyon security devices on the",
+  "bypass all anyon security devices on",
+  "disengage the primary anyon security device on the",
+  "disengage the primary anyon security device on",
+  "harness the full irrepressible deployment of the",
+  "harness the full irrepressible deployment of",
+  "bring into active irrepressible deployment the",
+  "bring into active irrepressible deployment",
+  "make complete irrepressible deployment of the",
+  "make complete irrepressible deployment of",
+  "initiate a litigious confrontation against the",
+  "initiate a litigious confrontation against",
+  "commence a litigious confrontation against the",
+  "commence a litigious confrontation against",
+  "engage in a litigious confrontation against the",
+  "engage in a litigious confrontation against",
+  "initiate an etymological face to face discussion with the",
+  "initiate an etymological face to face discussion with",
+  "engage in an etymological face to face discussion with the",
+  "engage in an etymological face to face discussion with",
+  "strike up an etymological face to face discussion with the",
+  "strike up an etymological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
