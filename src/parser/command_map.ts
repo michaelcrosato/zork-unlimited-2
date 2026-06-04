@@ -26910,6 +26910,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an archaeological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #184 / Task-F204: Phase 167 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of neurogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of neurogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of neurogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of neurogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of neurogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of neurogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of neurogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of neurogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of neurogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of neurogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of neurogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of neurogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual taxonomy": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual taxonomy the": ["LOOK_INSPECT"],
+  "subject to a thorough visual taxonomy": ["LOOK_INSPECT"],
+  "subject to a thorough visual taxonomy the": ["LOOK_INSPECT"],
+  "subject to a detailed visual taxonomy": ["LOOK_INSPECT"],
+  "subject to a detailed visual taxonomy the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive clutching of": ["TAKE"],
+  "assume direct exclusive clutching of the": ["TAKE"],
+  "assume absolute exclusive clutching of": ["TAKE"],
+  "assume absolute exclusive clutching of the": ["TAKE"],
+  "assume immediate exclusive clutching of": ["TAKE"],
+  "assume immediate exclusive clutching of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive clutching of": ["DROP"],
+  "divest oneself of all exclusive clutching of the": ["DROP"],
+  "relinquish all exclusive clutching of": ["DROP"],
+  "relinquish all exclusive clutching of the": ["DROP"],
+  "free oneself from all exclusive clutching of": ["DROP"],
+  "free oneself from all exclusive clutching of the": ["DROP"],
+
+  // Open/Close
+  "force completely and cryoelastically wide open": ["OPEN"],
+  "force completely and cryoelastically wide open the": ["OPEN"],
+  "pry completely and cryoelastically wide open": ["OPEN"],
+  "pry completely and cryoelastically wide open the": ["OPEN"],
+  "fasten completely and cryoelastically closed": ["CLOSE"],
+  "fasten completely and cryoelastically closed the": ["CLOSE"],
+  "seal completely and cryoelastically shut": ["CLOSE"],
+  "seal completely and cryoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all polaron security devices of": ["UNLOCK"],
+  "deactivate all polaron security devices of the": ["UNLOCK"],
+  "deactivate all fluxon security devices of": ["UNLOCK"],
+  "deactivate all fluxon security devices of the": ["UNLOCK"],
+  "deactivate all spinon security devices of": ["UNLOCK"],
+  "deactivate all spinon security devices of the": ["UNLOCK"],
+  "deactivate all holon security devices of": ["UNLOCK"],
+  "deactivate all holon security devices of the": ["UNLOCK"],
+  "bypass all polaron security devices on": ["UNLOCK"],
+  "bypass all polaron security devices on the": ["UNLOCK"],
+  "bypass all fluxon security devices on": ["UNLOCK"],
+  "bypass all fluxon security devices on the": ["UNLOCK"],
+  "bypass all spinon security devices on": ["UNLOCK"],
+  "bypass all spinon security devices on the": ["UNLOCK"],
+  "bypass all holon security devices on": ["UNLOCK"],
+  "bypass all holon security devices on the": ["UNLOCK"],
+  "disengage the primary polaron security device on": ["UNLOCK"],
+  "disengage the primary polaron security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full localized deployment of": ["USE"],
+  "harness the full localized deployment of the": ["USE"],
+  "bring into active localized deployment": ["USE"],
+  "bring into active localized deployment the": ["USE"],
+  "make complete localized deployment of": ["USE"],
+  "make complete localized deployment of the": ["USE"],
+
+  // Combat
+  "initiate a pugilistic confrontation against": ["FIGHT"],
+  "initiate a pugilistic confrontation against the": ["FIGHT"],
+  "commence a pugilistic confrontation against": ["FIGHT"],
+  "commence a pugilistic confrontation against the": ["FIGHT"],
+  "engage in a pugilistic confrontation against": ["FIGHT"],
+  "engage in a pugilistic confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a paleontological face to face discussion with": ["TALK"],
+  "initiate a paleontological face to face discussion with the": ["TALK"],
+  "engage in a paleontological face to face discussion with": ["TALK"],
+  "engage in a paleontological face to face discussion with the": ["TALK"],
+  "strike up a paleontological face to face discussion with": ["TALK"],
+  "strike up a paleontological face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -32517,6 +32612,84 @@ compoundVerbs.push(
   "engage in an archaeological face to face discussion with",
   "strike up an archaeological face to face discussion with the",
   "strike up an archaeological face to face discussion with"
+);
+
+// Cycle #184 / Task-F204: Phase 167 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of neurogenesis towards the location of the",
+  "navigate one's vector of neurogenesis towards the location of",
+  "navigate ones vector of neurogenesis towards the location of the",
+  "navigate ones vector of neurogenesis towards the location of",
+  "steer one's vector of neurogenesis in the direction of the coordinates of the",
+  "steer one's vector of neurogenesis in the direction of the coordinates of",
+  "steer ones vector of neurogenesis in the direction of the coordinates of the",
+  "steer ones vector of neurogenesis in the direction of the coordinates of",
+  "direct one's vector of neurogenesis towards the coordinates of the location of the",
+  "direct one's vector of neurogenesis towards the coordinates of the location of",
+  "direct ones vector of neurogenesis towards the coordinates of the location of the",
+  "direct ones vector of neurogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual taxonomy the",
+  "subject to a comprehensive visual taxonomy",
+  "subject to a thorough visual taxonomy the",
+  "subject to a thorough visual taxonomy",
+  "subject to a detailed visual taxonomy the",
+  "subject to a detailed visual taxonomy",
+  "assume direct exclusive clutching of the",
+  "assume direct exclusive clutching of",
+  "assume absolute exclusive clutching of the",
+  "assume absolute exclusive clutching of",
+  "assume immediate exclusive clutching of the",
+  "assume immediate exclusive clutching of",
+  "divest oneself of all exclusive clutching of the",
+  "divest oneself of all exclusive clutching of",
+  "relinquish all exclusive clutching of the",
+  "relinquish all exclusive clutching of",
+  "free oneself from all exclusive clutching of the",
+  "free oneself from all exclusive clutching of",
+  "force completely and cryoelastically wide open the",
+  "force completely and cryoelastically wide open",
+  "pry completely and cryoelastically wide open the",
+  "pry completely and cryoelastically wide open",
+  "fasten completely and cryoelastically closed the",
+  "fasten completely and cryoelastically closed",
+  "seal completely and cryoelastically shut the",
+  "seal completely and cryoelastically shut",
+  "deactivate all polaron security devices of the",
+  "deactivate all polaron security devices of",
+  "deactivate all fluxon security devices of the",
+  "deactivate all fluxon security devices of",
+  "deactivate all spinon security devices of the",
+  "deactivate all spinon security devices of",
+  "deactivate all holon security devices of the",
+  "deactivate all holon security devices of",
+  "bypass all polaron security devices on the",
+  "bypass all polaron security devices on",
+  "bypass all fluxon security devices on the",
+  "bypass all fluxon security devices on",
+  "bypass all spinon security devices on the",
+  "bypass all spinon security devices on",
+  "bypass all holon security devices on the",
+  "bypass all holon security devices on",
+  "disengage the primary polaron security device on the",
+  "disengage the primary polaron security device on",
+  "harness the full localized deployment of the",
+  "harness the full localized deployment of",
+  "bring into active localized deployment the",
+  "bring into active localized deployment",
+  "make complete localized deployment of the",
+  "make complete localized deployment of",
+  "initiate a pugilistic confrontation against the",
+  "initiate a pugilistic confrontation against",
+  "commence a pugilistic confrontation against the",
+  "commence a pugilistic confrontation against",
+  "engage in a pugilistic confrontation against the",
+  "engage in a pugilistic confrontation against",
+  "initiate a paleontological face to face discussion with the",
+  "initiate a paleontological face to face discussion with",
+  "engage in a paleontological face to face discussion with the",
+  "engage in a paleontological face to face discussion with",
+  "strike up a paleontological face to face discussion with the",
+  "strike up a paleontological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
