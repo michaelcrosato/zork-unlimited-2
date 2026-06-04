@@ -21726,7 +21726,88 @@ Object.assign(VERB_CATEGORIES, {
   "engage in a sagacious face to face discussion with": ["TALK"],
   "engage in a sagacious face to face discussion with the": ["TALK"],
   "strike up a sagacious face to face discussion with": ["TALK"],
-  "strike up a sagacious face to face discussion with the": ["TALK"]
+  "strike up a sagacious face to face discussion with the": ["TALK"],
+
+  // Cycle #120 / Task-F142: Phase 105
+  // Movement
+  "navigate one's vector of condensation towards the location of": ["MOVE"],
+  "navigate one's vector of condensation towards the location of the": ["MOVE"],
+  "navigate ones vector of condensation towards the location of": ["MOVE"],
+  "navigate ones vector of condensation towards the location of the": ["MOVE"],
+  "steer one's vector of condensation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of condensation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of condensation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of condensation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of condensation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of condensation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of condensation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of condensation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual reflection": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual reflection the": ["LOOK_INSPECT"],
+  "subject to a thorough visual reflection": ["LOOK_INSPECT"],
+  "subject to a thorough visual reflection the": ["LOOK_INSPECT"],
+  "subject to a detailed visual reflection": ["LOOK_INSPECT"],
+  "subject to a detailed visual reflection the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive clutch of": ["TAKE"],
+  "assume direct exclusive clutch of the": ["TAKE"],
+  "assume absolute exclusive clutch of": ["TAKE"],
+  "assume absolute exclusive clutch of the": ["TAKE"],
+  "assume immediate exclusive clutch of": ["TAKE"],
+  "assume immediate exclusive clutch of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive clutch of": ["DROP"],
+  "divest oneself of all exclusive clutch of the": ["DROP"],
+  "relinquish all exclusive clutch of": ["DROP"],
+  "relinquish all exclusive clutch of the": ["DROP"],
+  "free oneself from all exclusive clutch of": ["DROP"],
+  "free oneself from all exclusive clutch of the": ["DROP"],
+
+  // Open/Close
+  "force completely and viscoelastically wide open": ["OPEN"],
+  "force completely and viscoelastically wide open the": ["OPEN"],
+  "pry completely and viscoelastically wide open": ["OPEN"],
+  "pry completely and viscoelastically wide open the": ["OPEN"],
+  "fasten completely and viscoelastically closed": ["CLOSE"],
+  "fasten completely and viscoelastically closed the": ["CLOSE"],
+  "seal completely and viscoelastically shut": ["CLOSE"],
+  "seal completely and viscoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all hadronic security devices of": ["UNLOCK"],
+  "deactivate all hadronic security devices of the": ["UNLOCK"],
+  "bypass all hadronic security devices on": ["UNLOCK"],
+  "bypass all hadronic security devices on the": ["UNLOCK"],
+  "disengage the primary hadronic security device on": ["UNLOCK"],
+  "disengage the primary hadronic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unsurpassed deployment of": ["USE"],
+  "harness the full unsurpassed deployment of the": ["USE"],
+  "bring into active unsurpassed deployment": ["USE"],
+  "bring into active unsurpassed deployment the": ["USE"],
+  "make complete unsurpassed deployment of": ["USE"],
+  "make complete unsurpassed deployment of the": ["USE"],
+
+  // Combat
+  "initiate an implacable confrontation against": ["FIGHT"],
+  "initiate an implacable confrontation against the": ["FIGHT"],
+  "commence an implacable confrontation against": ["FIGHT"],
+  "commence an implacable confrontation against the": ["FIGHT"],
+  "engage in an implacable confrontation against": ["FIGHT"],
+  "engage in an implacable confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an erudite face to face discussion with": ["TALK"],
+  "initiate an erudite face to face discussion with the": ["TALK"],
+  "engage in an erudite face to face discussion with": ["TALK"],
+  "engage in an erudite face to face discussion with the": ["TALK"],
+  "strike up an erudite face to face discussion with": ["TALK"],
+  "strike up an erudite face to face discussion with the": ["TALK"]
 });
 
 
@@ -23116,6 +23197,72 @@ compoundVerbs.push(
   "engage in a sagacious face to face discussion with",
   "strike up a sagacious face to face discussion with the",
   "strike up a sagacious face to face discussion with"
+);
+
+// Cycle #120 / Task-F142: Phase 105 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of condensation towards the location of the",
+  "navigate one's vector of condensation towards the location of",
+  "navigate ones vector of condensation towards the location of the",
+  "navigate ones vector of condensation towards the location of",
+  "steer one's vector of condensation in the direction of the coordinates of the",
+  "steer one's vector of condensation in the direction of the coordinates of",
+  "steer ones vector of condensation in the direction of the coordinates of the",
+  "steer ones vector of condensation in the direction of the coordinates of",
+  "direct one's vector of condensation towards the coordinates of the location of the",
+  "direct one's vector of condensation towards the coordinates of the location of",
+  "direct ones vector of condensation towards the coordinates of the location of the",
+  "direct ones vector of condensation towards the coordinates of the location of",
+  "subject to a comprehensive visual reflection the",
+  "subject to a comprehensive visual reflection",
+  "subject to a thorough visual reflection the",
+  "subject to a thorough visual reflection",
+  "subject to a detailed visual reflection the",
+  "subject to a detailed visual reflection",
+  "assume direct exclusive clutch of the",
+  "assume direct exclusive clutch of",
+  "assume absolute exclusive clutch of the",
+  "assume absolute exclusive clutch of",
+  "assume immediate exclusive clutch of the",
+  "assume immediate exclusive clutch of",
+  "divest oneself of all exclusive clutch of the",
+  "divest oneself of all exclusive clutch of",
+  "relinquish all exclusive clutch of the",
+  "relinquish all exclusive clutch of",
+  "free oneself from all exclusive clutch of the",
+  "free oneself from all exclusive clutch of",
+  "force completely and viscoelastically wide open the",
+  "force completely and viscoelastically wide open",
+  "pry completely and viscoelastically wide open the",
+  "pry completely and viscoelastically wide open",
+  "fasten completely and viscoelastically closed the",
+  "fasten completely and viscoelastically closed",
+  "seal completely and viscoelastically shut the",
+  "seal completely and viscoelastically shut",
+  "deactivate all hadronic security devices of the",
+  "deactivate all hadronic security devices of",
+  "bypass all hadronic security devices on the",
+  "bypass all hadronic security devices on",
+  "disengage the primary hadronic security device on the",
+  "disengage the primary hadronic security device on",
+  "harness the full unsurpassed deployment of the",
+  "harness the full unsurpassed deployment of",
+  "bring into active unsurpassed deployment the",
+  "bring into active unsurpassed deployment",
+  "make complete unsurpassed deployment of the",
+  "make complete unsurpassed deployment of",
+  "initiate an implacable confrontation against the",
+  "initiate an implacable confrontation against",
+  "commence an implacable confrontation against the",
+  "commence an implacable confrontation against",
+  "engage in an implacable confrontation against the",
+  "engage in an implacable confrontation against",
+  "initiate an erudite face to face discussion with the",
+  "initiate an erudite face to face discussion with",
+  "engage in an erudite face to face discussion with the",
+  "engage in an erudite face to face discussion with",
+  "strike up an erudite face to face discussion with the",
+  "strike up an erudite face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
