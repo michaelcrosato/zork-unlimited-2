@@ -23530,14 +23530,83 @@ Object.assign(VERB_CATEGORIES, {
   "commence a baleful confrontation against the": ["FIGHT"],
   "engage in a baleful confrontation against": ["FIGHT"],
   "engage in a baleful confrontation against the": ["FIGHT"],
+  "navigate one's vector of thermolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of thermolysis towards the location of": ["MOVE"],
+  "navigate ones vector of thermolysis towards the location of the": ["MOVE"],
+  "steer one's vector of thermolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of thermolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of thermolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of thermolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of thermolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of thermolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of thermolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of thermolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual schematization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual schematization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual schematization": ["LOOK_INSPECT"],
+  "subject to a thorough visual schematization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual schematization": ["LOOK_INSPECT"],
+  "subject to a detailed visual schematization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive allotment of": ["TAKE"],
+  "assume direct exclusive allotment of the": ["TAKE"],
+  "assume absolute exclusive allotment of": ["TAKE"],
+  "assume absolute exclusive allotment of the": ["TAKE"],
+  "assume immediate exclusive allotment of": ["TAKE"],
+  "assume immediate exclusive allotment of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive allotment of": ["DROP"],
+  "divest oneself of all exclusive allotment of the": ["DROP"],
+  "relinquish all exclusive allotment of": ["DROP"],
+  "relinquish all exclusive allotment of the": ["DROP"],
+  "free oneself from all exclusive allotment of": ["DROP"],
+  "free oneself from all exclusive allotment of the": ["DROP"],
+
+  // Open/Close
+  "force completely and polytropically wide open": ["OPEN"],
+  "force completely and polytropically wide open the": ["OPEN"],
+  "pry completely and polytropically wide open": ["OPEN"],
+  "pry completely and polytropically wide open the": ["OPEN"],
+  "fasten completely and polytropically closed": ["CLOSE"],
+  "fasten completely and polytropically closed the": ["CLOSE"],
+  "seal completely and polytropically shut": ["CLOSE"],
+  "seal completely and polytropically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all neutralino security devices of": ["UNLOCK"],
+  "deactivate all neutralino security devices of the": ["UNLOCK"],
+  "bypass all neutralino security devices on": ["UNLOCK"],
+  "bypass all neutralino security devices on the": ["UNLOCK"],
+  "disengage the primary neutralino security device on": ["UNLOCK"],
+  "disengage the primary neutralino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full indefatigable deployment of": ["USE"],
+  "harness the full indefatigable deployment of the": ["USE"],
+  "bring into active indefatigable deployment": ["USE"],
+  "bring into active indefatigable deployment the": ["USE"],
+  "make complete indefatigable deployment of": ["USE"],
+  "make complete indefatigable deployment of the": ["USE"],
+
+  // Combat
+  "initiate a warlike confrontation against": ["FIGHT"],
+  "initiate a warlike confrontation against the": ["FIGHT"],
+  "commence a warlike confrontation against": ["FIGHT"],
+  "commence a warlike confrontation against the": ["FIGHT"],
+  "engage in a warlike confrontation against": ["FIGHT"],
+  "engage in a warlike confrontation against the": ["FIGHT"],
 
   // Dialogue
-  "initiate an axiological face to face discussion with": ["TALK"],
-  "initiate an axiological face to face discussion with the": ["TALK"],
-  "engage in an axiological face to face discussion with": ["TALK"],
-  "engage in an axiological face to face discussion with the": ["TALK"],
-  "strike up an axiological face to face discussion with": ["TALK"],
-  "strike up an axiological face to face discussion with the": ["TALK"]
+  "initiate a dialectical face to face discussion with": ["TALK"],
+  "initiate a dialectical face to face discussion with the": ["TALK"],
+  "engage in a dialectical face to face discussion with": ["TALK"],
+  "engage in a dialectical face to face discussion with the": ["TALK"],
+  "strike up a dialectical face to face discussion with": ["TALK"],
+  "strike up a dialectical face to face discussion with the": ["TALK"]
 });
 
 
@@ -26377,6 +26446,72 @@ compoundVerbs.push(
   "engage in an axiological face to face discussion with",
   "strike up an axiological face to face discussion with the",
   "strike up an axiological face to face discussion with"
+);
+
+// Cycle #143 / Task-F164: Phase 127 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of thermolysis towards the location of the",
+  "navigate one's vector of thermolysis towards the location of",
+  "navigate ones vector of thermolysis towards the location of the",
+  "navigate ones vector of thermolysis towards the location of",
+  "steer one's vector of thermolysis in the direction of the coordinates of the",
+  "steer one's vector of thermolysis in the direction of the coordinates of",
+  "steer ones vector of thermolysis in the direction of the coordinates of the",
+  "steer ones vector of thermolysis in the direction of the coordinates of",
+  "direct one's vector of thermolysis towards the coordinates of the location of the",
+  "direct one's vector of thermolysis towards the coordinates of the location of",
+  "direct ones vector of thermolysis towards the coordinates of the location of the",
+  "direct ones vector of thermolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual schematization the",
+  "subject to a comprehensive visual schematization",
+  "subject to a thorough visual schematization the",
+  "subject to a thorough visual schematization",
+  "subject to a detailed visual schematization the",
+  "subject to a detailed visual schematization",
+  "assume direct exclusive allotment of the",
+  "assume direct exclusive allotment of",
+  "assume absolute exclusive allotment of the",
+  "assume absolute exclusive allotment of",
+  "assume immediate exclusive allotment of the",
+  "assume immediate exclusive allotment of",
+  "divest oneself of all exclusive allotment of the",
+  "divest oneself of all exclusive allotment of",
+  "relinquish all exclusive allotment of the",
+  "relinquish all exclusive allotment of",
+  "free oneself from all exclusive allotment of the",
+  "free oneself from all exclusive allotment of",
+  "force completely and polytropically wide open the",
+  "force completely and polytropically wide open",
+  "pry completely and polytropically wide open the",
+  "pry completely and polytropically wide open",
+  "fasten completely and polytropically closed the",
+  "fasten completely and polytropically closed",
+  "seal completely and polytropically shut the",
+  "seal completely and polytropically shut",
+  "deactivate all neutralino security devices of the",
+  "deactivate all neutralino security devices of",
+  "bypass all neutralino security devices on the",
+  "bypass all neutralino security devices on",
+  "disengage the primary neutralino security device on the",
+  "disengage the primary neutralino security device on",
+  "harness the full indefatigable deployment of the",
+  "harness the full indefatigable deployment of",
+  "bring into active indefatigable deployment the",
+  "bring into active indefatigable deployment",
+  "make complete indefatigable deployment of the",
+  "make complete indefatigable deployment of",
+  "initiate a warlike confrontation against the",
+  "initiate a warlike confrontation against",
+  "commence a warlike confrontation against the",
+  "commence a warlike confrontation against",
+  "engage in a warlike confrontation against the",
+  "engage in a warlike confrontation against",
+  "initiate a dialectical face to face discussion with the",
+  "initiate a dialectical face to face discussion with",
+  "engage in a dialectical face to face discussion with the",
+  "engage in a dialectical face to face discussion with",
+  "strike up a dialectical face to face discussion with the",
+  "strike up a dialectical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
