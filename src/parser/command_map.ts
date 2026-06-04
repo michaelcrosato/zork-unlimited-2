@@ -26815,6 +26815,102 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a physiological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #183 / Task-F203: Phase 166 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of ontogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of ontogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of ontogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of ontogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of ontogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of ontogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of ontogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of ontogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of ontogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of ontogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of ontogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of ontogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual demarcation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual demarcation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual demarcation": ["LOOK_INSPECT"],
+  "subject to a thorough visual demarcation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual demarcation": ["LOOK_INSPECT"],
+  "subject to a detailed visual demarcation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive holdings of": ["TAKE"],
+  "assume direct exclusive holdings of the": ["TAKE"],
+  "assume absolute exclusive holdings of": ["TAKE"],
+  "assume absolute exclusive holdings of the": ["TAKE"],
+  "assume immediate exclusive holdings of": ["TAKE"],
+  "assume immediate exclusive holdings of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive holdings of": ["DROP"],
+  "divest oneself of all exclusive holdings of the": ["DROP"],
+  "relinquish all exclusive holdings of": ["DROP"],
+  "relinquish all exclusive holdings of the": ["DROP"],
+  "free oneself from all exclusive holdings of": ["DROP"],
+  "free oneself from all exclusive holdings of the": ["DROP"],
+
+  // Open/Close
+  "force completely and pyroelastically wide open": ["OPEN"],
+  "force completely and pyroelastically wide open the": ["OPEN"],
+  "pry completely and pyroelastically wide open": ["OPEN"],
+  "pry completely and pyroelastically wide open the": ["OPEN"],
+  "fasten completely and pyroelastically closed": ["CLOSE"],
+  "fasten completely and pyroelastically closed the": ["CLOSE"],
+  "seal completely and pyroelastically shut": ["CLOSE"],
+  "seal completely and pyroelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all weyl security devices of": ["UNLOCK"],
+  "deactivate all weyl security devices of the": ["UNLOCK"],
+  "deactivate all roton security devices of": ["UNLOCK"],
+  "deactivate all roton security devices of the": ["UNLOCK"],
+  "deactivate all schrodinger security devices of": ["UNLOCK"],
+  "deactivate all schrodinger security devices of the": ["UNLOCK"],
+  "deactivate all rydberg security devices of": ["UNLOCK"],
+  "deactivate all rydberg security devices of the": ["UNLOCK"],
+  "bypass all weyl security devices on": ["UNLOCK"],
+  "bypass all weyl security devices on the": ["UNLOCK"],
+  "bypass all roton security devices on": ["UNLOCK"],
+  "bypass all roton security devices on the": ["UNLOCK"],
+  "bypass all schrodinger security devices on": ["UNLOCK"],
+  "bypass all schrodinger security devices on the": ["UNLOCK"],
+  "bypass all rydberg security devices on": ["UNLOCK"],
+  "bypass all rydberg security devices on the": ["UNLOCK"],
+  "disengage the primary weyl security device on": ["UNLOCK"],
+  "disengage the primary weyl security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full intensified deployment of": ["USE"],
+  "harness the full intensified deployment of the": ["USE"],
+  "bring into active intensified deployment": ["USE"],
+  "bring into active intensified deployment the": ["USE"],
+  "make complete intensified deployment of": ["USE"],
+  "make complete intensified deployment of the": ["USE"],
+
+  // Combat
+  "initiate a pestiferous confrontation against": ["FIGHT"],
+  "initiate a pestiferous confrontation against the": ["FIGHT"],
+  "commence a pestiferous confrontation against": ["FIGHT"],
+  "commence a pestiferous confrontation against the": ["FIGHT"],
+  "engage in a pestiferous confrontation against": ["FIGHT"],
+  "engage in a pestiferous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an archaeological face to face discussion with": ["TALK"],
+  "initiate an archaeological face to face discussion with the": ["TALK"],
+  "engage in an archaeological face to face discussion with": ["TALK"],
+  "engage in an archaeological face to face discussion with the": ["TALK"],
+  "strike up an archaeological face to face discussion with": ["TALK"],
+  "strike up an archaeological face to face discussion with the": ["TALK"]
+});
+
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -32343,6 +32439,84 @@ compoundVerbs.push(
   "engage in a physiological face to face discussion with",
   "strike up a physiological face to face discussion with the",
   "strike up a physiological face to face discussion with"
+);
+
+// Cycle #183 / Task-F203: Phase 166 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of ontogenesis towards the location of the",
+  "navigate one's vector of ontogenesis towards the location of",
+  "navigate ones vector of ontogenesis towards the location of the",
+  "navigate ones vector of ontogenesis towards the location of",
+  "steer one's vector of ontogenesis in the direction of the coordinates of the",
+  "steer one's vector of ontogenesis in the direction of the coordinates of",
+  "steer ones vector of ontogenesis in the direction of the coordinates of the",
+  "steer ones vector of ontogenesis in the direction of the coordinates of",
+  "direct one's vector of ontogenesis towards the coordinates of the location of the",
+  "direct one's vector of ontogenesis towards the coordinates of the location of",
+  "direct ones vector of ontogenesis towards the coordinates of the location of the",
+  "direct ones vector of ontogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual demarcation the",
+  "subject to a comprehensive visual demarcation",
+  "subject to a thorough visual demarcation the",
+  "subject to a thorough visual demarcation",
+  "subject to a detailed visual demarcation the",
+  "subject to a detailed visual demarcation",
+  "assume direct exclusive holdings of the",
+  "assume direct exclusive holdings of",
+  "assume absolute exclusive holdings of the",
+  "assume absolute exclusive holdings of",
+  "assume immediate exclusive holdings of the",
+  "assume immediate exclusive holdings of",
+  "divest oneself of all exclusive holdings of the",
+  "divest oneself of all exclusive holdings of",
+  "relinquish all exclusive holdings of the",
+  "relinquish all exclusive holdings of",
+  "free oneself from all exclusive holdings of the",
+  "free oneself from all exclusive holdings of",
+  "force completely and pyroelastically wide open the",
+  "force completely and pyroelastically wide open",
+  "pry completely and pyroelastically wide open the",
+  "pry completely and pyroelastically wide open",
+  "fasten completely and pyroelastically closed the",
+  "fasten completely and pyroelastically closed",
+  "seal completely and pyroelastically shut the",
+  "seal completely and pyroelastically shut",
+  "deactivate all weyl security devices of the",
+  "deactivate all weyl security devices of",
+  "deactivate all roton security devices of the",
+  "deactivate all roton security devices of",
+  "deactivate all schrodinger security devices of the",
+  "deactivate all schrodinger security devices of",
+  "deactivate all rydberg security devices of the",
+  "deactivate all rydberg security devices of",
+  "bypass all weyl security devices on the",
+  "bypass all weyl security devices on",
+  "bypass all roton security devices on the",
+  "bypass all roton security devices on",
+  "bypass all schrodinger security devices on the",
+  "bypass all schrodinger security devices on",
+  "bypass all rydberg security devices on the",
+  "bypass all rydberg security devices on",
+  "disengage the primary weyl security device on the",
+  "disengage the primary weyl security device on",
+  "harness the full intensified deployment of the",
+  "harness the full intensified deployment of",
+  "bring into active intensified deployment the",
+  "bring into active intensified deployment",
+  "make complete intensified deployment of the",
+  "make complete intensified deployment of",
+  "initiate a pestiferous confrontation against the",
+  "initiate a pestiferous confrontation against",
+  "commence a pestiferous confrontation against the",
+  "commence a pestiferous confrontation against",
+  "engage in a pestiferous confrontation against the",
+  "engage in a pestiferous confrontation against",
+  "initiate an archaeological face to face discussion with the",
+  "initiate an archaeological face to face discussion with",
+  "engage in an archaeological face to face discussion with the",
+  "engage in an archaeological face to face discussion with",
+  "strike up an archaeological face to face discussion with the",
+  "strike up an archaeological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
