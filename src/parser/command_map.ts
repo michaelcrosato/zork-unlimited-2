@@ -22557,6 +22557,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an exploratory face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #131 / Task-F152: Phase 115
+  // Movement
+  "navigate one's vector of dissolution towards the location of": ["MOVE"],
+  "navigate one's vector of dissolution towards the location of the": ["MOVE"],
+  "navigate ones vector of dissolution towards the location of": ["MOVE"],
+  "navigate ones vector of dissolution towards the location of the": ["MOVE"],
+  "steer one's vector of dissolution in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of dissolution in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of dissolution in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of dissolution in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of dissolution towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of dissolution towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of dissolution towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of dissolution towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual reconstruction": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual reconstruction the": ["LOOK_INSPECT"],
+  "subject to a thorough visual reconstruction": ["LOOK_INSPECT"],
+  "subject to a thorough visual reconstruction the": ["LOOK_INSPECT"],
+  "subject to a detailed visual reconstruction": ["LOOK_INSPECT"],
+  "subject to a detailed visual reconstruction the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive discretion of": ["TAKE"],
+  "assume direct exclusive discretion of the": ["TAKE"],
+  "assume absolute exclusive discretion of": ["TAKE"],
+  "assume absolute exclusive discretion of the": ["TAKE"],
+  "assume immediate exclusive discretion of": ["TAKE"],
+  "assume immediate exclusive discretion of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive discretion of": ["DROP"],
+  "divest oneself of all exclusive discretion of the": ["DROP"],
+  "relinquish all exclusive discretion of": ["DROP"],
+  "relinquish all exclusive discretion of the": ["DROP"],
+  "free oneself from all exclusive discretion of": ["DROP"],
+  "free oneself from all exclusive discretion of the": ["DROP"],
+
+  // Open/Close
+  "force completely and elastoviscoplastically wide open": ["OPEN"],
+  "force completely and elastoviscoplastically wide open the": ["OPEN"],
+  "pry completely and elastoviscoplastically wide open": ["OPEN"],
+  "pry completely and elastoviscoplastically wide open the": ["OPEN"],
+  "fasten completely and elastoviscoplastically closed": ["CLOSE"],
+  "fasten completely and elastoviscoplastically closed the": ["CLOSE"],
+  "seal completely and elastoviscoplastically shut": ["CLOSE"],
+  "seal completely and elastoviscoplastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all neutrinic security devices of": ["UNLOCK"],
+  "deactivate all neutrinic security devices of the": ["UNLOCK"],
+  "bypass all neutrinic security devices on": ["UNLOCK"],
+  "bypass all neutrinic security devices on the": ["UNLOCK"],
+  "disengage the primary neutrinic security device on": ["UNLOCK"],
+  "disengage the primary neutrinic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full irresistible deployment of": ["USE"],
+  "harness the full irresistible deployment of the": ["USE"],
+  "bring into active irresistible deployment": ["USE"],
+  "bring into active irresistible deployment the": ["USE"],
+  "make complete irresistible deployment of": ["USE"],
+  "make complete irresistible deployment of the": ["USE"],
+
+  // Combat
+  "initiate a sanguinary confrontation against": ["FIGHT"],
+  "initiate a sanguinary confrontation against the": ["FIGHT"],
+  "commence a sanguinary confrontation against": ["FIGHT"],
+  "commence a sanguinary confrontation against the": ["FIGHT"],
+  "engage in a sanguinary confrontation against": ["FIGHT"],
+  "engage in a sanguinary confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an eloquent face to face discussion with": ["TALK"],
+  "initiate an eloquent face to face discussion with the": ["TALK"],
+  "engage in an eloquent face to face discussion with": ["TALK"],
+  "engage in an eloquent face to face discussion with the": ["TALK"],
+  "strike up an eloquent face to face discussion with": ["TALK"],
+  "strike up an eloquent face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -24604,6 +24687,72 @@ compoundVerbs.push(
   "engage in an exploratory face to face discussion with",
   "strike up an exploratory face to face discussion with the",
   "strike up an exploratory face to face discussion with"
+);
+
+// Cycle #131 / Task-F152: Phase 115 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of dissolution towards the location of the",
+  "navigate one's vector of dissolution towards the location of",
+  "navigate ones vector of dissolution towards the location of the",
+  "navigate ones vector of dissolution towards the location of",
+  "steer one's vector of dissolution in the direction of the coordinates of the",
+  "steer one's vector of dissolution in the direction of the coordinates of",
+  "steer ones vector of dissolution in the direction of the coordinates of the",
+  "steer ones vector of dissolution in the direction of the coordinates of",
+  "direct one's vector of dissolution towards the coordinates of the location of the",
+  "direct one's vector of dissolution towards the coordinates of the location of",
+  "direct ones vector of dissolution towards the coordinates of the location of the",
+  "direct ones vector of dissolution towards the coordinates of the location of",
+  "subject to a comprehensive visual reconstruction the",
+  "subject to a comprehensive visual reconstruction",
+  "subject to a thorough visual reconstruction the",
+  "subject to a thorough visual reconstruction",
+  "subject to a detailed visual reconstruction the",
+  "subject to a detailed visual reconstruction",
+  "assume direct exclusive discretion of the",
+  "assume direct exclusive discretion of",
+  "assume absolute exclusive discretion of the",
+  "assume absolute exclusive discretion of",
+  "assume immediate exclusive discretion of the",
+  "assume immediate exclusive discretion of",
+  "divest oneself of all exclusive discretion of the",
+  "divest oneself of all exclusive discretion of",
+  "relinquish all exclusive discretion of the",
+  "relinquish all exclusive discretion of",
+  "free oneself from all exclusive discretion of the",
+  "free oneself from all exclusive discretion of",
+  "force completely and elastoviscoplastically wide open the",
+  "force completely and elastoviscoplastically wide open",
+  "pry completely and elastoviscoplastically wide open the",
+  "pry completely and elastoviscoplastically wide open",
+  "fasten completely and elastoviscoplastically closed the",
+  "fasten completely and elastoviscoplastically closed",
+  "seal completely and elastoviscoplastically shut the",
+  "seal completely and elastoviscoplastically shut",
+  "deactivate all neutrinic security devices of the",
+  "deactivate all neutrinic security devices of",
+  "bypass all neutrinic security devices on the",
+  "bypass all neutrinic security devices on",
+  "disengage the primary neutrinic security device on the",
+  "disengage the primary neutrinic security device on",
+  "harness the full irresistible deployment of the",
+  "harness the full irresistible deployment of",
+  "bring into active irresistible deployment the",
+  "bring into active irresistible deployment",
+  "make complete irresistible deployment of the",
+  "make complete irresistible deployment of",
+  "initiate a sanguinary confrontation against the",
+  "initiate a sanguinary confrontation against",
+  "commence a sanguinary confrontation against the",
+  "commence a sanguinary confrontation against",
+  "engage in a sanguinary confrontation against the",
+  "engage in a sanguinary confrontation against",
+  "initiate an eloquent face to face discussion with the",
+  "initiate an eloquent face to face discussion with",
+  "engage in an eloquent face to face discussion with the",
+  "engage in an eloquent face to face discussion with",
+  "strike up an eloquent face to face discussion with the",
+  "strike up an eloquent face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
