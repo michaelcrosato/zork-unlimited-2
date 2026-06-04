@@ -23969,6 +23969,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a socratic face to face discussion with the": ["TALK"],
 });
 
+// Cycle #149 / Task-F170: Phase 133 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of hemolysis towards the location of": ["MOVE"],
+  "navigate one's vector of hemolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of hemolysis towards the location of": ["MOVE"],
+  "navigate ones vector of hemolysis towards the location of the": ["MOVE"],
+  "steer one's vector of hemolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of hemolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of hemolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of hemolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of hemolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of hemolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of hemolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of hemolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual systemization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual systemization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual systemization": ["LOOK_INSPECT"],
+  "subject to a thorough visual systemization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual systemization": ["LOOK_INSPECT"],
+  "subject to a detailed visual systemization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive delegation of": ["TAKE"],
+  "assume direct exclusive delegation of the": ["TAKE"],
+  "assume absolute exclusive delegation of": ["TAKE"],
+  "assume absolute exclusive delegation of the": ["TAKE"],
+  "assume immediate exclusive delegation of": ["TAKE"],
+  "assume immediate exclusive delegation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive delegation of": ["DROP"],
+  "divest oneself of all exclusive delegation of the": ["DROP"],
+  "relinquish all exclusive delegation of": ["DROP"],
+  "relinquish all exclusive delegation of the": ["DROP"],
+  "free oneself from all exclusive delegation of": ["DROP"],
+  "free oneself from all exclusive delegation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and geochemically wide open": ["OPEN"],
+  "force completely and geochemically wide open the": ["OPEN"],
+  "pry completely and geochemically wide open": ["OPEN"],
+  "pry completely and geochemically wide open the": ["OPEN"],
+  "fasten completely and geochemically closed": ["CLOSE"],
+  "fasten completely and geochemically closed the": ["CLOSE"],
+  "seal completely and geochemically shut": ["CLOSE"],
+  "seal completely and geochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all squark security devices of": ["UNLOCK"],
+  "deactivate all squark security devices of the": ["UNLOCK"],
+  "bypass all squark security devices on": ["UNLOCK"],
+  "bypass all squark security devices on the": ["UNLOCK"],
+  "disengage the primary squark security device on": ["UNLOCK"],
+  "disengage the primary squark security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full continuous deployment of": ["USE"],
+  "harness the full continuous deployment of the": ["USE"],
+  "bring into active continuous deployment": ["USE"],
+  "bring into active continuous deployment the": ["USE"],
+  "make complete continuous deployment of": ["USE"],
+  "make complete continuous deployment of the": ["USE"],
+
+  // Combat
+  "initiate a disputatious confrontation against": ["FIGHT"],
+  "initiate a disputatious confrontation against the": ["FIGHT"],
+  "commence a disputatious confrontation against": ["FIGHT"],
+  "commence a disputatious confrontation against the": ["FIGHT"],
+  "engage in a disputatious confrontation against": ["FIGHT"],
+  "engage in a disputatious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a scholastic face to face discussion with": ["TALK"],
+  "initiate a scholastic face to face discussion with the": ["TALK"],
+  "engage in a scholastic face to face discussion with": ["TALK"],
+  "engage in a scholastic face to face discussion with the": ["TALK"],
+  "strike up a scholastic face to face discussion with": ["TALK"],
+  "strike up a scholastic face to face discussion with the": ["TALK"],
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -27199,6 +27282,72 @@ compoundVerbs.push(
   "engage in a socratic face to face discussion with",
   "strike up a socratic face to face discussion with the",
   "strike up a socratic face to face discussion with"
+);
+
+// Cycle #149 / Task-F170: Phase 133 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of hemolysis towards the location of the",
+  "navigate one's vector of hemolysis towards the location of",
+  "navigate ones vector of hemolysis towards the location of the",
+  "navigate ones vector of hemolysis towards the location of",
+  "steer one's vector of hemolysis in the direction of the coordinates of the",
+  "steer one's vector of hemolysis in the direction of the coordinates of",
+  "steer ones vector of hemolysis in the direction of the coordinates of the",
+  "steer ones vector of hemolysis in the direction of the coordinates of",
+  "direct one's vector of hemolysis towards the coordinates of the location of the",
+  "direct one's vector of hemolysis towards the coordinates of the location of",
+  "direct ones vector of hemolysis towards the coordinates of the location of the",
+  "direct ones vector of hemolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual systemization the",
+  "subject to a comprehensive visual systemization",
+  "subject to a thorough visual systemization the",
+  "subject to a thorough visual systemization",
+  "subject to a detailed visual systemization the",
+  "subject to a detailed visual systemization",
+  "assume direct exclusive delegation of the",
+  "assume direct exclusive delegation of",
+  "assume absolute exclusive delegation of the",
+  "assume absolute exclusive delegation of",
+  "assume immediate exclusive delegation of the",
+  "assume immediate exclusive delegation of",
+  "divest oneself of all exclusive delegation of the",
+  "divest oneself of all exclusive delegation of",
+  "relinquish all exclusive delegation of the",
+  "relinquish all exclusive delegation of",
+  "free oneself from all exclusive delegation of the",
+  "free oneself from all exclusive delegation of",
+  "force completely and geochemically wide open the",
+  "force completely and geochemically wide open",
+  "pry completely and geochemically wide open the",
+  "pry completely and geochemically wide open",
+  "fasten completely and geochemically closed the",
+  "fasten completely and geochemically closed",
+  "seal completely and geochemically shut the",
+  "seal completely and geochemically shut",
+  "deactivate all squark security devices of the",
+  "deactivate all squark security devices of",
+  "bypass all squark security devices on the",
+  "bypass all squark security devices on",
+  "disengage the primary squark security device on the",
+  "disengage the primary squark security device on",
+  "harness the full continuous deployment of the",
+  "harness the full continuous deployment of",
+  "bring into active continuous deployment the",
+  "bring into active continuous deployment",
+  "make complete continuous deployment of the",
+  "make complete continuous deployment of",
+  "initiate a disputatious confrontation against the",
+  "initiate a disputatious confrontation against",
+  "commence a disputatious confrontation against the",
+  "commence a disputatious confrontation against",
+  "engage in a disputatious confrontation against the",
+  "engage in a disputatious confrontation against",
+  "initiate a scholastic face to face discussion with the",
+  "initiate a scholastic face to face discussion with",
+  "engage in a scholastic face to face discussion with the",
+  "engage in a scholastic face to face discussion with",
+  "strike up a scholastic face to face discussion with the",
+  "strike up a scholastic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
