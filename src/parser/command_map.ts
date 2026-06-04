@@ -22972,6 +22972,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an existential face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #135 / Task-F157: Phase 120
+  // Movement
+  "navigate one's vector of polymerization towards the location of": ["MOVE"],
+  "navigate one's vector of polymerization towards the location of the": ["MOVE"],
+  "navigate ones vector of polymerization towards the location of": ["MOVE"],
+  "navigate ones vector of polymerization towards the location of the": ["MOVE"],
+  "steer one's vector of polymerization in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of polymerization in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of polymerization in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of polymerization in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of polymerization towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of polymerization towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of polymerization towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of polymerization towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual transduction": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual transduction the": ["LOOK_INSPECT"],
+  "subject to a thorough visual transduction": ["LOOK_INSPECT"],
+  "subject to a thorough visual transduction the": ["LOOK_INSPECT"],
+  "subject to a detailed visual transduction": ["LOOK_INSPECT"],
+  "subject to a detailed visual transduction the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive tenancy of": ["TAKE"],
+  "assume direct exclusive tenancy of the": ["TAKE"],
+  "assume absolute exclusive tenancy of": ["TAKE"],
+  "assume absolute exclusive tenancy of the": ["TAKE"],
+  "assume immediate exclusive tenancy of": ["TAKE"],
+  "assume immediate exclusive tenancy of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive tenancy of": ["DROP"],
+  "divest oneself of all exclusive tenancy of the": ["DROP"],
+  "relinquish all exclusive tenancy of": ["DROP"],
+  "relinquish all exclusive tenancy of the": ["DROP"],
+  "free oneself from all exclusive tenancy of": ["DROP"],
+  "free oneself from all exclusive tenancy of the": ["DROP"],
+
+  // Open/Close
+  "force completely and stochastically wide open": ["OPEN"],
+  "force completely and stochastically wide open the": ["OPEN"],
+  "pry completely and stochastically wide open": ["OPEN"],
+  "pry completely and stochastically wide open the": ["OPEN"],
+  "fasten completely and stochastically closed": ["CLOSE"],
+  "fasten completely and stochastically closed the": ["CLOSE"],
+  "seal completely and stochastically shut": ["CLOSE"],
+  "seal completely and stochastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all muonic security devices of": ["UNLOCK"],
+  "deactivate all muonic security devices of the": ["UNLOCK"],
+  "bypass all muonic security devices on": ["UNLOCK"],
+  "bypass all muonic security devices on the": ["UNLOCK"],
+  "disengage the primary muonic security device on": ["UNLOCK"],
+  "disengage the primary muonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full steadfast deployment of": ["USE"],
+  "harness the full steadfast deployment of the": ["USE"],
+  "bring into active steadfast deployment": ["USE"],
+  "bring into active steadfast deployment the": ["USE"],
+  "make complete steadfast deployment of": ["USE"],
+  "make complete steadfast deployment of the": ["USE"],
+
+  // Combat
+  "initiate a bloodthirsty confrontation against": ["FIGHT"],
+  "initiate a bloodthirsty confrontation against the": ["FIGHT"],
+  "commence a bloodthirsty confrontation against": ["FIGHT"],
+  "commence a bloodthirsty confrontation against the": ["FIGHT"],
+  "engage in a bloodthirsty confrontation against": ["FIGHT"],
+  "engage in a bloodthirsty confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a phenomenological face to face discussion with": ["TALK"],
+  "initiate a phenomenological face to face discussion with the": ["TALK"],
+  "engage in a phenomenological face to face discussion with": ["TALK"],
+  "engage in a phenomenological face to face discussion with the": ["TALK"],
+  "strike up a phenomenological face to face discussion with": ["TALK"],
+  "strike up a phenomenological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -25349,6 +25432,72 @@ compoundVerbs.push(
   "engage in an existential face to face discussion with",
   "strike up an existential face to face discussion with the",
   "strike up an existential face to face discussion with"
+);
+
+// Cycle #135 / Task-F157: Phase 120 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of polymerization towards the location of the",
+  "navigate one's vector of polymerization towards the location of",
+  "navigate ones vector of polymerization towards the location of the",
+  "navigate ones vector of polymerization towards the location of",
+  "steer one's vector of polymerization in the direction of the coordinates of the",
+  "steer one's vector of polymerization in the direction of the coordinates of",
+  "steer ones vector of polymerization in the direction of the coordinates of the",
+  "steer ones vector of polymerization in the direction of the coordinates of",
+  "direct one's vector of polymerization towards the coordinates of the location of the",
+  "direct one's vector of polymerization towards the coordinates of the location of",
+  "direct ones vector of polymerization towards the coordinates of the location of the",
+  "direct ones vector of polymerization towards the coordinates of the location of",
+  "subject to a comprehensive visual transduction the",
+  "subject to a comprehensive visual transduction",
+  "subject to a thorough visual transduction the",
+  "subject to a thorough visual transduction",
+  "subject to a detailed visual transduction the",
+  "subject to a detailed visual transduction",
+  "assume direct exclusive tenancy of the",
+  "assume direct exclusive tenancy of",
+  "assume absolute exclusive tenancy of the",
+  "assume absolute exclusive tenancy of",
+  "assume immediate exclusive tenancy of the",
+  "assume immediate exclusive tenancy of",
+  "divest oneself of all exclusive tenancy of the",
+  "divest oneself of all exclusive tenancy of",
+  "relinquish all exclusive tenancy of the",
+  "relinquish all exclusive tenancy of",
+  "free oneself from all exclusive tenancy of the",
+  "free oneself from all exclusive tenancy of",
+  "force completely and stochastically wide open the",
+  "force completely and stochastically wide open",
+  "pry completely and stochastically wide open the",
+  "pry completely and stochastically wide open",
+  "fasten completely and stochastically closed the",
+  "fasten completely and stochastically closed",
+  "seal completely and stochastically shut the",
+  "seal completely and stochastically shut",
+  "deactivate all muonic security devices of the",
+  "deactivate all muonic security devices of",
+  "bypass all muonic security devices on the",
+  "bypass all muonic security devices on",
+  "disengage the primary muonic security device on the",
+  "disengage the primary muonic security device on",
+  "harness the full steadfast deployment of the",
+  "harness the full steadfast deployment of",
+  "bring into active steadfast deployment the",
+  "bring into active steadfast deployment",
+  "make complete steadfast deployment of the",
+  "make complete steadfast deployment of",
+  "initiate a bloodthirsty confrontation against the",
+  "initiate a bloodthirsty confrontation against",
+  "commence a bloodthirsty confrontation against the",
+  "commence a bloodthirsty confrontation against",
+  "engage in a bloodthirsty confrontation against the",
+  "engage in a bloodthirsty confrontation against",
+  "initiate a phenomenological face to face discussion with the",
+  "initiate a phenomenological face to face discussion with",
+  "engage in a phenomenological face to face discussion with the",
+  "engage in a phenomenological face to face discussion with",
+  "strike up a phenomenological face to face discussion with the",
+  "strike up a phenomenological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
