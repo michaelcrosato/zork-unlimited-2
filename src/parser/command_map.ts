@@ -24799,6 +24799,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an academic face to face discussion with the": ["TALK"],
 });
 
+// Cycle #159 / Task-F180: Phase 143 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of thrombolysis towards the location of": ["MOVE"],
+  "navigate one's vector of thrombolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of thrombolysis towards the location of": ["MOVE"],
+  "navigate ones vector of thrombolysis towards the location of the": ["MOVE"],
+  "steer one's vector of thrombolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of thrombolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of thrombolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of thrombolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of thrombolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of thrombolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of thrombolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of thrombolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual distinction": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual distinction the": ["LOOK_INSPECT"],
+  "subject to a thorough visual distinction": ["LOOK_INSPECT"],
+  "subject to a thorough visual distinction the": ["LOOK_INSPECT"],
+  "subject to a detailed visual distinction": ["LOOK_INSPECT"],
+  "subject to a detailed visual distinction the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive inventorying of": ["TAKE"],
+  "assume direct exclusive inventorying of the": ["TAKE"],
+  "assume absolute exclusive inventorying of": ["TAKE"],
+  "assume absolute exclusive inventorying of the": ["TAKE"],
+  "assume immediate exclusive inventorying of": ["TAKE"],
+  "assume immediate exclusive inventorying of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive inventorying of": ["DROP"],
+  "divest oneself of all exclusive inventorying of the": ["DROP"],
+  "relinquish all exclusive inventorying of": ["DROP"],
+  "relinquish all exclusive inventorying of the": ["DROP"],
+  "free oneself from all exclusive inventorying of": ["DROP"],
+  "free oneself from all exclusive inventorying of the": ["DROP"],
+
+  // Open/Close
+  "force completely and optochemically wide open": ["OPEN"],
+  "force completely and optochemically wide open the": ["OPEN"],
+  "pry completely and optochemically wide open": ["OPEN"],
+  "pry completely and optochemically wide open the": ["OPEN"],
+  "fasten completely and optochemically closed": ["CLOSE"],
+  "fasten completely and optochemically closed the": ["CLOSE"],
+  "seal completely and optochemically shut": ["CLOSE"],
+  "seal completely and optochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all instanton security devices of": ["UNLOCK"],
+  "deactivate all instanton security devices of the": ["UNLOCK"],
+  "bypass all instanton security devices on": ["UNLOCK"],
+  "bypass all instanton security devices on the": ["UNLOCK"],
+  "disengage the primary instanton security device on": ["UNLOCK"],
+  "disengage the primary instanton security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full uncompromising deployment of": ["USE"],
+  "harness the full uncompromising deployment of the": ["USE"],
+  "bring into active uncompromising deployment": ["USE"],
+  "bring into active uncompromising deployment the": ["USE"],
+  "make complete uncompromising deployment of": ["USE"],
+  "make complete uncompromising deployment of the": ["USE"],
+
+  // Combat
+  "initiate a wrathful confrontation against": ["FIGHT"],
+  "initiate a wrathful confrontation against the": ["FIGHT"],
+  "commence a wrathful confrontation against": ["FIGHT"],
+  "commence a wrathful confrontation against the": ["FIGHT"],
+  "engage in a wrathful confrontation against": ["FIGHT"],
+  "engage in a wrathful confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an analytical face to face discussion with": ["TALK"],
+  "initiate an analytical face to face discussion with the": ["TALK"],
+  "engage in an analytical face to face discussion with": ["TALK"],
+  "engage in an analytical face to face discussion with the": ["TALK"],
+  "strike up an analytical face to face discussion with": ["TALK"],
+  "strike up an analytical face to face discussion with the": ["TALK"],
+});
+
 
 
 
@@ -28693,6 +28776,72 @@ compoundVerbs.push(
   "engage in an academic face to face discussion with",
   "strike up an academic face to face discussion with the",
   "strike up an academic face to face discussion with"
+);
+
+// Cycle #159 / Task-F180: Phase 143 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of thrombolysis towards the location of the",
+  "navigate one's vector of thrombolysis towards the location of",
+  "navigate ones vector of thrombolysis towards the location of the",
+  "navigate ones vector of thrombolysis towards the location of",
+  "steer one's vector of thrombolysis in the direction of the coordinates of the",
+  "steer one's vector of thrombolysis in the direction of the coordinates of",
+  "steer ones vector of thrombolysis in the direction of the coordinates of the",
+  "steer ones vector of thrombolysis in the direction of the coordinates of",
+  "direct one's vector of thrombolysis towards the coordinates of the location of the",
+  "direct one's vector of thrombolysis towards the coordinates of the location of",
+  "direct ones vector of thrombolysis towards the coordinates of the location of the",
+  "direct ones vector of thrombolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual distinction the",
+  "subject to a comprehensive visual distinction",
+  "subject to a thorough visual distinction the",
+  "subject to a thorough visual distinction",
+  "subject to a detailed visual distinction the",
+  "subject to a detailed visual distinction",
+  "assume direct exclusive inventorying of the",
+  "assume direct exclusive inventorying of",
+  "assume absolute exclusive inventorying of the",
+  "assume absolute exclusive inventorying of",
+  "assume immediate exclusive inventorying of the",
+  "assume immediate exclusive inventorying of",
+  "divest oneself of all exclusive inventorying of the",
+  "divest oneself of all exclusive inventorying of",
+  "relinquish all exclusive inventorying of the",
+  "relinquish all exclusive inventorying of",
+  "free oneself from all exclusive inventorying of the",
+  "free oneself from all exclusive inventorying of",
+  "force completely and optochemically wide open the",
+  "force completely and optochemically wide open",
+  "pry completely and optochemically wide open the",
+  "pry completely and optochemically wide open",
+  "fasten completely and optochemically closed the",
+  "fasten completely and optochemically closed",
+  "seal completely and optochemically shut the",
+  "seal completely and optochemically shut",
+  "deactivate all instanton security devices of the",
+  "deactivate all instanton security devices of",
+  "bypass all instanton security devices on the",
+  "bypass all instanton security devices on",
+  "disengage the primary instanton security device on the",
+  "disengage the primary instanton security device on",
+  "harness the full uncompromising deployment of the",
+  "harness the full uncompromising deployment of",
+  "bring into active uncompromising deployment the",
+  "bring into active uncompromising deployment",
+  "make complete uncompromising deployment of the",
+  "make complete uncompromising deployment of",
+  "initiate a wrathful confrontation against the",
+  "initiate a wrathful confrontation against",
+  "commence a wrathful confrontation against the",
+  "commence a wrathful confrontation against",
+  "engage in a wrathful confrontation against the",
+  "engage in a wrathful confrontation against",
+  "initiate an analytical face to face discussion with the",
+  "initiate an analytical face to face discussion with",
+  "engage in an analytical face to face discussion with the",
+  "engage in an analytical face to face discussion with",
+  "strike up an analytical face to face discussion with the",
+  "strike up an analytical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
