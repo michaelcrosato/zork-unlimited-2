@@ -27858,6 +27858,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a theological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #195 / Task-F214: Phase 177 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of mutagenesis towards the location of": ["MOVE"],
+  "navigate one's vector of mutagenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of mutagenesis towards the location of": ["MOVE"],
+  "navigate ones vector of mutagenesis towards the location of the": ["MOVE"],
+  "steer one's vector of mutagenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of mutagenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of mutagenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of mutagenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of mutagenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of mutagenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of mutagenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of mutagenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual drafting": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual drafting the": ["LOOK_INSPECT"],
+  "subject to a thorough visual drafting": ["LOOK_INSPECT"],
+  "subject to a thorough visual drafting the": ["LOOK_INSPECT"],
+  "subject to a detailed visual drafting": ["LOOK_INSPECT"],
+  "subject to a detailed visual drafting the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive casing of": ["TAKE"],
+  "assume direct exclusive casing of the": ["TAKE"],
+  "assume absolute exclusive casing of": ["TAKE"],
+  "assume absolute exclusive casing of the": ["TAKE"],
+  "assume immediate exclusive casing of": ["TAKE"],
+  "assume immediate exclusive casing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive casing of": ["DROP"],
+  "divest oneself of all exclusive casing of the": ["DROP"],
+  "relinquish all exclusive casing of": ["DROP"],
+  "relinquish all exclusive casing of the": ["DROP"],
+  "free oneself from all exclusive casing of": ["DROP"],
+  "free oneself from all exclusive casing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and viscoelastically wide open": ["OPEN"],
+  "force completely and viscoelastically wide open the": ["OPEN"],
+  "pry completely and viscoelastically wide open": ["OPEN"],
+  "pry completely and viscoelastically wide open the": ["OPEN"],
+  "fasten completely and viscoelastically closed": ["CLOSE"],
+  "fasten completely and viscoelastically closed the": ["CLOSE"],
+  "seal completely and viscoelastically shut": ["CLOSE"],
+  "seal completely and viscoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all feynman security devices of": ["UNLOCK"],
+  "deactivate all feynman security devices of the": ["UNLOCK"],
+  "deactivate all dyson security devices of": ["UNLOCK"],
+  "deactivate all dyson security devices of the": ["UNLOCK"],
+  "deactivate all schwinger security devices of": ["UNLOCK"],
+  "deactivate all schwinger security devices of the": ["UNLOCK"],
+  "deactivate all tomonaga security devices of": ["UNLOCK"],
+  "deactivate all tomonaga security devices of the": ["UNLOCK"],
+  "bypass all feynman security devices on": ["UNLOCK"],
+  "bypass all feynman security devices on the": ["UNLOCK"],
+  "bypass all dyson security devices on": ["UNLOCK"],
+  "bypass all dyson security devices on the": ["UNLOCK"],
+  "bypass all schwinger security devices on": ["UNLOCK"],
+  "bypass all schwinger security devices on the": ["UNLOCK"],
+  "bypass all tomonaga security devices on": ["UNLOCK"],
+  "bypass all tomonaga security devices on the": ["UNLOCK"],
+  "disengage the primary feynman security device on": ["UNLOCK"],
+  "disengage the primary feynman security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full reciprocal deployment of": ["USE"],
+  "harness the full reciprocal deployment of the": ["USE"],
+  "bring into active reciprocal deployment": ["USE"],
+  "bring into active reciprocal deployment the": ["USE"],
+  "make complete reciprocal deployment of": ["USE"],
+  "make complete reciprocal deployment of the": ["USE"],
+
+  // Combat
+  "initiate a defiant confrontation against": ["FIGHT"],
+  "initiate a defiant confrontation against the": ["FIGHT"],
+  "commence a defiant confrontation against": ["FIGHT"],
+  "commence a defiant confrontation against the": ["FIGHT"],
+  "engage in a defiant confrontation against": ["FIGHT"],
+  "engage in a defiant confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a philological face to face discussion with": ["TALK"],
+  "initiate a philological face to face discussion with the": ["TALK"],
+  "engage in a philological face to face discussion with": ["TALK"],
+  "engage in a philological face to face discussion with the": ["TALK"],
+  "strike up a philological face to face discussion with": ["TALK"],
+  "strike up a philological face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -34247,6 +34342,84 @@ compoundVerbs.push(
   "engage in a theological face to face discussion with",
   "strike up a theological face to face discussion with the",
   "strike up a theological face to face discussion with"
+);
+
+// Cycle #195 / Task-F214: Phase 177 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of mutagenesis towards the location of the",
+  "navigate one's vector of mutagenesis towards the location of",
+  "navigate ones vector of mutagenesis towards the location of the",
+  "navigate ones vector of mutagenesis towards the location of",
+  "steer one's vector of mutagenesis in the direction of the coordinates of the",
+  "steer one's vector of mutagenesis in the direction of the coordinates of",
+  "steer ones vector of mutagenesis in the direction of the coordinates of the",
+  "steer ones vector of mutagenesis in the direction of the coordinates of",
+  "direct one's vector of mutagenesis towards the coordinates of the location of the",
+  "direct one's vector of mutagenesis towards the coordinates of the location of",
+  "direct ones vector of mutagenesis towards the coordinates of the location of the",
+  "direct ones vector of mutagenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual drafting the",
+  "subject to a comprehensive visual drafting",
+  "subject to a thorough visual drafting the",
+  "subject to a thorough visual drafting",
+  "subject to a detailed visual drafting the",
+  "subject to a detailed visual drafting",
+  "assume direct exclusive casing of the",
+  "assume direct exclusive casing of",
+  "assume absolute exclusive casing of the",
+  "assume absolute exclusive casing of",
+  "assume immediate exclusive casing of the",
+  "assume immediate exclusive casing of",
+  "divest oneself of all exclusive casing of the",
+  "divest oneself of all exclusive casing of",
+  "relinquish all exclusive casing of the",
+  "relinquish all exclusive casing of",
+  "free oneself from all exclusive casing of the",
+  "free oneself from all exclusive casing of",
+  "force completely and viscoelastically wide open the",
+  "force completely and viscoelastically wide open",
+  "pry completely and viscoelastically wide open the",
+  "pry completely and viscoelastically wide open",
+  "fasten completely and viscoelastically closed the",
+  "fasten completely and viscoelastically closed",
+  "seal completely and viscoelastically shut the",
+  "seal completely and viscoelastically shut",
+  "deactivate all feynman security devices of the",
+  "deactivate all feynman security devices of",
+  "deactivate all dyson security devices of the",
+  "deactivate all dyson security devices of",
+  "deactivate all schwinger security devices of the",
+  "deactivate all schwinger security devices of",
+  "deactivate all tomonaga security devices of the",
+  "deactivate all tomonaga security devices of",
+  "bypass all feynman security devices on the",
+  "bypass all feynman security devices on",
+  "bypass all dyson security devices on the",
+  "bypass all dyson security devices on",
+  "bypass all schwinger security devices on the",
+  "bypass all schwinger security devices on",
+  "bypass all tomonaga security devices on the",
+  "bypass all tomonaga security devices on",
+  "disengage the primary feynman security device on the",
+  "disengage the primary feynman security device on",
+  "harness the full reciprocal deployment of the",
+  "harness the full reciprocal deployment of",
+  "bring into active reciprocal deployment the",
+  "bring into active reciprocal deployment",
+  "make complete reciprocal deployment of the",
+  "make complete reciprocal deployment of",
+  "initiate a defiant confrontation against the",
+  "initiate a defiant confrontation against",
+  "commence a defiant confrontation against the",
+  "commence a defiant confrontation against",
+  "engage in a defiant confrontation against the",
+  "engage in a defiant confrontation against",
+  "initiate a philological face to face discussion with the",
+  "initiate a philological face to face discussion with",
+  "engage in a philological face to face discussion with the",
+  "engage in a philological face to face discussion with",
+  "strike up a philological face to face discussion with the",
+  "strike up a philological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
