@@ -20982,6 +20982,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an instructive face to face discussion with the": ["TALK"]
 });
 
+// Cycle #111 / Task-F133: Phase 96 mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of transmission towards the location of": ["MOVE"],
+  "navigate one's vector of transmission towards the location of the": ["MOVE"],
+  "navigate ones vector of transmission towards the location of": ["MOVE"],
+  "navigate ones vector of transmission towards the location of the": ["MOVE"],
+  "steer one's vector of transmission in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of transmission in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of transmission in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of transmission in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of transmission towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of transmission towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of transmission towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of transmission towards the coordinates of the location of the": ["MOVE"],
+
+  // Look/Inspect
+  "subject to a comprehensive visual documentation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual documentation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual documentation": ["LOOK_INSPECT"],
+  "subject to a thorough visual documentation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual documentation": ["LOOK_INSPECT"],
+  "subject to a detailed visual documentation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive usurpation of": ["TAKE"],
+  "assume direct exclusive usurpation of the": ["TAKE"],
+  "assume absolute exclusive usurpation of": ["TAKE"],
+  "assume absolute exclusive usurpation of the": ["TAKE"],
+  "assume immediate exclusive usurpation of": ["TAKE"],
+  "assume immediate exclusive usurpation of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive usurpation of": ["DROP"],
+  "divest oneself of all exclusive usurpation of the": ["DROP"],
+  "relinquish all exclusive usurpation of": ["DROP"],
+  "relinquish all exclusive usurpation of the": ["DROP"],
+  "free oneself from all exclusive usurpation of": ["DROP"],
+  "free oneself from all exclusive usurpation of the": ["DROP"],
+
+  // Open/Close
+  "force completely and superconductively wide open": ["OPEN"],
+  "force completely and superconductively wide open the": ["OPEN"],
+  "pry completely and superconductively wide open": ["OPEN"],
+  "pry completely and superconductively wide open the": ["OPEN"],
+  "fasten completely and superconductively closed": ["CLOSE"],
+  "fasten completely and superconductively closed the": ["CLOSE"],
+  "seal completely and superconductively shut": ["CLOSE"],
+  "seal completely and superconductively shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all spintronic security devices of": ["UNLOCK"],
+  "deactivate all spintronic security devices of the": ["UNLOCK"],
+  "bypass all spintronic security devices on": ["UNLOCK"],
+  "bypass all spintronic security devices on the": ["UNLOCK"],
+  "disengage the primary spintronic security device on": ["UNLOCK"],
+  "disengage the primary spintronic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full transcendent deployment of": ["USE"],
+  "harness the full transcendent deployment of the": ["USE"],
+  "bring into active transcendent deployment": ["USE"],
+  "bring into active transcendent deployment the": ["USE"],
+  "make complete transcendent deployment of": ["USE"],
+  "make complete transcendent deployment of the": ["USE"],
+
+  // Combat
+  "initiate a diabolical confrontation against": ["FIGHT"],
+  "initiate a diabolical confrontation against the": ["FIGHT"],
+  "commence a diabolical confrontation against": ["FIGHT"],
+  "commence a diabolical confrontation against the": ["FIGHT"],
+  "engage in a diabolical confrontation against": ["FIGHT"],
+  "engage in a diabolical confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a thoughtful face to face discussion with": ["TALK"],
+  "initiate a thoughtful face to face discussion with the": ["TALK"],
+  "engage in a thoughtful face to face discussion with": ["TALK"],
+  "engage in a thoughtful face to face discussion with the": ["TALK"],
+  "strike up a thoughtful face to face discussion with": ["TALK"],
+  "strike up a thoughtful face to face discussion with the": ["TALK"]
+});
+
 
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -21774,6 +21857,72 @@ compoundVerbs.push(
   "engage in an instructive face to face discussion with",
   "strike up an instructive face to face discussion with the",
   "strike up an instructive face to face discussion with"
+);
+
+// Cycle #111 / Task-F133: Phase 96 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of transmission towards the location of the",
+  "navigate one's vector of transmission towards the location of",
+  "navigate ones vector of transmission towards the location of the",
+  "navigate ones vector of transmission towards the location of",
+  "steer one's vector of transmission in the direction of the coordinates of the",
+  "steer one's vector of transmission in the direction of the coordinates of",
+  "steer ones vector of transmission in the direction of the coordinates of the",
+  "steer ones vector of transmission in the direction of the coordinates of",
+  "direct one's vector of transmission towards the coordinates of the location of the",
+  "direct one's vector of transmission towards the coordinates of the location of",
+  "direct ones vector of transmission towards the coordinates of the location of the",
+  "direct ones vector of transmission towards the coordinates of the location of",
+  "subject to a comprehensive visual documentation the",
+  "subject to a comprehensive visual documentation",
+  "subject to a thorough visual documentation the",
+  "subject to a thorough visual documentation",
+  "subject to a detailed visual documentation the",
+  "subject to a detailed visual documentation",
+  "assume direct exclusive usurpation of the",
+  "assume direct exclusive usurpation of",
+  "assume absolute exclusive usurpation of the",
+  "assume absolute exclusive usurpation of",
+  "assume immediate exclusive usurpation of the",
+  "assume immediate exclusive usurpation of",
+  "divest oneself of all exclusive usurpation of the",
+  "divest oneself of all exclusive usurpation of",
+  "relinquish all exclusive usurpation of the",
+  "relinquish all exclusive usurpation of",
+  "free oneself from all exclusive usurpation of the",
+  "free oneself from all exclusive usurpation of",
+  "force completely and superconductively wide open the",
+  "force completely and superconductively wide open",
+  "pry completely and superconductively wide open the",
+  "pry completely and superconductively wide open",
+  "fasten completely and superconductively closed the",
+  "fasten completely and superconductively closed",
+  "seal completely and superconductively shut the",
+  "seal completely and superconductively shut",
+  "deactivate all spintronic security devices of the",
+  "deactivate all spintronic security devices of",
+  "bypass all spintronic security devices on the",
+  "bypass all spintronic security devices on",
+  "disengage the primary spintronic security device on the",
+  "disengage the primary spintronic security device on",
+  "harness the full transcendent deployment of the",
+  "harness the full transcendent deployment of",
+  "bring into active transcendent deployment the",
+  "bring into active transcendent deployment",
+  "make complete transcendent deployment of the",
+  "make complete transcendent deployment of",
+  "initiate a diabolical confrontation against the",
+  "initiate a diabolical confrontation against",
+  "commence a diabolical confrontation against the",
+  "commence a diabolical confrontation against",
+  "engage in a diabolical confrontation against the",
+  "engage in a diabolical confrontation against",
+  "initiate a thoughtful face to face discussion with the",
+  "initiate a thoughtful face to face discussion with",
+  "engage in a thoughtful face to face discussion with the",
+  "engage in a thoughtful face to face discussion with",
+  "strike up a thoughtful face to face discussion with the",
+  "strike up a thoughtful face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
