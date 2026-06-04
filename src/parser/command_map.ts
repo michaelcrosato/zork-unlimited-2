@@ -27478,6 +27478,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up an oceanographical face to face discussion with the": ["TALK"]
 });
 
+// Cycle #191 / Task-F210: Phase 173 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of anagenesis towards the location of": ["MOVE"],
+  "navigate one's vector of anagenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of anagenesis towards the location of": ["MOVE"],
+  "navigate ones vector of anagenesis towards the location of the": ["MOVE"],
+  "steer one's vector of anagenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of anagenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of anagenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of anagenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of anagenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of anagenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of anagenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of anagenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual diagramming": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual diagramming the": ["LOOK_INSPECT"],
+  "subject to a thorough visual diagramming": ["LOOK_INSPECT"],
+  "subject to a thorough visual diagramming the": ["LOOK_INSPECT"],
+  "subject to a detailed visual diagramming": ["LOOK_INSPECT"],
+  "subject to a detailed visual diagramming the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive bundling of": ["TAKE"],
+  "assume direct exclusive bundling of the": ["TAKE"],
+  "assume absolute exclusive bundling of": ["TAKE"],
+  "assume absolute exclusive bundling of the": ["TAKE"],
+  "assume immediate exclusive bundling of": ["TAKE"],
+  "assume immediate exclusive bundling of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive bundling of": ["DROP"],
+  "divest oneself of all exclusive bundling of the": ["DROP"],
+  "relinquish all exclusive bundling of": ["DROP"],
+  "relinquish all exclusive bundling of the": ["DROP"],
+  "free oneself from all exclusive bundling of": ["DROP"],
+  "free oneself from all exclusive bundling of the": ["DROP"],
+
+  // Open/Close
+  "force completely and acoustoelastically wide open": ["OPEN"],
+  "force completely and acoustoelastically wide open the": ["OPEN"],
+  "pry completely and acoustoelastically wide open": ["OPEN"],
+  "pry completely and acoustoelastically wide open the": ["OPEN"],
+  "fasten completely and acoustoelastically closed": ["CLOSE"],
+  "fasten completely and acoustoelastically closed the": ["CLOSE"],
+  "seal completely and acoustoelastically shut": ["CLOSE"],
+  "seal completely and acoustoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all bloch security devices of": ["UNLOCK"],
+  "deactivate all bloch security devices of the": ["UNLOCK"],
+  "deactivate all brillouin security devices of": ["UNLOCK"],
+  "deactivate all brillouin security devices of the": ["UNLOCK"],
+  "deactivate all wannier security devices of": ["UNLOCK"],
+  "deactivate all wannier security devices of the": ["UNLOCK"],
+  "deactivate all heisenberg security devices of": ["UNLOCK"],
+  "deactivate all heisenberg security devices of the": ["UNLOCK"],
+  "bypass all bloch security devices on": ["UNLOCK"],
+  "bypass all bloch security devices on the": ["UNLOCK"],
+  "bypass all brillouin security devices on": ["UNLOCK"],
+  "bypass all brillouin security devices on the": ["UNLOCK"],
+  "bypass all wannier security devices on": ["UNLOCK"],
+  "bypass all wannier security devices on the": ["UNLOCK"],
+  "bypass all heisenberg security devices on": ["UNLOCK"],
+  "bypass all heisenberg security devices on the": ["UNLOCK"],
+  "disengage the primary bloch security device on": ["UNLOCK"],
+  "disengage the primary bloch security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full asynchronous deployment of": ["USE"],
+  "harness the full asynchronous deployment of the": ["USE"],
+  "bring into active asynchronous deployment": ["USE"],
+  "bring into active asynchronous deployment the": ["USE"],
+  "make complete asynchronous deployment of": ["USE"],
+  "make complete asynchronous deployment of the": ["USE"],
+
+  // Combat
+  "initiate a rebellious confrontation against": ["FIGHT"],
+  "initiate a rebellious confrontation against the": ["FIGHT"],
+  "commence a rebellious confrontation against": ["FIGHT"],
+  "commence a rebellious confrontation against the": ["FIGHT"],
+  "engage in a rebellious confrontation against": ["FIGHT"],
+  "engage in a rebellious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a chronological face to face discussion with": ["TALK"],
+  "initiate a chronological face to face discussion with the": ["TALK"],
+  "engage in a chronological face to face discussion with": ["TALK"],
+  "engage in a chronological face to face discussion with the": ["TALK"],
+  "strike up a chronological face to face discussion with": ["TALK"],
+  "strike up a chronological face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -33553,6 +33648,84 @@ compoundVerbs.push(
   "engage in an oceanographical face to face discussion with",
   "strike up an oceanographical face to face discussion with the",
   "strike up an oceanographical face to face discussion with"
+);
+
+// Cycle #191 / Task-F210: Phase 173 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of anagenesis towards the location of the",
+  "navigate one's vector of anagenesis towards the location of",
+  "navigate ones vector of anagenesis towards the location of the",
+  "navigate ones vector of anagenesis towards the location of",
+  "steer one's vector of anagenesis in the direction of the coordinates of the",
+  "steer one's vector of anagenesis in the direction of the coordinates of",
+  "steer ones vector of anagenesis in the direction of the coordinates of the",
+  "steer ones vector of anagenesis in the direction of the coordinates of",
+  "direct one's vector of anagenesis towards the coordinates of the location of the",
+  "direct one's vector of anagenesis towards the coordinates of the location of",
+  "direct ones vector of anagenesis towards the coordinates of the location of the",
+  "direct ones vector of anagenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual diagramming the",
+  "subject to a comprehensive visual diagramming",
+  "subject to a thorough visual diagramming the",
+  "subject to a thorough visual diagramming",
+  "subject to a detailed visual diagramming the",
+  "subject to a detailed visual diagramming",
+  "assume direct exclusive bundling of the",
+  "assume direct exclusive bundling of",
+  "assume absolute exclusive bundling of the",
+  "assume absolute exclusive bundling of",
+  "assume immediate exclusive bundling of the",
+  "assume immediate exclusive bundling of",
+  "divest oneself of all exclusive bundling of the",
+  "divest oneself of all exclusive bundling of",
+  "relinquish all exclusive bundling of the",
+  "relinquish all exclusive bundling of",
+  "free oneself from all exclusive bundling of the",
+  "free oneself from all exclusive bundling of",
+  "force completely and acoustoelastically wide open the",
+  "force completely and acoustoelastically wide open",
+  "pry completely and acoustoelastically wide open the",
+  "pry completely and acoustoelastically wide open",
+  "fasten completely and acoustoelastically closed the",
+  "fasten completely and acoustoelastically closed",
+  "seal completely and acoustoelastically shut the",
+  "seal completely and acoustoelastically shut",
+  "deactivate all bloch security devices of the",
+  "deactivate all bloch security devices of",
+  "deactivate all brillouin security devices of the",
+  "deactivate all brillouin security devices of",
+  "deactivate all wannier security devices of the",
+  "deactivate all wannier security devices of",
+  "deactivate all heisenberg security devices of the",
+  "deactivate all heisenberg security devices of",
+  "bypass all bloch security devices on the",
+  "bypass all bloch security devices on",
+  "bypass all brillouin security devices on the",
+  "bypass all brillouin security devices on",
+  "bypass all wannier security devices on the",
+  "bypass all wannier security devices on",
+  "bypass all heisenberg security devices on the",
+  "bypass all heisenberg security devices on",
+  "disengage the primary bloch security device on the",
+  "disengage the primary bloch security device on",
+  "harness the full asynchronous deployment of the",
+  "harness the full asynchronous deployment of",
+  "bring into active asynchronous deployment the",
+  "bring into active asynchronous deployment",
+  "make complete asynchronous deployment of the",
+  "make complete asynchronous deployment of",
+  "initiate a rebellious confrontation against the",
+  "initiate a rebellious confrontation against",
+  "commence a rebellious confrontation against the",
+  "commence a rebellious confrontation against",
+  "engage in a rebellious confrontation against the",
+  "engage in a rebellious confrontation against",
+  "initiate a chronological face to face discussion with the",
+  "initiate a chronological face to face discussion with",
+  "engage in a chronological face to face discussion with the",
+  "engage in a chronological face to face discussion with",
+  "strike up a chronological face to face discussion with the",
+  "strike up a chronological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
