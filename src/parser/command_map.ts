@@ -27005,6 +27005,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a paleontological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #185 / Task-F205: Phase 168 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of biogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of biogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of biogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of biogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of biogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of biogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of biogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of biogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of biogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of biogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of biogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of biogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual profiling": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual profiling the": ["LOOK_INSPECT"],
+  "subject to a thorough visual profiling": ["LOOK_INSPECT"],
+  "subject to a thorough visual profiling the": ["LOOK_INSPECT"],
+  "subject to a detailed visual profiling": ["LOOK_INSPECT"],
+  "subject to a detailed visual profiling the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive gripping of": ["TAKE"],
+  "assume direct exclusive gripping of the": ["TAKE"],
+  "assume absolute exclusive gripping of": ["TAKE"],
+  "assume absolute exclusive gripping of the": ["TAKE"],
+  "assume immediate exclusive gripping of": ["TAKE"],
+  "assume immediate exclusive gripping of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive gripping of": ["DROP"],
+  "divest oneself of all exclusive gripping of the": ["DROP"],
+  "relinquish all exclusive gripping of": ["DROP"],
+  "relinquish all exclusive gripping of the": ["DROP"],
+  "free oneself from all exclusive gripping of": ["DROP"],
+  "free oneself from all exclusive gripping of the": ["DROP"],
+
+  // Open/Close
+  "force completely and hydroelastically wide open": ["OPEN"],
+  "force completely and hydroelastically wide open the": ["OPEN"],
+  "pry completely and hydroelastically wide open": ["OPEN"],
+  "pry completely and hydroelastically wide open the": ["OPEN"],
+  "fasten completely and hydroelastically closed": ["CLOSE"],
+  "fasten completely and hydroelastically closed the": ["CLOSE"],
+  "seal completely and hydroelastically shut": ["CLOSE"],
+  "seal completely and hydroelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all qubit security devices of": ["UNLOCK"],
+  "deactivate all qubit security devices of the": ["UNLOCK"],
+  "deactivate all transmon security devices of": ["UNLOCK"],
+  "deactivate all transmon security devices of the": ["UNLOCK"],
+  "deactivate all resonator security devices of": ["UNLOCK"],
+  "deactivate all resonator security devices of the": ["UNLOCK"],
+  "deactivate all coupler security devices of": ["UNLOCK"],
+  "deactivate all coupler security devices of the": ["UNLOCK"],
+  "bypass all qubit security devices on": ["UNLOCK"],
+  "bypass all qubit security devices on the": ["UNLOCK"],
+  "bypass all transmon security devices on": ["UNLOCK"],
+  "bypass all transmon security devices on the": ["UNLOCK"],
+  "bypass all resonator security devices on": ["UNLOCK"],
+  "bypass all resonator security devices on the": ["UNLOCK"],
+  "bypass all coupler security devices on": ["UNLOCK"],
+  "bypass all coupler security devices on the": ["UNLOCK"],
+  "disengage the primary qubit security device on": ["UNLOCK"],
+  "disengage the primary qubit security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full decentralized deployment of": ["USE"],
+  "harness the full decentralized deployment of the": ["USE"],
+  "bring into active decentralized deployment": ["USE"],
+  "bring into active decentralized deployment the": ["USE"],
+  "make complete decentralized deployment of": ["USE"],
+  "make complete decentralized deployment of the": ["USE"],
+
+  // Combat
+  "initiate an insurgent confrontation against": ["FIGHT"],
+  "initiate an insurgent confrontation against the": ["FIGHT"],
+  "commence an insurgent confrontation against": ["FIGHT"],
+  "commence an insurgent confrontation against the": ["FIGHT"],
+  "engage in an insurgent confrontation against": ["FIGHT"],
+  "engage in an insurgent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a geological face to face discussion with": ["TALK"],
+  "initiate a geological face to face discussion with the": ["TALK"],
+  "engage in a geological face to face discussion with": ["TALK"],
+  "engage in a geological face to face discussion with the": ["TALK"],
+  "strike up a geological face to face discussion with": ["TALK"],
+  "strike up a geological face to face discussion with the": ["TALK"]
+});
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -32690,6 +32785,84 @@ compoundVerbs.push(
   "engage in a paleontological face to face discussion with",
   "strike up a paleontological face to face discussion with the",
   "strike up a paleontological face to face discussion with"
+);
+
+// Cycle #185 / Task-F205: Phase 168 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of biogenesis towards the location of the",
+  "navigate one's vector of biogenesis towards the location of",
+  "navigate ones vector of biogenesis towards the location of the",
+  "navigate ones vector of biogenesis towards the location of",
+  "steer one's vector of biogenesis in the direction of the coordinates of the",
+  "steer one's vector of biogenesis in the direction of the coordinates of",
+  "steer ones vector of biogenesis in the direction of the coordinates of the",
+  "steer ones vector of biogenesis in the direction of the coordinates of",
+  "direct one's vector of biogenesis towards the coordinates of the location of the",
+  "direct one's vector of biogenesis towards the coordinates of the location of",
+  "direct ones vector of biogenesis towards the coordinates of the location of the",
+  "direct ones vector of biogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual profiling the",
+  "subject to a comprehensive visual profiling",
+  "subject to a thorough visual profiling the",
+  "subject to a thorough visual profiling",
+  "subject to a detailed visual profiling the",
+  "subject to a detailed visual profiling",
+  "assume direct exclusive gripping of the",
+  "assume direct exclusive gripping of",
+  "assume absolute exclusive gripping of the",
+  "assume absolute exclusive gripping of",
+  "assume immediate exclusive gripping of the",
+  "assume immediate exclusive gripping of",
+  "divest oneself of all exclusive gripping of the",
+  "divest oneself of all exclusive gripping of",
+  "relinquish all exclusive gripping of the",
+  "relinquish all exclusive gripping of",
+  "free oneself from all exclusive gripping of the",
+  "free oneself from all exclusive gripping of",
+  "force completely and hydroelastically wide open the",
+  "force completely and hydroelastically wide open",
+  "pry completely and hydroelastically wide open the",
+  "pry completely and hydroelastically wide open",
+  "fasten completely and hydroelastically closed the",
+  "fasten completely and hydroelastically closed",
+  "seal completely and hydroelastically shut the",
+  "seal completely and hydroelastically shut",
+  "deactivate all qubit security devices of the",
+  "deactivate all qubit security devices of",
+  "deactivate all transmon security devices of the",
+  "deactivate all transmon security devices of",
+  "deactivate all resonator security devices of the",
+  "deactivate all resonator security devices of",
+  "deactivate all coupler security devices of the",
+  "deactivate all coupler security devices of",
+  "bypass all qubit security devices on the",
+  "bypass all qubit security devices on",
+  "bypass all transmon security devices on the",
+  "bypass all transmon security devices on",
+  "bypass all resonator security devices on the",
+  "bypass all resonator security devices on",
+  "bypass all coupler security devices on the",
+  "bypass all coupler security devices on",
+  "disengage the primary qubit security device on the",
+  "disengage the primary qubit security device on",
+  "harness the full decentralized deployment of the",
+  "harness the full decentralized deployment of",
+  "bring into active decentralized deployment the",
+  "bring into active decentralized deployment",
+  "make complete decentralized deployment of the",
+  "make complete decentralized deployment of",
+  "initiate an insurgent confrontation against the",
+  "initiate an insurgent confrontation against",
+  "commence an insurgent confrontation against the",
+  "commence an insurgent confrontation against",
+  "engage in an insurgent confrontation against the",
+  "engage in an insurgent confrontation against",
+  "initiate a geological face to face discussion with the",
+  "initiate a geological face to face discussion with",
+  "engage in a geological face to face discussion with the",
+  "engage in a geological face to face discussion with",
+  "strike up a geological face to face discussion with the",
+  "strike up a geological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
