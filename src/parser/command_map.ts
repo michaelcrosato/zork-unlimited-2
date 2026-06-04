@@ -24965,6 +24965,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a conceptual face to face discussion with the": ["TALK"],
 });
 
+// Cycle #161 / Task-F182: Phase 145 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of bacteriolysis towards the location of": ["MOVE"],
+  "navigate one's vector of bacteriolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of bacteriolysis towards the location of": ["MOVE"],
+  "navigate ones vector of bacteriolysis towards the location of the": ["MOVE"],
+  "steer one's vector of bacteriolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of bacteriolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of bacteriolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of bacteriolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of bacteriolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of bacteriolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of bacteriolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of bacteriolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual interpretation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual interpretation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual interpretation": ["LOOK_INSPECT"],
+  "subject to a thorough visual interpretation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual interpretation": ["LOOK_INSPECT"],
+  "subject to a detailed visual interpretation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive retention of": ["TAKE"],
+  "assume direct exclusive retention of the": ["TAKE"],
+  "assume absolute exclusive retention of": ["TAKE"],
+  "assume absolute exclusive retention of the": ["TAKE"],
+  "assume immediate exclusive retention of": ["TAKE"],
+  "assume immediate exclusive retention of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive retention of": ["DROP"],
+  "divest oneself of all exclusive retention of the": ["DROP"],
+  "relinquish all exclusive retention of": ["DROP"],
+  "relinquish all exclusive retention of the": ["DROP"],
+  "free oneself from all exclusive retention of": ["DROP"],
+  "free oneself from all exclusive retention of the": ["DROP"],
+
+  // Open/Close
+  "force completely and photophysically wide open": ["OPEN"],
+  "force completely and photophysically wide open the": ["OPEN"],
+  "pry completely and photophysically wide open": ["OPEN"],
+  "pry completely and photophysically wide open the": ["OPEN"],
+  "fasten completely and photophysically closed": ["CLOSE"],
+  "fasten completely and photophysically closed the": ["CLOSE"],
+  "seal completely and photophysically shut": ["CLOSE"],
+  "seal completely and photophysically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all leptoquark security devices of": ["UNLOCK"],
+  "deactivate all leptoquark security devices of the": ["UNLOCK"],
+  "bypass all leptoquark security devices on": ["UNLOCK"],
+  "bypass all leptoquark security devices on the": ["UNLOCK"],
+  "disengage the primary leptoquark security device on": ["UNLOCK"],
+  "disengage the primary leptoquark security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full inexorable deployment of": ["USE"],
+  "harness the full inexorable deployment of the": ["USE"],
+  "bring into active inexorable deployment": ["USE"],
+  "bring into active inexorable deployment the": ["USE"],
+  "make complete inexorable deployment of": ["USE"],
+  "make complete inexorable deployment of the": ["USE"],
+
+  // Combat
+  "initiate a truculent confrontation against": ["FIGHT"],
+  "initiate a truculent confrontation against the": ["FIGHT"],
+  "commence a truculent confrontation against": ["FIGHT"],
+  "commence a truculent confrontation against the": ["FIGHT"],
+  "engage in a truculent confrontation against": ["FIGHT"],
+  "engage in a truculent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a linguistic face to face discussion with": ["TALK"],
+  "initiate a linguistic face to face discussion with the": ["TALK"],
+  "engage in a linguistic face to face discussion with": ["TALK"],
+  "engage in a linguistic face to face discussion with the": ["TALK"],
+  "strike up a linguistic face to face discussion with": ["TALK"],
+  "strike up a linguistic face to face discussion with the": ["TALK"],
+});
+
 
 
 
@@ -28991,6 +29074,72 @@ compoundVerbs.push(
   "engage in a conceptual face to face discussion with",
   "strike up a conceptual face to face discussion with the",
   "strike up a conceptual face to face discussion with"
+);
+
+// Cycle #161 / Task-F182: Phase 145 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of bacteriolysis towards the location of the",
+  "navigate one's vector of bacteriolysis towards the location of",
+  "navigate ones vector of bacteriolysis towards the location of the",
+  "navigate ones vector of bacteriolysis towards the location of",
+  "steer one's vector of bacteriolysis in the direction of the coordinates of the",
+  "steer one's vector of bacteriolysis in the direction of the coordinates of",
+  "steer ones vector of bacteriolysis in the direction of the coordinates of the",
+  "steer ones vector of bacteriolysis in the direction of the coordinates of",
+  "direct one's vector of bacteriolysis towards the coordinates of the location of the",
+  "direct one's vector of bacteriolysis towards the coordinates of the location of",
+  "direct ones vector of bacteriolysis towards the coordinates of the location of the",
+  "direct ones vector of bacteriolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual interpretation the",
+  "subject to a comprehensive visual interpretation",
+  "subject to a thorough visual interpretation the",
+  "subject to a thorough visual interpretation",
+  "subject to a detailed visual interpretation the",
+  "subject to a detailed visual interpretation",
+  "assume direct exclusive retention of the",
+  "assume direct exclusive retention of",
+  "assume absolute exclusive retention of the",
+  "assume absolute exclusive retention of",
+  "assume immediate exclusive retention of the",
+  "assume immediate exclusive retention of",
+  "divest oneself of all exclusive retention of the",
+  "divest oneself of all exclusive retention of",
+  "relinquish all exclusive retention of the",
+  "relinquish all exclusive retention of",
+  "free oneself from all exclusive retention of the",
+  "free oneself from all exclusive retention of",
+  "force completely and photophysically wide open the",
+  "force completely and photophysically wide open",
+  "pry completely and photophysically wide open the",
+  "pry completely and photophysically wide open",
+  "fasten completely and photophysically closed the",
+  "fasten completely and photophysically closed",
+  "seal completely and photophysically shut the",
+  "seal completely and photophysically shut",
+  "deactivate all leptoquark security devices of the",
+  "deactivate all leptoquark security devices of",
+  "bypass all leptoquark security devices on the",
+  "bypass all leptoquark security devices on",
+  "disengage the primary leptoquark security device on the",
+  "disengage the primary leptoquark security device on",
+  "harness the full inexorable deployment of the",
+  "harness the full inexorable deployment of",
+  "bring into active inexorable deployment the",
+  "bring into active inexorable deployment",
+  "make complete inexorable deployment of the",
+  "make complete inexorable deployment of",
+  "initiate a truculent confrontation against the",
+  "initiate a truculent confrontation against",
+  "commence a truculent confrontation against the",
+  "commence a truculent confrontation against",
+  "engage in a truculent confrontation against the",
+  "engage in a truculent confrontation against",
+  "initiate a linguistic face to face discussion with the",
+  "initiate a linguistic face to face discussion with",
+  "engage in a linguistic face to face discussion with the",
+  "engage in a linguistic face to face discussion with",
+  "strike up a linguistic face to face discussion with the",
+  "strike up a linguistic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
