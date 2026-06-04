@@ -24052,6 +24052,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a scholastic face to face discussion with the": ["TALK"],
 });
 
+// Cycle #150 / Task-F171: Phase 134 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of lipolysis towards the location of": ["MOVE"],
+  "navigate one's vector of lipolysis towards the location of the": ["MOVE"],
+  "navigate ones vector of lipolysis towards the location of": ["MOVE"],
+  "navigate ones vector of lipolysis towards the location of the": ["MOVE"],
+  "steer one's vector of lipolysis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of lipolysis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of lipolysis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of lipolysis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of lipolysis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of lipolysis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of lipolysis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of lipolysis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual optimization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual optimization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual optimization": ["LOOK_INSPECT"],
+  "subject to a thorough visual optimization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual optimization": ["LOOK_INSPECT"],
+  "subject to a detailed visual optimization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive concession of": ["TAKE"],
+  "assume direct exclusive concession of the": ["TAKE"],
+  "assume absolute exclusive concession of": ["TAKE"],
+  "assume absolute exclusive concession of the": ["TAKE"],
+  "assume immediate exclusive concession of": ["TAKE"],
+  "assume immediate exclusive concession of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive concession of": ["DROP"],
+  "divest oneself of all exclusive concession of the": ["DROP"],
+  "relinquish all exclusive concession of": ["DROP"],
+  "relinquish all exclusive concession of the": ["DROP"],
+  "free oneself from all exclusive concession of": ["DROP"],
+  "free oneself from all exclusive concession of the": ["DROP"],
+
+  // Open/Close
+  "force completely and radiochemically wide open": ["OPEN"],
+  "force completely and radiochemically wide open the": ["OPEN"],
+  "pry completely and radiochemically wide open": ["OPEN"],
+  "pry completely and radiochemically wide open the": ["OPEN"],
+  "fasten completely and radiochemically closed": ["CLOSE"],
+  "fasten completely and radiochemically closed the": ["CLOSE"],
+  "seal completely and radiochemically shut": ["CLOSE"],
+  "seal completely and radiochemically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all sleptonic security devices of": ["UNLOCK"],
+  "deactivate all sleptonic security devices of the": ["UNLOCK"],
+  "bypass all sleptonic security devices on": ["UNLOCK"],
+  "bypass all sleptonic security devices on the": ["UNLOCK"],
+  "disengage the primary sleptonic security device on": ["UNLOCK"],
+  "disengage the primary sleptonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full uninterrupted deployment of": ["USE"],
+  "harness the full uninterrupted deployment of the": ["USE"],
+  "bring into active uninterrupted deployment": ["USE"],
+  "bring into active uninterrupted deployment the": ["USE"],
+  "make complete uninterrupted deployment of": ["USE"],
+  "make complete uninterrupted deployment of the": ["USE"],
+
+  // Combat
+  "initiate a turbulent confrontation against": ["FIGHT"],
+  "initiate a turbulent confrontation against the": ["FIGHT"],
+  "commence a turbulent confrontation against": ["FIGHT"],
+  "commence a turbulent confrontation against the": ["FIGHT"],
+  "engage in a turbulent confrontation against": ["FIGHT"],
+  "engage in a turbulent confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a didactic face to face discussion with": ["TALK"],
+  "initiate a didactic face to face discussion with the": ["TALK"],
+  "engage in a didactic face to face discussion with": ["TALK"],
+  "engage in a didactic face to face discussion with the": ["TALK"],
+  "strike up a didactic face to face discussion with": ["TALK"],
+  "strike up a didactic face to face discussion with the": ["TALK"],
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -27348,6 +27431,72 @@ compoundVerbs.push(
   "engage in a scholastic face to face discussion with",
   "strike up a scholastic face to face discussion with the",
   "strike up a scholastic face to face discussion with"
+);
+
+// Cycle #150 / Task-F171: Phase 134 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of lipolysis towards the location of the",
+  "navigate one's vector of lipolysis towards the location of",
+  "navigate ones vector of lipolysis towards the location of the",
+  "navigate ones vector of lipolysis towards the location of",
+  "steer one's vector of lipolysis in the direction of the coordinates of the",
+  "steer one's vector of lipolysis in the direction of the coordinates of",
+  "steer ones vector of lipolysis in the direction of the coordinates of the",
+  "steer ones vector of lipolysis in the direction of the coordinates of",
+  "direct one's vector of lipolysis towards the coordinates of the location of the",
+  "direct one's vector of lipolysis towards the coordinates of the location of",
+  "direct ones vector of lipolysis towards the coordinates of the location of the",
+  "direct ones vector of lipolysis towards the coordinates of the location of",
+  "subject to a comprehensive visual optimization the",
+  "subject to a comprehensive visual optimization",
+  "subject to a thorough visual optimization the",
+  "subject to a thorough visual optimization",
+  "subject to a detailed visual optimization the",
+  "subject to a detailed visual optimization",
+  "assume direct exclusive concession of the",
+  "assume direct exclusive concession of",
+  "assume absolute exclusive concession of the",
+  "assume absolute exclusive concession of",
+  "assume immediate exclusive concession of the",
+  "assume immediate exclusive concession of",
+  "divest oneself of all exclusive concession of the",
+  "divest oneself of all exclusive concession of",
+  "relinquish all exclusive concession of the",
+  "relinquish all exclusive concession of",
+  "free oneself from all exclusive concession of the",
+  "free oneself from all exclusive concession of",
+  "force completely and radiochemically wide open the",
+  "force completely and radiochemically wide open",
+  "pry completely and radiochemically wide open the",
+  "pry completely and radiochemically wide open",
+  "fasten completely and radiochemically closed the",
+  "fasten completely and radiochemically closed",
+  "seal completely and radiochemically shut the",
+  "seal completely and radiochemically shut",
+  "deactivate all sleptonic security devices of the",
+  "deactivate all sleptonic security devices of",
+  "bypass all sleptonic security devices on the",
+  "bypass all sleptonic security devices on",
+  "disengage the primary sleptonic security device on the",
+  "disengage the primary sleptonic security device on",
+  "harness the full uninterrupted deployment of the",
+  "harness the full uninterrupted deployment of",
+  "bring into active uninterrupted deployment the",
+  "bring into active uninterrupted deployment",
+  "make complete uninterrupted deployment of the",
+  "make complete uninterrupted deployment of",
+  "initiate a turbulent confrontation against the",
+  "initiate a turbulent confrontation against",
+  "commence a turbulent confrontation against the",
+  "commence a turbulent confrontation against",
+  "engage in a turbulent confrontation against the",
+  "engage in a turbulent confrontation against",
+  "initiate a didactic face to face discussion with the",
+  "initiate a didactic face to face discussion with",
+  "engage in a didactic face to face discussion with the",
+  "engage in a didactic face to face discussion with",
+  "strike up a didactic face to face discussion with the",
+  "strike up a didactic face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
