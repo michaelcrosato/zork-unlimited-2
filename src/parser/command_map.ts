@@ -21893,6 +21893,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a judicious face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #123 / Task-F144: Phase 107
+  // Movement
+  "navigate one's vector of crystallization towards the location of": ["MOVE"],
+  "navigate one's vector of crystallization towards the location of the": ["MOVE"],
+  "navigate ones vector of crystallization towards the location of": ["MOVE"],
+  "navigate ones vector of crystallization towards the location of the": ["MOVE"],
+  "steer one's vector of crystallization in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of crystallization in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of crystallization in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of crystallization in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of crystallization towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of crystallization towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of crystallization towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of crystallization towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual valuation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual valuation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual valuation": ["LOOK_INSPECT"],
+  "subject to a thorough visual valuation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual valuation": ["LOOK_INSPECT"],
+  "subject to a detailed visual valuation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive tenure of": ["TAKE"],
+  "assume direct exclusive tenure of the": ["TAKE"],
+  "assume absolute exclusive tenure of": ["TAKE"],
+  "assume absolute exclusive tenure of the": ["TAKE"],
+  "assume immediate exclusive tenure of": ["TAKE"],
+  "assume immediate exclusive tenure of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive tenure of": ["DROP"],
+  "divest oneself of all exclusive tenure of the": ["DROP"],
+  "relinquish all exclusive tenure of": ["DROP"],
+  "relinquish all exclusive tenure of the": ["DROP"],
+  "free oneself from all exclusive tenure of": ["DROP"],
+  "free oneself from all exclusive tenure of the": ["DROP"],
+
+  // Open/Close
+  "force completely and hysterically wide open": ["OPEN"],
+  "force completely and hysterically wide open the": ["OPEN"],
+  "pry completely and hysteretically wide open": ["OPEN"],
+  "pry completely and hysteretically wide open the": ["OPEN"],
+  "fasten completely and hysteretically closed": ["CLOSE"],
+  "fasten completely and hysteretically closed the": ["CLOSE"],
+  "seal completely and hysteretically shut": ["CLOSE"],
+  "seal completely and hysteretically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all leptonic security devices of": ["UNLOCK"],
+  "deactivate all leptonic security devices of the": ["UNLOCK"],
+  "bypass all leptonic security devices on": ["UNLOCK"],
+  "bypass all leptonic security devices on the": ["UNLOCK"],
+  "disengage the primary leptonic security device on": ["UNLOCK"],
+  "disengage the primary leptonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full infallible deployment of": ["USE"],
+  "harness the full infallible deployment of the": ["USE"],
+  "bring into active infallible deployment": ["USE"],
+  "bring into active infallible deployment the": ["USE"],
+  "make complete infallible deployment of": ["USE"],
+  "make complete infallible deployment of the": ["USE"],
+
+  // Combat
+  "initiate a rancorous confrontation against": ["FIGHT"],
+  "initiate a rancorous confrontation against the": ["FIGHT"],
+  "commence a rancorous confrontation against": ["FIGHT"],
+  "commence a rancorous confrontation against the": ["FIGHT"],
+  "engage in a rancorous confrontation against": ["FIGHT"],
+  "engage in a rancorous confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an incisive face to face discussion with": ["TALK"],
+  "initiate an incisive face to face discussion with the": ["TALK"],
+  "engage in an incisive face to face discussion with": ["TALK"],
+  "engage in an incisive face to face discussion with the": ["TALK"],
+  "strike up an incisive face to face discussion with": ["TALK"],
+  "strike up an incisive face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -23412,6 +23495,72 @@ compoundVerbs.push(
   "engage in a judicious face to face discussion with",
   "strike up a judicious face to face discussion with the",
   "strike up a judicious face to face discussion with"
+);
+
+// Cycle #123 / Task-F144: Phase 107 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of crystallization towards the location of the",
+  "navigate one's vector of crystallization towards the location of",
+  "navigate ones vector of crystallization towards the location of the",
+  "navigate ones vector of crystallization towards the location of",
+  "steer one's vector of crystallization in the direction of the coordinates of the",
+  "steer one's vector of crystallization in the direction of the coordinates of",
+  "steer ones vector of crystallization in the direction of the coordinates of the",
+  "steer ones vector of crystallization in the direction of the coordinates of",
+  "direct one's vector of crystallization towards the coordinates of the location of the",
+  "direct one's vector of crystallization towards the coordinates of the location of",
+  "direct ones vector of crystallization towards the coordinates of the location of the",
+  "direct ones vector of crystallization towards the coordinates of the location of",
+  "subject to a comprehensive visual valuation the",
+  "subject to a comprehensive visual valuation",
+  "subject to a thorough visual valuation the",
+  "subject to a thorough visual valuation",
+  "subject to a detailed visual valuation the",
+  "subject to a detailed visual valuation",
+  "assume direct exclusive tenure of the",
+  "assume direct exclusive tenure of",
+  "assume absolute exclusive tenure of the",
+  "assume absolute exclusive tenure of",
+  "assume immediate exclusive tenure of the",
+  "assume immediate exclusive tenure of",
+  "divest oneself of all exclusive tenure of the",
+  "divest oneself of all exclusive tenure of",
+  "relinquish all exclusive tenure of the",
+  "relinquish all exclusive tenure of",
+  "free oneself from all exclusive tenure of the",
+  "free oneself from all exclusive tenure of",
+  "force completely and hysterically wide open the",
+  "force completely and hysterically wide open",
+  "pry completely and hysteretically wide open the",
+  "pry completely and hysteretically wide open",
+  "fasten completely and hysteretically closed the",
+  "fasten completely and hysteretically closed",
+  "seal completely and hysteretically shut the",
+  "seal completely and hysteretically shut",
+  "deactivate all leptonic security devices of the",
+  "deactivate all leptonic security devices of",
+  "bypass all leptonic security devices on the",
+  "bypass all leptonic security devices on",
+  "disengage the primary leptonic security device on the",
+  "disengage the primary leptonic security device on",
+  "harness the full infallible deployment of the",
+  "harness the full infallible deployment of",
+  "bring into active infallible deployment the",
+  "bring into active infallible deployment",
+  "make complete infallible deployment of the",
+  "make complete infallible deployment of",
+  "initiate a rancorous confrontation against the",
+  "initiate a rancorous confrontation against",
+  "commence a rancorous confrontation against the",
+  "commence a rancorous confrontation against",
+  "engage in a rancorous confrontation against the",
+  "engage in a rancorous confrontation against",
+  "initiate an incisive face to face discussion with the",
+  "initiate an incisive face to face discussion with",
+  "engage in an incisive face to face discussion with the",
+  "engage in an incisive face to face discussion with",
+  "strike up an incisive face to face discussion with the",
+  "strike up an incisive face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
