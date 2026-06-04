@@ -27573,6 +27573,102 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a chronological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #192 / Task-F211: Phase 174 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of orthogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of orthogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of orthogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of orthogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of orthogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of orthogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of orthogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of orthogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of orthogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of orthogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of orthogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of orthogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual blueprinting": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual blueprinting the": ["LOOK_INSPECT"],
+  "subject to a thorough visual blueprinting": ["LOOK_INSPECT"],
+  "subject to a thorough visual blueprinting the": ["LOOK_INSPECT"],
+  "subject to a detailed visual blueprinting": ["LOOK_INSPECT"],
+  "subject to a detailed visual blueprinting the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive packaging of": ["TAKE"],
+  "assume direct exclusive packaging of the": ["TAKE"],
+  "assume absolute exclusive packaging of": ["TAKE"],
+  "assume absolute exclusive packaging of the": ["TAKE"],
+  "assume immediate exclusive packaging of": ["TAKE"],
+  "assume immediate exclusive packaging of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive packaging of": ["DROP"],
+  "divest oneself of all exclusive packaging of the": ["DROP"],
+  "relinquish all exclusive packaging of": ["DROP"],
+  "relinquish all exclusive packaging of the": ["DROP"],
+  "free oneself from all exclusive packaging of": ["DROP"],
+  "free oneself from all exclusive packaging of the": ["DROP"],
+
+  // Open/Close
+  "force completely and thermoelastoplastically wide open": ["OPEN"],
+  "force completely and thermoelastoplastically wide open the": ["OPEN"],
+  "pry completely and thermoelastoplastically wide open": ["OPEN"],
+  "pry completely and thermoelastoplastically wide open the": ["OPEN"],
+  "fasten completely and thermoelastoplastically closed": ["CLOSE"],
+  "fasten completely and thermoelastoplastically closed the": ["CLOSE"],
+  "seal completely and thermoelastoplastically shut": ["CLOSE"],
+  "seal completely and thermoelastoplastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all pauli security devices of": ["UNLOCK"],
+  "deactivate all pauli security devices of the": ["UNLOCK"],
+  "deactivate all born security devices of": ["UNLOCK"],
+  "deactivate all born security devices of the": ["UNLOCK"],
+  "deactivate all wigner security devices of": ["UNLOCK"],
+  "deactivate all wigner security devices of the": ["UNLOCK"],
+  "deactivate all debye security devices of": ["UNLOCK"],
+  "deactivate all debye security devices of the": ["UNLOCK"],
+  "bypass all pauli security devices on": ["UNLOCK"],
+  "bypass all pauli security devices on the": ["UNLOCK"],
+  "bypass all born security devices on": ["UNLOCK"],
+  "bypass all born security devices on the": ["UNLOCK"],
+  "bypass all wigner security devices on": ["UNLOCK"],
+  "bypass all wigner security devices on the": ["UNLOCK"],
+  "bypass all debye security devices on": ["UNLOCK"],
+  "bypass all debye security devices on the": ["UNLOCK"],
+  "disengage the primary pauli security device on": ["UNLOCK"],
+  "disengage the primary pauli security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full polymorphic deployment of": ["USE"],
+  "harness the full polymorphic deployment of the": ["USE"],
+  "bring into active polymorphic deployment": ["USE"],
+  "bring into active polymorphic deployment the": ["USE"],
+  "make complete polymorphic deployment of": ["USE"],
+  "make complete polymorphic deployment of the": ["USE"],
+
+  // Combat
+  "initiate a revolutionary confrontation against": ["FIGHT"],
+  "initiate a revolutionary confrontation against the": ["FIGHT"],
+  "commence a revolutionary confrontation against": ["FIGHT"],
+  "commence a revolutionary confrontation against the": ["FIGHT"],
+  "engage in a revolutionary confrontation against": ["FIGHT"],
+  "engage in a revolutionary confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a historiographical face to face discussion with": ["TALK"],
+  "initiate a historiographical face to face discussion with the": ["TALK"],
+  "engage in a historiographical face to face discussion with": ["TALK"],
+  "engage in a historiographical face to face discussion with the": ["TALK"],
+  "strike up a historiographical face to face discussion with": ["TALK"],
+  "strike up a historiographical face to face discussion with the": ["TALK"]
+});
+
+
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
@@ -33726,6 +33822,84 @@ compoundVerbs.push(
   "engage in a chronological face to face discussion with",
   "strike up a chronological face to face discussion with the",
   "strike up a chronological face to face discussion with"
+);
+
+// Cycle #192 / Task-F211: Phase 174 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of orthogenesis towards the location of the",
+  "navigate one's vector of orthogenesis towards the location of",
+  "navigate ones vector of orthogenesis towards the location of the",
+  "navigate ones vector of orthogenesis towards the location of",
+  "steer one's vector of orthogenesis in the direction of the coordinates of the",
+  "steer one's vector of orthogenesis in the direction of the coordinates of",
+  "steer ones vector of orthogenesis in the direction of the coordinates of the",
+  "steer ones vector of orthogenesis in the direction of the coordinates of",
+  "direct one's vector of orthogenesis towards the coordinates of the location of the",
+  "direct one's vector of orthogenesis towards the coordinates of the location of",
+  "direct ones vector of orthogenesis towards the coordinates of the location of the",
+  "direct ones vector of orthogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual blueprinting the",
+  "subject to a comprehensive visual blueprinting",
+  "subject to a thorough visual blueprinting the",
+  "subject to a thorough visual blueprinting",
+  "subject to a detailed visual blueprinting the",
+  "subject to a detailed visual blueprinting",
+  "assume direct exclusive packaging of the",
+  "assume direct exclusive packaging of",
+  "assume absolute exclusive packaging of the",
+  "assume absolute exclusive packaging of",
+  "assume immediate exclusive packaging of the",
+  "assume immediate exclusive packaging of",
+  "divest oneself of all exclusive packaging of the",
+  "divest oneself of all exclusive packaging of",
+  "relinquish all exclusive packaging of the",
+  "relinquish all exclusive packaging of",
+  "free oneself from all exclusive packaging of the",
+  "free oneself from all exclusive packaging of",
+  "force completely and thermoelastoplastically wide open the",
+  "force completely and thermoelastoplastically wide open",
+  "pry completely and thermoelastoplastically wide open the",
+  "pry completely and thermoelastoplastically wide open",
+  "fasten completely and thermoelastoplastically closed the",
+  "fasten completely and thermoelastoplastically closed",
+  "seal completely and thermoelastoplastically shut the",
+  "seal completely and thermoelastoplastically shut",
+  "deactivate all pauli security devices of the",
+  "deactivate all pauli security devices of",
+  "deactivate all born security devices of the",
+  "deactivate all born security devices of",
+  "deactivate all wigner security devices of the",
+  "deactivate all wigner security devices of",
+  "deactivate all debye security devices of the",
+  "deactivate all debye security devices of",
+  "bypass all pauli security devices on the",
+  "bypass all pauli security devices on",
+  "bypass all born security devices on the",
+  "bypass all born security devices on",
+  "bypass all wigner security devices on the",
+  "bypass all wigner security devices on",
+  "bypass all debye security devices on the",
+  "bypass all debye security devices on",
+  "disengage the primary pauli security device on the",
+  "disengage the primary pauli security device on",
+  "harness the full polymorphic deployment of the",
+  "harness the full polymorphic deployment of",
+  "bring into active polymorphic deployment the",
+  "bring into active polymorphic deployment",
+  "make complete polymorphic deployment of the",
+  "make complete polymorphic deployment of",
+  "initiate a revolutionary confrontation against the",
+  "initiate a revolutionary confrontation against",
+  "commence a revolutionary confrontation against the",
+  "commence a revolutionary confrontation against",
+  "engage in a revolutionary confrontation against the",
+  "engage in a revolutionary confrontation against",
+  "initiate a historiographical face to face discussion with the",
+  "initiate a historiographical face to face discussion with",
+  "engage in a historiographical face to face discussion with the",
+  "engage in a historiographical face to face discussion with",
+  "strike up a historiographical face to face discussion with the",
+  "strike up a historiographical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
