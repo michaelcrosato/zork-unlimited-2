@@ -28523,6 +28523,102 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a seismological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #202 / Task-F221: Phase 184 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of angiogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of angiogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of angiogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of angiogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of angiogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of angiogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of angiogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of angiogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of angiogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of angiogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of angiogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of angiogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual digitization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual digitization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual digitization": ["LOOK_INSPECT"],
+  "subject to a thorough visual digitization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual digitization": ["LOOK_INSPECT"],
+  "subject to a detailed visual digitization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive sheathing of": ["TAKE"],
+  "assume direct exclusive sheathing of the": ["TAKE"],
+  "assume absolute exclusive sheathing of": ["TAKE"],
+  "assume absolute exclusive sheathing of the": ["TAKE"],
+  "assume immediate exclusive sheathing of": ["TAKE"],
+  "assume immediate exclusive sheathing of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive sheathing of": ["DROP"],
+  "divest oneself of all exclusive sheathing of the": ["DROP"],
+  "relinquish all exclusive sheathing of": ["DROP"],
+  "relinquish all exclusive sheathing of the": ["DROP"],
+  "free oneself from all exclusive sheathing of": ["DROP"],
+  "free oneself from all exclusive sheathing of the": ["DROP"],
+
+  // Open/Close
+  "force completely and electroviscoelastically wide open": ["OPEN"],
+  "force completely and electroviscoelastically wide open the": ["OPEN"],
+  "pry completely and electroviscoelastically wide open": ["OPEN"],
+  "pry completely and electroviscoelastically wide open the": ["OPEN"],
+  "fasten completely and electroviscoelastically closed": ["CLOSE"],
+  "fasten completely and electroviscoelastically closed the": ["CLOSE"],
+  "seal completely and electroviscoelastically shut": ["CLOSE"],
+  "seal completely and electroviscoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all lagrange security devices of": ["UNLOCK"],
+  "deactivate all lagrange security devices of the": ["UNLOCK"],
+  "deactivate all hamilton security devices of": ["UNLOCK"],
+  "deactivate all hamilton security devices of the": ["UNLOCK"],
+  "deactivate all jacobi security devices of": ["UNLOCK"],
+  "deactivate all jacobi security devices of the": ["UNLOCK"],
+  "deactivate all legendre security devices of": ["UNLOCK"],
+  "deactivate all legendre security devices of the": ["UNLOCK"],
+  "bypass all lagrange security devices on": ["UNLOCK"],
+  "bypass all lagrange security devices on the": ["UNLOCK"],
+  "bypass all hamilton security devices on": ["UNLOCK"],
+  "bypass all hamilton security devices on the": ["UNLOCK"],
+  "bypass all jacobi security devices on": ["UNLOCK"],
+  "bypass all jacobi security devices on the": ["UNLOCK"],
+  "bypass all legendre security devices on": ["UNLOCK"],
+  "bypass all legendre security devices on the": ["UNLOCK"],
+  "disengage the primary lagrange security device on": ["UNLOCK"],
+  "disengage the primary lagrange security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full anisotropic deployment of": ["USE"],
+  "harness the full anisotropic deployment of the": ["USE"],
+  "bring into active anisotropic deployment": ["USE"],
+  "bring into active anisotropic deployment the": ["USE"],
+  "make complete anisotropic deployment of": ["USE"],
+  "make complete anisotropic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an uncompromisingly fierce confrontation against": ["FIGHT"],
+  "initiate an uncompromisingly fierce confrontation against the": ["FIGHT"],
+  "commence an uncompromisingly fierce confrontation against": ["FIGHT"],
+  "commence an uncompromisingly fierce confrontation against the": ["FIGHT"],
+  "engage in an uncompromisingly fierce confrontation against": ["FIGHT"],
+  "engage in an uncompromisingly fierce confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a climatological face to face discussion with": ["TALK"],
+  "initiate a climatological face to face discussion with the": ["TALK"],
+  "engage in a climatological face to face discussion with": ["TALK"],
+  "engage in a climatological face to face discussion with the": ["TALK"],
+  "strike up a climatological face to face discussion with": ["TALK"],
+  "strike up a climatological face to face discussion with the": ["TALK"]
+});
+
+
 
 
 
@@ -35458,6 +35554,84 @@ compoundVerbs.push(
   "engage in a seismological face to face discussion with",
   "strike up a seismological face to face discussion with the",
   "strike up a seismological face to face discussion with"
+);
+
+// Cycle #202 / Task-F221: Phase 184 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of angiogenesis towards the location of the",
+  "navigate one's vector of angiogenesis towards the location of",
+  "navigate ones vector of angiogenesis towards the location of the",
+  "navigate ones vector of angiogenesis towards the location of",
+  "steer one's vector of angiogenesis in the direction of the coordinates of the",
+  "steer one's vector of angiogenesis in the direction of the coordinates of",
+  "steer ones vector of angiogenesis in the direction of the coordinates of the",
+  "steer ones vector of angiogenesis in the direction of the coordinates of",
+  "direct one's vector of angiogenesis towards the coordinates of the location of the",
+  "direct one's vector of angiogenesis towards the coordinates of the location of",
+  "direct ones vector of angiogenesis towards the coordinates of the location of the",
+  "direct ones vector of angiogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual digitization the",
+  "subject to a comprehensive visual digitization",
+  "subject to a thorough visual digitization the",
+  "subject to a thorough visual digitization",
+  "subject to a detailed visual digitization the",
+  "subject to a detailed visual digitization",
+  "assume direct exclusive sheathing of the",
+  "assume direct exclusive sheathing of",
+  "assume absolute exclusive sheathing of the",
+  "assume absolute exclusive sheathing of",
+  "assume immediate exclusive sheathing of the",
+  "assume immediate exclusive sheathing of",
+  "divest oneself of all exclusive sheathing of the",
+  "divest oneself of all exclusive sheathing of",
+  "relinquish all exclusive sheathing of the",
+  "relinquish all exclusive sheathing of",
+  "free oneself from all exclusive sheathing of the",
+  "free oneself from all exclusive sheathing of",
+  "force completely and electroviscoelastically wide open the",
+  "force completely and electroviscoelastically wide open",
+  "pry completely and electroviscoelastically wide open the",
+  "pry completely and electroviscoelastically wide open",
+  "fasten completely and electroviscoelastically closed the",
+  "fasten completely and electroviscoelastically closed",
+  "seal completely and electroviscoelastically shut the",
+  "seal completely and electroviscoelastically shut",
+  "deactivate all lagrange security devices of the",
+  "deactivate all lagrange security devices of",
+  "deactivate all hamilton security devices of the",
+  "deactivate all hamilton security devices of",
+  "deactivate all jacobi security devices of the",
+  "deactivate all jacobi security devices of",
+  "deactivate all legendre security devices of the",
+  "deactivate all legendre security devices of",
+  "bypass all lagrange security devices on the",
+  "bypass all lagrange security devices on",
+  "bypass all hamilton security devices on the",
+  "bypass all hamilton security devices on",
+  "bypass all jacobi security devices on the",
+  "bypass all jacobi security devices on",
+  "bypass all legendre security devices on the",
+  "bypass all legendre security devices on",
+  "disengage the primary lagrange security device on the",
+  "disengage the primary lagrange security device on",
+  "harness the full anisotropic deployment of the",
+  "harness the full anisotropic deployment of",
+  "bring into active anisotropic deployment the",
+  "bring into active anisotropic deployment",
+  "make complete anisotropic deployment of the",
+  "make complete anisotropic deployment of",
+  "initiate an uncompromisingly fierce confrontation against the",
+  "initiate an uncompromisingly fierce confrontation against",
+  "commence an uncompromisingly fierce confrontation against the",
+  "commence an uncompromisingly fierce confrontation against",
+  "engage in an uncompromisingly fierce confrontation against the",
+  "engage in an uncompromisingly fierce confrontation against",
+  "initiate a climatological face to face discussion with the",
+  "initiate a climatological face to face discussion with",
+  "engage in a climatological face to face discussion with the",
+  "engage in a climatological face to face discussion with",
+  "strike up a climatological face to face discussion with the",
+  "strike up a climatological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
