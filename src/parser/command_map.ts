@@ -22889,6 +22889,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a metaphysical face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #135 / Task-F156: Phase 119
+  // Movement
+  "navigate one's vector of nucleation towards the location of": ["MOVE"],
+  "navigate one's vector of nucleation towards the location of the": ["MOVE"],
+  "navigate ones vector of nucleation towards the location of": ["MOVE"],
+  "navigate ones vector of nucleation towards the location of the": ["MOVE"],
+  "steer one's vector of nucleation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of nucleation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of nucleation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of nucleation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of nucleation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of nucleation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of nucleation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of nucleation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual translation": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual translation the": ["LOOK_INSPECT"],
+  "subject to a thorough visual translation": ["LOOK_INSPECT"],
+  "subject to a thorough visual translation the": ["LOOK_INSPECT"],
+  "subject to a detailed visual translation": ["LOOK_INSPECT"],
+  "subject to a detailed visual translation the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive mandate of": ["TAKE"],
+  "assume direct exclusive mandate of the": ["TAKE"],
+  "assume absolute exclusive mandate of": ["TAKE"],
+  "assume absolute exclusive mandate of the": ["TAKE"],
+  "assume immediate exclusive mandate of": ["TAKE"],
+  "assume immediate exclusive mandate of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive mandate of": ["DROP"],
+  "divest oneself of all exclusive mandate of the": ["DROP"],
+  "relinquish all exclusive mandate of": ["DROP"],
+  "relinquish all exclusive mandate of the": ["DROP"],
+  "free oneself from all exclusive mandate of": ["DROP"],
+  "free oneself from all exclusive mandate of the": ["DROP"],
+
+  // Open/Close
+  "force completely and relativistically wide open": ["OPEN"],
+  "force completely and relativistically wide open the": ["OPEN"],
+  "pry completely and relativistically wide open": ["OPEN"],
+  "pry completely and relativistically wide open the": ["OPEN"],
+  "fasten completely and relativistically closed": ["CLOSE"],
+  "fasten completely and relativistically closed the": ["CLOSE"],
+  "seal completely and relativistically shut": ["CLOSE"],
+  "seal completely and relativistically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all radionic security devices of": ["UNLOCK"],
+  "deactivate all radionic security devices of the": ["UNLOCK"],
+  "bypass all radionic security devices on": ["UNLOCK"],
+  "bypass all radionic security devices on the": ["UNLOCK"],
+  "disengage the primary radionic security device on": ["UNLOCK"],
+  "disengage the primary radionic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unyielding deployment of": ["USE"],
+  "harness the full unyielding deployment of the": ["USE"],
+  "bring into active unyielding deployment": ["USE"],
+  "bring into active unyielding deployment the": ["USE"],
+  "make complete unyielding deployment of": ["USE"],
+  "make complete unyielding deployment of the": ["USE"],
+
+  // Combat
+  "initiate an unrelenting confrontation against": ["FIGHT"],
+  "initiate an unrelenting confrontation against the": ["FIGHT"],
+  "commence an unrelenting confrontation against": ["FIGHT"],
+  "commence an unrelenting confrontation against the": ["FIGHT"],
+  "engage in an unrelenting confrontation against": ["FIGHT"],
+  "engage in an unrelenting confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an existential face to face discussion with": ["TALK"],
+  "initiate an existential face to face discussion with the": ["TALK"],
+  "engage in an existential face to face discussion with": ["TALK"],
+  "engage in an existential face to face discussion with the": ["TALK"],
+  "strike up an existential face to face discussion with": ["TALK"],
+  "strike up an existential face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -25200,6 +25283,72 @@ compoundVerbs.push(
   "engage in a metaphysical face to face discussion with",
   "strike up a metaphysical face to face discussion with the",
   "strike up a metaphysical face to face discussion with"
+);
+
+// Cycle #135 / Task-F156: Phase 119 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of nucleation towards the location of the",
+  "navigate one's vector of nucleation towards the location of",
+  "navigate ones vector of nucleation towards the location of the",
+  "navigate ones vector of nucleation towards the location of",
+  "steer one's vector of nucleation in the direction of the coordinates of the",
+  "steer one's vector of nucleation in the direction of the coordinates of",
+  "steer ones vector of nucleation in the direction of the coordinates of the",
+  "steer ones vector of nucleation in the direction of the coordinates of",
+  "direct one's vector of nucleation towards the coordinates of the location of the",
+  "direct one's vector of nucleation towards the coordinates of the location of",
+  "direct ones vector of nucleation towards the coordinates of the location of the",
+  "direct ones vector of nucleation towards the coordinates of the location of",
+  "subject to a comprehensive visual translation the",
+  "subject to a comprehensive visual translation",
+  "subject to a thorough visual translation the",
+  "subject to a thorough visual translation",
+  "subject to a detailed visual translation the",
+  "subject to a detailed visual translation",
+  "assume direct exclusive mandate of the",
+  "assume direct exclusive mandate of",
+  "assume absolute exclusive mandate of the",
+  "assume absolute exclusive mandate of",
+  "assume immediate exclusive mandate of the",
+  "assume immediate exclusive mandate of",
+  "divest oneself of all exclusive mandate of the",
+  "divest oneself of all exclusive mandate of",
+  "relinquish all exclusive mandate of the",
+  "relinquish all exclusive mandate of",
+  "free oneself from all exclusive mandate of the",
+  "free oneself from all exclusive mandate of",
+  "force completely and relativistically wide open the",
+  "force completely and relativistically wide open",
+  "pry completely and relativistically wide open the",
+  "pry completely and relativistically wide open",
+  "fasten completely and relativistically closed the",
+  "fasten completely and relativistically closed",
+  "seal completely and relativistically shut the",
+  "seal completely and relativistically shut",
+  "deactivate all radionic security devices of the",
+  "deactivate all radionic security devices of",
+  "bypass all radionic security devices on the",
+  "bypass all radionic security devices on",
+  "disengage the primary radionic security device on the",
+  "disengage the primary radionic security device on",
+  "harness the full unyielding deployment of the",
+  "harness the full unyielding deployment of",
+  "bring into active unyielding deployment the",
+  "bring into active unyielding deployment",
+  "make complete unyielding deployment of the",
+  "make complete unyielding deployment of",
+  "initiate an unrelenting confrontation against the",
+  "initiate an unrelenting confrontation against",
+  "commence an unrelenting confrontation against the",
+  "commence an unrelenting confrontation against",
+  "engage in an unrelenting confrontation against the",
+  "engage in an unrelenting confrontation against",
+  "initiate an existential face to face discussion with the",
+  "initiate an existential face to face discussion with",
+  "engage in an existential face to face discussion with the",
+  "engage in an existential face to face discussion with",
+  "strike up an existential face to face discussion with the",
+  "strike up an existential face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
