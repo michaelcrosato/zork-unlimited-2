@@ -27668,6 +27668,102 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a historiographical face to face discussion with the": ["TALK"]
 });
 
+// Cycle #193 / Task-F212: Phase 175 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of palingenesis towards the location of": ["MOVE"],
+  "navigate one's vector of palingenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of palingenesis towards the location of": ["MOVE"],
+  "navigate ones vector of palingenesis towards the location of the": ["MOVE"],
+  "steer one's vector of palingenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of palingenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of palingenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of palingenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of palingenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of palingenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of palingenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of palingenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual modeling": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual modeling the": ["LOOK_INSPECT"],
+  "subject to a thorough visual modeling": ["LOOK_INSPECT"],
+  "subject to a thorough visual modeling the": ["LOOK_INSPECT"],
+  "subject to a detailed visual modeling": ["LOOK_INSPECT"],
+  "subject to a detailed visual modeling the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive crating of": ["TAKE"],
+  "assume direct exclusive crating of the": ["TAKE"],
+  "assume absolute exclusive crating of": ["TAKE"],
+  "assume absolute exclusive crating of the": ["TAKE"],
+  "assume immediate exclusive crating of": ["TAKE"],
+  "assume immediate exclusive crating of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive crating of": ["DROP"],
+  "divest oneself of all exclusive crating of the": ["DROP"],
+  "relinquish all exclusive crating of": ["DROP"],
+  "relinquish all exclusive crating of the": ["DROP"],
+  "free oneself from all exclusive crating of": ["DROP"],
+  "free oneself from all exclusive crating of the": ["DROP"],
+
+  // Open/Close
+  "force completely and magnetostrictively wide open": ["OPEN"],
+  "force completely and magnetostrictively wide open the": ["OPEN"],
+  "pry completely and magnetostrictively wide open": ["OPEN"],
+  "pry completely and magnetostrictively wide open the": ["OPEN"],
+  "fasten completely and magnetostrictively closed": ["CLOSE"],
+  "fasten completely and magnetostrictively closed the": ["CLOSE"],
+  "seal completely and magnetostrictively shut": ["CLOSE"],
+  "seal completely and magnetostrictively shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all bohr security devices of": ["UNLOCK"],
+  "deactivate all bohr security devices of the": ["UNLOCK"],
+  "deactivate all sommerfeld security devices of": ["UNLOCK"],
+  "deactivate all sommerfeld security devices of the": ["UNLOCK"],
+  "deactivate all zeeman security devices of": ["UNLOCK"],
+  "deactivate all zeeman security devices of the": ["UNLOCK"],
+  "deactivate all stark security devices of": ["UNLOCK"],
+  "deactivate all stark security devices of the": ["UNLOCK"],
+  "bypass all bohr security devices on": ["UNLOCK"],
+  "bypass all bohr security devices on the": ["UNLOCK"],
+  "bypass all sommerfeld security devices on": ["UNLOCK"],
+  "bypass all sommerfeld security devices on the": ["UNLOCK"],
+  "bypass all zeeman security devices on": ["UNLOCK"],
+  "bypass all zeeman security devices on the": ["UNLOCK"],
+  "bypass all stark security devices on": ["UNLOCK"],
+  "bypass all stark security devices on the": ["UNLOCK"],
+  "disengage the primary bohr security device on": ["UNLOCK"],
+  "disengage the primary bohr security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full idiosyncratic deployment of": ["USE"],
+  "harness the full idiosyncratic deployment of the": ["USE"],
+  "bring into active idiosyncratic deployment": ["USE"],
+  "bring into active idiosyncratic deployment the": ["USE"],
+  "make complete idiosyncratic deployment of": ["USE"],
+  "make complete idiosyncratic deployment of the": ["USE"],
+
+  // Combat
+  "initiate an insubordinate confrontation against": ["FIGHT"],
+  "initiate an insubordinate confrontation against the": ["FIGHT"],
+  "commence an insubordinate confrontation against": ["FIGHT"],
+  "commence an insubordinate confrontation against the": ["FIGHT"],
+  "engage in an insubordinate confrontation against": ["FIGHT"],
+  "engage in an insubordinate confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a lexicographical face to face discussion with": ["TALK"],
+  "initiate a lexicographical face to face discussion with the": ["TALK"],
+  "engage in a lexicographical face to face discussion with": ["TALK"],
+  "engage in a lexicographical face to face discussion with the": ["TALK"],
+  "strike up a lexicographical face to face discussion with": ["TALK"],
+  "strike up a lexicographical face to face discussion with the": ["TALK"]
+});
+
+
 
 
 // Cycle #98 / Task-F121: Phase 84 compound verbs
@@ -33900,6 +33996,84 @@ compoundVerbs.push(
   "engage in a historiographical face to face discussion with",
   "strike up a historiographical face to face discussion with the",
   "strike up a historiographical face to face discussion with"
+);
+
+// Cycle #193 / Task-F212: Phase 175 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of palingenesis towards the location of the",
+  "navigate one's vector of palingenesis towards the location of",
+  "navigate ones vector of palingenesis towards the location of the",
+  "navigate ones vector of palingenesis towards the location of",
+  "steer one's vector of palingenesis in the direction of the coordinates of the",
+  "steer one's vector of palingenesis in the direction of the coordinates of",
+  "steer ones vector of palingenesis in the direction of the coordinates of the",
+  "steer ones vector of palingenesis in the direction of the coordinates of",
+  "direct one's vector of palingenesis towards the coordinates of the location of the",
+  "direct one's vector of palingenesis towards the coordinates of the location of",
+  "direct ones vector of palingenesis towards the coordinates of the location of the",
+  "direct ones vector of palingenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual modeling the",
+  "subject to a comprehensive visual modeling",
+  "subject to a thorough visual modeling the",
+  "subject to a thorough visual modeling",
+  "subject to a detailed visual modeling the",
+  "subject to a detailed visual modeling",
+  "assume direct exclusive crating of the",
+  "assume direct exclusive crating of",
+  "assume absolute exclusive crating of the",
+  "assume absolute exclusive crating of",
+  "assume immediate exclusive crating of the",
+  "assume immediate exclusive crating of",
+  "divest oneself of all exclusive crating of the",
+  "divest oneself of all exclusive crating of",
+  "relinquish all exclusive crating of the",
+  "relinquish all exclusive crating of",
+  "free oneself from all exclusive crating of the",
+  "free oneself from all exclusive crating of",
+  "force completely and magnetostrictively wide open the",
+  "force completely and magnetostrictively wide open",
+  "pry completely and magnetostrictively wide open the",
+  "pry completely and magnetostrictively wide open",
+  "fasten completely and magnetostrictively closed the",
+  "fasten completely and magnetostrictively closed",
+  "seal completely and magnetostrictively shut the",
+  "seal completely and magnetostrictively shut",
+  "deactivate all bohr security devices of the",
+  "deactivate all bohr security devices of",
+  "deactivate all sommerfeld security devices of the",
+  "deactivate all sommerfeld security devices of",
+  "deactivate all zeeman security devices of the",
+  "deactivate all zeeman security devices of",
+  "deactivate all stark security devices of the",
+  "deactivate all stark security devices of",
+  "bypass all bohr security devices on the",
+  "bypass all bohr security devices on",
+  "bypass all sommerfeld security devices on the",
+  "bypass all sommerfeld security devices on",
+  "bypass all zeeman security devices on the",
+  "bypass all zeeman security devices on",
+  "bypass all stark security devices on the",
+  "bypass all stark security devices on",
+  "disengage the primary bohr security device on the",
+  "disengage the primary bohr security device on",
+  "harness the full idiosyncratic deployment of the",
+  "harness the full idiosyncratic deployment of",
+  "bring into active idiosyncratic deployment the",
+  "bring into active idiosyncratic deployment",
+  "make complete idiosyncratic deployment of the",
+  "make complete idiosyncratic deployment of",
+  "initiate an insubordinate confrontation against the",
+  "initiate an insubordinate confrontation against",
+  "commence an insubordinate confrontation against the",
+  "commence an insubordinate confrontation against",
+  "engage in an insubordinate confrontation against the",
+  "engage in an insubordinate confrontation against",
+  "initiate a lexicographical face to face discussion with the",
+  "initiate a lexicographical face to face discussion with",
+  "engage in a lexicographical face to face discussion with the",
+  "engage in a lexicographical face to face discussion with",
+  "strike up a lexicographical face to face discussion with the",
+  "strike up a lexicographical face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
