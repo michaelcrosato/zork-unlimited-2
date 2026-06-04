@@ -26435,6 +26435,101 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a sociological face to face discussion with the": ["TALK"]
 });
 
+// Cycle #179 / Task-F199: Phase 162 VERB_CATEGORIES mappings
+Object.assign(VERB_CATEGORIES, {
+  // Movement
+  "navigate one's vector of embryogenesis towards the location of": ["MOVE"],
+  "navigate one's vector of embryogenesis towards the location of the": ["MOVE"],
+  "navigate ones vector of embryogenesis towards the location of": ["MOVE"],
+  "navigate ones vector of embryogenesis towards the location of the": ["MOVE"],
+  "steer one's vector of embryogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of embryogenesis in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of embryogenesis in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of embryogenesis in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of embryogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of embryogenesis towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of embryogenesis towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of embryogenesis towards the coordinates of the location of the": ["MOVE"],
+
+  // Inspection
+  "subject to a comprehensive visual itemization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual itemization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual itemization": ["LOOK_INSPECT"],
+  "subject to a thorough visual itemization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual itemization": ["LOOK_INSPECT"],
+  "subject to a detailed visual itemization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive capture of": ["TAKE"],
+  "assume direct exclusive capture of the": ["TAKE"],
+  "assume absolute exclusive capture of": ["TAKE"],
+  "assume absolute exclusive capture of the": ["TAKE"],
+  "assume immediate exclusive capture of": ["TAKE"],
+  "assume immediate exclusive capture of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive capture of": ["DROP"],
+  "divest oneself of all exclusive capture of the": ["DROP"],
+  "relinquish all exclusive capture of": ["DROP"],
+  "relinquish all exclusive capture of the": ["DROP"],
+  "free oneself from all exclusive capture of": ["DROP"],
+  "free oneself from all exclusive capture of the": ["DROP"],
+
+  // Open/Close
+  "force completely and chemoelastically wide open": ["OPEN"],
+  "force completely and chemoelastically wide open the": ["OPEN"],
+  "pry completely and chemoelastically wide open": ["OPEN"],
+  "pry completely and chemoelastically wide open the": ["OPEN"],
+  "fasten completely and chemoelastically closed": ["CLOSE"],
+  "fasten completely and chemoelastically closed the": ["CLOSE"],
+  "seal completely and chemoelastically shut": ["CLOSE"],
+  "seal completely and chemoelastically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all goldstino security devices of": ["UNLOCK"],
+  "deactivate all goldstino security devices of the": ["UNLOCK"],
+  "deactivate all dyon security devices of": ["UNLOCK"],
+  "deactivate all dyon security devices of the": ["UNLOCK"],
+  "deactivate all plekton security devices of": ["UNLOCK"],
+  "deactivate all plekton security devices of the": ["UNLOCK"],
+  "deactivate all familion security devices of": ["UNLOCK"],
+  "deactivate all familion security devices of the": ["UNLOCK"],
+  "bypass all goldstino security devices on": ["UNLOCK"],
+  "bypass all goldstino security devices on the": ["UNLOCK"],
+  "bypass all dyon security devices on": ["UNLOCK"],
+  "bypass all dyon security devices on the": ["UNLOCK"],
+  "bypass all plekton security devices on": ["UNLOCK"],
+  "bypass all plekton security devices on the": ["UNLOCK"],
+  "bypass all familion security devices on": ["UNLOCK"],
+  "bypass all familion security devices on the": ["UNLOCK"],
+  "disengage the primary goldstino security device on": ["UNLOCK"],
+  "disengage the primary goldstino security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full coordinated deployment of": ["USE"],
+  "harness the full coordinated deployment of the": ["USE"],
+  "bring into active coordinated deployment": ["USE"],
+  "bring into active coordinated deployment the": ["USE"],
+  "make complete coordinated deployment of": ["USE"],
+  "make complete coordinated deployment of the": ["USE"],
+
+  // Combat
+  "initiate a detrimental confrontation against": ["FIGHT"],
+  "initiate a detrimental confrontation against the": ["FIGHT"],
+  "commence a detrimental confrontation against": ["FIGHT"],
+  "commence a detrimental confrontation against the": ["FIGHT"],
+  "engage in a detrimental confrontation against": ["FIGHT"],
+  "engage in a detrimental confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate a psychological face to face discussion with": ["TALK"],
+  "initiate a psychological face to face discussion with the": ["TALK"],
+  "engage in a psychological face to face discussion with": ["TALK"],
+  "engage in a psychological face to face discussion with the": ["TALK"],
+  "strike up a psychological face to face discussion with": ["TALK"],
+  "strike up a psychological face to face discussion with the": ["TALK"]
+});
+
 // Cycle #98 / Task-F121: Phase 84 compound verbs
 compoundVerbs.push(
   "navigate one's vector of adjustment towards the location of the",
@@ -31651,6 +31746,84 @@ compoundVerbs.push(
   "engage in a sociological face to face discussion with",
   "strike up a sociological face to face discussion with the",
   "strike up a sociological face to face discussion with"
+);
+
+// Cycle #179 / Task-F199: Phase 162 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of embryogenesis towards the location of the",
+  "navigate one's vector of embryogenesis towards the location of",
+  "navigate ones vector of embryogenesis towards the location of the",
+  "navigate ones vector of embryogenesis towards the location of",
+  "steer one's vector of embryogenesis in the direction of the coordinates of the",
+  "steer one's vector of embryogenesis in the direction of the coordinates of",
+  "steer ones vector of embryogenesis in the direction of the coordinates of the",
+  "steer ones vector of embryogenesis in the direction of the coordinates of",
+  "direct one's vector of embryogenesis towards the coordinates of the location of the",
+  "direct one's vector of embryogenesis towards the coordinates of the location of",
+  "direct ones vector of embryogenesis towards the coordinates of the location of the",
+  "direct ones vector of embryogenesis towards the coordinates of the location of",
+  "subject to a comprehensive visual itemization the",
+  "subject to a comprehensive visual itemization",
+  "subject to a thorough visual itemization the",
+  "subject to a thorough visual itemization",
+  "subject to a detailed visual itemization the",
+  "subject to a detailed visual itemization",
+  "assume direct exclusive capture of the",
+  "assume direct exclusive capture of",
+  "assume absolute exclusive capture of the",
+  "assume absolute exclusive capture of",
+  "assume immediate exclusive capture of the",
+  "assume immediate exclusive capture of",
+  "divest oneself of all exclusive capture of the",
+  "divest oneself of all exclusive capture of",
+  "relinquish all exclusive capture of the",
+  "relinquish all exclusive capture of",
+  "free oneself from all exclusive capture of the",
+  "free oneself from all exclusive capture of",
+  "force completely and chemoelastically wide open the",
+  "force completely and chemoelastically wide open",
+  "pry completely and chemoelastically wide open the",
+  "pry completely and chemoelastically wide open",
+  "fasten completely and chemoelastically closed the",
+  "fasten completely and chemoelastically closed",
+  "seal completely and chemoelastically shut the",
+  "seal completely and chemoelastically shut",
+  "deactivate all goldstino security devices of the",
+  "deactivate all goldstino security devices of",
+  "deactivate all dyon security devices of the",
+  "deactivate all dyon security devices of",
+  "deactivate all plekton security devices of the",
+  "deactivate all plekton security devices of",
+  "deactivate all familion security devices of the",
+  "deactivate all familion security devices of",
+  "bypass all goldstino security devices on the",
+  "bypass all goldstino security devices on",
+  "bypass all dyon security devices on the",
+  "bypass all dyon security devices on",
+  "bypass all plekton security devices on the",
+  "bypass all plekton security devices on",
+  "bypass all familion security devices on the",
+  "bypass all familion security devices on",
+  "disengage the primary goldstino security device on the",
+  "disengage the primary goldstino security device on",
+  "harness the full coordinated deployment of the",
+  "harness the full coordinated deployment of",
+  "bring into active coordinated deployment the",
+  "bring into active coordinated deployment",
+  "make complete coordinated deployment of the",
+  "make complete coordinated deployment of",
+  "initiate a detrimental confrontation against the",
+  "initiate a detrimental confrontation against",
+  "commence a detrimental confrontation against the",
+  "commence a detrimental confrontation against",
+  "engage in a detrimental confrontation against the",
+  "engage in a detrimental confrontation against",
+  "initiate a psychological face to face discussion with the",
+  "initiate a psychological face to face discussion with",
+  "engage in a psychological face to face discussion with the",
+  "engage in a psychological face to face discussion with",
+  "strike up a psychological face to face discussion with the",
+  "strike up a psychological face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
