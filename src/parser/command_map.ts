@@ -22308,6 +22308,89 @@ Object.assign(VERB_CATEGORIES, {
   "strike up a circumspect face to face discussion with the": ["TALK"]
 });
 
+Object.assign(VERB_CATEGORIES, {
+  // Cycle #128 / Task-F149: Phase 112
+  // Movement
+  "navigate one's vector of evaporation towards the location of": ["MOVE"],
+  "navigate one's vector of evaporation towards the location of the": ["MOVE"],
+  "navigate ones vector of evaporation towards the location of": ["MOVE"],
+  "navigate ones vector of evaporation towards the location of the": ["MOVE"],
+  "steer one's vector of evaporation in the direction of the coordinates of": ["MOVE"],
+  "steer one's vector of evaporation in the direction of the coordinates of the": ["MOVE"],
+  "steer ones vector of evaporation in the direction of the coordinates of": ["MOVE"],
+  "steer ones vector of evaporation in the direction of the coordinates of the": ["MOVE"],
+  "direct one's vector of evaporation towards the coordinates of the location of": ["MOVE"],
+  "direct one's vector of evaporation towards the coordinates of the location of the": ["MOVE"],
+  "direct ones vector of evaporation towards the coordinates of the location of": ["MOVE"],
+  "direct ones vector of evaporation towards the coordinates of the location of the": ["MOVE"],
+
+  // Look
+  "subject to a comprehensive visual categorization": ["LOOK_INSPECT"],
+  "subject to a comprehensive visual categorization the": ["LOOK_INSPECT"],
+  "subject to a thorough visual categorization": ["LOOK_INSPECT"],
+  "subject to a thorough visual categorization the": ["LOOK_INSPECT"],
+  "subject to a detailed visual categorization": ["LOOK_INSPECT"],
+  "subject to a detailed visual categorization the": ["LOOK_INSPECT"],
+
+  // Take
+  "assume direct exclusive privilege of": ["TAKE"],
+  "assume direct exclusive privilege of the": ["TAKE"],
+  "assume absolute exclusive privilege of": ["TAKE"],
+  "assume absolute exclusive privilege of the": ["TAKE"],
+  "assume immediate exclusive privilege of": ["TAKE"],
+  "assume immediate exclusive privilege of the": ["TAKE"],
+
+  // Drop
+  "divest oneself of all exclusive privilege of": ["DROP"],
+  "divest oneself of all exclusive privilege of the": ["DROP"],
+  "relinquish all exclusive privilege of": ["DROP"],
+  "relinquish all exclusive privilege of the": ["DROP"],
+  "free oneself from all exclusive privilege of": ["DROP"],
+  "free oneself from all exclusive privilege of the": ["DROP"],
+
+  // Open/Close
+  "force completely and rheologically wide open": ["OPEN"],
+  "force completely and rheologically wide open the": ["OPEN"],
+  "pry completely and rheologically wide open": ["OPEN"],
+  "pry completely and rheologically wide open the": ["OPEN"],
+  "fasten completely and rheologically closed": ["CLOSE"],
+  "fasten completely and rheologically closed the": ["CLOSE"],
+  "seal completely and rheologically shut": ["CLOSE"],
+  "seal completely and rheologically shut the": ["CLOSE"],
+
+  // Unlock
+  "deactivate all mesonic security devices of": ["UNLOCK"],
+  "deactivate all mesonic security devices of the": ["UNLOCK"],
+  "bypass all mesonic security devices on": ["UNLOCK"],
+  "bypass all mesonic security devices on the": ["UNLOCK"],
+  "disengage the primary mesonic security device on": ["UNLOCK"],
+  "disengage the primary mesonic security device on the": ["UNLOCK"],
+
+  // Use
+  "harness the full unassailable deployment of": ["USE"],
+  "harness the full unassailable deployment of the": ["USE"],
+  "bring into active unassailable deployment": ["USE"],
+  "bring into active unassailable deployment the": ["USE"],
+  "make complete unassailable deployment of": ["USE"],
+  "make complete unassailable deployment of the": ["USE"],
+
+  // Combat
+  "initiate a disharmonious confrontation against": ["FIGHT"],
+  "initiate a disharmonious confrontation against the": ["FIGHT"],
+  "commence a disharmonious confrontation against": ["FIGHT"],
+  "commence a disharmonious confrontation against the": ["FIGHT"],
+  "engage in a disharmonious confrontation against": ["FIGHT"],
+  "engage in a disharmonious confrontation against the": ["FIGHT"],
+
+  // Dialogue
+  "initiate an investigative face to face discussion with": ["TALK"],
+  "initiate an investigative face to face discussion with the": ["TALK"],
+  "engage in an investigative face to face discussion with": ["TALK"],
+  "engage in an investigative face to face discussion with the": ["TALK"],
+  "strike up an investigative face to face discussion with": ["TALK"],
+  "strike up an investigative face to face discussion with the": ["TALK"]
+});
+
 
 
 
@@ -24157,6 +24240,72 @@ compoundVerbs.push(
   "engage in a circumspect face to face discussion with",
   "strike up a circumspect face to face discussion with the",
   "strike up a circumspect face to face discussion with"
+);
+
+// Cycle #128 / Task-F149: Phase 112 compound verbs
+compoundVerbs.push(
+  "navigate one's vector of evaporation towards the location of the",
+  "navigate one's vector of evaporation towards the location of",
+  "navigate ones vector of evaporation towards the location of the",
+  "navigate ones vector of evaporation towards the location of",
+  "steer one's vector of evaporation in the direction of the coordinates of the",
+  "steer one's vector of evaporation in the direction of the coordinates of",
+  "steer ones vector of evaporation in the direction of the coordinates of the",
+  "steer ones vector of evaporation in the direction of the coordinates of",
+  "direct one's vector of evaporation towards the coordinates of the location of the",
+  "direct one's vector of evaporation towards the coordinates of the location of",
+  "direct ones vector of evaporation towards the coordinates of the location of the",
+  "direct ones vector of evaporation towards the coordinates of the location of",
+  "subject to a comprehensive visual categorization the",
+  "subject to a comprehensive visual categorization",
+  "subject to a thorough visual categorization the",
+  "subject to a thorough visual categorization",
+  "subject to a detailed visual categorization the",
+  "subject to a detailed visual categorization",
+  "assume direct exclusive privilege of the",
+  "assume direct exclusive privilege of",
+  "assume absolute exclusive privilege of the",
+  "assume absolute exclusive privilege of",
+  "assume immediate exclusive privilege of the",
+  "assume immediate exclusive privilege of",
+  "divest oneself of all exclusive privilege of the",
+  "divest oneself of all exclusive privilege of",
+  "relinquish all exclusive privilege of the",
+  "relinquish all exclusive privilege of",
+  "free oneself from all exclusive privilege of the",
+  "free oneself from all exclusive privilege of",
+  "force completely and rheologically wide open the",
+  "force completely and rheologically wide open",
+  "pry completely and rheologically wide open the",
+  "pry completely and rheologically wide open",
+  "fasten completely and rheologically closed the",
+  "fasten completely and rheologically closed",
+  "seal completely and rheologically shut the",
+  "seal completely and rheologically shut",
+  "deactivate all mesonic security devices of the",
+  "deactivate all mesonic security devices of",
+  "bypass all mesonic security devices on the",
+  "bypass all mesonic security devices on",
+  "disengage the primary mesonic security device on the",
+  "disengage the primary mesonic security device on",
+  "harness the full unassailable deployment of the",
+  "harness the full unassailable deployment of",
+  "bring into active unassailable deployment the",
+  "bring into active unassailable deployment",
+  "make complete unassailable deployment of the",
+  "make complete unassailable deployment of",
+  "initiate a disharmonious confrontation against the",
+  "initiate a disharmonious confrontation against",
+  "commence a disharmonious confrontation against the",
+  "commence a disharmonious confrontation against",
+  "engage in a disharmonious confrontation against the",
+  "engage in a disharmonious confrontation against",
+  "initiate an investigative face to face discussion with the",
+  "initiate an investigative face to face discussion with",
+  "engage in an investigative face to face discussion with the",
+  "engage in an investigative face to face discussion with",
+  "strike up an investigative face to face discussion with the",
+  "strike up an investigative face to face discussion with"
 );
 
 compoundVerbs.sort((a, b) => b.length - a.length);
