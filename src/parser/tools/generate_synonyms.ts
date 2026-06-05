@@ -370,7 +370,27 @@ const CELLS = [
   { prefix: "stressgranulecytoclast", base: "stressgranule" },
   { prefix: "stressgranuleblastocytoclast", base: "stressgranuleblast" },
   { prefix: "processingbodycytoclast", base: "processingbody" },
-  { prefix: "processingbodyblastocytoclast", base: "processingbodyblast" }
+  { prefix: "processingbodyblastocytoclast", base: "processingbodyblast" },
+  { prefix: "microtubuleorganizingcentercytoclast", base: "microtubuleorganizingcenter" },
+  { prefix: "microtubuleorganizingcenterblastocytoclast", base: "microtubuleorganizingcenterblast" },
+  { prefix: "centriolarpediclecytoclast", base: "centriolarpedicle" },
+  { prefix: "centriolarpedicleblastocytoclast", base: "centriolarpedicleblast" },
+  { prefix: "ciliaryrootletcytoclast", base: "ciliaryrootlet" },
+  { prefix: "ciliaryrootletblastocytoclast", base: "ciliaryrootletblast" },
+  { prefix: "spindlefibercytoclast", base: "spindlefiber" },
+  { prefix: "spindlefiberblastocytoclast", base: "spindlefiberblast" },
+  { prefix: "midbodycytoclast", base: "midbody" },
+  { prefix: "midbodyblastocytoclast", base: "midbodyblast" },
+  { prefix: "contractileringcytoclast", base: "contractilering" },
+  { prefix: "contractileringblastocytoclast", base: "contractileringblast" },
+  { prefix: "nuclearplaquecytoclast", base: "nuclearplaque" },
+  { prefix: "nuclearplaqueblastocytoclast", base: "nuclearplaqueblast" },
+  { prefix: "invadopodiumcytoclast", base: "invadopodia" },
+  { prefix: "invadopodiumblastocytoclast", base: "invadopodiablast" },
+  { prefix: "podosomecytoclast", base: "podosome" },
+  { prefix: "podosomeblastocytoclast", base: "podosomeblast" },
+  { prefix: "focaladhesioncytoclast", base: "focaladhesion" },
+  { prefix: "focaladhesionblastocytoclast", base: "focaladhesionblast" }
 ];
 
 const ELEMENTS = [
@@ -789,7 +809,27 @@ const ELEMENTS = [
   "carnelianite",
   "sardonyxite",
   "onyxite",
-  "heliotropite"
+  "heliotropite",
+  "bloodstoneite",
+  "bloodstoneitite",
+  "soapstoneite",
+  "soapstoneitite",
+  "sunstoneite",
+  "sunstoneitite",
+  "moonstoneite",
+  "moonstoneitite",
+  "flintstoneite",
+  "flintstoneitite",
+  "sandstoneite",
+  "sandstoneitite",
+  "limestoneite",
+  "limestoneitite",
+  "mudstoneite",
+  "mudstoneitite",
+  "siltstoneite",
+  "siltstoneitite",
+  "claystoneite",
+  "claystoneitite"
 ];
 
 const COMBAT_ACTIONS = [
