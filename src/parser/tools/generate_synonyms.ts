@@ -354,7 +354,23 @@ const CELLS = [
   { prefix: "nuclearenvelopecytoclast", base: "nuclearenvelope" },
   { prefix: "nuclearenvelopeblastocytoclast", base: "nuclearenvelopeblast" },
   { prefix: "nuclearporecytoclast", base: "nuclearpore" },
-  { prefix: "nuclearporeblastocytoclast", base: "nuclearporeblast" }
+  { prefix: "nuclearporeblastocytoclast", base: "nuclearporeblast" },
+  { prefix: "nucleolusorganizercytoclast", base: "nucleolusorganizer" },
+  { prefix: "nucleolusorganizerblastocytoclast", base: "nucleolusorganizerblast" },
+  { prefix: "perichromatincytoclast", base: "perichromatin" },
+  { prefix: "perichromatinblastocytoclast", base: "perichromatinblast" },
+  { prefix: "interchromatincytoclast", base: "interchromatin" },
+  { prefix: "interchromatinblastocytoclast", base: "interchromatinblast" },
+  { prefix: "cajidbodycytoclast", base: "cajidbody" },
+  { prefix: "cajidbodyblastocytoclast", base: "cajidbodyblast" },
+  { prefix: "gemcytoclast", base: "gem" },
+  { prefix: "gemblastocytoclast", base: "gemblast" },
+  { prefix: "pmlbodycytoclast", base: "pmlbody" },
+  { prefix: "pmlbodyblastocytoclast", base: "pmlbodyblast" },
+  { prefix: "stressgranulecytoclast", base: "stressgranule" },
+  { prefix: "stressgranuleblastocytoclast", base: "stressgranuleblast" },
+  { prefix: "processingbodycytoclast", base: "processingbody" },
+  { prefix: "processingbodyblastocytoclast", base: "processingbodyblast" }
 ];
 
 const ELEMENTS = [
@@ -757,7 +773,23 @@ const ELEMENTS = [
   "andalusitite",
   "topazitite",
   "tourmalinitite",
-  "dumortieritite"
+  "dumortieritite",
+  "vesuvianitite",
+  "stibnitite",
+  "realgarite",
+  "orpimentite",
+  "manganitite",
+  "goethitite",
+  "lepidocrocitite",
+  "chertite",
+  "flintite",
+  "chalcedonite",
+  "jasperite",
+  "agatite",
+  "carnelianite",
+  "sardonyxite",
+  "onyxite",
+  "heliotropite"
 ];
 
 const COMBAT_ACTIONS = [
