@@ -666,7 +666,25 @@ const CELLS = [
   { prefix: "keratinocytoblastocytoclast", base: "keratinocytoblast" },
   { prefix: "astrocytoblastocytoclast", base: "astrocytoblast" },
   { prefix: "oligodendrocytoblastocytoclast", base: "oligodendrocytoblast" },
-  { prefix: "microglioblastocytoclast", base: "microglioblast" }
+  { prefix: "microglioblastocytoclast", base: "microglioblast" },
+  { prefix: "microglialcytoclast", base: "microglial" },
+  { prefix: "macrophagoblastocytoclast", base: "macrophagoblast" },
+  { prefix: "dendritoblastocytoclast", base: "dendritoblast" },
+  { prefix: "adipoblastocytoclast", base: "adipoblast" },
+  { prefix: "reticuloblastocytoclast", base: "reticuloblast" },
+  { prefix: "histiocytoblastocytoclast", base: "histiocytoblast" },
+  { prefix: "mastocytoblastocytoclast", base: "mastocytoblast" },
+  { prefix: "plasmacytoblastocytoclast", base: "plasmacytoblast" },
+  { prefix: "lipoblastocytoclast", base: "lipoblast" },
+  { prefix: "pericytoblastocytoclast", base: "pericytoblast" },
+  { prefix: "endothelialblastocytoclast", base: "endothelialblast" },
+  { prefix: "mesothelialblastocytoclast", base: "mesothelialblast" },
+  { prefix: "epithelialblastocytoclast", base: "epithelialblast" },
+  { prefix: "keratocytoblastocytoclast", base: "keratocytoblast" },
+  { prefix: "tenocytoblastocytoclast", base: "tenocytoblast" },
+  { prefix: "purkinjoblastocytoclast", base: "purkinjoblast" },
+  { prefix: "schwannblastocytoclast", base: "schwannblast" },
+  { prefix: "ependymalblastocytoclast", base: "ependymalblast" }
 ];
 
 const ELEMENTS = [
@@ -1398,7 +1416,25 @@ const ELEMENTS = [
   "metasamarskite",
   "metasamarskitite",
   "metaeuxenite",
-  "metaeuxenitite"
+  "metaeuxenitite",
+  "cerberite",
+  "cerberitite",
+  "phoenixstone",
+  "phoenixstonite",
+  "hydrastone",
+  "hydrastonitite",
+  "pegasite",
+  "pegasitite",
+  "griffonstone",
+  "griffonstonite",
+  "chimeraite",
+  "chimeraitite",
+  "wyvernstone",
+  "wyvernstonite",
+  "basiliskstone",
+  "basiliskstonite",
+  "krakenite",
+  "krakenitite"
 ];
 
 const COMBAT_ACTIONS = [
