@@ -476,7 +476,25 @@ const CELLS = [
   { prefix: "cofilincytoclast", base: "cofilin" },
   { prefix: "cofilinblastocytoclast", base: "cofilinblast" },
   { prefix: "fimbrincytoclast", base: "fimbrin" },
-  { prefix: "fimbrinblastocytoclast", base: "fimbrinblast" }
+  { prefix: "fimbrinblastocytoclast", base: "fimbrinblast" },
+  { prefix: "alphaactininocytoclast", base: "alphaactinin" },
+  { prefix: "alphaactininblastocytoclast", base: "alphaactininblast" },
+  { prefix: "ezrincytoclast", base: "ezrin" },
+  { prefix: "ezrinblastocytoclast", base: "ezrinblast" },
+  { prefix: "radixincytoclast", base: "radixin" },
+  { prefix: "radixinblastocytoclast", base: "radixinblast" },
+  { prefix: "moesincytoclast", base: "moesin" },
+  { prefix: "moesinblastocytoclast", base: "moesinblast" },
+  { prefix: "dystrophinocytoclast", base: "dystrophin" },
+  { prefix: "dystrophinblastocytoclast", base: "dystrophinblast" },
+  { prefix: "utrophinocytoclast", base: "utrophin" },
+  { prefix: "utrophinblastocytoclast", base: "utrophinblast" },
+  { prefix: "plectinocytoclast", base: "plectin" },
+  { prefix: "plectinblastocytoclast", base: "plectinblast" },
+  { prefix: "desmoplakinocytoclast", base: "desmoplakin" },
+  { prefix: "desmoplakinblastocytoclast", base: "desmoplakinblast" },
+  { prefix: "plakoglobinocytoclast", base: "plakoglobin" },
+  { prefix: "plakoglobinblastocytoclast", base: "plakoglobinblast" }
 ];
 
 const ELEMENTS = [
@@ -990,7 +1008,22 @@ const ELEMENTS = [
   "willemite",
   "willemitite",
   "franklinite",
-  "franklinitite"
+  "franklinitite",
+  "rhodonitite",
+  "wollastonitite",
+  "chalcocitite",
+  "bornitite",
+  "covellitite",
+  "tetrahedritite",
+  "enargitite",
+  "pyrhotitite",
+  "pentlanditite",
+  "arsenopyritite",
+  "skutteruditite",
+  "ullmannitite",
+  "marcasitite",
+  "arsenolitite",
+  "senarmontitite"
 ];
 
 const COMBAT_ACTIONS = [
