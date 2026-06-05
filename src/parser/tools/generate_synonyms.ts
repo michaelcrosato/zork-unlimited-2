@@ -856,7 +856,23 @@ const CELLS = [
   { prefix: "paxillinoidcytoclast", base: "paxillinoid" },
   { prefix: "paxillinoidblastocytoclast", base: "paxillinoidblast" },
   { prefix: "filaminoidcytoclast", base: "filaminoid" },
-  { prefix: "filaminoidblastocytoclast", base: "filaminoidblast" }
+  { prefix: "filaminoidblastocytoclast", base: "filaminoidblast" },
+  { prefix: "tubulinoidcytoclast", base: "tubulinoid" },
+  { prefix: "tubulinoidblastocytoclast", base: "tubulinoidblast" },
+  { prefix: "actinoidcytoclast", base: "actinoid" },
+  { prefix: "actinoidblastocytoclast", base: "actinoidblast" },
+  { prefix: "myosinoidcytoclast", base: "myosinoid" },
+  { prefix: "myosinoidblastocytoclast", base: "myosinoidblast" },
+  { prefix: "dyneinoidcytoclast", base: "dyneinoid" },
+  { prefix: "dyneinoidblastocytoclast", base: "dyneinoidblast" },
+  { prefix: "kinesinoidcytoclast", base: "kinesinoid" },
+  { prefix: "kinesinoidblastocytoclast", base: "kinesinoidblast" },
+  { prefix: "clathrinoidcytoclast", base: "clathrinoid" },
+  { prefix: "clathrinoidblastocytoclast", base: "clathrinoidblast" },
+  { prefix: "caveolinoidcytoclast", base: "caveolinoid" },
+  { prefix: "caveolinoidblastocytoclast", base: "caveolinoidblast" },
+  { prefix: "aquaporinoidcytoclast", base: "aquaporinoid" },
+  { prefix: "aquaporinoidblastocytoclast", base: "aquaporinoidblast" }
 ];
 
 
@@ -1797,7 +1813,22 @@ const ELEMENTS = [
   "minervastoneitite",
   "plutonistone",
   "plutonistonite",
-  "plutonistoneitite"
+  "plutonistoneitite",
+  "mercurite",
+  "mercuritite",
+  "mercurystoneitite",
+  "saturnite",
+  "saturnitite",
+  "saturnstoneitite",
+  "uranusite",
+  "uranusitite",
+  "uranusstoneitite",
+  "marsite",
+  "marsitite",
+  "marsstoneitite",
+  "venusite",
+  "venusitite",
+  "venusstoneitite"
 ];
 
 const COMBAT_ACTIONS = [
