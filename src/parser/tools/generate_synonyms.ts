@@ -565,7 +565,29 @@ const CELLS = [
   { prefix: "neuroectodermcytoclast", base: "neuroectoderm" },
   { prefix: "neuroectodermblastocytoclast", base: "neuroectodermblast" },
   { prefix: "neuralcrestcytoclast", base: "neuralcrest" },
-  { prefix: "neuralcrestblastocytoclast", base: "neuralcrestblast" }
+  { prefix: "neuralcrestblastocytoclast", base: "neuralcrestblast" },
+  { prefix: "mesenchymecytoclast", base: "mesenchyme" },
+  { prefix: "mesenchymeblastocytoclast", base: "mesenchymeblast" },
+  { prefix: "myotomecytoclast", base: "myotome" },
+  { prefix: "myotomeblastocytoclast", base: "myotomeblast" },
+  { prefix: "dermatomecytoclast", base: "dermatome" },
+  { prefix: "dermatomeblastocytoclast", base: "dermatomeblast" },
+  { prefix: "sclerotomecytoclast", base: "sclerotome" },
+  { prefix: "sclerotomeblastocytoclast", base: "sclerotomeblast" },
+  { prefix: "nephrotomecytoclast", base: "nephrotome" },
+  { prefix: "nephrotomeblastocytoclast", base: "nephrotomeblast" },
+  { prefix: "blastocelocytoclast", base: "blastocel" },
+  { prefix: "blastocelblastocytoclast", base: "blastocelblast" },
+  { prefix: "epiblastcytoclast", base: "epiblast" },
+  { prefix: "epiblastblastocytoclast", base: "epiblastblast" },
+  { prefix: "hypoblastcytoclast", base: "hypoblast" },
+  { prefix: "hypoblastblastocytoclast", base: "hypoblastblast" },
+  { prefix: "morulacytoclast", base: "morula" },
+  { prefix: "morulablastocytoclast", base: "morulablast" },
+  { prefix: "blastulacytoclast", base: "blastula" },
+  { prefix: "blastulablastocytoclast", base: "blastulablast" },
+  { prefix: "gastrulacytoclast", base: "gastrula" },
+  { prefix: "gastrulablastocytoclast", base: "gastrulablast" }
 ];
 
 const ELEMENTS = [
@@ -1182,7 +1204,25 @@ const ELEMENTS = [
   "lapislazulite",
   "lapislazulitite",
   "netherite",
-  "netheritite"
+  "netheritite",
+  "enderite",
+  "enderitite",
+  "prismarine",
+  "prismarinite",
+  "prismarinifite",
+  "purpur",
+  "purpurite",
+  "purpuritite",
+  "blazestone",
+  "blazestonite",
+  "blazestonitite",
+  "soulstone",
+  "soulstonite",
+  "soulstonitite",
+  "shulkerite",
+  "shulkeritite",
+  "obsidianite",
+  "obsidianitite"
 ];
 
 const COMBAT_ACTIONS = [
