@@ -83,14 +83,19 @@ const COMBAT_ACTIONS = [
 ];
 
 function getGreekNumber(n: number): string {
+  const units = ["", "hena", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "ennea"];
+
   if (n === 50) return "pentacontarchy";
   if (n === 60) return "hexacontarchy";
   if (n === 70) return "heptacontarchy";
   if (n === 80) return "octacontarchy";
   if (n === 90) return "enneacontarchy";
-  if (n === 100) return "hectarchy";
+  if (n >= 100 && n < 110) {
+    if (n === 100) return "hectarchy";
+    return units[n - 100] + "hectarchy";
+  }
+  if (n === 110) return "decahectarchy";
 
-  const units = ["", "hena", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "ennea"];
   const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
   
   const unitDigit = n % 10;
@@ -102,9 +107,9 @@ function getGreekNumber(n: number): string {
   return units[unitDigit] + tens[tenDigit];
 }
 
-// Generate phases starting from Phase 368 up to Phase 390
+// Generate phases starting from Phase 368 up to Phase 412
 const PHASES: SynonymPhase[] = [];
-for (let p = 368; p <= 390; p++) {
+for (let p = 368; p <= 412; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
   const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
   const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
