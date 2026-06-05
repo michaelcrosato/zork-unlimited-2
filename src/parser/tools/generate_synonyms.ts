@@ -528,7 +528,22 @@ const CELLS = [
   { prefix: "monocyteblastocytoclast", base: "monocyteblast" },
   { prefix: "lymphocyteblastocytoclast", base: "lymphocyteblast" },
   { prefix: "erythrocyteblastocytoclast", base: "erythrocyteblast" },
-  { prefix: "thrombocyteblastocytoclast", base: "thrombocyteblast" }
+  { prefix: "thrombocyteblastocytoclast", base: "thrombocyteblast" },
+  { prefix: "microvesiclecytoclast", base: "microvesicle" },
+  { prefix: "microvesicleblastocytoclast", base: "microvesicleblast" },
+  { prefix: "exosomecytoclast", base: "exosome" },
+  { prefix: "exosomeblastocytoclast", base: "exosomeblast" },
+  { prefix: "ectosomecytoclast", base: "ectosome" },
+  { prefix: "ectosomeblastocytoclast", base: "ectosomeblast" },
+  { prefix: "reticuloplasmocytoclast", base: "reticuloplasm" },
+  { prefix: "reticuloplasmoblastocytoclast", base: "reticuloplasmoblast" },
+  { prefix: "nucleoplasminocytoclast", base: "nucleoplasmin" },
+  { prefix: "nucleoplasminblastocytoclast", base: "nucleoplasminblast" },
+  { prefix: "karyoskeletonocytoclast", base: "karyoskeleton" },
+  { prefix: "karyoskeletonblastocytoclast", base: "karyoskeletonblast" },
+  { prefix: "cytochalasinocytoclast", base: "cytochalasin" },
+  { prefix: "cytochalasinblastocytoclast", base: "cytochalasinblast" },
+  { prefix: "ciliaremoblastocytoclast", base: "ciliaremoblast" }
 ];
 
 const ELEMENTS = [
@@ -1099,7 +1114,24 @@ const ELEMENTS = [
   "turquoiseitite",
   "peridot",
   "peridotite",
-  "peridotitite"
+  "peridotitite",
+  "aquamarine",
+  "aquamarinite",
+  "aquamarinitite",
+  "corundum",
+  "corundumite",
+  "corundumitite",
+  "feldsparitite",
+  "quartzitite",
+  "olivinitite",
+  "pyroxenitite",
+  "amphibolitite",
+  "talcitite",
+  "gypsitite",
+  "fluoriteitite",
+  "apatiteitite",
+  "orthoclaseite",
+  "orthoclaseitite"
 ];
 
 const COMBAT_ACTIONS = [
