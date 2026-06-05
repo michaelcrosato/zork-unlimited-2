@@ -406,7 +406,29 @@ const CELLS = [
   { prefix: "tightjunctioncytoclast", base: "tightjunction" },
   { prefix: "tightjunctionblastocytoclast", base: "tightjunctionblast" },
   { prefix: "gapjunctioncytoclast", base: "gapjunction" },
-  { prefix: "gapjunctionblastocytoclast", base: "gapjunctionblast" }
+  { prefix: "gapjunctionblastocytoclast", base: "gapjunctionblast" },
+  { prefix: "zonulaoccludenscytoclast", base: "zonulaoccludens" },
+  { prefix: "zonulaoccludensblastocytoclast", base: "zonulaoccludensblast" },
+  { prefix: "zonulaadherenscytoclast", base: "zonulaadherens" },
+  { prefix: "zonulaadherensblastocytoclast", base: "zonulaadherensblast" },
+  { prefix: "maculaadherenscytoclast", base: "maculaadherens" },
+  { prefix: "maculaadherensblastocytoclast", base: "maculaadherensblast" },
+  { prefix: "clathrincytoclast", base: "clathrin" },
+  { prefix: "clathrinblastocytoclast", base: "clathrinblast" },
+  { prefix: "caveolincytoclast", base: "caveolin" },
+  { prefix: "caveolinblastocytoclast", base: "caveolinblast" },
+  { prefix: "sarcoplasmocytoclast", base: "sarcoplasm" },
+  { prefix: "sarcoplasmoblastocytoclast", base: "sarcoplasmblast" },
+  { prefix: "hyaloplasmocytoclast", base: "hyaloplasm" },
+  { prefix: "hyaloplasmoblastocytoclast", base: "hyaloplasmblast" },
+  { prefix: "nucleoskeletoncytoclast", base: "nucleoskeleton" },
+  { prefix: "nucleoskeletonblastocytoclast", base: "nucleoskeletonblast" },
+  { prefix: "cargoreceptorcytoclast", base: "cargoreceptor" },
+  { prefix: "cargoreceptorblastocytoclast", base: "cargoreceptorblast" },
+  { prefix: "importincytoclast", base: "importin" },
+  { prefix: "importinblastocytoclast", base: "importinblast" },
+  { prefix: "exportincytoclast", base: "exportin" },
+  { prefix: "exportinblastocytoclast", base: "exportinblast" }
 ];
 
 const ELEMENTS = [
@@ -863,7 +885,32 @@ const ELEMENTS = [
   "sylviteite",
   "sylviteitite",
   "boraxite",
-  "boraxitite"
+  "boraxitite",
+  "adamantinite",
+  "orichalcite",
+  "orichalcitite",
+  "electrite",
+  "electritite",
+  "mithrilitite",
+  "vibranitite",
+  "runititite",
+  "fluorapatite",
+  "fluorapatitite",
+  "chlorapatite",
+  "chlorapatitite",
+  "hydroxylapatite",
+  "hydroxylapatitite",
+  "carbonatedapatite",
+  "carbonatedapatitite",
+  "calcitite",
+  "calcititite",
+  "aragonitite",
+  "aragonititite",
+  "dolomitite",
+  "dolomititite",
+  "magnesitite",
+  "magnesititite",
+  "ankeritite"
 ];
 
 const COMBAT_ACTIONS = [
@@ -880,14 +927,32 @@ const COMBAT_ACTIONS = [
 ];
 
 function getGreekNumber(n: number): string {
-  // Expanded/verified to support numbers up to 300 (trihectarchy) and beyond
   const units = ["", "hena", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "ennea"];
+
+  if (n < 10) return units[n];
+  if (n >= 10 && n < 20) {
+    const teenUnits = ["deca", "hendeca", "dodeca", "trideca", "tetradeca", "pentadeca", "hexadeca", "heptadeca", "octadeca", "enneadeca"];
+    return teenUnits[n - 10] + "rchy";
+  }
+  if (n >= 20 && n < 30) {
+    if (n === 20) return "icosarchy";
+    return units[n - 20] + "icosarchy";
+  }
+  if (n >= 30 && n < 40) {
+    if (n === 30) return "triacontarchy";
+    return units[n - 30] + "triacontarchy";
+  }
+  if (n >= 40 && n < 50) {
+    if (n === 40) return "tetracontarchy";
+    return units[n - 40] + "tetracontarchy";
+  }
 
   if (n === 50) return "pentacontarchy";
   if (n === 60) return "hexacontarchy";
   if (n === 70) return "heptacontarchy";
   if (n === 80) return "octacontarchy";
   if (n === 90) return "enneacontarchy";
+  
   if (n >= 100 && n < 110) {
     if (n === 100) return "hectarchy";
     return units[n - 100] + "hectarchy";
