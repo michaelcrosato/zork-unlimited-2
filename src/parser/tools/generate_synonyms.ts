@@ -47,6 +47,12 @@ const CELLS = [
   { prefix: "astrocytocytoclast", base: "astrocyte" },
   { prefix: "oligodendrocytocytoclast", base: "oligodendrocyte" },
   { prefix: "microgliocytoclast", base: "microglia" },
+  { prefix: "adipocytocytoclast", base: "adipocyte" },
+  { prefix: "macrophagocytoclast", base: "macrophage" },
+  { prefix: "dendritocytoclast", base: "dendrite" },
+  { prefix: "neuronocytoclast", base: "neuron" },
+  { prefix: "hepatoblastocytoclast", base: "hepatoblast" },
+  { prefix: "neuroblastocytoclast", base: "neuroblast" },
 ];
 
 const ELEMENTS = [
@@ -73,7 +79,17 @@ const ELEMENTS = [
   "calcium",
   "iron",
   "copper",
-  "zinc"
+  "zinc",
+  "gold",
+  "silver",
+  "platinum",
+  "mercury",
+  "lead",
+  "tin",
+  "nickel",
+  "titanium",
+  "cobalt",
+  "chromium"
 ];
 
 const COMBAT_ACTIONS = [
