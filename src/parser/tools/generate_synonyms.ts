@@ -127,7 +127,22 @@ const CELLS = [
   { prefix: "foveolarcytoclast", base: "foveolar" },
   { prefix: "mesangialcytoclast", base: "mesangial" },
   { prefix: "juxtaglomerularcytoclast", base: "juxtaglomerular" },
-  { prefix: "maculadensacytoclast", base: "maculadensa" }
+  { prefix: "maculadensacytoclast", base: "maculadensa" },
+  { prefix: "somatotropicytoclast", base: "somatotropic" },
+  { prefix: "corticotropicytoclast", base: "corticotropic" },
+  { prefix: "gonadotropicytoclast", base: "gonadotropic" },
+  { prefix: "thyrotropicytoclast", base: "thyrotropic" },
+  { prefix: "lactotropicytoclast", base: "lactotropic" },
+  { prefix: "chromaffincytoclast", base: "chromaffin" },
+  { prefix: "parafollicularcytoclast", base: "parafollicular" },
+  { prefix: "oxyphilcytoclast", base: "oxyphil" },
+  { prefix: "follicularstellarcytoclast", base: "follicularstellate" },
+  { prefix: "pituicytocytoclast", base: "pituicyte" },
+  { prefix: "gonadocytoclast", base: "gonadocyte" },
+  { prefix: "spermatogoniocytoclast", base: "spermatogonium" },
+  { prefix: "oogoniocytoclast", base: "oogonium" },
+  { prefix: "thecaluteincytoclast", base: "thecalutein" },
+  { prefix: "granulosaluteincytoclast", base: "granulosalutein" }
 ];
 
 const ELEMENTS = [
@@ -275,7 +290,22 @@ const ELEMENTS = [
   "beskar",
   "unobtainium",
   "runite",
-  "naquadah"
+  "naquadah",
+  "trinium",
+  "neutronium",
+  "dilithium",
+  "tritanium",
+  "duranium",
+  "latinum",
+  "corbomite",
+  "kryptonite",
+  "tiberium",
+  "durasteel",
+  "plasteel",
+  "quadranium",
+  "carbonite",
+  "cortosis",
+  "phrik"
 ];
 
 const COMBAT_ACTIONS = [
@@ -415,9 +445,9 @@ function getGreekNumber(n: number): string {
   return units[unitDigit] + tens[tenDigit];
 }
 
-// Generate phases starting from Phase 368 up to Phase 550
+// Generate phases starting from Phase 368 up to Phase 600
 const PHASES: SynonymPhase[] = [];
-for (let p = 368; p <= 550; p++) {
+for (let p = 368; p <= 600; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
   const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
   const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
