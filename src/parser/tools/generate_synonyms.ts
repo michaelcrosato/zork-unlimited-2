@@ -85,6 +85,20 @@ const CELLS = [
   { prefix: "mastocytoclast", base: "mastocyte" },
   { prefix: "somatocytoclast", base: "somatocyte" },
   { prefix: "plasmacytoclast", base: "plasmacyte" },
+  { prefix: "myofibroblastocytoclast", base: "myofibroblast" },
+  { prefix: "pericytocytoclast", base: "pericyte" },
+  { prefix: "mesothelialcytoclast", base: "mesothelial" },
+  { prefix: "endothelialcytoclast", base: "endothelial" },
+  { prefix: "epithelialcytoclast", base: "epithelial" },
+  { prefix: "keratocytocytoclast", base: "keratocyte" },
+  { prefix: "tenocytocytoclast", base: "tenocyte" },
+  { prefix: "tenoblastocytoclast", base: "tenoblast" },
+  { prefix: "odontoblastocytoclast", base: "odontoblast" },
+  { prefix: "ameloblastocytoclast", base: "ameloblast" },
+  { prefix: "cementoblastocytoclast", base: "cementoblast" },
+  { prefix: "cementocytocytoclast", base: "cementocyte" },
+  { prefix: "osteoclastocytoclast", base: "osteoclast" },
+  { prefix: "chondroclastocytoclast", base: "chondroclast" }
 ];
 
 const ELEMENTS = [
@@ -175,7 +189,33 @@ const ELEMENTS = [
   "actinium",
   "thorium",
   "protactinium",
-  "uranium"
+  "uranium",
+  "neptunium",
+  "plutonium",
+  "americium",
+  "curium",
+  "berkelium",
+  "californium",
+  "einsteinium",
+  "fermium",
+  "mendelevium",
+  "nobelium",
+  "lawrencium",
+  "rutherfordium",
+  "dubnium",
+  "seaborgium",
+  "bohrium",
+  "hassium",
+  "meitnerium",
+  "darmstadtium",
+  "roentgenium",
+  "copernicium",
+  "nihonium",
+  "flerovium",
+  "moscovium",
+  "livermorium",
+  "tennessine",
+  "oganesson"
 ];
 
 const COMBAT_ACTIONS = [
