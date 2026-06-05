@@ -172,7 +172,22 @@ const CELLS = [
   { prefix: "plasmodesmatocytoclast", base: "plasmodesmata" },
   { prefix: "cytoskeletonocytoclast", base: "cytoskeleton" },
   { prefix: "membranocytoclast", base: "membrane" },
-  { prefix: "golgicytoclast", base: "golgi" }
+  { prefix: "golgicytoclast", base: "golgi" },
+  { prefix: "ribosomoblastocytoclast", base: "ribosomoblast" },
+  { prefix: "peroxisomoblastocytoclast", base: "peroxisomoblast" },
+  { prefix: "vacuoloblastocytoclast", base: "vacuoloblast" },
+  { prefix: "lysosomoblastocytoclast", base: "lysosomoblast" },
+  { prefix: "cilioblastocytoclast", base: "cilioblast" },
+  { prefix: "flagelloblastocytoclast", base: "flagelloblast" },
+  { prefix: "myelinoblastocytoclast", base: "myelinoblast" },
+  { prefix: "axonoblastocytoclast", base: "axonoblast" },
+  { prefix: "synapsoblastocytoclast", base: "synapsoblast" },
+  { prefix: "sarcomeroblastocytoclast", base: "sarcomeroblast" },
+  { prefix: "collagenoblastocytoclast", base: "collagenoblast" },
+  { prefix: "elastinoblastocytoclast", base: "elastinoblast" },
+  { prefix: "desmosomoblastocytoclast", base: "desmosomoblast" },
+  { prefix: "microfilamentoblastocytoclast", base: "microfilamentoblast" },
+  { prefix: "microtubuloblastocytoclast", base: "microtubuloblast" }
 ];
 
 const ELEMENTS = [
@@ -381,7 +396,22 @@ const ELEMENTS = [
   "limonite",
   "siderite",
   "tanzanite",
-  "alexandrite"
+  "alexandrite",
+  "obsidian",
+  "malachitite",
+  "azuritite",
+  "limonitite",
+  "sideritite",
+  "tanzanitite",
+  "alexandritite",
+  "pyropite",
+  "almandine",
+  "spessartine",
+  "grossular",
+  "andradite",
+  "uvarovite",
+  "rhodonite",
+  "wollastonite"
 ];
 
 const COMBAT_ACTIONS = [
