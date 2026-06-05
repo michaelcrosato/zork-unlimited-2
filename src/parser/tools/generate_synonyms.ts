@@ -446,7 +446,37 @@ const CELLS = [
   { prefix: "actincytoclast", base: "actin" },
   { prefix: "actinblastocytoclast", base: "actinblast" },
   { prefix: "tubulincytoclast", base: "tubulin" },
-  { prefix: "tubulinblastocytoclast", base: "tubulinblast" }
+  { prefix: "tubulinblastocytoclast", base: "tubulinblast" },
+  { prefix: "cardiolipincytoclast", base: "cardiolipin" },
+  { prefix: "cardiolipinblastocytoclast", base: "cardiolipinblast" },
+  { prefix: "phosphatidylcholinecytoclast", base: "phosphatidylcholine" },
+  { prefix: "phosphatidylcholineblastocytoclast", base: "phosphatidylcholineblast" },
+  { prefix: "phosphatidylethanolaminecytoclast", base: "phosphatidylethanolamine" },
+  { prefix: "phosphatidylethanolamineblastocytoclast", base: "phosphatidylethanolamineblast" },
+  { prefix: "phosphatidylserinecytoclast", base: "phosphatidylserine" },
+  { prefix: "phosphatidylserineblastocytoclast", base: "phosphatidylserineblast" },
+  { prefix: "sphingomyelincytoclast", base: "sphingomyelin" },
+  { prefix: "sphingomyelinblastocytoclast", base: "sphingomyelinblast" },
+  { prefix: "spectrincytoclast", base: "spectrin" },
+  { prefix: "spectrinblastocytoclast", base: "spectrinblast" },
+  { prefix: "ankyrincytoclast", base: "ankyrin" },
+  { prefix: "ankyrinblastocytoclast", base: "ankyrinblast" },
+  { prefix: "talincytoclast", base: "talin" },
+  { prefix: "talinblastocytoclast", base: "talinblast" },
+  { prefix: "vinculincytoclast", base: "vinculin" },
+  { prefix: "vinculinblastocytoclast", base: "vinculinblast" },
+  { prefix: "paxillincytoclast", base: "paxillin" },
+  { prefix: "paxillinblastocytoclast", base: "paxillinblast" },
+  { prefix: "filamincytoclast", base: "filamin" },
+  { prefix: "filaminblastocytoclast", base: "filaminblast" },
+  { prefix: "gelsolincytoclast", base: "gelsolin" },
+  { prefix: "gelsolinblastocytoclast", base: "gelsolinblast" },
+  { prefix: "profilincytoclast", base: "profilin" },
+  { prefix: "profilinblastocytoclast", base: "profilinblast" },
+  { prefix: "cofilincytoclast", base: "cofilin" },
+  { prefix: "cofilinblastocytoclast", base: "cofilinblast" },
+  { prefix: "fimbrincytoclast", base: "fimbrin" },
+  { prefix: "fimbrinblastocytoclast", base: "fimbrinblast" }
 ];
 
 const ELEMENTS = [
@@ -944,7 +974,23 @@ const ELEMENTS = [
   "berthierine",
   "berthierinitite",
   "lizardititite",
-  "antigorititite"
+  "antigorititite",
+  "chalcophanite",
+  "chalcophanitite",
+  "aurichalcite",
+  "aurichalcitite",
+  "hydrozincite",
+  "hydrozincitite",
+  "smithsonite",
+  "smithsonitite",
+  "hemimorphite",
+  "hemimorphitite",
+  "sauconite",
+  "sauconitite",
+  "willemite",
+  "willemitite",
+  "franklinite",
+  "franklinitite"
 ];
 
 const COMBAT_ACTIONS = [
