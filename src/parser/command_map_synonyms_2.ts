@@ -36884,6 +36884,16 @@ compoundVerbs.push(
   "engage in an megakaryocytoclastopathological facetoface discussion with",
   "engage in an megakaryocytoclastopathological face-to-face discussion with the",
   "engage in an megakaryocytoclastopathological face-to-face discussion with",
+  "strike up a/an megakaryocytoclastopathological face to face discussion with the",
+  "strike up a/an megakaryocytoclastopathological face to face discussion with",
+  "strike up a/an megakaryocytoclastopathological facetoface discussion with the",
+  "strike up a/an megakaryocytoclastopathological facetoface discussion with",
+  "strike up a/an megakaryocytoclastopathological face-to-face discussion with the",
+  "strike up a/an megakaryocytoclastopathological face-to-face discussion with",
+  "strike up an megakaryocytoclastopathological face to face discussion with the",
+  "strike up an megakaryocytoclastopathological face to face discussion with",
+  "strike up an megakaryocytoclastopathological facetoface discussion with the",
+  "strike up an megakaryocytoclastopathological facetoface discussion with",
   "strike up an megakaryocytoclastopathological face-to-face discussion with the",
   "strike up an megakaryocytoclastopathological face-to-face discussion with"
 );
