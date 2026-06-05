@@ -1072,7 +1072,25 @@ const CELLS = [
   { prefix: "antigenoidcytoblastocytoclast", base: "antigenoidcytoblast" },
   { prefix: "antibodyoidcytoblastocytoclast", base: "antibodyoidcytoblast" },
   { prefix: "hormonoidcytoblastocytoclast", base: "hormonoidcytoblast" },
-  { prefix: "synaptoidcytoblastocytoclast", base: "synaptoidcytoblast" }
+  { prefix: "synaptoidcytoblastocytoclast", base: "synaptoidcytoblast" },
+  { prefix: "cytoskeletonoidcytoblastocytoclast", base: "cytoskeletonoidcytoblast" },
+  { prefix: "centrosomoidcytoblastocytoclast", base: "centrosomoidcytoblast" },
+  { prefix: "cilioidcytoblastocytoclast", base: "cilioidcytoblast" },
+  { prefix: "flagelloidcytoblastocytoclast", base: "flagelloidcytoblast" },
+  { prefix: "chloroplastoidcytoblastocytoclast", base: "chloroplastoidcytoblast" },
+  { prefix: "plasmodesmatoidcytoblastocytoclast", base: "plasmodesmatoidcytoblast" },
+  { prefix: "membranoidcytoblastocytoclast", base: "membranoidcytoblast" },
+  { prefix: "golgioidcytoblastocytoclast", base: "golgioidcytoblast" },
+  { prefix: "endosomoidcytoblastocytoclast", base: "endosomoidcytoblast" },
+  { prefix: "autophagosomoidcytoblastocytoclast", base: "autophagosomoidcytoblast" },
+  { prefix: "melanosomoidcytoblastocytoclast", base: "melanosomoidcytoblast" },
+  { prefix: "nucleosomoidcytoblastocytoclast", base: "nucleosomoidcytoblast" },
+  { prefix: "polysomoidcytoblastocytoclast", base: "polysomoidcytoblast" },
+  { prefix: "liposomoidcytoblastocytoclast", base: "liposomoidcytoblast" },
+  { prefix: "mesosomoidcytoblastocytoclast", base: "mesosomoidcytoblast" },
+  { prefix: "replisomoidcytoblastocytoclast", base: "replisomoidcytoblast" },
+  { prefix: "spliceosomoidcytoblastocytoclast", base: "spliceosomoidcytoblast" },
+  { prefix: "proteasomoidcytoblastocytoclast", base: "proteasomoidcytoblast" }
 ];
 
 
@@ -2211,7 +2229,25 @@ const ELEMENTS = [
   "cuchulainnstoneitite",
   "brennusite",
   "brennusitite",
-  "brennusstoneitite"
+  "brennusstoneitite",
+  "arthurite",
+  "arthuritite",
+  "arthurstoneitite",
+  "merlinite",
+  "merlinitite",
+  "merlinstoneitite",
+  "lancelotite",
+  "lancelotitite",
+  "lancelotstoneitite",
+  "guineverite",
+  "guineveritite",
+  "guineverstoneitite",
+  "galahadite",
+  "galahaditite",
+  "galahadstoneitite",
+  "morganaite",
+  "morganaitite",
+  "morganastoneitite"
 ];
 
 const COMBAT_ACTIONS = [
@@ -2427,9 +2463,9 @@ export function getGreekNumber(n: number): string {
   return units[unitDigit] + tens[tenDigit];
 }
 
-// Generate phases starting from Phase 368 up to Phase 650
+// Generate phases starting from Phase 368 up to Phase 700
 const PHASES: SynonymPhase[] = [];
-for (let p = 368; p <= 650; p++) {
+for (let p = 368; p <= 700; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
   const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
   const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
