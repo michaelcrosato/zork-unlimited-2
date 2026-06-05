@@ -85,7 +85,14 @@ bin/replay <trace> <pack>  # Replay a deterministic trace
 
 ## 🔧 What Was Just Done (Session Summary)
 
+### Synonym Generator Integration & De-duplication — June 4, 2026
+1. **Automated Generation**: Configured `src/parser/tools/generate_synonyms.ts` to output `src/parser/command_map_synonyms_generated.ts` and `tests/parser_synonym_expansion_generated.test.ts`.
+2. **Cleaned Up Duplication**: Reverted Phase 368 manual mappings in `src/parser/command_map_synonyms_2.ts` and deleted `tests/parser_synonym_expansion_phase_368.test.ts` to avoid configuration duplication.
+3. **Integration**: Modified `src/parser/command_map.ts` to import and call `registerSynonymsGenerated`.
+4. **Validation**: Verified that typecheck compiles successfully and the full Vitest suite (4,333 tests) passes 100% green.
+
 ### Repo Quality Overhaul — June 1, 2026
+
 
 Ran a full 7-phase repo cleanup (P1–P7) on a `chore/repo-quality-overhaul` branch, merged to `main`, pushed to GitHub.
 
@@ -157,11 +164,12 @@ These are real issues but were out of scope for the cleanup:
 
 ---
 
-## 📊 Repo Stats (as of 2026-06-01)
+## 📊 Repo Stats (as of 2026-06-04)
 
-- **Source files**: 45 across 10 directories
+- **Source files**: 46 across 10 directories
 - **Total LoC**: ~104,000+ (dominated by sync.ts, state.ts, economy.ts)
-- **Test files**: 195 (882 tests, 100% passing)
+- **Test files**: 583 (4333 tests, 100% passing)
 - **Content packs**: YAML files in `content/cyoa/pack/` and `content/parser/pack/`
 - **Autonomous cycles**: ~2100 AI development cycles ran before this cleanup
 - **GitHub**: `michaelcrosato/zork-unlimited-2` — main is up to date
+

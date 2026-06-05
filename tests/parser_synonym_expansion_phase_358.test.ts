@@ -23,14 +23,17 @@ describe("Parser Synonym Expansion Phase 358 (Task-F396)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of leukocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of leukocytoclastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of leukocytoclastopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand(
+        "direct ones vector of leukocytoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,17 +118,25 @@ describe("Parser Synonym Expansion Phase 358 (Task-F396)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all leukocytoclastologist and leukoblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all leukocytoclastologists and leukoblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all leukocytoclastologist and leukoblastoclastologist security devices of chest", actions)
+        .action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary leukocytoclastologist and leukoblastoclastologist security device on chest", actions)
+      mapCommand("bypass all leukocytoclastologists and leukoblastoclastologists security devices on chest", actions)
         .action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary leukocytoclastologist and leukoblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -163,15 +174,21 @@ describe("Parser Synonym Expansion Phase 358 (Task-F396)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an leukocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an leukocytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an leukocytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an leukocytoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an leukocytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an leukocytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

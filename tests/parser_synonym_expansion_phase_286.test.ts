@@ -16,12 +16,12 @@ describe("Parser Synonym Expansion Phase 286 (Task-F324)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(
-      mapCommand("navigate one's vector of tanycytopoiesis towards the location of east", actions).action
-    ).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
+    expect(mapCommand("navigate one's vector of tanycytopoiesis towards the location of east", actions).action).toEqual(
+      {
+        type: "MOVE",
+        direction: "east",
+      }
+    );
     expect(
       mapCommand("steer one's vector of tanycytopoiesis in the direction of the coordinates of east", actions).action
     ).toEqual({
@@ -115,16 +115,21 @@ describe("Parser Synonym Expansion Phase 286 (Task-F324)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all neurotanycytologist and tanycytologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all neurotanycytologists and tanycytologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all neurotanycytologist and tanycytologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary neurotanycytologist and tanycytologist security device on chest", actions).action
+      mapCommand("bypass all neurotanycytologists and tanycytologists security devices on chest", actions).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand("disengage the primary neurotanycytologist and tanycytologist security device on chest", actions)
+        .action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -147,10 +152,12 @@ describe("Parser Synonym Expansion Phase 286 (Task-F324)", () => {
   });
 
   it("should map newly added combat verbs to FIGHT action", () => {
-    expect(mapCommand("initiate a/an uncompromisingly pugnacious confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
+    expect(mapCommand("initiate a/an uncompromisingly pugnacious confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
     expect(mapCommand("commence an uncompromisingly pugnacious confrontation against ghoul", actions).action).toEqual({
       type: "FIGHT",
       npc: "ghoul",
@@ -166,10 +173,12 @@ describe("Parser Synonym Expansion Phase 286 (Task-F324)", () => {
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an tanycytopathological face-to-face discussion with capo", actions).action).toEqual({
-      type: "TALK",
-      npc: "capo",
-    });
+    expect(mapCommand("engage in a/an tanycytopathological face-to-face discussion with capo", actions).action).toEqual(
+      {
+        type: "TALK",
+        npc: "capo",
+      }
+    );
     expect(mapCommand("strike up an tanycytopathological facetoface discussion with capo", actions).action).toEqual({
       type: "TALK",
       npc: "capo",

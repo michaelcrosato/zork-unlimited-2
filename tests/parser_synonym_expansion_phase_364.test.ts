@@ -23,14 +23,17 @@ describe("Parser Synonym Expansion Phase 364 (Cycle #416)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of mullerocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of mullerocytoclastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of mullerocytoclastopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand(
+        "direct ones vector of mullerocytoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,17 +118,29 @@ describe("Parser Synonym Expansion Phase 364 (Cycle #416)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all mullerocytoclastologist and mulleroblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all mullerocytoclastologists and mulleroblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand(
+        "deactivate all mullerocytoclastologist and mulleroblastoclastologist security devices of chest",
+        actions
+      ).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary mullerocytoclastologist and mulleroblastoclastologist security device on chest", actions)
-        .action
+      mapCommand(
+        "bypass all mullerocytoclastologists and mulleroblastoclastologists security devices on chest",
+        actions
+      ).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary mullerocytoclastologist and mulleroblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -148,30 +163,42 @@ describe("Parser Synonym Expansion Phase 364 (Cycle #416)", () => {
   });
 
   it("should map newly added combat verbs to FIGHT action", () => {
-    expect(mapCommand("initiate a/an ferociously blood-sprinkling confrontation against ghoul", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an ferociously blood-sprinkling confrontation against ghoul", actions).action
+    ).toEqual({
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("commence a/an ferociously blood-sprinkling confrontation against ghoul", actions).action).toEqual({
+    expect(
+      mapCommand("commence a/an ferociously blood-sprinkling confrontation against ghoul", actions).action
+    ).toEqual({
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("engage in a/an ferociously bloodsprinkling confrontation against ghoul", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an ferociously bloodsprinkling confrontation against ghoul", actions).action
+    ).toEqual({
       type: "FIGHT",
       npc: "ghoul",
     });
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an mullerocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an mullerocytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an mullerocytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an mullerocytoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an mullerocytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an mullerocytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

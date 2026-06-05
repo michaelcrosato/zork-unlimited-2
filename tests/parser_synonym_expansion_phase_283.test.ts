@@ -23,7 +23,8 @@ describe("Parser Synonym Expansion Phase 283 (Task-F321)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of ependymocytopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of ependymocytopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,16 +116,21 @@ describe("Parser Synonym Expansion Phase 283 (Task-F321)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all neuroependymologist and ependymologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all neuroependymologists and ependymologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all neuroependymologist and ependymologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary neuroependymologist and ependymologist security device on chest", actions).action
+      mapCommand("bypass all neuroependymologists and ependymologists security devices on chest", actions).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand("disengage the primary neuroependymologist and ependymologist security device on chest", actions)
+        .action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",

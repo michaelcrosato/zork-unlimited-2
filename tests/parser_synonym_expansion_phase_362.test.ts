@@ -23,14 +23,17 @@ describe("Parser Synonym Expansion Phase 362 (Task-F400)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of pituicytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of pituicytoclastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of pituicytoclastopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand(
+        "direct ones vector of pituicytoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,17 +118,25 @@ describe("Parser Synonym Expansion Phase 362 (Task-F400)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all pituicytoclastologist and pituiblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all pituicytoclastologists and pituiblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all pituicytoclastologist and pituiblastoclastologist security devices of chest", actions)
+        .action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary pituicytoclastologist and pituiblastoclastologist security device on chest", actions)
+      mapCommand("bypass all pituicytoclastologists and pituiblastoclastologists security devices on chest", actions)
         .action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary pituicytoclastologist and pituiblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -163,15 +174,21 @@ describe("Parser Synonym Expansion Phase 362 (Task-F400)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an pituicytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an pituicytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an pituicytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an pituicytoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an pituicytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an pituicytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

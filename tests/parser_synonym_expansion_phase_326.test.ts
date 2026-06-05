@@ -23,14 +23,19 @@ describe("Parser Synonym Expansion Phase 326 (Task-F364)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of chondroblastoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand(
+        "steer one's vector of chondroblastoclastopoiesis in the direction of the coordinates of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of chondroblastoclastopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand(
+        "direct ones vector of chondroblastoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -87,15 +92,21 @@ describe("Parser Synonym Expansion Phase 326 (Task-F364)", () => {
   });
 
   it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-    expect(mapCommand("force completely and chondroblastoclastorheologically wide open vault", actions).action).toEqual({
+    expect(mapCommand("force completely and chondroblastoclastorheologically wide open vault", actions).action).toEqual(
+      {
+        type: "OPEN",
+        target: "vault",
+      }
+    );
+    expect(
+      mapCommand("force completely and chondroblastoclasto-rheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
-    expect(mapCommand("force completely and chondroblastoclasto-rheologically wide open vault", actions).action).toEqual({
-      type: "OPEN",
-      target: "vault",
-    });
-    expect(mapCommand("force completely and chondroblastoclasto rheologically wide open vault", actions).action).toEqual({
+    expect(
+      mapCommand("force completely and chondroblastoclasto rheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
@@ -115,16 +126,29 @@ describe("Parser Synonym Expansion Phase 326 (Task-F364)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all chondroblastoclastologist and chondrocytoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all chondroblastoclastologists and chondrocytoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand(
+        "deactivate all chondroblastoclastologist and chondrocytoclastologist security devices of chest",
+        actions
+      ).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary chondroblastoclastologist and chondrocytoclastologist security device on chest", actions).action
+      mapCommand(
+        "bypass all chondroblastoclastologists and chondrocytoclastologists security devices on chest",
+        actions
+      ).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary chondroblastoclastologist and chondrocytoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -162,15 +186,21 @@ describe("Parser Synonym Expansion Phase 326 (Task-F364)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an chondroblastoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an chondroblastoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an chondroblastoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an chondroblastoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an chondroblastoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an chondroblastoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

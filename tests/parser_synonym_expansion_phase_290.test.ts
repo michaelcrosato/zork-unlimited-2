@@ -16,12 +16,12 @@ describe("Parser Synonym Expansion Phase 290 (Task-F328)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(
-      mapCommand("navigate one's vector of podocytopoiesis towards the location of east", actions).action
-    ).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
+    expect(mapCommand("navigate one's vector of podocytopoiesis towards the location of east", actions).action).toEqual(
+      {
+        type: "MOVE",
+        direction: "east",
+      }
+    );
     expect(
       mapCommand("steer one's vector of podocytopoiesis in the direction of the coordinates of east", actions).action
     ).toEqual({
@@ -115,11 +115,15 @@ describe("Parser Synonym Expansion Phase 290 (Task-F328)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all nephrologist and podocytologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all nephrologist and podocytologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all nephrologists and podocytologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("bypass all nephrologists and podocytologists security devices on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
@@ -166,10 +170,12 @@ describe("Parser Synonym Expansion Phase 290 (Task-F328)", () => {
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an podocytopathological face-to-face discussion with capo", actions).action).toEqual({
-      type: "TALK",
-      npc: "capo",
-    });
+    expect(mapCommand("engage in a/an podocytopathological face-to-face discussion with capo", actions).action).toEqual(
+      {
+        type: "TALK",
+        npc: "capo",
+      }
+    );
     expect(mapCommand("strike up an podocytopathological facetoface discussion with capo", actions).action).toEqual({
       type: "TALK",
       npc: "capo",

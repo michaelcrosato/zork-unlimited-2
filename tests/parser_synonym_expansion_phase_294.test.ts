@@ -115,10 +115,12 @@ describe("Parser Synonym Expansion Phase 294 (Task-F332)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all histiologist and pathologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
+    expect(mapCommand("deactivate all histiologist and pathologist security devices of chest", actions).action).toEqual(
+      {
+        type: "UNLOCK",
+        target: "chest",
+      }
+    );
     expect(mapCommand("bypass all histiologists and pathologists security devices on chest", actions).action).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -162,11 +164,15 @@ describe("Parser Synonym Expansion Phase 294 (Task-F332)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an histiocytopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an histiocytopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an histiocytopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an histiocytopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

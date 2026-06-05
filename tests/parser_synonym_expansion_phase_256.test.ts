@@ -115,7 +115,9 @@ describe("Parser Synonym Expansion Phase 256 (Task-F294)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all speleologist and glaciologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all speleologist and glaciologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });

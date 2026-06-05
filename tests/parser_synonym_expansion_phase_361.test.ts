@@ -23,7 +23,8 @@ describe("Parser Synonym Expansion Phase 361 (Task-F399)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of tanycytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of tanycytoclastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,17 +116,25 @@ describe("Parser Synonym Expansion Phase 361 (Task-F399)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all tanycytoclastologist and tanyblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all tanycytoclastologists and tanyblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all tanycytoclastologist and tanyblastoclastologist security devices of chest", actions)
+        .action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary tanycytoclastologist and tanyblastoclastologist security device on chest", actions)
+      mapCommand("bypass all tanycytoclastologists and tanyblastoclastologists security devices on chest", actions)
         .action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary tanycytoclastologist and tanyblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -163,15 +172,21 @@ describe("Parser Synonym Expansion Phase 361 (Task-F399)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an tanycytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an tanycytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an tanycytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an tanycytoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an tanycytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an tanycytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

@@ -23,14 +23,17 @@ describe("Parser Synonym Expansion Phase 354 (Task-F392)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of granulocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of granulocytoclastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of granulocytoclastopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand(
+        "direct ones vector of granulocytoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,17 +118,29 @@ describe("Parser Synonym Expansion Phase 354 (Task-F392)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all granulocytoclastologist and granulocytoblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all granulocytoclastologists and granulocytoblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand(
+        "deactivate all granulocytoclastologist and granulocytoblastoclastologist security devices of chest",
+        actions
+      ).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary granulocytoclastologist and granulocytoblastoclastologist security device on chest", actions)
-        .action
+      mapCommand(
+        "bypass all granulocytoclastologists and granulocytoblastoclastologists security devices on chest",
+        actions
+      ).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary granulocytoclastologist and granulocytoblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -163,15 +178,21 @@ describe("Parser Synonym Expansion Phase 354 (Task-F392)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an granulocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an granulocytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an granulocytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an granulocytoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an granulocytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an granulocytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

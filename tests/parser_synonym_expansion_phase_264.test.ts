@@ -16,12 +16,12 @@ describe("Parser Synonym Expansion Phase 264 (Task-F302)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(
-      mapCommand("navigate one's vector of monocytogenesis towards the location of east", actions).action
-    ).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
+    expect(mapCommand("navigate one's vector of monocytogenesis towards the location of east", actions).action).toEqual(
+      {
+        type: "MOVE",
+        direction: "east",
+      }
+    );
     expect(
       mapCommand("steer one's vector of monocytogenesis in the direction of the coordinates of east", actions).action
     ).toEqual({
@@ -115,7 +115,9 @@ describe("Parser Synonym Expansion Phase 264 (Task-F302)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all immunologist and hematologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all immunologist and hematologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });

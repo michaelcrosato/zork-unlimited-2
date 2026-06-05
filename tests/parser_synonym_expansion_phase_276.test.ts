@@ -23,7 +23,8 @@ describe("Parser Synonym Expansion Phase 276 (Task-F314)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of chondroclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of chondroclastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,11 +116,15 @@ describe("Parser Synonym Expansion Phase 276 (Task-F314)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all chondrologist and rheumatologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all chondrologist and rheumatologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all chondrologists and rheumatologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("bypass all chondrologists and rheumatologists security devices on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });

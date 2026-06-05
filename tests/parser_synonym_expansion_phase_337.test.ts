@@ -23,14 +23,19 @@ describe("Parser Synonym Expansion Phase 337 (Task-F375)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of myoepitheliocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand(
+        "steer one's vector of myoepitheliocytoclastopoiesis in the direction of the coordinates of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of myoepitheliocytoclastopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand(
+        "direct ones vector of myoepitheliocytoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -87,44 +92,69 @@ describe("Parser Synonym Expansion Phase 337 (Task-F375)", () => {
   });
 
   it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-    expect(mapCommand("force completely and myoepitheliocytoclastorheologically wide open vault", actions).action).toEqual({
+    expect(
+      mapCommand("force completely and myoepitheliocytoclastorheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
-    expect(mapCommand("force completely and myoepitheliocytoclasto-rheologically wide open vault", actions).action).toEqual({
+    expect(
+      mapCommand("force completely and myoepitheliocytoclasto-rheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
-    expect(mapCommand("force completely and myoepitheliocytoclasto rheologically wide open vault", actions).action).toEqual({
+    expect(
+      mapCommand("force completely and myoepitheliocytoclasto rheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
 
-    expect(mapCommand("fasten completely and myoepitheliocytoclasto-rheologically closed door", actions).action).toEqual({
+    expect(
+      mapCommand("fasten completely and myoepitheliocytoclasto-rheologically closed door", actions).action
+    ).toEqual({
       type: "CLOSE",
       target: "door",
     });
-    expect(mapCommand("fasten completely and myoepitheliocytoclastorheologically closed door", actions).action).toEqual({
-      type: "CLOSE",
-      target: "door",
-    });
-    expect(mapCommand("fasten completely and myoepitheliocytoclasto rheologically closed door", actions).action).toEqual({
+    expect(mapCommand("fasten completely and myoepitheliocytoclastorheologically closed door", actions).action).toEqual(
+      {
+        type: "CLOSE",
+        target: "door",
+      }
+    );
+    expect(
+      mapCommand("fasten completely and myoepitheliocytoclasto rheologically closed door", actions).action
+    ).toEqual({
       type: "CLOSE",
       target: "door",
     });
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all myoepitheliocytoclastologist and myoepithelioblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all myoepitheliocytoclastologists and myoepithelioblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand(
+        "deactivate all myoepitheliocytoclastologist and myoepithelioblastoclastologist security devices of chest",
+        actions
+      ).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary myoepitheliocytoclastologist and myoepithelioblastoclastologist security device on chest", actions).action
+      mapCommand(
+        "bypass all myoepitheliocytoclastologists and myoepithelioblastoclastologists security devices on chest",
+        actions
+      ).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary myoepitheliocytoclastologist and myoepithelioblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -132,10 +162,12 @@ describe("Parser Synonym Expansion Phase 337 (Task-F375)", () => {
   });
 
   it("should map newly added use verbs to USE action", () => {
-    expect(mapCommand("harness the full myoepitheliocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-      type: "USE",
-      target: "chest",
-    });
+    expect(mapCommand("harness the full myoepitheliocytoclastokinetic deployment of lockpick", actions).action).toEqual(
+      {
+        type: "USE",
+        target: "chest",
+      }
+    );
     expect(mapCommand("bring into active myoepitheliocytoclastokinetic deployment lockpick", actions).action).toEqual({
       type: "USE",
       target: "chest",
@@ -162,15 +194,21 @@ describe("Parser Synonym Expansion Phase 337 (Task-F375)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an myoepitheliocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an myoepitheliocytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an myoepitheliocytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an myoepitheliocytoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an myoepitheliocytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an myoepitheliocytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

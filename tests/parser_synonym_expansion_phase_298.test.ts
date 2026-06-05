@@ -16,12 +16,12 @@ describe("Parser Synonym Expansion Phase 298 (Task-F336)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(
-      mapCommand("navigate one's vector of pericytopoiesis towards the location of east", actions).action
-    ).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
+    expect(mapCommand("navigate one's vector of pericytopoiesis towards the location of east", actions).action).toEqual(
+      {
+        type: "MOVE",
+        direction: "east",
+      }
+    );
     expect(
       mapCommand("steer one's vector of pericytopoiesis in the direction of the coordinates of east", actions).action
     ).toEqual({
@@ -115,7 +115,9 @@ describe("Parser Synonym Expansion Phase 298 (Task-F336)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all pericytologist and venologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all pericytologist and venologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
@@ -166,10 +168,12 @@ describe("Parser Synonym Expansion Phase 298 (Task-F336)", () => {
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an pericytopathological face-to-face discussion with capo", actions).action).toEqual({
-      type: "TALK",
-      npc: "capo",
-    });
+    expect(mapCommand("engage in a/an pericytopathological face-to-face discussion with capo", actions).action).toEqual(
+      {
+        type: "TALK",
+        npc: "capo",
+      }
+    );
     expect(mapCommand("strike up an pericytopathological facetoface discussion with capo", actions).action).toEqual({
       type: "TALK",
       npc: "capo",

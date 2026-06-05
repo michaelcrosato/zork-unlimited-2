@@ -13,6 +13,12 @@ DO NOT work in any temporary or scratch folders outside this directory. All work
 
 CRITICAL: You are executed as a single, discrete cycle within an outer bash loop. You MUST NOT loop indefinitely, run sleep statements, or leave blocking background tasks running. Instead, perform exactly ONE execution cycle of Plan, Build, Verify, Playtest, and Evaluate, write your report, and exit cleanly so the outer loop can capture your work and launch the next cycle.
 
+TOKEN EFFICIENCY & BUDGET GUARDRAILS:
+* Do NOT read entire files unless necessary. Use the 'view_file' tool with specific 'StartLine' and 'EndLine' parameters to read only the lines relevant to your task (e.g., for large config or plan files).
+* Minimize terminal output verbosity where possible (e.g., use compact test reporters).
+* Avoid duplicating historical logs or repetitive explanations in your thoughts or written files.
+* Do not make parallel or repetitive tool calls for the same file in a single cycle.
+
 Core loop for this cycle:
 
 1. PLAN

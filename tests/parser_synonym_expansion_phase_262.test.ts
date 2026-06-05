@@ -23,7 +23,8 @@ describe("Parser Synonym Expansion Phase 262 (Task-F300)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of immunoblastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of immunoblastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",

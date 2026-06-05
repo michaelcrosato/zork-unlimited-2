@@ -23,7 +23,8 @@ describe("Parser Synonym Expansion Phase 301 (Task-F339)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of rhabdomyocytopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of rhabdomyocytopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,11 +116,15 @@ describe("Parser Synonym Expansion Phase 301 (Task-F339)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all rhabdomyologist and sarcologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all rhabdomyologist and sarcologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all rhabdomyologists and sarcologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("bypass all rhabdomyologists and sarcologists security devices on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
@@ -162,11 +167,15 @@ describe("Parser Synonym Expansion Phase 301 (Task-F339)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an rhabdomyopathological face to face discussion with capo", actions).action).toEqual({
-      type: "TALK",
-      npc: "capo",
-    });
-    expect(mapCommand("engage in a/an rhabdomyopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(mapCommand("initiate a/an rhabdomyopathological face to face discussion with capo", actions).action).toEqual(
+      {
+        type: "TALK",
+        npc: "capo",
+      }
+    );
+    expect(
+      mapCommand("engage in a/an rhabdomyopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

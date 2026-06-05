@@ -23,14 +23,19 @@ describe("Parser Synonym Expansion Phase 357 (Task-F395)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of megakaryocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand(
+        "steer one's vector of megakaryocytoclastopoiesis in the direction of the coordinates of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of megakaryocytoclastopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand(
+        "direct ones vector of megakaryocytoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -87,15 +92,21 @@ describe("Parser Synonym Expansion Phase 357 (Task-F395)", () => {
   });
 
   it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-    expect(mapCommand("force completely and megakaryocytoclastorheologically wide open vault", actions).action).toEqual({
+    expect(mapCommand("force completely and megakaryocytoclastorheologically wide open vault", actions).action).toEqual(
+      {
+        type: "OPEN",
+        target: "vault",
+      }
+    );
+    expect(
+      mapCommand("force completely and megakaryocytoclasto-rheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
-    expect(mapCommand("force completely and megakaryocytoclasto-rheologically wide open vault", actions).action).toEqual({
-      type: "OPEN",
-      target: "vault",
-    });
-    expect(mapCommand("force completely and megakaryocytoclasto rheologically wide open vault", actions).action).toEqual({
+    expect(
+      mapCommand("force completely and megakaryocytoclasto rheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
@@ -115,17 +126,29 @@ describe("Parser Synonym Expansion Phase 357 (Task-F395)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all megakaryocytoclastologist and megakaryoblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all megakaryocytoclastologists and megakaryoblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand(
+        "deactivate all megakaryocytoclastologist and megakaryoblastoclastologist security devices of chest",
+        actions
+      ).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary megakaryocytoclastologist and megakaryoblastoclastologist security device on chest", actions)
-        .action
+      mapCommand(
+        "bypass all megakaryocytoclastologists and megakaryoblastoclastologists security devices on chest",
+        actions
+      ).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary megakaryocytoclastologist and megakaryoblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -148,30 +171,42 @@ describe("Parser Synonym Expansion Phase 357 (Task-F395)", () => {
   });
 
   it("should map newly added combat verbs to FIGHT action", () => {
-    expect(mapCommand("initiate a/an ferociously blood-drenching confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
-    expect(mapCommand("commence a/an ferociously blood-drenching confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
-    expect(mapCommand("engage in a/an ferociously blooddrenching confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
+    expect(mapCommand("initiate a/an ferociously blood-drenching confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
+    expect(mapCommand("commence a/an ferociously blood-drenching confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
+    expect(mapCommand("engage in a/an ferociously blooddrenching confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an megakaryocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an megakaryocytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an megakaryocytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an megakaryocytoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an megakaryocytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an megakaryocytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

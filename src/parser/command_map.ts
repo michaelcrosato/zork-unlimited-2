@@ -3703,11 +3703,12 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
   return { error: errorMsg };
 }
 
-
 import { registerSynonyms1 } from "./command_map_synonyms_1.js";
 import { registerSynonyms2 } from "./command_map_synonyms_2.js";
+import { registerSynonymsGenerated } from "./command_map_synonyms_generated.js";
 
 registerSynonyms1(VERB_CATEGORIES, compoundVerbs, SYNONYM_GROUPS);
 registerSynonyms2(VERB_CATEGORIES, compoundVerbs, SYNONYM_GROUPS);
+registerSynonymsGenerated(VERB_CATEGORIES, compoundVerbs, SYNONYM_GROUPS);
 
 compoundVerbs.sort((a, b) => b.length - a.length);

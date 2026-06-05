@@ -4,8 +4,8 @@
   "description": "AI-authored deterministic text-adventure engine with headless core, schema validation, and perfect replayability",
   "main": "dist/index.js",
   "scripts": {
-    "test": "vitest run --exclude **/dist/** --exclude tests/mcp_client.test.ts",
-    "test:watch": "vitest --exclude **/dist/** --exclude tests/mcp_client.test.ts",
+    "test": "vitest run --reporter=dot --exclude **/dist/** --exclude tests/mcp_client.test.ts",
+    "test:watch": "vitest --reporter=dot --exclude **/dist/** --exclude tests/mcp_client.test.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",

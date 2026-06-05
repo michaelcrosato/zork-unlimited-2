@@ -23,14 +23,17 @@ describe("Parser Synonym Expansion Phase 319 (Task-F357)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of enamelocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of enamelocytoclastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of enamelocytoclastopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand(
+        "direct ones vector of enamelocytoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,16 +118,29 @@ describe("Parser Synonym Expansion Phase 319 (Task-F357)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all enamelocytoclastologist and enameloblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all enamelocytoclastologists and enameloblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand(
+        "deactivate all enamelocytoclastologist and enameloblastoclastologist security devices of chest",
+        actions
+      ).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary enamelocytoclastologist and enameloblastoclastologist security device on chest", actions).action
+      mapCommand(
+        "bypass all enamelocytoclastologists and enameloblastoclastologists security devices on chest",
+        actions
+      ).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary enamelocytoclastologist and enameloblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -155,22 +171,30 @@ describe("Parser Synonym Expansion Phase 319 (Task-F357)", () => {
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("engage in a/an ferociously bloodspattered confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
+    expect(mapCommand("engage in a/an ferociously bloodspattered confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an enamelocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an enamelocytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an enamelocytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an enamelocytoclastopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an enamelocytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an enamelocytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

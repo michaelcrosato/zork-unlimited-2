@@ -48,3 +48,31 @@ Following our precise, deterministic state fixes in the mock playtester logic (`
 
 *   **Hypothesis**: Our mock playtesting personas are now highly robust and successfully verify complex paths. However, the `MockLlmClient` uses hardcoded path logic. A real LLM playtester (using `ApiLlmClient` with real model API keys) might still trigger parser edge cases or soft-locks when exploring more creative, unguided text commands.
 *   **Next Cycle suggestion (AF-08)**: Introduce and validate Stage 2 procedural rooms or dynamic content hooks to expand the "unlimited" capacity of the engine. Create a new test content pack `unlimited_forest.yaml` featuring randomly generated room layouts, item locations, and key-door locks to rigorously check solver pathfinding resilience.
+
+---
+
+## 🌀 Cycle #410: Automated Parser Synonym Generation (Goal)
+* **Date**: 2026-06-04
+* **Status**: 🟢 COMPLETE (Synonym generator fully operational, integrated, tested, and verified green)
+
+### 📊 Baseline Assessment & Quantitative Metrics
+
+Prior to this cycle, LLM token drain occurred because parser synonyms were manually and statically coded into separate files (`src/parser/command_map_synonyms_2.ts`), causing duplicate configurations, repetitive tasks, and poor code hygiene.
+
+Following implementation:
+
+| Metric | Pre-Cycle Baseline | Post-Cycle Outcome | Status |
+| :--- | :---: | :---: | :---: |
+| **TypeScript Compilation (`tsc`)** | 🟢 SUCCESS | 🟢 SUCCESS | No errors |
+| **Vitest Unit Test Pass Rate** | 4325 / 4325 (100%) | **4333 / 4333 (100%)** | 🟢 ALL PASS |
+| **Automated Generator Script** | ❌ NONE | 🟢 SUCCESS | Writes generated synonyms and generated tests |
+| **Code Hygiene** | 🔴 Duplicate/Manual mappings | 🟢 Clean / Single Source of Truth | Reverted manually coded Phase 368 synonyms |
+
+### 🔍 Qualitative Observations & Diagnosed Issues
+1. **Generator Implementation**:
+   * Created and integrated `src/parser/tools/generate_synonyms.ts` to output `src/parser/command_map_synonyms_generated.ts` and `tests/parser_synonym_expansion_generated.test.ts`.
+2. **De-duplication**:
+   * Removed Phase 368 manual mappings from `src/parser/command_map_synonyms_2.ts` and deleted the duplicate manual test `tests/parser_synonym_expansion_phase_368.test.ts`.
+3. **Integration**:
+   * Configured `src/parser/command_map.ts` to load `registerSynonymsGenerated` alongside other registers.
+

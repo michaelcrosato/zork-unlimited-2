@@ -16,9 +16,7 @@ describe("Parser Synonym Expansion Phase 259 (Task-F297)", () => {
   ];
 
   it("should map newly added movement verbs to MOVE action", () => {
-    expect(
-      mapCommand("navigate one's vector of monopoiesis towards the location of east", actions).action
-    ).toEqual({
+    expect(mapCommand("navigate one's vector of monopoiesis towards the location of east", actions).action).toEqual({
       type: "MOVE",
       direction: "east",
     });
@@ -29,8 +27,7 @@ describe("Parser Synonym Expansion Phase 259 (Task-F297)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("direct ones vector of monopoiesis towards the coordinates of the location of east", actions)
-        .action
+      mapCommand("direct ones vector of monopoiesis towards the coordinates of the location of east", actions).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,11 +112,15 @@ describe("Parser Synonym Expansion Phase 259 (Task-F297)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all ichthyologist and herpetologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all ichthyologist and herpetologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all ichthyologists and herpetologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("bypass all ichthyologists and herpetologists security devices on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });

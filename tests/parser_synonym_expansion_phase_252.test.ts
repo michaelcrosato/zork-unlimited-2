@@ -23,7 +23,8 @@ describe("Parser Synonym Expansion Phase 252 (Task-F290)", () => {
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of pronormoblastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand("steer one's vector of pronormoblastopoiesis in the direction of the coordinates of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -115,11 +116,15 @@ describe("Parser Synonym Expansion Phase 252 (Task-F290)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all sigillographer and vexillologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all sigillographer and vexillologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all sigillographers and vexillologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand("bypass all sigillographers and vexillologists security devices on chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });

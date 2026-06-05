@@ -115,7 +115,9 @@ describe("Parser Synonym Expansion Phase 275 (Task-F313)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all osteologist and chondrologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all osteologist and chondrologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
@@ -155,10 +157,12 @@ describe("Parser Synonym Expansion Phase 275 (Task-F313)", () => {
       type: "FIGHT",
       npc: "ghoul",
     });
-    expect(mapCommand("engage in an unconditionally antagonistic confrontation against ghoul", actions).action).toEqual({
-      type: "FIGHT",
-      npc: "ghoul",
-    });
+    expect(mapCommand("engage in an unconditionally antagonistic confrontation against ghoul", actions).action).toEqual(
+      {
+        type: "FIGHT",
+        npc: "ghoul",
+      }
+    );
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {

@@ -17,20 +17,26 @@ describe("Parser Synonym Expansion Phase 336 (Task-F374)", () => {
 
   it("should map newly added movement verbs to MOVE action", () => {
     expect(
-      mapCommand("navigate one's vector of neuroepitheliocytoclastopoiesis towards the location of east", actions).action
-    ).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
-    expect(
-      mapCommand("steer one's vector of neuroepitheliocytoclastopoiesis in the direction of the coordinates of east", actions).action
-    ).toEqual({
-      type: "MOVE",
-      direction: "east",
-    });
-    expect(
-      mapCommand("direct ones vector of neuroepitheliocytoclastopoiesis towards the coordinates of the location of east", actions)
+      mapCommand("navigate one's vector of neuroepitheliocytoclastopoiesis towards the location of east", actions)
         .action
+    ).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
+    expect(
+      mapCommand(
+        "steer one's vector of neuroepitheliocytoclastopoiesis in the direction of the coordinates of east",
+        actions
+      ).action
+    ).toEqual({
+      type: "MOVE",
+      direction: "east",
+    });
+    expect(
+      mapCommand(
+        "direct ones vector of neuroepitheliocytoclastopoiesis towards the coordinates of the location of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -87,44 +93,69 @@ describe("Parser Synonym Expansion Phase 336 (Task-F374)", () => {
   });
 
   it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-    expect(mapCommand("force completely and neuroepitheliocytoclastorheologically wide open vault", actions).action).toEqual({
+    expect(
+      mapCommand("force completely and neuroepitheliocytoclastorheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
-    expect(mapCommand("force completely and neuroepitheliocytoclasto-rheologically wide open vault", actions).action).toEqual({
+    expect(
+      mapCommand("force completely and neuroepitheliocytoclasto-rheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
-    expect(mapCommand("force completely and neuroepitheliocytoclasto rheologically wide open vault", actions).action).toEqual({
+    expect(
+      mapCommand("force completely and neuroepitheliocytoclasto rheologically wide open vault", actions).action
+    ).toEqual({
       type: "OPEN",
       target: "vault",
     });
 
-    expect(mapCommand("fasten completely and neuroepitheliocytoclasto-rheologically closed door", actions).action).toEqual({
+    expect(
+      mapCommand("fasten completely and neuroepitheliocytoclasto-rheologically closed door", actions).action
+    ).toEqual({
       type: "CLOSE",
       target: "door",
     });
-    expect(mapCommand("fasten completely and neuroepitheliocytoclastorheologically closed door", actions).action).toEqual({
+    expect(
+      mapCommand("fasten completely and neuroepitheliocytoclastorheologically closed door", actions).action
+    ).toEqual({
       type: "CLOSE",
       target: "door",
     });
-    expect(mapCommand("fasten completely and neuroepitheliocytoclasto rheologically closed door", actions).action).toEqual({
+    expect(
+      mapCommand("fasten completely and neuroepitheliocytoclasto rheologically closed door", actions).action
+    ).toEqual({
       type: "CLOSE",
       target: "door",
     });
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all neuroepitheliocytoclastologist and neuroepithelioblastoclastologist security devices of chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
-    expect(mapCommand("bypass all neuroepitheliocytoclastologists and neuroepithelioblastoclastologists security devices on chest", actions).action).toEqual({
+    expect(
+      mapCommand(
+        "deactivate all neuroepitheliocytoclastologist and neuroepithelioblastoclastologist security devices of chest",
+        actions
+      ).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
     expect(
-      mapCommand("disengage the primary neuroepitheliocytoclastologist and neuroepithelioblastoclastologist security device on chest", actions).action
+      mapCommand(
+        "bypass all neuroepitheliocytoclastologists and neuroepithelioblastoclastologists security devices on chest",
+        actions
+      ).action
+    ).toEqual({
+      type: "UNLOCK",
+      target: "chest",
+    });
+    expect(
+      mapCommand(
+        "disengage the primary neuroepitheliocytoclastologist and neuroepithelioblastoclastologist security device on chest",
+        actions
+      ).action
     ).toEqual({
       type: "UNLOCK",
       target: "chest",
@@ -132,14 +163,18 @@ describe("Parser Synonym Expansion Phase 336 (Task-F374)", () => {
   });
 
   it("should map newly added use verbs to USE action", () => {
-    expect(mapCommand("harness the full neuroepitheliocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+    expect(
+      mapCommand("harness the full neuroepitheliocytoclastokinetic deployment of lockpick", actions).action
+    ).toEqual({
       type: "USE",
       target: "chest",
     });
-    expect(mapCommand("bring into active neuroepitheliocytoclastokinetic deployment lockpick", actions).action).toEqual({
-      type: "USE",
-      target: "chest",
-    });
+    expect(mapCommand("bring into active neuroepitheliocytoclastokinetic deployment lockpick", actions).action).toEqual(
+      {
+        type: "USE",
+        target: "chest",
+      }
+    );
     expect(mapCommand("make complete neuroepitheliocytoclastokinetic deployment of lockpick", actions).action).toEqual({
       type: "USE",
       target: "chest",
@@ -162,15 +197,22 @@ describe("Parser Synonym Expansion Phase 336 (Task-F374)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an neuroepitheliocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an neuroepitheliocytoclastopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an neuroepitheliocytoclastopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an neuroepitheliocytoclastopathological face-to-face discussion with capo", actions)
+        .action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("strike up an neuroepitheliocytoclastopathological facetoface discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("strike up an neuroepitheliocytoclastopathological facetoface discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });

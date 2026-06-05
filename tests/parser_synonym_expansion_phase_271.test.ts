@@ -115,14 +115,18 @@ describe("Parser Synonym Expansion Phase 271 (Task-F309)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all cardiologist and pulmonologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all cardiologist and pulmonologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all cardiologists and pulmonologists security devices on chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
+    expect(mapCommand("bypass all cardiologists and pulmonologists security devices on chest", actions).action).toEqual(
+      {
+        type: "UNLOCK",
+        target: "chest",
+      }
+    );
     expect(
       mapCommand("disengage the primary cardiologist and pulmonologist security device on chest", actions).action
     ).toEqual({

@@ -115,14 +115,18 @@ describe("Parser Synonym Expansion Phase 304 (Task-F342)", () => {
   });
 
   it("should map newly added unlock verbs to UNLOCK action", () => {
-    expect(mapCommand("deactivate all synoviologist and arthrologist security devices of chest", actions).action).toEqual({
+    expect(
+      mapCommand("deactivate all synoviologist and arthrologist security devices of chest", actions).action
+    ).toEqual({
       type: "UNLOCK",
       target: "chest",
     });
-    expect(mapCommand("bypass all synoviologists and arthrologists security devices on chest", actions).action).toEqual({
-      type: "UNLOCK",
-      target: "chest",
-    });
+    expect(mapCommand("bypass all synoviologists and arthrologists security devices on chest", actions).action).toEqual(
+      {
+        type: "UNLOCK",
+        target: "chest",
+      }
+    );
     expect(
       mapCommand("disengage the primary synoviologist and arthrologist security device on chest", actions).action
     ).toEqual({
@@ -162,11 +166,15 @@ describe("Parser Synonym Expansion Phase 304 (Task-F342)", () => {
   });
 
   it("should map newly added dialogue verbs to TALK action", () => {
-    expect(mapCommand("initiate a/an synoviocytopathological face to face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("initiate a/an synoviocytopathological face to face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
-    expect(mapCommand("engage in a/an synoviocytopathological face-to-face discussion with capo", actions).action).toEqual({
+    expect(
+      mapCommand("engage in a/an synoviocytopathological face-to-face discussion with capo", actions).action
+    ).toEqual({
       type: "TALK",
       npc: "capo",
     });
