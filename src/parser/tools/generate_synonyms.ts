@@ -98,7 +98,21 @@ const CELLS = [
   { prefix: "cementoblastocytoclast", base: "cementoblast" },
   { prefix: "cementocytocytoclast", base: "cementocyte" },
   { prefix: "osteoclastocytoclast", base: "osteoclast" },
-  { prefix: "chondroclastocytoclast", base: "chondroclast" }
+  { prefix: "chondroclastocytoclast", base: "chondroclast" },
+  { prefix: "spermatocytoclast", base: "spermatocyte" },
+  { prefix: "oocytoclast", base: "oocyte" },
+  { prefix: "neurogliocytoclast", base: "neuroglia" },
+  { prefix: "ependymoblastocytoclast", base: "ependymoblast" },
+  { prefix: "spongioblastocytoclast", base: "spongioblast" },
+  { prefix: "astroblastocytoclast", base: "astroblast" },
+  { prefix: "oligodendroblastocytoclast", base: "oligodendroblast" },
+  { prefix: "syncytiotrophoblastocytoclast", base: "syncytiotrophoblast" },
+  { prefix: "cytotrophoblastocytoclast", base: "cytotrophoblast" },
+  { prefix: "normoblastocytoclast", base: "normoblast" },
+  { prefix: "megakaryoblastocytoclast", base: "megakaryoblast" },
+  { prefix: "promyelocytocytoclast", base: "promyelocyte" },
+  { prefix: "metamyelocytocytoclast", base: "metamyelocyte" },
+  { prefix: "histioblastocytoclast", base: "histioblast" }
 ];
 
 const ELEMENTS = [
@@ -215,7 +229,23 @@ const ELEMENTS = [
   "moscovium",
   "livermorium",
   "tennessine",
-  "oganesson"
+  "oganesson",
+  "deuterium",
+  "tritium",
+  "mithril",
+  "adamant",
+  "orichalcum",
+  "electrum",
+  "steel",
+  "bronze",
+  "brass",
+  "pewter",
+  "amalgam",
+  "solder",
+  "invar",
+  "nichrome",
+  "alinico",
+  "stellite"
 ];
 
 const COMBAT_ACTIONS = [
