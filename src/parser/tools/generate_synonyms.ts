@@ -602,7 +602,23 @@ const CELLS = [
   { prefix: "micromereblastocytoclast", base: "micromereblast" },
   { prefix: "macromeresocytoclast", base: "macromere" },
   { prefix: "macromereblastocytoclast", base: "macromereblast" },
-  { prefix: "blastocystocytoclast", base: "blastocyst" }
+  { prefix: "blastocystocytoclast", base: "blastocyst" },
+  { prefix: "axonemocytoclast", base: "axoneme" },
+  { prefix: "axonemoblastocytoclast", base: "axonemoblast" },
+  { prefix: "asterocytoclast", base: "aster" },
+  { prefix: "asteroblastocytoclast", base: "asterblast" },
+  { prefix: "nuclearlaminacytoclast", base: "nuclearlamina" },
+  { prefix: "nuclearlaminablastocytoclast", base: "nuclearlaminablast" },
+  { prefix: "reticulopodocytoclast", base: "reticulopodia" },
+  { prefix: "reticulopodoblastocytoclast", base: "reticulopodiablast" },
+  { prefix: "axopodocytoclast", base: "axopodia" },
+  { prefix: "axopodoblastocytoclast", base: "axopodiablast" },
+  { prefix: "haptonemacytoclast", base: "haptonema" },
+  { prefix: "haptonemoblastocytoclast", base: "haptonemablast" },
+  { prefix: "cytostomecytoclast", base: "cytostome" },
+  { prefix: "cytostomeblastocytoclast", base: "cytostomeblast" },
+  { prefix: "cytoproctcytoclast", base: "cytoproct" },
+  { prefix: "cytoproctblastocytoclast", base: "cytoproctblast" }
 ];
 
 const ELEMENTS = [
@@ -1252,7 +1268,23 @@ const ELEMENTS = [
   "tetrahedriteite",
   "enargiteite",
   "pyrrhotiteite",
-  "pentlanditeite"
+  "pentlanditeite",
+  "jacobsite",
+  "jacobsiteite",
+  "trevorite",
+  "trevoriteite",
+  "magnesioferrite",
+  "magnesioferriteite",
+  "ulvospinel",
+  "ulvospinelite",
+  "pseudobrookite",
+  "pseudobrookiteite",
+  "hematophanite",
+  "hematophaniteite",
+  "magnetoplumbite",
+  "magnetoplumbiteite",
+  "hibonite",
+  "hiboniteite"
 ];
 
 const COMBAT_ACTIONS = [
