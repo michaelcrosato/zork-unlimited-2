@@ -428,7 +428,25 @@ const CELLS = [
   { prefix: "importincytoclast", base: "importin" },
   { prefix: "importinblastocytoclast", base: "importinblast" },
   { prefix: "exportincytoclast", base: "exportin" },
-  { prefix: "exportinblastocytoclast", base: "exportinblast" }
+  { prefix: "exportinblastocytoclast", base: "exportinblast" },
+  { prefix: "adaptincytoclast", base: "adaptin" },
+  { prefix: "adaptinblastocytoclast", base: "adaptinblast" },
+  { prefix: "clathrinadaptorcytoclast", base: "clathrinadaptor" },
+  { prefix: "clathrinadaptorblastocytoclast", base: "clathrinadaptorblast" },
+  { prefix: "coatomercytoclast", base: "coatomer" },
+  { prefix: "coatomerblastocytoclast", base: "coatomerblast" },
+  { prefix: "dyneincytoclast", base: "dynein" },
+  { prefix: "dyneinblastocytoclast", base: "dyneinblast" },
+  { prefix: "kinesincytoclast", base: "kinesin" },
+  { prefix: "kinesinblastocytoclast", base: "kinesinblast" },
+  { prefix: "myosincytoclast", base: "myosin" },
+  { prefix: "myosinblastocytoclast", base: "myosinblast" },
+  { prefix: "tropomyosincytoclast", base: "tropomyosin" },
+  { prefix: "tropomyosinblastocytoclast", base: "tropomyosinblast" },
+  { prefix: "actincytoclast", base: "actin" },
+  { prefix: "actinblastocytoclast", base: "actinblast" },
+  { prefix: "tubulincytoclast", base: "tubulin" },
+  { prefix: "tubulinblastocytoclast", base: "tubulinblast" }
 ];
 
 const ELEMENTS = [
@@ -910,7 +928,23 @@ const ELEMENTS = [
   "dolomititite",
   "magnesitite",
   "magnesititite",
-  "ankeritite"
+  "ankeritite",
+  "ankerititite",
+  "kutnohorite",
+  "kutnohoritite",
+  "dolomitititite",
+  "minnesotite",
+  "minnesotitite",
+  "greenalite",
+  "greenalitite",
+  "chamosite",
+  "chamositite",
+  "cronstedtite",
+  "cronstedtitite",
+  "berthierine",
+  "berthierinitite",
+  "lizardititite",
+  "antigorititite"
 ];
 
 const COMBAT_ACTIONS = [
@@ -926,7 +960,7 @@ const COMBAT_ACTIONS = [
   "blood-pouring",
 ];
 
-function getGreekNumber(n: number): string {
+export function getGreekNumber(n: number): string {
   const units = ["", "hena", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "ennea"];
 
   if (n < 10) return units[n];
@@ -1467,6 +1501,28 @@ function generateSynonymsFile() {
 function generateTestsFile() {
   let content = `import { describe, it, expect } from "vitest";
 import { mapCommand } from "../src/parser/command_map.js";
+import { getGreekNumber } from "../src/parser/tools/generate_synonyms.js";
+
+describe("Greek Number Generation Verification", () => {
+  it("should return valid Greek numbers up to 300", () => {
+    for (let i = 1; i <= 300; i++) {
+      const name = getGreekNumber(i);
+      expect(name).toBeDefined();
+      expect(typeof name).toBe("string");
+      expect(name.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("should return correct specific values", () => {
+    expect(getGreekNumber(1)).toBe("hena");
+    expect(getGreekNumber(10)).toBe("decarchy");
+    expect(getGreekNumber(50)).toBe("pentacontarchy");
+    expect(getGreekNumber(100)).toBe("hectarchy");
+    expect(getGreekNumber(200)).toBe("dihectarchy");
+    expect(getGreekNumber(250)).toBe("pentacontadihectarchy");
+    expect(getGreekNumber(300)).toBe("trihectarchy");
+  });
+});
 
 describe("Parser Synonym Expansion (Generated)", () => {
   const actions = [
