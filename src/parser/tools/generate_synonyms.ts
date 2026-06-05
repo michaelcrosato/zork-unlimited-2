@@ -271,7 +271,24 @@ const CELLS = [
   { prefix: "endosomeblastocytoclast", base: "endosomeblast" },
   { prefix: "melanosomeblastocytoclast", base: "melanosomeblast" },
   { prefix: "dictyosomeblastocytoclast", base: "dictyosomeblast" },
-  { prefix: "carboxysomeblastocytoclast", base: "carboxysomeblast" }
+  { prefix: "carboxysomeblastocytoclast", base: "carboxysomeblast" },
+  { prefix: "protoplasmblastocytoclast", base: "protoplasmblast" },
+  { prefix: "ectoplasmblastocytoclast", base: "ectoplasmblast" },
+  { prefix: "endoplasmblastocytoclast", base: "endoplasmblast" },
+  { prefix: "periplasmblastocytoclast", base: "periplasmblast" },
+  { prefix: "tonoplastblastocytoclast", base: "tonoplastblast" },
+  { prefix: "rhizoplastblastocytoclast", base: "rhizoplastblast" },
+  { prefix: "apoplastblastocytoclast", base: "apoplastblast" },
+  { prefix: "symplastblastocytoclast", base: "symplastblast" },
+  { prefix: "nucleolosomeblastocytoclast", base: "nucleolosomeblast" },
+  { prefix: "parasomeblastocytoclast", base: "parasomeblast" },
+  { prefix: "karyosomeblastocytoclast", base: "karyosomeblast" },
+  { prefix: "phagosomeblastocytoclast", base: "phagosomeblast" },
+  { prefix: "acrosomeblastocytoclast", base: "acrosomeblast" },
+  { prefix: "cytosomeblastocytoclast", base: "cytosomeblast" },
+  { prefix: "microbodyblastocytoclast", base: "microbodyblast" },
+  { prefix: "blepharoplastblastocytoclast", base: "blepharoplastblast" },
+  { prefix: "kinetoplastblastocytoclast", base: "kinetoplastblast" }
 ];
 
 const ELEMENTS = [
@@ -582,7 +599,26 @@ const ELEMENTS = [
   "walpurgitite",
   "torbernitite",
   "autunitite",
-  "carnotitite"
+  "carnotitite",
+  "tyuyamunitite",
+  "urancircitite",
+  "coffinitite",
+  "branneritite",
+  "fergusonitite",
+  "samarskitite",
+  "euxenitite",
+  "polycrasitite",
+  "gadolinitite",
+  "allanitite",
+  "parisitite",
+  "synchysitite",
+  "ancylitite",
+  "loparitite",
+  "latrappitite",
+  "lueshitite",
+  "natronositite",
+  "thorianitite",
+  "uraninitite"
 ];
 
 const COMBAT_ACTIONS = [
