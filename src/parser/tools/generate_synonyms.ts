@@ -758,8 +758,27 @@ const CELLS = [
   { prefix: "endosomoidcytoclast", base: "endosomoid" },
   { prefix: "endosomoidblastocytoclast", base: "endosomoidblast" },
   { prefix: "melanosomoidcytoclast", base: "melanosomoid" },
-  { prefix: "melanosomoidblastocytoclast", base: "melanosomoidblast" }
+  { prefix: "melanosomoidblastocytoclast", base: "melanosomoidblast" },
+  { prefix: "nucleosomoidcytoclast", base: "nucleosomoid" },
+  { prefix: "nucleosomoidblastocytoclast", base: "nucleosomoidblast" },
+  { prefix: "histonoidcytoclast", base: "histonoid" },
+  { prefix: "histonoidblastocytoclast", base: "histonoidblast" },
+  { prefix: "spliceosomoidcytoclast", base: "spliceosomoid" },
+  { prefix: "spliceosomoidblastocytoclast", base: "spliceosomoidblast" },
+  { prefix: "dictyosomoidcytoclast", base: "dictyosomoid" },
+  { prefix: "dictyosomoidblastocytoclast", base: "dictyosomoidblast" },
+  { prefix: "plasmodesmatoidcytoclast", base: "plasmodesmatoid" },
+  { prefix: "plasmodesmatoidblastocytoclast", base: "plasmodesmatoidblast" },
+  { prefix: "tonoplastoidcytoclast", base: "tonoplastoid" },
+  { prefix: "tonoplastoidblastocytoclast", base: "tonoplastoidblast" },
+  { prefix: "chromatinoidcytoclast", base: "chromatinoid" },
+  { prefix: "chromatinoidblastocytoclast", base: "chromatinoidblast" },
+  { prefix: "chloroplastoidcytoclast", base: "chloroplastoid" },
+  { prefix: "chloroplastoidblastocytoclast", base: "chloroplastoidblast" },
+  { prefix: "amyloplastoidcytoclast", base: "amyloplastoid" },
+  { prefix: "amyloplastoidblastocytoclast", base: "amyloplastoidblast" }
 ];
+
 
 const ELEMENTS = [
   "astatin",
@@ -1583,7 +1602,27 @@ const ELEMENTS = [
   "pegasusstoneitite",
   "satyrititeitite",
   "nymphstoneitite",
-  "dryadititeitite"
+  "dryadititeitite",
+  "asgardstone",
+  "asgardstonite",
+  "asgardstoneitite",
+  "bifroststone",
+  "bifroststonite",
+  "bifroststoneitite",
+  "valhallastone",
+  "valhallastonite",
+  "valhallastoneitite",
+  "midgardite",
+  "midgarditite",
+  "gladsheimstone",
+  "gladsheimstonite",
+  "gladsheimstoneitite",
+  "niflheimstone",
+  "niflheimstonite",
+  "niflheimstoneitite",
+  "muspelheimstone",
+  "muspelheimstonite",
+  "muspelheimstoneitite"
 ];
 
 const COMBAT_ACTIONS = [
