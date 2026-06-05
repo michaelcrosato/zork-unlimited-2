@@ -494,7 +494,25 @@ const CELLS = [
   { prefix: "desmoplakinocytoclast", base: "desmoplakin" },
   { prefix: "desmoplakinblastocytoclast", base: "desmoplakinblast" },
   { prefix: "plakoglobinocytoclast", base: "plakoglobin" },
-  { prefix: "plakoglobinblastocytoclast", base: "plakoglobinblast" }
+  { prefix: "plakoglobinblastocytoclast", base: "plakoglobinblast" },
+  { prefix: "aquaporinocytoclast", base: "aquaporin" },
+  { prefix: "aquaporinoblastocytoclast", base: "aquaporinblast" },
+  { prefix: "desmocollinocytoclast", base: "desmocollin" },
+  { prefix: "desmocollinblastocytoclast", base: "desmocollinblast" },
+  { prefix: "desmogleinocytoclast", base: "desmoglein" },
+  { prefix: "desmogleinblastocytoclast", base: "desmogleinblast" },
+  { prefix: "integrinocytoclast", base: "integrin" },
+  { prefix: "integrinblastocytoclast", base: "integrinblast" },
+  { prefix: "selectinocytoclast", base: "selectin" },
+  { prefix: "selectinblastocytoclast", base: "selectinblast" },
+  { prefix: "cadherinocytoclast", base: "cadherin" },
+  { prefix: "cadherinblastocytoclast", base: "cadherinblast" },
+  { prefix: "connexinocytoclast", base: "connexin" },
+  { prefix: "connexinblastocytoclast", base: "connexinblast" },
+  { prefix: "claudinocytoclast", base: "claudin" },
+  { prefix: "claudinblastocytoclast", base: "claudinblast" },
+  { prefix: "occludinocytoclast", base: "occludin" },
+  { prefix: "occludinblastocytoclast", base: "occludinblast" }
 ];
 
 const ELEMENTS = [
@@ -1023,7 +1041,23 @@ const ELEMENTS = [
   "ullmannitite",
   "marcasitite",
   "arsenolitite",
-  "senarmontitite"
+  "senarmontitite",
+  "spinelite",
+  "gahniteite",
+  "hercyniteite",
+  "galaxiteite",
+  "chrysoberylite",
+  "taaffeiteite",
+  "musgraviteite",
+  "kermesitite",
+  "pyrostilpnitite",
+  "pyrargyritite",
+  "proustitite",
+  "stephanitite",
+  "polybasitite",
+  "stibiconitite",
+  "cervantitite",
+  "valentinitite"
 ];
 
 const COMBAT_ACTIONS = [
