@@ -992,7 +992,23 @@ const CELLS = [
   { prefix: "microgliocytoblastocytoclast", base: "microgliocytoblast" },
   { prefix: "epitheliocytoblastocytoclast", base: "epitheliocytoblast" },
   { prefix: "podocytoblastocytoclast", base: "podocytoblast" },
-  { prefix: "cardiomyocytoblastocytoclast", base: "cardiomyocytoblast" }
+  { prefix: "cardiomyocytoblastocytoclast", base: "cardiomyocytoblast" },
+  { prefix: "kupffercytoblastocytoclast", base: "kupffercytoblast" },
+  { prefix: "sertolicytoblastocytoclast", base: "sertolicytoblast" },
+  { prefix: "leydigcytoblastocytoclast", base: "leydigcytoblast" },
+  { prefix: "gobletcytoblastocytoclast", base: "gobletcytoblast" },
+  { prefix: "langerhanscytoblastocytoclast", base: "langerhanscytoblast" },
+  { prefix: "panethcytoblastocytoclast", base: "panethcytoblast" },
+  { prefix: "parietalcytoblastocytoclast", base: "parietalcytoblast" },
+  { prefix: "chiefcytoblastocytoclast", base: "chiefcytoblast" },
+  { prefix: "somatocytoblastocytoclast", base: "somatocytoblast" },
+  { prefix: "histiocytoblastocytoclast", base: "histiocytoblast" },
+  { prefix: "myeloblastocytoblastocytoclast", base: "myeloblastocytoblast" },
+  { prefix: "reticulocytoblastocytoclast", base: "reticulocytoblast" },
+  { prefix: "pinealocytoblastocytoclast", base: "pinealocytoblast" },
+  { prefix: "thymocytoblastocytoclast", base: "thymocytoblast" },
+  { prefix: "merkelcytoblastocytoclast", base: "merkelcytoblast" },
+  { prefix: "purkinjocytoblastocytoclast", base: "purkinjocytoblast" }
 ];
 
 
@@ -2053,7 +2069,25 @@ const ELEMENTS = [
   "ninurtastoneitite",
   "enlilite",
   "enlilitite",
-  "enlilstoneitite"
+  "enlilstoneitite",
+  "odinite",
+  "odinitite",
+  "odinstoneitite",
+  "thorite",
+  "thoritite",
+  "thorstoneitite",
+  "frigglite",
+  "frigglitite",
+  "frigglstoneitite",
+  "lokilite",
+  "lokilitite",
+  "lokilstoneitite",
+  "freyalite",
+  "freyalitite",
+  "freyastoneitite",
+  "balderite",
+  "balderitite",
+  "balderstoneitite"
 ];
 
 const COMBAT_ACTIONS = [
