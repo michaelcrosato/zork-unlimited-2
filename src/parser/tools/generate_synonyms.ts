@@ -976,7 +976,23 @@ const CELLS = [
   { prefix: "erythroblastoidcytoclast", base: "erythroblastoid" },
   { prefix: "erythroblastoidblastocytoclast", base: "erythroblastoidblast" },
   { prefix: "megakaryoblastoidcytoclast", base: "megakaryoblastoid" },
-  { prefix: "megakaryoblastoidblastocytoclast", base: "megakaryoblastoidblast" }
+  { prefix: "megakaryoblastoidblastocytoclast", base: "megakaryoblastoidblast" },
+  { prefix: "basophilocytoblastocytoclast", base: "basophilocytoblast" },
+  { prefix: "synoviocytoblastocytoclast", base: "synoviocytoblast" },
+  { prefix: "lymphocytoblastocytoclast", base: "lymphocytoblast" },
+  { prefix: "monocytoblastocytoclast", base: "monocytoblast" },
+  { prefix: "neutrophilocytoblastocytoclast", base: "neutrophilocytoblast" },
+  { prefix: "eosinophilocytoblastocytoclast", base: "eosinophilocytoblast" },
+  { prefix: "erythrocytoblastocytoclast", base: "erythrocytoblast" },
+  { prefix: "thrombocytoblastocytoclast", base: "thrombocytoblast" },
+  { prefix: "adipocytoblastocytoclast", base: "adipocytoblast" },
+  { prefix: "macrophagocytoblastocytoclast", base: "macrophagocytoblast" },
+  { prefix: "dendritocytoblastocytoclast", base: "dendritocytoblast" },
+  { prefix: "neuronocytoblastocytoclast", base: "neuronocytoblast" },
+  { prefix: "microgliocytoblastocytoclast", base: "microgliocytoblast" },
+  { prefix: "epitheliocytoblastocytoclast", base: "epitheliocytoblast" },
+  { prefix: "podocytoblastocytoclast", base: "podocytoblast" },
+  { prefix: "cardiomyocytoblastocytoclast", base: "cardiomyocytoblast" }
 ];
 
 
@@ -2022,7 +2038,22 @@ const ELEMENTS = [
   "tiamatstoneitite",
   "apsuite",
   "apsuitite",
-  "apsustoneitite"
+  "apsustoneitite",
+  "shamashite",
+  "shamashitite",
+  "shamashstoneitite",
+  "sinite",
+  "sinitite",
+  "sinstoneitite",
+  "nergalite",
+  "nergalitite",
+  "nergalstoneitite",
+  "ninurtalite",
+  "ninurtalitite",
+  "ninurtastoneitite",
+  "enlilite",
+  "enlilitite",
+  "enlilstoneitite"
 ];
 
 const COMBAT_ACTIONS = [
