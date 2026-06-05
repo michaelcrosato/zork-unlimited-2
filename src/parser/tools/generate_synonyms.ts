@@ -587,7 +587,22 @@ const CELLS = [
   { prefix: "blastulacytoclast", base: "blastula" },
   { prefix: "blastulablastocytoclast", base: "blastulablast" },
   { prefix: "gastrulacytoclast", base: "gastrula" },
-  { prefix: "gastrulablastocytoclast", base: "gastrulablast" }
+  { prefix: "gastrulablastocytoclast", base: "gastrulablast" },
+  { prefix: "neurulacytoclast", base: "neurula" },
+  { prefix: "neurulablastocytoclast", base: "neurulablast" },
+  { prefix: "organogenocytoclast", base: "organogeno" },
+  { prefix: "organogenoblastocytoclast", base: "organogenoblast" },
+  { prefix: "somitocytoclast", base: "somite" },
+  { prefix: "somitoblastocytoclast", base: "somitoblast" },
+  { prefix: "notochordocytoclast", base: "notochordo" },
+  { prefix: "notochordoblastocytoclast", base: "notochordoblast" },
+  { prefix: "mesomeresocytoclast", base: "mesomere" },
+  { prefix: "mesomereblastocytoclast", base: "mesomereblast" },
+  { prefix: "micromeresocytoclast", base: "micromere" },
+  { prefix: "micromereblastocytoclast", base: "micromereblast" },
+  { prefix: "macromeresocytoclast", base: "macromere" },
+  { prefix: "macromereblastocytoclast", base: "macromereblast" },
+  { prefix: "blastocystocytoclast", base: "blastocyst" }
 ];
 
 const ELEMENTS = [
@@ -1222,7 +1237,22 @@ const ELEMENTS = [
   "shulkerite",
   "shulkeritite",
   "obsidianite",
-  "obsidianitite"
+  "obsidianitite",
+  "pyropetite",
+  "almandinite",
+  "spessartinite",
+  "grossularite",
+  "andraditeite",
+  "uvaroviteite",
+  "rhodoniteite",
+  "wollastoniteite",
+  "chalcociteite",
+  "borniteite",
+  "covelliteite",
+  "tetrahedriteite",
+  "enargiteite",
+  "pyrrhotiteite",
+  "pentlanditeite"
 ];
 
 const COMBAT_ACTIONS = [
@@ -1398,9 +1428,9 @@ export function getGreekNumber(n: number): string {
   return units[unitDigit] + tens[tenDigit];
 }
 
-// Generate phases starting from Phase 368 up to Phase 600
+// Generate phases starting from Phase 368 up to Phase 650
 const PHASES: SynonymPhase[] = [];
-for (let p = 368; p <= 600; p++) {
+for (let p = 368; p <= 650; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
   const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
   const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
@@ -1782,8 +1812,8 @@ import { mapCommand } from "../src/parser/command_map.js";
 import { getGreekNumber } from "../src/parser/tools/generate_synonyms.js";
 
 describe("Greek Number Generation Verification", () => {
-  it("should return valid Greek numbers up to 300", () => {
-    for (let i = 1; i <= 300; i++) {
+  it("should return valid Greek numbers up to 350", () => {
+    for (let i = 1; i <= 350; i++) {
       const name = getGreekNumber(i);
       expect(name).toBeDefined();
       expect(typeof name).toBe("string");
@@ -1799,6 +1829,7 @@ describe("Greek Number Generation Verification", () => {
     expect(getGreekNumber(200)).toBe("dihectarchy");
     expect(getGreekNumber(250)).toBe("pentacontadihectarchy");
     expect(getGreekNumber(300)).toBe("trihectarchy");
+    expect(getGreekNumber(350)).toBe("pentacontatrihectarchy");
   });
 });
 
