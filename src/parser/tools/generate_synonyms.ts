@@ -65,6 +65,16 @@ const CELLS = [
   { prefix: "monoblastocytoclast", base: "monoblast" },
   { prefix: "erythroblastocytoclast", base: "erythroblast" },
   { prefix: "megakaryocytocytoclast", base: "megakaryocyte" },
+  { prefix: "purkinjocytoclast", base: "purkinje" },
+  { prefix: "schwannocytoclast", base: "schwann" },
+  { prefix: "ependymocytoclast", base: "ependymal" },
+  { prefix: "satellitecytoclast", base: "satellite" },
+  { prefix: "glialcytoclast", base: "glia" },
+  { prefix: "gobletcytoclast", base: "goblet" },
+  { prefix: "reticulocytoclast", base: "reticulocyte" },
+  { prefix: "melanoblastocytoclast", base: "melanoblast" },
+  { prefix: "keratinoblastocytoclast", base: "keratinoblast" },
+  { prefix: "myelocytocytoclast", base: "myelocyte" },
 ];
 
 const ELEMENTS = [
@@ -116,7 +126,36 @@ const ELEMENTS = [
   "niobium",
   "molybdenum",
   "ruthenium",
-  "rhodium"
+  "rhodium",
+  "palladium",
+  "cadmium",
+  "indium",
+  "antimony",
+  "tellurium",
+  "xenon",
+  "cesium",
+  "barium",
+  "lanthanum",
+  "cerium",
+  "praseodymium",
+  "neodymium",
+  "promethium",
+  "samarium",
+  "europium",
+  "gadolinium",
+  "terbium",
+  "dysprosium",
+  "holmium",
+  "erbium",
+  "thulium",
+  "ytterbium",
+  "lutetium",
+  "hafnium",
+  "tantalum",
+  "tungsten",
+  "rhenium",
+  "osmium",
+  "iridium"
 ];
 
 const COMBAT_ACTIONS = [
@@ -200,8 +239,28 @@ function getGreekNumber(n: number): string {
     if (n === 240) return "tetracontadihectarchy";
     return units[n - 240] + "tetracontadihectarchy";
   }
-  if (n === 250) {
-    return "pentacontadihectarchy";
+  if (n >= 250 && n < 260) {
+    if (n === 250) return "pentacontadihectarchy";
+    return units[n - 250] + "pentacontadihectarchy";
+  }
+  if (n >= 260 && n < 270) {
+    if (n === 260) return "hexacontadihectarchy";
+    return units[n - 260] + "hexacontadihectarchy";
+  }
+  if (n >= 270 && n < 280) {
+    if (n === 270) return "heptacontadihectarchy";
+    return units[n - 270] + "heptacontadihectarchy";
+  }
+  if (n >= 280 && n < 290) {
+    if (n === 280) return "octacontadihectarchy";
+    return units[n - 280] + "octacontadihectarchy";
+  }
+  if (n >= 290 && n < 300) {
+    if (n === 290) return "enneacontadihectarchy";
+    return units[n - 290] + "enneacontadihectarchy";
+  }
+  if (n === 300) {
+    return "trihectarchy";
   }
 
   const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
