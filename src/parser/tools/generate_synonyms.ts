@@ -255,9 +255,23 @@ const CELLS = [
   { prefix: "golgiblastocytoclast", base: "golgiblast" },
   { prefix: "centrioloblastocytoclast", base: "centrioloblast" },
   { prefix: "chromosomoblastocytoclast", base: "chromosomoblast" },
-  { prefix: "chromatidoblastocytoclast", base: "chromatidblast" },
   { prefix: "plasmidoblastocytoclast", base: "plasmidblast" },
-  { prefix: "piloblastocytoclast", base: "piloblast" }
+  { prefix: "piloblastocytoclast", base: "piloblast" },
+  { prefix: "cytosolblastocytoclast", base: "cytosolblast" },
+  { prefix: "cytoplasmblastocytoclast", base: "cytoplasmblast" },
+  { prefix: "protoplastblastocytoclast", base: "protoplastblast" },
+  { prefix: "nucleoplasmblastocytoclast", base: "nucleoplasmblast" },
+  { prefix: "euchromatinblastocytoclast", base: "euchromatinblast" },
+  { prefix: "heterochromatinblastocytoclast", base: "heterochromatinblast" },
+  { prefix: "kinetochoreblastocytoclast", base: "kinetochoreblast" },
+  { prefix: "spindleblastocytoclast", base: "spindleblast" },
+  { prefix: "centromereblastocytoclast", base: "centromereblast" },
+  { prefix: "telomereblastocytoclast", base: "telomereblast" },
+  { prefix: "autophagosomeblastocytoclast", base: "autophagosomeblast" },
+  { prefix: "endosomeblastocytoclast", base: "endosomeblast" },
+  { prefix: "melanosomeblastocytoclast", base: "melanosomeblast" },
+  { prefix: "dictyosomeblastocytoclast", base: "dictyosomeblast" },
+  { prefix: "carboxysomeblastocytoclast", base: "carboxysomeblast" }
 ];
 
 const ELEMENTS = [
@@ -553,7 +567,22 @@ const ELEMENTS = [
   "kirchheimerite",
   "natrouranospinite",
   "uranospinite",
-  "walpurgite"
+  "walpurgite",
+  "zeuneritite",
+  "saleeitite",
+  "novacekitite",
+  "sabugalitite",
+  "bassettitite",
+  "fritzscheitite",
+  "heinrichitite",
+  "kahleritite",
+  "kirchheimeritite",
+  "natrouranospinitite",
+  "uranospinitite",
+  "walpurgitite",
+  "torbernitite",
+  "autunitite",
+  "carnotitite"
 ];
 
 const COMBAT_ACTIONS = [
