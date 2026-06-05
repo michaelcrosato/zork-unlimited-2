@@ -1,0 +1,3 @@
+## 2024-06-05 - Initialized UX Journal
+**Learning:** Found several missing ARIA labels on icon-only buttons and unassociated form labels in the main UI (`index.html`). Adding these micro-UX accessibility improvements helps screen readers properly interpret interactive elements without altering the visual design.
+**Action:** Always verify `aria-label` is present on icon-only interactive elements and `for` attributes on form labels during UI reviews.
