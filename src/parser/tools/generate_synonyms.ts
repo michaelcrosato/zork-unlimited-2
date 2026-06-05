@@ -928,7 +928,23 @@ const CELLS = [
   { prefix: "osteoblastoidcytoclast", base: "osteoblastoid" },
   { prefix: "osteoblastoidblastocytoclast", base: "osteoblastoidblast" },
   { prefix: "chondroblastoidcytoclast", base: "chondroblastoid" },
-  { prefix: "chondroblastoidblastocytoclast", base: "chondroblastoidblast" }
+  { prefix: "chondroblastoidblastocytoclast", base: "chondroblastoidblast" },
+  { prefix: "microtubuloidcytoclast", base: "microtubuloid" },
+  { prefix: "microtubuloidblastocytoclast", base: "microtubuloidblast" },
+  { prefix: "lysosomoidcytoclast", base: "lysosomoid" },
+  { prefix: "lysosomoidblastocytoclast", base: "lysosomoidblast" },
+  { prefix: "mitochondrioidcytoclast", base: "mitochondrioid" },
+  { prefix: "mitochondrioidblastocytoclast", base: "mitochondrioidblast" },
+  { prefix: "vacuoloidcytoclast", base: "vacuoloid" },
+  { prefix: "vacuoloidblastocytoclast", base: "vacuoloidblast" },
+  { prefix: "vesiculoidcytoclast", base: "vesiculoid" },
+  { prefix: "vesiculoidblastocytoclast", base: "vesiculoidblast" },
+  { prefix: "centrosomoidcytoclast", base: "centrosomoid" },
+  { prefix: "centrosomoidblastocytoclast", base: "centrosomoidblast" },
+  { prefix: "chloroplastoidcytoclast", base: "chloroplastoid" },
+  { prefix: "chloroplastoidblastocytoclast", base: "chloroplastoidblast" },
+  { prefix: "ribosomoidcytoclast", base: "ribosomoid" },
+  { prefix: "ribosomoidblastocytoclast", base: "ribosomoidblast" }
 ];
 
 
@@ -1938,7 +1954,25 @@ const ELEMENTS = [
   "oceanusstoneitite",
   "tethysite",
   "tethysitite",
-  "tethysstoneitite"
+  "tethysstoneitite",
+  "ragnorite",
+  "ragnoritite",
+  "ragnorstoneitite",
+  "helheimrite",
+  "helheimritite",
+  "helheimstoneitite",
+  "niflheimrite",
+  "niflheimritite",
+  "niflheimstoneitite",
+  "muspelheimrite",
+  "muspelheimritite",
+  "muspelheimstoneitite",
+  "asgardrite",
+  "asgardritite",
+  "asgardstoneitite",
+  "valhallarite",
+  "valhallaritite",
+  "valhallastoneitite"
 ];
 
 const COMBAT_ACTIONS = [
