@@ -162,7 +162,17 @@ const CELLS = [
   { prefix: "nucleocytoclast", base: "nucleus" },
   { prefix: "nucleolocytoclast", base: "nucleolus" },
   { prefix: "chromatinocytoclast", base: "chromatin" },
-  { prefix: "centrosomocytoclast", base: "centrosome" }
+  { prefix: "centrosomocytoclast", base: "centrosome" },
+  { prefix: "ciliocytoclast", base: "cilio" },
+  { prefix: "flagellocytoclast", base: "flagello" },
+  { prefix: "peroxisomocytoclast", base: "peroxisome" },
+  { prefix: "chloroplastocytoclast", base: "chloroplast" },
+  { prefix: "vacuolocytoclast", base: "vacuole" },
+  { prefix: "vesiculocytoclast", base: "vesicle" },
+  { prefix: "plasmodesmatocytoclast", base: "plasmodesmata" },
+  { prefix: "cytoskeletonocytoclast", base: "cytoskeleton" },
+  { prefix: "membranocytoclast", base: "membrane" },
+  { prefix: "golgicytoclast", base: "golgi" }
 ];
 
 const ELEMENTS = [
@@ -347,7 +357,31 @@ const ELEMENTS = [
   "hydrargyrum",
   "stannum",
   "natrium",
-  "kalium"
+  "kalium",
+  "krypton",
+  "argon",
+  "neon",
+  "fluorine",
+  "chlorine",
+  "bromine",
+  "iodine",
+  "astatine",
+  "cobaltite",
+  "chromite",
+  "magnetite",
+  "hematite",
+  "pyrite",
+  "chalcopyrite",
+  "galena",
+  "bauxite",
+  "sphalerite",
+  "cinnabar",
+  "malachite",
+  "azurite",
+  "limonite",
+  "siderite",
+  "tanzanite",
+  "alexandrite"
 ];
 
 const COMBAT_ACTIONS = [
