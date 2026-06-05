@@ -512,7 +512,23 @@ const CELLS = [
   { prefix: "claudinocytoclast", base: "claudin" },
   { prefix: "claudinblastocytoclast", base: "claudinblast" },
   { prefix: "occludinocytoclast", base: "occludin" },
-  { prefix: "occludinblastocytoclast", base: "occludinblast" }
+  { prefix: "occludinblastocytoclast", base: "occludinblast" },
+  { prefix: "sensoryneuronocytoclast", base: "sensoryneuron" },
+  { prefix: "motorneuronocytoclast", base: "motorneuron" },
+  { prefix: "interneuronocytoclast", base: "interneuron" },
+  { prefix: "sensoryneuronoblastocytoclast", base: "sensoryneuronblast" },
+  { prefix: "motorneuronoblastocytoclast", base: "motorneuronblast" },
+  { prefix: "interneuronoblastocytoclast", base: "interneuronblast" },
+  { prefix: "helpertcellocytoclast", base: "helpertcell" },
+  { prefix: "killertcellocytoclast", base: "killertcell" },
+  { prefix: "bcellocytoclast", base: "bcell" },
+  { prefix: "neutrophilblastocytoclast", base: "neutrophilblast" },
+  { prefix: "eosinophilblastocytoclast", base: "eosinophilblast" },
+  { prefix: "basophilblastocytoclast", base: "basophilblast" },
+  { prefix: "monocyteblastocytoclast", base: "monocyteblast" },
+  { prefix: "lymphocyteblastocytoclast", base: "lymphocyteblast" },
+  { prefix: "erythrocyteblastocytoclast", base: "erythrocyteblast" },
+  { prefix: "thrombocyteblastocytoclast", base: "thrombocyteblast" }
 ];
 
 const ELEMENTS = [
@@ -1056,8 +1072,34 @@ const ELEMENTS = [
   "stephanitite",
   "polybasitite",
   "stibiconitite",
-  "cervantitite",
-  "valentinitite"
+  "valentinitite",
+  "amethyst",
+  "amethystite",
+  "amethystitite",
+  "citrine",
+  "citrinite",
+  "citrinitite",
+  "emerald",
+  "emeraldite",
+  "emeralditite",
+  "ruby",
+  "rubyite",
+  "rubyitite",
+  "sapphire",
+  "sapphirite",
+  "sapphiritite",
+  "diamond",
+  "diamondite",
+  "diamonditite",
+  "opal",
+  "opalite",
+  "opalitite",
+  "turquoise",
+  "turquoiseite",
+  "turquoiseitite",
+  "peridot",
+  "peridotite",
+  "peridotitite"
 ];
 
 const COMBAT_ACTIONS = [
