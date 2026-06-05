@@ -636,7 +636,22 @@ const CELLS = [
   { prefix: "phagolysomocytoclast", base: "phagolysome" },
   { prefix: "phagolysomoblastocytoclast", base: "phagolysomeblast" },
   { prefix: "pinosomocytoclast", base: "pinosome" },
-  { prefix: "pinosomoblastocytoclast", base: "pinosomeblast" }
+  { prefix: "pinosomoblastocytoclast", base: "pinosomeblast" },
+  { prefix: "mesokaryocytocytoclast", base: "mesokaryocyte" },
+  { prefix: "microkaryocytocytoclast", base: "microkaryocyte" },
+  { prefix: "macrokaryocytocytoclast", base: "macrokaryocyte" },
+  { prefix: "karyoblastocytoclast", base: "karyoblast" },
+  { prefix: "nucleocytoblastocytoclast", base: "nucleocytoblast" },
+  { prefix: "plastocytoblastocytoclast", base: "plastocytoblast" },
+  { prefix: "vesiculocytoblastocytoclast", base: "vesiculocytoblast" },
+  { prefix: "neurocytocytoclast", base: "neurocyte" },
+  { prefix: "gliocytocytoclast", base: "gliocyte" },
+  { prefix: "splenocytocytoclast", base: "splenocyte" },
+  { prefix: "granulocytocytoclast", base: "granulocyte" },
+  { prefix: "agranulocytocytoclast", base: "agranulocyte" },
+  { prefix: "phagocytocytoclast", base: "phagocyte" },
+  { prefix: "pinocytocytoclast", base: "pinocyte" },
+  { prefix: "glioblastocytoclast", base: "glioblast" }
 ];
 
 const ELEMENTS = [
@@ -1338,7 +1353,22 @@ const ELEMENTS = [
   "metatorbernite",
   "metatorbernitite",
   "metaautunite",
-  "metaautunitite"
+  "metaautunitite",
+  "metauranocircite",
+  "metauranocircitite",
+  "metazeunerite",
+  "metazeuneritite",
+  "metasaleeite",
+  "metasaleeitite",
+  "metanovacekite",
+  "metanovacekitite",
+  "metakahlerite",
+  "metakahleritite",
+  "metaheinrichite",
+  "metaheinrichitite",
+  "metauranospinite",
+  "metauranospinitite",
+  "metacarnotite"
 ];
 
 const COMBAT_ACTIONS = [
@@ -1501,7 +1531,47 @@ export function getGreekNumber(n: number): string {
     if (n === 390) return "enneacontatrihectarchy";
     return units[n - 390] + "enneacontatrihectarchy";
   }
-  if (n === 400) return "tetrahectarchy";
+  if (n >= 400 && n < 410) {
+    if (n === 400) return "tetrahectarchy";
+    return units[n - 400] + "tetrahectarchy";
+  }
+  if (n >= 410 && n < 420) {
+    if (n === 410) return "decatetrahectarchy";
+    return units[n - 410] + "decatetrahectarchy";
+  }
+  if (n >= 420 && n < 430) {
+    if (n === 420) return "icosatetrahectarchy";
+    return units[n - 420] + "icosatetrahectarchy";
+  }
+  if (n >= 430 && n < 440) {
+    if (n === 430) return "triacontatetrahectarchy";
+    return units[n - 430] + "triacontatetrahectarchy";
+  }
+  if (n >= 440 && n < 450) {
+    if (n === 440) return "tetracontatetrahectarchy";
+    return units[n - 440] + "tetracontatetrahectarchy";
+  }
+  if (n >= 450 && n < 460) {
+    if (n === 450) return "pentacontatetrahectarchy";
+    return units[n - 450] + "pentacontatetrahectarchy";
+  }
+  if (n >= 460 && n < 470) {
+    if (n === 460) return "hexacontatetrahectarchy";
+    return units[n - 460] + "hexacontatetrahectarchy";
+  }
+  if (n >= 470 && n < 480) {
+    if (n === 470) return "heptacontatetrahectarchy";
+    return units[n - 470] + "heptacontatetrahectarchy";
+  }
+  if (n >= 480 && n < 490) {
+    if (n === 480) return "octacontatetrahectarchy";
+    return units[n - 480] + "octacontatetrahectarchy";
+  }
+  if (n >= 490 && n < 500) {
+    if (n === 490) return "enneacontatetrahectarchy";
+    return units[n - 490] + "enneacontatetrahectarchy";
+  }
+  if (n === 500) return "pentahectarchy";
 
   const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
   
@@ -1898,8 +1968,8 @@ import { mapCommand } from "../src/parser/command_map.js";
 import { getGreekNumber } from "../src/parser/tools/generate_synonyms.js";
 
 describe("Greek Number Generation Verification", () => {
-  it("should return valid Greek numbers up to 350", () => {
-    for (let i = 1; i <= 350; i++) {
+  it("should return valid Greek numbers up to 450", () => {
+    for (let i = 1; i <= 450; i++) {
       const name = getGreekNumber(i);
       expect(name).toBeDefined();
       expect(typeof name).toBe("string");
@@ -1916,6 +1986,8 @@ describe("Greek Number Generation Verification", () => {
     expect(getGreekNumber(250)).toBe("pentacontadihectarchy");
     expect(getGreekNumber(300)).toBe("trihectarchy");
     expect(getGreekNumber(350)).toBe("pentacontatrihectarchy");
+    expect(getGreekNumber(400)).toBe("tetrahectarchy");
+    expect(getGreekNumber(450)).toBe("pentacontatetrahectarchy");
   });
 });
 
