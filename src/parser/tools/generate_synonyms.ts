@@ -776,7 +776,23 @@ const CELLS = [
   { prefix: "chloroplastoidcytoclast", base: "chloroplastoid" },
   { prefix: "chloroplastoidblastocytoclast", base: "chloroplastoidblast" },
   { prefix: "amyloplastoidcytoclast", base: "amyloplastoid" },
-  { prefix: "amyloplastoidblastocytoclast", base: "amyloplastoidblast" }
+  { prefix: "amyloplastoidblastocytoclast", base: "amyloplastoidblast" },
+  { prefix: "elaioplastoidcytoclast", base: "elaioplastoid" },
+  { prefix: "elaioplastoidblastocytoclast", base: "elaioplastoidblast" },
+  { prefix: "proteinoplastoidcytoclast", base: "proteinoplastoid" },
+  { prefix: "proteinoplastoidblastocytoclast", base: "proteinoplastoidblast" },
+  { prefix: "etioplastoidcytoclast", base: "etioplastoid" },
+  { prefix: "etioplastoidblastocytoclast", base: "etioplastoidblast" },
+  { prefix: "leucoplastoidcytoclast", base: "leucoplastoid" },
+  { prefix: "leucoplastoidblastocytoclast", base: "leucoplastoidblast" },
+  { prefix: "statolithoidcytoclast", base: "statolithoid" },
+  { prefix: "statolithoidblastocytoclast", base: "statolithoidblast" },
+  { prefix: "chromoplastoidcytoclast", base: "chromoplastoid" },
+  { prefix: "chromoplastoidblastocytoclast", base: "chromoplastoidblast" },
+  { prefix: "pyrenoidoidcytoclast", base: "pyrenoidoid" },
+  { prefix: "pyrenoidoidblastocytoclast", base: "pyrenoidoidblast" },
+  { prefix: "mesosomoidcytoclast", base: "mesosomoid" },
+  { prefix: "mesosomoidblastocytoclast", base: "mesosomoidblast" }
 ];
 
 
@@ -1622,7 +1638,22 @@ const ELEMENTS = [
   "niflheimstoneitite",
   "muspelheimstone",
   "muspelheimstonite",
-  "muspelheimstoneitite"
+  "muspelheimstoneitite",
+  "helheimstone",
+  "helheimstonite",
+  "helheimstoneitite",
+  "jotunheimstone",
+  "jotunheimstonite",
+  "jotunheimstoneitite",
+  "alfheimstone",
+  "alfheimstonite",
+  "alfheimstoneitite",
+  "svartalfheimstone",
+  "svartalfheimstonite",
+  "svartalfheimstoneitite",
+  "vanaheimstone",
+  "vanaheimstonite",
+  "vanaheimstoneitite"
 ];
 
 const COMBAT_ACTIONS = [
