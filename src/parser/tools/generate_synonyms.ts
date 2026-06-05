@@ -187,7 +187,25 @@ const CELLS = [
   { prefix: "elastinoblastocytoclast", base: "elastinoblast" },
   { prefix: "desmosomoblastocytoclast", base: "desmosomoblast" },
   { prefix: "microfilamentoblastocytoclast", base: "microfilamentoblast" },
-  { prefix: "microtubuloblastocytoclast", base: "microtubuloblast" }
+  { prefix: "microtubuloblastocytoclast", base: "microtubuloblast" },
+  { prefix: "centriolocytoclast", base: "centriole" },
+  { prefix: "chromosomocytoclast", base: "chromosome" },
+  { prefix: "chromatidocytoclast", base: "chromatid" },
+  { prefix: "plasmidocytoclast", base: "plasmid" },
+  { prefix: "pilocytoclast", base: "pili" },
+  { prefix: "cytosolocytoclast", base: "cytosol" },
+  { prefix: "cytoplasmocytoclast", base: "cytoplasm" },
+  { prefix: "protoplastocytoclast", base: "protoplast" },
+  { prefix: "nucleoplasmocytoclast", base: "nucleoplasm" },
+  { prefix: "euchromatinocytoclast", base: "euchromatin" },
+  { prefix: "heterochromatinocytoclast", base: "heterochromatin" },
+  { prefix: "kinetochorocytoclast", base: "kinetochore" },
+  { prefix: "spindlocytoclast", base: "spindle" },
+  { prefix: "centromerocytoclast", base: "centromere" },
+  { prefix: "telomerocytoclast", base: "telomere" },
+  { prefix: "autophagosomocytoclast", base: "autophagosome" },
+  { prefix: "endosomocytoclast", base: "endosome" },
+  { prefix: "melanosomocytoclast", base: "melanosome" }
 ];
 
 const ELEMENTS = [
@@ -411,7 +429,29 @@ const ELEMENTS = [
   "andradite",
   "uvarovite",
   "rhodonite",
-  "wollastonite"
+  "wollastonite",
+  "chalcocite",
+  "bornite",
+  "covellite",
+  "tetrahedrite",
+  "enargite",
+  "pyrhotite",
+  "pentlandite",
+  "arsenopyrite",
+  "skutterudite",
+  "ullmannite",
+  "marcasite",
+  "arsenolite",
+  "senarmontite",
+  "valentinite",
+  "bismite",
+  "molybdite",
+  "tungstite",
+  "ilmenite",
+  "rutile",
+  "anatase",
+  "brookite",
+  "pyrolusite"
 ];
 
 const COMBAT_ACTIONS = [
