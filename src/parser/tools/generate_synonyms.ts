@@ -323,7 +323,22 @@ const CELLS = [
   { prefix: "mesosomoblastocytoclast", base: "mesosomeblast" },
   { prefix: "nucleolosomecytoclast", base: "nucleolosome" },
   { prefix: "parasomocytoclast", base: "parasome" },
-  { prefix: "karyosomocytoclast", base: "karyosome" }
+  { prefix: "karyosomocytoclast", base: "karyosome" },
+  { prefix: "chromatophorocytoclast", base: "chromatophore" },
+  { prefix: "magnetosomocytoclast", base: "magnetosome" },
+  { prefix: "basalbodycytoclast", base: "basalbody" },
+  { prefix: "fimbriocytoclast", base: "fimbria" },
+  { prefix: "pseudopodocytoclast", base: "pseudopodia" },
+  { prefix: "lamellipodiocytoclast", base: "lamellipodia" },
+  { prefix: "filopodiocytoclast", base: "filopodia" },
+  { prefix: "microvillocytoclast", base: "microvillus" },
+  { prefix: "stereociliocytoclast", base: "stereocilia" },
+  { prefix: "hemidesmosomocytoclast", base: "hemidesmosome" },
+  { prefix: "gapjunctionocytoclast", base: "gapjunction" },
+  { prefix: "tightjunctionocytoclast", base: "tightjunction" },
+  { prefix: "adherensjunctionocytoclast", base: "adherensjunction" },
+  { prefix: "synaptonemalocytoclast", base: "synaptonemal" },
+  { prefix: "chiasmatocytoclast", base: "chiasmata" }
 ];
 
 const ELEMENTS = [
@@ -688,7 +703,22 @@ const ELEMENTS = [
   "augitite",
   "pigeonitite",
   "spodumenite",
-  "jadeitite"
+  "jadeitite",
+  "nephritite",
+  "actinolitite",
+  "tremolitite",
+  "hornblendite",
+  "glaucophanite",
+  "riebeckitite",
+  "arfvedsonitite",
+  "anthophyllitite",
+  "cummingtonitite",
+  "gruneritite",
+  "serpentinite",
+  "chrysotilitite",
+  "lizarditite",
+  "antigoritite",
+  "talcite"
 ];
 
 const COMBAT_ACTIONS = [
