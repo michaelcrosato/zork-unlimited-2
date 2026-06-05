@@ -1106,7 +1106,23 @@ const CELLS = [
   { prefix: "autophagosomoidcytoblastocytoclast", base: "autophagosomoidcytoblast" },
   { prefix: "endosomoidcytoblastocytoclast", base: "endosomoidcytoblast" },
   { prefix: "melanosomoidcytoblastocytoclast", base: "melanosomoidcytoblast" },
-  { prefix: "nucleosomoidcytoblastocytoclast", base: "nucleosomoidcytoblast" }
+  { prefix: "nucleosomoidcytoblastocytoclast", base: "nucleosomoidcytoblast" },
+  { prefix: "osteocytoidcytoclast", base: "osteocytoid" },
+  { prefix: "osteocytoidblastocytoclast", base: "osteocytoidblast" },
+  { prefix: "osteocytoidcytoblastocytoclast", base: "osteocytoidcytoblast" },
+  { prefix: "chondrocytoidcytoclast", base: "chondrocytoid" },
+  { prefix: "chondrocytoidblastocytoclast", base: "chondrocytoidblast" },
+  { prefix: "chondrocytoidcytoblastocytoclast", base: "chondrocytoidcytoblast" },
+  { prefix: "lipocytoidcytoclast", base: "lipocytoid" },
+  { prefix: "lipocytoidblastocytoclast", base: "lipocytoidblast" },
+  { prefix: "lipocytoidcytoblastocytoclast", base: "lipocytoidcytoblast" },
+  { prefix: "histiocytoidcytoclast", base: "histiocytoid" },
+  { prefix: "histiocytoidblastocytoclast", base: "histiocytoidblast" },
+  { prefix: "histiocytoidcytoblastocytoclast", base: "histiocytoidcytoblast" },
+  { prefix: "mastocytoidcytoclast", base: "mastocytoid" },
+  { prefix: "mastocytoidblastocytoclast", base: "mastocytoidblast" },
+  { prefix: "mastocytoidcytoblastocytoclast", base: "mastocytoidcytoblast" },
+  { prefix: "plasmacytoidcytoclast", base: "plasmacytoid" }
 ];
 
 
@@ -2308,7 +2324,22 @@ const ELEMENTS = [
   "persephonestoneitite",
   "heliosite",
   "heliositite",
-  "heliosstoneitite"
+  "heliosstoneitite",
+  "jupiterite",
+  "jupiteritite",
+  "jupiterstoneitite",
+  "marsite",
+  "marsitite",
+  "marsstoneitite",
+  "vulcanite",
+  "vulcanitite",
+  "vulcanstoneitite",
+  "neptuneite",
+  "neptuneitite",
+  "neptunestoneitite",
+  "plutoite",
+  "plutoitite",
+  "plutostoneitite"
 ];
 
 const COMBAT_ACTIONS = [
