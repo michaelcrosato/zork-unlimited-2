@@ -338,7 +338,23 @@ const CELLS = [
   { prefix: "tightjunctionocytoclast", base: "tightjunction" },
   { prefix: "adherensjunctionocytoclast", base: "adherensjunction" },
   { prefix: "synaptonemalocytoclast", base: "synaptonemal" },
-  { prefix: "chiasmatocytoclast", base: "chiasmata" }
+  { prefix: "chiasmatocytoclast", base: "chiasmata" },
+  { prefix: "karyoplasmocytoclast", base: "karyoplasm" },
+  { prefix: "karyoplasmoblastocytoclast", base: "karyoplasmblast" },
+  { prefix: "nucleoloplasmocytoclast", base: "nucleoloplasm" },
+  { prefix: "nucleoloplasmoblastocytoclast", base: "nucleoloplasmblast" },
+  { prefix: "chromonemacytoclast", base: "chromonema" },
+  { prefix: "chromonemablastocytoclast", base: "chromonemablast" },
+  { prefix: "chromomerocytoclast", base: "chromomere" },
+  { prefix: "chromomeroblastocytoclast", base: "chromomereblast" },
+  { prefix: "constitutiveheterochromatinocytoclast", base: "constitutiveheterochromatin" },
+  { prefix: "constitutiveheterochromatinblastocytoclast", base: "constitutiveheterochromatinblast" },
+  { prefix: "facultativeheterochromatinocytoclast", base: "facultativeheterochromatin" },
+  { prefix: "facultativeheterochromatinblastocytoclast", base: "facultativeheterochromatinblast" },
+  { prefix: "nuclearenvelopecytoclast", base: "nuclearenvelope" },
+  { prefix: "nuclearenvelopeblastocytoclast", base: "nuclearenvelopeblast" },
+  { prefix: "nuclearporecytoclast", base: "nuclearpore" },
+  { prefix: "nuclearporeblastocytoclast", base: "nuclearporeblast" }
 ];
 
 const ELEMENTS = [
@@ -718,7 +734,30 @@ const ELEMENTS = [
   "chrysotilitite",
   "lizarditite",
   "antigoritite",
-  "talcite"
+  "talcite",
+  "olivinite",
+  "pyroxenite",
+  "amphibolite",
+  "biotitite",
+  "muscovitite",
+  "phlogopitite",
+  "leucitite",
+  "nephelinite",
+  "sodalitite",
+  "analcimite",
+  "zeolitite",
+  "prehnitite",
+  "pumpellyitite",
+  "epidotite",
+  "zoisitite",
+  "clinozoisitite",
+  "staurolitite",
+  "kyanitite",
+  "sillimanitite",
+  "andalusitite",
+  "topazitite",
+  "tourmalinitite",
+  "dumortieritite"
 ];
 
 const COMBAT_ACTIONS = [
