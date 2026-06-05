@@ -142,7 +142,27 @@ const CELLS = [
   { prefix: "spermatogoniocytoclast", base: "spermatogonium" },
   { prefix: "oogoniocytoclast", base: "oogonium" },
   { prefix: "thecaluteincytoclast", base: "thecalutein" },
-  { prefix: "granulosaluteincytoclast", base: "granulosalutein" }
+  { prefix: "granulosaluteincytoclast", base: "granulosalutein" },
+  { prefix: "myelinocytoclast", base: "myelin" },
+  { prefix: "sarcomerocytoclast", base: "sarcomere" },
+  { prefix: "axonocytoclast", base: "axon" },
+  { prefix: "synapsocytoclast", base: "synapse" },
+  { prefix: "osteonocytoclast", base: "osteon" },
+  { prefix: "chondrinocytoclast", base: "chondrin" },
+  { prefix: "collagenocytoclast", base: "collagen" },
+  { prefix: "elastinocytoclast", base: "elastin" },
+  { prefix: "sarcolemmocytoclast", base: "sarcolemmo" },
+  { prefix: "neurolemmocytoclast", base: "neurolemmo" },
+  { prefix: "desmosomocytoclast", base: "desmosome" },
+  { prefix: "microfilamentocytoclast", base: "microfilament" },
+  { prefix: "microtubulocytoclast", base: "microtubule" },
+  { prefix: "lysosomocytoclast", base: "lysosome" },
+  { prefix: "mitochondriocytoclast", base: "mitochondria" },
+  { prefix: "ribosomocytoclast", base: "ribosome" },
+  { prefix: "nucleocytoclast", base: "nucleus" },
+  { prefix: "nucleolocytoclast", base: "nucleolus" },
+  { prefix: "chromatinocytoclast", base: "chromatin" },
+  { prefix: "centrosomocytoclast", base: "centrosome" }
 ];
 
 const ELEMENTS = [
@@ -305,7 +325,29 @@ const ELEMENTS = [
   "quadranium",
   "carbonite",
   "cortosis",
-  "phrik"
+  "phrik",
+  "nanite",
+  "graphene",
+  "carbyne",
+  "aerogel",
+  "chronoton",
+  "tachyon",
+  "graviton",
+  "darkmatter",
+  "antimatter",
+  "redmatter",
+  "ether",
+  "phlogiston",
+  "quintessence",
+  "aurum",
+  "argentum",
+  "plumbum",
+  "ferrum",
+  "cuprum",
+  "hydrargyrum",
+  "stannum",
+  "natrium",
+  "kalium"
 ];
 
 const COMBAT_ACTIONS = [
@@ -433,6 +475,23 @@ function getGreekNumber(n: number): string {
     if (n === 350) return "pentacontatrihectarchy";
     return units[n - 350] + "pentacontatrihectarchy";
   }
+  if (n >= 360 && n < 370) {
+    if (n === 360) return "hexacontatrihectarchy";
+    return units[n - 360] + "hexacontatrihectarchy";
+  }
+  if (n >= 370 && n < 380) {
+    if (n === 370) return "heptacontatrihectarchy";
+    return units[n - 370] + "heptacontatrihectarchy";
+  }
+  if (n >= 380 && n < 390) {
+    if (n === 380) return "octacontatrihectarchy";
+    return units[n - 380] + "octacontatrihectarchy";
+  }
+  if (n >= 390 && n < 400) {
+    if (n === 390) return "enneacontatrihectarchy";
+    return units[n - 390] + "enneacontatrihectarchy";
+  }
+  if (n === 400) return "tetrahectarchy";
 
   const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
   
