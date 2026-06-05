@@ -3020,6 +3020,19 @@ function getNounMatchStrength(userNoun: string, cmdNouns: string[], cmdTokens: s
   return 0;
 }
 
+let cachedStaticVocab: Set<string> | null = null;
+function getStaticVocab(): Set<string> {
+  if (cachedStaticVocab) return cachedStaticVocab;
+  cachedStaticVocab = new Set<string>();
+  for (const key of Object.keys(VERB_CATEGORIES)) {
+    const words = key.split(/\s+/);
+    for (const w of words) {
+      if (w) cachedStaticVocab.add(w);
+    }
+  }
+  return cachedStaticVocab;
+}
+
 export function mapCommand(rawInput: string, availableActions: AvailableAction[]): { action?: Action; error?: string } {
   // Clean raw input (lowercase, remove punctuation, trim)
   const cleanInput = rawInput
@@ -3041,18 +3054,12 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
   };
 
   // Build local vocabulary of valid words
-  const vocab = new Set<string>();
+  const vocab = new Set<string>(getStaticVocab());
   for (const action of availableActions) {
     const words = action.command
       .toLowerCase()
       .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "")
       .split(/\s+/);
-    for (const w of words) {
-      if (w) vocab.add(w);
-    }
-  }
-  for (const key of Object.keys(VERB_CATEGORIES)) {
-    const words = key.split(/\s+/);
     for (const w of words) {
       if (w) vocab.add(w);
     }
