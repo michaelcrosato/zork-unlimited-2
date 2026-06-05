@@ -43,6 +43,10 @@ const CELLS = [
   { prefix: "enterocytoclast", base: "entero" },
   { prefix: "melanocytoclast", base: "melano" },
   { prefix: "keratinocytoclast", base: "keratino" },
+  { prefix: "myeloblastocytoclast", base: "myeloblast" },
+  { prefix: "astrocytocytoclast", base: "astrocyte" },
+  { prefix: "oligodendrocytocytoclast", base: "oligodendrocyte" },
+  { prefix: "microgliocytoclast", base: "microglia" },
 ];
 
 const ELEMENTS = [
@@ -66,7 +70,10 @@ const ELEMENTS = [
   "aluminum",
   "silicon",
   "potassium",
-  "calcium"
+  "calcium",
+  "iron",
+  "copper",
+  "zinc"
 ];
 
 const COMBAT_ACTIONS = [
@@ -110,7 +117,26 @@ function getGreekNumber(n: number): string {
     if (n === 140) return "tetracontahectarchy";
     return units[n - 140] + "tetracontahectarchy";
   }
-  if (n === 150) return "pentacontahectarchy";
+  if (n >= 150 && n < 160) {
+    if (n === 150) return "pentacontahectarchy";
+    return units[n - 150] + "pentacontahectarchy";
+  }
+  if (n >= 160 && n < 170) {
+    if (n === 160) return "hexacontahectarchy";
+    return units[n - 160] + "hexacontahectarchy";
+  }
+  if (n >= 170 && n < 180) {
+    if (n === 170) return "heptacontahectarchy";
+    return units[n - 170] + "heptacontahectarchy";
+  }
+  if (n >= 180 && n < 190) {
+    if (n === 180) return "octacontahectarchy";
+    return units[n - 180] + "octacontahectarchy";
+  }
+  if (n >= 190 && n < 200) {
+    if (n === 190) return "enneacontahectarchy";
+    return units[n - 190] + "enneacontahectarchy";
+  }
 
   const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
   
@@ -123,9 +149,9 @@ function getGreekNumber(n: number): string {
   return units[unitDigit] + tens[tenDigit];
 }
 
-// Generate phases starting from Phase 368 up to Phase 450
+// Generate phases starting from Phase 368 up to Phase 500
 const PHASES: SynonymPhase[] = [];
-for (let p = 368; p <= 450; p++) {
+for (let p = 368; p <= 500; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
   const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
   const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
