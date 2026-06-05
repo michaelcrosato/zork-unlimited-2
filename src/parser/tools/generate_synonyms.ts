@@ -112,7 +112,22 @@ const CELLS = [
   { prefix: "megakaryoblastocytoclast", base: "megakaryoblast" },
   { prefix: "promyelocytocytoclast", base: "promyelocyte" },
   { prefix: "metamyelocytocytoclast", base: "metamyelocyte" },
-  { prefix: "histioblastocytoclast", base: "histioblast" }
+  { prefix: "histioblastocytoclast", base: "histioblast" },
+  { prefix: "kupffercytoclast", base: "kupffer" },
+  { prefix: "sertolicytoclast", base: "sertoli" },
+  { prefix: "leydigcytoclast", base: "leydig" },
+  { prefix: "granulosacytoclast", base: "granulosa" },
+  { prefix: "luteincytoclast", base: "lutein" },
+  { prefix: "thecacytoclast", base: "theca" },
+  { prefix: "merkelcytoclast", base: "merkel" },
+  { prefix: "langerhanscytoclast", base: "langerhans" },
+  { prefix: "panethcytoclast", base: "paneth" },
+  { prefix: "parietalcytoclast", base: "parietal" },
+  { prefix: "chiefcytoclast", base: "chief" },
+  { prefix: "foveolarcytoclast", base: "foveolar" },
+  { prefix: "mesangialcytoclast", base: "mesangial" },
+  { prefix: "juxtaglomerularcytoclast", base: "juxtaglomerular" },
+  { prefix: "maculadensacytoclast", base: "maculadensa" }
 ];
 
 const ELEMENTS = [
@@ -245,7 +260,22 @@ const ELEMENTS = [
   "invar",
   "nichrome",
   "alinico",
-  "stellite"
+  "stellite",
+  "duralumin",
+  "magnalium",
+  "constantan",
+  "monel",
+  "hastelloy",
+  "inconel",
+  "elinvac",
+  "vitallium",
+  "galinstan",
+  "vibranium",
+  "adamantium",
+  "beskar",
+  "unobtainium",
+  "runite",
+  "naquadah"
 ];
 
 const COMBAT_ACTIONS = [
@@ -349,8 +379,29 @@ function getGreekNumber(n: number): string {
     if (n === 290) return "enneacontadihectarchy";
     return units[n - 290] + "enneacontadihectarchy";
   }
-  if (n === 300) {
-    return "trihectarchy";
+  if (n >= 300 && n < 310) {
+    if (n === 300) return "trihectarchy";
+    return units[n - 300] + "trihectarchy";
+  }
+  if (n >= 310 && n < 320) {
+    if (n === 310) return "decatrihectarchy";
+    return units[n - 310] + "decatrihectarchy";
+  }
+  if (n >= 320 && n < 330) {
+    if (n === 320) return "icosatrihectarchy";
+    return units[n - 320] + "icosatrihectarchy";
+  }
+  if (n >= 330 && n < 340) {
+    if (n === 330) return "triacontatrihectarchy";
+    return units[n - 330] + "triacontatrihectarchy";
+  }
+  if (n >= 340 && n < 350) {
+    if (n === 340) return "tetracontatrihectarchy";
+    return units[n - 340] + "tetracontatrihectarchy";
+  }
+  if (n >= 350 && n < 360) {
+    if (n === 350) return "pentacontatrihectarchy";
+    return units[n - 350] + "pentacontatrihectarchy";
   }
 
   const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
