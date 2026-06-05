@@ -22,23 +22,114 @@ interface SynonymPhase {
   talkPrefix: string;
 }
 
-// Configured phases starting from Phase 368
-const PHASES: SynonymPhase[] = [
-  {
-    phase: 368,
-    cycle: 410,
-    moveCell: "basophilocytoclastopoiesis",
-    lookAction: "transastatination",
-    takeCount: "hexacontarchy",
-    takeViceCount: "vicehexacontarchy",
-    openPrefix: "basophilocytoclast",
-    unlockAgent1: "basophilocytoclastologist",
-    unlockAgent2: "basophiloblastoclastologist",
-    usePrefix: "basophilocytoclastokinetic",
-    combatPrefix: "ferociously blood-cascading",
-    talkPrefix: "basophilocytoclastopathological",
-  },
+const CELLS = [
+  { prefix: "basophilocytoclast", base: "basophil" },
+  { prefix: "synoviocytoclast", base: "synovio" },
+  { prefix: "lymphocytoclast", base: "lympho" },
+  { prefix: "monocytoclast", base: "mono" },
+  { prefix: "neutrophilocytoclast", base: "neutrophilo" },
+  { prefix: "eosinophilocytoclast", base: "eosinophilo" },
+  { prefix: "erythrocytoclast", base: "erythro" },
+  { prefix: "thrombocytoclast", base: "thrombo" },
+  { prefix: "osteocytoclast", base: "osteo" },
+  { prefix: "chondrocytoclast", base: "chondro" },
+  { prefix: "fibrocytoclast", base: "fibro" },
+  { prefix: "myocytoclast", base: "myo" },
+  { prefix: "hepatocytoclast", base: "hepato" },
+  { prefix: "splenocytoclast", base: "spleno" },
+  { prefix: "nephrocytoclast", base: "nephro" },
+  { prefix: "cardiocytoclast", base: "cardio" },
+  { prefix: "pneumocytoclast", base: "pneumo" },
+  { prefix: "enterocytoclast", base: "entero" },
+  { prefix: "melanocytoclast", base: "melano" },
+  { prefix: "keratinocytoclast", base: "keratino" },
 ];
+
+const ELEMENTS = [
+  "astatin",
+  "iodin",
+  "bromin",
+  "chlorin",
+  "fluorin",
+  "sulfur",
+  "phosphor",
+  "nitrogen",
+  "carbon",
+  "oxygen",
+  "hydrogen",
+  "helium",
+  "lithium",
+  "beryllium",
+  "boron",
+  "sodium",
+  "magnesium",
+  "aluminum",
+  "silicon",
+  "potassium",
+  "calcium"
+];
+
+const COMBAT_ACTIONS = [
+  "blood-cascading",
+  "blood-welling",
+  "blood-gushing",
+  "blood-spilling",
+  "blood-flowing",
+  "blood-dripping",
+  "blood-spraying",
+  "blood-splattering",
+  "blood-streaming",
+  "blood-pouring",
+];
+
+function getGreekNumber(n: number): string {
+  if (n === 50) return "pentacontarchy";
+  if (n === 60) return "hexacontarchy";
+  if (n === 70) return "heptacontarchy";
+  if (n === 80) return "octacontarchy";
+  if (n === 90) return "enneacontarchy";
+  if (n === 100) return "hectarchy";
+
+  const units = ["", "hena", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "ennea"];
+  const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
+  
+  const unitDigit = n % 10;
+  const tenDigit = Math.floor(n / 10);
+  
+  if (tenDigit === 5 && unitDigit === 1) return "unapentacontarchy";
+  if (tenDigit === 5 && unitDigit === 9) return "nonapentacontarchy";
+  
+  return units[unitDigit] + tens[tenDigit];
+}
+
+// Generate phases starting from Phase 368 up to Phase 390
+const PHASES: SynonymPhase[] = [];
+for (let p = 368; p <= 390; p++) {
+  const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
+  const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
+  const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
+  
+  const cell = CELLS[cellIndex];
+  const element = ELEMENTS[elemIndex];
+  const combatAction = COMBAT_ACTIONS[combatIndex];
+  const numberVal = p - 308;
+  const takeCount = getGreekNumber(numberVal);
+  
+  PHASES.push({
+    phase: p,
+    cycle: 410 + (p - 368),
+    moveCell: `${cell.prefix}opoiesis`,
+    lookAction: `trans${element}ation`,
+    takeCount: takeCount,
+    takeViceCount: `vice${takeCount}`,
+    openPrefix: cell.prefix,
+    unlockAgent1: `${cell.prefix}ologist`,
+    unlockAgent2: `${cell.base}oblastoclastologist`,
+    usePrefix: `${cell.prefix}okinetic`,
+    combatPrefix: `ferociously ${combatAction}`,
+    talkPrefix: `${cell.prefix}opathological`,
+  });
+}
 
 function generateSynonymsFile() {
   let content = `// Auto-generated synonym registrations
