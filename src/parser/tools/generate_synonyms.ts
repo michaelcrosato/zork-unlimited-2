@@ -53,6 +53,18 @@ const CELLS = [
   { prefix: "neuronocytoclast", base: "neuron" },
   { prefix: "hepatoblastocytoclast", base: "hepatoblast" },
   { prefix: "neuroblastocytoclast", base: "neuroblast" },
+  { prefix: "osteoblastocytoclast", base: "osteoblast" },
+  { prefix: "chondroblastocytoclast", base: "chondroblast" },
+  { prefix: "myoblastocytoclast", base: "myoblast" },
+  { prefix: "fibroblastocytoclast", base: "fibroblast" },
+  { prefix: "epitheliocytocytoclast", base: "epitheliocyte" },
+  { prefix: "podocytocytoclast", base: "podocyte" },
+  { prefix: "cardiomyocytocytoclast", base: "cardiomyocyte" },
+  { prefix: "enteroblastocytoclast", base: "enteroblast" },
+  { prefix: "lymphoblastocytoclast", base: "lymphoblast" },
+  { prefix: "monoblastocytoclast", base: "monoblast" },
+  { prefix: "erythroblastocytoclast", base: "erythroblast" },
+  { prefix: "megakaryocytocytoclast", base: "megakaryocyte" },
 ];
 
 const ELEMENTS = [
@@ -89,7 +101,22 @@ const ELEMENTS = [
   "nickel",
   "titanium",
   "cobalt",
-  "chromium"
+  "chromium",
+  "manganese",
+  "vanadium",
+  "scandium",
+  "gallium",
+  "germanium",
+  "arsenic",
+  "selenium",
+  "rubidium",
+  "strontium",
+  "yttrium",
+  "zirconium",
+  "niobium",
+  "molybdenum",
+  "ruthenium",
+  "rhodium"
 ];
 
 const COMBAT_ACTIONS = [
@@ -153,6 +180,29 @@ function getGreekNumber(n: number): string {
     if (n === 190) return "enneacontahectarchy";
     return units[n - 190] + "enneacontahectarchy";
   }
+  if (n >= 200 && n < 210) {
+    if (n === 200) return "dihectarchy";
+    return units[n - 200] + "dihectarchy";
+  }
+  if (n >= 210 && n < 220) {
+    if (n === 210) return "decadihectarchy";
+    return units[n - 210] + "decadihectarchy";
+  }
+  if (n >= 220 && n < 230) {
+    if (n === 220) return "icosadihectarchy";
+    return units[n - 220] + "icosadihectarchy";
+  }
+  if (n >= 230 && n < 240) {
+    if (n === 230) return "triacontadihectarchy";
+    return units[n - 230] + "triacontadihectarchy";
+  }
+  if (n >= 240 && n < 250) {
+    if (n === 240) return "tetracontadihectarchy";
+    return units[n - 240] + "tetracontadihectarchy";
+  }
+  if (n === 250) {
+    return "pentacontadihectarchy";
+  }
 
   const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
   
@@ -165,9 +215,9 @@ function getGreekNumber(n: number): string {
   return units[unitDigit] + tens[tenDigit];
 }
 
-// Generate phases starting from Phase 368 up to Phase 500
+// Generate phases starting from Phase 368 up to Phase 550
 const PHASES: SynonymPhase[] = [];
-for (let p = 368; p <= 500; p++) {
+for (let p = 368; p <= 550; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
   const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
   const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
