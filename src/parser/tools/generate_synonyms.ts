@@ -220,7 +220,29 @@ const CELLS = [
   { prefix: "spliceosomblastocytoclast", base: "spliceosomblast" },
   { prefix: "ribozymocytoclast", base: "ribozyme" },
   { prefix: "proteasomocytoclast", base: "proteasome" },
-  { prefix: "glyoxysomocytoclast", base: "glyoxysome" }
+  { prefix: "glyoxysomocytoclast", base: "glyoxysome" },
+  { prefix: "glyoxysomblastocytoclast", base: "glyoxysomblast" },
+  { prefix: "dictyosomocytoclast", base: "dictyosome" },
+  { prefix: "dictyosomblastocytoclast", base: "dictyosomblast" },
+  { prefix: "carboxysomocytoclast", base: "carboxysome" },
+  { prefix: "carboxysomblastocytoclast", base: "carboxysomblast" },
+  { prefix: "mitochondrioblastocytoclast", base: "mitochondrioblast" },
+  { prefix: "plastidocytoclast", base: "plastid" },
+  { prefix: "plastidoblastocytoclast", base: "plastidoblast" },
+  { prefix: "amyloplastocytoclast", base: "amyloplast" },
+  { prefix: "amyloplastoblastocytoclast", base: "amyloplastoblast" },
+  { prefix: "chromoplastocytoclast", base: "chromoplast" },
+  { prefix: "chromoplastoblastocytoclast", base: "chromoplastoblast" },
+  { prefix: "leucoplastocytoclast", base: "leucoplast" },
+  { prefix: "leucoplastoblastocytoclast", base: "leucoplastoblast" },
+  { prefix: "elaioplastocytoclast", base: "elaioplast" },
+  { prefix: "elaioplastoblastocytoclast", base: "elaioplastoblast" },
+  { prefix: "proteinoplastocytoclast", base: "proteinoplast" },
+  { prefix: "proteinoplastoblastocytoclast", base: "proteinoplastoblast" },
+  { prefix: "etioplastocytoclast", base: "etioplast" },
+  { prefix: "etioplastoblastocytoclast", base: "etioplastoblast" },
+  { prefix: "statolithocytoclast", base: "statolith" },
+  { prefix: "statolithoblastocytoclast", base: "statolithoblast" }
 ];
 
 const ELEMENTS = [
@@ -481,7 +503,27 @@ const ELEMENTS = [
   "struverite",
   "columbite",
   "tantalite",
-  "pyrochlore"
+  "pyrochlore",
+  "microlite",
+  "fergusonite",
+  "samarskite",
+  "euxenite",
+  "polycrase",
+  "gadolinite",
+  "allanite",
+  "parisite",
+  "synchysite",
+  "ancylite",
+  "loparite",
+  "latrappite",
+  "lueshite",
+  "natronosite",
+  "thorianite",
+  "uraninite",
+  "coffinite",
+  "brannerite",
+  "carnotite",
+  "tyuyamunite"
 ];
 
 const COMBAT_ACTIONS = [
