@@ -288,7 +288,22 @@ const CELLS = [
   { prefix: "cytosomeblastocytoclast", base: "cytosomeblast" },
   { prefix: "microbodyblastocytoclast", base: "microbodyblast" },
   { prefix: "blepharoplastblastocytoclast", base: "blepharoplastblast" },
-  { prefix: "kinetoplastblastocytoclast", base: "kinetoplastblast" }
+  { prefix: "kinetoplastblastocytoclast", base: "kinetoplastblast" },
+  { prefix: "polysomocytoclast", base: "polysome" },
+  { prefix: "polysomoblastocytoclast", base: "polysomoblast" },
+  { prefix: "liposomblastocytoclast", base: "liposomblast" },
+  { prefix: "phragmoplastocytoclast", base: "phragmoplast" },
+  { prefix: "phragmoplastblastocytoclast", base: "phragmoplastblast" },
+  { prefix: "nucleoidcytoclast", base: "nucleoid" },
+  { prefix: "nucleoidblastocytoclast", base: "nucleoidblast" },
+  { prefix: "myofibrilocytoclast", base: "myofibril" },
+  { prefix: "myofibrilblastocytoclast", base: "myofibrilblast" },
+  { prefix: "desminocytoclast", base: "desmin" },
+  { prefix: "desminblastocytoclast", base: "desminblast" },
+  { prefix: "vimentinocytoclast", base: "vimentin" },
+  { prefix: "vimentinblastocytoclast", base: "vimentinblast" },
+  { prefix: "neurofilamentocytoclast", base: "neurofilament" },
+  { prefix: "neurofilamentblastocytoclast", base: "neurofilamentblast" }
 ];
 
 const ELEMENTS = [
@@ -618,7 +633,22 @@ const ELEMENTS = [
   "lueshitite",
   "natronositite",
   "thorianitite",
-  "uraninitite"
+  "uraninitite",
+  "bastnasitite",
+  "monazitite",
+  "xenotimitite",
+  "cryolitite",
+  "apatitite",
+  "fluoritite",
+  "sphenitite",
+  "titanitite",
+  "rutilitite",
+  "anatasitite",
+  "brookitite",
+  "ilmenitite",
+  "pyrolusitite",
+  "zirconitite",
+  "columbitite"
 ];
 
 const COMBAT_ACTIONS = [
