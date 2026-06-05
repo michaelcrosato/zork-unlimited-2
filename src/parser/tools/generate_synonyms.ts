@@ -840,7 +840,23 @@ const CELLS = [
   { prefix: "telomericoidcytoclast", base: "telomericoid" },
   { prefix: "telomericoidblastocytoclast", base: "telomericoidblast" },
   { prefix: "centromericoidcytoclast", base: "centromericoid" },
-  { prefix: "centromericoidblastocytoclast", base: "centromericoidblast" }
+  { prefix: "centromericoidblastocytoclast", base: "centromericoidblast" },
+  { prefix: "vimentinoidcytoclast", base: "vimentinoid" },
+  { prefix: "vimentinoidblastocytoclast", base: "vimentinoidblast" },
+  { prefix: "desminoidcytoclast", base: "desminoid" },
+  { prefix: "desminoidblastocytoclast", base: "desminoidblast" },
+  { prefix: "spectrinoidcytoclast", base: "spectrinoid" },
+  { prefix: "spectrinoidblastocytoclast", base: "spectrinoidblast" },
+  { prefix: "ankyrinoidcytoclast", base: "ankyrinoid" },
+  { prefix: "ankyrinoidblastocytoclast", base: "ankyrinoidblast" },
+  { prefix: "talinoidcytoclast", base: "talinoid" },
+  { prefix: "talinoidblastocytoclast", base: "talinoidblast" },
+  { prefix: "vinculinoidcytoclast", base: "vinculinoid" },
+  { prefix: "vinculinoidblastocytoclast", base: "vinculinoidblast" },
+  { prefix: "paxillinoidcytoclast", base: "paxillinoid" },
+  { prefix: "paxillinoidblastocytoclast", base: "paxillinoidblast" },
+  { prefix: "filaminoidcytoclast", base: "filaminoid" },
+  { prefix: "filaminoidblastocytoclast", base: "filaminoidblast" }
 ];
 
 
@@ -1766,7 +1782,22 @@ const ELEMENTS = [
   "hephaestusite",
   "hephaestusitite",
   "aphroditeite",
-  "aphroditeitite"
+  "aphroditeitite",
+  "jupiterite",
+  "jupiteritite",
+  "jupiterstoneitite",
+  "vulcanite",
+  "vulcanitite",
+  "vulcanstoneitite",
+  "neptunite",
+  "neptunitite",
+  "neptunestoneitite",
+  "minervaite",
+  "minervaitite",
+  "minervastoneitite",
+  "plutonistone",
+  "plutonistonite",
+  "plutonistoneitite"
 ];
 
 const COMBAT_ACTIONS = [
@@ -2366,8 +2397,8 @@ import { mapCommand } from "../src/parser/command_map.js";
 import { getGreekNumber } from "../src/parser/tools/generate_synonyms.js";
 
 describe("Greek Number Generation Verification", () => {
-  it("should return valid Greek numbers up to 450", () => {
-    for (let i = 1; i <= 450; i++) {
+  it("should return valid Greek numbers up to 500", () => {
+    for (let i = 1; i <= 500; i++) {
       const name = getGreekNumber(i);
       expect(name).toBeDefined();
       expect(typeof name).toBe("string");
@@ -2386,6 +2417,7 @@ describe("Greek Number Generation Verification", () => {
     expect(getGreekNumber(350)).toBe("pentacontatrihectarchy");
     expect(getGreekNumber(400)).toBe("tetrahectarchy");
     expect(getGreekNumber(450)).toBe("pentacontatetrahectarchy");
+    expect(getGreekNumber(500)).toBe("pentahectarchy");
   });
 });
 

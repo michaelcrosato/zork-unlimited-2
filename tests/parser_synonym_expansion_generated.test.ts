@@ -3,8 +3,8 @@ import { mapCommand } from "../src/parser/command_map.js";
 import { getGreekNumber } from "../src/parser/tools/generate_synonyms.js";
 
 describe("Greek Number Generation Verification", () => {
-  it("should return valid Greek numbers up to 450", () => {
-    for (let i = 1; i <= 450; i++) {
+  it("should return valid Greek numbers up to 500", () => {
+    for (let i = 1; i <= 500; i++) {
       const name = getGreekNumber(i);
       expect(name).toBeDefined();
       expect(typeof name).toBe("string");
@@ -23,6 +23,7 @@ describe("Greek Number Generation Verification", () => {
     expect(getGreekNumber(350)).toBe("pentacontatrihectarchy");
     expect(getGreekNumber(400)).toBe("tetrahectarchy");
     expect(getGreekNumber(450)).toBe("pentacontatetrahectarchy");
+    expect(getGreekNumber(500)).toBe("pentahectarchy");
   });
 });
 
@@ -122,15 +123,15 @@ describe("Parser Synonym Expansion (Generated)", () => {
   describe("Phase 369 (Cycle #411)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
-        mapCommand("navigate one's vector of centromericoidblastocytoclastopoiesis towards the location of east", actions).action
+        mapCommand("navigate one's vector of filaminoidblastocytoclastopoiesis towards the location of east", actions).action
       ).toEqual({ type: "MOVE", direction: "east" });
       expect(
-        mapCommand("steer one's vector of centromericoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+        mapCommand("steer one's vector of filaminoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
       ).toEqual({ type: "MOVE", direction: "east" });
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transaphroditeititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transplutonistoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
@@ -149,6 +150,1270 @@ describe("Parser Synonym Expansion (Generated)", () => {
 
     it("should map newly added drop verbs to DROP action", () => {
       expect(mapCommand("divest oneself of all exclusive henahexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and filaminoidblastocytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and filaminoidblastocytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all filaminoidblastocytoclastologist and filaminoidblastoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full filaminoidblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an filaminoidblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 370 (Cycle #412)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of filaminoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of filaminoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transplutonistoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive dihexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicedihexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive dihexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and filaminoidcytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and filaminoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all filaminoidcytoclastologist and filaminoidoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full filaminoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an filaminoidcytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 371 (Cycle #413)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of paxillinoidblastocytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of paxillinoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transplutonistoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive trihexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetrihexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive trihexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and paxillinoidblastocytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and paxillinoidblastocytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all paxillinoidblastocytoclastologist and paxillinoidblastoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full paxillinoidblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an paxillinoidblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 372 (Cycle #414)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of paxillinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of paxillinoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transminervastoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tetrahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetetrahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive tetrahexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and paxillinoidcytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and paxillinoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all paxillinoidcytoclastologist and paxillinoidoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full paxillinoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an paxillinoidcytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 373 (Cycle #415)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of vinculinoidblastocytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of vinculinoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transminervaititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive pentahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicepentahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive pentahexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and vinculinoidblastocytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and vinculinoidblastocytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all vinculinoidblastocytoclastologist and vinculinoidblastoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full vinculinoidblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an vinculinoidblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 374 (Cycle #416)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of vinculinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of vinculinoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transminervaiteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive hexahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehexahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive hexahexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and vinculinoidcytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and vinculinoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all vinculinoidcytoclastologist and vinculinoidoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full vinculinoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an vinculinoidcytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 375 (Cycle #417)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of talinoidblastocytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of talinoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transneptunestoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive heptahexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and talinoidblastocytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and talinoidblastocytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all talinoidblastocytoclastologist and talinoidblastoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full talinoidblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an talinoidblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 376 (Cycle #418)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of talinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of talinoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transneptunititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive octahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceoctahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive octahexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and talinoidcytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and talinoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all talinoidcytoclastologist and talinoidoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full talinoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an talinoidcytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 377 (Cycle #419)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of ankyrinoidblastocytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of ankyrinoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transneptuniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive enneahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceenneahexacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive enneahexacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and ankyrinoidblastocytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and ankyrinoidblastocytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all ankyrinoidblastocytoclastologist and ankyrinoidblastoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full ankyrinoidblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an ankyrinoidblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 378 (Cycle #420)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of ankyrinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of ankyrinoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transvulcanstoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive heptacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and ankyrinoidcytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and ankyrinoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all ankyrinoidcytoclastologist and ankyrinoidoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full ankyrinoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an ankyrinoidcytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 379 (Cycle #421)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of spectrinoidblastocytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of spectrinoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transvulcanititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive henaheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehenaheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive henaheptacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and spectrinoidblastocytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and spectrinoidblastocytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all spectrinoidblastocytoclastologist and spectrinoidblastoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full spectrinoidblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an spectrinoidblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 380 (Cycle #422)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of spectrinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of spectrinoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transvulcaniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive diheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicediheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive diheptacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and spectrinoidcytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and spectrinoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all spectrinoidcytoclastologist and spectrinoidoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full spectrinoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an spectrinoidcytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 381 (Cycle #423)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of desminoidblastocytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of desminoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transjupiterstoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive triheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetriheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive triheptacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and desminoidblastocytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and desminoidblastocytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all desminoidblastocytoclastologist and desminoidblastoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full desminoidblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an desminoidblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 382 (Cycle #424)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of desminoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of desminoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transjupiterititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tetraheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetetraheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive tetraheptacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and desminoidcytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and desminoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all desminoidcytoclastologist and desminoidoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full desminoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an desminoidcytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 383 (Cycle #425)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of vimentinoidblastocytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of vimentinoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transjupiteriteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive pentaheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicepentaheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive pentaheptacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and vimentinoidblastocytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and vimentinoidblastocytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all vimentinoidblastocytoclastologist and vimentinoidblastoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full vimentinoidblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an vimentinoidblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 384 (Cycle #426)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of vimentinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of vimentinoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transaphroditeititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive hexaheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehexaheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive hexaheptacontarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(mapCommand("force completely and vimentinoidcytoclastorheologically wide open vault", actions).action).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and vimentinoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(mapCommand("deactivate all vimentinoidcytoclastologist and vimentinoidoblastoclastologist security devices of chest", actions).action).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full vimentinoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(mapCommand("initiate a/an vimentinoidcytoclastopathological face to face discussion with capo", actions).action).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 385 (Cycle #427)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of centromericoidblastocytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand("steer one's vector of centromericoidblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transaphroditeiteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptaheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptaheptacontarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive heptaheptacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -180,11 +1445,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -198,7 +1463,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 370 (Cycle #412)", () => {
+  describe("Phase 386 (Cycle #428)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centromericoidcytoclastopoiesis towards the location of east", actions).action
@@ -209,25 +1474,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transaphroditeiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhephaestusititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dihexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaheptacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedihexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaheptacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dihexacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaheptacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -259,11 +1524,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -277,7 +1542,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 371 (Cycle #413)", () => {
+  describe("Phase 387 (Cycle #429)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of telomericoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -288,25 +1553,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhephaestusititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhephaestusiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trihexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaheptacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrihexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaheptacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trihexacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaheptacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -338,11 +1603,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -356,7 +1621,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 372 (Cycle #414)", () => {
+  describe("Phase 388 (Cycle #430)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of telomericoidcytoclastopoiesis towards the location of east", actions).action
@@ -367,25 +1632,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhephaestusiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhermesititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetrahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetrahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetrahexacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -417,11 +1682,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -435,7 +1700,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 373 (Cycle #415)", () => {
+  describe("Phase 389 (Cycle #431)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chromosomaloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -446,25 +1711,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhermesititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhermesiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentahexacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaoctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -496,11 +1761,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -514,7 +1779,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 374 (Cycle #416)", () => {
+  describe("Phase 390 (Cycle #432)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chromosomaloidcytoclastopoiesis towards the location of east", actions).action
@@ -525,25 +1790,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhermesiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transaresititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dioctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedioctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexahexacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dioctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -575,11 +1840,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -593,7 +1858,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 375 (Cycle #417)", () => {
+  describe("Phase 391 (Cycle #433)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centrosomaloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -604,25 +1869,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transaresititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transaresiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trioctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrioctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptahexacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trioctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -654,11 +1919,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -672,7 +1937,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 376 (Cycle #418)", () => {
+  describe("Phase 392 (Cycle #434)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centrosomaloidcytoclastopoiesis towards the location of east", actions).action
@@ -683,25 +1948,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transaresiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transathenaititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octahexacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraoctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -733,11 +1998,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -751,7 +2016,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 377 (Cycle #419)", () => {
+  describe("Phase 393 (Cycle #435)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centriolaroidblastocytoclastopoiesis towards the location of east", actions).action
@@ -762,25 +2027,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transathenaititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transathenaiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneahexacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneahexacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaoctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -812,11 +2077,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -830,7 +2095,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 378 (Cycle #420)", () => {
+  describe("Phase 394 (Cycle #436)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centriolaroidcytoclastopoiesis towards the location of east", actions).action
@@ -841,25 +2106,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transathenaiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transartemisititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaoctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -891,11 +2156,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -909,7 +2174,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 379 (Cycle #421)", () => {
+  describe("Phase 395 (Cycle #437)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytoskeletaloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -920,25 +2185,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transartemisititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transartemisiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaoctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -970,11 +2235,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -988,7 +2253,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 380 (Cycle #422)", () => {
+  describe("Phase 396 (Cycle #438)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytoskeletaloidcytoclastopoiesis towards the location of east", actions).action
@@ -999,25 +2264,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transartemisiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transapollonititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive diheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicediheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive diheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaoctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1049,11 +2314,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1067,7 +2332,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 381 (Cycle #423)", () => {
+  describe("Phase 397 (Cycle #439)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of tightjunctionaloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -1078,25 +2343,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transapollonititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transapolloniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetriheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaoctacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaoctacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1128,11 +2393,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1146,7 +2411,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 382 (Cycle #424)", () => {
+  describe("Phase 398 (Cycle #440)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of tightjunctionaloidcytoclastopoiesis towards the location of east", actions).action
@@ -1157,25 +2422,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transapolloniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transherasititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1207,11 +2472,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1225,7 +2490,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 383 (Cycle #425)", () => {
+  describe("Phase 399 (Cycle #441)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of gapjunctionaloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -1236,25 +2501,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transherasititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transherasiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaenneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1286,11 +2551,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1304,7 +2569,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 384 (Cycle #426)", () => {
+  describe("Phase 400 (Cycle #442)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of gapjunctionaloidcytoclastopoiesis towards the location of east", actions).action
@@ -1315,25 +2580,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transherasiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transzeusititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dienneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedienneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dienneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1365,11 +2630,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1383,7 +2648,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 385 (Cycle #427)", () => {
+  describe("Phase 401 (Cycle #443)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of desmosomaloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -1394,25 +2659,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transzeusititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transzeusiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trienneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrienneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trienneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1444,11 +2709,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1462,7 +2727,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 386 (Cycle #428)", () => {
+  describe("Phase 402 (Cycle #444)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of desmosomaloidcytoclastopoiesis towards the location of east", actions).action
@@ -1473,25 +2738,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transzeusiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transposeidonititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraenneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1523,11 +2788,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1541,7 +2806,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 387 (Cycle #429)", () => {
+  describe("Phase 403 (Cycle #445)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of stereociliaroidblastocytoclastopoiesis towards the location of east", actions).action
@@ -1552,25 +2817,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transposeidonititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transposeidoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaheptacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaheptacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaenneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1602,11 +2867,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1620,7 +2885,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 388 (Cycle #430)", () => {
+  describe("Phase 404 (Cycle #446)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of stereociliaroidcytoclastopoiesis towards the location of east", actions).action
@@ -1631,25 +2896,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transposeidoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transatlantisititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaenneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1681,11 +2946,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1699,7 +2964,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 389 (Cycle #431)", () => {
+  describe("Phase 405 (Cycle #447)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microvillaroidblastocytoclastopoiesis towards the location of east", actions).action
@@ -1710,25 +2975,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transatlantisititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transatlantisiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaoctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaenneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1760,11 +3025,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1778,7 +3043,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 390 (Cycle #432)", () => {
+  describe("Phase 406 (Cycle #448)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microvillaroidcytoclastopoiesis towards the location of east", actions).action
@@ -1789,25 +3054,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transatlantisiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhadesititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dioctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedioctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dioctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaenneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1839,11 +3104,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1857,7 +3122,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 391 (Cycle #433)", () => {
+  describe("Phase 407 (Cycle #449)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chemokineblastocytoclastopoiesis towards the location of east", actions).action
@@ -1868,25 +3133,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhadesititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhadesiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trioctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrioctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaenneacontarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trioctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaenneacontarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1918,11 +3183,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -1936,7 +3201,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 392 (Cycle #434)", () => {
+  describe("Phase 408 (Cycle #450)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chemokinecytoclastopoiesis towards the location of east", actions).action
@@ -1947,25 +3212,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhadesiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transtartarusititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraoctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -1997,11 +3262,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2015,7 +3280,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 393 (Cycle #435)", () => {
+  describe("Phase 409 (Cycle #451)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytokineblastocytoclastopoiesis towards the location of east", actions).action
@@ -2026,25 +3291,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transtartarusititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transtartarusiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaoctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2076,11 +3341,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2094,7 +3359,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 394 (Cycle #436)", () => {
+  describe("Phase 410 (Cycle #452)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytokinecytoclastopoiesis towards the location of east", actions).action
@@ -2105,25 +3370,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transtartarusiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transelysiumititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaoctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2155,11 +3420,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2173,7 +3438,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 395 (Cycle #437)", () => {
+  describe("Phase 411 (Cycle #453)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of interferonblastocytoclastopoiesis towards the location of east", actions).action
@@ -2184,25 +3449,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transelysiumititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transelysiumiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaoctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2234,11 +3499,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2252,7 +3517,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 396 (Cycle #438)", () => {
+  describe("Phase 412 (Cycle #454)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of interferoncytoclastopoiesis towards the location of east", actions).action
@@ -2263,25 +3528,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transelysiumiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transolympusititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetrahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetrahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaoctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetrahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2313,11 +3578,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2331,7 +3596,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 397 (Cycle #439)", () => {
+  describe("Phase 413 (Cycle #455)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of porinblastocytoclastopoiesis towards the location of east", actions).action
@@ -2342,25 +3607,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transolympusititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transolympusiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaoctacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaoctacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2392,11 +3657,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2410,7 +3675,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 398 (Cycle #440)", () => {
+  describe("Phase 414 (Cycle #456)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of porincytoclastopoiesis towards the location of east", actions).action
@@ -2421,25 +3686,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transolympusiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgladsheimititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2471,11 +3736,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2489,7 +3754,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 399 (Cycle #441)", () => {
+  describe("Phase 415 (Cycle #457)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of connexonblastocytoclastopoiesis towards the location of east", actions).action
@@ -2500,25 +3765,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgladsheimititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgladsheimiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaenneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2550,11 +3815,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2568,7 +3833,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 400 (Cycle #442)", () => {
+  describe("Phase 416 (Cycle #458)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of connexoncytoclastopoiesis towards the location of east", actions).action
@@ -2579,25 +3844,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgladsheimiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvanaheimititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dienneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedienneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dienneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2629,11 +3894,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2647,7 +3912,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 401 (Cycle #443)", () => {
+  describe("Phase 417 (Cycle #459)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of smallunitblastocytoclastopoiesis towards the location of east", actions).action
@@ -2658,25 +3923,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvanaheimititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvanaheimiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trienneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrienneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trienneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2708,11 +3973,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2726,7 +3991,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 402 (Cycle #444)", () => {
+  describe("Phase 418 (Cycle #460)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of smallunitcytoclastopoiesis towards the location of east", actions).action
@@ -2737,25 +4002,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvanaheimiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmuspelheimititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive decahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraenneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive decahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2787,11 +4052,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2805,7 +4070,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 403 (Cycle #445)", () => {
+  describe("Phase 419 (Cycle #461)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of largeunitblastocytoclastopoiesis towards the location of east", actions).action
@@ -2816,25 +4081,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmuspelheimititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmuspelheimiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaenneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henadecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2866,11 +4131,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2884,7 +4149,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 404 (Cycle #446)", () => {
+  describe("Phase 420 (Cycle #462)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of largeunitcytoclastopoiesis towards the location of east", actions).action
@@ -2895,25 +4160,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmuspelheimiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transniflheimititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive didecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedidecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaenneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive didecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -2945,11 +4210,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -2963,7 +4228,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 405 (Cycle #447)", () => {
+  describe("Phase 421 (Cycle #463)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of exonoblastocytoclastopoiesis towards the location of east", actions).action
@@ -2974,25 +4239,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transniflheimititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transniflheimiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tridecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetridecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaenneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tridecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3024,11 +4289,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3042,7 +4307,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 406 (Cycle #448)", () => {
+  describe("Phase 422 (Cycle #464)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of exonocytoclastopoiesis towards the location of east", actions).action
@@ -3053,25 +4318,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transniflheimiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transjotunheimititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetradecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetradecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaenneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetradecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3103,11 +4368,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3121,7 +4386,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 407 (Cycle #449)", () => {
+  describe("Phase 423 (Cycle #465)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of intronoblastocytoclastopoiesis towards the location of east", actions).action
@@ -3132,25 +4397,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjotunheimititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transjotunheimiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaenneacontarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaenneacontarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentadecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3182,11 +4447,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3200,7 +4465,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 408 (Cycle #450)", () => {
+  describe("Phase 424 (Cycle #466)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of intronocytoclastopoiesis towards the location of east", actions).action
@@ -3211,25 +4476,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjotunheimiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsvartalfheimititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexadecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3261,11 +4526,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3279,7 +4544,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 409 (Cycle #451)", () => {
+  describe("Phase 425 (Cycle #467)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of smootherblastocytoclastopoiesis towards the location of east", actions).action
@@ -3290,25 +4555,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsvartalfheimititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsvartalfheimiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptadecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3340,11 +4605,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3358,7 +4623,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 410 (Cycle #452)", () => {
+  describe("Phase 426 (Cycle #468)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of smoothercytoclastopoiesis towards the location of east", actions).action
@@ -3369,25 +4634,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsvartalfheimiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transalfheimititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octadecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3419,11 +4684,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3437,7 +4702,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 411 (Cycle #453)", () => {
+  describe("Phase 427 (Cycle #469)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of rougherblastocytoclastopoiesis towards the location of east", actions).action
@@ -3448,25 +4713,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transalfheimititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transalfheimiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneadecahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneadecahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3498,11 +4763,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3516,7 +4781,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 412 (Cycle #454)", () => {
+  describe("Phase 428 (Cycle #470)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of roughercytoclastopoiesis towards the location of east", actions).action
@@ -3527,25 +4792,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transalfheimiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhelheimititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetrahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive icosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetrahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetrahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive icosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3577,11 +4842,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3595,7 +4860,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 413 (Cycle #455)", () => {
+  describe("Phase 429 (Cycle #471)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cisgolgiblastocytoclastopoiesis towards the location of east", actions).action
@@ -3606,25 +4871,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhelheimititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhelheimiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3656,11 +4921,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3674,7 +4939,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 414 (Cycle #456)", () => {
+  describe("Phase 430 (Cycle #472)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cisgolgicytoclastopoiesis towards the location of east", actions).action
@@ -3685,25 +4950,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhelheimiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transasgardititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive diicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicediicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive diicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3735,11 +5000,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3753,7 +5018,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 415 (Cycle #457)", () => {
+  describe("Phase 431 (Cycle #473)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of transgolgiblastocytoclastopoiesis towards the location of east", actions).action
@@ -3764,25 +5029,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transasgardititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transasgarditeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive triicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetriicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive triicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3814,11 +5079,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3832,7 +5097,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 416 (Cycle #458)", () => {
+  describe("Phase 432 (Cycle #474)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of transgolgicytoclastopoiesis towards the location of east", actions).action
@@ -3843,25 +5108,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transasgarditeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvalhallaititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3893,11 +5158,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3911,7 +5176,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 417 (Cycle #459)", () => {
+  describe("Phase 433 (Cycle #475)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mesosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -3922,25 +5187,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvalhallaititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvalhallaiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -3972,11 +5237,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -3990,7 +5255,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 418 (Cycle #460)", () => {
+  describe("Phase 434 (Cycle #476)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mesosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -4001,25 +5266,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvalhallaiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transatlantisstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive decahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive decahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4051,11 +5316,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4069,7 +5334,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 419 (Cycle #461)", () => {
+  describe("Phase 435 (Cycle #477)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of pyrenoidoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -4080,25 +5345,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transatlantisstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transatlantisstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henadecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4130,11 +5395,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4148,7 +5413,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 420 (Cycle #462)", () => {
+  describe("Phase 436 (Cycle #478)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of pyrenoidoidcytoclastopoiesis towards the location of east", actions).action
@@ -4159,25 +5424,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transatlantisstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transatlantisstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive didecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedidecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive didecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4209,11 +5474,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4227,7 +5492,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 421 (Cycle #463)", () => {
+  describe("Phase 437 (Cycle #479)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chromoplastoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -4238,25 +5503,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transatlantisstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transelysiumstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tridecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetridecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaicosahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tridecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaicosahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4288,11 +5553,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4306,7 +5571,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 422 (Cycle #464)", () => {
+  describe("Phase 438 (Cycle #480)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chromoplastoidcytoclastopoiesis towards the location of east", actions).action
@@ -4317,25 +5582,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transelysiumstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transelysiumstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetradecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive triacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetradecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetradecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive triacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4367,11 +5632,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4385,7 +5650,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 423 (Cycle #465)", () => {
+  describe("Phase 439 (Cycle #481)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of statolithoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -4396,25 +5661,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transelysiumstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transelysiumstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentadecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henatriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4446,11 +5711,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4464,7 +5729,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 424 (Cycle #466)", () => {
+  describe("Phase 440 (Cycle #482)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of statolithoidcytoclastopoiesis towards the location of east", actions).action
@@ -4475,25 +5740,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transelysiumstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transtartarusstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive ditriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceditriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexadecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive ditriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4525,11 +5790,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4543,7 +5808,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 425 (Cycle #467)", () => {
+  describe("Phase 441 (Cycle #483)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of leucoplastoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -4554,25 +5819,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transtartarusstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transtartarusstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tritriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetritriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptadecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tritriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4604,11 +5869,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4622,7 +5887,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 426 (Cycle #468)", () => {
+  describe("Phase 442 (Cycle #484)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of leucoplastoidcytoclastopoiesis towards the location of east", actions).action
@@ -4633,25 +5898,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transtartarusstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transtartarusstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetratriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetratriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octadecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetratriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4683,11 +5948,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4701,7 +5966,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 427 (Cycle #469)", () => {
+  describe("Phase 443 (Cycle #485)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of etioplastoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -4712,25 +5977,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transtartarusstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhadesstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneadecahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneadecahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentatriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4762,11 +6027,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4780,7 +6045,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 428 (Cycle #470)", () => {
+  describe("Phase 444 (Cycle #486)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of etioplastoidcytoclastopoiesis towards the location of east", actions).action
@@ -4791,25 +6056,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhadesstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhadesstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive icosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive icosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexatriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4841,11 +6106,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4859,7 +6124,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 429 (Cycle #471)", () => {
+  describe("Phase 445 (Cycle #487)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of proteinoplastoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -4870,25 +6135,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhadesstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhadesstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptatriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4920,11 +6185,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -4938,7 +6203,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 430 (Cycle #472)", () => {
+  describe("Phase 446 (Cycle #488)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of proteinoplastoidcytoclastopoiesis towards the location of east", actions).action
@@ -4949,25 +6214,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhadesstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transolympusstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive diicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicediicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive diicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octatriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -4999,11 +6264,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5017,7 +6282,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 431 (Cycle #473)", () => {
+  describe("Phase 447 (Cycle #489)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of elaioplastoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -5028,25 +6293,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transolympusstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transolympusstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetriicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneatriacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneatriacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5078,11 +6343,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5096,7 +6361,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 432 (Cycle #474)", () => {
+  describe("Phase 448 (Cycle #490)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of elaioplastoidcytoclastopoiesis towards the location of east", actions).action
@@ -5107,25 +6372,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transolympusstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transolympusstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5157,11 +6422,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5175,7 +6440,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 433 (Cycle #475)", () => {
+  describe("Phase 449 (Cycle #491)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of amyloplastoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -5186,25 +6451,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transolympusstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvanaheimstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henatetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5236,11 +6501,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5254,7 +6519,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 434 (Cycle #476)", () => {
+  describe("Phase 450 (Cycle #492)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of amyloplastoidcytoclastopoiesis towards the location of east", actions).action
@@ -5265,25 +6530,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvanaheimstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvanaheimstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive ditetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceditetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive ditetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5315,11 +6580,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5333,7 +6598,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 435 (Cycle #477)", () => {
+  describe("Phase 451 (Cycle #493)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chloroplastoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -5344,25 +6609,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvanaheimstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvanaheimstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tritetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetritetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tritetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5394,11 +6659,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5412,7 +6677,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 436 (Cycle #478)", () => {
+  describe("Phase 452 (Cycle #494)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chloroplastoidcytoclastopoiesis towards the location of east", actions).action
@@ -5423,25 +6688,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvanaheimstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsvartalfheimstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetratetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetratetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetratetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5473,11 +6738,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5491,7 +6756,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 437 (Cycle #479)", () => {
+  describe("Phase 453 (Cycle #495)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chromatinoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -5502,25 +6767,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsvartalfheimstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsvartalfheimstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaicosahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaicosahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentatetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5552,11 +6817,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5570,7 +6835,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 438 (Cycle #480)", () => {
+  describe("Phase 454 (Cycle #496)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chromatinoidcytoclastopoiesis towards the location of east", actions).action
@@ -5581,25 +6846,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsvartalfheimstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsvartalfheimstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexatetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5631,11 +6896,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5649,7 +6914,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 439 (Cycle #481)", () => {
+  describe("Phase 455 (Cycle #497)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of tonoplastoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -5660,25 +6925,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsvartalfheimstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transalfheimstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henatriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptatetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5710,11 +6975,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5728,7 +6993,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 440 (Cycle #482)", () => {
+  describe("Phase 456 (Cycle #498)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of tonoplastoidcytoclastopoiesis towards the location of east", actions).action
@@ -5739,25 +7004,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transalfheimstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transalfheimstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive ditriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceditriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive ditriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octatetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5789,11 +7054,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5807,7 +7072,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 441 (Cycle #483)", () => {
+  describe("Phase 457 (Cycle #499)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of plasmodesmatoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -5818,25 +7083,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transalfheimstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transalfheimstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tritriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetritriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneatetracontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tritriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneatetracontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5868,11 +7133,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5886,7 +7151,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 442 (Cycle #484)", () => {
+  describe("Phase 458 (Cycle #500)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of plasmodesmatoidcytoclastopoiesis towards the location of east", actions).action
@@ -5897,25 +7162,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transalfheimstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transjotunheimstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetratriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetratriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetratriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -5947,11 +7212,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -5965,7 +7230,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 443 (Cycle #485)", () => {
+  describe("Phase 459 (Cycle #501)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of dictyosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -5976,25 +7241,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjotunheimstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transjotunheimstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentatriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henapentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6026,11 +7291,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6044,7 +7309,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 444 (Cycle #486)", () => {
+  describe("Phase 460 (Cycle #502)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of dictyosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -6055,25 +7320,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjotunheimstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transjotunheimstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dipentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedipentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexatriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dipentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6105,11 +7370,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6123,7 +7388,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 445 (Cycle #487)", () => {
+  describe("Phase 461 (Cycle #503)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of spliceosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -6134,25 +7399,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjotunheimstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhelheimstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tripentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetripentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptatriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tripentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6184,11 +7449,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6202,7 +7467,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 446 (Cycle #488)", () => {
+  describe("Phase 462 (Cycle #504)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of spliceosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -6213,25 +7478,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhelheimstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhelheimstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetrapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetrapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octatriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetrapentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6263,11 +7528,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6281,7 +7546,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 447 (Cycle #489)", () => {
+  describe("Phase 463 (Cycle #505)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of histonoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -6292,25 +7557,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhelheimstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhelheimstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneatriacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneatriacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentapentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6342,11 +7607,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6360,7 +7625,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 448 (Cycle #490)", () => {
+  describe("Phase 464 (Cycle #506)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of histonoidcytoclastopoiesis towards the location of east", actions).action
@@ -6371,25 +7636,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhelheimstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmuspelheimstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexapentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6421,11 +7686,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6439,7 +7704,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 449 (Cycle #491)", () => {
+  describe("Phase 465 (Cycle #507)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -6450,25 +7715,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmuspelheimstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmuspelheimstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henatetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptapentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6500,11 +7765,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6518,7 +7783,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 450 (Cycle #492)", () => {
+  describe("Phase 466 (Cycle #508)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -6529,25 +7794,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmuspelheimstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmuspelheimstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive ditetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceditetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive ditetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octapentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6579,11 +7844,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6597,7 +7862,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 451 (Cycle #493)", () => {
+  describe("Phase 467 (Cycle #509)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of melanosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -6608,25 +7873,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmuspelheimstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transniflheimstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tritetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetritetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneapentacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tritetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneapentacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6658,11 +7923,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6676,7 +7941,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 452 (Cycle #494)", () => {
+  describe("Phase 468 (Cycle #510)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of melanosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -6687,25 +7952,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transniflheimstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transniflheimstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetratetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetratetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetratetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6737,11 +8002,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6755,7 +8020,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 453 (Cycle #495)", () => {
+  describe("Phase 469 (Cycle #511)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of endosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -6766,25 +8031,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transniflheimstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transniflheimstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentatetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henahexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6816,11 +8081,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6834,7 +8099,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 454 (Cycle #496)", () => {
+  describe("Phase 470 (Cycle #512)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of endosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -6845,25 +8110,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transniflheimstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgladsheimstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dihexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedihexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexatetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dihexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6895,11 +8160,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6913,7 +8178,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 455 (Cycle #497)", () => {
+  describe("Phase 471 (Cycle #513)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of autophagosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -6924,25 +8189,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgladsheimstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgladsheimstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trihexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrihexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptatetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trihexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -6974,11 +8239,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -6992,7 +8257,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 456 (Cycle #498)", () => {
+  describe("Phase 472 (Cycle #514)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of autophagosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -7003,25 +8268,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgladsheimstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgladsheimstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetrahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetrahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octatetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetrahexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7053,11 +8318,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7071,7 +8336,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 457 (Cycle #499)", () => {
+  describe("Phase 473 (Cycle #515)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microfilamentoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -7082,25 +8347,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgladsheimstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmidgardititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneatetracontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneatetracontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentahexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7132,11 +8397,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7150,7 +8415,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 458 (Cycle #500)", () => {
+  describe("Phase 474 (Cycle #516)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microfilamentoidcytoclastopoiesis towards the location of east", actions).action
@@ -7161,25 +8426,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmidgardititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmidgarditeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexahexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7211,11 +8476,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7229,7 +8494,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 459 (Cycle #501)", () => {
+  describe("Phase 475 (Cycle #517)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microtubuloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -7240,25 +8505,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmidgarditeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvalhallastoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henapentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptahexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7290,11 +8555,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7308,7 +8573,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 460 (Cycle #502)", () => {
+  describe("Phase 476 (Cycle #518)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microtubuloidcytoclastopoiesis towards the location of east", actions).action
@@ -7319,25 +8584,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvalhallastoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvalhallastoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dipentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedipentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dipentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octahexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7369,11 +8634,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7387,7 +8652,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 461 (Cycle #503)", () => {
+  describe("Phase 477 (Cycle #519)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of flagellooidblastocytoclastopoiesis towards the location of east", actions).action
@@ -7398,25 +8663,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvalhallastoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvalhallastoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tripentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetripentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneahexacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tripentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneahexacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7448,11 +8713,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7466,7 +8731,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 462 (Cycle #504)", () => {
+  describe("Phase 478 (Cycle #520)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of flagellooidcytoclastopoiesis towards the location of east", actions).action
@@ -7477,25 +8742,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvalhallastoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbifroststoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetrapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetrapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetrapentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7527,11 +8792,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7545,7 +8810,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 463 (Cycle #505)", () => {
+  describe("Phase 479 (Cycle #521)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of ciliooidblastocytoclastopoiesis towards the location of east", actions).action
@@ -7556,25 +8821,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbifroststoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbifroststoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentapentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7606,11 +8871,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7624,7 +8889,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 464 (Cycle #506)", () => {
+  describe("Phase 480 (Cycle #522)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of ciliooidcytoclastopoiesis towards the location of east", actions).action
@@ -7635,25 +8900,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbifroststoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbifroststoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive diheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicediheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexapentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive diheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7685,11 +8950,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7703,7 +8968,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 465 (Cycle #507)", () => {
+  describe("Phase 481 (Cycle #523)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of golgioidblastocytoclastopoiesis towards the location of east", actions).action
@@ -7714,25 +8979,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbifroststoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transasgardstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive triheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetriheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptapentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive triheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7764,11 +9029,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7782,7 +9047,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 466 (Cycle #508)", () => {
+  describe("Phase 482 (Cycle #524)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of golgioidcytoclastopoiesis towards the location of east", actions).action
@@ -7793,25 +9058,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transasgardstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transasgardstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octapentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7843,11 +9108,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7861,7 +9126,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 467 (Cycle #509)", () => {
+  describe("Phase 483 (Cycle #525)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of membranoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -7872,25 +9137,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transasgardstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transasgardstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneapentacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneapentacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -7922,11 +9187,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -7940,7 +9205,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 468 (Cycle #510)", () => {
+  describe("Phase 484 (Cycle #526)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of membranoidcytoclastopoiesis towards the location of east", actions).action
@@ -7951,25 +9216,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transasgardstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transdryadititeititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8001,11 +9266,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8019,7 +9284,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 469 (Cycle #511)", () => {
+  describe("Phase 485 (Cycle #527)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytoskeletonoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -8030,25 +9295,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transdryadititeititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transnymphstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henahexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8080,11 +9345,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8098,7 +9363,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 470 (Cycle #512)", () => {
+  describe("Phase 486 (Cycle #528)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytoskeletonoidcytoclastopoiesis towards the location of east", actions).action
@@ -8109,25 +9374,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transnymphstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsatyrititeititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dihexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedihexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dihexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8159,11 +9424,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8177,7 +9442,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 471 (Cycle #513)", () => {
+  describe("Phase 487 (Cycle #529)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of myofibriloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -8188,25 +9453,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsatyrititeititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpegasusstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trihexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrihexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaheptacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trihexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaheptacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8238,11 +9503,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8256,7 +9521,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 472 (Cycle #514)", () => {
+  describe("Phase 488 (Cycle #530)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of myofibriloidcytoclastopoiesis towards the location of east", actions).action
@@ -8267,25 +9532,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpegasusstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhydrastoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetrahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetrahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetrahexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8317,11 +9582,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8335,7 +9600,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 473 (Cycle #515)", () => {
+  describe("Phase 489 (Cycle #531)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of neurofilamentoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -8346,25 +9611,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhydrastoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcerberiteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentahexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaoctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8396,11 +9661,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8414,7 +9679,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 474 (Cycle #516)", () => {
+  describe("Phase 490 (Cycle #532)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of neurofilamentoidcytoclastopoiesis towards the location of east", actions).action
@@ -8425,25 +9690,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcerberiteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transyggdrasilstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dioctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedioctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexahexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dioctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8475,11 +9740,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8493,7 +9758,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 475 (Cycle #517)", () => {
+  describe("Phase 491 (Cycle #533)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of desmosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -8504,25 +9769,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transyggdrasilstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transyggdrasilstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trioctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrioctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptahexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trioctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8554,11 +9819,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8572,7 +9837,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 476 (Cycle #518)", () => {
+  describe("Phase 492 (Cycle #534)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of desmosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -8583,25 +9848,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transyggdrasilstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transyggdrasilstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octahexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraoctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8633,11 +9898,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8651,7 +9916,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 477 (Cycle #519)", () => {
+  describe("Phase 493 (Cycle #535)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of spindleoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -8662,25 +9927,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transyggdrasilstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhelstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneahexacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneahexacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaoctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8712,11 +9977,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8730,7 +9995,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 478 (Cycle #520)", () => {
+  describe("Phase 494 (Cycle #536)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of spindleoidcytoclastopoiesis towards the location of east", actions).action
@@ -8741,25 +10006,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhelstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhelstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaoctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8791,11 +10056,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8809,7 +10074,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 479 (Cycle #521)", () => {
+  describe("Phase 495 (Cycle #537)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of kinetochoroidblastocytoclastopoiesis towards the location of east", actions).action
@@ -8820,25 +10085,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhelstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhelstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaoctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8870,11 +10135,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8888,7 +10153,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 480 (Cycle #522)", () => {
+  describe("Phase 496 (Cycle #538)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of kinetochoroidcytoclastopoiesis towards the location of east", actions).action
@@ -8899,25 +10164,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhelstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transfreystoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive diheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicediheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive diheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaoctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -8949,11 +10214,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -8967,7 +10232,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 481 (Cycle #523)", () => {
+  describe("Phase 497 (Cycle #539)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of telomeroidblastocytoclastopoiesis towards the location of east", actions).action
@@ -8978,25 +10243,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transfreystoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transfreystoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetriheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaoctacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaoctacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9028,11 +10293,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9046,7 +10311,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 482 (Cycle #524)", () => {
+  describe("Phase 498 (Cycle #540)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of telomeroidcytoclastopoiesis towards the location of east", actions).action
@@ -9057,25 +10322,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transfreystoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transfreystoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9107,11 +10372,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9125,7 +10390,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 483 (Cycle #525)", () => {
+  describe("Phase 499 (Cycle #541)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centromeroidblastocytoclastopoiesis towards the location of east", actions).action
@@ -9136,25 +10401,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transfreystoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual translokistoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaenneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9186,11 +10451,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9204,7 +10469,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 484 (Cycle #526)", () => {
+  describe("Phase 500 (Cycle #542)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centromeroidcytoclastopoiesis towards the location of east", actions).action
@@ -9215,25 +10480,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual translokistoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual translokistoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dienneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedienneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dienneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9265,11 +10530,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9283,7 +10548,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 485 (Cycle #527)", () => {
+  describe("Phase 501 (Cycle #543)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of myeloplasmoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -9294,25 +10559,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual translokistoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual translokistoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trienneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrienneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trienneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9344,11 +10609,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9362,7 +10627,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 486 (Cycle #528)", () => {
+  describe("Phase 502 (Cycle #544)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of myeloplasmoidcytoclastopoiesis towards the location of east", actions).action
@@ -9373,25 +10638,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual translokistoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transthorstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraenneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9423,11 +10688,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9441,7 +10706,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 487 (Cycle #529)", () => {
+  describe("Phase 503 (Cycle #545)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of reticuloplasmoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -9452,25 +10717,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transthorstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transthorstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaheptacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaheptacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaenneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9502,11 +10767,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9520,7 +10785,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 488 (Cycle #530)", () => {
+  describe("Phase 504 (Cycle #546)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of reticuloplasmoidcytoclastopoiesis towards the location of east", actions).action
@@ -9531,25 +10796,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transthorstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transthorstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaenneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9581,11 +10846,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9599,7 +10864,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 489 (Cycle #531)", () => {
+  describe("Phase 505 (Cycle #547)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of protoplasmoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -9610,25 +10875,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transthorstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transodinstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaoctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaenneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9660,11 +10925,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9678,7 +10943,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 490 (Cycle #532)", () => {
+  describe("Phase 506 (Cycle #548)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of protoplasmoidcytoclastopoiesis towards the location of east", actions).action
@@ -9689,25 +10954,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transodinstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transodinstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dioctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedioctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dioctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaenneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9739,11 +11004,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9757,7 +11022,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 491 (Cycle #533)", () => {
+  describe("Phase 507 (Cycle #549)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of karyoplasmoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -9768,25 +11033,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transodinstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transodinstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trioctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrioctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaenneacontahectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trioctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaenneacontahectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9818,11 +11083,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9836,7 +11101,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 492 (Cycle #534)", () => {
+  describe("Phase 508 (Cycle #550)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of karyoplasmoidcytoclastopoiesis towards the location of east", actions).action
@@ -9847,25 +11112,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transodinstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmidgardstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraoctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9897,11 +11162,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9915,7 +11180,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 493 (Cycle #535)", () => {
+  describe("Phase 509 (Cycle #551)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleoplasmoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -9926,25 +11191,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmidgardstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmidgardstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaoctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -9976,11 +11241,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -9994,7 +11259,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 494 (Cycle #536)", () => {
+  describe("Phase 510 (Cycle #552)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleoplasmoidcytoclastopoiesis towards the location of east", actions).action
@@ -10005,25 +11270,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmidgardstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmidgardstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive didihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedidihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaoctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive didihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10055,11 +11320,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10073,7 +11338,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 495 (Cycle #537)", () => {
+  describe("Phase 511 (Cycle #553)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytoplasmoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -10084,25 +11349,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmidgardstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transjormungandriteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tridihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetridihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaoctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tridihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10134,11 +11399,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10152,7 +11417,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 496 (Cycle #538)", () => {
+  describe("Phase 512 (Cycle #554)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytoplasmoidcytoclastopoiesis towards the location of east", actions).action
@@ -10163,25 +11428,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjormungandriteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transjormungandrititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetradihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetradihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaoctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetradihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10213,11 +11478,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10231,7 +11496,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 497 (Cycle #539)", () => {
+  describe("Phase 513 (Cycle #555)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytosoloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -10242,25 +11507,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjormungandrititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transjormungandriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaoctacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaoctacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10292,11 +11557,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10310,7 +11575,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 498 (Cycle #540)", () => {
+  describe("Phase 514 (Cycle #556)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytosoloidcytoclastopoiesis towards the location of east", actions).action
@@ -10321,25 +11586,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjormungandriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transfenririteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10371,11 +11636,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10389,7 +11654,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 499 (Cycle #541)", () => {
+  describe("Phase 515 (Cycle #557)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of organelloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -10400,25 +11665,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transfenririteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transfenrirititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaenneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10450,11 +11715,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10468,7 +11733,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 500 (Cycle #542)", () => {
+  describe("Phase 516 (Cycle #558)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of organelloidcytoclastopoiesis towards the location of east", actions).action
@@ -10479,25 +11744,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transfenrirititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transfenririteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dienneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedienneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dienneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10529,11 +11794,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10547,7 +11812,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 501 (Cycle #543)", () => {
+  describe("Phase 517 (Cycle #559)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of plasmidoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -10558,25 +11823,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transfenririteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvalkyriestoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trienneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrienneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trienneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10608,11 +11873,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10626,7 +11891,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 502 (Cycle #544)", () => {
+  describe("Phase 518 (Cycle #560)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of plasmidoidcytoclastopoiesis towards the location of east", actions).action
@@ -10637,25 +11902,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvalkyriestoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvalkyriestoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive decadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraenneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive decadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10687,11 +11952,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10705,7 +11970,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 503 (Cycle #545)", () => {
+  describe("Phase 519 (Cycle #561)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chromosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -10716,25 +11981,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvalkyriestoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvalkyriestoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaenneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henadecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10766,11 +12031,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10784,7 +12049,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 504 (Cycle #546)", () => {
+  describe("Phase 520 (Cycle #562)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chromosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -10795,25 +12060,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvalkyriestoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcentauriteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive didecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedidecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaenneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive didecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10845,11 +12110,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10863,7 +12128,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 505 (Cycle #547)", () => {
+  describe("Phase 521 (Cycle #563)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centrioloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -10874,25 +12139,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcentauriteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsphinxstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tridecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetridecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaenneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tridecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -10924,11 +12189,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -10942,7 +12207,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 506 (Cycle #548)", () => {
+  describe("Phase 522 (Cycle #564)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of centrioloidcytoclastopoiesis towards the location of east", actions).action
@@ -10953,25 +12218,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsphinxstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmanticoreiteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetradecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetradecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaenneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetradecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11003,11 +12268,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11021,7 +12286,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 507 (Cycle #549)", () => {
+  describe("Phase 523 (Cycle #565)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of vesiculoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -11032,25 +12297,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmanticoreiteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsirenstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaenneacontahectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaenneacontahectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentadecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11082,11 +12347,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11100,7 +12365,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 508 (Cycle #550)", () => {
+  describe("Phase 524 (Cycle #566)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of vesiculoidcytoclastopoiesis towards the location of east", actions).action
@@ -11111,25 +12376,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsirenstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transharpyiteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexadecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11161,11 +12426,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11179,7 +12444,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 509 (Cycle #551)", () => {
+  describe("Phase 525 (Cycle #567)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of vacuoloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -11190,25 +12455,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transharpyiteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcyclopsstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptadecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11240,11 +12505,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11258,7 +12523,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 510 (Cycle #552)", () => {
+  describe("Phase 526 (Cycle #568)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of vacuoloidcytoclastopoiesis towards the location of east", actions).action
@@ -11269,25 +12534,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcyclopsstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transminotauriteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive didihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedidihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive didihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octadecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11319,11 +12584,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11337,7 +12602,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 511 (Cycle #553)", () => {
+  describe("Phase 527 (Cycle #569)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleoidoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -11348,25 +12613,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transminotauriteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgorgoniteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tridihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetridihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneadecadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tridihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneadecadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11398,11 +12663,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11416,7 +12681,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 512 (Cycle #554)", () => {
+  describe("Phase 528 (Cycle #570)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleoidoidcytoclastopoiesis towards the location of east", actions).action
@@ -11427,25 +12692,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgorgoniteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transkrakeniteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetradihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive icosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetradihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetradihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive icosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11477,11 +12742,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11495,7 +12760,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 513 (Cycle #555)", () => {
+  describe("Phase 529 (Cycle #571)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleoloidblastocytoclastopoiesis towards the location of east", actions).action
@@ -11506,25 +12771,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transkrakeniteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbasiliskstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11556,11 +12821,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11574,7 +12839,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 514 (Cycle #556)", () => {
+  describe("Phase 530 (Cycle #572)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleoloidcytoclastopoiesis towards the location of east", actions).action
@@ -11585,25 +12850,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbasiliskstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transwyvernstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive diicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicediicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive diicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11635,11 +12900,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11653,7 +12918,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 515 (Cycle #557)", () => {
+  describe("Phase 531 (Cycle #573)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of plastidoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -11664,25 +12929,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transwyvernstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transchimeraititeititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive triicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetriicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive triicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11714,11 +12979,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11732,7 +12997,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 516 (Cycle #558)", () => {
+  describe("Phase 532 (Cycle #574)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of plastidoidcytoclastopoiesis towards the location of east", actions).action
@@ -11743,25 +13008,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transchimeraititeititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgriffonstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11793,11 +13058,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11811,7 +13076,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 517 (Cycle #559)", () => {
+  describe("Phase 533 (Cycle #575)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of peroxisomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -11822,25 +13087,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgriffonstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpegasiteititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11872,11 +13137,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11890,7 +13155,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 518 (Cycle #560)", () => {
+  describe("Phase 534 (Cycle #576)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of peroxisomoidcytoclastopoiesis towards the location of east", actions).action
@@ -11901,25 +13166,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpegasiteititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transphoenixstoneititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive decadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive decadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -11951,11 +13216,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -11969,7 +13234,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 519 (Cycle #561)", () => {
+  describe("Phase 535 (Cycle #577)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of lysosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -11980,25 +13245,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transphoenixstoneititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transdryadititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henadecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12030,11 +13295,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12048,7 +13313,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 520 (Cycle #562)", () => {
+  describe("Phase 536 (Cycle #578)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of lysosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -12059,25 +13324,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transdryadititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transdryaditeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive didecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedidecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive didecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12109,11 +13374,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12127,7 +13392,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 521 (Cycle #563)", () => {
+  describe("Phase 537 (Cycle #579)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mitochondrioidblastocytoclastopoiesis towards the location of east", actions).action
@@ -12138,25 +13403,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transdryaditeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transnymphstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tridecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetridecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaicosadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tridecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaicosadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12188,11 +13453,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12206,7 +13471,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 522 (Cycle #564)", () => {
+  describe("Phase 538 (Cycle #580)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mitochondrioidcytoclastopoiesis towards the location of east", actions).action
@@ -12217,25 +13482,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transnymphstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transnymphstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetradecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive triacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetradecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetradecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive triacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12267,11 +13532,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12285,7 +13550,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 523 (Cycle #565)", () => {
+  describe("Phase 539 (Cycle #581)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of ribosomoidblastocytoclastopoiesis towards the location of east", actions).action
@@ -12296,25 +13561,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transnymphstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsatyrititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentadecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henatriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12346,11 +13611,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12364,7 +13629,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 524 (Cycle #566)", () => {
+  describe("Phase 540 (Cycle #582)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of ribosomoidcytoclastopoiesis towards the location of east", actions).action
@@ -12375,25 +13640,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsatyrititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsatyriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive ditriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceditriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexadecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive ditriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12425,11 +13690,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12443,7 +13708,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 525 (Cycle #567)", () => {
+  describe("Phase 541 (Cycle #583)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of ependymalblastocytoclastopoiesis towards the location of east", actions).action
@@ -12454,25 +13719,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsatyriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpegasusstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tritriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetritriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptadecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tritriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12504,11 +13769,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12522,7 +13787,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 526 (Cycle #568)", () => {
+  describe("Phase 542 (Cycle #584)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of schwannblastocytoclastopoiesis towards the location of east", actions).action
@@ -12533,25 +13798,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpegasusstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpegasusstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetratriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetratriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octadecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetratriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12583,11 +13848,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12601,7 +13866,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 527 (Cycle #569)", () => {
+  describe("Phase 543 (Cycle #585)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of purkinjoblastocytoclastopoiesis towards the location of east", actions).action
@@ -12612,25 +13877,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpegasusstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcentaurititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneadecadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneadecadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentatriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12662,11 +13927,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12680,7 +13945,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 528 (Cycle #570)", () => {
+  describe("Phase 544 (Cycle #586)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of tenocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -12691,25 +13956,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcentaurititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcentauriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive icosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive icosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexatriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12741,11 +14006,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12759,7 +14024,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 529 (Cycle #571)", () => {
+  describe("Phase 545 (Cycle #587)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of keratocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -12770,25 +14035,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcentauriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsphinxstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptatriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12820,11 +14085,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12838,7 +14103,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 530 (Cycle #572)", () => {
+  describe("Phase 546 (Cycle #588)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of epithelialblastocytoclastopoiesis towards the location of east", actions).action
@@ -12849,25 +14114,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsphinxstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsphinxstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive diicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicediicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive diicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octatriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12899,11 +14164,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12917,7 +14182,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 531 (Cycle #573)", () => {
+  describe("Phase 547 (Cycle #589)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mesothelialblastocytoclastopoiesis towards the location of east", actions).action
@@ -12928,25 +14193,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsphinxstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmanticoreititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetriicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneatriacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneatriacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -12978,11 +14243,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -12996,7 +14261,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 532 (Cycle #574)", () => {
+  describe("Phase 548 (Cycle #590)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of endothelialblastocytoclastopoiesis towards the location of east", actions).action
@@ -13007,25 +14272,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmanticoreititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmanticoreiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13057,11 +14322,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13075,7 +14340,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 533 (Cycle #575)", () => {
+  describe("Phase 549 (Cycle #591)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of pericytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13086,25 +14351,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmanticoreiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsirenstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henatetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13136,11 +14401,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13154,7 +14419,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 534 (Cycle #576)", () => {
+  describe("Phase 550 (Cycle #592)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of lipoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13165,25 +14430,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsirenstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsirenstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive ditetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceditetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive ditetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13215,11 +14480,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13233,7 +14498,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 535 (Cycle #577)", () => {
+  describe("Phase 551 (Cycle #593)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of plasmacytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13244,25 +14509,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsirenstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transharpyititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tritetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetritetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tritetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13294,11 +14559,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13312,7 +14577,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 536 (Cycle #578)", () => {
+  describe("Phase 552 (Cycle #594)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mastocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13323,25 +14588,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transharpyititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transharpyiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetratetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetratetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetratetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13373,11 +14638,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13391,7 +14656,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 537 (Cycle #579)", () => {
+  describe("Phase 553 (Cycle #595)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of histiocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13402,25 +14667,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transharpyiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcyclopsstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaicosadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaicosadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentatetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13452,11 +14717,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13470,7 +14735,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 538 (Cycle #580)", () => {
+  describe("Phase 554 (Cycle #596)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of reticuloblastocytoclastopoiesis towards the location of east", actions).action
@@ -13481,25 +14746,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcyclopsstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcyclopsstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexatetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13531,11 +14796,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13549,7 +14814,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 539 (Cycle #581)", () => {
+  describe("Phase 555 (Cycle #597)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of adipoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13560,25 +14825,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcyclopsstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transminotaurititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henatriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptatetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13610,11 +14875,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13628,7 +14893,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 540 (Cycle #582)", () => {
+  describe("Phase 556 (Cycle #598)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of dendritoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13639,25 +14904,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transminotaurititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transminotauriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive ditriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceditriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive ditriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octatetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13689,11 +14954,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13707,7 +14972,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 541 (Cycle #583)", () => {
+  describe("Phase 557 (Cycle #599)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of macrophagoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13718,25 +14983,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transminotauriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgorgonititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tritriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetritriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneatetracontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tritriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneatetracontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13768,11 +15033,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13786,7 +15051,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 542 (Cycle #584)", () => {
+  describe("Phase 558 (Cycle #600)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microglialcytoclastopoiesis towards the location of east", actions).action
@@ -13797,25 +15062,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgorgonititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgorgoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetratriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetratriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetratriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13847,11 +15112,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13865,7 +15130,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 543 (Cycle #585)", () => {
+  describe("Phase 559 (Cycle #601)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microglioblastocytoclastopoiesis towards the location of east", actions).action
@@ -13876,25 +15141,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgorgoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transkrakenititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentatriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henapentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -13926,11 +15191,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -13944,7 +15209,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 544 (Cycle #586)", () => {
+  describe("Phase 560 (Cycle #602)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of oligodendrocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -13955,25 +15220,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transkrakenititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transkrakeniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dipentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedipentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexatriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dipentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14005,11 +15270,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14023,7 +15288,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 545 (Cycle #587)", () => {
+  describe("Phase 561 (Cycle #603)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of astrocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14034,25 +15299,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transkrakeniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbasiliskstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tripentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetripentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptatriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tripentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14084,11 +15349,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14102,7 +15367,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 546 (Cycle #588)", () => {
+  describe("Phase 562 (Cycle #604)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of keratinocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14113,25 +15378,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbasiliskstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbasiliskstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetrapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetrapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octatriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetrapentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14163,11 +15428,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14181,7 +15446,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 547 (Cycle #589)", () => {
+  describe("Phase 563 (Cycle #605)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of melanocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14192,25 +15457,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbasiliskstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transwyvernstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneatriacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneatriacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentapentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14242,11 +15507,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14260,7 +15525,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 548 (Cycle #590)", () => {
+  describe("Phase 564 (Cycle #606)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of enterocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14271,25 +15536,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transwyvernstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transwyvernstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexapentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14321,11 +15586,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14339,7 +15604,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 549 (Cycle #591)", () => {
+  describe("Phase 565 (Cycle #607)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of pneumocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14350,25 +15615,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transwyvernstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transchimeraititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henatetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptapentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14400,11 +15665,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14418,7 +15683,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 550 (Cycle #592)", () => {
+  describe("Phase 566 (Cycle #608)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cardiocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14429,25 +15694,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transchimeraititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transchimeraiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive ditetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceditetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive ditetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octapentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14479,11 +15744,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14497,7 +15762,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 551 (Cycle #593)", () => {
+  describe("Phase 567 (Cycle #609)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nephrocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14508,25 +15773,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transchimeraiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgriffonstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tritetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetritetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneapentacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tritetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneapentacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14558,11 +15823,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14576,7 +15841,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 552 (Cycle #594)", () => {
+  describe("Phase 568 (Cycle #610)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of splenocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14587,25 +15852,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgriffonstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgriffonstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetratetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetratetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetratetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14637,11 +15902,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14655,7 +15920,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 553 (Cycle #595)", () => {
+  describe("Phase 569 (Cycle #611)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of hepatocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14666,25 +15931,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgriffonstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpegasititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentatetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henahexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14716,11 +15981,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14734,7 +15999,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 554 (Cycle #596)", () => {
+  describe("Phase 570 (Cycle #612)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of myocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14745,25 +16010,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpegasititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpegasiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dihexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedihexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexatetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dihexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14795,11 +16060,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14813,7 +16078,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 555 (Cycle #597)", () => {
+  describe("Phase 571 (Cycle #613)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of fibrocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14824,25 +16089,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpegasiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhydrastonititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trihexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrihexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptatetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trihexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14874,11 +16139,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14892,7 +16157,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 556 (Cycle #598)", () => {
+  describe("Phase 572 (Cycle #614)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of osteocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14903,25 +16168,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhydrastonititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhydrastoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetrahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetrahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octatetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetrahexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -14953,11 +16218,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -14971,7 +16236,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 557 (Cycle #599)", () => {
+  describe("Phase 573 (Cycle #615)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of chondrocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -14982,25 +16247,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhydrastoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transphoenixstoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneatetracontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneatetracontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentahexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15032,11 +16297,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15050,7 +16315,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 558 (Cycle #600)", () => {
+  describe("Phase 574 (Cycle #616)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of glioblastocytoclastopoiesis towards the location of east", actions).action
@@ -15061,25 +16326,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transphoenixstoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transphoenixstoneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexahexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15111,11 +16376,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15129,7 +16394,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 559 (Cycle #601)", () => {
+  describe("Phase 575 (Cycle #617)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of pinocytocytoclastopoiesis towards the location of east", actions).action
@@ -15140,25 +16405,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transphoenixstoneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcerberititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henapentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptahexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15190,11 +16455,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15208,7 +16473,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 560 (Cycle #602)", () => {
+  describe("Phase 576 (Cycle #618)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of phagocytocytoclastopoiesis towards the location of east", actions).action
@@ -15219,25 +16484,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcerberititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcerberiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dipentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedipentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dipentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octahexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15269,11 +16534,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15287,7 +16552,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 561 (Cycle #603)", () => {
+  describe("Phase 577 (Cycle #619)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of agranulocytocytoclastopoiesis towards the location of east", actions).action
@@ -15298,25 +16563,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcerberiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetaeuxenititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tripentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetripentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneahexacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tripentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneahexacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15348,11 +16613,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15366,7 +16631,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 562 (Cycle #604)", () => {
+  describe("Phase 578 (Cycle #620)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of granulocytocytoclastopoiesis towards the location of east", actions).action
@@ -15377,25 +16642,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetaeuxenititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetaeuxeniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetrapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetrapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetrapentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15427,11 +16692,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15445,7 +16710,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 563 (Cycle #605)", () => {
+  describe("Phase 579 (Cycle #621)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of splenocytocytoclastopoiesis towards the location of east", actions).action
@@ -15456,25 +16721,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetaeuxeniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetasamarskititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentapentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15506,11 +16771,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15524,7 +16789,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 564 (Cycle #606)", () => {
+  describe("Phase 580 (Cycle #622)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of gliocytocytoclastopoiesis towards the location of east", actions).action
@@ -15535,25 +16800,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetasamarskititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetasamarskiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive diheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicediheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexapentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive diheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15585,11 +16850,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15603,7 +16868,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 565 (Cycle #607)", () => {
+  describe("Phase 581 (Cycle #623)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of neurocytocytoclastopoiesis towards the location of east", actions).action
@@ -15614,25 +16879,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetasamarskiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetafergusonititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive triheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetriheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptapentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive triheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15664,11 +16929,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15682,7 +16947,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 566 (Cycle #608)", () => {
+  describe("Phase 582 (Cycle #624)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of vesiculocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -15693,25 +16958,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetafergusonititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetafergusoniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octapentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15743,11 +17008,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15761,7 +17026,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 567 (Cycle #609)", () => {
+  describe("Phase 583 (Cycle #625)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of plastocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -15772,25 +17037,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetafergusoniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetabrannerititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneapentacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneapentacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15822,11 +17087,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15840,7 +17105,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 568 (Cycle #610)", () => {
+  describe("Phase 584 (Cycle #626)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nucleocytoblastocytoclastopoiesis towards the location of east", actions).action
@@ -15851,25 +17116,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetabrannerititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetabranneriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15901,11 +17166,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15919,7 +17184,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 569 (Cycle #611)", () => {
+  describe("Phase 585 (Cycle #627)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of karyoblastocytoclastopoiesis towards the location of east", actions).action
@@ -15930,25 +17195,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetabranneriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetacoffinititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henahexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -15980,11 +17245,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -15998,7 +17263,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 570 (Cycle #612)", () => {
+  describe("Phase 586 (Cycle #628)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of macrokaryocytocytoclastopoiesis towards the location of east", actions).action
@@ -16009,25 +17274,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetacoffinititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetacoffiniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dihexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedihexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dihexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16059,11 +17324,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16077,7 +17342,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 571 (Cycle #613)", () => {
+  describe("Phase 587 (Cycle #629)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of microkaryocytocytoclastopoiesis towards the location of east", actions).action
@@ -16088,25 +17353,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetacoffiniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetaurancircititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trihexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrihexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaheptacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trihexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaheptacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16138,11 +17403,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16156,7 +17421,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 572 (Cycle #614)", () => {
+  describe("Phase 588 (Cycle #630)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mesokaryocytocytoclastopoiesis towards the location of east", actions).action
@@ -16167,25 +17432,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetaurancircititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetaurancirciteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetrahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetrahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetrahexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16217,11 +17482,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16235,7 +17500,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 573 (Cycle #615)", () => {
+  describe("Phase 589 (Cycle #631)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of pinosomoblastocytoclastopoiesis towards the location of east", actions).action
@@ -16246,25 +17511,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetaurancirciteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetatyuyamunititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentahexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaoctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16296,11 +17561,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16314,7 +17579,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 574 (Cycle #616)", () => {
+  describe("Phase 590 (Cycle #632)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of pinosomocytoclastopoiesis towards the location of east", actions).action
@@ -16325,25 +17590,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetatyuyamunititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetatyuyamuniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dioctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedioctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexahexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dioctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16375,11 +17640,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16393,7 +17658,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 575 (Cycle #617)", () => {
+  describe("Phase 591 (Cycle #633)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of phagolysomoblastocytoclastopoiesis towards the location of east", actions).action
@@ -16404,25 +17669,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetatyuyamuniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetacarnotititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trioctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrioctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptahexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trioctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16454,11 +17719,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16472,7 +17737,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 576 (Cycle #618)", () => {
+  describe("Phase 592 (Cycle #634)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of phagolysomocytoclastopoiesis towards the location of east", actions).action
@@ -16483,25 +17748,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetacarnotititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetacarnotiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octahexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraoctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16533,11 +17798,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16551,7 +17816,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 577 (Cycle #619)", () => {
+  describe("Phase 593 (Cycle #635)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytolysomoblastocytoclastopoiesis towards the location of east", actions).action
@@ -16562,25 +17827,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetacarnotiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetauranospinititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneahexacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneahexacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaoctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16612,11 +17877,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16630,7 +17895,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 578 (Cycle #620)", () => {
+  describe("Phase 594 (Cycle #636)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytolysomocytoclastopoiesis towards the location of east", actions).action
@@ -16641,25 +17906,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetauranospinititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetauranospiniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaoctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16691,11 +17956,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16709,7 +17974,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 579 (Cycle #621)", () => {
+  describe("Phase 595 (Cycle #637)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of naturalkillerblastocytoclastopoiesis towards the location of east", actions).action
@@ -16720,25 +17985,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetauranospiniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetaheinrichititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaoctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16770,11 +18035,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16788,7 +18053,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 580 (Cycle #622)", () => {
+  describe("Phase 596 (Cycle #638)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of naturalkillercytoclastopoiesis towards the location of east", actions).action
@@ -16799,25 +18064,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetaheinrichititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetaheinrichiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive diheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicediheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive diheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaoctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16849,11 +18114,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16867,7 +18132,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 581 (Cycle #623)", () => {
+  describe("Phase 597 (Cycle #639)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of bcellblastocytoclastopoiesis towards the location of east", actions).action
@@ -16878,25 +18143,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetaheinrichiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetakahlerititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetriheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaoctacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaoctacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -16928,11 +18193,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -16946,7 +18211,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 582 (Cycle #624)", () => {
+  describe("Phase 598 (Cycle #640)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of tcellblastocytoclastopoiesis towards the location of east", actions).action
@@ -16957,25 +18222,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetakahlerititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetakahleriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17007,11 +18272,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17025,7 +18290,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 583 (Cycle #625)", () => {
+  describe("Phase 599 (Cycle #641)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of agranulocyteblastocytoclastopoiesis towards the location of east", actions).action
@@ -17036,25 +18301,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetakahleriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetanovacekititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaenneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17086,11 +18351,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17104,7 +18369,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 584 (Cycle #626)", () => {
+  describe("Phase 600 (Cycle #642)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of agranulocytecytoclastopoiesis towards the location of east", actions).action
@@ -17115,25 +18380,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetanovacekititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetanovacekiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive dienneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedienneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive dienneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17165,11 +18430,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17183,7 +18448,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 585 (Cycle #627)", () => {
+  describe("Phase 601 (Cycle #643)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of granulocyteblastocytoclastopoiesis towards the location of east", actions).action
@@ -17194,25 +18459,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetanovacekiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetasaleeititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trienneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrienneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trienneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17244,11 +18509,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17262,7 +18527,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 586 (Cycle #628)", () => {
+  describe("Phase 602 (Cycle #644)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of granulocytecytoclastopoiesis towards the location of east", actions).action
@@ -17273,25 +18538,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetasaleeititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetasaleeiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraenneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17323,11 +18588,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17341,7 +18606,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 587 (Cycle #629)", () => {
+  describe("Phase 603 (Cycle #645)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of leukocyteblastocytoclastopoiesis towards the location of east", actions).action
@@ -17352,25 +18617,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetasaleeiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetazeunerititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaheptacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaheptacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaenneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17402,11 +18667,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17420,7 +18685,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 588 (Cycle #630)", () => {
+  describe("Phase 604 (Cycle #646)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of leukocytecytoclastopoiesis towards the location of east", actions).action
@@ -17431,25 +18696,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetazeunerititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetazeuneriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaenneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17481,11 +18746,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17499,7 +18764,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 589 (Cycle #631)", () => {
+  describe("Phase 605 (Cycle #647)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of organelleblastocytoclastopoiesis towards the location of east", actions).action
@@ -17510,25 +18775,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetazeuneriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetauranocircititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaoctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaenneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17560,11 +18825,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17578,7 +18843,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 590 (Cycle #632)", () => {
+  describe("Phase 606 (Cycle #648)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of organellecytoclastopoiesis towards the location of east", actions).action
@@ -17589,25 +18854,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetauranocircititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetauranocirciteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dioctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedioctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dioctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaenneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17639,11 +18904,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17657,7 +18922,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 591 (Cycle #633)", () => {
+  describe("Phase 607 (Cycle #649)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytoproctblastocytoclastopoiesis towards the location of east", actions).action
@@ -17668,25 +18933,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetauranocirciteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetaautunititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trioctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrioctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaenneacontadihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trioctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaenneacontadihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17718,11 +18983,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17736,7 +19001,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 592 (Cycle #634)", () => {
+  describe("Phase 608 (Cycle #650)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytoproctcytoclastopoiesis towards the location of east", actions).action
@@ -17747,25 +19012,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetaautunititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetaautuniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive trihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraoctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive trihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17797,11 +19062,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17815,7 +19080,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 593 (Cycle #635)", () => {
+  describe("Phase 609 (Cycle #651)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytostomeblastocytoclastopoiesis towards the location of east", actions).action
@@ -17826,25 +19091,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetaautuniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetatorbernititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaoctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17876,11 +19141,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17894,7 +19159,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 594 (Cycle #636)", () => {
+  describe("Phase 610 (Cycle #652)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of cytostomecytoclastopoiesis towards the location of east", actions).action
@@ -17905,25 +19170,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetatorbernititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmetatorberniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive ditrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceditrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaoctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive ditrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -17955,11 +19220,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -17973,7 +19238,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 595 (Cycle #637)", () => {
+  describe("Phase 611 (Cycle #653)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of haptonemoblastocytoclastopoiesis towards the location of east", actions).action
@@ -17984,25 +19249,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmetatorberniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transstudtititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tritrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetritrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaoctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tritrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18034,11 +19299,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18052,7 +19317,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 596 (Cycle #638)", () => {
+  describe("Phase 612 (Cycle #654)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of haptonemacytoclastopoiesis towards the location of east", actions).action
@@ -18063,25 +19328,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transstudtititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transstudtiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetratrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetratrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaoctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetratrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18113,11 +19378,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18131,7 +19396,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 597 (Cycle #639)", () => {
+  describe("Phase 613 (Cycle #655)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of axopodoblastocytoclastopoiesis towards the location of east", actions).action
@@ -18142,25 +19407,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transstudtiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transfourmarierititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaoctacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaoctacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18192,11 +19457,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18210,7 +19475,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 598 (Cycle #640)", () => {
+  describe("Phase 614 (Cycle #656)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of axopodocytoclastopoiesis towards the location of east", actions).action
@@ -18221,25 +19486,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transfourmarierititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transfourmarieriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18271,11 +19536,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18289,7 +19554,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 599 (Cycle #641)", () => {
+  describe("Phase 615 (Cycle #657)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of reticulopodoblastocytoclastopoiesis towards the location of east", actions).action
@@ -18300,25 +19565,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transfourmarieriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvandendriesscheititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaenneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18350,11 +19615,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18368,7 +19633,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 600 (Cycle #642)", () => {
+  describe("Phase 616 (Cycle #658)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of reticulopodocytoclastopoiesis towards the location of east", actions).action
@@ -18379,25 +19644,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvandendriesscheititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transvandendriesscheiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive dienneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedienneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive dienneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18429,11 +19694,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18447,7 +19712,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 601 (Cycle #643)", () => {
+  describe("Phase 617 (Cycle #659)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nuclearlaminablastocytoclastopoiesis towards the location of east", actions).action
@@ -18458,25 +19723,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transvandendriesscheiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transrichetititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trienneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrienneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trienneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18508,11 +19773,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18526,7 +19791,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 602 (Cycle #644)", () => {
+  describe("Phase 618 (Cycle #660)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nuclearlaminacytoclastopoiesis towards the location of east", actions).action
@@ -18537,25 +19802,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transrichetititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transrichetiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive decatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraenneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive decatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18587,11 +19852,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18605,7 +19870,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 603 (Cycle #645)", () => {
+  describe("Phase 619 (Cycle #661)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of asteroblastocytoclastopoiesis towards the location of east", actions).action
@@ -18616,25 +19881,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transrichetiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmasuyititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaenneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henadecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18666,11 +19931,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18684,7 +19949,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 604 (Cycle #646)", () => {
+  describe("Phase 620 (Cycle #662)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of asterocytoclastopoiesis towards the location of east", actions).action
@@ -18695,25 +19960,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmasuyititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmasuyiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive didecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicedidecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaenneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive didecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18745,11 +20010,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18763,7 +20028,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 605 (Cycle #647)", () => {
+  describe("Phase 621 (Cycle #663)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of axonemoblastocytoclastopoiesis towards the location of east", actions).action
@@ -18774,25 +20039,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmasuyiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcompreignacititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tridecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetridecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaenneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tridecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18824,11 +20089,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18842,7 +20107,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 606 (Cycle #648)", () => {
+  describe("Phase 622 (Cycle #664)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of axonemocytoclastopoiesis towards the location of east", actions).action
@@ -18853,25 +20118,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcompreignacititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcompreignaciteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetradecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetradecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaenneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetradecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18903,11 +20168,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -18921,7 +20186,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 607 (Cycle #649)", () => {
+  describe("Phase 623 (Cycle #665)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of blastocystocytoclastopoiesis towards the location of east", actions).action
@@ -18932,25 +20197,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcompreignaciteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbillietititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneaenneacontadihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaenneacontadihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentadecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -18982,11 +20247,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19000,7 +20265,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 608 (Cycle #650)", () => {
+  describe("Phase 624 (Cycle #666)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of macromereblastocytoclastopoiesis towards the location of east", actions).action
@@ -19011,25 +20276,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbillietititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbillietiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive trihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive trihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexadecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19061,11 +20326,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19079,7 +20344,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 609 (Cycle #651)", () => {
+  describe("Phase 625 (Cycle #667)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of macromeresocytoclastopoiesis towards the location of east", actions).action
@@ -19090,25 +20355,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbillietiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbecquerelititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptadecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19140,11 +20405,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19158,7 +20423,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 610 (Cycle #652)", () => {
+  describe("Phase 626 (Cycle #668)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of micromereblastocytoclastopoiesis towards the location of east", actions).action
@@ -19169,25 +20434,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbecquerelititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transbecquereliteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive ditrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceditrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive ditrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octadecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19219,11 +20484,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19237,7 +20502,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 611 (Cycle #653)", () => {
+  describe("Phase 627 (Cycle #669)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of micromeresocytoclastopoiesis towards the location of east", actions).action
@@ -19248,25 +20513,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transbecquereliteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transschoepititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tritrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetritrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneadecatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tritrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneadecatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19298,11 +20563,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19316,7 +20581,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 612 (Cycle #654)", () => {
+  describe("Phase 628 (Cycle #670)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mesomereblastocytoclastopoiesis towards the location of east", actions).action
@@ -19327,25 +20592,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transschoepititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transschoepiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetratrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive icosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetratrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetratrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive icosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19377,11 +20642,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19395,7 +20660,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 613 (Cycle #655)", () => {
+  describe("Phase 629 (Cycle #671)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of mesomeresocytoclastopoiesis towards the location of east", actions).action
@@ -19406,25 +20671,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transschoepiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transkasolititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henaicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19456,11 +20721,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19474,7 +20739,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 614 (Cycle #656)", () => {
+  describe("Phase 630 (Cycle #672)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of notochordoblastocytoclastopoiesis towards the location of east", actions).action
@@ -19485,25 +20750,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transkasolititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transkasoliteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive diicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicediicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive diicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19535,11 +20800,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19553,7 +20818,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 615 (Cycle #657)", () => {
+  describe("Phase 631 (Cycle #673)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of notochordocytoclastopoiesis towards the location of east", actions).action
@@ -19564,25 +20829,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transkasoliteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsoddyititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive triicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetriicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive triicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19614,11 +20879,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19632,7 +20897,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 616 (Cycle #658)", () => {
+  describe("Phase 632 (Cycle #674)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of somitoblastocytoclastopoiesis towards the location of east", actions).action
@@ -19643,25 +20908,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsoddyititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transsoddyiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetraicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetraicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetraicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19693,11 +20958,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19711,7 +20976,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 617 (Cycle #659)", () => {
+  describe("Phase 633 (Cycle #675)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of somitocytoclastopoiesis towards the location of east", actions).action
@@ -19722,25 +20987,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transsoddyiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcurititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentaicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19772,11 +21037,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19790,7 +21055,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 618 (Cycle #660)", () => {
+  describe("Phase 634 (Cycle #676)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of organogenoblastocytoclastopoiesis towards the location of east", actions).action
@@ -19801,25 +21066,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcurititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transcuriteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive decatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive decatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexaicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19851,11 +21116,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19869,7 +21134,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 619 (Cycle #661)", () => {
+  describe("Phase 635 (Cycle #677)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of organogenocytoclastopoiesis towards the location of east", actions).action
@@ -19880,25 +21145,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcuriteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgummititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henadecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptaicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -19930,11 +21195,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -19948,7 +21213,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 620 (Cycle #662)", () => {
+  describe("Phase 636 (Cycle #678)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of neurulablastocytoclastopoiesis towards the location of east", actions).action
@@ -19959,25 +21224,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgummititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transgummiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive didecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicedidecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive didecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octaicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20009,11 +21274,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20027,7 +21292,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 621 (Cycle #663)", () => {
+  describe("Phase 637 (Cycle #679)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of neurulacytoclastopoiesis towards the location of east", actions).action
@@ -20038,25 +21303,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transgummiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpitchblenditeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tridecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetridecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneaicosatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tridecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneaicosatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20088,11 +21353,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20106,7 +21371,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 622 (Cycle #664)", () => {
+  describe("Phase 638 (Cycle #680)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of gastrulablastocytoclastopoiesis towards the location of east", actions).action
@@ -20117,25 +21382,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpitchblenditeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpitchblendeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetradecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive triacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetradecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetradecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive triacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20167,11 +21432,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20185,7 +21450,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 623 (Cycle #665)", () => {
+  describe("Phase 639 (Cycle #681)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of gastrulacytoclastopoiesis towards the location of east", actions).action
@@ -20196,25 +21461,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpitchblendeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transuranophaniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentadecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henatriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20246,11 +21511,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20264,7 +21529,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 624 (Cycle #666)", () => {
+  describe("Phase 640 (Cycle #682)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of blastulablastocytoclastopoiesis towards the location of east", actions).action
@@ -20275,25 +21540,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transuranophaniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transuranophaneation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive ditriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceditriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexadecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive ditriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20325,11 +21590,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20343,7 +21608,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 625 (Cycle #667)", () => {
+  describe("Phase 641 (Cycle #683)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of blastulacytoclastopoiesis towards the location of east", actions).action
@@ -20354,25 +21619,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transuranophaneation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transchalcolititeation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tritriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceheptadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetritriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptadecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tritriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20404,11 +21669,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20422,7 +21687,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 626 (Cycle #668)", () => {
+  describe("Phase 642 (Cycle #684)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of morulablastocytoclastopoiesis towards the location of east", actions).action
@@ -20433,25 +21698,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transchalcolititeation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transchalcoliteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetratriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceoctadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetratriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octadecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetratriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20483,11 +21748,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20501,7 +21766,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 627 (Cycle #669)", () => {
+  describe("Phase 643 (Cycle #685)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of morulacytoclastopoiesis towards the location of east", actions).action
@@ -20512,25 +21777,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transchalcoliteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhiboniteiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive pentatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceenneadecatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicepentatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneadecatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive pentatriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20562,11 +21827,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20580,7 +21845,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 628 (Cycle #670)", () => {
+  describe("Phase 644 (Cycle #686)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of hypoblastblastocytoclastopoiesis towards the location of east", actions).action
@@ -20591,25 +21856,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhiboniteiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhiboniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive icosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive hexatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive viceicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehexatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive icosatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive hexatriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20641,11 +21906,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20659,7 +21924,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 629 (Cycle #671)", () => {
+  describe("Phase 645 (Cycle #687)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of hypoblastcytoclastopoiesis towards the location of east", actions).action
@@ -20670,25 +21935,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhiboniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmagnetoplumbiteiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henaicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive heptatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehenaicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceheptatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henaicosatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive heptatriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20720,11 +21985,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20738,7 +22003,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 630 (Cycle #672)", () => {
+  describe("Phase 646 (Cycle #688)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of epiblastblastocytoclastopoiesis towards the location of east", actions).action
@@ -20749,25 +22014,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmagnetoplumbiteiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transmagnetoplumbiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive diicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive octatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicediicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceoctatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive diicosatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive octatriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20799,11 +22064,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20817,7 +22082,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 631 (Cycle #673)", () => {
+  describe("Phase 647 (Cycle #689)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of epiblastcytoclastopoiesis towards the location of east", actions).action
@@ -20828,25 +22093,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmagnetoplumbiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhematophaniteiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive enneatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetriicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceenneatriacontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triicosatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive enneatriacontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20878,11 +22143,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20896,7 +22161,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 632 (Cycle #674)", () => {
+  describe("Phase 648 (Cycle #690)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of blastocelblastocytoclastopoiesis towards the location of east", actions).action
@@ -20907,25 +22172,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhematophaniteiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transhematophaniteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetraicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive tetracontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicetetraicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicetetracontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetraicosatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive tetracontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -20957,11 +22222,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -20975,7 +22240,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 633 (Cycle #675)", () => {
+  describe("Phase 649 (Cycle #691)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of blastocelocytoclastopoiesis towards the location of east", actions).action
@@ -20986,25 +22251,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transhematophaniteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpseudobrookiteiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentaicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive henatetracontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicepentaicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive vicehenatetracontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentaicosatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive henatetracontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -21036,11 +22301,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -21054,7 +22319,7 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
   });
 
-  describe("Phase 634 (Cycle #676)", () => {
+  describe("Phase 650 (Cycle #692)", () => {
     it("should map newly added movement verbs to MOVE action", () => {
       expect(
         mapCommand("navigate one's vector of nephrotomeblastocytoclastopoiesis towards the location of east", actions).action
@@ -21065,25 +22330,25 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpseudobrookiteiteation altar", actions).action).toEqual({
+      expect(mapCommand("subject to a comprehensive visual transpseudobrookiteation altar", actions).action).toEqual({
         type: "LOOK",
         target: "altar",
       });
     });
 
     it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexaicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive ditetracontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
-      expect(mapCommand("assume direct exclusive vicehexaicosatrihectarchy of katana", actions).action).toEqual({
+      expect(mapCommand("assume direct exclusive viceditetracontatrihectarchy of katana", actions).action).toEqual({
         type: "TAKE",
         item: "katana",
       });
     });
 
     it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexaicosatrihectarchy of boots", actions).action).toEqual({
+      expect(mapCommand("divest oneself of all exclusive ditetracontatrihectarchy of boots", actions).action).toEqual({
         type: "DROP",
         item: "boots",
       });
@@ -21115,11 +22380,11 @@ describe("Parser Synonym Expansion (Generated)", () => {
     });
 
     it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
         type: "FIGHT",
         npc: "ghoul",
       });
@@ -21127,1270 +22392,6 @@ describe("Parser Synonym Expansion (Generated)", () => {
 
     it("should map newly added dialogue verbs to TALK action", () => {
       expect(mapCommand("initiate a/an nephrotomeblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 635 (Cycle #677)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of nephrotomecytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of nephrotomecytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpseudobrookiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptaicosatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive viceheptaicosatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptaicosatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and nephrotomecytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and nephrotomecytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all nephrotomecytoclastologist and nephrotomeoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full nephrotomecytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an nephrotomecytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 636 (Cycle #678)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of sclerotomeblastocytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of sclerotomeblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transulvospineliteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octaicosatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive viceoctaicosatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octaicosatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and sclerotomeblastocytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and sclerotomeblastocytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all sclerotomeblastocytoclastologist and sclerotomeblastoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full sclerotomeblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an sclerotomeblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 637 (Cycle #679)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of sclerotomecytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of sclerotomecytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transulvospinelation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneaicosatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive viceenneaicosatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneaicosatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and sclerotomecytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and sclerotomecytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all sclerotomecytoclastologist and sclerotomeoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full sclerotomecytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an sclerotomecytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 638 (Cycle #680)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of dermatomeblastocytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of dermatomeblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmagnesioferriteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive triacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive vicetriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive triacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and dermatomeblastocytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and dermatomeblastocytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all dermatomeblastocytoclastologist and dermatomeblastoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full dermatomeblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an dermatomeblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 639 (Cycle #681)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of dermatomecytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of dermatomecytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transmagnesioferriteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive vicehenatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henatriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and dermatomecytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and dermatomecytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all dermatomecytoclastologist and dermatomeoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full dermatomecytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an dermatomecytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 640 (Cycle #682)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of myotomeblastocytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of myotomeblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transtrevoriteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive ditriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive viceditriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive ditriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and myotomeblastocytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and myotomeblastocytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all myotomeblastocytoclastologist and myotomeblastoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full myotomeblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an myotomeblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 641 (Cycle #683)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of myotomecytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of myotomecytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transtrevoriteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tritriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive vicetritriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tritriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and myotomecytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and myotomecytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all myotomecytoclastologist and myotomeoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full myotomecytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an myotomecytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 642 (Cycle #684)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of mesenchymeblastocytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of mesenchymeblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjacobsiteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetratriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive vicetetratriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetratriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and mesenchymeblastocytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and mesenchymeblastocytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all mesenchymeblastocytoclastologist and mesenchymeblastoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full mesenchymeblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an mesenchymeblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 643 (Cycle #685)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of mesenchymecytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of mesenchymecytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transjacobsiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive pentatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive vicepentatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive pentatriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and mesenchymecytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and mesenchymecytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all mesenchymecytoclastologist and mesenchymeoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full mesenchymecytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an mesenchymecytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 644 (Cycle #686)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of neuralcrestblastocytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of neuralcrestblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpentlanditeiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive hexatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive vicehexatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive hexatriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and neuralcrestblastocytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and neuralcrestblastocytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all neuralcrestblastocytoclastologist and neuralcrestblastoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full neuralcrestblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an neuralcrestblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 645 (Cycle #687)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of neuralcrestcytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of neuralcrestcytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transpyrrhotiteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive heptatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive viceheptatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive heptatriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and neuralcrestcytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and neuralcrestcytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all neuralcrestcytoclastologist and neuralcrestoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full neuralcrestcytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an neuralcrestcytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 646 (Cycle #688)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of neuroectodermblastocytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of neuroectodermblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transenargiteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive octatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive viceoctatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive octatriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and neuroectodermblastocytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and neuroectodermblastocytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all neuroectodermblastocytoclastologist and neuroectodermblastoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full neuroectodermblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an neuroectodermblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 647 (Cycle #689)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of neuroectodermcytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of neuroectodermcytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transtetrahedriteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive enneatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive viceenneatriacontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive enneatriacontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and neuroectodermcytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and neuroectodermcytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all neuroectodermcytoclastologist and neuroectodermoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full neuroectodermcytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an neuroectodermcytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 648 (Cycle #690)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of endodermblastocytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of endodermblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transcovelliteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive tetracontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive vicetetracontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive tetracontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and endodermblastocytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and endodermblastocytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all endodermblastocytoclastologist and endodermblastoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full endodermblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an endodermblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 649 (Cycle #691)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of endodermcytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of endodermcytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transborniteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive henatetracontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive vicehenatetracontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive henatetracontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and endodermcytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and endodermcytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all endodermcytoclastologist and endodermoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full endodermcytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an endodermcytoclastopathological face to face discussion with capo", actions).action).toEqual({
-        type: "TALK",
-        npc: "capo",
-      });
-    });
-  });
-
-  describe("Phase 650 (Cycle #692)", () => {
-    it("should map newly added movement verbs to MOVE action", () => {
-      expect(
-        mapCommand("navigate one's vector of mesodermblastocytoclastopoiesis towards the location of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-      expect(
-        mapCommand("steer one's vector of mesodermblastocytoclastopoiesis in the direction of the coordinates of east", actions).action
-      ).toEqual({ type: "MOVE", direction: "east" });
-    });
-
-    it("should map newly added inspection verbs to LOOK action", () => {
-      expect(mapCommand("subject to a comprehensive visual transchalcociteiteation altar", actions).action).toEqual({
-        type: "LOOK",
-        target: "altar",
-      });
-    });
-
-    it("should map newly added take verbs to TAKE action", () => {
-      expect(mapCommand("assume direct exclusive ditetracontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-      expect(mapCommand("assume direct exclusive viceditetracontatrihectarchy of katana", actions).action).toEqual({
-        type: "TAKE",
-        item: "katana",
-      });
-    });
-
-    it("should map newly added drop verbs to DROP action", () => {
-      expect(mapCommand("divest oneself of all exclusive ditetracontatrihectarchy of boots", actions).action).toEqual({
-        type: "DROP",
-        item: "boots",
-      });
-    });
-
-    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
-      expect(mapCommand("force completely and mesodermblastocytoclastorheologically wide open vault", actions).action).toEqual({
-        type: "OPEN",
-        target: "vault",
-      });
-      expect(mapCommand("fasten completely and mesodermblastocytoclastorheologically closed door", actions).action).toEqual({
-        type: "CLOSE",
-        target: "door",
-      });
-    });
-
-    it("should map newly added unlock verbs to UNLOCK action", () => {
-      expect(mapCommand("deactivate all mesodermblastocytoclastologist and mesodermblastoblastoclastologist security devices of chest", actions).action).toEqual({
-        type: "UNLOCK",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added use verbs to USE action", () => {
-      expect(mapCommand("harness the full mesodermblastocytoclastokinetic deployment of lockpick", actions).action).toEqual({
-        type: "USE",
-        target: "chest",
-      });
-    });
-
-    it("should map newly added combat verbs to FIGHT action", () => {
-      expect(mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-      expect(mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action).toEqual({
-        type: "FIGHT",
-        npc: "ghoul",
-      });
-    });
-
-    it("should map newly added dialogue verbs to TALK action", () => {
-      expect(mapCommand("initiate a/an mesodermblastocytoclastopathological face to face discussion with capo", actions).action).toEqual({
         type: "TALK",
         npc: "capo",
       });
