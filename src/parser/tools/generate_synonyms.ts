@@ -242,7 +242,22 @@ const CELLS = [
   { prefix: "etioplastocytoclast", base: "etioplast" },
   { prefix: "etioplastoblastocytoclast", base: "etioplastoblast" },
   { prefix: "statolithocytoclast", base: "statolith" },
-  { prefix: "statolithoblastocytoclast", base: "statolithoblast" }
+  { prefix: "statolithoblastocytoclast", base: "statolithoblast" },
+  { prefix: "nucleoblastocytoclast", base: "nucleoblast" },
+  { prefix: "nucleoloblastocytoclast", base: "nucleoloblast" },
+  { prefix: "chromatinoblastocytoclast", base: "chromatinblast" },
+  { prefix: "centrosomoblastocytoclast", base: "centrosomoblast" },
+  { prefix: "chloroplastoblastocytoclast", base: "chloroplastoblast" },
+  { prefix: "vesiculoblastocytoclast", base: "vesiculoblast" },
+  { prefix: "plasmodesmatoblastocytoclast", base: "plasmodesmatoblast" },
+  { prefix: "cytoskeletonoblastocytoclast", base: "cytoskeletonblast" },
+  { prefix: "membranoblastocytoclast", base: "membranoblast" },
+  { prefix: "golgiblastocytoclast", base: "golgiblast" },
+  { prefix: "centrioloblastocytoclast", base: "centrioloblast" },
+  { prefix: "chromosomoblastocytoclast", base: "chromosomoblast" },
+  { prefix: "chromatidoblastocytoclast", base: "chromatidblast" },
+  { prefix: "plasmidoblastocytoclast", base: "plasmidblast" },
+  { prefix: "piloblastocytoclast", base: "piloblast" }
 ];
 
 const ELEMENTS = [
@@ -523,7 +538,22 @@ const ELEMENTS = [
   "coffinite",
   "brannerite",
   "carnotite",
-  "tyuyamunite"
+  "tyuyamunite",
+  "autunite",
+  "torbernite",
+  "urancircite",
+  "zeunerite",
+  "saleeite",
+  "novacekite",
+  "sabugalite",
+  "bassettite",
+  "fritzscheite",
+  "heinrichite",
+  "kahlerite",
+  "kirchheimerite",
+  "natrouranospinite",
+  "uranospinite",
+  "walpurgite"
 ];
 
 const COMBAT_ACTIONS = [
