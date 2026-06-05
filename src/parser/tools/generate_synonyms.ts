@@ -651,7 +651,22 @@ const CELLS = [
   { prefix: "agranulocytocytoclast", base: "agranulocyte" },
   { prefix: "phagocytocytoclast", base: "phagocyte" },
   { prefix: "pinocytocytoclast", base: "pinocyte" },
-  { prefix: "glioblastocytoclast", base: "glioblast" }
+  { prefix: "glioblastocytoclast", base: "glioblast" },
+  { prefix: "chondrocytoblastocytoclast", base: "chondrocytoblast" },
+  { prefix: "osteocytoblastocytoclast", base: "osteocytoblast" },
+  { prefix: "fibrocytoblastocytoclast", base: "fibrocytoblast" },
+  { prefix: "myocytoblastocytoclast", base: "myocytoblast" },
+  { prefix: "hepatocytoblastocytoclast", base: "hepatocytoblast" },
+  { prefix: "splenocytoblastocytoclast", base: "splenocytoblast" },
+  { prefix: "nephrocytoblastocytoclast", base: "nephrocytoblast" },
+  { prefix: "cardiocytoblastocytoclast", base: "cardiocytoblast" },
+  { prefix: "pneumocytoblastocytoclast", base: "pneumocytoblast" },
+  { prefix: "enterocytoblastocytoclast", base: "enterocytoblast" },
+  { prefix: "melanocytoblastocytoclast", base: "melanocytoblast" },
+  { prefix: "keratinocytoblastocytoclast", base: "keratinocytoblast" },
+  { prefix: "astrocytoblastocytoclast", base: "astrocytoblast" },
+  { prefix: "oligodendrocytoblastocytoclast", base: "oligodendrocytoblast" },
+  { prefix: "microglioblastocytoclast", base: "microglioblast" }
 ];
 
 const ELEMENTS = [
@@ -1368,7 +1383,22 @@ const ELEMENTS = [
   "metaheinrichitite",
   "metauranospinite",
   "metauranospinitite",
-  "metacarnotite"
+  "metacarnotite",
+  "metacarnotitite",
+  "metatyuyamunite",
+  "metatyuyamunitite",
+  "metaurancircite",
+  "metaurancircitite",
+  "metacoffinite",
+  "metacoffinitite",
+  "metabrannerite",
+  "metabranneritite",
+  "metafergusonite",
+  "metafergusonitite",
+  "metasamarskite",
+  "metasamarskitite",
+  "metaeuxenite",
+  "metaeuxenitite"
 ];
 
 const COMBAT_ACTIONS = [
