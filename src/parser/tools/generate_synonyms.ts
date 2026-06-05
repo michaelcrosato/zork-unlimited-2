@@ -1008,7 +1008,23 @@ const CELLS = [
   { prefix: "pinealocytoblastocytoclast", base: "pinealocytoblast" },
   { prefix: "thymocytoblastocytoclast", base: "thymocytoblast" },
   { prefix: "merkelcytoblastocytoclast", base: "merkelcytoblast" },
-  { prefix: "purkinjocytoblastocytoclast", base: "purkinjocytoblast" }
+  { prefix: "purkinjocytoblastocytoclast", base: "purkinjocytoblast" },
+  { prefix: "lysosomoidcytoblastocytoclast", base: "lysosomoidcytoblast" },
+  { prefix: "peroxisomoidcytoblastocytoclast", base: "peroxisomoidcytoblast" },
+  { prefix: "vacuoloidcytoblastocytoclast", base: "vacuoloidcytoblast" },
+  { prefix: "vesiculoidcytoblastocytoclast", base: "vesiculoidcytoblast" },
+  { prefix: "centrioloidcytoblastocytoclast", base: "centrioloidcytoblast" },
+  { prefix: "chromosomoidcytoblastocytoclast", base: "chromosomoidcytoblast" },
+  { prefix: "plasmidoidcytoblastocytoclast", base: "plasmidoidcytoblast" },
+  { prefix: "organelloidcytoblastocytoclast", base: "organelloidcytoblast" },
+  { prefix: "cytosoloidcytoblastocytoclast", base: "cytosoloidcytoblast" },
+  { prefix: "cytoplasmoidcytoblastocytoclast", base: "cytoplasmoidcytoblast" },
+  { prefix: "nucleoplasmoidcytoblastocytoclast", base: "nucleoplasmoidcytoblast" },
+  { prefix: "karyoplasmoidcytoblastocytoclast", base: "karyoplasmoidcytoblast" },
+  { prefix: "protoplasmoidcytoblastocytoclast", base: "protoplasmoidcytoblast" },
+  { prefix: "reticuloplasmoidcytoblastocytoclast", base: "reticuloplasmoidcytoblast" },
+  { prefix: "myeloplasmoidcytoblastocytoclast", base: "myeloplasmoidcytoblast" },
+  { prefix: "centromeroidcytoblastocytoclast", base: "centromeroidcytoblast" }
 ];
 
 
@@ -2087,7 +2103,22 @@ const ELEMENTS = [
   "freyastoneitite",
   "balderite",
   "balderitite",
-  "balderstoneitite"
+  "balderstoneitite",
+  "heimdallite",
+  "heimdallitite",
+  "heimdallstoneitite",
+  "tyrite",
+  "tyritite",
+  "tyrstoneitite",
+  "bragite",
+  "bragitite",
+  "bragistoneitite",
+  "idunite",
+  "idunitite",
+  "idunstoneitite",
+  "valite",
+  "valitite",
+  "valistoneitite"
 ];
 
 const COMBAT_ACTIONS = [
