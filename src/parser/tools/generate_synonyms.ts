@@ -912,7 +912,23 @@ const CELLS = [
   { prefix: "adherensjunctionoidcytoclast", base: "adherensjunctionoid" },
   { prefix: "adherensjunctionoidblastocytoclast", base: "adherensjunctionoidblast" },
   { prefix: "hemidesmosomoidcytoclast", base: "hemidesmosomoid" },
-  { prefix: "hemidesmosomoidblastocytoclast", base: "hemidesmosomoidblast" }
+  { prefix: "hemidesmosomoidblastocytoclast", base: "hemidesmosomoidblast" },
+  { prefix: "axonoidcytoclast", base: "axonoid" },
+  { prefix: "axonoidblastocytoclast", base: "axonoidblast" },
+  { prefix: "myelinoidcytoclast", base: "myelinoid" },
+  { prefix: "myelinoidblastocytoclast", base: "myelinoidblast" },
+  { prefix: "sarcomereoidcytoclast", base: "sarcomereoid" },
+  { prefix: "sarcomereoidblastocytoclast", base: "sarcomereoidblast" },
+  { prefix: "collagenoidcytoclast", base: "collagenoid" },
+  { prefix: "collagenoidblastocytoclast", base: "collagenoidblast" },
+  { prefix: "elastinoidcytoclast", base: "elastinoid" },
+  { prefix: "elastinoidblastocytoclast", base: "elastinoidblast" },
+  { prefix: "podocytoidcytoclast", base: "podocytoid" },
+  { prefix: "podocytoidblastocytoclast", base: "podocytoidblast" },
+  { prefix: "osteoblastoidcytoclast", base: "osteoblastoid" },
+  { prefix: "osteoblastoidblastocytoclast", base: "osteoblastoidblast" },
+  { prefix: "chondroblastoidcytoclast", base: "chondroblastoid" },
+  { prefix: "chondroblastoidblastocytoclast", base: "chondroblastoidblast" }
 ];
 
 
@@ -1907,7 +1923,22 @@ const ELEMENTS = [
   "cronusstoneitite",
   "prometheusite",
   "prometheusitite",
-  "prometheusstoneitite"
+  "prometheusstoneitite",
+  "atlasite",
+  "atlasitite",
+  "atlasstoneitite",
+  "heliosite",
+  "heliositite",
+  "heliosstoneitite",
+  "hyperionite",
+  "hyperionitite",
+  "hyperionstoneitite",
+  "oceanusite",
+  "oceanusitite",
+  "oceanusstoneitite",
+  "tethysite",
+  "tethysitite",
+  "tethysstoneitite"
 ];
 
 const COMBAT_ACTIONS = [
