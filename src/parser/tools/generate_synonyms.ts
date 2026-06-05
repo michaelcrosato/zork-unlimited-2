@@ -390,7 +390,23 @@ const CELLS = [
   { prefix: "podosomecytoclast", base: "podosome" },
   { prefix: "podosomeblastocytoclast", base: "podosomeblast" },
   { prefix: "focaladhesioncytoclast", base: "focaladhesion" },
-  { prefix: "focaladhesionblastocytoclast", base: "focaladhesionblast" }
+  { prefix: "focaladhesionblastocytoclast", base: "focaladhesionblast" },
+  { prefix: "microvilluscytoclast", base: "microvillus" },
+  { prefix: "microvillusblastocytoclast", base: "microvillusblast" },
+  { prefix: "stereociliumcytoclast", base: "stereocilium" },
+  { prefix: "stereociliumblastocytoclast", base: "stereociliumblast" },
+  { prefix: "kinociliumcytoclast", base: "kinocilium" },
+  { prefix: "kinociliumblastocytoclast", base: "kinociliumblast" },
+  { prefix: "flagellumcytoclast", base: "flagellum" },
+  { prefix: "flagellumblastocytoclast", base: "flagellumblast" },
+  { prefix: "desmosomecytoclast", base: "desmosome" },
+  { prefix: "desmosomeblastocytoclast", base: "desmosomeblast" },
+  { prefix: "hemidesmosomecytoclast", base: "hemidesmosome" },
+  { prefix: "hemidesmosomeblastocytoclast", base: "hemidesmosomeblast" },
+  { prefix: "tightjunctioncytoclast", base: "tightjunction" },
+  { prefix: "tightjunctionblastocytoclast", base: "tightjunctionblast" },
+  { prefix: "gapjunctioncytoclast", base: "gapjunction" },
+  { prefix: "gapjunctionblastocytoclast", base: "gapjunctionblast" }
 ];
 
 const ELEMENTS = [
@@ -829,7 +845,25 @@ const ELEMENTS = [
   "siltstoneite",
   "siltstoneitite",
   "claystoneite",
-  "claystoneitite"
+  "claystoneitite",
+  "shaleite",
+  "shaleitite",
+  "marlite",
+  "marlitite",
+  "dolomiteite",
+  "dolomiteitite",
+  "chalkite",
+  "chalkitite",
+  "gypsite",
+  "gypsitite",
+  "anhydriteite",
+  "anhydriteitite",
+  "haliteite",
+  "haliteitite",
+  "sylviteite",
+  "sylviteitite",
+  "boraxite",
+  "boraxitite"
 ];
 
 const COMBAT_ACTIONS = [
@@ -846,6 +880,7 @@ const COMBAT_ACTIONS = [
 ];
 
 function getGreekNumber(n: number): string {
+  // Expanded/verified to support numbers up to 300 (trihectarchy) and beyond
   const units = ["", "hena", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "ennea"];
 
   if (n === 50) return "pentacontarchy";
