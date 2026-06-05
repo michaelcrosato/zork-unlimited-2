@@ -75,6 +75,16 @@ const CELLS = [
   { prefix: "melanoblastocytoclast", base: "melanoblast" },
   { prefix: "keratinoblastocytoclast", base: "keratinoblast" },
   { prefix: "myelocytocytoclast", base: "myelocyte" },
+  { prefix: "neuroendocrinocytoclast", base: "neuroendocrine" },
+  { prefix: "pinealocytoclast", base: "pinealocyte" },
+  { prefix: "thymocytoclast", base: "thymocyte" },
+  { prefix: "splenoblastocytoclast", base: "splenoblast" },
+  { prefix: "nephroblastocytoclast", base: "nephroblast" },
+  { prefix: "lipocytoclast", base: "lipocyte" },
+  { prefix: "histiocytoclast", base: "histiocyte" },
+  { prefix: "mastocytoclast", base: "mastocyte" },
+  { prefix: "somatocytoclast", base: "somatocyte" },
+  { prefix: "plasmacytoclast", base: "plasmacyte" },
 ];
 
 const ELEMENTS = [
@@ -155,7 +165,17 @@ const ELEMENTS = [
   "tungsten",
   "rhenium",
   "osmium",
-  "iridium"
+  "iridium",
+  "thallium",
+  "bismuth",
+  "polonium",
+  "radon",
+  "francium",
+  "radium",
+  "actinium",
+  "thorium",
+  "protactinium",
+  "uranium"
 ];
 
 const COMBAT_ACTIONS = [
