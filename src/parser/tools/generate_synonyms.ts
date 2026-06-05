@@ -872,7 +872,27 @@ const CELLS = [
   { prefix: "caveolinoidcytoclast", base: "caveolinoid" },
   { prefix: "caveolinoidblastocytoclast", base: "caveolinoidblast" },
   { prefix: "aquaporinoidcytoclast", base: "aquaporinoid" },
-  { prefix: "aquaporinoidblastocytoclast", base: "aquaporinoidblast" }
+  { prefix: "aquaporinoidblastocytoclast", base: "aquaporinoidblast" },
+  { prefix: "macrophagoidcytoclast", base: "macrophagoid" },
+  { prefix: "macrophagoidblastocytoclast", base: "macrophagoidblast" },
+  { prefix: "dendritoidcytoclast", base: "dendritoid" },
+  { prefix: "dendritoidblastocytoclast", base: "dendritoidblast" },
+  { prefix: "neuronoidcytoclast", base: "neuronoid" },
+  { prefix: "neuronoidblastocytoclast", base: "neuronoidblast" },
+  { prefix: "astrocytoidcytoclast", base: "astrocytoid" },
+  { prefix: "astrocytoidblastocytoclast", base: "astrocytoidblast" },
+  { prefix: "oligodendrocytoidcytoclast", base: "oligodendrocytoid" },
+  { prefix: "oligodendrocytoidblastocytoclast", base: "oligodendrocytoidblast" },
+  { prefix: "microglioidcytoclast", base: "microglioid" },
+  { prefix: "microglioidblastocytoclast", base: "microglioidblast" },
+  { prefix: "adipocytoidcytoclast", base: "adipocytoid" },
+  { prefix: "adipocytoidblastocytoclast", base: "adipocytoidblast" },
+  { prefix: "hepatocytoidcytoclast", base: "hepatocytoid" },
+  { prefix: "hepatocytoidblastocytoclast", base: "hepatocytoidblast" },
+  { prefix: "erythrocytoidcytoclast", base: "erythrocytoid" },
+  { prefix: "erythrocytoidblastocytoclast", base: "erythrocytoidblast" },
+  { prefix: "leukocytoidcytoclast", base: "leukocytoid" },
+  { prefix: "leukocytoidblastocytoclast", base: "leukocytoidblast" }
 ];
 
 
@@ -1828,7 +1848,28 @@ const ELEMENTS = [
   "marsstoneitite",
   "venusite",
   "venusitite",
-  "venusstoneitite"
+  "venusstoneitite",
+  "osirisite",
+  "osirisitite",
+  "osirisstoneitite",
+  "isisite",
+  "isisitite",
+  "isisstoneitite",
+  "horusite",
+  "horusitite",
+  "horusstoneitite",
+  "anubisite",
+  "anubisitite",
+  "anubisstoneitite",
+  "raite",
+  "raitite",
+  "rastoneitite",
+  "thothite",
+  "thothitite",
+  "thothstoneitite",
+  "sethite",
+  "sethitite",
+  "sethstoneitite"
 ];
 
 const COMBAT_ACTIONS = [
