@@ -303,7 +303,27 @@ const CELLS = [
   { prefix: "vimentinocytoclast", base: "vimentin" },
   { prefix: "vimentinblastocytoclast", base: "vimentinblast" },
   { prefix: "neurofilamentocytoclast", base: "neurofilament" },
-  { prefix: "neurofilamentblastocytoclast", base: "neurofilamentblast" }
+  { prefix: "neurofilamentblastocytoclast", base: "neurofilamentblast" },
+  { prefix: "phagosomocytoclast", base: "phagosome" },
+  { prefix: "acrosomocytoclast", base: "acrosome" },
+  { prefix: "cytosomocytoclast", base: "cytosome" },
+  { prefix: "microbodycytoclast", base: "microbody" },
+  { prefix: "blepharoplastocytoclast", base: "blepharoplast" },
+  { prefix: "kinetoplastocytoclast", base: "kinetoplast" },
+  { prefix: "liposomocytoclast", base: "liposome" },
+  { prefix: "rhizoplastocytoclast", base: "rhizoplast" },
+  { prefix: "apoplastocytoclast", base: "apoplast" },
+  { prefix: "symplastocytoclast", base: "symplast" },
+  { prefix: "tonoplastocytoclast", base: "tonoplast" },
+  { prefix: "pyrenoidcytoclast", base: "pyrenoid" },
+  { prefix: "pyrenoidblastocytoclast", base: "pyrenoidblast" },
+  { prefix: "plasmalemmocytoclast", base: "plasmalemma" },
+  { prefix: "plasmalemmoblastocytoclast", base: "plasmalemmoblast" },
+  { prefix: "mesosomocytoclast", base: "mesosome" },
+  { prefix: "mesosomoblastocytoclast", base: "mesosomeblast" },
+  { prefix: "nucleolosomecytoclast", base: "nucleolosome" },
+  { prefix: "parasomocytoclast", base: "parasome" },
+  { prefix: "karyosomocytoclast", base: "karyosome" }
 ];
 
 const ELEMENTS = [
@@ -648,7 +668,27 @@ const ELEMENTS = [
   "ilmenitite",
   "pyrolusitite",
   "zirconitite",
-  "columbitite"
+  "columbitite",
+  "quartzite",
+  "feldspartite",
+  "orthoclasite",
+  "plagioclasite",
+  "microclinite",
+  "sanidinite",
+  "albitite",
+  "oligoclasite",
+  "andesinite",
+  "labradoritite",
+  "bytownitite",
+  "anorthitite",
+  "enstatitite",
+  "ferrosilitite",
+  "diopsidite",
+  "hedenbergitite",
+  "augitite",
+  "pigeonitite",
+  "spodumenite",
+  "jadeitite"
 ];
 
 const COMBAT_ACTIONS = [
