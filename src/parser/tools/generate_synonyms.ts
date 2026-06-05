@@ -708,7 +708,23 @@ const CELLS = [
   { prefix: "chromosomoidcytoclast", base: "chromosomoid" },
   { prefix: "chromosomoidblastocytoclast", base: "chromosomoidblast" },
   { prefix: "plasmidoidcytoclast", base: "plasmidoid" },
-  { prefix: "plasmidoidblastocytoclast", base: "plasmidoidblast" }
+  { prefix: "plasmidoidblastocytoclast", base: "plasmidoidblast" },
+  { prefix: "organelloidcytoclast", base: "organelloid" },
+  { prefix: "organelloidblastocytoclast", base: "organelloidblast" },
+  { prefix: "cytosoloidcytoclast", base: "cytosoloid" },
+  { prefix: "cytosoloidblastocytoclast", base: "cytosoloidblast" },
+  { prefix: "cytoplasmoidcytoclast", base: "cytoplasmoid" },
+  { prefix: "cytoplasmoidblastocytoclast", base: "cytoplasmoidblast" },
+  { prefix: "nucleoplasmoidcytoclast", base: "nucleoplasmoid" },
+  { prefix: "nucleoplasmoidblastocytoclast", base: "nucleoplasmoidblast" },
+  { prefix: "karyoplasmoidcytoclast", base: "karyoplasmoid" },
+  { prefix: "karyoplasmoidblastocytoclast", base: "karyoplasmoidblast" },
+  { prefix: "protoplasmoidcytoclast", base: "protoplasmoid" },
+  { prefix: "protoplasmoidblastocytoclast", base: "protoplasmoidblast" },
+  { prefix: "reticuloplasmoidcytoclast", base: "reticuloplasmoid" },
+  { prefix: "reticuloplasmoidblastocytoclast", base: "reticuloplasmoidblast" },
+  { prefix: "myeloplasmoidcytoclast", base: "myeloplasmoid" },
+  { prefix: "myeloplasmoidblastocytoclast", base: "myeloplasmoidblast" }
 ];
 
 const ELEMENTS = [
@@ -1482,7 +1498,22 @@ const ELEMENTS = [
   "nymphstone",
   "nymphstonite",
   "dryadite",
-  "dryaditite"
+  "dryaditite",
+  "phoenixstoneitite",
+  "pegasiteitite",
+  "griffonstoneitite",
+  "chimeraititeitite",
+  "wyvernstoneitite",
+  "basiliskstoneitite",
+  "krakeniteitite",
+  "gorgoniteitite",
+  "minotauriteitite",
+  "cyclopsstoneitite",
+  "harpyiteitite",
+  "sirenstoneitite",
+  "manticoreiteitite",
+  "sphinxstoneitite",
+  "centauriteitite"
 ];
 
 const COMBAT_ACTIONS = [
