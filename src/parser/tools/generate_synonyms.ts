@@ -205,7 +205,22 @@ const CELLS = [
   { prefix: "telomerocytoclast", base: "telomere" },
   { prefix: "autophagosomocytoclast", base: "autophagosome" },
   { prefix: "endosomocytoclast", base: "endosome" },
-  { prefix: "melanosomocytoclast", base: "melanosome" }
+  { prefix: "melanosomocytoclast", base: "melanosome" },
+  { prefix: "chromatosomocytoclast", base: "chromatosome" },
+  { prefix: "chromatosmoblastocytoclast", base: "chromatosmoblast" },
+  { prefix: "nucleosomocytoclast", base: "nucleosome" },
+  { prefix: "nucleosomblastocytoclast", base: "nucleosomblast" },
+  { prefix: "histonocytoclast", base: "histone" },
+  { prefix: "histoneblastocytoclast", base: "histoneblast" },
+  { prefix: "solenoidocytoclast", base: "solenoid" },
+  { prefix: "solenoidoblastocytoclast", base: "solenoidblast" },
+  { prefix: "replisomocytoclast", base: "replisome" },
+  { prefix: "replisomblastocytoclast", base: "replisomblast" },
+  { prefix: "spliceosomocytoclast", base: "spliceosome" },
+  { prefix: "spliceosomblastocytoclast", base: "spliceosomblast" },
+  { prefix: "ribozymocytoclast", base: "ribozyme" },
+  { prefix: "proteasomocytoclast", base: "proteasome" },
+  { prefix: "glyoxysomocytoclast", base: "glyoxysome" }
 ];
 
 const ELEMENTS = [
@@ -451,7 +466,22 @@ const ELEMENTS = [
   "rutile",
   "anatase",
   "brookite",
-  "pyrolusite"
+  "pyrolusite",
+  "cryolite",
+  "fluorite",
+  "apatite",
+  "monazite",
+  "bastnasite",
+  "xenotime",
+  "zircon",
+  "sphene",
+  "titanite",
+  "leucoxene",
+  "ilmenorutile",
+  "struverite",
+  "columbite",
+  "tantalite",
+  "pyrochlore"
 ];
 
 const COMBAT_ACTIONS = [
