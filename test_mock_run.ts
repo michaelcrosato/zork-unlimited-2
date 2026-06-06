@@ -2,18 +2,14 @@ import { MockLlmClient } from "./src/agents/llm/mock_client.js";
 
 async function main() {
   const llm = new MockLlmClient();
-  const obs = `📖 Narration:
-  - You open the iron cage.
+  const obs = `🎮 Started new game session "blind-2467f681" with adventure "The Procedural Forest" (unlimited_forest_pack)!
 
---- ROOM: Sunlit Clearing | Score: 0 | Step: 4 ---
-A beautiful sunlit clearing in the heart of the ruins. A massive stone vault door stands to the east. A dark pathway leads west into the control temple. A low draft makes the shadows dance flickeringly along the walls. The sky overhead is clear.
+--- ROOM: Sunlit Clearing | Score: 0 | Step: 0 ---
+A beautiful sunlit clearing in the heart of the forest. The trees press in close, but a path leads west. Steep rocks lead up to a cliffside.
 
-You see here: iron cage, vault key, vault door
-Obvious exits: west, east
-
-Available actions/verbs:
-  Verbs you can try: look, inventory, go, inspect, close, take`;
-  const roomsVisited = ["Sunlit Clearing", "Control Temple"];
+You see here: rusty shovel, earthen mound
+Obvious exits: west, up`;
+  const roomsVisited = ["Sunlit Clearing"];
 
   const res = await llm.completeJson<{ action: string; reason: string; want_to_quit: boolean }>({
     role: "playtester",
