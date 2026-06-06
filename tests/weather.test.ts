@@ -7,7 +7,6 @@ import { ParserPack } from "../src/parser/schema.js";
 import { checkParserSoftlocks } from "../src/validate/parser_validator.js";
 import { calculateTradePrice } from "../src/core/economy.js";
 
-
 describe("Procedural Weather & Environmental Engine", () => {
   it("should initialize with default clear/mild environment", () => {
     const state = createInitialState({ seed: 42, start: "Forest Clearing" });
@@ -323,7 +322,7 @@ describe("Procedural Weather & Environmental Engine", () => {
     };
     let resultRain = step(stateRain, { type: "USE", target: "trigger" }, pack);
     expect(resultRain.ok).toBe(true);
-    let procRoomRain = resultRain.state.proceduralRooms?.find(r => r.id === "proc_room");
+    let procRoomRain = resultRain.state.proceduralRooms?.find((r) => r.id === "proc_room");
     expect(procRoomRain?.description).toContain("Water drips through the cracks");
 
     // Test with weather set to fog
@@ -335,7 +334,7 @@ describe("Procedural Weather & Environmental Engine", () => {
     };
     let resultFog = step(stateFog, { type: "USE", target: "trigger" }, pack);
     expect(resultFog.ok).toBe(true);
-    let procRoomFog = resultFog.state.proceduralRooms?.find(r => r.id === "proc_room");
+    let procRoomFog = resultFog.state.proceduralRooms?.find((r) => r.id === "proc_room");
     expect(procRoomFog?.description).toContain("A thick mist rolls");
 
     // Test with weather set to clear
@@ -347,7 +346,7 @@ describe("Procedural Weather & Environmental Engine", () => {
     };
     let resultClear = step(stateClear, { type: "USE", target: "trigger" }, pack);
     expect(resultClear.ok).toBe(true);
-    let procRoomClear = resultClear.state.proceduralRooms?.find(r => r.id === "proc_room");
+    let procRoomClear = resultClear.state.proceduralRooms?.find((r) => r.id === "proc_room");
     expect(procRoomClear?.description).toContain("Dust motes float");
   });
 
@@ -372,4 +371,3 @@ describe("Procedural Weather & Environmental Engine", () => {
     expect(priceClear).toBe(80);
   });
 });
-

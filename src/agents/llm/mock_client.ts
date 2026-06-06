@@ -538,7 +538,8 @@ export class MockLlmClient implements LlmClient {
           }
           // 1.5 multiplayer_forest_pack (The Cooperative Ruins)
           else if (
-            (obs.includes("Sunlit Clearing") && (obs.includes("ruins") || obs.includes("vault") || obs.includes("cage"))) ||
+            (obs.includes("Sunlit Clearing") &&
+              (obs.includes("ruins") || obs.includes("vault") || obs.includes("cage"))) ||
             obs.includes("Control Temple") ||
             obs.includes("Chamber of Gold") ||
             obs.includes("cooperative_ruins") ||
