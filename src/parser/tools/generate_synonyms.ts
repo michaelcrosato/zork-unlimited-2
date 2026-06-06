@@ -1,11 +1,17 @@
 import * as fs from "fs";
 import * as path from "path";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 
 // Get directories
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "../../..");
+
+async function formatTypeScript(source: string, filepath: string): Promise<string> {
+  const prettier = await import("prettier");
+  const options = (await prettier.resolveConfig(filepath)) ?? {};
+  return prettier.format(source, { ...options, filepath, parser: "typescript" });
+}
 
 interface SynonymPhase {
   phase: number;
@@ -1140,9 +1146,8 @@ const CELLS = [
   { prefix: "ependymocytoidcytoblastocytoclast", base: "ependymocytoidcytoblast" },
   { prefix: "satellitecytoidcytoclast", base: "satellitecytoid" },
   { prefix: "satellitecytoidblastocytoclast", base: "satellitecytoidblast" },
-  { prefix: "satellitecytoidcytoblastocytoclast", base: "satellitecytoidcytoblast" }
+  { prefix: "satellitecytoidcytoblastocytoclast", base: "satellitecytoidcytoblast" },
 ];
-
 
 const ELEMENTS = [
   "astatin",
@@ -2372,7 +2377,7 @@ const ELEMENTS = [
   "cometstoneitite",
   "meteorite",
   "meteoritite",
-  "meteorstoneitite"
+  "meteorstoneitite",
 ];
 
 const COMBAT_ACTIONS = [
@@ -2393,7 +2398,18 @@ export function getGreekNumber(n: number): string {
 
   if (n < 10) return units[n];
   if (n >= 10 && n < 20) {
-    const teenUnits = ["deca", "hendeca", "dodeca", "trideca", "tetradeca", "pentadeca", "hexadeca", "heptadeca", "octadeca", "enneadeca"];
+    const teenUnits = [
+      "deca",
+      "hendeca",
+      "dodeca",
+      "trideca",
+      "tetradeca",
+      "pentadeca",
+      "hexadeca",
+      "heptadeca",
+      "octadeca",
+      "enneadeca",
+    ];
     return teenUnits[n - 10] + "rchy";
   }
   if (n >= 20 && n < 30) {
@@ -2414,7 +2430,7 @@ export function getGreekNumber(n: number): string {
   if (n === 70) return "heptacontarchy";
   if (n === 80) return "octacontarchy";
   if (n === 90) return "enneacontarchy";
-  
+
   if (n >= 100 && n < 110) {
     if (n === 100) return "hectarchy";
     return units[n - 100] + "hectarchy";
@@ -2577,14 +2593,25 @@ export function getGreekNumber(n: number): string {
   }
   if (n === 500) return "pentahectarchy";
 
-  const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
-  
+  const tens = [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "pentacontarchy",
+    "hexacontarchy",
+    "heptacontarchy",
+    "octacontarchy",
+    "enneacontarchy",
+  ];
+
   const unitDigit = n % 10;
   const tenDigit = Math.floor(n / 10);
-  
+
   if (tenDigit === 5 && unitDigit === 1) return "unapentacontarchy";
   if (tenDigit === 5 && unitDigit === 9) return "nonapentacontarchy";
-  
+
   return units[unitDigit] + tens[tenDigit];
 }
 
@@ -2592,15 +2619,15 @@ export function getGreekNumber(n: number): string {
 const PHASES: SynonymPhase[] = [];
 for (let p = 368; p <= 750; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
-  const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
-  const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
-  
+  const elemIndex = (((368 - p) % ELEMENTS.length) + ELEMENTS.length) % ELEMENTS.length;
+  const combatIndex = (((368 - p) % COMBAT_ACTIONS.length) + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
+
   const cell = CELLS[cellIndex];
   const element = ELEMENTS[elemIndex];
   const combatAction = COMBAT_ACTIONS[combatIndex];
   const numberVal = p - 308;
   const takeCount = getGreekNumber(numberVal);
-  
+
   PHASES.push({
     phase: p,
     cycle: 410 + (p - 368),
@@ -2617,7 +2644,7 @@ for (let p = 368; p <= 750; p++) {
   });
 }
 
-function generateSynonymsFile() {
+async function generateSynonymsFile() {
   let content = "";
 
   for (const p of PHASES) {
@@ -2946,7 +2973,7 @@ function generateSynonymsFile() {
   }
 
   const synonyms2Path = path.resolve(projectRoot, "src/parser/command_map_synonyms_2.ts");
-  let synonyms2Content = fs.readFileSync(synonyms2Path, "utf8");
+  const synonyms2Content = fs.readFileSync(synonyms2Path, "utf8");
 
   const startMarker = "// --- GENERATED SYNONYMS START ---";
   const endMarker = "// --- GENERATED SYNONYMS END ---";
@@ -2961,12 +2988,12 @@ function generateSynonymsFile() {
   const before = synonyms2Content.substring(0, startIndex + startMarker.length);
   const after = synonyms2Content.substring(endIndex);
 
-  const newSynonyms2Content = before + "\n" + content + "\n  " + after;
+  const newSynonyms2Content = await formatTypeScript(before + "\n" + content + "\n  " + after, synonyms2Path);
   fs.writeFileSync(synonyms2Path, newSynonyms2Content, "utf8");
   console.log(`Updated synonym file: ${synonyms2Path}`);
 }
 
-function generateTestsFile() {
+async function generateTestsFile() {
   let content = `import { describe, it, expect } from "vitest";
 import { mapCommand } from "../src/parser/command_map.js";
 import { getGreekNumber } from "../src/parser/tools/generate_synonyms.js";
@@ -3098,9 +3125,16 @@ describe("Parser Synonym Expansion (Generated)", () => {
   content += `});\n`;
 
   const outputPath = path.resolve(projectRoot, "tests/parser_synonym_expansion_generated.test.ts");
-  fs.writeFileSync(outputPath, content, "utf8");
+  fs.writeFileSync(outputPath, await formatTypeScript(content, outputPath), "utf8");
   console.log(`Generated test file: ${outputPath}`);
 }
 
-generateSynonymsFile();
-generateTestsFile();
+function isCliEntrypoint(): boolean {
+  const entrypoint = process.argv[1];
+  return Boolean(entrypoint && pathToFileURL(path.resolve(entrypoint)).href === import.meta.url);
+}
+
+if (isCliEntrypoint()) {
+  await generateSynonymsFile();
+  await generateTestsFile();
+}

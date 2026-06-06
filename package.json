@@ -8,7 +8,7 @@
     "test:watch": "vitest --reporter=dot --exclude **/dist/** --exclude tests/mcp_client.test.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "replay": "tsx src/bin/replay.ts",
     "mcp": "tsx src/bin/mcp-server.ts",
     "autopilot": "tsx src/bin/ai-autopilot.ts",

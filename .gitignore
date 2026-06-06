@@ -6,6 +6,7 @@ dist/
 
 # Test / Coverage
 coverage/
+tests/.test-output/
 *.log
 
 # AI Agent Runtime Output
@@ -24,6 +25,11 @@ traces/playtest_*.json
 # Temp / Debug / Cache
 scratch/
 cache/
+.env
+.env.*
+.env.local
+!.env.example
+
 
 # IDEs & System files
 .DS_Store
