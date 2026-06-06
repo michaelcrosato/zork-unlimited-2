@@ -55,8 +55,8 @@ interface McpResponse {
   };
 }
 
-/** Default request timeout in milliseconds (30 seconds). */
-const DEFAULT_TIMEOUT_MS = 30_000;
+/** Default request timeout in milliseconds (90 seconds). */
+const DEFAULT_TIMEOUT_MS = 90_000;
 
 /**
  * Resolve the project root directory from this file's location.
