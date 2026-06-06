@@ -5,6 +5,8 @@ import { step } from "../src/core/engine.js";
 import { buildObservation } from "../src/api/observation.js";
 import { ParserPack } from "../src/parser/schema.js";
 import { checkParserSoftlocks } from "../src/validate/parser_validator.js";
+import { calculateTradePrice } from "../src/core/economy.js";
+
 
 describe("Procedural Weather & Environmental Engine", () => {
   it("should initialize with default clear/mild environment", () => {
@@ -251,4 +253,123 @@ describe("Procedural Weather & Environmental Engine", () => {
     const findings = checkParserSoftlocks(packWithoutWeather);
     expect(findings.length).toBe(0);
   });
+
+  it("should dynamically apply weather-specific descriptions to procedurally generated dungeon rooms", () => {
+    const pack: ParserPack = {
+      meta: {
+        id: "weather_proc_pack",
+        title: "Weather Procedural Test",
+        start_room: "start",
+        vars_init: {},
+        flags_init: [],
+      },
+      rooms: [
+        {
+          id: "start",
+          name: "Dungeon Entry",
+          description: "You stand at the dungeon entry.",
+          objects: ["trigger"],
+          npcs: [],
+          exits: [],
+        },
+      ],
+      objects: [
+        {
+          id: "trigger",
+          name: "trigger stone",
+          aliases: ["trigger", "stone"],
+          description: "A loose stone that triggers generation.",
+          takeable: false,
+          interactions: [
+            {
+              verb: "USE",
+              effects: [
+                {
+                  generate_procedural_room: {
+                    direction: "north",
+                    to_id: "proc_room",
+                    template_id: "dungeon_template",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      npcs: [],
+      procedural_templates: [
+        {
+          id: "dungeon_template",
+          name_pool: ["Dungeon Vault"],
+          description_pool: ["A vast stone chamber."],
+          environment_descriptions: {
+            rain: ["Water drips through the cracks in the ceiling from the storm outside."],
+            fog: ["A thick mist rolls along the damp stone floor."],
+            clear: ["Dust motes float peacefully in the dry air."],
+          },
+          exits: [],
+        },
+      ],
+      win_conditions: [],
+      endings: [],
+    };
+
+    // Test with weather set to rain
+    let stateRain = createInitialState({ seed: 42, start: "start" });
+    stateRain.environment = {
+      weather: "rain",
+      temperature: "cold",
+      lastUpdatedStep: 0,
+    };
+    let resultRain = step(stateRain, { type: "USE", target: "trigger" }, pack);
+    expect(resultRain.ok).toBe(true);
+    let procRoomRain = resultRain.state.proceduralRooms?.find(r => r.id === "proc_room");
+    expect(procRoomRain?.description).toContain("Water drips through the cracks");
+
+    // Test with weather set to fog
+    let stateFog = createInitialState({ seed: 42, start: "start" });
+    stateFog.environment = {
+      weather: "fog",
+      temperature: "cold",
+      lastUpdatedStep: 0,
+    };
+    let resultFog = step(stateFog, { type: "USE", target: "trigger" }, pack);
+    expect(resultFog.ok).toBe(true);
+    let procRoomFog = resultFog.state.proceduralRooms?.find(r => r.id === "proc_room");
+    expect(procRoomFog?.description).toContain("A thick mist rolls");
+
+    // Test with weather set to clear
+    let stateClear = createInitialState({ seed: 42, start: "start" });
+    stateClear.environment = {
+      weather: "clear",
+      temperature: "mild",
+      lastUpdatedStep: 0,
+    };
+    let resultClear = step(stateClear, { type: "USE", target: "trigger" }, pack);
+    expect(resultClear.ok).toBe(true);
+    let procRoomClear = resultClear.state.proceduralRooms?.find(r => r.id === "proc_room");
+    expect(procRoomClear?.description).toContain("Dust motes float");
+  });
+
+  it("should calculate dynamic trade prices incorporating weather climate_pricing factors", () => {
+    let state = createInitialState({ seed: 42, start: "start" });
+    state.environment = {
+      weather: "rain",
+      temperature: "mild",
+      lastUpdatedStep: 0,
+    };
+
+    const npc = { id: "merchant", climate_pricing: { rain: 1.5, clear: 0.8 } };
+    const item = { id: "boots", climate_pricing: { rain: 2.0, clear: 1.0 } };
+
+    // Buy price under rain: base price 100 * 1.5 (npc multiplier) * 2.0 (item multiplier) = 300
+    const priceRain = calculateTradePrice(state, npc, item, 100, true);
+    expect(priceRain).toBe(300);
+
+    // Buy price under clear: base price 100 * 0.8 (npc multiplier) * 1.0 (item multiplier) = 80
+    state.environment.weather = "clear";
+    const priceClear = calculateTradePrice(state, npc, item, 100, true);
+    expect(priceClear).toBe(80);
+  });
 });
+

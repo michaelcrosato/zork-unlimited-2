@@ -87,6 +87,21 @@ objects:
       rain: 1.5
       storm: 2.0
 
+  - id: silver_pendant
+    name: "silver pendant"
+    aliases: [ pendant, silver pendant, necklace ]
+    description: "An elegant silver pendant shaped like a crescent moon."
+    takeable: true
+    cost: 40
+
+  - id: brass_lantern
+    name: "brass lantern"
+    aliases: [ lantern, brass lantern, light ]
+    description: "A small brass lantern that burns bright oil."
+    takeable: true
+    cost: 15
+
+
 npcs:
   - id: goblin_merchant
     name: "goblin merchant"
@@ -102,7 +117,12 @@ npcs:
           topics:
             - { id: buy_ring, prompt: "Buy gold ring (30 gold)", goto: bought_ring }
             - { id: buy_boots, prompt: "Buy leather boots (20 gold)", goto: bought_boots }
+            - { id: buy_pendant, prompt: "Buy silver pendant (40 gold)", goto: bought_pendant }
+            - { id: buy_lantern, prompt: "Buy brass lantern (15 gold)", goto: bought_lantern }
+            - { id: buy_shovel, prompt: "Buy rusty shovel (15 gold)", goto: bought_shovel }
             - { id: sell_ring, prompt: "Sell gold ring (15 gold)", goto: sold_ring }
+            - { id: sell_pendant, prompt: "Sell silver pendant (20 gold)", goto: sold_pendant }
+            - { id: sell_shovel, prompt: "Sell rusty shovel (10 gold)", goto: sold_shovel }
             - { id: leave, prompt: "Say goodbye", end: true }
         - id: bought_ring
           npc_text: "A fine choice! The ring is yours."
@@ -126,6 +146,39 @@ npcs:
           topics:
             - { id: greet_again, prompt: "Let's talk more", goto: greet }
             - { id: leave, prompt: "Say goodbye", end: true }
+        - id: bought_pendant
+          npc_text: "A beautiful choice! It matches your eyes."
+          effects:
+            - trade_item:
+                give_gold: 40
+                receive_item: silver_pendant
+                fail_msg: "\"You lack the gold!\" he grunts."
+                success_msg: "You trade 40 gold for a silver pendant."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: bought_lantern
+          npc_text: "A bright choice! Very useful in the deep caves."
+          effects:
+            - trade_item:
+                give_gold: 15
+                receive_item: brass_lantern
+                fail_msg: "\"You lack the gold!\" he cackles."
+                success_msg: "You trade 15 gold for a brass lantern."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: bought_shovel
+          npc_text: "Here is your shovel back."
+          effects:
+            - trade_item:
+                give_gold: 15
+                receive_item: shovel
+                fail_msg: "\"Not enough gold!\" he cackles."
+                success_msg: "You trade 15 gold for the rusty shovel."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
         - id: sold_ring
           npc_text: "Excellent business! Here is your gold."
           effects:
@@ -134,6 +187,28 @@ npcs:
                 receive_gold: 15
                 fail_msg: "\"You do not possess the ring!\" he snarls."
                 success_msg: "You trade your gold ring for 15 gold."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: sold_pendant
+          npc_text: "Ah, exquisite silver! I will pay you 20 gold for it."
+          effects:
+            - trade_item:
+                give_item: silver_pendant
+                receive_gold: 20
+                fail_msg: "\"You do not have the pendant!\" he scowls."
+                success_msg: "You trade your silver pendant for 20 gold."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: sold_shovel
+          npc_text: "A bit rusty, but it still works. Here is 10 gold."
+          effects:
+            - trade_item:
+                give_item: shovel
+                receive_gold: 10
+                fail_msg: "\"You don't have a shovel to sell!\" he points out."
+                success_msg: "You trade your rusty shovel for 10 gold."
           topics:
             - { id: greet_again, prompt: "Let's talk more", goto: greet }
             - { id: leave, prompt: "Say goodbye", end: true }
