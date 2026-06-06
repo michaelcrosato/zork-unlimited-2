@@ -21,6 +21,7 @@
 import { ChildProcess, spawn } from "child_process";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import { existsSync } from "fs";
 
 /** Shape of an adventure pack entry returned by `list_adventures`. */
 export interface AdventurePack {
@@ -119,13 +120,22 @@ export class McpGameClient {
     }
 
     const projectRoot = getProjectRoot();
-    const serverScript = resolve(projectRoot, "src/bin/mcp-server.ts");
+    const distScript = resolve(projectRoot, "dist/bin/mcp-server.js");
+    const srcScript = resolve(projectRoot, "src/bin/mcp-server.ts");
 
-    this.server = spawn("node", ["--import", "tsx", serverScript], {
-      env: { ...process.env, PAGER: "cat" },
-      cwd: projectRoot,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    if (existsSync(distScript)) {
+      this.server = spawn("node", [distScript], {
+        env: { ...process.env, PAGER: "cat" },
+        cwd: projectRoot,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } else {
+      this.server = spawn("node", ["--import", "tsx", srcScript], {
+        env: { ...process.env, PAGER: "cat" },
+        cwd: projectRoot,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    }
 
     // Wire up stdout JSON-RPC message parser.
     this.setupStdoutParser();

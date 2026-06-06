@@ -1,0 +1,2 @@
+AdventureForge MCP server running on stdio transport!
+{"result":{"protocolVersion":"2024-11-05","capabilities":{"tools":{},"resources":{}},"serverInfo":{"name":"adventureforge-mcp","version":"1.0.0"}},"jsonrpc":"2.0","id":1}
