@@ -333,6 +333,9 @@ const VERB_CATEGORIES: Record<string, string[]> = {
   "unlock door": ["UNLOCK", "USE"],
 
   use: ["USE"],
+  dig: ["USE"],
+  excavate: ["USE"],
+  shovel: ["USE"],
   pull: ["USE"],
   push: ["USE"],
   press: ["USE"],
