@@ -1140,9 +1140,8 @@ const CELLS = [
   { prefix: "ependymocytoidcytoblastocytoclast", base: "ependymocytoidcytoblast" },
   { prefix: "satellitecytoidcytoclast", base: "satellitecytoid" },
   { prefix: "satellitecytoidblastocytoclast", base: "satellitecytoidblast" },
-  { prefix: "satellitecytoidcytoblastocytoclast", base: "satellitecytoidcytoblast" }
+  { prefix: "satellitecytoidcytoblastocytoclast", base: "satellitecytoidcytoblast" },
 ];
-
 
 const ELEMENTS = [
   "astatin",
@@ -2372,7 +2371,7 @@ const ELEMENTS = [
   "cometstoneitite",
   "meteorite",
   "meteoritite",
-  "meteorstoneitite"
+  "meteorstoneitite",
 ];
 
 const COMBAT_ACTIONS = [
@@ -2393,7 +2392,18 @@ export function getGreekNumber(n: number): string {
 
   if (n < 10) return units[n];
   if (n >= 10 && n < 20) {
-    const teenUnits = ["deca", "hendeca", "dodeca", "trideca", "tetradeca", "pentadeca", "hexadeca", "heptadeca", "octadeca", "enneadeca"];
+    const teenUnits = [
+      "deca",
+      "hendeca",
+      "dodeca",
+      "trideca",
+      "tetradeca",
+      "pentadeca",
+      "hexadeca",
+      "heptadeca",
+      "octadeca",
+      "enneadeca",
+    ];
     return teenUnits[n - 10] + "rchy";
   }
   if (n >= 20 && n < 30) {
@@ -2414,7 +2424,7 @@ export function getGreekNumber(n: number): string {
   if (n === 70) return "heptacontarchy";
   if (n === 80) return "octacontarchy";
   if (n === 90) return "enneacontarchy";
-  
+
   if (n >= 100 && n < 110) {
     if (n === 100) return "hectarchy";
     return units[n - 100] + "hectarchy";
@@ -2577,14 +2587,25 @@ export function getGreekNumber(n: number): string {
   }
   if (n === 500) return "pentahectarchy";
 
-  const tens = ["", "", "", "", "", "pentacontarchy", "hexacontarchy", "heptacontarchy", "octacontarchy", "enneacontarchy"];
-  
+  const tens = [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "pentacontarchy",
+    "hexacontarchy",
+    "heptacontarchy",
+    "octacontarchy",
+    "enneacontarchy",
+  ];
+
   const unitDigit = n % 10;
   const tenDigit = Math.floor(n / 10);
-  
+
   if (tenDigit === 5 && unitDigit === 1) return "unapentacontarchy";
   if (tenDigit === 5 && unitDigit === 9) return "nonapentacontarchy";
-  
+
   return units[unitDigit] + tens[tenDigit];
 }
 
@@ -2592,15 +2613,15 @@ export function getGreekNumber(n: number): string {
 const PHASES: SynonymPhase[] = [];
 for (let p = 368; p <= 750; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
-  const elemIndex = ((368 - p) % ELEMENTS.length + ELEMENTS.length) % ELEMENTS.length;
-  const combatIndex = ((368 - p) % COMBAT_ACTIONS.length + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
-  
+  const elemIndex = (((368 - p) % ELEMENTS.length) + ELEMENTS.length) % ELEMENTS.length;
+  const combatIndex = (((368 - p) % COMBAT_ACTIONS.length) + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;
+
   const cell = CELLS[cellIndex];
   const element = ELEMENTS[elemIndex];
   const combatAction = COMBAT_ACTIONS[combatIndex];
   const numberVal = p - 308;
   const takeCount = getGreekNumber(numberVal);
-  
+
   PHASES.push({
     phase: p,
     cycle: 410 + (p - 368),
@@ -2946,7 +2967,7 @@ function generateSynonymsFile() {
   }
 
   const synonyms2Path = path.resolve(projectRoot, "src/parser/command_map_synonyms_2.ts");
-  let synonyms2Content = fs.readFileSync(synonyms2Path, "utf8");
+  const synonyms2Content = fs.readFileSync(synonyms2Path, "utf8");
 
   const startMarker = "// --- GENERATED SYNONYMS START ---";
   const endMarker = "// --- GENERATED SYNONYMS END ---";
