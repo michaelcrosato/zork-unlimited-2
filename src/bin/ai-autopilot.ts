@@ -56,6 +56,8 @@ async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
     { path: "content/parser/pack/heros_quest.yaml", type: "Parser" as const },
     { path: "content/parser/pack/chapel.yaml", type: "Parser" as const },
     { path: "content/parser/pack/guild_showcase.yaml", type: "Parser" as const },
+    { path: "content/parser/pack/unlimited_forest.yaml", type: "Parser" as const },
+    { path: "content/parser/pack/multiplayer_forest.yaml", type: "Parser" as const },
     { path: "content/cyoa/pack/watchtower.yaml", type: "CYOA" as const },
   ];
 
