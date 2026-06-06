@@ -187,7 +187,7 @@ export class MockLlmClient implements LlmClient {
         const hasRopeInInv = invStr.includes("rope") || invStr.includes("coil");
         const hasBrassKey = invStr.includes("brass");
         const hasIronKey = invStr.includes("iron");
-        const hasCrown = invStr.includes("crown") || invStr.includes("royal");
+        const hasCrown = invStr.includes("crown");
 
         if (obs.includes("SCENE:")) {
           // CYOA mode!
