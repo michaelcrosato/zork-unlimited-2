@@ -123,7 +123,8 @@ export class McpGameClient {
     const distScript = resolve(projectRoot, "dist/bin/mcp-server.js");
     const srcScript = resolve(projectRoot, "src/bin/mcp-server.ts");
 
-    if (existsSync(distScript)) {
+    const isTs = import.meta.url.endsWith(".ts") || import.meta.url.includes("/src/");
+    if (existsSync(distScript) && !isTs) {
       this.server = spawn("node", [distScript], {
         env: { ...process.env, PAGER: "cat" },
         cwd: projectRoot,

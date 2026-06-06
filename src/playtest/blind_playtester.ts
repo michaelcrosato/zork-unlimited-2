@@ -124,7 +124,13 @@ export async function runBlindPlaytest(options: BlindPlaytestOptions): Promise<B
     // Query pack metadata to get total rooms
     try {
       const adventures = await client.listAdventures();
-      const match = adventures.find((a) => a.id === packId);
+      const match = adventures.find(
+        (a) =>
+          a.id === packId ||
+          a.path === packId ||
+          basename(a.path) === packId ||
+          basename(a.path).replace(/\.(yaml|yml|json)$/i, "") === packId
+      );
       if (match && match.path && existsSync(match.path)) {
         const content = readFileSync(match.path, "utf8");
         const parsed = match.path.endsWith(".json") ? JSON.parse(content) : parseYaml(content);
