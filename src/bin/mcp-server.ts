@@ -379,7 +379,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       // Find the pack path
       const packs = findPacks();
       const matchedPack = packs.find(
-        (p) => p.id === adventureId || p.path === adventureId || basename(p.path) === adventureId
+        (p) =>
+          p.id === adventureId ||
+          p.path === adventureId ||
+          basename(p.path) === adventureId ||
+          basename(p.path).replace(/\.(yaml|yml|json)$/i, "") === adventureId
       );
 
       let packPath = "";

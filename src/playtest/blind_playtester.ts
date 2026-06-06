@@ -161,7 +161,10 @@ export async function runBlindPlaytest(options: BlindPlaytestOptions): Promise<B
                     if (
                       parsed &&
                       parsed.meta &&
-                      (parsed.meta.id === packId || basename(fullPath) === packId || file === packId)
+                      (parsed.meta.id === packId ||
+                        basename(fullPath) === packId ||
+                        file === packId ||
+                        file.replace(/\.(yaml|yml|json)$/i, "") === packId)
                     ) {
                       resolvedPackPath = fullPath;
                       break;
