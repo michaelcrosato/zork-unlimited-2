@@ -2954,6 +2954,9 @@ const SYNONYM_GROUPS = [
   ["mound", "earth", "dirt", "soil", "ground", "clay", "dust", "gravel", "sand", "mud", "land", "loam", "peat"],
   ["glade", "clearing", "meadow", "lawn", "pasture", "field", "flat", "opening", "plain"],
   ["elf", "elven", "ranger"],
+  ["up", "cliff", "cliffside", "rocks", "peak", "summit", "slope", "mountaineering"],
+  ["west", "forest", "woods", "jungle", "canopy", "deep_forest"],
+  ["east", "glade", "meadow", "pasture", "hidden_glade"],
 ];
 
 function areSynonyms(word1: string, word2: string): boolean {
@@ -3416,7 +3419,10 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
       let score = 0;
       if (actionCategory === "MOVE") {
         const direction = (a.action as any).direction;
-        const hasDirection = direction && cleanInputStr.includes(direction.toLowerCase());
+        const hasDirection =
+          direction &&
+          (cleanInputStr.includes(direction.toLowerCase()) ||
+            userNouns.some((un) => areSynonyms(un, direction)));
 
         if (cmdNouns.length > 0) {
           if (userNouns.length > 0) {
