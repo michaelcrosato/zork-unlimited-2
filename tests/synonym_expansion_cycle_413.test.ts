@@ -6,15 +6,31 @@ describe("Parser Synonym Expansion (Cycle #413 / Player Priority)", () => {
     { id: "move-west", command: "go west", action: { type: "MOVE" as const, direction: "west" } },
     { id: "look-mound", command: "look earthen mound", action: { type: "LOOK" as const, target: "mound" } },
     { id: "take-shovel", command: "take rusty shovel", action: { type: "TAKE" as const, item: "shovel" } },
-    { id: "use-shovel", command: "use rusty shovel on earthen mound", action: { type: "USE" as const, item: "shovel", target: "mound" } },
+    {
+      id: "use-shovel",
+      command: "use rusty shovel on earthen mound",
+      action: { type: "USE" as const, item: "shovel", target: "mound" },
+    },
     { id: "talk-ranger", command: "talk to elven ranger", action: { type: "TALK" as const, npc: "ranger" } },
     { id: "fight-thief", command: "fight goblin thief", action: { type: "FIGHT" as const, npc: "thief" } },
   ];
 
   it("should map newly added dig/excavate/shovel synonyms to USE action", () => {
-    expect(mapCommand("dig into earthen mound", actions).action).toEqual({ type: "USE", item: "shovel", target: "mound" });
-    expect(mapCommand("excavate in earthen mound", actions).action).toEqual({ type: "USE", item: "shovel", target: "mound" });
-    expect(mapCommand("shovel out earthen mound", actions).action).toEqual({ type: "USE", item: "shovel", target: "mound" });
+    expect(mapCommand("dig into earthen mound", actions).action).toEqual({
+      type: "USE",
+      item: "shovel",
+      target: "mound",
+    });
+    expect(mapCommand("excavate in earthen mound", actions).action).toEqual({
+      type: "USE",
+      item: "shovel",
+      target: "mound",
+    });
+    expect(mapCommand("shovel out earthen mound", actions).action).toEqual({
+      type: "USE",
+      item: "shovel",
+      target: "mound",
+    });
   });
 
   it("should map new TAKE/LOOK/FIGHT/TALK synonyms", () => {

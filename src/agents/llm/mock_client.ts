@@ -974,7 +974,12 @@ export class MockLlmClient implements LlmClient {
         currentRoom === "cliffside" ||
         currentRoom === "hidden_glade"
       ) {
-        const isCoopRuins = currentRoom === "clearing" && (hasAction("open_cage") || hasAction("take_vault_key") || hasAction("use_vault_key_on_vault_door") || choices.some(c => c.id.includes("cage") || c.id.includes("vault")));
+        const isCoopRuins =
+          currentRoom === "clearing" &&
+          (hasAction("open_cage") ||
+            hasAction("take_vault_key") ||
+            hasAction("use_vault_key_on_vault_door") ||
+            choices.some((c) => c.id.includes("cage") || c.id.includes("vault")));
         if (!isCoopRuins) {
           if (currentRoom === "clearing") {
             if (hasAction("go_east")) {
