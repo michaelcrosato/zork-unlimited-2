@@ -323,11 +323,19 @@ export function generateLegalActions(state: GameState, pack: ParserPack): Availa
     });
 
     // Self-use / Light source activation
-    actions.push({
-      id: `use_${obj.id}_self`,
-      command: `use ${obj.name}`,
-      action: { type: "USE", item: obj.id, target: obj.id },
-    });
+    const hasSelfUse =
+      obj.light_source ||
+      (obj.interactions || []).some(
+        (inter) => inter.verb === "USE" && (inter.target === undefined || inter.target === obj.id)
+      );
+
+    if (hasSelfUse) {
+      actions.push({
+        id: `use_${obj.id}_self`,
+        command: `use ${obj.name}`,
+        action: { type: "USE", item: obj.id, target: obj.id },
+      });
+    }
     if (obj.light_source) {
       actions.push({
         id: `light_${obj.id}`,
