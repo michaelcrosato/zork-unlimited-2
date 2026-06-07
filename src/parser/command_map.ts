@@ -2953,6 +2953,7 @@ const SYNONYM_GROUPS = [
   ["backpack", "knapsack", "bag", "pouch", "sack", "satchel", "pack", "haversack", "tote"],
   ["mound", "earth", "dirt", "soil", "ground", "clay", "dust", "gravel", "sand", "mud", "land", "loam", "peat"],
   ["glade", "clearing", "meadow", "lawn", "pasture", "field", "flat", "opening", "plain"],
+  ["elf", "elven", "ranger"],
 ];
 
 function areSynonyms(word1: string, word2: string): boolean {
