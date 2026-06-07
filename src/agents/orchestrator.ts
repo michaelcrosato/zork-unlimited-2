@@ -4,12 +4,16 @@ import { diagnosePlaytest, BugDiagnosis } from "./debugger.js";
 import { fixIdentifiedBug, ContentFixResult } from "./fixer.js";
 import { CYOAPack } from "../cyoa/schema.js";
 import { ParserPack } from "../parser/schema.js";
+import * as fs from "fs";
+import * as path from "path";
 
 export interface OrchestratorOptions {
   client: LlmClient;
   maxSubagents?: number; // Maximum number of concurrent subagents we can deploy
   personas?: string[]; // Personas to deploy (e.g. speedrunner, explorer, hoarder, dropper, mainline)
   seed?: number;
+  approvalGate?: boolean; // Enable human-in-the-loop approval gate
+  runId?: string; // Unique run identifier for telemetry and logging
 }
 
 export interface PersonaRunResult {
@@ -35,6 +39,67 @@ export interface OrchestrationReport {
   };
 }
 
+export interface OrchestratorCheckpoint {
+  runId: string;
+  packId: string;
+  phase: "START" | "PLAYTESTING" | "DIAGNOSING" | "FIXING" | "COMPLETED";
+  personaRuns: PersonaRunResult[];
+  totalSubagentsDeployed: number;
+}
+
+/**
+ * Log a structured telemetry entry to traces/orchestrator_runs.jsonl
+ */
+function logTelemetry(entry: {
+  runId: string;
+  packId: string;
+  role: string;
+  persona?: string;
+  action: string;
+  durationMs: number;
+  status: "success" | "failure";
+  details?: string;
+}) {
+  const logDir = path.resolve("traces");
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+  const logPath = path.join(logDir, "orchestrator_runs.jsonl");
+  const logLine = JSON.stringify({ timestamp: new Date().toISOString(), ...entry }) + "\n";
+  fs.appendFileSync(logPath, logLine, "utf-8");
+}
+
+/**
+ * Save state checkpoint
+ */
+function saveCheckpoint(checkpoint: OrchestratorCheckpoint) {
+  const logDir = path.resolve("traces");
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+  const checkpointPath = path.join(logDir, `orchestrator_checkpoint_${checkpoint.packId}.json`);
+  fs.writeFileSync(checkpointPath, JSON.stringify(checkpoint, null, 2), "utf-8");
+}
+
+/**
+ * Load state checkpoint
+ */
+function loadCheckpoint(packId: string, runId: string): OrchestratorCheckpoint | null {
+  const checkpointPath = path.resolve("traces", `orchestrator_checkpoint_${packId}.json`);
+  if (fs.existsSync(checkpointPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(checkpointPath, "utf-8")) as OrchestratorCheckpoint;
+      if (data.packId === packId && data.runId === runId && data.phase !== "COMPLETED") {
+        console.log(`🌀 Checkpoint loaded: Resuming run '${runId}' from phase: ${data.phase}`);
+        return data;
+      }
+    } catch (err) {
+      console.warn("⚠️ Failed to parse orchestrator checkpoint:", err);
+    }
+  }
+  return null;
+}
+
 /**
  * A robust worker pool helper to limit concurrency when executing asynchronous tasks.
  */
@@ -48,7 +113,6 @@ async function runWithLimit<T>(tasks: (() => Promise<T>)[], limit: number): Prom
       try {
         results[index] = await tasks[index]();
       } catch (err: any) {
-        // Capture task error
         throw new Error(`Worker task at index ${index} failed: ${err.message}`);
       }
     }
@@ -72,127 +136,248 @@ export async function runOrchestratedAudit(
   const maxSubagents = options.maxSubagents ?? 5;
   const personas = options.personas ?? ["speedrunner", "explorer", "hoarder", "dropper", "mainline"];
   const baseSeed = options.seed ?? 42;
+  const runId = options.runId ?? `run_${Date.now()}`;
+  const packId = pack.meta.id;
 
-  console.log(`🌀 Orchestrator: Initiating content audit for pack '${pack.meta.id}'`);
+  console.log(`🌀 Orchestrator: Initiating content audit for pack '${packId}' | Run: '${runId}'`);
   console.log(`👥 Deploying up to ${maxSubagents} concurrent subagent tasks...`);
 
-  let totalSubagentsDeployed = 0;
+  // Load checkpoint if resumable
+  const checkpoint = loadCheckpoint(packId, runId);
+  let phase = checkpoint?.phase ?? "START";
+  let personaRuns: PersonaRunResult[] = checkpoint?.personaRuns ?? [];
+  let totalSubagentsDeployed = checkpoint?.totalSubagentsDeployed ?? 0;
 
-  // 1. Playtesting Phase: Run all personas concurrently with limited concurrency
-  const playtestTasks = personas.map((persona, index) => {
-    return async (): Promise<{ persona: string; result: PlaytestResult }> => {
-      console.log(`🕵️ Subagent: Starting playtest persona '${persona}'...`);
-      totalSubagentsDeployed++;
-      const result = await runAiPlaytest({
-        pack,
-        client,
-        seed: baseSeed + index,
-        traceId: `orchestrated_${persona}_${pack.meta.id}`,
-        persona,
-        maxSteps: 35,
-      });
-      return { persona, result };
-    };
-  });
-
-  const playtestOutcomes = await runWithLimit(playtestTasks, maxSubagents);
-
-  const personaRuns: PersonaRunResult[] = playtestOutcomes.map(({ persona, result }) => ({
-    persona,
-    success: result.success,
-    steps: result.logs.length,
-    ending: result.finalState.endingId || result.finalState.current,
-    error: result.error,
-  }));
-
-  // 2. Diagnosis and Fixing Phase
-  // Identify failures
-  const failedRuns = playtestOutcomes.filter((o) => !o.result.success);
-
-  if (failedRuns.length > 0) {
-    console.log(
-      `⚠️ ${failedRuns.length} playtest personas encountered failures or soft-locks. Deploying Debugger & Fixer subagents...`
-    );
-
-    // Diagnoses tasks
-    const diagnosisTasks = failedRuns.map(({ persona, result }) => {
-      return async (): Promise<{ persona: string; diagnosis: BugDiagnosis }> => {
-        console.log(`🔍 Subagent: Diagnosing failure for persona '${persona}'...`);
+  // 1. Playtesting Phase (Skip if already completed in checkpoint)
+  if (phase === "START") {
+    const playtestTasks = personas.map((persona, index) => {
+      return async (): Promise<{ persona: string; result: PlaytestResult }> => {
+        const startTime = Date.now();
+        console.log(`🕵️ Subagent: Starting playtest persona '${persona}'...`);
         totalSubagentsDeployed++;
-        const diagnosis = await diagnosePlaytest({
+        const result = await runAiPlaytest({
+          pack,
           client,
-          logs: result.logs,
+          seed: baseSeed + index,
+          traceId: `orchestrated_${persona}_${packId}`,
+          persona,
+          maxSteps: 35,
+        });
+
+        logTelemetry({
+          runId,
+          packId,
+          role: "playtester",
+          persona,
+          action: "playtest",
+          durationMs: Date.now() - startTime,
+          status: result.success ? "success" : "failure",
+          details: result.error,
+        });
+
+        return { persona, result };
+      };
+    });
+
+    const playtestOutcomes = await runWithLimit(playtestTasks, maxSubagents);
+
+    personaRuns = playtestOutcomes.map(({ persona, result }) => ({
+      persona,
+      success: result.success,
+      steps: result.logs.length,
+      ending: result.finalState.endingId || result.finalState.current,
+      error: result.error,
+    }));
+
+    phase = "PLAYTESTING";
+    saveCheckpoint({ runId, packId, phase, personaRuns, totalSubagentsDeployed });
+  }
+
+  // 2. Diagnosis Phase (Skip if already completed)
+  const failedRuns = personaRuns.filter((r) => !r.success && !r.diagnosis);
+  if (phase === "PLAYTESTING" && failedRuns.length > 0) {
+    console.log(`⚠️ ${failedRuns.length} playtest personas failed. Deploying Debugger subagents...`);
+
+    const diagnosisTasks = failedRuns.map((run) => {
+      return async (): Promise<{ persona: string; diagnosis: BugDiagnosis }> => {
+        const startTime = Date.now();
+        console.log(`🔍 Subagent: Diagnosing failure for persona '${run.persona}'...`);
+        totalSubagentsDeployed++;
+
+        // Fetch the corresponding logs from original playtest
+        const logsPath = path.resolve("traces", `orchestrated_${run.persona}_${packId}.json`);
+        let logs = [];
+        if (fs.existsSync(logsPath)) {
+          try {
+            const traceData = JSON.parse(fs.readFileSync(logsPath, "utf-8"));
+            logs = traceData.logs || [];
+          } catch (err) {
+            console.warn("⚠️ Failed to load playtest trace logs for diagnosis:", err);
+          }
+        }
+
+        const d = await diagnosePlaytest({
+          client,
+          logs,
           seed: baseSeed,
         });
-        return { persona, diagnosis };
+
+        logTelemetry({
+          runId,
+          packId,
+          role: "debugger",
+          persona: run.persona,
+          action: "diagnose",
+          durationMs: Date.now() - startTime,
+          status: d.issue_identified ? "success" : "failure",
+          details: d.diagnosis,
+        });
+
+        return { persona: run.persona, diagnosis: d };
       };
     });
 
     const diagnoses = await runWithLimit(diagnosisTasks, maxSubagents);
 
-    // Map diagnoses back to personaRuns
     for (const d of diagnoses) {
       const run = personaRuns.find((r) => r.persona === d.persona);
       if (run) run.diagnosis = d.diagnosis;
     }
 
-    // Fixer tasks (run only for diagnosed issues)
-    const fixerTasks = diagnoses
-      .filter((d) => d.diagnosis.issue_identified)
-      .map(({ persona, diagnosis }) => {
-        return async (): Promise<{ persona: string; fix: ContentFixResult }> => {
-          console.log(`🩹 Subagent: Generating fix for persona '${persona}'...`);
-          totalSubagentsDeployed++;
-          const fix = await fixIdentifiedBug({
-            client,
-            diagnosis,
-            seed: baseSeed,
-          });
-          return { persona, fix };
-        };
-      });
+    phase = "DIAGNOSING";
+    saveCheckpoint({ runId, packId, phase, personaRuns, totalSubagentsDeployed });
+  }
+
+  // 3. Fixing Phase (Skip if already completed)
+  const undiagnosedFixes = personaRuns.filter((r) => r.diagnosis?.issue_identified && !r.proposedFix);
+  if (phase === "DIAGNOSING" && undiagnosedFixes.length > 0) {
+    console.log(`🩹 Deploying Fixer subagents...`);
+
+    const fixerTasks = undiagnosedFixes.map((run) => {
+      return async (): Promise<{ persona: string; fix: ContentFixResult }> => {
+        const startTime = Date.now();
+        console.log(`🩹 Subagent: Generating fix for persona '${run.persona}'...`);
+        totalSubagentsDeployed++;
+        const fix = await fixIdentifiedBug({
+          client,
+          diagnosis: run.diagnosis!,
+          seed: baseSeed,
+        });
+
+        logTelemetry({
+          runId,
+          packId,
+          role: "fixer",
+          persona: run.persona,
+          action: "fix",
+          durationMs: Date.now() - startTime,
+          status: fix.fixed ? "success" : "failure",
+          details: fix.applied_patch,
+        });
+
+        return { persona: run.persona, fix };
+      };
+    });
 
     const fixes = await runWithLimit(fixerTasks, maxSubagents);
 
-    // Map fixes back to personaRuns and launch validation tasks
-    const validationTasks: (() => Promise<void>)[] = [];
-
     for (const f of fixes) {
       const run = personaRuns.find((r) => r.persona === f.persona);
-      if (run) {
-        run.proposedFix = f.fix;
-
-        if (f.fix.fixed) {
-          validationTasks.push(async () => {
-            console.log(`🚀 Subagent: Validating fix proposed for persona '${f.persona}'...`);
-            totalSubagentsDeployed++;
-            // Re-run the playtest to validate the fix
-            const retestResult = await runAiPlaytest({
-              pack,
-              client,
-              seed: baseSeed,
-              traceId: `orchestrated_validation_${f.persona}_${pack.meta.id}`,
-              persona: f.persona,
-              maxSteps: 35,
-            });
-            run.validationSuccess = retestResult.success;
-          });
-        }
-      }
+      if (run) run.proposedFix = f.fix;
     }
 
-    if (validationTasks.length > 0) {
-      await runWithLimit(validationTasks, maxSubagents);
-    }
-  } else {
-    console.log("🟢 All playtest personas completed successfully. No fixes needed.");
+    phase = "FIXING";
+    saveCheckpoint({ runId, packId, phase, personaRuns, totalSubagentsDeployed });
   }
 
-  // 3. Synthesis Phase: Orchestrator consolidates all results
+  // 4. Approval Gate Gating & Validation Phase
+  if (phase === "FIXING") {
+    const fixesToValidate = personaRuns.filter((r) => r.proposedFix?.fixed && r.validationSuccess === undefined);
+    if (fixesToValidate.length > 0) {
+      // Human-in-the-loop Gate Check
+      if (options.approvalGate) {
+        const patchesDir = path.resolve("patches");
+        if (!fs.existsSync(patchesDir)) {
+          fs.mkdirSync(patchesDir, { recursive: true });
+        }
+
+        // Save proposed patch diff files for human review
+        for (const run of fixesToValidate) {
+          const patchFile = path.join(patchesDir, `proposed_patch_${packId}_${run.persona}.patch`);
+          fs.writeFileSync(patchFile, run.proposedFix!.applied_patch, "utf-8");
+        }
+
+        const signalFile = path.join(patchesDir, `approved_${packId}.signal`);
+        if (!fs.existsSync(signalFile)) {
+          console.log(
+            `🛑 Approval gate active. Proposed patches written to patches/proposed_patch_${packId}_<persona>.patch`
+          );
+          console.log(`To proceed, approve and create approval signal file: patches/approved_${packId}.signal`);
+
+          return {
+            success: false,
+            totalSubagentsDeployed,
+            concurrencyLimit: maxSubagents,
+            personaRuns,
+            synthesis: {
+              summary: "Orchestration halted: Waiting for human-in-the-loop approval signal.",
+              confidence_score: 50,
+            },
+          };
+        }
+
+        console.log(`🟢 Human approval signal found! Proceeding with fix validation...`);
+        // Remove signal file so it doesn't linger
+        try {
+          fs.unlinkSync(signalFile);
+        } catch {}
+      }
+
+      console.log(`🚀 Validating proposed patches...`);
+
+      const validationTasks = fixesToValidate.map((run) => {
+        return async (): Promise<void> => {
+          const startTime = Date.now();
+          console.log(`🚀 Subagent: Validating proposed fix for persona '${run.persona}'...`);
+          totalSubagentsDeployed++;
+
+          const retestResult = await runAiPlaytest({
+            pack,
+            client,
+            seed: baseSeed,
+            traceId: `orchestrated_validation_${run.persona}_${packId}`,
+            persona: run.persona,
+            maxSteps: 35,
+          });
+
+          run.validationSuccess = retestResult.success;
+
+          logTelemetry({
+            runId,
+            packId,
+            role: "playtester",
+            persona: run.persona,
+            action: "validate_patch",
+            durationMs: Date.now() - startTime,
+            status: retestResult.success ? "success" : "failure",
+            details: retestResult.error,
+          });
+        };
+      });
+
+      await runWithLimit(validationTasks, maxSubagents);
+    }
+
+    phase = "COMPLETED";
+    saveCheckpoint({ runId, packId, phase, personaRuns, totalSubagentsDeployed });
+  }
+
+  // 5. Synthesis Phase
   const allSucceeded = personaRuns.every((r) => r.success || r.validationSuccess);
-  console.log(`⚖️ Orchestrator: Synthesizing results and finalizing report...`);
+  console.log(`⚖️ Orchestrator: Synthesizing audit outcomes...`);
   totalSubagentsDeployed++;
 
+  const synthesisStartTime = Date.now();
   const synthesis = await client.completeJson<{
     best_patch?: string;
     summary: string;
@@ -202,7 +387,7 @@ export async function runOrchestratedAudit(
     system:
       "You are the Lead AI Orchestrator. Synthesize the findings from multiple playtest personas, debugger diagnoses, and proposed fixes, and output the best patch decision.",
     input: {
-      pack_id: pack.meta.id,
+      pack_id: packId,
       personaRuns: personaRuns.map((r) => ({
         persona: r.persona,
         success: r.success,
@@ -224,6 +409,24 @@ export async function runOrchestratedAudit(
     },
     seed: baseSeed,
   });
+
+  logTelemetry({
+    runId,
+    packId,
+    role: "orchestrator",
+    action: "synthesis",
+    durationMs: Date.now() - synthesisStartTime,
+    status: "success",
+    details: synthesis.summary,
+  });
+
+  // Clear checkpoint file upon successful completion
+  try {
+    const checkpointPath = path.resolve("traces", `orchestrator_checkpoint_${packId}.json`);
+    if (fs.existsSync(checkpointPath)) {
+      fs.unlinkSync(checkpointPath);
+    }
+  } catch {}
 
   return {
     success: allSucceeded,
