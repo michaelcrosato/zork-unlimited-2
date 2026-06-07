@@ -160,6 +160,13 @@
         box-shadow: 0 0 10px var(--color-primary-glow);
       }
 
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+      }
+
       button.primary {
         background: linear-gradient(
           135deg,
@@ -915,7 +922,7 @@
           class="form-group"
           style="flex-direction: row; align-items: center; gap: 0.5rem"
         >
-          <label class="form-label" style="margin: 0">Game Pack:</label>
+          <label class="form-label" for="game-pack-select" style="margin: 0">Game Pack:</label>
           <select id="game-pack-select" onchange="switchGamePack()">
             <option value="heros_quest">🏰 Castle of Shadows (RPG)</option>
             <option value="chapel">⛪ The Sealed Crypt (Zork-style)</option>
@@ -927,7 +934,7 @@
           class="form-group"
           style="flex-direction: row; align-items: center; gap: 0.5rem"
         >
-          <label class="form-label" style="margin: 0">Seed:</label>
+          <label class="form-label" for="game-seed-input" style="margin: 0">Seed:</label>
           <input
             type="number"
             id="game-seed-input"
@@ -954,6 +961,7 @@
             background: var(--bg-panel);
           "
           title="Toggle Synth Sound Effects"
+          aria-label="Toggle Synth Sound Effects"
         >
           🔇
         </button>
@@ -3890,7 +3898,7 @@
             <p class="save-date">${saveObj.date}</p>
           </div>
           <div class="save-actions">
-            <button class="btn-icon" onclick="triggerDeleteSave(${i})" title="Delete save">🗑️</button>
+            <button class="btn-icon" onclick="triggerDeleteSave(${i})" title="Delete save" aria-label="Delete save">🗑️</button>
           </div>`;
           listEl.appendChild(slotEl);
         });
@@ -4315,6 +4323,7 @@
               cursor: pointer;
               padding: 0;
             "
+            aria-label="Close tutorial modal"
           >
             ✕
           </button>

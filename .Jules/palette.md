@@ -1,0 +1,3 @@
+## 2025-02-14 - Interactive Elements Missing Accessibility Primitives
+**Learning:** In the AdventureForge UI, custom interactive components (like icon-only utility buttons and raw input fields) frequently lacked basic a11y primitives: no focus states due to `outline: none;` on buttons, icon-only buttons missing `aria-label`, and `<label>` tags missing the `for` attribute to associate them with inputs. Screen reader users would hear unlabeled inputs and keyboard users would lose track of focus.
+**Action:** Always verify `button:focus-visible` styling is present when resetting button outlines. Always ensure `<label>` has a `for` attribute or the input has an `aria-label`, and explicitly label all icon-only buttons.
