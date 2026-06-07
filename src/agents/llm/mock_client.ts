@@ -967,6 +967,41 @@ export class MockLlmClient implements LlmClient {
       const visited = input.visited ?? {};
       const stepNum = input.step ?? 0;
 
+      // Unlimited Forest structured playtester logic
+      if (
+        currentRoom === "clearing" ||
+        currentRoom === "deep_forest" ||
+        currentRoom === "cliffside" ||
+        currentRoom === "hidden_glade"
+      ) {
+        const isCoopRuins = currentRoom === "clearing" && (hasAction("open_cage") || hasAction("take_vault_key") || hasAction("use_vault_key_on_vault_door") || choices.some(c => c.id.includes("cage") || c.id.includes("vault")));
+        if (!isCoopRuins) {
+          if (currentRoom === "clearing") {
+            if (hasAction("go_east")) {
+              chosenId = "go_east";
+            } else if (hasAction("use_shovel_on_mound")) {
+              chosenId = "use_shovel_on_mound";
+            } else if (hasAction("take_shovel")) {
+              chosenId = "take_shovel";
+            } else {
+              chosenId = choices[0].id;
+            }
+          } else if (currentRoom === "deep_forest") {
+            chosenId = "go_east";
+          } else if (currentRoom === "cliffside") {
+            chosenId = "go_down";
+          } else {
+            chosenId = choices[0].id;
+          }
+
+          return {
+            chosen_action_id: chosenId,
+            reason: `Chosen by playtester under the '${persona}' persona for unlimited forest.`,
+            expected_result: "Progress through the game",
+          } as unknown as T;
+        }
+      }
+
       // Guild Contracts Showcase (guild_showcase.yaml) structured playtester logic
       if (
         currentRoom === "crossroads" ||
