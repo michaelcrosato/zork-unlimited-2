@@ -626,7 +626,8 @@ export class MockLlmClient implements LlmClient {
             obs.includes("Control Temple") ||
             obs.includes("Chamber of Gold") ||
             obs.includes("cooperative_ruins") ||
-            obs.includes("multiplayer_forest")
+            obs.includes("multiplayer_forest_pack") ||
+            obs.includes("The Cooperative Ruins")
           ) {
             const hasTreasure =
               invStr.includes("treasure") || invStr.includes("ancient treasure") || invStr.includes("ancient_treasure");
