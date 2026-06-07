@@ -156,27 +156,32 @@ while true; do
 
       # Push and merge to main
       CURRENT_BRANCH=$(git branch --show-current)
-      echo "📤 Pushing branch '$CURRENT_BRANCH' to origin..."
-      if git push origin "$CURRENT_BRANCH"; then
-        if [[ "$CURRENT_BRANCH" != "main" ]]; then
-          echo "🔄 Merging '$CURRENT_BRANCH' into main..."
-          # Save current branch and ensure we switch back on error or exit
-          if git checkout main; then
-            if git pull origin main && git merge "$CURRENT_BRANCH" --no-edit && git push origin main; then
-              echo "🟢 Successfully merged and pushed to main."
+      echo "📥 Pulling latest updates from origin for '$CURRENT_BRANCH' with rebase..."
+      if git pull --rebase origin "$CURRENT_BRANCH"; then
+        echo "📤 Pushing branch '$CURRENT_BRANCH' to origin..."
+        if git push origin "$CURRENT_BRANCH"; then
+          if [[ "$CURRENT_BRANCH" != "main" ]]; then
+            echo "🔄 Merging '$CURRENT_BRANCH' into main..."
+            # Save current branch and ensure we switch back on error or exit
+            if git checkout main; then
+              if git pull origin main && git merge "$CURRENT_BRANCH" --no-edit && git push origin main; then
+                echo "🟢 Successfully merged and pushed to main."
+              else
+                echo "🔴 Failed to pull, merge, or push main."
+              fi
+              # Always switch back to the starting branch
+              git checkout "$CURRENT_BRANCH"
             else
-              echo "🔴 Failed to pull, merge, or push main."
+              echo "🔴 Failed to checkout main."
             fi
-            # Always switch back to the starting branch
-            git checkout "$CURRENT_BRANCH"
           else
-            echo "🔴 Failed to checkout main."
+            echo "🟢 Successfully pushed main to origin."
           fi
         else
-          echo "🟢 Successfully pushed main to origin."
+          echo "🔴 Failed to push current branch '$CURRENT_BRANCH' to origin."
         fi
       else
-        echo "🔴 Failed to push current branch '$CURRENT_BRANCH' to origin."
+        echo "🔴 Failed to pull/rebase branch '$CURRENT_BRANCH' from origin."
       fi
     else
       echo ""
