@@ -3280,6 +3280,7 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
       }
 
       const DIALOGUE_SYNONYM_GROUPS = [
+        ["fight", "attack", "kill", "slay", "battle", "confront", "engage", "hit", "smash", "punch"],
         ["accept", "agree", "take"],
         [
           "report",
