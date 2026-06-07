@@ -1825,16 +1825,11 @@ export function step(
       if (hasBootsInPack && newState.environment) {
         const weather = newState.environment.weather;
         const destLower = exit.to.toLowerCase();
-        const currentLower = state.current.toLowerCase();
         const isSlickSurface =
           destLower.includes("cliff") ||
           destLower.includes("mountain") ||
           destLower.includes("rock") ||
-          destLower.includes("peak") ||
-          currentLower.includes("cliff") ||
-          currentLower.includes("mountain") ||
-          currentLower.includes("rock") ||
-          currentLower.includes("peak");
+          destLower.includes("peak");
 
         if (
           isSlickSurface &&
