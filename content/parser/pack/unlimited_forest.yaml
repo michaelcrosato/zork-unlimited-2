@@ -13,7 +13,7 @@ rooms:
     description: "A beautiful sunlit clearing in the heart of the forest. The trees press in close, but a path leads west. Steep rocks lead up to a cliffside."
     objects: [ shovel, mound ]
     npcs: [ guild_master, elven_ranger ]
-    weather_pool: [ clear, rain, fog ]
+    weather_pool: [ clear, rain ]
     exits:
       - { direction: west, to: deep_forest }
       - direction: up
@@ -135,7 +135,7 @@ npcs:
             - { id: buy_shovel, prompt: "Buy rusty shovel (15 gold)", goto: bought_shovel }
             - { id: sell_ring, prompt: "Sell gold ring (15 gold)", goto: sold_ring }
             - { id: sell_pendant, prompt: "Sell silver pendant (20 gold)", goto: sold_pendant }
-            - { id: sell_shovel, prompt: "Sell rusty shovel (10 gold)", goto: sold_shovel }
+            - { id: sell_shovel, prompt: "Sell rusty shovel (10 gold)", goto: sold_shovel, conditions: [ { not_flag: "shovel_undug" } ] }
             - { id: leave, prompt: "Say goodbye", end: true }
         - id: bought_ring
           npc_text: "A fine choice! The ring is yours."
@@ -341,9 +341,10 @@ npcs:
       root: greet
       nodes:
         - id: greet
-          npc_text: "Greetings, traveler. The storms around here can be vicious. If you plan to scale the peaks, you will need a climbing harness. I can sell you one for 30 gold."
+          npc_text: "Greetings, traveler. The storms around here can be vicious. If you plan to scale the peaks, you will need a climbing harness. I can sell you one for 30 gold. Also, the fog can be dense; I can sell you a brass lantern for 15 gold."
           topics:
             - { id: buy_harness, prompt: "Buy climbing harness (30 gold)", goto: bought_harness }
+            - { id: buy_lantern, prompt: "Buy brass lantern (15 gold)", goto: bought_lantern }
             - { id: leave, prompt: "Say goodbye", end: true }
         - id: bought_harness
           npc_text: "Be careful out there. The harness will keep you secure even in a raging storm."
@@ -353,6 +354,17 @@ npcs:
                 receive_item: climbing_harness
                 fail_msg: "\"You do not have enough gold!\" she notes."
                 success_msg: "You trade 30 gold for a climbing harness."
+          topics:
+            - { id: greet_again, prompt: "Let's talk more", goto: greet }
+            - { id: leave, prompt: "Say goodbye", end: true }
+        - id: bought_lantern
+          npc_text: "A wise choice. The lantern will light your path through any fog."
+          effects:
+            - trade_item:
+                give_gold: 15
+                receive_item: lantern
+                fail_msg: "\"You do not have enough gold!\" she notes."
+                success_msg: "You trade 15 gold for a brass lantern."
           topics:
             - { id: greet_again, prompt: "Let's talk more", goto: greet }
             - { id: leave, prompt: "Say goodbye", end: true }
