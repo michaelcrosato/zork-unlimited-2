@@ -239,7 +239,7 @@ const VERB_CATEGORIES: Record<string, string[]> = {
   "add to inventory": ["TAKE"],
   "hoist up": ["TAKE"],
   dislodge: ["TAKE"],
-  unearth: ["TAKE"],
+  unearth: ["TAKE", "USE"],
   confiscate: ["TAKE"],
 
   drop: ["DROP"],
@@ -2951,6 +2951,8 @@ const SYNONYM_GROUPS = [
   ["staff", "wand", "rod", "pole", "sceptre", "scepter", "cane", "baton", "cudgel"],
   ["boots", "shoes", "footwear", "sandals", "slippers", "sabaton", "sabatons", "greaves", "footgear"],
   ["backpack", "knapsack", "bag", "pouch", "sack", "satchel", "pack", "haversack", "tote"],
+  ["mound", "earth", "dirt", "soil", "ground", "clay", "dust", "gravel", "sand", "mud", "land", "loam", "peat"],
+  ["glade", "clearing", "meadow", "lawn", "pasture", "field", "flat", "opening", "plain"],
 ];
 
 function areSynonyms(word1: string, word2: string): boolean {
