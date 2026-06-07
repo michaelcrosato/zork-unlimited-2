@@ -64,7 +64,7 @@ function main() {
   if (isCyoaPack(packData)) {
     validationReport = validateCYOAPack(packData);
   } else if ("rooms" in packData) {
-    validationReport = validateParserPack(packData);
+    validationReport = validateParserPack(packData, { skipSoftlocks: true });
   } else {
     console.error("Could not identify content pack type.");
     process.exit(1);

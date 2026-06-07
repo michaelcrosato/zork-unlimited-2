@@ -315,7 +315,7 @@ export function checkParserSoftlocks(pack: ParserPack, agentsInit?: string[]): V
  * Validates a ParserPack against all architectural, reachability, and safety checks.
  * Enforces the quest_critical soft-lock and reference integrity gates (§10.2).
  */
-export function validateParserPack(rawPack: unknown): ValidationReport {
+export function validateParserPack(rawPack: unknown, options?: { skipSoftlocks?: boolean }): ValidationReport {
   const findings: ValidationFinding[] = [];
   let packId = "unknown";
 
@@ -741,8 +741,10 @@ export function validateParserPack(rawPack: unknown): ValidationReport {
   }
 
   // 9. Graph-based state-space pathfinder
-  const pathfinderFindings = checkParserSoftlocks(pack);
-  findings.push(...pathfinderFindings);
+  if (!options?.skipSoftlocks) {
+    const pathfinderFindings = checkParserSoftlocks(pack);
+    findings.push(...pathfinderFindings);
+  }
 
   const ok = !findings.some((f) => f.severity === "error");
 

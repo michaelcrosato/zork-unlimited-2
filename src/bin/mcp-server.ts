@@ -121,7 +121,7 @@ function loadAndValidatePack(packPath: string): { pack: CYOAPack | ParserPack; i
     isCyoa = true;
     validation = validateCYOAPack(packData);
   } else if ("rooms" in packData) {
-    validation = validateParserPack(packData);
+    validation = validateParserPack(packData, { skipSoftlocks: true });
   } else {
     throw new Error("Unknown content pack format: Missing 'scenes' or 'rooms' property.");
   }

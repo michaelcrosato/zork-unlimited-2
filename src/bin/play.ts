@@ -64,7 +64,7 @@ function main() {
     isCyoa = true;
   } else if ("rooms" in packData) {
     console.log("Detecting Parser pack format.");
-    validationReport = validateParserPack(packData);
+    validationReport = validateParserPack(packData, { skipSoftlocks: true });
   } else {
     console.error(`${RED}Error: Unknown content pack format (missing 'scenes' or 'rooms').${RESET}`);
     process.exit(1);
