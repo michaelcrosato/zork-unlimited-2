@@ -3409,8 +3409,10 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
         // Only allow fallback for ASK/TALK if:
         // 1. User input is a topic name or has no specific non-TALK/ASK verb category (userCategories is empty or contains ASK/TALK)
         // 2. OR there is a noun match or dialogue semantic boost
+        // 3. OR the user is attempting a transaction (BUY/SELL) which is handled via NPC dialogue
         const hasSpecificVerbCategory = userCategories.some((cat) => cat !== "ASK" && cat !== "TALK");
-        if (!hasSpecificVerbCategory || matchedNounCount > 0 || dialogueSemanticBoost > 0) {
+        const isTransactionVerb = userCategories.includes("BUY") || userCategories.includes("SELL");
+        if (!hasSpecificVerbCategory || matchedNounCount > 0 || dialogueSemanticBoost > 0 || isTransactionVerb) {
           verbMatch = true;
           isFallbackMatch = true;
         }
@@ -3452,9 +3454,17 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
         }
       } else {
         let scoreBase = 1.0;
+        const isTransactionVerb = userCategories.includes("BUY") || userCategories.includes("SELL");
+        const isNPCTarget = actionCategory === "TALK" || actionCategory === "ASK";
         if (userNouns.length > 0 && cmdNouns.length > 0) {
           if (matchedNounCount === 0) {
-            scoreBase = 0.1; // complete noun mismatch
+            if (isTransactionVerb && isNPCTarget) {
+              // For transaction verbs (buy/sell), target noun is the item, which won't match NPC name.
+              // Do not penalize as noun mismatch, but keep scoreBase at 1.0.
+              scoreBase = 1.0;
+            } else {
+              scoreBase = 0.1; // complete noun mismatch
+            }
           } else {
             const nounMatchRatio = matchedNounStrengthSum / userNouns.length;
             scoreBase = 1.0 + nounMatchRatio;
@@ -3463,6 +3473,21 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
           scoreBase = 0.5;
         } else if (userNouns.length === 0 && cmdNouns.length > 0) {
           scoreBase = 1.0 - 0.2; // 0.8 baseline
+        }
+
+        // Boost merchant/shop NPCs for transaction verbs
+        if (isTransactionVerb && isNPCTarget) {
+          const cmdLower = a.command.toLowerCase();
+          if (
+            cmdLower.includes("merchant") ||
+            cmdLower.includes("shop") ||
+            cmdLower.includes("trader") ||
+            cmdLower.includes("vendor") ||
+            cmdLower.includes("dealer") ||
+            cmdLower.includes("seller")
+          ) {
+            scoreBase += 0.2;
+          }
         }
 
         let verbBoost = 0;
@@ -3681,7 +3706,8 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
 
         score = scoreBase + dialogueSemanticBoost + verbBoost;
         if (isFallbackMatch) {
-          score -= 0.5; // Apply a fallback penalty to prioritize direct verb matches
+          const isTransactionVerb = userCategories.includes("BUY") || userCategories.includes("SELL");
+          score -= isTransactionVerb ? 0.1 : 0.5; // Apply a fallback penalty to prioritize direct verb matches
         }
       }
 
