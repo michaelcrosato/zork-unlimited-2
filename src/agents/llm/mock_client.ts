@@ -206,8 +206,91 @@ export class MockLlmClient implements LlmClient {
           }
         } else {
           // Parser mode!
-          // 1. guild_showcase_pack (Guild Contracts Showcase)
-          if (
+          const inDialogueGlobal =
+            obs.includes("Available topics:") ||
+            obs.includes("Ask about:") ||
+            obs.includes("ask about") ||
+            obs.includes("Verbs you can try: ask");
+
+          if (inDialogueGlobal) {
+            if (obs.toLowerCase().includes("attack him!")) {
+              action = "ask about attack him!";
+              reason = "Attack the goblin thief";
+            } else if (obs.toLowerCase().includes("buy gold ring (30 gold)")) {
+              action = "ask about buy gold ring (30 gold)";
+              reason = "Buy a gold ring";
+            } else if (obs.toLowerCase().includes("buy leather boots (20 gold)")) {
+              action = "ask about buy leather boots (20 gold)";
+              reason = "Buy leather boots";
+            } else if (obs.toLowerCase().includes("buy climbing harness (30 gold)")) {
+              action = "ask about buy climbing harness (30 gold)";
+              reason = "Buy climbing harness";
+            } else if (obs.toLowerCase().includes("buy silver pendant (40 gold)")) {
+              action = "ask about buy silver pendant (40 gold)";
+              reason = "Buy silver pendant";
+            } else if (obs.toLowerCase().includes("buy brass lantern (15 gold)")) {
+              action = "ask about buy brass lantern (15 gold)";
+              reason = "Buy brass lantern";
+            } else if (obs.toLowerCase().includes("buy rusty shovel (15 gold)")) {
+              action = "ask about buy rusty shovel (15 gold)";
+              reason = "Buy rusty shovel";
+            } else if (obs.toLowerCase().includes("sell gold ring (15 gold)")) {
+              action = "ask about sell gold ring (15 gold)";
+              reason = "Sell gold ring";
+            } else if (obs.toLowerCase().includes("sell silver pendant (20 gold)")) {
+              action = "ask about sell silver pendant (20 gold)";
+              reason = "Sell silver pendant";
+            } else if (obs.toLowerCase().includes("sell rusty shovel (10 gold)")) {
+              action = "ask about sell rusty shovel (10 gold)";
+              reason = "Sell rusty shovel";
+            } else if (obs.toLowerCase().includes("ask about available contracts")) {
+              action = "ask about ask about available contracts";
+              reason = "Ask about available contracts";
+            } else if (obs.toLowerCase().includes("accept the smuggling contract")) {
+              action = "ask about accept the smuggling contract";
+              reason = "Accept the smuggling contract";
+            } else if (obs.toLowerCase().includes("accept the enforcement contract")) {
+              action = "ask about accept the enforcement contract";
+              reason = "Accept the enforcement contract";
+            } else if (obs.toLowerCase().includes("report completion of the smuggling contract")) {
+              action = "ask about report completion of the smuggling contract";
+              reason = "Report completion of the smuggling contract";
+            } else if (obs.toLowerCase().includes("report completion of the enforcement contract")) {
+              action = "ask about report completion of the enforcement contract";
+              reason = "Report completion of the enforcement contract";
+            } else if (obs.toLowerCase().includes("check your prestige")) {
+              action = "ask about check your prestige";
+              reason = "Check prestige";
+            } else if (obs.toLowerCase().includes("say goodbye")) {
+              action = "ask about say goodbye";
+              reason = "End dialogue";
+            } else if (obs.toLowerCase().includes("go back")) {
+              action = "ask about go back";
+              reason = "Go back";
+            } else if (obs.toLowerCase().includes("ask about the well")) {
+              action = "ask about ask about the well";
+              reason = "Inquire about the well";
+            } else if (obs.toLowerCase().includes("ask about the crypt trap")) {
+              action = "ask about ask about the crypt trap";
+              reason = "Inquire about the crypt trap";
+            } else if (obs.toLowerCase().includes("i have recovered your royal crown!")) {
+              action = "ask about i have recovered your royal crown!";
+              reason = "Give crown";
+            } else if (obs.toLowerCase().includes("hail the king!")) {
+              action = "ask about hail the king!";
+              reason = "Victory dialogue";
+            } else {
+              // Try to parse dynamically
+              const topicMatch = obs.match(/-\s*(ask about .+)/i);
+              if (topicMatch) {
+                action = topicMatch[1].trim().toLowerCase();
+                reason = "Select dialogue option";
+              } else {
+                action = "ask about say goodbye";
+                reason = "Say goodbye";
+              }
+            }
+          } else if (
             obs.includes("Forest Crossroads") ||
             obs.includes("Smugglers Den") ||
             obs.includes("Enforcers Outpost") ||
