@@ -42,33 +42,33 @@ export function checkParserSoftlocks(pack: ParserPack, agentsInit?: string[]): V
   const hasWeather = packStr.includes('"weather_is"') || packStr.includes('"temperature_is"');
 
   const getStateKey = (state: GameState): string => {
-    const clean: any = {
-      current: state.current,
-      flags: state.flags,
-      vars: state.vars,
-      inventory: [...state.inventory].sort(),
-      objectState: state.objectState,
-      questStage: state.questStage,
-      ended: state.ended,
-      endingId: state.endingId,
-    };
+    const currentStr = JSON.stringify(state.current);
+    const flagsStr = canonicalStringify(state.flags);
+    const varsStr = canonicalStringify(state.vars);
+    const inventoryStr = JSON.stringify([...state.inventory].sort());
+    const objectStateStr = canonicalStringify(state.objectState);
+    const questStageStr = canonicalStringify(state.questStage);
+    const endedStr = JSON.stringify(state.ended);
+    const endingIdStr = JSON.stringify(state.endingId);
+    
+    let key = `{"current":${currentStr},"flags":${flagsStr},"vars":${varsStr},"inventory":${inventoryStr},"objectState":${objectStateStr},"questStage":${questStageStr},"ended":${endedStr},"endingId":${endingIdStr}`;
+    
     if (state.merchantInventories) {
-      clean.merchantInventories = state.merchantInventories;
+      key += `,"merchantInventories":${canonicalStringify(state.merchantInventories)}`;
     }
     if (state.agents) {
-      clean.agents = Object.entries(state.agents).map(([agentId, agentState]) => ({
+      const sortedAgents = Object.entries(state.agents).map(([agentId, agentState]) => ({
         agentId,
         current: agentState.current,
         inventory: [...agentState.inventory].sort(),
       }));
+      key += `,"agents":${canonicalStringify(sortedAgents)}`;
     }
     if (hasWeather && state.environment) {
-      clean.environment = {
-        weather: state.environment.weather,
-        temperature: state.environment.temperature,
-      };
+      key += `,"environment":{"weather":${JSON.stringify(state.environment.weather)},"temperature":${JSON.stringify(state.environment.temperature)}}`;
     }
-    return canonicalStringify(clean);
+    key += "}";
+    return key;
   };
 
   // State-space search (BFS)
