@@ -16,7 +16,7 @@ export class MockLlmClient implements LlmClient {
   }
 
   async completeJson<T>(request: {
-    role: "writer" | "adapter" | "playtester" | "debugger" | "fixer";
+    role: "writer" | "adapter" | "playtester" | "debugger" | "fixer" | "orchestrator";
     system: string;
     input: unknown;
     schema: unknown;
@@ -1590,6 +1590,15 @@ export class MockLlmClient implements LlmClient {
         fix_layer: "content",
         applied_patch: "Add a warning sign to the room text.",
         regression_test_name: "test_gear_room_warning",
+      } as unknown as T;
+    }
+
+    if (request.role === "orchestrator") {
+      return {
+        best_patch: "Add a warning sign to the room text.",
+        summary:
+          "Synthesized 5 playtest personas. Explorer failed due to lack of item description. Proposed warning patch resolves it.",
+        confidence_score: 95,
       } as unknown as T;
     }
 

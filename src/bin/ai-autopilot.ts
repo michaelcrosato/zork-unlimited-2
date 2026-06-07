@@ -5,9 +5,7 @@ import { parse as parseYaml } from "yaml";
 import { execSync } from "child_process";
 import { validateCYOAPack } from "../validate/cyoa_validator.js";
 import { validateParserPack } from "../validate/parser_validator.js";
-import { runAiPlaytest } from "../agents/playtester.js";
-import { diagnosePlaytest } from "../agents/debugger.js";
-import { fixIdentifiedBug } from "../agents/fixer.js";
+import { runOrchestratedAudit } from "../agents/orchestrator.js";
 import { FallbackLlmClient } from "../agents/llm/api_client.js";
 
 interface PackResult {
@@ -33,9 +31,10 @@ function runCommand(cmd: string): { success: boolean; output: string } {
   }
 }
 
-async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
+async function runAutopilotCycle(cycleIndex: number, maxSubagents: number = 5): Promise<boolean> {
   console.log("=========================================");
   console.log(`🤖 AI AUTOPILOT CYCLE #${cycleIndex}`);
+  console.log(`👥 Concurrency Limit: ${maxSubagents} subagents`);
   console.log("=========================================\n");
 
   const startTime = Date.now();
@@ -97,64 +96,28 @@ async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
       warnings: warningsCount,
     };
 
-    // Playtesting & Self-Healing
+    // Playtesting & Self-Healing (Orchestrated Audit)
     if (valid) {
       try {
-        const res = await runAiPlaytest({
-          pack: data,
+        console.log(`🤖 Orchestrator: Auditing pack '${packResult.name}'...`);
+        const report = await runOrchestratedAudit(data, {
           client,
+          maxSubagents,
+          personas: ["speedrunner", "explorer", "hoarder", "dropper", "mainline"],
           seed: 42,
-          traceId: `autopilot_${data.meta.id}`,
-          persona: "speedrunner",
-          maxSteps: 35,
         });
 
-        packResult.playtestSuccess = res.success;
-        packResult.playtestSteps = res.logs.length;
-        packResult.playtestEnding = res.finalState.endingId || res.finalState.current;
+        packResult.playtestSuccess = report.success;
+        packResult.playtestSteps = report.personaRuns.reduce((acc, r) => acc + r.steps, 0);
+        packResult.playtestEnding = report.synthesis.best_patch
+          ? `Patched: ${report.synthesis.best_patch}`
+          : "All Personas Passed";
 
-        if (!res.success) {
-          console.log(`⚠️ Playtest failed or soft-locked for ${packResult.name}. Initiating Self-Healing...`);
-          const diagnosis = await diagnosePlaytest({
-            client,
-            logs: res.logs,
-            seed: 42,
-          });
-          packResult.diagnosisText = diagnosis.diagnosis;
-          console.log(`🔍 Diagnosis: ${diagnosis.diagnosis} | Severity: ${diagnosis.severity}`);
-
-          const fixResult = await fixIdentifiedBug({
-            client,
-            diagnosis,
-            seed: 42,
-          });
-          packResult.fixText = fixResult.applied_patch;
-          console.log(`🩹 Proposed patch: ${fixResult.applied_patch}`);
-
-          if (fixResult.fixed) {
-            console.log(`🚀 Validating proposed fix by re-running playtest...`);
-            const retestRes = await runAiPlaytest({
-              pack: data,
-              client,
-              seed: 42,
-              traceId: `autopilot_healed_${data.meta.id}`,
-              persona: "speedrunner",
-              maxSteps: 35,
-            });
-
-            if (retestRes.success) {
-              console.log(`🟢 Self-healing SUCCESSFUL! The patch resolved the playtest failure.`);
-              packResult.playtestSuccess = true;
-              packResult.playtestSteps = retestRes.logs.length;
-              packResult.playtestEnding = retestRes.finalState.endingId || retestRes.finalState.current;
-              packResult.selfHealed = true;
-            } else {
-              console.log(`🔴 Self-healing FAILED! The patch did not resolve the failure.`);
-              packResult.selfHealed = false;
-            }
-          } else {
-            console.log(`🔴 AI Fixer failed to generate a fix.`);
-          }
+        const hasHealing = report.personaRuns.some((r) => r.validationSuccess !== undefined);
+        if (hasHealing) {
+          packResult.selfHealed = report.success;
+          packResult.diagnosisText = report.synthesis.summary;
+          packResult.fixText = report.synthesis.best_patch || "No patch selected";
         }
       } catch (err: any) {
         packResult.playtestSuccess = false;
@@ -183,6 +146,7 @@ async function runAutopilotCycle(cycleIndex: number): Promise<boolean> {
 * **Cycle Duration**: ${durationSec} seconds
 * **Build Status**: ${buildCheck.success ? "🟢 PASS" : "🔴 FAIL"}
 * **Tests Status**: ${testCheck.success ? "🟢 PASS" : "🔴 FAIL"}
+* **Max Subagent Deployment Limit**: ${maxSubagents}
 
 ## 🗺️ Content Packs Audit
 
@@ -243,17 +207,23 @@ async function main() {
   const intervalSec =
     intervalArgIndex !== -1 && intervalArgIndex + 1 < args.length ? parseInt(args[intervalArgIndex + 1], 10) : 10;
 
+  const maxSubagentsIndex = args.indexOf("--max-subagents");
+  const maxSubagents =
+    maxSubagentsIndex !== -1 && maxSubagentsIndex + 1 < args.length
+      ? parseInt(args[maxSubagentsIndex + 1], 10)
+      : parseInt(process.env.MAX_SUBAGENTS || "5", 10);
+
   let cycle = 1;
 
   if (isLoop) {
     console.log(`🚀 Starting AI Autopilot loop with an interval of ${intervalSec} seconds. Press CTRL-C to exit.`);
     while (true) {
-      await runAutopilotCycle(cycle++);
+      await runAutopilotCycle(cycle++, maxSubagents);
       console.log(`Sleeping for ${intervalSec} seconds before the next cycle...\n`);
       await new Promise((resolve) => setTimeout(resolve, intervalSec * 1000));
     }
   } else {
-    const success = await runAutopilotCycle(cycle);
+    const success = await runAutopilotCycle(cycle, maxSubagents);
     process.exit(success ? 0 : 1);
   }
 }
