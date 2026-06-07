@@ -100,7 +100,7 @@ objects:
     takeable: true
     cost: 40
 
-  - id: brass_lantern
+  - id: lantern
     name: "brass lantern"
     aliases: [ lantern, brass lantern, light ]
     description: "A small brass lantern that burns bright oil."
@@ -175,7 +175,7 @@ npcs:
           effects:
             - trade_item:
                 give_gold: 15
-                receive_item: brass_lantern
+                receive_item: lantern
                 fail_msg: "\"You lack the gold!\" he cackles."
                 success_msg: "You trade 15 gold for a brass lantern."
           topics:
