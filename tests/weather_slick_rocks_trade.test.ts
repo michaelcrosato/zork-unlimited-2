@@ -84,7 +84,7 @@ describe("Procedural Weather and Trading Integration", () => {
   });
 
   it("verify that the player can buy leather_boots from goblin_merchant (deep_forest) and climbing_harness from elven_ranger (clearing) via dialogue trade steps, which then successfully opens the locked exit", () => {
-    let state = createInitialState({ seed: 42, start: "clearing" });
+    let state = createInitialState({ seed: 9, start: "clearing" });
     state.vars["gold"] = 50;
 
     // Set weather to storm
