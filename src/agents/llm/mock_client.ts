@@ -10,6 +10,7 @@ import { CYOAPack } from "../../cyoa/schema.js";
  */
 export class MockLlmClient implements LlmClient {
   private customMockAdapterResponse?: CYOAPack;
+  private detectedPackId?: string;
 
   constructor(customMockAdapterResponse?: CYOAPack) {
     this.customMockAdapterResponse = customMockAdapterResponse;
@@ -169,6 +170,10 @@ export class MockLlmClient implements LlmClient {
           mental_map?: string;
         };
         const obs = input.observation;
+        const startMatch = obs.match(/with adventure "[^"]+" \(([^)]+)\)/);
+        if (startMatch) {
+          this.detectedPackId = startMatch[1];
+        }
         let action = "look";
         let reason = "Look around";
 
@@ -527,17 +532,22 @@ export class MockLlmClient implements LlmClient {
           }
           // 2. chapel_pack_v1 (The Sealed Crypt)
           else if (
-            obs.includes("Forest Path") ||
-            obs.includes("Ruined Chapel") ||
-            obs.includes("altar_room") ||
-            obs.includes("Bottom of the Well") ||
-            obs.includes("Overgrown Garden") ||
-            obs.includes("Sacristy") ||
-            obs.includes("Sealed Crypt") ||
-            obs.includes("chapel") ||
-            obs.includes("well") ||
-            obs.includes("crypt") ||
-            obs.includes("altar")
+            this.detectedPackId === "chapel_pack_v1" ||
+            ((obs.includes("Forest Path") ||
+              obs.includes("Ruined Chapel") ||
+              obs.includes("altar_room") ||
+              obs.includes("Bottom of the Well") ||
+              obs.includes("Overgrown Garden") ||
+              obs.includes("Sacristy") ||
+              obs.includes("Sealed Crypt") ||
+              obs.includes("chapel") ||
+              obs.includes("well") ||
+              obs.includes("crypt") ||
+              obs.includes("altar")) &&
+              this.detectedPackId !== "unlimited_forest_pack" &&
+              this.detectedPackId !== "unlimited_forest" &&
+              this.detectedPackId !== "multiplayer_forest_pack" &&
+              this.detectedPackId !== "heros_quest_v1")
           ) {
             if (obs.includes("Forest Path")) {
               action = "go north";
@@ -621,13 +631,15 @@ export class MockLlmClient implements LlmClient {
           }
           // 1.5 multiplayer_forest_pack (The Cooperative Ruins)
           else if (
-            (obs.includes("Sunlit Clearing") &&
-              (obs.includes("ruins") || obs.includes("vault") || obs.includes("cage"))) ||
+            this.detectedPackId === "multiplayer_forest_pack" ||
             obs.includes("Control Temple") ||
             obs.includes("Chamber of Gold") ||
             obs.includes("cooperative_ruins") ||
-            obs.includes("multiplayer_forest_pack") ||
-            obs.includes("The Cooperative Ruins")
+            obs.includes("The Cooperative Ruins") ||
+            (obs.includes("Sunlit Clearing") &&
+              (obs.includes("ruins") || obs.includes("vault") || obs.includes("cage")) &&
+              this.detectedPackId !== "unlimited_forest_pack" &&
+              this.detectedPackId !== "unlimited_forest")
           ) {
             const hasTreasure =
               invStr.includes("treasure") || invStr.includes("ancient treasure") || invStr.includes("ancient_treasure");
@@ -695,6 +707,8 @@ export class MockLlmClient implements LlmClient {
           }
           // 2. unlimited_forest_pack (The Procedural Forest)
           else if (
+            this.detectedPackId === "unlimited_forest_pack" ||
+            this.detectedPackId === "unlimited_forest" ||
             obs.includes("Clearing") ||
             obs.includes("Deep Forest") ||
             obs.includes("Cliffside") ||
@@ -728,18 +742,23 @@ export class MockLlmClient implements LlmClient {
           }
           // 3. heros_quest_v1 (Hero's Quest)
           else if (
-            obs.includes("Gates") ||
-            obs.includes("Wall") ||
-            obs.includes("Battlements") ||
-            obs.includes("Courtyard") ||
-            obs.includes("Armory") ||
-            obs.includes("Library") ||
-            obs.includes("Dungeons") ||
-            obs.includes("Treasury") ||
-            obs.includes("Throne") ||
-            obs.includes("goblin") ||
-            obs.includes("knight") ||
-            obs.includes("king")
+            this.detectedPackId === "heros_quest_v1" ||
+            ((obs.includes("Gates") ||
+              obs.includes("Wall") ||
+              obs.includes("Battlements") ||
+              obs.includes("Courtyard") ||
+              obs.includes("Armory") ||
+              obs.includes("Library") ||
+              obs.includes("Dungeons") ||
+              obs.includes("Treasury") ||
+              obs.includes("Throne") ||
+              obs.includes("goblin") ||
+              obs.includes("knight") ||
+              obs.includes("king")) &&
+              this.detectedPackId !== "unlimited_forest_pack" &&
+              this.detectedPackId !== "unlimited_forest" &&
+              this.detectedPackId !== "multiplayer_forest_pack" &&
+              this.detectedPackId !== "chapel_pack_v1")
           ) {
             if (obs.includes("Castle Gates")) {
               action = "go west";
