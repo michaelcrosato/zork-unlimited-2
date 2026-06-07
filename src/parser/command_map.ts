@@ -3275,7 +3275,25 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
 
       const DIALOGUE_SYNONYM_GROUPS = [
         ["accept", "agree", "take"],
-        ["report", "complete", "finish", "turn", "submit", "completion"],
+        [
+          "report",
+          "complete",
+          "finish",
+          "turn",
+          "submit",
+          "completion",
+          "deliver",
+          "hand",
+          "give",
+          "pay",
+          "pass",
+          "render",
+          "provide",
+          "return",
+          "surrender",
+          "yield",
+          "bring",
+        ],
         [
           "prestige",
           "reputation",
@@ -3327,6 +3345,10 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
           "shop",
           "pay",
           "order",
+          "request",
+          "hire",
+          "rent",
+          "checkout",
         ],
         [
           "combine",
