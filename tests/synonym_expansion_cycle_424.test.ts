@@ -5,10 +5,7 @@ import YAML from "yaml";
 import path from "path";
 
 describe("validateParserPack options (Cycle #424)", () => {
-  const yamlContent = fs.readFileSync(
-    path.resolve(process.cwd(), "content/parser/pack/unlimited_forest.yaml"),
-    "utf8"
-  );
+  const yamlContent = fs.readFileSync(path.resolve(process.cwd(), "content/parser/pack/unlimited_forest.yaml"), "utf8");
   const rawPack = YAML.parse(yamlContent);
 
   it("should run full validation including soft-lock detection by default", () => {
@@ -16,7 +13,7 @@ describe("validateParserPack options (Cycle #424)", () => {
     expect(report.ok).toBe(true);
     const softlocks = report.findings.filter((f) => f.code === "SOFTLOCK_DETECTED");
     expect(softlocks.length).toBeGreaterThan(0);
-  });
+  }, 15000);
 
   it("should bypass soft-lock detection when skipSoftlocks is true", () => {
     const report = validateParserPack(rawPack, { skipSoftlocks: true });

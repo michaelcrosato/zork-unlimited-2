@@ -9,13 +9,17 @@ describe("Parser Synonym Expansion (Cycle #416 / Phase 374 Automated Synonyms)",
 
   it("should map Phase 374 movement synonyms to MOVE east", () => {
     expect(
-      mapCommand("navigate one's vector of ependymocytoidcytoclastopoiesis towards the location of east", actions).action
+      mapCommand("navigate one's vector of ependymocytoidcytoclastopoiesis towards the location of east", actions)
+        .action
     ).toEqual({
       type: "MOVE",
       direction: "east",
     });
     expect(
-      mapCommand("steer one's vector of ependymocytoidcytoclastopoiesis in the direction of the coordinates of east", actions).action
+      mapCommand(
+        "steer one's vector of ependymocytoidcytoclastopoiesis in the direction of the coordinates of east",
+        actions
+      ).action
     ).toEqual({
       type: "MOVE",
       direction: "east",
@@ -23,15 +27,11 @@ describe("Parser Synonym Expansion (Cycle #416 / Phase 374 Automated Synonyms)",
   });
 
   it("should map Phase 374 take synonyms to TAKE katana", () => {
-    expect(
-      mapCommand("assume direct exclusive hexahexacontarchy of katana", actions).action
-    ).toEqual({
+    expect(mapCommand("assume direct exclusive hexahexacontarchy of katana", actions).action).toEqual({
       type: "TAKE",
       item: "katana",
     });
-    expect(
-      mapCommand("assume direct exclusive vicehexahexacontarchy of katana", actions).action
-    ).toEqual({
+    expect(mapCommand("assume direct exclusive vicehexahexacontarchy of katana", actions).action).toEqual({
       type: "TAKE",
       item: "katana",
     });

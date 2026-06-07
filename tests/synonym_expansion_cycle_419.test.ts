@@ -3,7 +3,11 @@ import { mapCommand } from "../src/parser/command_map.js";
 
 describe("Parser Synonym Expansion (Cycle #419 / Transaction-to-Talk Fallback)", () => {
   const actions = [
-    { id: "talk-merchant", command: "talk to goblin merchant", action: { type: "TALK" as const, npc: "goblin_merchant" } },
+    {
+      id: "talk-merchant",
+      command: "talk to goblin merchant",
+      action: { type: "TALK" as const, npc: "goblin_merchant" },
+    },
     { id: "talk-ranger", command: "talk to elven ranger", action: { type: "TALK" as const, npc: "elven_ranger" } },
     { id: "talk-master", command: "talk to guild master", action: { type: "TALK" as const, npc: "guild_master" } },
   ];

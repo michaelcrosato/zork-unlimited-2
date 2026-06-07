@@ -62,7 +62,10 @@ describe("Parser Synonym Expansion (Cycle #421 / Compound Mappings & Chaotic Wea
   });
 
   describe("Live Unlimited Forest Pack - Storm Traversal Tests", () => {
-    const yamlContent = fs.readFileSync(path.resolve(process.cwd(), "content/parser/pack/unlimited_forest.yaml"), "utf8");
+    const yamlContent = fs.readFileSync(
+      path.resolve(process.cwd(), "content/parser/pack/unlimited_forest.yaml"),
+      "utf8"
+    );
     const rawPack = YAML.parse(yamlContent);
     const pack: ParserPack = ParserPackSchema.parse(rawPack);
 

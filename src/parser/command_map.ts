@@ -3424,8 +3424,7 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
         const direction = (a.action as any).direction;
         const hasDirection =
           direction &&
-          (cleanInputStr.includes(direction.toLowerCase()) ||
-            userNouns.some((un) => areSynonyms(un, direction)));
+          (cleanInputStr.includes(direction.toLowerCase()) || userNouns.some((un) => areSynonyms(un, direction)));
 
         if (cmdNouns.length > 0) {
           if (userNouns.length > 0) {
