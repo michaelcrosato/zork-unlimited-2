@@ -1,6 +1,0 @@
-{"timestamp":"2026-06-08T01:45:34.656Z","runId":"run_1780883134547","packId":"heros_quest_v1","role":"playtester","persona":"speedrunner","action":"playtest","durationMs":107,"status":"success"}
-{"timestamp":"2026-06-08T01:45:34.663Z","runId":"run_1780883134547","packId":"heros_quest_v1","role":"playtester","persona":"hoarder","action":"playtest","durationMs":113,"status":"success"}
-{"timestamp":"2026-06-08T01:45:34.663Z","runId":"run_1780883134547","packId":"heros_quest_v1","role":"playtester","persona":"mainline","action":"playtest","durationMs":113,"status":"success"}
-{"timestamp":"2026-06-08T01:45:34.666Z","runId":"run_1780883134547","packId":"heros_quest_v1","role":"playtester","persona":"explorer","action":"playtest","durationMs":117,"status":"success"}
-{"timestamp":"2026-06-08T01:45:34.666Z","runId":"run_1780883134547","packId":"heros_quest_v1","role":"playtester","persona":"dropper","action":"playtest","durationMs":116,"status":"success"}
-{"timestamp":"2026-06-08T01:45:34.666Z","runId":"run_1780883134547","packId":"heros_quest_v1","role":"orchestrator","action":"synthesis","durationMs":0,"status":"success","details":"Synthesized 5 playtest personas. Explorer failed due to lack of item description. Proposed warning patch resolves it."}
