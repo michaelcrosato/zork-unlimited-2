@@ -530,12 +530,54 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         if (!choiceId) {
           const CYOA_SYNONYMS: Record<string, string[]> = {
-            move: ["go", "walk", "travel", "run", "head", "proceed", "step", "follow", "cross", "traverse", "sneak", "crawl", "swim", "advance", "journey", "sail", "hop", "skip"],
-            look: ["inspect", "examine", "view", "search", "check", "observe", "peek", "peruse", "read", "glance", "scan"],
+            move: [
+              "go",
+              "walk",
+              "travel",
+              "run",
+              "head",
+              "proceed",
+              "step",
+              "follow",
+              "cross",
+              "traverse",
+              "sneak",
+              "crawl",
+              "swim",
+              "advance",
+              "journey",
+              "sail",
+              "hop",
+              "skip",
+            ],
+            look: [
+              "inspect",
+              "examine",
+              "view",
+              "search",
+              "check",
+              "observe",
+              "peek",
+              "peruse",
+              "read",
+              "glance",
+              "scan",
+            ],
             enter: ["inside", "in", "go in", "enter", "go inside", "climb in", "into"],
             back: ["return", "go back", "retreat", "exit", "leave", "backward", "crossroads"],
             hide: ["conceal", "duck", "slip", "cover", "blend"],
-            confront: ["talk", "speak", "chat", "accost", "converse", "address", "approach", "greet", "encounter", "meet"],
+            confront: [
+              "talk",
+              "speak",
+              "chat",
+              "accost",
+              "converse",
+              "address",
+              "approach",
+              "greet",
+              "encounter",
+              "meet",
+            ],
             east: ["e"],
             west: ["w"],
             north: ["n"],
@@ -557,10 +599,31 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           };
 
           const tokenize = (s: string): string[] => {
-            return s.toLowerCase()
+            return s
+              .toLowerCase()
               .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, " ")
               .split(/\s+/)
-              .filter((w) => w && !["a", "an", "the", "of", "to", "at", "in", "into", "and", "or", "on", "with", "from", "for", "about"].includes(w));
+              .filter(
+                (w) =>
+                  w &&
+                  ![
+                    "a",
+                    "an",
+                    "the",
+                    "of",
+                    "to",
+                    "at",
+                    "in",
+                    "into",
+                    "and",
+                    "or",
+                    "on",
+                    "with",
+                    "from",
+                    "for",
+                    "about",
+                  ].includes(w)
+              );
           };
 
           const userTokens = tokenize(rawInput);
@@ -568,7 +631,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             const candidates = cyoaObs.available_actions.map((choice) => {
               const idTokens = tokenize(choice.id);
               const textTokens = tokenize(choice.text);
-              
+
               let score = 0;
               for (const ut of userTokens) {
                 // Check if exact match or synonym matches any token in ID or Text
@@ -590,13 +653,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
                   }
                 }
               }
-              
+
               // Boost for direction matching
               const directions = ["east", "west", "north", "south", "up", "down", "e", "w", "n", "s", "u", "d"];
-              const userDirs = userTokens.filter(w => directions.includes(w));
+              const userDirs = userTokens.filter((w) => directions.includes(w));
               if (userDirs.length > 0) {
                 for (const ud of userDirs) {
-                  const hasDir = idTokens.some(ct => cyoaAreSynonyms(ud, ct)) || textTokens.some(ct => cyoaAreSynonyms(ud, ct));
+                  const hasDir =
+                    idTokens.some((ct) => cyoaAreSynonyms(ud, ct)) || textTokens.some((ct) => cyoaAreSynonyms(ud, ct));
                   if (hasDir) {
                     score += 2.0;
                   }
@@ -608,7 +672,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
             // Sort candidates by score descending
             candidates.sort((a, b) => b.score - a.score);
-            
+
             // If the best candidate has a high enough score and is strictly better than the second best, choose it!
             if (candidates[0] && candidates[0].score >= 0.8) {
               if (candidates.length === 1 || candidates[0].score > candidates[1].score + 0.1) {

@@ -3355,7 +3355,7 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
           userVerbWord,
           userCategories,
           actionCategory,
-          verbMatch: userCategories.includes(actionCategory)
+          verbMatch: userCategories.includes(actionCategory),
         });
       }
 
@@ -3842,7 +3842,13 @@ export function mapCommand(rawInput: string, availableActions: AvailableAction[]
   };
 
   let candidates = evaluateCandidates(rawInput);
-  if (rawInput.startsWith("add") || rawInput.startsWith("run") || rawInput.includes("cross") || rawInput.includes("hop") || rawInput.includes("go through")) {
+  if (
+    rawInput.startsWith("add") ||
+    rawInput.startsWith("run") ||
+    rawInput.includes("cross") ||
+    rawInput.includes("hop") ||
+    rawInput.includes("go through")
+  ) {
     console.log(
       `DEBUG candidates for "${rawInput}":`,
       candidates.map((c) => ({ cmd: c.action.command, score: c.score }))
