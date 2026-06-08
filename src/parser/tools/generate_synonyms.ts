@@ -2615,9 +2615,9 @@ export function getGreekNumber(n: number): string {
   return units[unitDigit] + tens[tenDigit];
 }
 
-// Generate phases starting from Phase 368 up to Phase 750
+// Generate phases starting from Phase 368 up to Phase 800
 const PHASES: SynonymPhase[] = [];
-for (let p = 368; p <= 750; p++) {
+for (let p = 368; p <= 800; p++) {
   const cellIndex = (CELLS.length - ((p - 368) % CELLS.length)) % CELLS.length;
   const elemIndex = (((368 - p) % ELEMENTS.length) + ELEMENTS.length) % ELEMENTS.length;
   const combatIndex = (((368 - p) % COMBAT_ACTIONS.length) + COMBAT_ACTIONS.length) % COMBAT_ACTIONS.length;

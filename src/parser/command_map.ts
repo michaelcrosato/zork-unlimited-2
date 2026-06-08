@@ -2107,6 +2107,7 @@ const compoundVerbs = [
   "climb over the",
   "climb over",
   "go through the",
+  "go through",
   "run through the",
 ].sort((a, b) => b.length - a.length);
 

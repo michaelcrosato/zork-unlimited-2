@@ -38924,4 +38924,5135 @@ describe("Parser Synonym Expansion (Generated)", () => {
       });
     });
   });
+
+  describe("Phase 751 (Cycle #793)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of synaptoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of synaptoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transjotunheimstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tritetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetritetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive tritetracontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and synaptoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and synaptoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all synaptoidblastocytoclastologist and synaptoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full synaptoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an synaptoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 752 (Cycle #794)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of synaptoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of synaptoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transhelheimstoneititeation altar", actions).action).toEqual(
+        {
+          type: "LOOK",
+          target: "altar",
+        }
+      );
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tetratetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetetratetracontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive tetratetracontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and synaptoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and synaptoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all synaptoidcytoclastologist and synaptoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full synaptoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an synaptoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 753 (Cycle #795)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of hormonoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of hormonoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transhelheimstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive pentatetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicepentatetracontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive pentatetracontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and hormonoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and hormonoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all hormonoidblastocytoclastologist and hormonoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full hormonoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an hormonoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 754 (Cycle #796)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of hormonoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of hormonoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transhelheimstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive hexatetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehexatetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive hexatetracontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and hormonoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and hormonoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all hormonoidcytoclastologist and hormonoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full hormonoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an hormonoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 755 (Cycle #797)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of antibodyoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of antibodyoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(
+        mapCommand("subject to a comprehensive visual transmuspelheimstoneititeation altar", actions).action
+      ).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptatetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptatetracontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive heptatetracontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and antibodyoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and antibodyoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all antibodyoidblastocytoclastologist and antibodyoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full antibodyoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an antibodyoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 756 (Cycle #798)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of antibodyoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of antibodyoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transmuspelheimstoniteation altar", actions).action).toEqual(
+        {
+          type: "LOOK",
+          target: "altar",
+        }
+      );
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive octatetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceoctatetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive octatetracontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and antibodyoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and antibodyoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all antibodyoidcytoclastologist and antibodyoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full antibodyoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an antibodyoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 757 (Cycle #799)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of antigenoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of antigenoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transmuspelheimstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive enneatetracontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceenneatetracontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive enneatetracontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and antigenoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and antigenoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all antigenoidblastocytoclastologist and antigenoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full antigenoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an antigenoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 758 (Cycle #800)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of antigenoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of antigenoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(
+        mapCommand("subject to a comprehensive visual transniflheimstoneititeation altar", actions).action
+      ).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive pentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicepentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive pentacontatetrahectarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and antigenoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and antigenoidcytoclastorheologically closed door", actions).action).toEqual(
+        {
+          type: "CLOSE",
+          target: "door",
+        }
+      );
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all antigenoidcytoclastologist and antigenoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full antigenoidcytoclastokinetic deployment of lockpick", actions).action).toEqual(
+        {
+          type: "USE",
+          target: "chest",
+        }
+      );
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an antigenoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 759 (Cycle #801)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of ligandoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of ligandoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transniflheimstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive henapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehenapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive henapentacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and ligandoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and ligandoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all ligandoidblastocytoclastologist and ligandoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full ligandoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an ligandoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 760 (Cycle #802)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of ligandoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of ligandoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transniflheimstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive dipentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicedipentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive dipentacontatetrahectarchy of boots", actions).action).toEqual(
+        {
+          type: "DROP",
+          item: "boots",
+        }
+      );
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and ligandoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and ligandoidcytoclastorheologically closed door", actions).action).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all ligandoidcytoclastologist and ligandoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full ligandoidcytoclastokinetic deployment of lockpick", actions).action).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an ligandoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 761 (Cycle #803)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of receptoroidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of receptoroidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(
+        mapCommand("subject to a comprehensive visual transgladsheimstoneititeation altar", actions).action
+      ).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tripentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetripentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive tripentacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and receptoroidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and receptoroidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all receptoroidblastocytoclastologist and receptoroidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full receptoroidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an receptoroidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 762 (Cycle #804)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of receptoroidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of receptoroidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transgladsheimstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tetrapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetetrapentacontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive tetrapentacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and receptoroidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and receptoroidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all receptoroidcytoclastologist and receptoroidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full receptoroidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an receptoroidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 763 (Cycle #805)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of proteoglycanoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of proteoglycanoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transgladsheimstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive pentapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicepentapentacontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive pentapentacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and proteoglycanoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and proteoglycanoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all proteoglycanoidblastocytoclastologist and proteoglycanoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full proteoglycanoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand(
+          "initiate a/an proteoglycanoidblastocytoclastopathological face to face discussion with capo",
+          actions
+        ).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 764 (Cycle #806)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of proteoglycanoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of proteoglycanoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transmidgardititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive hexapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehexapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive hexapentacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and proteoglycanoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and proteoglycanoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all proteoglycanoidcytoclastologist and proteoglycanoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full proteoglycanoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an proteoglycanoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 765 (Cycle #807)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of glycoproteinoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of glycoproteinoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transmidgarditeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptapentacontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive heptapentacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and glycoproteinoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and glycoproteinoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all glycoproteinoidblastocytoclastologist and glycoproteinoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full glycoproteinoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand(
+          "initiate a/an glycoproteinoidblastocytoclastopathological face to face discussion with capo",
+          actions
+        ).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 766 (Cycle #808)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of glycoproteinoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of glycoproteinoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(
+        mapCommand("subject to a comprehensive visual transvalhallastoneititeation altar", actions).action
+      ).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive octapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceoctapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive octapentacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and glycoproteinoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and glycoproteinoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all glycoproteinoidcytoclastologist and glycoproteinoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full glycoproteinoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an glycoproteinoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 767 (Cycle #809)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of selectinoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of selectinoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transvalhallastoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive enneapentacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceenneapentacontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive enneapentacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and selectinoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and selectinoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all selectinoidblastocytoclastologist and selectinoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full selectinoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an selectinoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 768 (Cycle #810)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of selectinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of selectinoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transvalhallastoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive hexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive hexacontatetrahectarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and selectinoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and selectinoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all selectinoidcytoclastologist and selectinoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full selectinoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an selectinoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 769 (Cycle #811)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of cadherinoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of cadherinoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transbifroststoneititeation altar", actions).action).toEqual(
+        {
+          type: "LOOK",
+          target: "altar",
+        }
+      );
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive henahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehenahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive henahexacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and cadherinoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and cadherinoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all cadherinoidblastocytoclastologist and cadherinoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full cadherinoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an cadherinoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 770 (Cycle #812)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of cadherinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of cadherinoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transbifroststoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive dihexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicedihexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive dihexacontatetrahectarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and cadherinoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and cadherinoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all cadherinoidcytoclastologist and cadherinoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full cadherinoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an cadherinoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 771 (Cycle #813)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of integrinoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of integrinoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transbifroststoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive trihexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetrihexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive trihexacontatetrahectarchy of boots", actions).action).toEqual(
+        {
+          type: "DROP",
+          item: "boots",
+        }
+      );
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and integrinoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and integrinoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all integrinoidblastocytoclastologist and integrinoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full integrinoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an integrinoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 772 (Cycle #814)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of integrinoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of integrinoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transasgardstoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tetrahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetetrahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive tetrahexacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and integrinoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and integrinoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all integrinoidcytoclastologist and integrinoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full integrinoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an integrinoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 773 (Cycle #815)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of lamininoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of lamininoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transasgardstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive pentahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicepentahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive pentahexacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and lamininoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and lamininoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all lamininoidblastocytoclastologist and lamininoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full lamininoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an lamininoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 774 (Cycle #816)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of lamininoidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of lamininoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transasgardstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive hexahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehexahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive hexahexacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and lamininoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and lamininoidcytoclastorheologically closed door", actions).action).toEqual(
+        {
+          type: "CLOSE",
+          target: "door",
+        }
+      );
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all lamininoidcytoclastologist and lamininoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full lamininoidcytoclastokinetic deployment of lockpick", actions).action).toEqual(
+        {
+          type: "USE",
+          target: "chest",
+        }
+      );
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an lamininoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 775 (Cycle #817)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of fibronectinoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of fibronectinoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transdryadititeititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive heptahexacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and fibronectinoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and fibronectinoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all fibronectinoidblastocytoclastologist and fibronectinoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full fibronectinoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand(
+          "initiate a/an fibronectinoidblastocytoclastopathological face to face discussion with capo",
+          actions
+        ).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 776 (Cycle #818)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of fibronectinoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of fibronectinoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transnymphstoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive octahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceoctahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive octahexacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and fibronectinoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and fibronectinoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all fibronectinoidcytoclastologist and fibronectinoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full fibronectinoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an fibronectinoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 777 (Cycle #819)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of plasmalemmoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of plasmalemmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transsatyrititeititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive enneahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceenneahexacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive enneahexacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and plasmalemmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and plasmalemmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all plasmalemmoidblastocytoclastologist and plasmalemmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full plasmalemmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an plasmalemmoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 778 (Cycle #820)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of plasmalemmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of plasmalemmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transpegasusstoneititeation altar", actions).action).toEqual(
+        {
+          type: "LOOK",
+          target: "altar",
+        }
+      );
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive heptacontatetrahectarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and plasmalemmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and plasmalemmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all plasmalemmoidcytoclastologist and plasmalemmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full plasmalemmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an plasmalemmoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 779 (Cycle #821)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of sarcoplasmoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of sarcoplasmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transhydrastoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive henaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehenaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive henaheptacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and sarcoplasmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and sarcoplasmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all sarcoplasmoidblastocytoclastologist and sarcoplasmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full sarcoplasmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an sarcoplasmoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 780 (Cycle #822)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of sarcoplasmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of sarcoplasmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transcerberiteititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive diheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicediheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive diheptacontatetrahectarchy of boots", actions).action).toEqual(
+        {
+          type: "DROP",
+          item: "boots",
+        }
+      );
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and sarcoplasmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and sarcoplasmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all sarcoplasmoidcytoclastologist and sarcoplasmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full sarcoplasmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an sarcoplasmoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 781 (Cycle #823)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of sarcolemmoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of sarcolemmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(
+        mapCommand("subject to a comprehensive visual transyggdrasilstoneititeation altar", actions).action
+      ).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive triheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetriheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive triheptacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and sarcolemmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and sarcolemmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all sarcolemmoidblastocytoclastologist and sarcolemmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full sarcolemmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an sarcolemmoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 782 (Cycle #824)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of sarcolemmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of sarcolemmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transyggdrasilstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tetraheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetetraheptacontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive tetraheptacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and sarcolemmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and sarcolemmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all sarcolemmoidcytoclastologist and sarcolemmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full sarcolemmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an sarcolemmoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 783 (Cycle #825)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of centromeroidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of centromeroidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transyggdrasilstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive pentaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicepentaheptacontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive pentaheptacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and centromeroidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and centromeroidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all centromeroidblastocytoclastologist and centromeroidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full centromeroidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an centromeroidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 784 (Cycle #826)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of centromeroidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of centromeroidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transhelstoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive hexaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehexaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive hexaheptacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and centromeroidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and centromeroidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all centromeroidcytoclastologist and centromeroidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full centromeroidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an centromeroidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 785 (Cycle #827)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of myeloplasmoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of myeloplasmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transhelstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptaheptacontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive heptaheptacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and myeloplasmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and myeloplasmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all myeloplasmoidblastocytoclastologist and myeloplasmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full myeloplasmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an myeloplasmoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 786 (Cycle #828)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of myeloplasmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of myeloplasmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transhelstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive octaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceoctaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive octaheptacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and myeloplasmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and myeloplasmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all myeloplasmoidcytoclastologist and myeloplasmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full myeloplasmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an myeloplasmoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 787 (Cycle #829)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of reticuloplasmoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of reticuloplasmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transfreystoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive enneaheptacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceenneaheptacontatetrahectarchy of katana", actions).action).toEqual(
+        {
+          type: "TAKE",
+          item: "katana",
+        }
+      );
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive enneaheptacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and reticuloplasmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and reticuloplasmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all reticuloplasmoidblastocytoclastologist and reticuloplasmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full reticuloplasmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand(
+          "initiate a/an reticuloplasmoidblastocytoclastopathological face to face discussion with capo",
+          actions
+        ).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 788 (Cycle #830)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of reticuloplasmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of reticuloplasmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transfreystoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive octacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive octacontatetrahectarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and reticuloplasmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and reticuloplasmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all reticuloplasmoidcytoclastologist and reticuloplasmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full reticuloplasmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an reticuloplasmoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 789 (Cycle #831)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of protoplasmoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of protoplasmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transfreystoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive henaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehenaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive henaoctacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and protoplasmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and protoplasmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all protoplasmoidblastocytoclastologist and protoplasmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full protoplasmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an protoplasmoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 790 (Cycle #832)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of protoplasmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of protoplasmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual translokistoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive dioctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicedioctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive dioctacontatetrahectarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and protoplasmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and protoplasmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all protoplasmoidcytoclastologist and protoplasmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full protoplasmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an protoplasmoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 791 (Cycle #833)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of karyoplasmoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of karyoplasmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual translokistoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive trioctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetrioctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive trioctacontatetrahectarchy of boots", actions).action).toEqual(
+        {
+          type: "DROP",
+          item: "boots",
+        }
+      );
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and karyoplasmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and karyoplasmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all karyoplasmoidblastocytoclastologist and karyoplasmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full karyoplasmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-splattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodsplattering confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an karyoplasmoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 792 (Cycle #834)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of karyoplasmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of karyoplasmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual translokistoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive tetraoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicetetraoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive tetraoctacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and karyoplasmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and karyoplasmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all karyoplasmoidcytoclastologist and karyoplasmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full karyoplasmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spraying confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspraying confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an karyoplasmoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 793 (Cycle #835)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand(
+          "navigate one's vector of nucleoplasmoidblastocytoclastopoiesis towards the location of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of nucleoplasmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transthorstoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive pentaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicepentaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive pentaoctacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and nucleoplasmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and nucleoplasmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all nucleoplasmoidblastocytoclastologist and nucleoplasmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full nucleoplasmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-dripping confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously blooddripping confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand(
+          "initiate a/an nucleoplasmoidblastocytoclastopathological face to face discussion with capo",
+          actions
+        ).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 794 (Cycle #836)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of nucleoplasmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of nucleoplasmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transthorstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive hexaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehexaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive hexaoctacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and nucleoplasmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and nucleoplasmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all nucleoplasmoidcytoclastologist and nucleoplasmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full nucleoplasmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-flowing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodflowing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an nucleoplasmoidcytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 795 (Cycle #837)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of cytoplasmoidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of cytoplasmoidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transthorstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive heptaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceheptaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive heptaoctacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and cytoplasmoidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and cytoplasmoidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all cytoplasmoidblastocytoclastologist and cytoplasmoidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full cytoplasmoidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-spilling confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(mapCommand("initiate a/an ferociously bloodspilling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an cytoplasmoidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 796 (Cycle #838)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of cytoplasmoidcytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of cytoplasmoidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transodinstoneititeation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive octaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceoctaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive octaoctacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and cytoplasmoidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and cytoplasmoidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all cytoplasmoidcytoclastologist and cytoplasmoidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full cytoplasmoidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-gushing confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodgushing confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an cytoplasmoidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 797 (Cycle #839)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of cytosoloidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of cytosoloidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transodinstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive enneaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceenneaoctacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive enneaoctacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and cytosoloidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and cytosoloidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all cytosoloidblastocytoclastologist and cytosoloidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full cytosoloidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-welling confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodwelling confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an cytosoloidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 798 (Cycle #840)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of cytosoloidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of cytosoloidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transodinstoneation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive enneacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive viceenneacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive enneacontatetrahectarchy of boots", actions).action).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and cytosoloidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(mapCommand("fasten completely and cytosoloidcytoclastorheologically closed door", actions).action).toEqual(
+        {
+          type: "CLOSE",
+          target: "door",
+        }
+      );
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all cytosoloidcytoclastologist and cytosoloidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(mapCommand("harness the full cytosoloidcytoclastokinetic deployment of lockpick", actions).action).toEqual(
+        {
+          type: "USE",
+          target: "chest",
+        }
+      );
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-cascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodcascading confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an cytosoloidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 799 (Cycle #841)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of organelloidblastocytoclastopoiesis towards the location of east", actions)
+          .action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of organelloidblastocytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transmidgardstoneititeation altar", actions).action).toEqual(
+        {
+          type: "LOOK",
+          target: "altar",
+        }
+      );
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive henaenneacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicehenaenneacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(
+        mapCommand("divest oneself of all exclusive henaenneacontatetrahectarchy of boots", actions).action
+      ).toEqual({
+        type: "DROP",
+        item: "boots",
+      });
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and organelloidblastocytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and organelloidblastocytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all organelloidblastocytoclastologist and organelloidblastoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full organelloidblastocytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(mapCommand("initiate a/an ferociously blood-pouring confrontation against ghoul", actions).action).toEqual(
+        {
+          type: "FIGHT",
+          npc: "ghoul",
+        }
+      );
+      expect(mapCommand("initiate a/an ferociously bloodpouring confrontation against ghoul", actions).action).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an organelloidblastocytoclastopathological face to face discussion with capo", actions)
+          .action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
+
+  describe("Phase 800 (Cycle #842)", () => {
+    it("should map newly added movement verbs to MOVE action", () => {
+      expect(
+        mapCommand("navigate one's vector of organelloidcytoclastopoiesis towards the location of east", actions).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+      expect(
+        mapCommand(
+          "steer one's vector of organelloidcytoclastopoiesis in the direction of the coordinates of east",
+          actions
+        ).action
+      ).toEqual({ type: "MOVE", direction: "east" });
+    });
+
+    it("should map newly added inspection verbs to LOOK action", () => {
+      expect(mapCommand("subject to a comprehensive visual transmidgardstoniteation altar", actions).action).toEqual({
+        type: "LOOK",
+        target: "altar",
+      });
+    });
+
+    it("should map newly added take verbs to TAKE action", () => {
+      expect(mapCommand("assume direct exclusive dienneacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+      expect(mapCommand("assume direct exclusive vicedienneacontatetrahectarchy of katana", actions).action).toEqual({
+        type: "TAKE",
+        item: "katana",
+      });
+    });
+
+    it("should map newly added drop verbs to DROP action", () => {
+      expect(mapCommand("divest oneself of all exclusive dienneacontatetrahectarchy of boots", actions).action).toEqual(
+        {
+          type: "DROP",
+          item: "boots",
+        }
+      );
+    });
+
+    it("should map newly added open/close verbs to OPEN/CLOSE action", () => {
+      expect(
+        mapCommand("force completely and organelloidcytoclastorheologically wide open vault", actions).action
+      ).toEqual({
+        type: "OPEN",
+        target: "vault",
+      });
+      expect(
+        mapCommand("fasten completely and organelloidcytoclastorheologically closed door", actions).action
+      ).toEqual({
+        type: "CLOSE",
+        target: "door",
+      });
+    });
+
+    it("should map newly added unlock verbs to UNLOCK action", () => {
+      expect(
+        mapCommand(
+          "deactivate all organelloidcytoclastologist and organelloidoblastoclastologist security devices of chest",
+          actions
+        ).action
+      ).toEqual({
+        type: "UNLOCK",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added use verbs to USE action", () => {
+      expect(
+        mapCommand("harness the full organelloidcytoclastokinetic deployment of lockpick", actions).action
+      ).toEqual({
+        type: "USE",
+        target: "chest",
+      });
+    });
+
+    it("should map newly added combat verbs to FIGHT action", () => {
+      expect(
+        mapCommand("initiate a/an ferociously blood-streaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+      expect(
+        mapCommand("initiate a/an ferociously bloodstreaming confrontation against ghoul", actions).action
+      ).toEqual({
+        type: "FIGHT",
+        npc: "ghoul",
+      });
+    });
+
+    it("should map newly added dialogue verbs to TALK action", () => {
+      expect(
+        mapCommand("initiate a/an organelloidcytoclastopathological face to face discussion with capo", actions).action
+      ).toEqual({
+        type: "TALK",
+        npc: "capo",
+      });
+    });
+  });
 });
