@@ -50,9 +50,9 @@ export function checkParserSoftlocks(pack: ParserPack, agentsInit?: string[]): V
     const questStageStr = canonicalStringify(state.questStage);
     const endedStr = JSON.stringify(state.ended);
     const endingIdStr = JSON.stringify(state.endingId);
-    
+
     let key = `{"current":${currentStr},"flags":${flagsStr},"vars":${varsStr},"inventory":${inventoryStr},"objectState":${objectStateStr},"questStage":${questStageStr},"ended":${endedStr},"endingId":${endingIdStr}`;
-    
+
     if (state.merchantInventories) {
       key += `,"merchantInventories":${canonicalStringify(state.merchantInventories)}`;
     }
