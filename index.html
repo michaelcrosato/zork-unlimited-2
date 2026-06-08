@@ -1232,11 +1232,13 @@
           <h3 class="section-title">Movement & Exits</h3>
           <div class="compass-hud">
             <div class="compass-grid">
-              <button class="compass-btn" disabled></button>
+              <button class="compass-btn" aria-label="Northwest exit (disabled)" disabled></button>
               <button
                 class="compass-btn"
                 id="compass-n"
                 onclick="executeCompass('north')"
+                aria-label="Go North"
+                title="Go North"
               >
                 N
               </button>
@@ -1244,6 +1246,8 @@
                 class="compass-btn"
                 id="compass-u"
                 onclick="executeCompass('up')"
+                aria-label="Go Up"
+                title="Go Up"
               >
                 ▲
               </button>
@@ -1252,12 +1256,15 @@
                 class="compass-btn"
                 id="compass-w"
                 onclick="executeCompass('west')"
+                aria-label="Go West"
+                title="Go West"
               >
                 W
               </button>
               <button
                 class="compass-btn"
                 style="opacity: 0.3; cursor: default"
+                aria-label="Current Location Center"
                 disabled
               >
                 ●
@@ -1266,15 +1273,19 @@
                 class="compass-btn"
                 id="compass-e"
                 onclick="executeCompass('east')"
+                aria-label="Go East"
+                title="Go East"
               >
                 E
               </button>
 
-              <button class="compass-btn" disabled></button>
+              <button class="compass-btn" aria-label="Southwest exit (disabled)" disabled></button>
               <button
                 class="compass-btn"
                 id="compass-s"
                 onclick="executeCompass('south')"
+                aria-label="Go South"
+                title="Go South"
               >
                 S
               </button>
@@ -1282,6 +1293,8 @@
                 class="compass-btn"
                 id="compass-d"
                 onclick="executeCompass('down')"
+                aria-label="Go Down"
+                title="Go Down"
               >
                 ▼
               </button>
@@ -3866,6 +3879,7 @@
       }
 
       function triggerDeleteSave(index) {
+        if (!confirm("Are you sure you want to delete this save? This action cannot be undone.")) return;
         SynthAudio.playDamage();
         const slots = getSaveSlots();
         slots.splice(index, 1);
