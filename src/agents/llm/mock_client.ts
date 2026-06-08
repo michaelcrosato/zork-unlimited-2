@@ -897,7 +897,6 @@ export class MockLlmClient implements LlmClient {
               obs.toLowerCase().includes("prepare to fight") ||
               obs.toLowerCase().includes("bleed in the shadows") ||
               obs.toLowerCase().includes("hp:") ||
-              obs.toLowerCase().includes("rolled") ||
               obs.toLowerCase().includes("strike the") ||
               obs.toLowerCase().includes("strikes you") ||
               obs.toLowerCase().includes("swings at you"));

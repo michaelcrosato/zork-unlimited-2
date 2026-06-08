@@ -488,6 +488,47 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         if (!choiceId) {
+          const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+          const normInput = normalize(rawInput);
+
+          if (normInput) {
+            // 1. Try matching normalized IDs
+            let match = cyoaObs.available_actions.find((a) => normalize(a.id) === normInput);
+            if (match) {
+              choiceId = match.id;
+            }
+
+            // 2. Try matching normalized choice texts
+            if (!choiceId) {
+              match = cyoaObs.available_actions.find((a) => normalize(a.text) === normInput);
+              if (match) {
+                choiceId = match.id;
+              }
+            }
+
+            // 3. Try matching normalized input as substring of normalized ID or vice versa
+            if (!choiceId) {
+              match = cyoaObs.available_actions.find(
+                (a) => normalize(a.id).includes(normInput) || normInput.includes(normalize(a.id))
+              );
+              if (match) {
+                choiceId = match.id;
+              }
+            }
+
+            // 4. Try matching normalized input as substring of normalized Text or vice versa
+            if (!choiceId) {
+              match = cyoaObs.available_actions.find(
+                (a) => normalize(a.text).includes(normInput) || normInput.includes(normalize(a.text))
+              );
+              if (match) {
+                choiceId = match.id;
+              }
+            }
+          }
+        }
+
+        if (!choiceId) {
           throw new Error(
             `Invalid choice: "${rawInput}". Please enter a valid choice number, exact ID, or choice text. Available choices are:\n` +
               cyoaObs.available_actions.map((c, i) => `  ${i + 1}. ${c.text} (ID: ${c.id})`).join("\n")

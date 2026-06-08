@@ -309,7 +309,7 @@ npcs:
             - { id: check_prestige, prompt: "Ask about your scouts prestige", goto: prestige_info }
             - { id: request_badge, prompt: "Request a Scout Badge (Requires 50 Royal Scouts Prestige)", goto: give_badge, conditions: [ { guild_prestige_gte: { guild: "royal_scouts", value: 50 } }, { none_of: [ { has_item: "scout_badge" } ] } ] }
             - { id: turn_in_smuggle, prompt: "Report delivery of the broadsword to the Castle Wall", goto: smuggle_success, conditions: [ { guild_contract_active: "c_smuggle_broadsword" }, { has_item: "broadsword" }, { visited: "castle_wall" } ] }
-            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_defeated_goblin_guard" } ] }
+            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_dead_goblin_guard" } ] }
             - { id: turn_in_seal, prompt: "Report delivery of the Royal Seal to the Castle Wall", goto: seal_success, conditions: [ { guild_contract_active: "c_smuggle_royal_seal" }, { has_item: "royal_seal" }, { visited: "castle_wall" } ] }
             - { id: leave, prompt: "Say goodbye", end: true }
         - id: greet_storm
@@ -319,7 +319,7 @@ npcs:
             - { id: check_prestige, prompt: "Ask about your scouts prestige", goto: prestige_info }
             - { id: request_badge, prompt: "Request a Scout Badge (Requires 50 Royal Scouts Prestige)", goto: give_badge, conditions: [ { guild_prestige_gte: { guild: "royal_scouts", value: 50 } }, { none_of: [ { has_item: "scout_badge" } ] } ] }
             - { id: turn_in_smuggle, prompt: "Report delivery of the broadsword to the Castle Wall", goto: smuggle_success, conditions: [ { guild_contract_active: "c_smuggle_broadsword" }, { has_item: "broadsword" }, { visited: "castle_wall" } ] }
-            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_defeated_goblin_guard" } ] }
+            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_dead_goblin_guard" } ] }
             - { id: turn_in_seal, prompt: "Report delivery of the Royal Seal to the Castle Wall", goto: seal_success, conditions: [ { guild_contract_active: "c_smuggle_royal_seal" }, { has_item: "royal_seal" }, { visited: "castle_wall" } ] }
             - { id: leave, prompt: "Say goodbye", end: true }
         - id: greet
@@ -329,7 +329,7 @@ npcs:
             - { id: check_prestige, prompt: "Ask about your scouts prestige", goto: prestige_info }
             - { id: request_badge, prompt: "Request a Scout Badge (Requires 50 Royal Scouts Prestige)", goto: give_badge, conditions: [ { guild_prestige_gte: { guild: "royal_scouts", value: 50 } }, { none_of: [ { has_item: "scout_badge" } ] } ] }
             - { id: turn_in_smuggle, prompt: "Report delivery of the broadsword to the Castle Wall", goto: smuggle_success, conditions: [ { guild_contract_active: "c_smuggle_broadsword" }, { has_item: "broadsword" }, { visited: "castle_wall" } ] }
-            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_defeated_goblin_guard" } ] }
+            - { id: turn_in_enforce, prompt: "Report defeat of the Goblin Guard", goto: enforce_success, conditions: [ { guild_contract_active: "c_enforce_goblin" }, { has_flag: "npc_dead_goblin_guard" } ] }
             - { id: turn_in_seal, prompt: "Report delivery of the Royal Seal to the Castle Wall", goto: seal_success, conditions: [ { guild_contract_active: "c_smuggle_royal_seal" }, { has_item: "royal_seal" }, { visited: "castle_wall" } ] }
             - { id: leave, prompt: "Say goodbye", end: true }
         - id: contract_list
