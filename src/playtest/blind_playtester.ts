@@ -136,7 +136,7 @@ export async function runBlindPlaytest(options: BlindPlaytestOptions): Promise<B
         const parsed = match.path.endsWith(".json") ? JSON.parse(content) : parseYaml(content);
         if (parsed) {
           if (match.type === "cyoa") {
-            totalRoomsAvailable = Object.keys(parsed.nodes || {}).length;
+            totalRoomsAvailable = (parsed.scenes || []).length + (parsed.endings || []).length;
           } else {
             totalRoomsAvailable = (parsed.rooms || []).length;
           }
@@ -189,9 +189,9 @@ export async function runBlindPlaytest(options: BlindPlaytestOptions): Promise<B
           const content = readFileSync(resolvedPackPath, "utf8");
           const parsed = resolvedPackPath.endsWith(".json") ? JSON.parse(content) : parseYaml(content);
           if (parsed) {
-            const isCyoa = resolvedPackPath.includes("content/cyoa/pack") || parsed.nodes !== undefined;
+            const isCyoa = resolvedPackPath.includes("content/cyoa/pack") || parsed.scenes !== undefined;
             if (isCyoa) {
-              totalRoomsAvailable = Object.keys(parsed.nodes || {}).length;
+              totalRoomsAvailable = (parsed.scenes || []).length + (parsed.endings || []).length;
             } else {
               totalRoomsAvailable = (parsed.rooms || []).length;
             }
