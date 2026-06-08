@@ -347,6 +347,21 @@ export function buildObservation(state: GameState, pack: CYOAPack | ParserPack):
     const cyoaPack = pack as CYOAPack;
     const currentScene = cyoaPack.scenes.find((s) => s.id === state.current);
     if (!currentScene) {
+      const endingMeta = cyoaPack.endings?.find((e) => e.id === state.current);
+      if (endingMeta) {
+        return {
+          mode: "cyoa",
+          scene_id: state.current,
+          text: `--- ENDING: ${endingMeta.title} ---\n${endingMeta.text}`,
+          state: {
+            flags: Object.keys(state.flags).filter((f) => state.flags[f]),
+            vars: { ...state.vars },
+            inventory: [...state.inventory],
+            journal: [...state.journal],
+          },
+          available_actions: [],
+        } as CYOAObservation;
+      }
       throw new Error(`Current scene '${state.current}' not found in CYOA pack.`);
     }
 

@@ -263,6 +263,18 @@ export function step(
             text: endingMeta?.text ?? nextScene.text,
           });
         }
+      } else {
+        const endingMeta = cyoaPack.endings?.find((e) => e.id === nextSceneId);
+        if (endingMeta) {
+          newState.ended = true;
+          newState.endingId = nextSceneId;
+          events.push({
+            type: "ending",
+            endingId: nextSceneId,
+            title: endingMeta.title,
+            text: endingMeta.text,
+          });
+        }
       }
     }
 
