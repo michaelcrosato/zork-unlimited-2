@@ -861,6 +861,7 @@ describe("Agent Guild Contracts and Prestige Systems (AF-14 / Task-F6)", () => {
 
     // Slay goblin guard
     state.flags["npc_defeated_goblin_guard"] = true;
+    state.flags["npc_dead_goblin_guard"] = true;
 
     // Talk to scout and turn in
     res = multiAgentStep(state, { agentId: "player", action: { type: "TALK", npc: "royal_scout" } }, herosQuestPack);
