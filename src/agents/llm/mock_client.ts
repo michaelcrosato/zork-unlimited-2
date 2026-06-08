@@ -1036,7 +1036,10 @@ export class MockLlmClient implements LlmClient {
         currentRoom === "vault_of_shadows" ||
         currentRoom === "enforcers_post" ||
         currentRoom === "high_tower" ||
-        currentRoom === "commander_vault"
+        currentRoom === "commander_vault" ||
+        currentRoom === "clearing" ||
+        currentRoom === "control_room" ||
+        currentRoom === "treasure_chamber"
       ) {
         if (currentRoom === "crossroads") {
           if (inv.includes("contraband_gem") || inv.includes("contraband_cargo") || inv.includes("smuggler_token")) {
@@ -1150,23 +1153,25 @@ export class MockLlmClient implements LlmClient {
           if (currentRoom === "clearing") {
             if (hasAction("take_vault_key")) {
               chosenId = "take_vault_key";
-            } else if (hasAction("use_vault_key_on_vault_door")) {
-              chosenId = "use_vault_key_on_vault_door";
-            } else if (hasAction("open_cage")) {
-              chosenId = "open_cage";
-            } else if (inv.includes("vault_key") && hasAction("go_east")) {
-              chosenId = "go_east";
-            } else if (visited["control_room"]) {
-              if (hasAction("open_cage")) {
-                chosenId = "open_cage";
+            } else if (flags["vault_door_locked"]) {
+              if (hasAction("use_vault_key_on_vault_door")) {
+                chosenId = "use_vault_key_on_vault_door";
+              } else if (visited["control_room"]) {
+                if (hasAction("open_cage")) {
+                  chosenId = "open_cage";
+                } else {
+                  chosenId = "go_west";
+                }
               } else {
                 chosenId = "go_west";
               }
+            } else if (hasAction("go_east")) {
+              chosenId = "go_east";
             } else {
               chosenId = "go_west";
             }
           } else if (currentRoom === "control_room") {
-            if (hasAction("use_self_on_lever")) {
+            if (flags["cage_locked"] && hasAction("use_self_on_lever")) {
               chosenId = "use_self_on_lever";
             } else {
               chosenId = "go_east";
