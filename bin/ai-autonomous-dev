@@ -158,6 +158,15 @@ while true; do
         STATUS=1
       else
         echo "🟢 Verification Gate: Vitest tests PASSED."
+        echo "🎮 Verification Gate: Running integration playtests..."
+        if ! pnpm test:integration; then
+          echo "🔴 Verification Gate: Integration playtests FAILED! Reverting changes to maintain repo integrity."
+          git restore .
+          git clean -fd
+          STATUS=1
+        else
+          echo "🟢 Verification Gate: Integration playtests PASSED."
+        fi
       fi
     fi
   fi
