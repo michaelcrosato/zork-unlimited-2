@@ -22,6 +22,7 @@ feedback_raw.jsonl
 feedback_consolidated.md
 traces/playtest_*.json
 traces/orchestrator_runs.jsonl
+traces/token_usage.jsonl
 
 # Temp / Debug / Cache
 scratch/

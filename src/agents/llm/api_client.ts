@@ -1,5 +1,7 @@
 import { LlmClient } from "./client.js";
 import { MockLlmClient } from "./mock_client.js";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 /**
  * A highly robust, zero-dependency API client that implements the LlmClient interface.
@@ -23,6 +25,55 @@ export class ApiLlmClient implements LlmClient {
     }
   }
 
+  private recordTokenUsage(role: string, model: string, promptTokens: number, completionTokens: number) {
+    try {
+      const logDir = path.resolve("traces");
+      if (!fs.existsSync(logDir)) {
+        fs.mkdirSync(logDir, { recursive: true });
+      }
+      const logPath = path.join(logDir, "token_usage.jsonl");
+
+      // Compute estimated cost in USD
+      let inputCostPerMillion = 0.15;
+      let outputCostPerMillion = 0.60;
+
+      const lowerModel = model.toLowerCase();
+      if (lowerModel.includes("gemini-1.5-flash")) {
+        inputCostPerMillion = 0.075;
+        outputCostPerMillion = 0.30;
+      } else if (lowerModel.includes("gpt-4o-mini")) {
+        inputCostPerMillion = 0.15;
+        outputCostPerMillion = 0.60;
+      } else if (lowerModel.includes("opus-4-8")) {
+        // Claude Opus 4.8 Fast Mode pricing as of June 2026 web search
+        inputCostPerMillion = 10.0;
+        outputCostPerMillion = 50.0;
+      } else if (lowerModel.includes("gpt-4o")) {
+        inputCostPerMillion = 5.0;
+        outputCostPerMillion = 15.0;
+      } else if (lowerModel.includes("gemini-1.5-pro")) {
+        inputCostPerMillion = 1.25;
+        outputCostPerMillion = 5.00;
+      }
+
+      const costUsd = (promptTokens * inputCostPerMillion + completionTokens * outputCostPerMillion) / 1000000;
+
+      const logLine = JSON.stringify({
+        timestamp: new Date().toISOString(),
+        model,
+        role,
+        promptTokens,
+        completionTokens,
+        totalTokens: promptTokens + completionTokens,
+        costUsd: parseFloat(costUsd.toFixed(6)),
+      }) + "\n";
+
+      fs.appendFileSync(logPath, logLine, "utf-8");
+    } catch (err) {
+      console.warn("⚠️ Failed to write token usage log:", err);
+    }
+  }
+
   async completeJson<T>(request: {
     role: "writer" | "adapter" | "playtester" | "debugger" | "fixer";
     system: string;
@@ -40,13 +91,13 @@ export class ApiLlmClient implements LlmClient {
     const userText = JSON.stringify(request.input);
 
     if (this.apiType === "gemini") {
-      return this.callGemini<T>(systemPrompt, userText, request.schema, request.seed);
+      return this.callGemini<T>(request.role, systemPrompt, userText, request.schema, request.seed);
     } else {
-      return this.callOpenAi<T>(systemPrompt, userText, request.schema, request.seed);
+      return this.callOpenAi<T>(request.role, systemPrompt, userText, request.schema, request.seed);
     }
   }
 
-  private async callGemini<T>(system: string, input: string, schema: unknown, seed?: number): Promise<T> {
+  private async callGemini<T>(role: string, system: string, input: string, schema: unknown, seed?: number): Promise<T> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
 
     const body = {
@@ -84,10 +135,14 @@ export class ApiLlmClient implements LlmClient {
       throw new Error("Gemini API returned an empty or invalid response structure.");
     }
 
+    const promptTokens = data.usageMetadata?.promptTokenCount ?? 0;
+    const completionTokens = data.usageMetadata?.candidatesTokenCount ?? 0;
+    this.recordTokenUsage(role, this.model, promptTokens, completionTokens);
+
     return JSON.parse(text) as T;
   }
 
-  private async callOpenAi<T>(system: string, input: string, schema: unknown, seed?: number): Promise<T> {
+  private async callOpenAi<T>(role: string, system: string, input: string, schema: unknown, seed?: number): Promise<T> {
     const url = "https://api.openai.com/v1/chat/completions";
 
     const body = {
@@ -127,6 +182,10 @@ export class ApiLlmClient implements LlmClient {
     if (!text) {
       throw new Error("OpenAI API returned an empty or invalid response structure.");
     }
+
+    const promptTokens = data.usage?.prompt_tokens ?? 0;
+    const completionTokens = data.usage?.completion_tokens ?? 0;
+    this.recordTokenUsage(role, this.model, promptTokens, completionTokens);
 
     return JSON.parse(text) as T;
   }
