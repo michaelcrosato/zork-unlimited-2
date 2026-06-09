@@ -21,6 +21,7 @@ forest_playtest_log.md
 feedback_raw.jsonl
 feedback_consolidated.md
 traces/playtest_*.json
+traces/orchestrator_runs.jsonl
 
 # Temp / Debug / Cache
 scratch/
