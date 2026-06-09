@@ -35,15 +35,15 @@ export class ApiLlmClient implements LlmClient {
 
       // Compute estimated cost in USD
       let inputCostPerMillion = 0.15;
-      let outputCostPerMillion = 0.60;
+      let outputCostPerMillion = 0.6;
 
       const lowerModel = model.toLowerCase();
       if (lowerModel.includes("gemini-1.5-flash")) {
         inputCostPerMillion = 0.075;
-        outputCostPerMillion = 0.30;
+        outputCostPerMillion = 0.3;
       } else if (lowerModel.includes("gpt-4o-mini")) {
         inputCostPerMillion = 0.15;
-        outputCostPerMillion = 0.60;
+        outputCostPerMillion = 0.6;
       } else if (lowerModel.includes("opus-4-8")) {
         // Claude Opus 4.8 Fast Mode pricing as of June 2026 web search
         inputCostPerMillion = 10.0;
@@ -53,20 +53,21 @@ export class ApiLlmClient implements LlmClient {
         outputCostPerMillion = 15.0;
       } else if (lowerModel.includes("gemini-1.5-pro")) {
         inputCostPerMillion = 1.25;
-        outputCostPerMillion = 5.00;
+        outputCostPerMillion = 5.0;
       }
 
       const costUsd = (promptTokens * inputCostPerMillion + completionTokens * outputCostPerMillion) / 1000000;
 
-      const logLine = JSON.stringify({
-        timestamp: new Date().toISOString(),
-        model,
-        role,
-        promptTokens,
-        completionTokens,
-        totalTokens: promptTokens + completionTokens,
-        costUsd: parseFloat(costUsd.toFixed(6)),
-      }) + "\n";
+      const logLine =
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          model,
+          role,
+          promptTokens,
+          completionTokens,
+          totalTokens: promptTokens + completionTokens,
+          costUsd: parseFloat(costUsd.toFixed(6)),
+        }) + "\n";
 
       fs.appendFileSync(logPath, logLine, "utf-8");
     } catch (err) {
@@ -75,7 +76,7 @@ export class ApiLlmClient implements LlmClient {
   }
 
   async completeJson<T>(request: {
-    role: "writer" | "adapter" | "playtester" | "debugger" | "fixer";
+    role: "writer" | "adapter" | "playtester" | "debugger" | "fixer" | "orchestrator";
     system: string;
     input: unknown;
     schema: unknown;
@@ -97,6 +98,46 @@ export class ApiLlmClient implements LlmClient {
     }
   }
 
+  private getThinkingConfig(role: string): any {
+    const modelLower = this.model.toLowerCase();
+    const supportsThinking =
+      modelLower.includes("gemini-2.0") ||
+      modelLower.includes("gemini-2.5") ||
+      modelLower.includes("gemini-3") ||
+      modelLower.includes("gemini-3.5") ||
+      modelLower.includes("gemini-exp");
+
+    if (!supportsThinking) {
+      return {};
+    }
+
+    if (modelLower.includes("gemini-2.0") || modelLower.includes("gemini-2.5")) {
+      let thinkingBudget = 2048;
+      if (role === "playtester") {
+        thinkingBudget = 0;
+      } else if (role === "debugger" || role === "fixer" || role === "orchestrator") {
+        thinkingBudget = 4096;
+      }
+      return {
+        thinkingConfig: {
+          thinkingBudget: thinkingBudget,
+        },
+      };
+    } else {
+      let thinkingLevel = "MEDIUM";
+      if (role === "playtester") {
+        thinkingLevel = "LOW";
+      } else if (role === "debugger" || role === "fixer" || role === "orchestrator") {
+        thinkingLevel = "HIGH";
+      }
+      return {
+        thinkingConfig: {
+          thinkingLevel: thinkingLevel,
+        },
+      };
+    }
+  }
+
   private async callGemini<T>(role: string, system: string, input: string, schema: unknown, seed?: number): Promise<T> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
 
@@ -115,6 +156,7 @@ export class ApiLlmClient implements LlmClient {
         responseSchema: schema,
         temperature: 0.1,
         ...(seed !== undefined ? { seed } : {}),
+        ...this.getThinkingConfig(role),
       },
     };
 
@@ -224,7 +266,7 @@ export class FallbackLlmClient implements LlmClient {
   }
 
   async completeJson<T>(request: {
-    role: "writer" | "adapter" | "playtester" | "debugger" | "fixer";
+    role: "writer" | "adapter" | "playtester" | "debugger" | "fixer" | "orchestrator";
     system: string;
     input: unknown;
     schema: unknown;

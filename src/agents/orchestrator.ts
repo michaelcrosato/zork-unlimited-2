@@ -7,6 +7,37 @@ import { ParserPack } from "../parser/schema.js";
 import * as fs from "fs";
 import * as path from "path";
 
+/**
+ * Helper to apply structured JSON patches dynamically to a CYOAPack or ParserPack.
+ */
+function applyStructuredPatch(pack: any, patchStr: string): any {
+  try {
+    const patchObj = JSON.parse(patchStr);
+    if (patchObj && Array.isArray(patchObj.updates)) {
+      // Create a deep copy of pack to avoid mutating the original
+      const newPack = JSON.parse(JSON.stringify(pack));
+      for (const update of patchObj.updates) {
+        if (!update.path || update.value === undefined) continue;
+        const parts = update.path.split(".");
+        let current = newPack;
+        for (let i = 0; i < parts.length - 1; i++) {
+          const part = parts[i];
+          if (!(part in current)) {
+            current[part] = /^\d+$/.test(parts[i + 1]) ? [] : {};
+          }
+          current = current[part];
+        }
+        const lastPart = parts[parts.length - 1];
+        current[lastPart] = update.value;
+      }
+      return newPack;
+    }
+  } catch {
+    // Fall back to original pack if it is not valid structured JSON
+  }
+  return pack;
+}
+
 export interface OrchestratorOptions {
   client: LlmClient;
   maxSubagents?: number; // Maximum number of concurrent subagents we can deploy
@@ -219,6 +250,7 @@ export async function runOrchestratedAudit(
         const d = await diagnosePlaytest({
           client,
           logs,
+          pack,
           seed: baseSeed,
         });
 
@@ -261,6 +293,7 @@ export async function runOrchestratedAudit(
         const fix = await fixIdentifiedBug({
           client,
           diagnosis: run.diagnosis!,
+          pack,
           seed: baseSeed,
         });
 
@@ -341,8 +374,9 @@ export async function runOrchestratedAudit(
           console.log(`🚀 Subagent: Validating proposed fix for persona '${run.persona}'...`);
           totalSubagentsDeployed++;
 
+          const patchedPack = applyStructuredPatch(pack, run.proposedFix!.applied_patch);
           const retestResult = await runAiPlaytest({
-            pack,
+            pack: patchedPack,
             client,
             seed: baseSeed,
             traceId: `orchestrated_validation_${run.persona}_${packId}`,

@@ -12,6 +12,7 @@
     "replay": "tsx src/bin/replay.ts",
     "mcp": "tsx src/bin/mcp-server.ts",
     "autopilot": "tsx src/bin/ai-autopilot.ts",
+    "monitor": "tsx src/bin/loop-monitor.ts",
     "dev-loop": "bin/ai-autonomous-dev",
     "playtest": "tsx src/bin/playtest-session.ts",
     "playtest:loop": "bin/playtest-loop",

@@ -141,6 +141,28 @@ while true; do
     FAILURES=0
     echo "🟢 Cycle #$CYCLE executed successfully."
     
+    # Verify TypeScript build and tests directly in harness for AFK reliability
+    echo "🛠️ Verification Gate: Compiling code..."
+    if ! pnpm typecheck; then
+      echo "🔴 Verification Gate: TypeScript typecheck FAILED! Reverting changes to maintain repo integrity."
+      git restore .
+      git clean -fd
+      STATUS=1
+    else
+      echo "🟢 Verification Gate: TypeScript typecheck PASSED."
+      echo "🧪 Verification Gate: Running unit test suite..."
+      if ! pnpm test; then
+        echo "🔴 Verification Gate: Vitest tests FAILED! Reverting changes to maintain repo integrity."
+        git restore .
+        git clean -fd
+        STATUS=1
+      else
+        echo "🟢 Verification Gate: Vitest tests PASSED."
+      fi
+    fi
+  fi
+
+  if [ $STATUS -eq 0 ]; then
     # Autonomous Git staging and commit
     if [[ -n $(git status --porcelain) ]]; then
       echo ""

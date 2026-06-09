@@ -14,9 +14,10 @@ export type BugDiagnosis = {
 export async function diagnosePlaytest(options: {
   client: LlmClient;
   logs: PlaytestLogEntry[];
+  pack: any;
   seed?: number;
 }): Promise<BugDiagnosis> {
-  const system = `You are a professional game debugger. Review the playtest logs to identify structural bugs, soft-locks, or poor user experience.`;
+  const system = `You are a professional game debugger. Review the playtest logs and the content pack config data to identify structural bugs, soft-locks, or poor user experience.`;
   const schema = {
     type: "object",
     properties: {
@@ -31,7 +32,7 @@ export async function diagnosePlaytest(options: {
   return options.client.completeJson<BugDiagnosis>({
     role: "debugger",
     system,
-    input: { logs: options.logs },
+    input: { logs: options.logs, pack: options.pack },
     schema,
     seed: options.seed,
   });

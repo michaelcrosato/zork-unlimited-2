@@ -14,9 +14,19 @@ export type ContentFixResult = {
 export async function fixIdentifiedBug(options: {
   client: LlmClient;
   diagnosis: BugDiagnosis;
+  pack: any;
   seed?: number;
 }): Promise<ContentFixResult> {
-  const system = `You are a software and game design fixer. Propose a specific content fix or schema update to resolve the diagnosed issue.`;
+  const system = `You are a software and game design fixer. Propose a specific content fix or schema update to resolve the diagnosed issue.
+You receive both the diagnosis and the full content pack data.
+If you propose a content fix, your 'applied_patch' string SHOULD be a valid structured JSON object in the format:
+{
+  "updates": [
+    { "path": "scenes.0.text", "value": "New scene text..." },
+    { "path": "rooms.entrance.description", "value": "New room description..." }
+  ]
+}
+If a structured patch is not possible or the fix is not content-based, you may provide a normal textual description or unified diff.`;
   const schema = {
     type: "object",
     properties: {
@@ -31,7 +41,7 @@ export async function fixIdentifiedBug(options: {
   return options.client.completeJson<ContentFixResult>({
     role: "fixer",
     system,
-    input: { diagnosis: options.diagnosis },
+    input: { diagnosis: options.diagnosis, pack: options.pack },
     schema,
     seed: options.seed,
   });

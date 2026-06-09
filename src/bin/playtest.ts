@@ -124,6 +124,7 @@ function main() {
         diagnosePlaytest({
           client,
           logs: res.logs,
+          pack,
           seed,
         })
           .then((diagnosis) => {
@@ -134,6 +135,7 @@ function main() {
             return fixIdentifiedBug({
               client,
               diagnosis,
+              pack,
               seed,
             });
           })
