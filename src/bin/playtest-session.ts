@@ -16,6 +16,8 @@ import { fileURLToPath } from "node:url";
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { runBlindPlaytest } from "../playtest/blind_playtester.js";
 import { FallbackLlmClient } from "../agents/llm/api_client.js";
+import { StdioLlmClient } from "../agents/llm/stdio_client.js";
+import { LlmClient } from "../agents/llm/client.js";
 import { PERSONA_IDS } from "../playtest/personas.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -27,6 +29,7 @@ function parseArgs(): {
   maxSteps: number;
   seed: number | undefined;
   outputFile: string;
+  useStdio: boolean;
 } {
   const args = process.argv.slice(2);
   let packId = "";
@@ -34,6 +37,7 @@ function parseArgs(): {
   let maxSteps = 100;
   let seed: number | undefined;
   let outputFile = resolve(PROJECT_ROOT, "feedback_raw.jsonl");
+  let useStdio = false;
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -53,6 +57,9 @@ function parseArgs(): {
       case "--output":
       case "-o":
         outputFile = resolve(args[++i]);
+        break;
+      case "--stdio":
+        useStdio = true;
         break;
       case "--help":
       case "-h":
@@ -78,7 +85,7 @@ function parseArgs(): {
     process.exit(1);
   }
 
-  return { packId, personaId, maxSteps, seed, outputFile };
+  return { packId, personaId, maxSteps, seed, outputFile, useStdio };
 }
 
 function printHelp(): void {
@@ -91,6 +98,7 @@ Options:
   --max-steps <n>     Max turns before stopping (default: 100)
   --seed <n>          RNG seed for deterministic play
   --output, -o <path> Output JSONL file (default: feedback_raw.jsonl)
+  --stdio             Use stdin/stdout to delegate choices to local agent/subagent
   --help, -h          Show this help
 
 Example:
@@ -99,28 +107,37 @@ Example:
 }
 
 async function main(): Promise<void> {
-  const { packId, personaId, maxSteps, seed, outputFile } = parseArgs();
+  const { packId, personaId, maxSteps, seed, outputFile, useStdio } = parseArgs();
 
   console.error(`\n🎮 BLIND PLAYTEST SESSION`);
-  console.error(`   Pack:    ${packId}`);
-  console.error(`   Persona: ${personaId}`);
-  console.error(`   Max:     ${maxSteps} steps`);
-  console.error(`   Seed:    ${seed ?? "random"}`);
-  console.error(``);
+  console.error("   Pack:    " + packId);
+  console.error("   Persona: " + personaId);
+  console.error("   Max:     " + maxSteps + " steps");
+  console.error("   Seed:    " + (seed ?? "random"));
+  console.error("");
 
-  // Use FallbackLlmClient — auto-detects Gemini/OpenAI from env, falls back to Mock
-  const llmClient = new FallbackLlmClient();
-  const isMock = llmClient.getIsFallback();
-  const modelName = isMock
-    ? "mock"
-    : process.env.GEMINI_API_KEY
-      ? process.env.GEMINI_MODEL || "gemini-1.5-flash"
-      : process.env.OPENAI_MODEL || "gpt-4o-mini";
+  let llmClient: LlmClient;
+  let modelName = "";
 
-  if (isMock) {
-    console.error("⚠️  No API key found — using MockLlmClient (deterministic but limited)");
+  if (useStdio) {
+    llmClient = new StdioLlmClient();
+    modelName = "local-agent";
+    console.error("🤖 Using StdioLlmClient (parent/subagent will decide choices via stdin)");
   } else {
-    console.error(`🤖 Using model: ${modelName}`);
+    const fallback = new FallbackLlmClient();
+    llmClient = fallback;
+    const isMock = fallback.getIsFallback();
+    modelName = isMock
+      ? "mock"
+      : process.env.GEMINI_API_KEY
+        ? process.env.GEMINI_MODEL || "gemini-1.5-flash"
+        : process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+    if (isMock) {
+      console.error("⚠️  No API key found — using MockLlmClient (deterministic but limited)");
+    } else {
+      console.error(`🤖 Using model: ${modelName}`);
+    }
   }
 
   const startTime = Date.now();

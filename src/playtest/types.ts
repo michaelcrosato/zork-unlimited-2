@@ -158,44 +158,44 @@ export type InterviewQuestionEntry = {
  */
 export const INTERVIEW_QUESTIONS: readonly InterviewQuestionEntry[] = [
   {
+    key: "q05_confused",
+    question: "What were your first impressions of the game?",
+  },
+  {
     key: "q01_fun",
-    question: "Did you have fun? Yes/no and why. What kept you playing or made you want to stop?",
+    question: "Did you have fun playing the game? Why or why not?",
   },
   {
     key: "q02_best",
-    question: "What did you enjoy most? The single best moment or feature.",
+    question: "What did you enjoy most about the game?",
   },
   {
     key: "q03_worst",
-    question: "What did you dislike most? The single worst moment or frustration.",
+    question: "What did you dislike most about the experience?",
   },
   {
     key: "q04_one_change",
-    question: "If you could change ONE thing about this game, what would it be?",
-  },
-  {
-    key: "q05_confused",
-    question: "Were you ever confused about what to do next? Where? For how long? What did you try?",
+    question: "If you could change one thing about this game, what would that one thing be?",
   },
   {
     key: "q06_commands",
-    question: "Did the game understand your commands? Any times you typed something reasonable and got rejected?",
+    question: "Did the game understand your commands? (Keep answer very short)",
   },
   {
     key: "q07_story",
-    question: "Did the story make sense? Could you follow what was happening and why?",
+    question: "Did the story make sense? (Keep answer very short)",
   },
   {
     key: "q08_ending",
-    question: "How did the game end for you? Was the ending satisfying, abrupt, or confusing?",
+    question: "How did the game end for you? (Keep answer very short)",
   },
   {
     key: "q09_difficulty",
-    question: "Was the difficulty right? Too easy, too hard, or just right? Any specific puzzle that was unfair?",
+    question: "Was the difficulty right? (Keep answer very short)",
   },
   {
     key: "q10_recommend",
-    question: "Would you play this game again or recommend it? Why or why not?",
+    question: "Would you play this game again or recommend it? (Keep answer very short)",
   },
 ] as const;
 

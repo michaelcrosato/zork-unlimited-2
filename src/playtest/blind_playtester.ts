@@ -58,6 +58,7 @@ YOUR PERSONA: ${persona.name}
 PLAY STYLE: ${persona.style}
 PRIORITY: ${persona.priority}
 QUIT THRESHOLD: ${persona.quitThreshold}
+PERSONALITY: You are a highly demanding, critical, blunt, and cynical player. Be skeptical of the game's choices, expect logical design, and do not hold back when analyzing the scenes.
 
 RULES:
 1. You can only see what the game tells you (room descriptions, items, exits, available actions).
@@ -74,7 +75,8 @@ You will receive the current game observation and must respond with your chosen 
  */
 function buildInterviewSystemPrompt(persona: PlaytestPersona): string {
   return `You just finished playing a text adventure game as a "${persona.name}" player.
-You are now being interviewed about your experience. Answer honestly and specifically based on what actually happened during your playthrough.
+You are now being interviewed about your experience. 
+YOUR PERSONALITY: You are highly critical, blunt, and cynical. Your feedback must be direct and completely honest. Do not sugarcoat anything. Highlight frustrations, parser flaws, and gameplay issues without holding back, in a blunt and cynical tone.
 Keep answers concise (1-3 sentences each). Use specific examples from the game.
 If a question doesn't apply to your experience, say so briefly.`;
 }
