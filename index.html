@@ -1232,11 +1232,13 @@
           <h3 class="section-title">Movement & Exits</h3>
           <div class="compass-hud">
             <div class="compass-grid">
-              <button class="compass-btn" disabled></button>
+              <button class="compass-btn" disabled aria-hidden="true"></button>
               <button
                 class="compass-btn"
                 id="compass-n"
                 onclick="executeCompass('north')"
+                title="Go North"
+                aria-label="Go North"
               >
                 N
               </button>
@@ -1244,6 +1246,8 @@
                 class="compass-btn"
                 id="compass-u"
                 onclick="executeCompass('up')"
+                title="Go Up"
+                aria-label="Go Up"
               >
                 ▲
               </button>
@@ -1252,6 +1256,8 @@
                 class="compass-btn"
                 id="compass-w"
                 onclick="executeCompass('west')"
+                title="Go West"
+                aria-label="Go West"
               >
                 W
               </button>
@@ -1259,6 +1265,7 @@
                 class="compass-btn"
                 style="opacity: 0.3; cursor: default"
                 disabled
+                aria-hidden="true"
               >
                 ●
               </button>
@@ -1266,15 +1273,19 @@
                 class="compass-btn"
                 id="compass-e"
                 onclick="executeCompass('east')"
+                title="Go East"
+                aria-label="Go East"
               >
                 E
               </button>
 
-              <button class="compass-btn" disabled></button>
+              <button class="compass-btn" disabled aria-hidden="true"></button>
               <button
                 class="compass-btn"
                 id="compass-s"
                 onclick="executeCompass('south')"
+                title="Go South"
+                aria-label="Go South"
               >
                 S
               </button>
@@ -1282,6 +1293,8 @@
                 class="compass-btn"
                 id="compass-d"
                 onclick="executeCompass('down')"
+                title="Go Down"
+                aria-label="Go Down"
               >
                 ▼
               </button>
