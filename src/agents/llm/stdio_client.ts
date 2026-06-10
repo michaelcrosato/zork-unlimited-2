@@ -34,12 +34,12 @@ export class StdioLlmClient implements LlmClient {
       schema: request.schema,
       seed: request.seed,
     });
-    
+
     console.log(`[LLM_REQUEST] ${payload}`);
 
     // Wait for the decision to be typed into stdin
     const rawResponse = await this.readLineFromStdin();
-    
+
     try {
       return JSON.parse(rawResponse) as T;
     } catch (err: any) {
