@@ -961,7 +961,6 @@
             background: var(--bg-panel);
           "
           title="Toggle Synth Sound Effects"
-          aria-label="Toggle Synth Sound Effects"
         >
           🔇
         </button>
@@ -1077,7 +1076,7 @@
         </div>
 
         <!-- Adventure Text Log -->
-        <div class="terminal-container" id="adventure-log">
+        <div class="terminal-container" id="adventure-log" role="log" aria-live="polite" aria-atomic="false">
           <!-- Log Entries go here -->
         </div>
 
@@ -4313,6 +4312,18 @@
       /* ==================================================== */
       startNewGame();
       loadSavesList();
+
+      // Auto-focus prompt on load
+      window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("console-prompt-input")?.focus();
+      });
+
+      // Focus prompt when clicking the log (unless text is selected)
+      document.getElementById("adventure-log")?.addEventListener("click", () => {
+        if (!window.getSelection().toString()) {
+          document.getElementById("console-prompt-input")?.focus();
+        }
+      });
     </script>
 
     <!-- Premium Help & Onboarding Modal -->
@@ -4332,7 +4343,7 @@
           </h2>
           <button
             onclick="closeTutorialModal()"
-            aria-label="Close tutorial"
+            aria-label="Close tutorial modal"
             style="
               background: none;
               border: none;
@@ -4341,7 +4352,6 @@
               cursor: pointer;
               padding: 0;
             "
-            aria-label="Close tutorial modal"
           >
             ✕
           </button>
