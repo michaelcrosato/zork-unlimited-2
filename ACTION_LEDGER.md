@@ -16,4 +16,7 @@
 | 2 | `run_command` | pnpm test:integration | Executed MCP-server integration playtests successfully | ~150 |
 | 2 | `replace_file_content` | ai-autonomous-dev | Integrated test:integration verification gate into dev loop | ~150 |
 | 2 | `git commit` | ai-autonomous-dev | Committed dev loop verification gate update | ~100 |
+| 2 | `git fetch` / `git branch -r` | N/A | Inspected remote branches on GitHub | ~100 |
+| 2 | `git merge` | palette-compass-a11y... | Merged accessibility updates and resolved conflicts | ~150 |
+| 2 | `git push` | main / branch deletes | Pushed merge to main and deleted 2 remote branches | ~100 |
 

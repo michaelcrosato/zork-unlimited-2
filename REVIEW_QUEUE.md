@@ -26,6 +26,14 @@
 * **Status**: **SHIPPED**
 * **What was done**: Modified `bin/ai-autonomous-dev` loop harness to automatically run `pnpm test:integration` (MCP integration tests) on every loop iteration, confirming that game engine and playtest systems boot and run before commits.
 
+### 4. Remote Branch Audit, Merge & Cleanup
+* **Status**: **SHIPPED**
+* **What was done**:
+  * Reviewed all remote branches from GitHub.
+  * Merged accessibility improvements branch (`palette-compass-a11y-17557795580092602605`) into `main`, resolving minor layout conflicts.
+  * Deleted fully merged remote branches (`palette-compass-a11y-17557795580092602605` and `ux-improvements-aria-labels-confirmation-1990654135438715699`).
+* **Why**: Keeps the repository clean, unified, and standardizes UI accessibility primitives for screen readers.
+
 ---
 
 ## 🚨 Blocked Items

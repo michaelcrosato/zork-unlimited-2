@@ -5,6 +5,7 @@
 2. **Commit Stdio Playtester Changes**: [x] Done (Stdio client and cynical playtester changes committed).
 3. **Design & Implement Task-F4 (Procedural Weather & Real-Time Environmental Effects)**: [x] Done (Verified implementation/tests already complete in codebase; updated roadmap).
 4. **Integrate Blind Playtesting into the Dev Loop**: [x] Done (Added `pnpm test:integration` as a verification gate in the dev loop harness).
+5. **Remote Branch Review & Cleanup**: [x] Done (Merged unmerged accessibility branch, resolved conflicts, and deleted both remote branches).
 
 ## 🧠 Decisions Made & Rationale
 * **Orchestration Tracking Setup**: Created standard tracking files (`STATE.md`, `REVIEW_QUEUE.md`, `ORCHESTRATOR_LOG.md`, `ACTION_LEDGER.md`) to establish durable memory across stateless execution cycles.
