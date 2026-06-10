@@ -9,3 +9,7 @@
 ## 2025-02-14 - Exits Compass Accessibility and UX
 **Learning:** Abbreviated text buttons (like N, S, E, W) and geometric shape text (▲, ▼) used as interactive controls are confusing to screen readers without explicit `aria-label` mappings, and unintuitive to users without tooltips. The Exits compass used these and left users wondering what exact directions they mapped to.
 **Action:** Always explicitly label navigation controls and add descriptive tooltips (`title`) to icon-only or single-letter UI buttons. Also mark decorative disabled buttons (like center grid spacers) with `aria-hidden="true"`.
+
+## 2025-02-14 - Dynamic Terminal Log Updates
+**Learning:** In text adventure interfaces where content dynamically updates without a page reload (like appending text to a terminal log), screen readers won't read the new content unless specifically instructed. Appending logs without `aria-live` means blind users miss crucial game context and command results.
+**Action:** Always add `role="log"` and `aria-live="polite"` to containers that append textual events dynamically. Set `aria-atomic="false"` so screen readers only read the newly added nodes, not the entire log history.
